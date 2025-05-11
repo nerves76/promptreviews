@@ -39,7 +39,10 @@ export default function CreateBusinessPage() {
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [rawLogoFile, setRawLogoFile] = useState<File | null>(null);
 
-  const supabase = createBrowserClient();
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -243,6 +246,8 @@ export default function CreateBusinessPage() {
     setLogoUrl(null);
     setRawLogoFile(null);
   };
+
+  const apiKey = process.env.OPENAI_API_KEY;
 
   return (
     <div className="max-w-2xl mx-auto mt-10 p-6 bg-white rounded shadow">
