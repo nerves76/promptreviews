@@ -140,7 +140,7 @@ export default function Dashboard() {
     };
 
     fetchData();
-  }, [user]);
+  }, [searchParams, supabase]);
 
   // Debug: log business before rendering
   console.log('business:', business);

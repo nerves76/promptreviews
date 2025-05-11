@@ -116,9 +116,9 @@ export default function SignUp() {
                   <div className="ml-3">
                     <h3 className="text-sm font-medium text-blue-800">Email confirmation required</h3>
                     <div className="mt-2 text-sm text-blue-700">
-                      <p>We've sent a confirmation link to <span className="font-medium">{formData.email}</span>.</p>
+                      <p>We&apos;ve sent a confirmation link to <span className="font-medium">{formData.email}</span>.</p>
                       <p className="mt-2">Please check your email and click the confirmation link to activate your account.</p>
-                      <p className="mt-2">If you don't see the email, please check your spam folder.</p>
+                      <p className="mt-2">If you don&apos;t see the email, please check your spam folder.</p>
                     </div>
                   </div>
                 </div>
