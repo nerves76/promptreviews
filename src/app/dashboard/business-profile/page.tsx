@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { createPagesBrowserClient } from '@supabase/auth-helpers-nextjs';
+import { createBrowserClient } from '@supabase/ssr';
 import Cropper from 'react-easy-crop';
 import type { Area } from 'react-easy-crop';
 
@@ -81,7 +81,10 @@ export default function BusinessProfilePage() {
     const fetchProfile = async () => {
       setLoading(true);
       setError("");
-      const supabase = createPagesBrowserClient();
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError || !user) {
         setError("You must be signed in to view your business profile.");
@@ -229,7 +232,10 @@ export default function BusinessProfilePage() {
     setError("");
     setSuccess("");
     setLogoError("");
-    const supabase = createPagesBrowserClient();
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
       setError("You must be signed in to update your business profile.");
