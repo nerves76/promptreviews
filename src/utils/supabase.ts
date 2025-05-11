@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { Suspense } from 'react';
 
 const supabaseUrl = 'https://kkejemfchqaprtihvgon.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtrZWplbWZjaHFhcHJ0aWh2Z29uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY5MDE3NzksImV4cCI6MjA2MjQ3Nzc3OX0.UF4FLT4-oki29MoYC0guelksm71IPYoXc-RvtcoxlPo';
