@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { createPagesBrowserClient } from '@supabase/auth-helpers-nextjs';
 import { QRCodeSVG } from 'qrcode.react';
-import { Metadata } from 'next';
 
 interface ReviewRequest {
   id: string;
@@ -151,8 +150,4 @@ export default function Page({ params }: { params: { id: string } }) {
       </div>
     </div>
   );
-}
-
-export const metadata: Metadata = {
-  title: 'Review Page',
-}; 
+} 
