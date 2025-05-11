@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { createPagesBrowserClient } from '@supabase/auth-helpers-nextjs';
-import QRCode from 'qrcode.react';
+import { QRCodeSVG } from 'qrcode.react';
+import { Metadata } from 'next';
 
 interface ReviewRequest {
   id: string;
@@ -14,7 +15,7 @@ interface ReviewRequest {
   custom_incentive: string | null;
 }
 
-export default function ReviewPage({ params }: { params: { id: string } }) {
+export default function Page({ params }: { params: { id: string } }) {
   const [reviewRequest, setReviewRequest] = useState<ReviewRequest | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -133,7 +134,7 @@ export default function ReviewPage({ params }: { params: { id: string } }) {
 
             <div className="mt-8 flex justify-center">
               <div className="bg-white p-4 rounded-lg shadow">
-                <QRCode
+                <QRCodeSVG
                   value={window.location.href}
                   size={200}
                   level="H"
@@ -150,4 +151,8 @@ export default function ReviewPage({ params }: { params: { id: string } }) {
       </div>
     </div>
   );
-} 
+}
+
+export const metadata: Metadata = {
+  title: 'Review Page',
+}; 
