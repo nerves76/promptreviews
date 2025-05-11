@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef, Suspense } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -194,7 +194,6 @@ export default function Dashboard() {
   const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'there';
 
   return (
-    <Suspense fallback={<div>Loading...</div>}>
       <div className="min-h-screen bg-gradient-to-br from-blue-400 via-indigo-300 to-purple-200">
         <main className="max-w-4xl mx-auto py-12 px-4">
           <div className="bg-white shadow p-8 rounded-lg">
@@ -383,6 +382,5 @@ export default function Dashboard() {
           </div>
         )}
       </div>
-    </Suspense>
   );
 } 
