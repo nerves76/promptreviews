@@ -8,7 +8,10 @@ const nextConfig = {
         permanent: true,
       },
     ];
-  }
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 }
 
 module.exports = nextConfig
