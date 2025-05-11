@@ -14,7 +14,8 @@ interface ReviewRequest {
   custom_incentive: string | null;
 }
 
-export default function Page({ params }: { params: { id: string } }) {
+export default function Page(props: any) {
+  const { params } = props;
   const [reviewRequest, setReviewRequest] = useState<ReviewRequest | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
