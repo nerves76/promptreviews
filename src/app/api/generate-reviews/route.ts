@@ -32,7 +32,7 @@ Below is information about the business being reviewed:
 - Client Name: ${page.client_name}
 - Location: ${page.location}
 - Project Type: ${page.project_type}
-- Services Provided: ${page.services_provided.join(', ')}
+- Services Offered: ${(page.services_offered || '').split('\n').join(', ')}
 - Outcomes: ${page.outcomes}
 - Date Completed: ${page.date_completed}
 - Team Member: ${page.team_member || 'Not specified'}

@@ -5,8 +5,10 @@ import { useRouter } from "next/navigation";
 import { createBrowserClient } from '@supabase/ssr';
 import Cropper from 'react-easy-crop';
 import type { Area } from 'react-easy-crop';
+import { useAuthGuard } from '@/utils/authGuard';
 
 export default function BusinessProfilePage() {
+  useAuthGuard();
   const [form, setForm] = useState({
     name: "",
     services_offered: "",
@@ -17,8 +19,15 @@ export default function BusinessProfilePage() {
     taglines: "",
     keywords: "",
     team_info: "",
-    preferred_review_platforms: "",
+    review_platforms: [],
     platform_word_counts: "",
+    facebook_url: "",
+    instagram_url: "",
+    bluesky_url: "",
+    tiktok_url: "",
+    youtube_url: "",
+    linkedin_url: "",
+    pinterest_url: "",
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -26,7 +35,7 @@ export default function BusinessProfilePage() {
   const [noProfile, setNoProfile] = useState(false);
   const [services, setServices] = useState<string[]>([""]);
   const [platforms, setPlatforms] = useState([
-    { name: '', url: '', buttonText: '', wordCount: 200 }
+    { name: '', url: '', wordCount: 200 }
   ]);
   const [platformErrors, setPlatformErrors] = useState<string[]>([]);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
@@ -56,7 +65,7 @@ export default function BusinessProfilePage() {
     return '';
   };
 
-  const handlePlatformChange = (idx: number, field: 'name' | 'url' | 'buttonText', value: string) => {
+  const handlePlatformChange = (idx: number, field: 'name' | 'url', value: string) => {
     const newPlatforms = [...platforms];
     newPlatforms[idx][field] = value;
     setPlatforms(newPlatforms);
@@ -68,7 +77,7 @@ export default function BusinessProfilePage() {
   };
 
   const addPlatform = () => {
-    setPlatforms([...platforms, { name: '', url: '', buttonText: '', wordCount: 200 }]);
+    setPlatforms([...platforms, { name: '', url: '', wordCount: 200 }]);
     setPlatformErrors([...platformErrors, '']);
   };
 
@@ -94,11 +103,14 @@ export default function BusinessProfilePage() {
       const { data, error: fetchError } = await supabase
         .from("businesses")
         .select("*")
-        .eq("owner_id", user.id)
+        .eq("account_id", user.id)
         .single();
       if (fetchError) {
         if (fetchError.code === "PGRST116") { // No rows found
           setNoProfile(true);
+          // Automatically log out the user if no business profile is found
+          await supabase.auth.signOut();
+          router.push('/auth/sign-in');
         } else {
           setError(fetchError.message);
         }
@@ -115,19 +127,27 @@ export default function BusinessProfilePage() {
         taglines: data.taglines || "",
         keywords: data.keywords || "",
         team_info: data.team_info || "",
-        preferred_review_platforms: data.preferred_review_platforms || "",
+        review_platforms: data.review_platforms || [],
         platform_word_counts: data.platform_word_counts || "",
+        facebook_url: data.facebook_url || "",
+        instagram_url: data.instagram_url || "",
+        bluesky_url: data.bluesky_url || "",
+        tiktok_url: data.tiktok_url || "",
+        youtube_url: data.youtube_url || "",
+        linkedin_url: data.linkedin_url || "",
+        pinterest_url: data.pinterest_url || "",
       });
-      setServices(data.services_offered ? data.services_offered.split("\n") : [""]);
+      setServices(
+        Array.isArray(data.services_offered)
+          ? data.services_offered
+          : (typeof data.services_offered === 'string' && data.services_offered.length > 0)
+            ? data.services_offered.split('\n')
+            : [""]
+      );
       // Initialize platforms from JSON or fallback
-      let loadedPlatforms = [{ name: '', url: '', buttonText: '', wordCount: 200 }];
-      try {
-        if (data.preferred_review_platforms) {
-          loadedPlatforms = JSON.parse(data.preferred_review_platforms);
-          if (!Array.isArray(loadedPlatforms)) loadedPlatforms = [{ name: '', url: '', buttonText: '', wordCount: 200 }];
-        }
-      } catch {
-        loadedPlatforms = [{ name: '', url: '', buttonText: '', wordCount: 200 }];
+      let loadedPlatforms = [{ name: '', url: '', wordCount: 200 }];
+      if (Array.isArray(data.review_platforms)) {
+        loadedPlatforms = data.review_platforms;
       }
       setPlatforms(loadedPlatforms);
       setPlatformErrors(loadedPlatforms.map(() => ''));
@@ -261,7 +281,11 @@ export default function BusinessProfilePage() {
       .from("businesses")
       .update({
         name: form.name,
-        services_offered: services.filter(s => s.trim()).join("\n"),
+        services_offered: Array.isArray(services)
+          ? services.filter((s: string) => s && s.trim())
+          : typeof services === 'string'
+            ? [services].filter((s: string) => s && s.trim())
+            : [],
         company_values: form.company_values,
         differentiators: form.differentiators,
         years_in_business: form.years_in_business,
@@ -269,11 +293,18 @@ export default function BusinessProfilePage() {
         taglines: form.taglines,
         keywords: form.keywords,
         team_info: form.team_info,
-        preferred_review_platforms: JSON.stringify(platforms),
+        review_platforms: platforms,
         platform_word_counts: form.platform_word_counts,
         logo_url: uploadedLogoUrl,
+        facebook_url: form.facebook_url,
+        instagram_url: form.instagram_url,
+        bluesky_url: form.bluesky_url,
+        tiktok_url: form.tiktok_url,
+        youtube_url: form.youtube_url,
+        linkedin_url: form.linkedin_url,
+        pinterest_url: form.pinterest_url,
       })
-      .eq("owner_id", user.id);
+      .eq("account_id", user.id);
     if (updateError) {
       setError(updateError.message);
       setLoading(false);
@@ -299,7 +330,7 @@ export default function BusinessProfilePage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto mt-10 p-6 bg-white rounded shadow">
+    <div className="max-w-[850px] mx-auto mt-10 p-8 bg-white rounded-lg shadow">
       {logoUrl && (
         <div className="mb-6 text-center">
           <img src={logoUrl} alt="Business Logo" className="mx-auto rounded-full max-h-40 max-w-40 object-contain border" />
@@ -370,19 +401,19 @@ export default function BusinessProfilePage() {
           <p className="text-sm text-gray-500 mt-1">List the industries or types of clients you typically serve (e.g., healthcare, retail, tech).</p>
         </div>
         <div>
-          <label className="block font-medium mb-1">Taglines *</label>
+          <label className="block font-medium mb-1">Taglines</label>
           <textarea name="taglines" className="w-full border px-3 py-2 rounded" value={form.taglines} onChange={handleChange} />
           <p className="text-sm text-gray-500 mt-1">Enter any slogans or taglines you use in your marketing.</p>
         </div>
         <div>
           <label className="block font-medium mb-1">Keywords (comma separated)</label>
-          <input
-            type="text"
+          <textarea
             name="keywords"
-            className="w-full border px-3 py-2 rounded"
+            className="w-full border px-3 py-2 rounded min-h-[80px]"
             value={form.keywords}
             onChange={handleChange}
             placeholder="best therapist in Portland, amazing ADHD therapist, group sessions, works with most insurance companies, compassionate"
+            rows={4}
           />
           <p className="text-sm text-gray-500 mt-1">Add 5-10 keywords that you would like to see appear in your reviews.</p>
         </div>
@@ -391,6 +422,37 @@ export default function BusinessProfilePage() {
           <textarea name="team_info" className="w-full border px-3 py-2 rounded" value={form.team_info} onChange={handleChange} />
           <p className="text-sm text-gray-500 mt-1">Share a brief bio or background about your team or founder (optional).</p>
         </div>
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold">Social Media Links</h2>
+          <div>
+            <label className="block font-medium mb-1">Facebook URL</label>
+            <input type="url" name="facebook_url" className="w-full border px-3 py-2 rounded" value={form.facebook_url} onChange={handleChange} placeholder="https://facebook.com/yourbusiness" />
+          </div>
+          <div>
+            <label className="block font-medium mb-1">Instagram URL</label>
+            <input type="url" name="instagram_url" className="w-full border px-3 py-2 rounded" value={form.instagram_url} onChange={handleChange} placeholder="https://instagram.com/yourbusiness" />
+          </div>
+          <div>
+            <label className="block font-medium mb-1">Bluesky URL</label>
+            <input type="url" name="bluesky_url" className="w-full border px-3 py-2 rounded" value={form.bluesky_url} onChange={handleChange} placeholder="https://bsky.app/profile/yourbusiness" />
+          </div>
+          <div>
+            <label className="block font-medium mb-1">TikTok URL</label>
+            <input type="url" name="tiktok_url" className="w-full border px-3 py-2 rounded" value={form.tiktok_url} onChange={handleChange} placeholder="https://tiktok.com/@yourbusiness" />
+          </div>
+          <div>
+            <label className="block font-medium mb-1">YouTube URL</label>
+            <input type="url" name="youtube_url" className="w-full border px-3 py-2 rounded" value={form.youtube_url} onChange={handleChange} placeholder="https://youtube.com/@yourbusiness" />
+          </div>
+          <div>
+            <label className="block font-medium mb-1">LinkedIn URL</label>
+            <input type="url" name="linkedin_url" className="w-full border px-3 py-2 rounded" value={form.linkedin_url} onChange={handleChange} placeholder="https://linkedin.com/company/yourbusiness" />
+          </div>
+          <div>
+            <label className="block font-medium mb-1">Pinterest URL</label>
+            <input type="url" name="pinterest_url" className="w-full border px-3 py-2 rounded" value={form.pinterest_url} onChange={handleChange} placeholder="https://pinterest.com/yourbusiness" />
+          </div>
+        </div>
         <div>
           <label className="block font-medium mb-1">Preferred Review Platforms *</label>
           <div className="space-y-4">
@@ -398,13 +460,9 @@ export default function BusinessProfilePage() {
             <div className="flex gap-2 mb-1 text-sm font-semibold text-gray-700">
               <div className="w-1/4">Platform</div>
               <div className="w-1/3">Link</div>
-              <div className="w-1/4">Button Text</div>
               <div className="w-24">Word count limit</div>
             </div>
             {platforms.map((platform, idx) => {
-              const placeholderText = platform.name
-                ? `Review me on ${platform.name.charAt(0).toUpperCase() + platform.name.slice(1)}`
-                : 'Review me on Google';
               return (
                 <div key={idx} className="border rounded p-3 bg-gray-50 relative">
                   <div className="flex gap-2 mb-2">
@@ -412,7 +470,7 @@ export default function BusinessProfilePage() {
                       type="text"
                       placeholder="Platform Name (e.g., Google)"
                       className="border px-2 py-1 rounded w-1/4"
-                      value={platform.name}
+                      value={platform.name ?? ""}
                       onChange={e => handlePlatformChange(idx, 'name', e.target.value)}
                       required
                     />
@@ -420,16 +478,8 @@ export default function BusinessProfilePage() {
                       type="text"
                       placeholder="Review URL"
                       className="border px-2 py-1 rounded w-1/3"
-                      value={platform.url}
+                      value={platform.url ?? ""}
                       onChange={e => handlePlatformChange(idx, 'url', e.target.value)}
-                      required
-                    />
-                    <input
-                      type="text"
-                      placeholder={placeholderText}
-                      className="border px-2 py-1 rounded w-1/4"
-                      value={platform.buttonText}
-                      onChange={e => handlePlatformChange(idx, 'buttonText', e.target.value)}
                       required
                     />
                     <input

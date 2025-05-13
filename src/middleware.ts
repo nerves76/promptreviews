@@ -30,20 +30,20 @@ export async function middleware(req: NextRequest) {
   )
 
   // Refresh session if expired - required for Server Components
-  await supabase.auth.getSession()
+  const { data: { session } } = await supabase.auth.getSession()
+
+  // Protect dashboard routes
+  if (req.nextUrl.pathname.startsWith('/dashboard')) {
+    if (!session) {
+      const redirectUrl = new URL('/auth/sign-in', req.url)
+      return NextResponse.redirect(redirectUrl)
+    }
+  }
 
   return res
 }
 
+// Configure which routes to run middleware on
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * Feel free to modify this pattern to include more paths.
-     */
-    '/((?!_next/static|_next/image|favicon.ico).*)',
-  ],
+  matcher: ['/dashboard/:path*']
 } 

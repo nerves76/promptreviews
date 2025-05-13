@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { nanoid } from 'nanoid';
 import { createServerClient } from '@supabase/ssr';
+import { sanitizePromptPageInsert } from '@/utils/sanitizePromptPageInsert';
 
 export async function POST(request: Request) {
   try {
@@ -27,25 +28,24 @@ export async function POST(request: Request) {
     const slug = nanoid(8);
     
     // Create the prompt page in Supabase
+    const insertData = sanitizePromptPageInsert({
+      slug,
+      client_name: body.client_name,
+      location: body.location,
+      tone_of_voice: body.tone_of_voice,
+      project_type: body.project_type,
+      services_offered: Array.isArray(body.services_offered) ? body.services_offered : (typeof body.services_offered === 'string' ? [body.services_offered] : []),
+      outcomes: body.outcomes,
+      date_completed: body.date_completed,
+      team_member: body.team_member,
+      review_platforms: body.review_platform_links,
+      custom_incentive: body.custom_incentive,
+      account_id: body.business_id, // This should come from the authenticated user
+      status: 'draft',
+    });
     const { data, error } = await supabase
       .from('prompt_pages')
-      .insert([
-        {
-          slug,
-          client_name: body.clientName,
-          location: body.location,
-          tone_of_voice: body.toneOfVoice,
-          project_type: body.projectType,
-          services_provided: body.servicesProvided,
-          outcomes: body.outcomes,
-          date_completed: body.dateCompleted,
-          team_member: body.teamMember,
-          review_platform_links: body.reviewPlatformLinks,
-          custom_incentive: body.customIncentive,
-          business_id: body.businessId, // This should come from the authenticated user
-          status: 'draft',
-        },
-      ])
+      .insert([insertData])
       .select()
       .single();
 

@@ -39,8 +39,9 @@ export default function CreatePromptPage() {
     phone: '',
     project_type: '',
     outcomes: '',
-    review_platform_links: [] as ReviewPlatformLink[],
+    review_platforms: [] as ReviewPlatformLink[],
     custom_incentive: '',
+    services_offered: '',
   });
   const [businessProfile, setBusinessProfile] = useState<BusinessProfile | null>(null);
   const [generatingReview, setGeneratingReview] = useState<number | null>(null);
@@ -62,7 +63,7 @@ export default function CreatePromptPage() {
         const { data: businessData } = await supabase
           .from('businesses')
           .select('*')
-          .eq('owner_id', user.id)
+          .eq('account_id', user.id)
           .single();
 
         console.log('Fetched businessData:', businessData);
@@ -77,7 +78,7 @@ export default function CreatePromptPage() {
               if (Array.isArray(platforms)) {
                 setFormData(prev => ({
                   ...prev,
-                  review_platform_links: platforms.map(p => ({
+                  review_platforms: platforms.map(p => ({
                     platform: p.name || p.platform || '',
                     url: p.url,
                     buttonText: p.buttonText || `Review me on ${p.name || p.platform || ''}`,
@@ -100,21 +101,21 @@ export default function CreatePromptPage() {
   const handleAddPlatform = () => {
     setFormData(prev => ({
       ...prev,
-      review_platform_links: [...prev.review_platform_links, { platform: '', url: '', buttonText: '' }],
+      review_platforms: [...prev.review_platforms, { platform: '', url: '', buttonText: '' }],
     }));
   };
 
   const handleRemovePlatform = (index: number) => {
     setFormData(prev => ({
       ...prev,
-      review_platform_links: prev.review_platform_links.filter((_, i) => i !== index),
+      review_platforms: prev.review_platforms.filter((_, i) => i !== index),
     }));
   };
 
   const handlePlatformChange = (index: number, field: keyof ReviewPlatformLink, value: string | number) => {
     setFormData(prev => ({
       ...prev,
-      review_platform_links: prev.review_platform_links.map((link, i) =>
+      review_platforms: prev.review_platforms.map((link, i) =>
         i === index ? { ...link, [field]: value } : link
       ),
     }));
@@ -136,13 +137,13 @@ export default function CreatePromptPage() {
           project_type: formData.project_type,
           outcomes: formData.outcomes,
         },
-        formData.review_platform_links[index].platform,
-        formData.review_platform_links[index].wordCount || 200,
-        formData.review_platform_links[index].customInstructions
+        formData.review_platforms[index].platform,
+        formData.review_platforms[index].wordCount || 200,
+        formData.review_platforms[index].customInstructions
       );
       setFormData(prev => ({
         ...prev,
-        review_platform_links: prev.review_platform_links.map((link, i) =>
+        review_platforms: prev.review_platforms.map((link, i) =>
           i === index ? { ...link, reviewText: review } : link
         ),
       }));
@@ -163,13 +164,13 @@ export default function CreatePromptPage() {
         throw new Error('You must be signed in to create a prompt page');
       }
       // Filter out empty platform links
-      const filteredPlatformLinks = formData.review_platform_links.filter(
+      const filteredPlatformLinks = formData.review_platforms.filter(
         link => link.platform.trim() && link.url.trim()
       );
       const { data, error: insertError } = await supabase
         .from('prompt_pages')
         .insert({
-          business_id: session.user.id,
+          account_id: session.user.id,
           title: formData.title,
           first_name: formData.first_name,
           last_name: formData.last_name,
@@ -177,8 +178,9 @@ export default function CreatePromptPage() {
           phone: formData.phone,
           project_type: formData.project_type,
           outcomes: formData.outcomes,
-          review_platform_links: filteredPlatformLinks,
+          review_platforms: filteredPlatformLinks,
           custom_incentive: formData.custom_incentive || null,
+          services_offered: (formData.services_offered || '').split('\n').map(s => s.trim()).filter(Boolean),
           status: 'published',
         })
         .select()
@@ -295,6 +297,21 @@ export default function CreatePromptPage() {
         />
       </div>
 
+      <div>
+        <label htmlFor="services_offered" className="block text-sm font-medium text-gray-700 mt-4 mb-2">
+          Services Offered (one per line)
+        </label>
+        <textarea
+          id="services_offered"
+          value={formData.services_offered || ''}
+          onChange={e => setFormData(prev => ({ ...prev, services_offered: e.target.value }))}
+          rows={3}
+          className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+          placeholder="Enter each service on a new line"
+          required
+        />
+      </div>
+
       <div className="flex justify-end">
         <button
           type="button"
@@ -313,7 +330,7 @@ export default function CreatePromptPage() {
         <label className="block text-sm font-medium text-gray-700 mt-4 mb-2">Review Platforms</label>
         <p className="text-sm text-gray-500 mt-1 mb-2">Your business profile platforms have been pre-loaded. You can add more if needed.</p>
         <div className="mt-1 space-y-4">
-          {formData.review_platform_links.map((link, index) => (
+          {formData.review_platforms.map((link, index) => (
             <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-6 border rounded-lg bg-gray-50">
               <div className="space-y-4 flex flex-col justify-between">
                 <input
@@ -346,7 +363,7 @@ export default function CreatePromptPage() {
                   min="50"
                   max="1000"
                 />
-                {formData.review_platform_links.length > 1 && (
+                {formData.review_platforms.length > 1 && (
                   <button
                     type="button"
                     onClick={() => handleRemovePlatform(index)}

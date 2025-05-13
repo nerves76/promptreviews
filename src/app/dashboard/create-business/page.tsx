@@ -6,8 +6,11 @@ import { useRouter } from "next/navigation";
 import { createBrowserClient } from '@supabase/ssr';
 import Cropper from 'react-easy-crop';
 import type { Area } from 'react-easy-crop';
+import { useAuthGuard } from '@/utils/authGuard';
+import { sanitizePromptPageInsert } from '@/utils/sanitizePromptPageInsert';
 
 export default function CreateBusinessPage() {
+  useAuthGuard({ requireBusinessProfile: false });
   const [form, setForm] = useState({
     name: "",
     services_offered: "",
@@ -17,15 +20,22 @@ export default function CreateBusinessPage() {
     industries_served: "",
     taglines: "",
     team_info: "",
-    preferred_review_platforms: "",
+    review_platforms: [],
     platform_word_counts: "",
-    keywords: "best therapist in Portland, amazing ADHD therapist, group sessions, works with most insurance companies, compassionate",
+    keywords: "",
+    facebook_url: "",
+    instagram_url: "",
+    bluesky_url: "",
+    tiktok_url: "",
+    youtube_url: "",
+    linkedin_url: "",
+    pinterest_url: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const [platforms, setPlatforms] = useState([
-    { name: '', url: '', buttonText: '' }
+    { name: '', url: '', wordCount: 200 }
   ]);
   const [platformErrors, setPlatformErrors] = useState<string[]>([]);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
@@ -91,43 +101,77 @@ export default function CreateBusinessPage() {
     }
     // Set word count to 200 for each platform
     const platformsWithWordCount = platforms.map(p => ({ ...p, wordCount: 200 }));
-    // Insert the business profile
-    const { error: insertError } = await supabase
-      .from("businesses")
-      .insert([
-        {
-          name: form.name,
-          services_offered: services.filter(s => s.trim()).join("\n"),
-          company_values: form.company_values,
-          differentiators: form.differentiators,
-          years_in_business: form.years_in_business,
-          industries_served: form.industries_served,
-          taglines: form.taglines,
-          team_info: form.team_info,
-          preferred_review_platforms: JSON.stringify(platformsWithWordCount),
-          platform_word_counts: '', // not used on create
-          owner_id: user.id,
-          logo_url: uploadedLogoUrl,
-          keywords: form.keywords,
-        },
-      ]);
-    if (insertError) {
-      setError(insertError.message);
+    // Create business profile
+    const { data: businessData, error: businessError } = await supabase
+      .from('businesses')
+      .upsert({
+        id: user.id,
+        account_id: user.id,
+        name: form.name,
+        services_offered: Array.isArray(services)
+          ? services.filter((s: string) => s && s.trim())
+          : typeof services === 'string'
+            ? [services].filter((s: string) => s && s.trim())
+            : [],
+        company_values: form.company_values,
+        differentiators: form.differentiators,
+        years_in_business: form.years_in_business,
+        industries_served: form.industries_served,
+        taglines: form.taglines,
+        team_info: form.team_info,
+        review_platforms: platforms,
+        logo_url: uploadedLogoUrl,
+        keywords: form.keywords,
+        facebook_url: form.facebook_url,
+        instagram_url: form.instagram_url,
+        bluesky_url: form.bluesky_url,
+        tiktok_url: form.tiktok_url,
+        youtube_url: form.youtube_url,
+        linkedin_url: form.linkedin_url,
+        pinterest_url: form.pinterest_url,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+    if (businessError) {
+      setError(businessError.message);
       setLoading(false);
       return;
     }
     // Create Universal Prompt Page
+    console.log('About to insert universal prompt page');
+    const promptPageData = sanitizePromptPageInsert({
+      account_id: user.id,
+      slug: `universal-${user.id}`,
+      client_name: '',
+      location: '',
+      tone_of_voice: '',
+      project_type: '',
+      services_offered: typeof services === 'string'
+        ? [services].filter((s: string) => s && s.trim())
+        : Array.isArray(services)
+          ? (services as string[]).filter((s: string) => s && s.trim())
+          : [],
+      outcomes: '',
+      date_completed: '',
+      team_member: null,
+      review_platforms: platformsWithWordCount,
+      custom_incentive: null,
+      status: 'published',
+      is_universal: true
+    });
+    // Log for debugging
+    console.log('UNIVERSAL PROMPT PAGE services_offered:', promptPageData.services_offered, Array.isArray(promptPageData.services_offered));
+    // Force remove date_completed if falsy
+    if (!promptPageData.date_completed) {
+      delete promptPageData.date_completed;
+    }
+    console.log('Prompt page data being inserted:', JSON.stringify(promptPageData, null, 2));
     const { error: universalError } = await supabase
       .from('prompt_pages')
-      .insert({
-        account_id: user.id,
-        client_name: '',
-        project_type: '',
-        outcomes: '',
-        review_platform_links: platformsWithWordCount,
-        custom_incentive_text: null,
-        is_universal: true,
-      });
+      .upsert([promptPageData], { onConflict: 'slug' });
+    console.log('Insert result:', universalError);
     if (universalError) {
       setError('Business created, but failed to create Universal Prompt Page: ' + universalError.message);
       setLoading(false);
@@ -152,9 +196,9 @@ export default function CreateBusinessPage() {
     return '';
   };
 
-  const handlePlatformChange = (idx: number, field: 'name' | 'url' | 'buttonText', value: string) => {
+  const handlePlatformChange = (idx: number, field: 'name' | 'url', value: string) => {
     const newPlatforms = [...platforms];
-    newPlatforms[idx][field] = value;
+    newPlatforms[idx] = { ...newPlatforms[idx], [field]: value };
     setPlatforms(newPlatforms);
     // Validate on change
     const error = validatePlatformUrl(newPlatforms[idx].name, newPlatforms[idx].url);
@@ -164,7 +208,7 @@ export default function CreateBusinessPage() {
   };
 
   const addPlatform = () => {
-    setPlatforms([...platforms, { name: '', url: '', buttonText: '' }]);
+    setPlatforms([...platforms, { name: '', url: '', wordCount: 200 }]);
     setPlatformErrors([...platformErrors, '']);
   };
 
@@ -252,7 +296,7 @@ export default function CreateBusinessPage() {
 
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <div className="max-w-2xl mx-auto mt-10 p-6 bg-white rounded shadow">
+      <div className="max-w-[850px] mx-auto mt-10 p-8 bg-white rounded-lg shadow">
         <h1 className="text-2xl font-bold mb-4">Create Your Business Profile</h1>
         <form onSubmit={handleSubmit} className="space-y-8">
           {success && (
@@ -309,7 +353,7 @@ export default function CreateBusinessPage() {
             <p className="text-sm text-gray-500 mt-1">List the industries or types of clients you typically serve (e.g., healthcare, retail, tech).</p>
           </div>
           <div>
-            <label className="block font-medium mb-1">Taglines *</label>
+            <label className="block font-medium mb-1">Taglines</label>
             <textarea name="taglines" className="w-full border px-3 py-2 rounded" value={form.taglines} onChange={handleChange} />
             <p className="text-sm text-gray-500 mt-1">Enter any slogans or taglines you use in your marketing.</p>
           </div>
@@ -317,6 +361,37 @@ export default function CreateBusinessPage() {
             <label className="block font-medium mb-1">Team or Founder Info (optional)</label>
             <textarea name="team_info" className="w-full border px-3 py-2 rounded" value={form.team_info} onChange={handleChange} />
             <p className="text-sm text-gray-500 mt-1">Share a brief bio or background about your team or founder (optional).</p>
+          </div>
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold">Social Media Links</h2>
+            <div>
+              <label className="block font-medium mb-1">Facebook URL</label>
+              <input type="url" name="facebook_url" className="w-full border px-3 py-2 rounded" value={form.facebook_url} onChange={handleChange} placeholder="https://facebook.com/yourbusiness" />
+            </div>
+            <div>
+              <label className="block font-medium mb-1">Instagram URL</label>
+              <input type="url" name="instagram_url" className="w-full border px-3 py-2 rounded" value={form.instagram_url} onChange={handleChange} placeholder="https://instagram.com/yourbusiness" />
+            </div>
+            <div>
+              <label className="block font-medium mb-1">Bluesky URL</label>
+              <input type="url" name="bluesky_url" className="w-full border px-3 py-2 rounded" value={form.bluesky_url} onChange={handleChange} placeholder="https://bsky.app/profile/yourbusiness" />
+            </div>
+            <div>
+              <label className="block font-medium mb-1">TikTok URL</label>
+              <input type="url" name="tiktok_url" className="w-full border px-3 py-2 rounded" value={form.tiktok_url} onChange={handleChange} placeholder="https://tiktok.com/@yourbusiness" />
+            </div>
+            <div>
+              <label className="block font-medium mb-1">YouTube URL</label>
+              <input type="url" name="youtube_url" className="w-full border px-3 py-2 rounded" value={form.youtube_url} onChange={handleChange} placeholder="https://youtube.com/@yourbusiness" />
+            </div>
+            <div>
+              <label className="block font-medium mb-1">LinkedIn URL</label>
+              <input type="url" name="linkedin_url" className="w-full border px-3 py-2 rounded" value={form.linkedin_url} onChange={handleChange} placeholder="https://linkedin.com/company/yourbusiness" />
+            </div>
+            <div>
+              <label className="block font-medium mb-1">Pinterest URL</label>
+              <input type="url" name="pinterest_url" className="w-full border px-3 py-2 rounded" value={form.pinterest_url} onChange={handleChange} placeholder="https://pinterest.com/yourbusiness" />
+            </div>
           </div>
           <div>
             <label className="block font-medium mb-1">Preferred Review Platforms *</label>
@@ -346,28 +421,16 @@ export default function CreateBusinessPage() {
                         required
                       />
                     </div>
-                    <div className="flex-1">
-                      <label className="block text-xs font-medium text-gray-700 mb-1">Button Text</label>
-                      <input
-                        type="text"
-                        placeholder="Submit Review"
-                        className="border px-2 py-1 rounded w-full"
-                        value={platform.buttonText}
-                        onChange={e => handlePlatformChange(idx, 'buttonText', e.target.value)}
-                        required
-                      />
-                    </div>
-                    {platforms.length > 1 && (
-                      <button type="button" onClick={() => removePlatform(idx)} className="ml-2 text-red-600 font-bold">&times;</button>
-                    )}
                   </div>
-                  {platformErrors[idx] && (
-                    <p className="text-sm text-red-600" dangerouslySetInnerHTML={{ __html: platformErrors[idx] }} />
-                  )}
                 </div>
               ))}
-              <button type="button" onClick={addPlatform} className="text-blue-600 underline mt-2">+ Add Platform</button>
-              <p className="text-sm text-gray-500 mt-1">Add each review platform you want to collect reviews on. For Google, Facebook, or Yelp, please enter the correct review link.</p>
+              <button
+                type="button"
+                onClick={() => setPlatforms([...platforms, { name: '', url: '', wordCount: 200 }])}
+                className="text-blue-600 underline mt-2"
+              >
+                + Add Platform
+              </button>
             </div>
           </div>
           <div className="mb-4">
@@ -423,13 +486,13 @@ export default function CreateBusinessPage() {
           )}
           <div>
             <label className="block font-medium mb-1">Keywords (comma separated)</label>
-            <input
-              type="text"
+            <textarea
               name="keywords"
-              className="w-full border px-3 py-2 rounded"
+              className="w-full border px-3 py-2 rounded min-h-[80px]"
               value={form.keywords}
               onChange={handleChange}
               placeholder="best therapist in Portland, amazing ADHD therapist, group sessions, works with most insurance companies, compassionate"
+              rows={4}
             />
             <p className="text-sm text-gray-500 mt-1">Add 5-10 keywords that you would like to see appear in your reviews.</p>
           </div>

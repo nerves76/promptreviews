@@ -14,16 +14,16 @@ export type PromptPage = {
   location: string;
   tone_of_voice: string;
   project_type: string;
-  services_provided: string[];
+  services_offered: string;
   outcomes: string;
   date_completed: string;
   team_member: string | null;
-  review_platform_links: {
+  review_platforms: {
     platform: string;
     url: string;
   }[];
   custom_incentive: string | null;
-  business_id: string;
+  account_id: string;
   status: 'draft' | 'published';
 };
 
