@@ -1,5 +1,9 @@
 'use client';
 
-   export default function Dashboard() {
-     return <div>Test</div>;
-   }
+import { useRef } from 'react';
+
+export default function Dashboard() {
+  const createPromptPageRef = useRef<HTMLAnchorElement>(null);
+
+  return <div>Test</div>;
+}

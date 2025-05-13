@@ -7,7 +7,7 @@ interface DashboardContentProps {
   business: any;
   customPromptPages: any[];
   universalPromptPage: any;
-  createPromptPageRef: RefObject<HTMLAnchorElement | null>;
+  createPromptPageRef: RefObject<HTMLAnchorElement>;
   handleCreatePromptPageClick: (e: React.MouseEvent<HTMLAnchorElement>) => void;
   showQR: boolean;
   handleCopyLink: () => void;
