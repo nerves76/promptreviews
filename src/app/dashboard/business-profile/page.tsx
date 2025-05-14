@@ -48,6 +48,8 @@ export default function BusinessProfilePage() {
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
   const [rawLogoFile, setRawLogoFile] = useState<File | null>(null);
+  const [copySuccess, setCopySuccess] = useState('');
+  const [accountId, setAccountId] = useState<string | null>(null);
 
   // Helper to validate review URLs for known platforms
   const validatePlatformUrl = (name: string, url: string) => {
@@ -87,19 +89,20 @@ export default function BusinessProfilePage() {
   };
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      setLoading(true);
-      setError("");
+    const fetchProfileAndUser = async () => {
       const supabase = createBrowserClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
       );
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError || !user) {
-        setError("You must be signed in to view your business profile.");
+      // Fetch user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setError('You must be signed in to view your business profile.');
         setLoading(false);
         return;
       }
+      setAccountId(user.id);
+      // Fetch business profile (existing logic)
       const { data, error: fetchError } = await supabase
         .from("businesses")
         .select("*")
@@ -117,26 +120,7 @@ export default function BusinessProfilePage() {
         setLoading(false);
         return;
       }
-      setForm({
-        name: data.name || "",
-        services_offered: data.services_offered || "",
-        company_values: data.company_values || "",
-        differentiators: data.differentiators || "",
-        years_in_business: data.years_in_business || "",
-        industries_served: data.industries_served || "",
-        taglines: data.taglines || "",
-        keywords: data.keywords || "",
-        team_info: data.team_info || "",
-        review_platforms: data.review_platforms || [],
-        platform_word_counts: data.platform_word_counts || "",
-        facebook_url: data.facebook_url || "",
-        instagram_url: data.instagram_url || "",
-        bluesky_url: data.bluesky_url || "",
-        tiktok_url: data.tiktok_url || "",
-        youtube_url: data.youtube_url || "",
-        linkedin_url: data.linkedin_url || "",
-        pinterest_url: data.pinterest_url || "",
-      });
+      setForm(data);
       setServices(
         Array.isArray(data.services_offered)
           ? data.services_offered
@@ -154,7 +138,7 @@ export default function BusinessProfilePage() {
       setLogoUrl(data.logo_url || null);
       setLoading(false);
     };
-    fetchProfile();
+    fetchProfileAndUser();
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -312,7 +296,7 @@ export default function BusinessProfilePage() {
     }
     setSuccess("Profile updated successfully!");
     setLoading(false);
-    setTimeout(() => router.push("/dashboard"), 1200);
+    setTimeout(() => router.push("/dashboard"), 1500);
   };
 
   if (loading) {
@@ -330,7 +314,25 @@ export default function BusinessProfilePage() {
   }
 
   return (
-    <div className="max-w-[850px] mx-auto mt-10 p-8 bg-white rounded-lg shadow">
+    <div className="max-w-4xl mx-auto mt-10 p-8 bg-white rounded-lg shadow">
+      {/* Account ID Display */}
+      {accountId && (
+        <div className="mb-6 flex items-center gap-2">
+          <span className="text-sm text-gray-500">Account ID:</span>
+          <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded select-all">{accountId}</span>
+          <button
+            className="ml-2 px-2 py-1 text-xs bg-indigo-100 text-indigo-700 rounded hover:bg-indigo-200"
+            onClick={() => {
+              navigator.clipboard.writeText(accountId);
+              setCopySuccess('Copied!');
+              setTimeout(() => setCopySuccess(''), 1500);
+            }}
+          >
+            Copy
+          </button>
+          {copySuccess && <span className="ml-2 text-green-600 text-xs font-semibold">{copySuccess}</span>}
+        </div>
+      )}
       {logoUrl && (
         <div className="mb-6 text-center">
           <img src={logoUrl} alt="Business Logo" className="mx-auto rounded-full max-h-40 max-w-40 object-contain border" />
@@ -510,8 +512,16 @@ export default function BusinessProfilePage() {
             <p className="text-sm text-gray-500 mt-1">Add each review platform you want to collect reviews on. For Google, Facebook, or Yelp, please enter the correct review link.</p>
           </div>
         </div>
-        {error && <div className="text-red-600">{error}</div>}
-        {success && <div className="text-green-600">{success}</div>}
+        {error && (
+          <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-md">
+            {error}
+          </div>
+        )}
+        {success && (
+          <div className="mb-4 p-4 bg-green-50 text-green-700 rounded-md">
+            {success}
+          </div>
+        )}
         <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded" disabled={loading}>
           {loading ? "Saving..." : "Save Changes"}
         </button>

@@ -2,10 +2,6 @@
 ALTER TABLE public.prompt_pages 
 RENAME COLUMN business_id TO reviewer_id;
 
--- Rename business_id to reviewer_id in review_requests table
-ALTER TABLE public.review_requests 
-RENAME COLUMN business_id TO reviewer_id;
-
 -- Rename owner_id to reviewer_id in businesses table
 ALTER TABLE public.businesses 
 RENAME COLUMN owner_id TO reviewer_id;
@@ -17,13 +13,6 @@ ON public.prompt_pages
 FOR SELECT
 TO authenticated
 USING (account_id = auth.uid());
-
-DROP POLICY IF EXISTS "Users can view their own review requests" ON public.review_requests;
-CREATE POLICY "Users can view their own review requests"
-ON public.review_requests
-FOR SELECT
-TO authenticated
-USING (reviewer_id = auth.uid());
 
 DROP POLICY IF EXISTS "Users can view their own businesses" ON public.businesses;
 CREATE POLICY "Users can view their own businesses"

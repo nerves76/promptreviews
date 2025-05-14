@@ -1,13 +1,15 @@
 'use client';
 import Link from 'next/link';
-import { RefObject } from 'react';
+import { RefObject, useState, useEffect } from 'react';
+import { createBrowserClient } from '@supabase/ssr';
+import { useAuthGuard } from '@/utils/authGuard';
 
 interface DashboardContentProps {
   userName: string;
   business: any;
   customPromptPages: any[];
   universalPromptPage: any;
-  createPromptPageRef: RefObject<HTMLAnchorElement>;
+  createPromptPageRef: RefObject<HTMLAnchorElement | null>;
   handleCreatePromptPageClick: (e: React.MouseEvent<HTMLAnchorElement>) => void;
   showQR: boolean;
   handleCopyLink: () => void;
@@ -20,6 +22,30 @@ interface DashboardContentProps {
   QRCode: any;
   setShowQR: (show: boolean) => void;
 }
+
+interface PromptPage {
+  id: string;
+  title: string;
+  slug: string;
+  status: 'in_queue' | 'on_hold' | 'accomplished';
+  created_at: string;
+  phone?: string;
+  email?: string;
+  first_name?: string;
+  last_name?: string;
+}
+
+const STATUS_COLORS = {
+  in_queue: 'bg-blue-100 text-blue-800',
+  on_hold: 'bg-yellow-100 text-yellow-800',
+  accomplished: 'bg-green-100 text-green-800',
+};
+
+const STATUS_LABELS = {
+  in_queue: 'In Queue',
+  on_hold: 'On Hold',
+  accomplished: 'Complete',
+};
 
 export default function DashboardContent({
   userName,
@@ -39,10 +65,146 @@ export default function DashboardContent({
   QRCode,
   setShowQR
 }: DashboardContentProps) {
+  useAuthGuard();
+  const [promptPages, setPromptPages] = useState<PromptPage[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedTab, setSelectedTab] = useState<'in_queue' | 'on_hold' | 'accomplished'>('in_queue');
+
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
+  useEffect(() => {
+    const fetchPromptPages = async () => {
+      try {
+        // Log environment variables (without exposing the actual values)
+        console.log('Environment check:', {
+          hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+          hasSupabaseKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+        });
+
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+          throw new Error('Supabase environment variables are not configured');
+        }
+
+        // Test Supabase connection
+        const { data: testData, error: testError } = await supabase.from('prompt_pages').select('count').limit(1);
+        console.log('Supabase connection test:', { testData, testError });
+
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        console.log('Auth check:', { 
+          hasUser: !!user, 
+          userId: user?.id,
+          userError: userError ? {
+            message: userError.message,
+            status: userError.status
+          } : null
+        });
+
+        if (userError) {
+          console.error('Auth error:', userError);
+          throw new Error('Authentication error: ' + userError.message);
+        }
+        
+        if (!user) {
+          setError('You must be signed in to view prompt pages');
+          return;
+        }
+
+        console.log('Fetching prompt pages for user:', user.id);
+
+        // Try a simpler query first
+        const { data, error } = await supabase
+          .from('prompt_pages')
+          .select('id, title, slug, status, created_at, phone, email, first_name, last_name')
+          .eq('account_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Supabase query error:', {
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            code: error.code
+          });
+          throw error;
+        }
+
+        if (!data) {
+          console.log('No data returned from query');
+          setPromptPages([]);
+          return;
+        }
+
+        console.log('Fetched prompt pages:', data);
+        setPromptPages(data);
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to load prompt pages';
+        setError(errorMessage);
+        console.error('Error loading prompt pages:', {
+          message: errorMessage,
+          error: err,
+          supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ? 'set' : 'not set',
+          supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'set' : 'not set'
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPromptPages();
+  }, [supabase]);
+
+  const updateStatus = async (pageId: string, newStatus: 'in_queue' | 'on_hold' | 'accomplished') => {
+    try {
+      const { error } = await supabase
+        .from('prompt_pages')
+        .update({ status: newStatus })
+        .eq('id', pageId);
+
+      if (error) throw error;
+
+      setPromptPages(pages =>
+        pages.map(page =>
+          page.id === pageId ? { ...page, status: newStatus } : page
+        )
+      );
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update status';
+      console.error('Error updating status:', {
+        message: errorMessage,
+        error: err
+      });
+      setError(errorMessage);
+    }
+  };
+
+  const filteredPromptPages = promptPages.filter(page => {
+    if (selectedTab === 'in_queue') return page.status === 'in_queue';
+    if (selectedTab === 'on_hold') return page.status === 'on_hold';
+    if (selectedTab === 'accomplished') return page.status === 'accomplished';
+    return true;
+  });
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen">
+        <div className="max-w-4xl mx-auto bg-white rounded-lg shadow p-16">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading prompt pages...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
-      <div className="min-h-screen bg-gradient-to-br from-blue-400 via-indigo-300 to-purple-200">
-        <div className="max-w-[1000px] mx-auto bg-white rounded-lg shadow p-8 py-12 px-4">
+      <div className="min-h-screen">
+        <div className="max-w-4xl mx-auto bg-white rounded-lg shadow pt-8 pb-24 px-8">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900">
               Welcome, {userName}!
@@ -83,7 +245,7 @@ export default function DashboardContent({
                   </div>
                   <p className="text-blue-900 mb-2 text-sm">This prompt page is general use and not customer specific. Good for situations where you don't know much about the customer or client you want reviews from. Also useful if you want to post a QR code in your place of business or on a business card.</p>
                   <div className="flex flex-wrap gap-2 items-center mt-2">
-                    <Link href={`/r/${universalPromptPage.id}`} className="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium shadow">
+                    <Link href={`/r/${universalPromptPage.slug}`} className="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium shadow">
                       View Universal Prompt Page
                     </Link>
                     <button
@@ -102,17 +264,60 @@ export default function DashboardContent({
                     </button>
                     {copySuccess && <span className="ml-2 text-green-600 text-xs font-semibold">{copySuccess}</span>}
                   </div>
+                  {/* Send SMS Button */}
+                  <div className="mt-4">
+                    <button
+                      type="button"
+                      className="inline-flex items-center px-3 py-1.5 bg-green-600 text-white rounded hover:bg-green-700 text-sm font-medium shadow"
+                      onClick={() => {
+                        const phone = business?.phone || '';
+                        const name = business?.contact_name || '[name]';
+                        const businessName = business?.name || '[Business]';
+                        const reviewUrl = `${window.location.origin}/r/${universalPromptPage.slug}`;
+                        const message = `Hi ${name}, do you have 1-3 minutes to leave a review for ${businessName}? I have a review you can use and everything. Positive reviews really help small business get found online. Thanks so much! ${reviewUrl}`;
+                        if (phone) {
+                          window.location.href = `sms:${phone}?&body=${encodeURIComponent(message)}`;
+                        } else {
+                          alert('Please add a phone number to your business profile to send an SMS.');
+                        }
+                      }}
+                    >
+                      Send SMS
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
+
+            {/* Tabs for status filtering - moved here */}
+            <div className="flex gap-2 mb-4">
+              <button
+                className={`px-4 py-2 rounded-t-md font-semibold border-b-2 transition-colors ${selectedTab === 'in_queue' ? 'border-indigo-600 text-indigo-700 bg-indigo-50' : 'border-transparent text-gray-600 bg-gray-100 hover:bg-gray-200'}`}
+                onClick={() => setSelectedTab('in_queue')}
+              >
+                In Queue
+              </button>
+              <button
+                className={`px-4 py-2 rounded-t-md font-semibold border-b-2 transition-colors ${selectedTab === 'on_hold' ? 'border-yellow-500 text-yellow-700 bg-yellow-50' : 'border-transparent text-gray-600 bg-gray-100 hover:bg-gray-200'}`}
+                onClick={() => setSelectedTab('on_hold')}
+              >
+                On Hold
+              </button>
+              <button
+                className={`px-4 py-2 rounded-t-md font-semibold border-b-2 transition-colors ${selectedTab === 'accomplished' ? 'border-green-600 text-green-700 bg-green-50' : 'border-transparent text-gray-600 bg-gray-100 hover:bg-gray-200'}`}
+                onClick={() => setSelectedTab('accomplished')}
+              >
+                Complete
+              </button>
+            </div>
 
             {/* Custom Prompt Pages Table */}
             <div>
               <h3 className="text-lg font-medium leading-6 text-gray-900">Your Custom Prompt Pages</h3>
               <div className="mt-4">
-                {business && customPromptPages.length === 0 ? (
-                  <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
-                    <p className="text-gray-500">No custom prompt pages yet. Create your first one!</p>
+                {business && filteredPromptPages.length === 0 ? (
+                  <div className="text-center py-24 bg-white rounded-lg border border-gray-200">
+                    <p className="text-gray-500">No prompt pages in this status.</p>
                   </div>
                 ) : (
                   <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
@@ -123,35 +328,73 @@ export default function DashboardContent({
                             Title
                           </th>
                           <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                            Status
+                          </th>
+                          <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                             Created
                           </th>
                           <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
-                            <span className="sr-only">View</span>
+                            <span className="sr-only">Actions</span>
                           </th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200 bg-white">
-                        {customPromptPages.map((page) => (
+                        {filteredPromptPages.map((page) => (
                           <tr key={page.id}>
                             <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                               {page.title}
                             </td>
+                            <td className="whitespace-nowrap px-3 py-4 text-sm">
+                              <select
+                                value={page.status}
+                                onChange={(e) => updateStatus(page.id, e.target.value as 'in_queue' | 'on_hold' | 'accomplished')}
+                                className={`rounded-full px-2 py-1 text-xs font-medium ${STATUS_COLORS[page.status] || 'bg-gray-100 text-gray-800'}`}
+                              >
+                                <option value="in_queue">In Queue</option>
+                                <option value="on_hold">On Hold</option>
+                                <option value="accomplished">Complete</option>
+                              </select>
+                            </td>
                             <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                               {new Date(page.created_at).toLocaleDateString()}
                             </td>
-                            <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6 flex gap-2">
+                            <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6 flex gap-2 items-center">
                               <Link
-                                href={`/r/${page.id}`}
+                                href={`/r/${page.slug}`}
                                 className="text-indigo-600 hover:text-indigo-900"
                               >
                                 View
                               </Link>
                               <Link
-                                href={`/dashboard/edit-prompt-page/${page.id}`}
-                                className="text-blue-600 hover:text-blue-900 ml-2"
+                                href={`/dashboard/edit-prompt-page/${page.slug}`}
+                                className="text-indigo-600 hover:text-indigo-900"
                               >
                                 Edit
                               </Link>
+                              {/* Send SMS/Email Buttons */}
+                              {page.phone && (
+                                <button
+                                  type="button"
+                                  className="inline-flex items-center px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-xs font-medium shadow"
+                                  onClick={() => {
+                                    const name = `${page.first_name || ''} ${page.last_name || ''}`.trim() || '[name]';
+                                    const businessName = business?.name || '[Business]';
+                                    const reviewUrl = `${window.location.origin}/r/${page.slug}`;
+                                    const message = `Hi ${name}, do you have 1-3 minutes to leave a review for ${businessName}? I have a review you can use and everything. Positive reviews really help small business get found online. Thanks so much! ${reviewUrl}`;
+                                    window.location.href = `sms:${page.phone}?&body=${encodeURIComponent(message)}`;
+                                  }}
+                                >
+                                  Send SMS
+                                </button>
+                              )}
+                              {page.email && (
+                                <a
+                                  href={`mailto:${page.email}?subject=${encodeURIComponent('Quick Review Request')}&body=${encodeURIComponent(`Hi ${page.first_name || '[name]'}, do you have 1-3 minutes to leave a review for ${business?.name || '[Business]'}? I have a review you can use and everything. Positive reviews really help small business get found online. Thanks so much! ${window.location.origin}/r/${page.slug}`)}`}
+                                  className="inline-flex items-center px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs font-medium shadow"
+                                >
+                                  Send Email
+                                </a>
+                              )}
                             </td>
                           </tr>
                         ))}

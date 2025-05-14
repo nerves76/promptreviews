@@ -292,8 +292,6 @@ export default function CreateBusinessPage() {
     setRawLogoFile(null);
   };
 
-  const apiKey = process.env.OPENAI_API_KEY;
-
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <div className="max-w-[850px] mx-auto mt-10 p-8 bg-white rounded-lg shadow">

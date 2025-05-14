@@ -3,6 +3,8 @@
 import { useEffect, useState, useRef } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { QRCodeSVG } from 'qrcode.react';
+import DashboardContent from './DashboardContent';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -17,6 +19,9 @@ export default function Dashboard() {
   const [showQR, setShowQR] = useState(false);
   const [copySuccess, setCopySuccess] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [universalPromptPage, setUniversalPromptPage] = useState<any>(null);
+  const [customPromptPages, setCustomPromptPages] = useState<any[]>([]);
+  const [universalUrl, setUniversalUrl] = useState('');
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -57,7 +62,7 @@ export default function Dashboard() {
         const { data: businessData, error: businessError } = await supabase
           .from('businesses')
           .select('*')
-          .eq('account_id', session.user.id)
+          .eq('id', session.user.id)
           .single();
         if (businessError || !businessData) {
           setBusiness(null);
@@ -78,7 +83,16 @@ export default function Dashboard() {
           throw promptPagesError;
         }
 
-        setPromptPages(promptPagesData || []);
+        // Separate universal and custom prompt pages
+        const universal = promptPagesData?.find(page => page.is_universal);
+        const custom = promptPagesData?.filter(page => !page.is_universal) || [];
+        
+        setUniversalPromptPage(universal);
+        setCustomPromptPages(custom);
+        
+        if (universal) {
+          setUniversalUrl(`${window.location.origin}/r/${universal.slug}`);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load dashboard data');
       } finally {
@@ -89,5 +103,53 @@ export default function Dashboard() {
     fetchData();
   }, [user, searchParams, supabase]);
 
-  return <div>Test</div>;
+  const handleCreatePromptPageClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (!business) {
+      e.preventDefault();
+      setShowProfileModal(true);
+    }
+  };
+
+  const handleCopyLink = () => {
+    if (universalUrl) {
+      navigator.clipboard.writeText(universalUrl);
+      setCopySuccess('Link copied!');
+      setTimeout(() => setCopySuccess(''), 2000);
+    }
+  };
+
+  if (isLoading) {
+    return <div className="min-h-screen bg-gradient-to-br from-blue-400 via-indigo-300 to-purple-200 flex items-center justify-center">
+      <div className="text-white text-xl">Loading...</div>
+    </div>;
+  }
+
+  if (error) {
+    return <div className="min-h-screen bg-gradient-to-br from-blue-400 via-indigo-300 to-purple-200 flex items-center justify-center">
+      <div className="text-white text-xl">{error}</div>
+    </div>;
+  }
+
+  const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'there';
+
+  return (
+    <DashboardContent
+      userName={userName}
+      business={business}
+      customPromptPages={customPromptPages}
+      universalPromptPage={universalPromptPage}
+      createPromptPageRef={createPromptPageRef}
+      handleCreatePromptPageClick={handleCreatePromptPageClick}
+      showQR={showQR}
+      handleCopyLink={handleCopyLink}
+      copySuccess={copySuccess}
+      showProfileModal={showProfileModal}
+      setShowProfileModal={setShowProfileModal}
+      showSuccessModal={showSuccessModal}
+      setShowSuccessModal={setShowSuccessModal}
+      universalUrl={universalUrl}
+      QRCode={QRCodeSVG}
+      setShowQR={setShowQR}
+    />
+  );
 }

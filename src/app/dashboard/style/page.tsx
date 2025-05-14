@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { useAuthGuard } from '@/utils/authGuard';
+import { HexColorPicker } from 'react-colorful';
 
 interface StyleSettings {
   primary_font: string;
@@ -11,19 +12,42 @@ interface StyleSettings {
   secondary_color: string;
   background_color: string;
   text_color: string;
+  background_type: 'solid' | 'gradient';
+  gradient_start: string;
+  gradient_middle: string;
+  gradient_end: string;
 }
 
-const FONT_OPTIONS = [
-  'Inter',
-  'Roboto',
-  'Open Sans',
-  'Lato',
-  'Montserrat',
-  'Poppins',
-  'Source Sans Pro',
-  'Raleway',
-  'Nunito',
-  'Playfair Display'
+const fontOptions = [
+  { name: 'Inter', class: 'font-inter' },
+  { name: 'Roboto', class: 'font-roboto' },
+  { name: 'Open Sans', class: 'font-open-sans' },
+  { name: 'Lato', class: 'font-lato' },
+  { name: 'Montserrat', class: 'font-montserrat' },
+  { name: 'Poppins', class: 'font-poppins' },
+  { name: 'Source Sans 3', class: 'font-source-sans' },
+  { name: 'Raleway', class: 'font-raleway' },
+  { name: 'Nunito', class: 'font-nunito' },
+  { name: 'Playfair Display', class: 'font-playfair' },
+  { name: 'Merriweather', class: 'font-merriweather' },
+  { name: 'Roboto Slab', class: 'font-roboto-slab' },
+  { name: 'PT Sans', class: 'font-pt-sans' },
+  { name: 'Oswald', class: 'font-oswald' },
+  { name: 'Roboto Condensed', class: 'font-roboto-condensed' },
+  { name: 'Source Serif 4', class: 'font-source-serif' },
+  { name: 'Noto Sans', class: 'font-noto-sans' },
+  { name: 'Ubuntu', class: 'font-ubuntu' },
+  { name: 'Work Sans', class: 'font-work-sans' },
+  { name: 'Quicksand', class: 'font-quicksand' },
+  { name: 'Josefin Sans', class: 'font-josefin-sans' },
+  { name: 'Mukta', class: 'font-mukta' },
+  { name: 'Rubik', class: 'font-rubik' },
+  { name: 'IBM Plex Sans', class: 'font-ibm-plex-sans' },
+  { name: 'Barlow', class: 'font-barlow' },
+  { name: 'Mulish', class: 'font-mulish' },
+  { name: 'Comfortaa', class: 'font-comfortaa' },
+  { name: 'Outfit', class: 'font-outfit' },
+  { name: 'Plus Jakarta Sans', class: 'font-plus-jakarta-sans' }
 ];
 
 export default function StylePage() {
@@ -38,7 +62,11 @@ export default function StylePage() {
     primary_color: '#4F46E5',
     secondary_color: '#818CF8',
     background_color: '#FFFFFF',
-    text_color: '#1F2937'
+    text_color: '#1F2937',
+    background_type: 'gradient',
+    gradient_start: '#4F46E5',
+    gradient_middle: '#818CF8',
+    gradient_end: '#C7D2FE'
   });
 
   const supabase = createBrowserClient(
@@ -49,16 +77,25 @@ export default function StylePage() {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError) throw userError;
+        if (!user) {
+          setError('Not authenticated');
+          setIsLoading(false);
+          return;
+        }
 
-        const { data, error } = await supabase
+        const { data, error: fetchError } = await supabase
           .from('businesses')
-          .select('primary_font, secondary_font, primary_color, secondary_color, background_color, text_color')
+          .select('primary_font, secondary_font, primary_color, secondary_color, background_color, text_color, background_type, gradient_start, gradient_middle, gradient_end')
           .eq('account_id', user.id)
           .single();
 
-        if (error) throw error;
+        if (fetchError) {
+          console.error('Error fetching settings:', fetchError);
+          throw new Error(fetchError.message);
+        }
+
         if (data) {
           setSettings({
             primary_font: data.primary_font || 'Inter',
@@ -66,12 +103,30 @@ export default function StylePage() {
             primary_color: data.primary_color || '#4F46E5',
             secondary_color: data.secondary_color || '#818CF8',
             background_color: data.background_color || '#FFFFFF',
-            text_color: data.text_color || '#1F2937'
+            text_color: data.text_color || '#1F2937',
+            background_type: data.background_type || 'gradient',
+            gradient_start: data.gradient_start || '#4F46E5',
+            gradient_middle: data.gradient_middle || '#818CF8',
+            gradient_end: data.gradient_end || '#C7D2FE'
+          });
+        } else {
+          // If no data exists, use default settings
+          setSettings({
+            primary_font: 'Inter',
+            secondary_font: 'Inter',
+            primary_color: '#4F46E5',
+            secondary_color: '#818CF8',
+            background_color: '#FFFFFF',
+            text_color: '#1F2937',
+            background_type: 'gradient',
+            gradient_start: '#4F46E5',
+            gradient_middle: '#818CF8',
+            gradient_end: '#C7D2FE'
           });
         }
       } catch (err) {
-        setError('Failed to load style settings');
-        console.error('Error loading style settings:', err);
+        console.error('Error in fetchSettings:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load style settings');
       } finally {
         setIsLoading(false);
       }
@@ -89,7 +144,7 @@ export default function StylePage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      const { error } = await supabase
+      const { error: updateError } = await supabase
         .from('businesses')
         .update({
           primary_font: settings.primary_font,
@@ -97,15 +152,18 @@ export default function StylePage() {
           primary_color: settings.primary_color,
           secondary_color: settings.secondary_color,
           background_color: settings.background_color,
-          text_color: settings.text_color
+          text_color: settings.text_color,
+          background_type: settings.background_type,
+          gradient_start: settings.gradient_start,
+          gradient_middle: settings.gradient_middle,
+          gradient_end: settings.gradient_end
         })
         .eq('account_id', user.id);
 
-      if (error) throw error;
+      if (updateError) throw updateError;
       setSuccess('Style settings saved successfully!');
     } catch (err) {
-      setError('Failed to save style settings');
-      console.error('Error saving style settings:', err);
+      setError(err instanceof Error ? err.message : 'Failed to save style settings');
     } finally {
       setIsSaving(false);
     }
@@ -113,11 +171,13 @@ export default function StylePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-400 via-indigo-300 to-purple-200 py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading style settings...</p>
+      <div className="min-h-screen">
+        <div className="max-w-4xl mx-auto bg-white rounded-lg shadow p-8">
+          <div className="bg-white shadow rounded-lg p-6">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+              <p className="mt-4 text-gray-600">Loading style settings...</p>
+            </div>
           </div>
         </div>
       </div>
@@ -125,8 +185,8 @@ export default function StylePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-400 via-indigo-300 to-purple-200 py-12">
-      <div className="max-w-[1000px] mx-auto bg-white rounded-lg shadow p-8">
+    <div className="min-h-screen">
+      <div className="max-w-4xl mx-auto bg-white rounded-lg shadow p-8">
         <div className="bg-white shadow rounded-lg p-6">
           <h1 className="text-2xl font-bold text-gray-900 mb-8">Style Settings</h1>
           
@@ -154,9 +214,9 @@ export default function StylePage() {
                   onChange={(e) => setSettings({ ...settings, primary_font: e.target.value })}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                 >
-                  {FONT_OPTIONS.map((font) => (
-                    <option key={font} value={font}>
-                      {font}
+                  {fontOptions.map((font) => (
+                    <option key={font.name} value={font.class}>
+                      {font.name}
                     </option>
                   ))}
                 </select>
@@ -171,9 +231,9 @@ export default function StylePage() {
                   onChange={(e) => setSettings({ ...settings, secondary_font: e.target.value })}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                 >
-                  {FONT_OPTIONS.map((font) => (
-                    <option key={font} value={font}>
-                      {font}
+                  {fontOptions.map((font) => (
+                    <option key={font.name} value={font.class}>
+                      {font.name}
                     </option>
                   ))}
                 </select>
@@ -224,26 +284,6 @@ export default function StylePage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Background Color
-                </label>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="color"
-                    value={settings.background_color}
-                    onChange={(e) => setSettings({ ...settings, background_color: e.target.value })}
-                    className="h-8 w-8 rounded cursor-pointer"
-                  />
-                  <input
-                    type="text"
-                    value={settings.background_color}
-                    onChange={(e) => setSettings({ ...settings, background_color: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Text Color
                 </label>
                 <div className="flex items-center space-x-2">
@@ -263,20 +303,134 @@ export default function StylePage() {
               </div>
             </div>
 
+            {/* Background Settings */}
+            <div className="border-t pt-6">
+              <div className="flex items-center justify-between mb-4">
+                <label className="block text-sm font-medium text-gray-700">
+                  Background Type
+                </label>
+                <div className="flex gap-4">
+                  <label className="inline-flex items-center">
+                    <input
+                      type="radio"
+                      value="solid"
+                      checked={settings.background_type === 'solid'}
+                      onChange={(e) => setSettings({ ...settings, background_type: 'solid' })}
+                      className="form-radio h-4 w-4 text-indigo-600"
+                    />
+                    <span className="ml-2 text-sm">Solid Color</span>
+                  </label>
+                  <label className="inline-flex items-center">
+                    <input
+                      type="radio"
+                      value="gradient"
+                      checked={settings.background_type === 'gradient'}
+                      onChange={(e) => setSettings({ ...settings, background_type: 'gradient' })}
+                      className="form-radio h-4 w-4 text-indigo-600"
+                    />
+                    <span className="ml-2 text-sm">Gradient</span>
+                  </label>
+                </div>
+              </div>
+
+              {settings.background_type === 'solid' ? (
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="color"
+                      value={settings.background_color}
+                      onChange={(e) => setSettings({ ...settings, background_color: e.target.value })}
+                      className="h-8 w-8 rounded cursor-pointer"
+                    />
+                    <input
+                      type="text"
+                      value={settings.background_color}
+                      onChange={(e) => setSettings({ ...settings, background_color: e.target.value })}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="relative h-16 w-full rounded-lg overflow-hidden">
+                    <div 
+                      className="absolute inset-0"
+                      style={{
+                        background: `linear-gradient(to right, ${settings.gradient_start}, ${settings.gradient_end})`
+                      }}
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="flex space-x-4">
+                        <div className="flex flex-col items-center">
+                          <input
+                            type="color"
+                            value={settings.gradient_start}
+                            onChange={(e) => setSettings({ ...settings, gradient_start: e.target.value })}
+                            className="h-6 w-6 rounded cursor-pointer border-2 border-white shadow-lg"
+                          />
+                          <span className="text-xs text-white mt-1 drop-shadow-lg">Start</span>
+                        </div>
+                        <div className="flex flex-col items-center">
+                          <input
+                            type="color"
+                            value={settings.gradient_end}
+                            onChange={(e) => setSettings({ ...settings, gradient_end: e.target.value })}
+                            className="h-6 w-6 rounded cursor-pointer border-2 border-white shadow-lg"
+                          />
+                          <span className="text-xs text-white mt-1 drop-shadow-lg">End</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex space-x-4">
+                    <div className="flex-1">
+                      <input
+                        type="text"
+                        value={settings.gradient_start}
+                        onChange={(e) => setSettings({ ...settings, gradient_start: e.target.value })}
+                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                        placeholder="Start color"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <input
+                        type="text"
+                        value={settings.gradient_end}
+                        onChange={(e) => setSettings({ ...settings, gradient_end: e.target.value })}
+                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                        placeholder="End color"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Preview */}
-            <div className="mt-8 p-6 rounded-lg border" style={{ backgroundColor: settings.background_color }}>
-              <h2 className="text-xl font-bold mb-4" style={{ fontFamily: settings.primary_font, color: settings.primary_color }}>
-                Preview Heading
-              </h2>
-              <p style={{ fontFamily: settings.secondary_font, color: settings.text_color }}>
-                This is how your text will look with the selected fonts and colors. The heading uses your primary font and color, while this paragraph uses your secondary font and text color.
-              </p>
-              <button
-                className="mt-4 px-4 py-2 rounded"
-                style={{ backgroundColor: settings.secondary_color, color: '#FFFFFF' }}
+            <div className="mt-8 p-6 rounded-lg border">
+              <div 
+                className="p-6 rounded-lg bg-white border shadow-sm"
+                style={{
+                  background: settings.background_type === 'solid' 
+                    ? settings.background_color 
+                    : `linear-gradient(to bottom right, ${settings.gradient_start}, ${settings.gradient_end})`
+                }}
               >
-                Sample Button
-              </button>
+                <div className="bg-white p-6 rounded-lg border">
+                  <h2 className={`text-xl font-bold mb-4 ${settings.primary_font}`} style={{ color: settings.primary_color }}>
+                    Preview Heading
+                  </h2>
+                  <p className={settings.secondary_font} style={{ color: settings.text_color }}>
+                    This is how your text will look with the selected fonts and colors. The heading uses your primary font and color, while this paragraph uses your secondary font and text color.
+                  </p>
+                  <button
+                    className="mt-4 px-4 py-2 rounded"
+                    style={{ backgroundColor: settings.secondary_color, color: '#FFFFFF' }}
+                  >
+                    Sample Button
+                  </button>
+                </div>
+              </div>
             </div>
 
             {/* Save Button */}

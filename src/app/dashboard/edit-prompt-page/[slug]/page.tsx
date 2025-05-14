@@ -1,9 +1,8 @@
 'use client';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { generateAIReview } from '@/utils/ai';
-import Header from '../components/Header';
 
 interface ReviewPlatformLink {
   platform: string;
@@ -25,10 +24,12 @@ interface BusinessProfile {
   keywords: string;
 }
 
-export default function CreatePromptPage() {
+export default function EditPromptPage() {
   const router = useRouter();
+  const params = useParams();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     title: '',
@@ -52,7 +53,7 @@ export default function CreatePromptPage() {
   );
 
   useEffect(() => {
-    const loadBusinessProfile = async () => {
+    const loadData = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
@@ -60,42 +61,49 @@ export default function CreatePromptPage() {
           return;
         }
 
+        // Fetch the prompt page data
+        const { data: promptData, error: promptError } = await supabase
+          .from('prompt_pages')
+          .select('*')
+          .eq('slug', params.slug)
+          .single();
+
+        if (promptError) throw promptError;
+
+        // Set form data from the prompt page, ensuring all string values have defaults
+        setFormData({
+          title: promptData.title || '',
+          first_name: promptData.first_name || '',
+          last_name: promptData.last_name || '',
+          email: promptData.email || '',
+          phone: promptData.phone || '',
+          project_type: promptData.project_type || '',
+          outcomes: promptData.outcomes || '',
+          review_platforms: promptData.review_platforms || [],
+          custom_incentive: promptData.custom_incentive || '',
+          services_offered: Array.isArray(promptData.services_offered) 
+            ? promptData.services_offered.join('\n')
+            : '',
+        });
+
+        // Fetch business profile
         const { data: businessData } = await supabase
           .from('businesses')
           .select('*')
           .eq('account_id', user.id)
           .single();
 
-        console.log('Fetched businessData:', businessData);
-
         if (businessData) {
           setBusinessProfile(businessData);
-          if (businessData.preferred_review_platforms) {
-            try {
-              console.log('Raw preferred_review_platforms:', businessData.preferred_review_platforms);
-              const platforms = JSON.parse(businessData.preferred_review_platforms);
-              console.log('Parsed platforms:', platforms);
-              if (Array.isArray(platforms)) {
-                setFormData(prev => ({
-                  ...prev,
-                  review_platforms: platforms.map(p => ({
-                    platform: p.name || p.platform || '',
-                    url: p.url,
-                    wordCount: p.wordCount || 200
-                  }))
-                }));
-              }
-            } catch (e) {
-              console.error('Error parsing platforms:', e);
-            }
-          }
         }
       } catch (err) {
-        console.error('Error loading business profile:', err);
+        console.error('Error loading data:', err);
+        setError('Failed to load page data');
       }
     };
-    loadBusinessProfile();
-  }, [supabase]);
+
+    loadData();
+  }, [params.slug, supabase]);
 
   const handleAddPlatform = () => {
     setFormData(prev => ({
@@ -153,74 +161,55 @@ export default function CreatePromptPage() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent, action: 'preview' | 'publish') => {
+  const handleSubmit = async (e: React.FormEvent, action: 'save' | 'publish') => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
+    setSuccessMessage(null);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        throw new Error('You must be signed in to create a prompt page');
+        throw new Error('You must be signed in to edit a prompt page');
       }
+
       // Filter out empty platform links
       const filteredPlatformLinks = formData.review_platforms.filter(
         link => link.platform.trim() && link.url.trim()
       );
 
-      // Generate a slug from the title
-      const baseSlug = formData.title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)/g, '');
-      
-      // Add a timestamp to ensure uniqueness
-      const timestamp = Date.now().toString(36);
-      const slug = `${baseSlug}-${timestamp}`;
-
-      // Check if slug exists using a simpler query
-      const { data: existingPages } = await supabase
-        .from('prompt_pages')
-        .select('slug')
-        .ilike('slug', slug);
-
-      if (existingPages && existingPages.length > 0) {
-        throw new Error('A page with this title already exists. Please try a different title.');
-      }
-
-      // Prepare the data for insertion
-      const pageData = {
-        account_id: session.user.id,
+      // Build update object
+      const updateData: any = {
         title: formData.title,
         first_name: formData.first_name,
         last_name: formData.last_name,
+        phone: formData.phone,
+        email: formData.email,
         project_type: formData.project_type,
         outcomes: formData.outcomes,
         review_platforms: filteredPlatformLinks,
         custom_incentive: formData.custom_incentive || null,
         services_offered: (formData.services_offered || '').split('\n').map(s => s.trim()).filter(Boolean),
-        status: action === 'publish' ? 'published' : 'draft',
-        slug: slug,
       };
+      if (action === 'publish') {
+        updateData.status = 'published';
+      }
 
-      const { data, error: insertError } = await supabase
+      const { error: updateError } = await supabase
         .from('prompt_pages')
-        .insert(pageData)
-        .select()
-        .single();
+        .update(updateData)
+        .eq('slug', params.slug);
 
-      if (insertError) {
-        console.error('Insert error:', insertError);
-        throw new Error(insertError.message || 'Failed to create prompt page');
-      }
+      if (updateError) throw updateError;
       
-      if (action === 'preview') {
-        setPreviewUrl(`/r/${data.slug}`);
-      } else {
+      setSuccessMessage('Changes saved successfully!');
+      
+      // Wait for 1.5 seconds to show the success message before redirecting
+      setTimeout(() => {
         router.push('/dashboard');
-      }
+      }, 1500);
+      
     } catch (err) {
-      console.error('Error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to create prompt page');
+      setError(err instanceof Error ? err.message : 'Failed to update prompt page');
     } finally {
       setIsLoading(false);
     }
@@ -243,7 +232,30 @@ export default function CreatePromptPage() {
           required
         />
       </div>
-
+      <div className="flex gap-4">
+        <div className="flex-1">
+          <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mt-4 mb-2">Phone Number</label>
+          <input
+            type="tel"
+            id="phone"
+            value={formData.phone || ''}
+            onChange={e => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+            className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+            placeholder="Phone number"
+          />
+        </div>
+        <div className="flex-1">
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mt-4 mb-2">Email</label>
+          <input
+            type="email"
+            id="email"
+            value={formData.email || ''}
+            onChange={e => setFormData(prev => ({ ...prev, email: e.target.value }))}
+            className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+            placeholder="Email address"
+          />
+        </div>
+      </div>
       <h3 className="text-lg font-semibold text-gray-800 mt-16 mb-2">Customer/Client Details</h3>
 
       <div className="flex gap-4">
@@ -269,31 +281,6 @@ export default function CreatePromptPage() {
             className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
             placeholder="Last Name"
             required
-          />
-        </div>
-      </div>
-
-      <div className="flex gap-4">
-        <div className="flex-1">
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mt-4 mb-2">Email</label>
-          <input
-            type="email"
-            id="email"
-            value={formData.email}
-            onChange={e => setFormData(prev => ({ ...prev, email: e.target.value }))}
-            className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
-            placeholder="Email address"
-          />
-        </div>
-        <div className="flex-1">
-          <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mt-4 mb-2">Phone Number</label>
-          <input
-            type="tel"
-            id="phone"
-            value={formData.phone}
-            onChange={e => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-            className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
-            placeholder="Phone number"
           />
         </div>
       </div>
@@ -335,7 +322,7 @@ export default function CreatePromptPage() {
         </label>
         <textarea
           id="services_offered"
-          value={formData.services_offered || ''}
+          value={formData.services_offered}
           onChange={e => setFormData(prev => ({ ...prev, services_offered: e.target.value }))}
           rows={3}
           className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
@@ -500,27 +487,28 @@ export default function CreatePromptPage() {
         </button>
         <div className="flex gap-4">
           <button
-            type="button"
-            onClick={(e) => handleSubmit(e, 'preview')}
-            disabled={isLoading}
-            className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-          >
-            {isLoading ? 'Loading...' : 'Preview'}
-          </button>
-          <button
             type="submit"
+            onClick={(e) => handleSubmit(e, 'save')}
             className="inline-flex justify-center rounded-md border border-transparent bg-green-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
             disabled={isLoading}
           >
-            {isLoading ? 'Publishing...' : 'Save & Publish'}
+            Save
           </button>
+          <a
+            href={`/r/${params.slug}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+          >
+            View
+          </a>
         </div>
       </div>
 
       {previewUrl && (
         <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-md">
           <p className="text-sm text-green-700">
-            Preview page created!{' '}
+            Preview page updated!{' '}
             <a
               href={previewUrl}
               target="_blank"
@@ -536,30 +524,58 @@ export default function CreatePromptPage() {
   );
 
   return (
-    <>
-      <Header />
-      <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <div className="bg-white shadow sm:rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <div className="md:flex md:items-center md:justify-between mb-8">
-              <div className="min-w-0 flex-1">
-                <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
-                  Create Prompt Page
-                </h2>
-                <div className="mt-1 text-xs text-gray-500 max-w-2xl">Create a landing page that makes it incredibly easy for your customers, clients, fans, and friends to post a positive review.</div>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        {error && (
+          <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-md">
+            {error}
+          </div>
+        )}
+        {successMessage && (
+          <div className="mb-4 p-4 bg-green-50 text-green-700 rounded-md">
+            {successMessage}
+          </div>
+        )}
+
+        <div className="bg-white shadow rounded-lg p-12">
+          <div className="mb-8">
+            <h1 className="text-2xl font-bold text-gray-900">Edit Prompt Page</h1>
+            <p className="mt-2 text-sm text-gray-600">
+              Customize your prompt page to collect reviews from your customers.
+            </p>
+          </div>
+
+          <div className="mb-8">
+            <div className="flex items-center space-x-4">
+              <div
+                className={`flex items-center justify-center w-8 h-8 rounded-full ${
+                  step >= 1 ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-600'
+                }`}
+              >
+                1
+              </div>
+              <div className={`text-sm ${step >= 1 ? 'text-indigo-600' : 'text-gray-500'}`}>
+                Basic Information
+              </div>
+              <div className="flex-1 h-px bg-gray-200"></div>
+              <div
+                className={`flex items-center justify-center w-8 h-8 rounded-full ${
+                  step >= 2 ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-600'
+                }`}
+              >
+                2
+              </div>
+              <div className={`text-sm ${step >= 2 ? 'text-indigo-600' : 'text-gray-500'}`}>
+                Review Platforms
               </div>
             </div>
-            {error && (
-              <div className="mb-4 bg-red-50 border border-red-200 rounded-md p-4">
-                <p className="text-red-600">{error}</p>
-              </div>
-            )}
-            <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
-              {step === 1 ? renderStep1() : renderStep2()}
-            </form>
           </div>
+
+          <form onSubmit={(e) => handleSubmit(e, 'publish')}>
+            {step === 1 ? renderStep1() : renderStep2()}
+          </form>
         </div>
       </div>
-    </>
+    </div>
   );
-}
+} 

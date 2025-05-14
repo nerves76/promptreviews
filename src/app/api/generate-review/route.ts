@@ -1,33 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-export async function POST(req: NextRequest) {
-  const { prompt, wordCountLimit } = await req.json();
+export const dynamic = 'force-dynamic';
 
-  if (!process.env.OPENAI_API_KEY) {
-    return NextResponse.json({ error: 'OpenAI API key not set' }, { status: 500 });
-  }
-
+export async function POST(request: Request) {
   const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
+    apiKey: process.env.OPENAI_API_KEY, 
   });
-
   try {
+    const { prompt } = await request.json();
+
     const completion = await openai.chat.completions.create({
-      messages: [{ role: "user", content: prompt }],
-      model: "gpt-4-turbo-preview",
-      temperature: 0.7,
-      max_tokens: Math.floor((wordCountLimit || 200) * 1.5),
+      messages: [
+        {
+          role: "system",
+          content: "You are a helpful assistant that generates authentic, positive reviews for businesses. The reviews should be specific, highlight the business's strengths, and sound natural."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      model: "gpt-3.5-turbo",
     });
 
-    const review = completion.choices[0]?.message?.content;
-    if (!review) {
-      return NextResponse.json({ error: 'No review generated' }, { status: 500 });
-    }
-
-    return NextResponse.json({ review });
+    return NextResponse.json({ text: completion.choices[0].message.content });
   } catch (error) {
-    console.error('OpenAI error:', error);
-    return NextResponse.json({ error: 'Failed to generate review' }, { status: 500 });
+    console.error('Error generating review:', error);
+    return NextResponse.json(
+      { error: 'Failed to generate review' },
+      { status: 500 }
+    );
   }
 } 
