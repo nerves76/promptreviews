@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { generateAIReview } from '@/utils/ai';
 import Header from '../components/Header';
+import { slugify } from '@/utils/slugify';
 
 interface ReviewPlatformLink {
   platform: string;
@@ -97,6 +98,11 @@ export default function CreatePromptPage() {
     loadBusinessProfile();
   }, [supabase]);
 
+  // Debug: Log review_platforms whenever it changes
+  useEffect(() => {
+    console.log('Review platforms state updated:', formData.review_platforms);
+  }, [formData.review_platforms]);
+
   const handleAddPlatform = () => {
     setFormData(prev => ({
       ...prev,
@@ -140,12 +146,17 @@ export default function CreatePromptPage() {
         formData.review_platforms[index].wordCount || 200,
         formData.review_platforms[index].customInstructions
       );
-      setFormData(prev => ({
-        ...prev,
-        review_platforms: prev.review_platforms.map((link, i) =>
-          i === index ? { ...link, reviewText: review } : link
-        ),
-      }));
+      setFormData(prev => {
+        const updated = {
+          ...prev,
+          review_platforms: prev.review_platforms.map((link, i) =>
+            i === index ? { ...link, reviewText: review } : link
+          ),
+        };
+        console.log('Set reviewText for index', index, 'to', review);
+        console.log('Updated review_platforms:', updated.review_platforms);
+        return updated;
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to generate review');
     } finally {
@@ -167,15 +178,8 @@ export default function CreatePromptPage() {
         link => link.platform.trim() && link.url.trim()
       );
 
-      // Generate a slug from the title
-      const baseSlug = formData.title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)/g, '');
-      
-      // Add a timestamp to ensure uniqueness
-      const timestamp = Date.now().toString(36);
-      const slug = `${baseSlug}-${timestamp}`;
+      // Generate a slug from the title using the utility
+      const slug = slugify(formData.title, Date.now().toString(36));
 
       // Check if slug exists using a simpler query
       const { data: existingPages } = await supabase

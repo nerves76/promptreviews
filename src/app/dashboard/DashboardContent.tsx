@@ -248,6 +248,9 @@ export default function DashboardContent({
                     <Link href={`/r/${universalPromptPage.slug}`} className="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium shadow">
                       View Universal Prompt Page
                     </Link>
+                    <Link href={`/dashboard/edit-prompt-page/${universalPromptPage.slug}`} className="inline-flex items-center px-3 py-1.5 bg-indigo-100 text-indigo-800 rounded hover:bg-indigo-200 text-sm font-medium border border-indigo-300">
+                      Edit
+                    </Link>
                     <button
                       type="button"
                       onClick={handleCopyLink}
@@ -263,27 +266,6 @@ export default function DashboardContent({
                       Show QR Code
                     </button>
                     {copySuccess && <span className="ml-2 text-green-600 text-xs font-semibold">{copySuccess}</span>}
-                  </div>
-                  {/* Send SMS Button */}
-                  <div className="mt-4">
-                    <button
-                      type="button"
-                      className="inline-flex items-center px-3 py-1.5 bg-green-600 text-white rounded hover:bg-green-700 text-sm font-medium shadow"
-                      onClick={() => {
-                        const phone = business?.phone || '';
-                        const name = business?.contact_name || '[name]';
-                        const businessName = business?.name || '[Business]';
-                        const reviewUrl = `${window.location.origin}/r/${universalPromptPage.slug}`;
-                        const message = `Hi ${name}, do you have 1-3 minutes to leave a review for ${businessName}? I have a review you can use and everything. Positive reviews really help small business get found online. Thanks so much! ${reviewUrl}`;
-                        if (phone) {
-                          window.location.href = `sms:${phone}?&body=${encodeURIComponent(message)}`;
-                        } else {
-                          alert('Please add a phone number to your business profile to send an SMS.');
-                        }
-                      }}
-                    >
-                      Send SMS
-                    </button>
                   </div>
                 </div>
               </div>

@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { nanoid } from 'nanoid';
 import { createServerClient } from '@supabase/ssr';
 import { sanitizePromptPageInsert } from '@/utils/sanitizePromptPageInsert';
+import { slugify } from '@/utils/slugify';
 
 export async function POST(request: Request) {
   try {
@@ -24,8 +25,15 @@ export async function POST(request: Request) {
       }
     );
 
-    // Generate a unique slug
-    const slug = nanoid(8);
+    // Generate a unique slug from client_name or title
+    let slug;
+    if (body.client_name) {
+      slug = slugify(body.client_name, Date.now().toString(36));
+    } else if (body.title) {
+      slug = slugify(body.title, Date.now().toString(36));
+    } else {
+      slug = nanoid(8);
+    }
     
     // Create the prompt page in Supabase
     const insertData = sanitizePromptPageInsert({
