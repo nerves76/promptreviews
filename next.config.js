@@ -6,9 +6,7 @@ const nextConfig = {
   images: {
     domains: ['lh3.googleusercontent.com', 'firebasestorage.googleapis.com'],
   },
-  experimental: {
-    serverExternalPackages: ['@supabase/supabase-js', 'openai'],
-  },
+  serverExternalPackages: ['@supabase/supabase-js', 'openai'],
   webpack: (config, { isServer }) => {
     if (isServer) {
       // Ensure that the native Supabase client is not bundled for the client

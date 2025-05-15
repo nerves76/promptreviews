@@ -4,8 +4,14 @@ import OpenAI from 'openai';
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
+  if (!process.env.OPENAI_API_KEY) {
+    return NextResponse.json(
+      { error: 'OPENAI_API_KEY is missing from environment variables.' },
+      { status: 500 }
+    );
+  }
   const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY, 
+    apiKey: process.env.OPENAI_API_KEY,
   });
   try {
     const { prompt } = await request.json();
@@ -28,7 +34,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error('Error generating review:', error);
     return NextResponse.json(
-      { error: 'Failed to generate review' },
+      { error: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }
