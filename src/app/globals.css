@@ -32,3 +32,15 @@ body {
   @apply min-h-screen bg-gradient-to-br from-blue-400 via-indigo-300 to-purple-200 bg-no-repeat bg-fixed;
   box-sizing: border-box;
 }
+
+.animate-slideup {
+  opacity: 0;
+  transform: translateY(40px);
+  animation: slideup 0.6s cubic-bezier(0.4,0,0.2,1) forwards;
+}
+@keyframes slideup {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

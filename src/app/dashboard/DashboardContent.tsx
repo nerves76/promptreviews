@@ -27,24 +27,25 @@ interface PromptPage {
   id: string;
   title: string;
   slug: string;
-  status: 'in_queue' | 'on_hold' | 'accomplished';
+  status: 'in_queue' | 'in_progress' | 'complete';
   created_at: string;
   phone?: string;
   email?: string;
   first_name?: string;
   last_name?: string;
+  is_universal: boolean;
 }
 
 const STATUS_COLORS = {
   in_queue: 'bg-blue-100 text-blue-800',
-  on_hold: 'bg-yellow-100 text-yellow-800',
-  accomplished: 'bg-green-100 text-green-800',
+  in_progress: 'bg-yellow-100 text-yellow-800',
+  complete: 'bg-green-100 text-green-800',
 };
 
 const STATUS_LABELS = {
   in_queue: 'In Queue',
-  on_hold: 'On Hold',
-  accomplished: 'Complete',
+  in_progress: 'In Progress',
+  complete: 'Complete',
 };
 
 export default function DashboardContent({
@@ -65,11 +66,12 @@ export default function DashboardContent({
   QRCode,
   setShowQR
 }: DashboardContentProps) {
+  console.log('DASHBOARD RENDERED');
   useAuthGuard();
   const [promptPages, setPromptPages] = useState<PromptPage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedTab, setSelectedTab] = useState<'in_queue' | 'on_hold' | 'accomplished'>('in_queue');
+  const [selectedTab, setSelectedTab] = useState<'in_queue' | 'in_progress' | 'complete'>('in_queue');
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -118,7 +120,7 @@ export default function DashboardContent({
         // Try a simpler query first
         const { data, error } = await supabase
           .from('prompt_pages')
-          .select('id, title, slug, status, created_at, phone, email, first_name, last_name')
+          .select('id, title, slug, status, created_at, phone, email, first_name, last_name, is_universal')
           .eq('account_id', user.id)
           .order('created_at', { ascending: false });
 
@@ -157,7 +159,7 @@ export default function DashboardContent({
     fetchPromptPages();
   }, [supabase]);
 
-  const updateStatus = async (pageId: string, newStatus: 'in_queue' | 'on_hold' | 'accomplished') => {
+  const updateStatus = async (pageId: string, newStatus: 'in_queue' | 'in_progress' | 'complete') => {
     try {
       const { error } = await supabase
         .from('prompt_pages')
@@ -183,10 +185,14 @@ export default function DashboardContent({
 
   const filteredPromptPages = promptPages.filter(page => {
     if (selectedTab === 'in_queue') return page.status === 'in_queue';
-    if (selectedTab === 'on_hold') return page.status === 'on_hold';
-    if (selectedTab === 'accomplished') return page.status === 'accomplished';
+    if (selectedTab === 'in_progress') return page.status === 'in_progress';
+    if (selectedTab === 'complete') return page.status === 'complete';
     return true;
   });
+
+  const inQueueCount = promptPages.filter(page => page.status === 'in_queue').length;
+  const inProgressCount = promptPages.filter(page => page.status === 'in_progress').length;
+  const completeCount = promptPages.filter(page => page.status === 'complete').length;
 
   if (isLoading) {
     return (
@@ -245,23 +251,23 @@ export default function DashboardContent({
                   </div>
                   <p className="text-blue-900 mb-2 text-sm">This prompt page is general use and not customer specific. Good for situations where you don't know much about the customer or client you want reviews from. Also useful if you want to post a QR code in your place of business or on a business card.</p>
                   <div className="flex flex-wrap gap-2 items-center mt-2">
-                    <Link href={`/r/${universalPromptPage.slug}`} className="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium shadow">
-                      View Universal Prompt Page
+                    <Link href={`/r/${universalPromptPage.slug}`} className="text-indigo-600 underline hover:text-indigo-800 hover:underline">
+                      View
                     </Link>
-                    <Link href={`/dashboard/edit-prompt-page/${universalPromptPage.slug}`} className="inline-flex items-center px-3 py-1.5 bg-indigo-100 text-indigo-800 rounded hover:bg-indigo-200 text-sm font-medium border border-indigo-300">
+                    <Link href={`/dashboard/edit-prompt-page/${universalPromptPage.slug}`} className="text-indigo-600 underline hover:text-indigo-800 hover:underline">
                       Edit
                     </Link>
                     <button
                       type="button"
                       onClick={handleCopyLink}
-                      className="inline-flex items-center px-3 py-1.5 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 text-sm font-medium border border-blue-300"
+                      className="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium shadow h-9 align-middle"
                     >
                       Copy Link
                     </button>
                     <button
                       type="button"
                       onClick={() => setShowQR(true)}
-                      className="inline-flex items-center px-3 py-1.5 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 text-sm font-medium border border-blue-300"
+                      className="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium shadow h-9 align-middle"
                     >
                       Show QR Code
                     </button>
@@ -277,19 +283,19 @@ export default function DashboardContent({
                 className={`px-4 py-2 rounded-t-md font-semibold border-b-2 transition-colors ${selectedTab === 'in_queue' ? 'border-indigo-600 text-indigo-700 bg-indigo-50' : 'border-transparent text-gray-600 bg-gray-100 hover:bg-gray-200'}`}
                 onClick={() => setSelectedTab('in_queue')}
               >
-                In Queue
+                In Queue ({inQueueCount})
               </button>
               <button
-                className={`px-4 py-2 rounded-t-md font-semibold border-b-2 transition-colors ${selectedTab === 'on_hold' ? 'border-yellow-500 text-yellow-700 bg-yellow-50' : 'border-transparent text-gray-600 bg-gray-100 hover:bg-gray-200'}`}
-                onClick={() => setSelectedTab('on_hold')}
+                className={`px-4 py-2 rounded-t-md font-semibold border-b-2 transition-colors ${selectedTab === 'in_progress' ? 'border-yellow-500 text-yellow-700 bg-yellow-50' : 'border-transparent text-gray-600 bg-gray-100 hover:bg-gray-200'}`}
+                onClick={() => setSelectedTab('in_progress')}
               >
-                On Hold
+                In Progress ({inProgressCount})
               </button>
               <button
-                className={`px-4 py-2 rounded-t-md font-semibold border-b-2 transition-colors ${selectedTab === 'accomplished' ? 'border-green-600 text-green-700 bg-green-50' : 'border-transparent text-gray-600 bg-gray-100 hover:bg-gray-200'}`}
-                onClick={() => setSelectedTab('accomplished')}
+                className={`px-4 py-2 rounded-t-md font-semibold border-b-2 transition-colors ${selectedTab === 'complete' ? 'border-green-600 text-green-700 bg-green-50' : 'border-transparent text-gray-600 bg-gray-100 hover:bg-green-50'}`}
+                onClick={() => setSelectedTab('complete')}
               >
-                Complete
+                Complete ({completeCount})
               </button>
             </div>
 
@@ -310,13 +316,19 @@ export default function DashboardContent({
                             Title
                           </th>
                           <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                            First Name
+                          </th>
+                          <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                            Edit
+                          </th>
+                          <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                             Status
                           </th>
                           <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                             Created
                           </th>
                           <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
-                            <span className="sr-only">Actions</span>
+                            Send
                           </th>
                         </tr>
                       </thead>
@@ -326,40 +338,44 @@ export default function DashboardContent({
                             <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                               {page.title}
                             </td>
+                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
+                              {page.first_name || ''}
+                            </td>
+                            <td className="whitespace-nowrap px-3 py-4 text-sm flex gap-2 items-center">
+                              <Link
+                                href={`/r/${page.slug}`}
+                                className="text-indigo-600 underline hover:text-indigo-800 hover:underline"
+                              >
+                                View
+                              </Link>
+                              <Link
+                                href={`/dashboard/edit-prompt-page/${page.slug}`}
+                                className="text-indigo-600 underline hover:text-indigo-800 hover:underline"
+                              >
+                                Edit
+                              </Link>
+                            </td>
                             <td className="whitespace-nowrap px-3 py-4 text-sm">
                               <select
                                 value={page.status}
-                                onChange={(e) => updateStatus(page.id, e.target.value as 'in_queue' | 'on_hold' | 'accomplished')}
+                                onChange={(e) => updateStatus(page.id, e.target.value as 'in_queue' | 'in_progress' | 'complete')}
                                 className={`rounded-full px-2 py-1 text-xs font-medium ${STATUS_COLORS[page.status] || 'bg-gray-100 text-gray-800'}`}
                               >
                                 <option value="in_queue">In Queue</option>
-                                <option value="on_hold">On Hold</option>
-                                <option value="accomplished">Complete</option>
+                                <option value="in_progress">In Progress</option>
+                                <option value="complete">Complete</option>
                               </select>
                             </td>
                             <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                               {new Date(page.created_at).toLocaleDateString()}
                             </td>
                             <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6 flex gap-2 items-center">
-                              <Link
-                                href={`/r/${page.slug}`}
-                                className="text-indigo-600 hover:text-indigo-900"
-                              >
-                                View
-                              </Link>
-                              <Link
-                                href={`/dashboard/edit-prompt-page/${page.slug}`}
-                                className="text-indigo-600 hover:text-indigo-900"
-                              >
-                                Edit
-                              </Link>
-                              {/* Send SMS/Email Buttons */}
-                              {page.phone && (
+                              {!page.is_universal && page.phone && (
                                 <button
                                   type="button"
-                                  className="inline-flex items-center px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-xs font-medium shadow"
+                                  className="inline-flex items-center px-3 py-1.5 bg-green-100 text-green-800 rounded hover:bg-green-200 text-sm font-medium shadow h-9 align-middle"
                                   onClick={() => {
-                                    const name = `${page.first_name || ''} ${page.last_name || ''}`.trim() || '[name]';
+                                    const name = page.first_name || '[name]';
                                     const businessName = business?.name || '[Business]';
                                     const reviewUrl = `${window.location.origin}/r/${page.slug}`;
                                     const message = `Hi ${name}, do you have 1-3 minutes to leave a review for ${businessName}? I have a review you can use and everything. Positive reviews really help small business get found online. Thanks so much! ${reviewUrl}`;
@@ -369,10 +385,10 @@ export default function DashboardContent({
                                   Send SMS
                                 </button>
                               )}
-                              {page.email && (
+                              {!page.is_universal && page.email && (
                                 <a
                                   href={`mailto:${page.email}?subject=${encodeURIComponent('Quick Review Request')}&body=${encodeURIComponent(`Hi ${page.first_name || '[name]'}, do you have 1-3 minutes to leave a review for ${business?.name || '[Business]'}? I have a review you can use and everything. Positive reviews really help small business get found online. Thanks so much! ${window.location.origin}/r/${page.slug}`)}`}
-                                  className="inline-flex items-center px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs font-medium shadow"
+                                  className="inline-flex items-center px-3 py-1.5 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 text-sm font-medium shadow h-9 align-middle"
                                 >
                                   Send Email
                                 </a>

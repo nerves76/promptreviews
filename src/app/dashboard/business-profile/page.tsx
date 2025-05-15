@@ -28,6 +28,9 @@ export default function BusinessProfilePage() {
     youtube_url: "",
     linkedin_url: "",
     pinterest_url: "",
+    default_offer_enabled: false,
+    default_offer_title: "Review Rewards",
+    default_offer_body: "",
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -287,6 +290,9 @@ export default function BusinessProfilePage() {
         youtube_url: form.youtube_url,
         linkedin_url: form.linkedin_url,
         pinterest_url: form.pinterest_url,
+        default_offer_enabled: form.default_offer_enabled,
+        default_offer_title: form.default_offer_title,
+        default_offer_body: form.default_offer_body,
       })
       .eq("account_id", user.id);
     if (updateError) {
@@ -423,6 +429,42 @@ export default function BusinessProfilePage() {
           <label className="block font-medium mb-1">Team or Founder Info (optional)</label>
           <textarea name="team_info" className="w-full border px-3 py-2 rounded" value={form.team_info} onChange={handleChange} />
           <p className="text-sm text-gray-500 mt-1">Share a brief bio or background about your team or founder (optional).</p>
+        </div>
+        {/* Review Rewards Section */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-lg font-semibold text-indigo-800">Review Rewards</label>
+            <button
+              type="button"
+              onClick={() => setForm(f => ({ ...f, default_offer_enabled: !f.default_offer_enabled }))}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${form.default_offer_enabled ? 'bg-indigo-500' : 'bg-gray-300'}`}
+              aria-pressed={!!form.default_offer_enabled}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${form.default_offer_enabled ? 'translate-x-5' : 'translate-x-1'}`}
+              />
+            </button>
+          </div>
+          <div className={`rounded-lg border border-indigo-200 bg-indigo-50 p-4 ${!form.default_offer_enabled ? 'opacity-60' : ''}`}>
+            <input
+              type="text"
+              name="default_offer_title"
+              value={form.default_offer_title ?? 'Review Rewards'}
+              onChange={e => setForm(f => ({ ...f, default_offer_title: e.target.value }))}
+              placeholder="Offer Title (e.g., Review Rewards)"
+              className="block w-full rounded-md border border-indigo-200 bg-indigo-50 focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-2 px-3 mb-2 font-semibold"
+              disabled={!form.default_offer_enabled}
+            />
+            <textarea
+              name="default_offer_body"
+              value={form.default_offer_body || ''}
+              onChange={e => setForm(f => ({ ...f, default_offer_body: e.target.value }))}
+              placeholder="Review us on 3 platforms and get 10% off your next service!"
+              className="block w-full rounded-md border border-indigo-200 bg-indigo-50 focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-3 px-4"
+              rows={2}
+              disabled={!form.default_offer_enabled}
+            />
+          </div>
         </div>
         <div className="space-y-4">
           <h2 className="text-xl font-semibold">Social Media Links</h2>

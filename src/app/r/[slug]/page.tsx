@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useLayoutEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { createBrowserClient } from '@supabase/ssr';
 import SocialMediaIcons from '@/app/components/SocialMediaIcons';
 import { Button } from '@/app/components/ui/button';
 import { Textarea } from '@/app/components/ui/textarea';
 import { Card } from '@/app/components/ui/card';
+import { FaStar, FaGoogle, FaFacebook, FaYelp, FaTripadvisor, FaRegStar } from 'react-icons/fa';
+import { IconType } from 'react-icons';
 
 interface StyleSettings {
   name: string;
@@ -60,6 +62,17 @@ interface BusinessProfile {
   review_platforms: ReviewPlatform[];
 }
 
+// Helper to get platform icon based on URL or platform name
+function getPlatformIcon(url: string, platform: string): { icon: IconType, label: string } {
+  const lowerUrl = url?.toLowerCase() || '';
+  const lowerPlatform = (platform || '').toLowerCase();
+  if (lowerUrl.includes('google') || lowerPlatform.includes('google')) return { icon: FaGoogle, label: 'Google' };
+  if (lowerUrl.includes('facebook') || lowerPlatform.includes('facebook')) return { icon: FaFacebook, label: 'Facebook' };
+  if (lowerUrl.includes('yelp') || lowerPlatform.includes('yelp')) return { icon: FaYelp, label: 'Yelp' };
+  if (lowerUrl.includes('tripadvisor') || lowerPlatform.includes('tripadvisor')) return { icon: FaTripadvisor, label: 'TripAdvisor' };
+  return { icon: FaRegStar, label: 'Other' };
+}
+
 export default function PromptPage() {
   const router = useRouter();
   const params = useParams();
@@ -68,7 +81,9 @@ export default function PromptPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [reviewText, setReviewText] = useState('');
+  const [platformReviewTexts, setPlatformReviewTexts] = useState<string[]>([]);
+  const [aiRewriteCounts, setAiRewriteCounts] = useState<number[]>([]);
+  const [aiLoading, setAiLoading] = useState<number | null>(null);
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -114,64 +129,46 @@ export default function PromptPage() {
   }, [params.slug, supabase]);
 
   useEffect(() => {
-    if (promptPage && promptPage.review_platforms && promptPage.review_platforms[0]?.reviewText) {
-      setReviewText(promptPage.review_platforms[0].reviewText);
+    if (promptPage && Array.isArray(promptPage.review_platforms)) {
+      setPlatformReviewTexts(promptPage.review_platforms.map((p: any) => p.reviewText || ''));
+      setAiRewriteCounts(promptPage.review_platforms.map(() => 0));
     }
   }, [promptPage]);
 
-  const handleEditReviewText = async (platformIndex: number, newText: string) => {
-    if (!promptPage) return;
+  const handleReviewTextChange = (idx: number, value: string) => {
+    setPlatformReviewTexts(prev => prev.map((text, i) => i === idx ? value : text));
+  };
 
-    const updatedPlatforms = [...promptPage.review_platforms];
-    updatedPlatforms[platformIndex] = {
-      ...updatedPlatforms[platformIndex],
-      reviewText: newText
-    };
-
-    const { error } = await supabase
-      .from('prompt_pages')
-      .update({ review_platforms: updatedPlatforms })
-      .eq('id', promptPage.id);
-
-    if (!error) {
-      setPromptPage({ ...promptPage, review_platforms: updatedPlatforms });
+  const handleCopyAndSubmit = (idx: number, url: string) => {
+    const text = platformReviewTexts[idx] || '';
+    if (text) {
+      navigator.clipboard.writeText(text);
+    }
+    if (url) {
+      window.open(url, '_blank', 'noopener,noreferrer');
     }
   };
 
-  const generateReviewText = async (platformIndex: number) => {
+  const handleRewriteWithAI = async (idx: number) => {
     if (!promptPage || !businessProfile) return;
-
-    const platform = promptPage.review_platforms[platformIndex];
-    const prompt = `Generate a positive review for ${businessProfile.name} on ${platform.platform}. The review should be authentic, specific, and highlight the business's strengths.`;
-
+    setAiLoading(idx);
     try {
+      const platform = promptPage.review_platforms[idx];
+      const prompt = `Generate a positive review for ${businessProfile.name} on ${platform.platform || platform.name}. The review should be authentic, specific, and highlight the business's strengths.`;
       const response = await fetch('/api/generate-review', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt })
       });
-
       if (!response.ok) throw new Error('Failed to generate review');
-      
       const { text } = await response.json();
-      setReviewText(text);
+      setPlatformReviewTexts(prev => prev.map((t, i) => i === idx ? text : t));
+      setAiRewriteCounts(prev => prev.map((c, i) => i === idx ? c + 1 : c));
     } catch (err) {
-      console.error('Error generating review:', err);
+      // Optionally show error
+    } finally {
+      setAiLoading(null);
     }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!promptPage) return;
-    const updatedPlatforms = [...promptPage.review_platforms];
-    updatedPlatforms[0] = {
-      ...updatedPlatforms[0],
-      reviewText: reviewText
-    };
-    await supabase
-      .from('prompt_pages')
-      .update({ review_platforms: updatedPlatforms })
-      .eq('id', promptPage.id);
   };
 
   if (loading) {
@@ -209,68 +206,125 @@ export default function PromptPage() {
       }}
     >
       <div className="max-w-4xl mx-auto px-4 py-8">
-        {/* Business Logo */}
-        <div className="flex justify-center mb-8">
-          {businessProfile?.logo_url ? (
-            <img
-              src={businessProfile.logo_url}
-              alt={`${businessProfile?.business_name || 'Business'} logo`}
-              className="h-32 w-32 object-contain rounded-full"
-            />
-          ) : (
-            <div className="h-32 w-32 bg-gray-200 rounded-full flex items-center justify-center">
-              <span className="text-4xl text-gray-500">
-                {businessProfile?.business_name?.[0] || 'B'}
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Business Name */}
-        <h1 
-          className={`text-3xl font-bold text-center mb-8 ${businessProfile?.primary_font || 'font-inter'}`}
-          style={{ color: businessProfile?.primary_color || '#4F46E5' }}
-        >
-          {businessProfile?.business_name || 'Business Name'}
-        </h1>
-
-        {/* Review Form */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 
-            className={`text-2xl font-bold mb-4 ${businessProfile?.primary_font || 'font-inter'}`}
+        {/* Business Info Card */}
+        <div className="bg-white rounded-2xl shadow p-8 mb-8 flex flex-col items-center mx-auto max-w-md animate-slideup">
+          {/* Business Logo */}
+          <div className="flex justify-center mb-4">
+            {businessProfile?.logo_url ? (
+              <img
+                src={businessProfile.logo_url}
+                alt={`${businessProfile?.business_name || 'Business'} logo`}
+                className="h-32 w-32 object-contain rounded-full"
+              />
+            ) : (
+              <div className="h-32 w-32 bg-gray-200 rounded-full flex items-center justify-center">
+                <span className="text-4xl text-gray-500">
+                  {businessProfile?.business_name?.[0] || 'B'}
+                </span>
+              </div>
+            )}
+          </div>
+          {/* Business Name */}
+          <h1 
+            className={`text-3xl font-bold text-center mb-2 ${businessProfile?.primary_font || 'font-inter'}`}
             style={{ color: businessProfile?.primary_color || '#4F46E5' }}
           >
-            {promptPage?.heading || 'Leave a Review'}
-          </h2>
-          <p 
-            className={`mb-6 ${businessProfile?.secondary_font || 'font-inter'}`}
-            style={{ color: businessProfile?.text_color || '#1F2937' }}
-          >
-            {promptPage?.description || 'Share your experience with us.'}
-          </p>
-          <textarea
-            className="w-full h-32 p-4 border rounded-lg mb-4 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-            placeholder="Write your review here..."
-            value={reviewText}
-            onChange={(e) => setReviewText(e.target.value)}
-          />
-          <div className="flex gap-4">
-            <button
-              type="button"
-              className="inline-flex items-center px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium shadow"
-              onClick={() => generateReviewText(0)}
-            >
-              Generate with AI
-            </button>
-            <button
-              onClick={handleSubmit}
-              className="inline-flex items-center px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium shadow"
-              style={{ backgroundColor: businessProfile?.primary_color || '#4F46E5' }}
-            >
-              Submit Review
-            </button>
-          </div>
+            {businessProfile?.business_name ? `Give ${businessProfile.business_name} a Review` : 'Give Us a Review'}
+          </h1>
+          {/* Estimated time note */}
+          <div className="text-center text-sm text-gray-500 mb-2">Estimated time to complete: 3-5 minutes</div>
         </div>
+        {/* Personalized Note */}
+        {promptPage?.personal_note && !promptPage?.is_universal && (
+          <div className="mb-8 mx-auto max-w-2xl bg-indigo-50 border border-indigo-200 rounded-lg p-4 text-indigo-900 text-base shadow animate-slideup" style={{ animationDelay: '100ms' }}>
+            {promptPage.personal_note}
+          </div>
+        )}
+
+        {/* Review Rewards (Promotion) */}
+        {promptPage?.custom_incentive && (
+          <div
+            className="rounded-lg p-4 mb-8 flex items-center gap-3 border bg-white animate-slideup"
+            style={{
+              borderColor: businessProfile?.primary_color || '#4F46E5',
+              animationDelay: '200ms',
+            }}
+          >
+            <FaStar
+              className="w-6 h-6 flex-shrink-0"
+              style={{ color: businessProfile?.primary_color || '#4F46E5' }}
+            />
+            <span
+              className="text-lg font-semibold"
+              style={{ color: businessProfile?.text_color || '#1F2937' }}
+            >
+              {promptPage.custom_incentive}
+            </span>
+          </div>
+        )}
+
+        {/* Review Platforms Section */}
+        {Array.isArray(promptPage?.review_platforms) && promptPage.review_platforms.length > 0 && (
+          <div className="mt-10 mb-12">
+            <h2 className="text-xl font-bold mb-4 text-indigo-800">Review Platforms</h2>
+            <div className="flex flex-col gap-8">
+              {promptPage.review_platforms.map((platform: any, idx: number) => {
+                const { icon: Icon, label } = getPlatformIcon(platform.url, platform.platform || platform.name);
+                const isUniversal = !!promptPage.is_universal;
+                return (
+                  <div
+                    key={idx}
+                    className="relative bg-white rounded-xl shadow p-6 flex flex-col items-start border border-gray-100 animate-slideup"
+                    style={{ animationDelay: `${300 + idx * 100}ms` }}
+                  >
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="bg-white rounded-full shadow p-2 flex items-center justify-center" title={label}>
+                        <Icon className="w-7 h-7 text-indigo-500" />
+                      </div>
+                      <div className="text-lg font-semibold text-gray-900">{platform.platform || platform.name}</div>
+                    </div>
+                    <textarea
+                      className="w-full mt-2 mb-4 p-4 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="Write your review here..."
+                      value={platformReviewTexts[idx] || ''}
+                      onChange={e => handleReviewTextChange(idx, e.target.value)}
+                      rows={5}
+                    />
+                    <div className="flex justify-between items-center w-full mb-2">
+                      <button
+                        type="button"
+                        className="inline-flex items-center px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium shadow"
+                        onClick={() => handleCopyAndSubmit(idx, platform.url)}
+                      >
+                        Copy & Submit
+                      </button>
+                      {!isUniversal && (
+                        <div className="flex items-center gap-3">
+                          <button
+                            type="button"
+                            className="inline-flex items-center px-3 py-2 bg-indigo-100 text-indigo-700 rounded hover:bg-indigo-200 text-xs font-medium shadow disabled:opacity-50 disabled:cursor-not-allowed"
+                            onClick={() => handleRewriteWithAI(idx)}
+                            disabled={aiRewriteCounts[idx] >= 3 || aiLoading === idx}
+                          >
+                            {aiLoading === idx ? (
+                              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-indigo-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                            ) : (
+                              'Rewrite with AI'
+                            )}
+                          </button>
+                          <span className="text-xs text-gray-500">{aiRewriteCounts[idx]}/3</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Social Media Section */}
         <div className="mt-16 text-center">

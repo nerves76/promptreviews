@@ -24,6 +24,9 @@ interface BusinessProfile {
   taglines: string;
   team_founder_info: string;
   keywords: string;
+  default_offer_enabled: boolean;
+  default_offer_title: string;
+  default_offer_body: string;
 }
 
 export default function CreatePromptPage() {
@@ -46,6 +49,9 @@ export default function CreatePromptPage() {
   const [businessProfile, setBusinessProfile] = useState<BusinessProfile | null>(null);
   const [generatingReview, setGeneratingReview] = useState<number | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [offerEnabled, setOfferEnabled] = useState(false);
+  const [offerTitle, setOfferTitle] = useState('Review Rewards');
+  const [offerBody, setOfferBody] = useState('');
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -71,6 +77,13 @@ export default function CreatePromptPage() {
 
         if (businessData) {
           setBusinessProfile(businessData);
+          // Pre-fill offer fields from business default if enabled
+          if (businessData.default_offer_enabled) {
+            setOfferEnabled(true);
+            setOfferTitle(businessData.default_offer_title || 'Review Rewards');
+            setOfferBody(businessData.default_offer_body || '');
+            setFormData(prev => ({ ...prev, custom_incentive: businessData.default_offer_body || '' }));
+          }
           if (businessData.preferred_review_platforms) {
             try {
               console.log('Raw preferred_review_platforms:', businessData.preferred_review_platforms);
@@ -362,6 +375,41 @@ export default function CreatePromptPage() {
 
   const renderStep2 = () => (
     <div className="space-y-6">
+      {/* Review Rewards Section */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-2">
+          <label className="block text-lg font-semibold text-indigo-800">Review Rewards</label>
+          <button
+            type="button"
+            onClick={() => setOfferEnabled(v => !v)}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${offerEnabled ? 'bg-indigo-500' : 'bg-gray-300'}`}
+            aria-pressed={offerEnabled}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${offerEnabled ? 'translate-x-5' : 'translate-x-1'}`}
+            />
+          </button>
+        </div>
+        <div className={`rounded-lg border border-indigo-200 bg-indigo-50 p-4 ${!offerEnabled ? 'opacity-60' : ''}`}>
+          <input
+            type="text"
+            value={offerTitle}
+            onChange={e => setOfferTitle(e.target.value)}
+            placeholder="Offer Title (e.g., Review Rewards)"
+            className="block w-full rounded-md border border-indigo-200 bg-indigo-50 focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-2 px-3 mb-2 font-semibold"
+            disabled={!offerEnabled}
+          />
+          <textarea
+            value={offerBody}
+            onChange={e => setOfferBody(e.target.value)}
+            placeholder="Review us on 3 platforms and get 10% off your next service!"
+            className="block w-full rounded-md border border-indigo-200 bg-indigo-50 focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-3 px-4"
+            rows={2}
+            disabled={!offerEnabled}
+          />
+        </div>
+      </div>
+
       <div>
         <label className="block text-sm font-medium text-gray-700 mt-4 mb-2">Review Platforms</label>
         <p className="text-sm text-gray-500 mt-1 mb-2">Your business profile platforms have been pre-loaded. You can add more if needed.</p>
@@ -538,6 +586,15 @@ export default function CreatePromptPage() {
       )}
     </div>
   );
+
+  // When offer fields change, update formData.custom_incentive
+  useEffect(() => {
+    if (offerEnabled) {
+      setFormData(prev => ({ ...prev, custom_incentive: offerBody }));
+    } else {
+      setFormData(prev => ({ ...prev, custom_incentive: '' }));
+    }
+  }, [offerEnabled, offerBody]);
 
   return (
     <>

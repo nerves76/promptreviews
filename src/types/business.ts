@@ -16,4 +16,7 @@ export interface BusinessProfile {
   youtube_url?: string;
   linkedin_url?: string;
   pinterest_url?: string;
+  default_offer_enabled?: boolean;
+  default_offer_title?: string;
+  default_offer_body?: string;
 } 

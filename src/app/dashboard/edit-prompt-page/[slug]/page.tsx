@@ -3,6 +3,8 @@ import { useRouter, useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { generateAIReview } from '@/utils/ai';
+import { FaGoogle, FaFacebook, FaYelp, FaTripadvisor, FaRegStar } from 'react-icons/fa';
+import { IconType } from 'react-icons';
 
 interface ReviewPlatformLink {
   platform: string;
@@ -24,6 +26,48 @@ interface BusinessProfile {
   keywords: string;
 }
 
+function Tooltip({ text }: { text: string }) {
+  const [show, setShow] = useState(false);
+  return (
+    <span className="relative inline-block align-middle ml-1">
+      <button
+        type="button"
+        tabIndex={0}
+        aria-label="Show help"
+        className="text-gray-400 hover:text-indigo-600 focus:outline-none"
+        onMouseEnter={() => setShow(true)}
+        onMouseLeave={() => setShow(false)}
+        onFocus={() => setShow(true)}
+        onBlur={() => setShow(false)}
+        style={{ lineHeight: 1 }}
+      >
+        <span
+          className="flex items-center justify-center rounded-full bg-blue-100"
+          style={{ width: 16, height: 16, fontSize: 12, color: '#2563eb', fontWeight: 400 }}
+        >
+          ?
+        </span>
+      </button>
+      {show && (
+        <div className="absolute z-20 left-1/2 -translate-x-1/2 mt-2 w-56 p-2 bg-white border border-gray-200 rounded shadow text-xs text-gray-700">
+          {text}
+        </div>
+      )}
+    </span>
+  );
+}
+
+// Helper to get platform icon based on URL or platform name
+function getPlatformIcon(url: string, platform: string): { icon: IconType, label: string } {
+  const lowerUrl = url.toLowerCase();
+  const lowerPlatform = (platform || '').toLowerCase();
+  if (lowerUrl.includes('google') || lowerPlatform.includes('google')) return { icon: FaGoogle, label: 'Google' };
+  if (lowerUrl.includes('facebook') || lowerPlatform.includes('facebook')) return { icon: FaFacebook, label: 'Facebook' };
+  if (lowerUrl.includes('yelp') || lowerPlatform.includes('yelp')) return { icon: FaYelp, label: 'Yelp' };
+  if (lowerUrl.includes('tripadvisor') || lowerPlatform.includes('tripadvisor')) return { icon: FaTripadvisor, label: 'TripAdvisor' };
+  return { icon: FaRegStar, label: 'Other' };
+}
+
 export default function EditPromptPage() {
   const router = useRouter();
   const params = useParams();
@@ -42,10 +86,13 @@ export default function EditPromptPage() {
     review_platforms: [] as ReviewPlatformLink[],
     custom_incentive: '',
     services_offered: '',
+    personal_note: '',
   });
   const [businessProfile, setBusinessProfile] = useState<BusinessProfile | null>(null);
   const [generatingReview, setGeneratingReview] = useState<number | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isUniversal, setIsUniversal] = useState(false);
+  const [offerEnabled, setOfferEnabled] = useState(false);
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -84,7 +131,9 @@ export default function EditPromptPage() {
           services_offered: Array.isArray(promptData.services_offered) 
             ? promptData.services_offered.join('\n')
             : '',
+          personal_note: promptData.personal_note || '',
         });
+        setIsUniversal(!!promptData.is_universal);
 
         // Fetch business profile
         const { data: businessData } = await supabase
@@ -104,6 +153,13 @@ export default function EditPromptPage() {
 
     loadData();
   }, [params.slug, supabase]);
+
+  // Enable offer if there is already an offer in formData
+  useEffect(() => {
+    if (formData.custom_incentive && formData.custom_incentive.trim() !== '') {
+      setOfferEnabled(true);
+    }
+  }, [formData.custom_incentive]);
 
   const handleAddPlatform = () => {
     setFormData(prev => ({
@@ -187,8 +243,9 @@ export default function EditPromptPage() {
         project_type: formData.project_type,
         outcomes: formData.outcomes,
         review_platforms: filteredPlatformLinks,
-        custom_incentive: formData.custom_incentive || null,
+        custom_incentive: offerEnabled ? (formData.custom_incentive || null) : null,
         services_offered: (formData.services_offered || '').split('\n').map(s => s.trim()).filter(Boolean),
+        personal_note: formData.personal_note,
       };
       if (action === 'publish') {
         updateData.status = 'published';
@@ -331,6 +388,21 @@ export default function EditPromptPage() {
         />
       </div>
 
+      <div>
+        <label htmlFor="personal_note" className="block text-sm font-medium text-gray-700 mt-4 mb-2">
+          Personalized Note to Customer
+        </label>
+        <textarea
+          id="personal_note"
+          value={formData.personal_note}
+          onChange={e => setFormData(prev => ({ ...prev, personal_note: e.target.value }))}
+          rows={4}
+          className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+          placeholder={`Hi ${formData.first_name || '[name]'}, thanks so much for doing business with ${businessProfile?.business_name || '[business name]'}. As a small business, getting reviews online is super valuable and extends our reach. Thank you for supporting us!\n\n- ${businessProfile?.business_name || '[Account holder name]'}`}
+        />
+        <p className="text-xs text-gray-500 mt-1 mb-2">This note will appear at the top of the review page for your customer. Make it personal!</p>
+      </div>
+
       <div className="flex justify-end">
         <button
           type="button"
@@ -345,16 +417,59 @@ export default function EditPromptPage() {
 
   const renderStep2 = () => (
     <div className="space-y-6">
+      {/* Review Rewards Section */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-2">
+          <label className="block text-lg font-semibold text-indigo-800">Review Rewards</label>
+          <button
+            type="button"
+            onClick={() => setOfferEnabled(v => !v)}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${offerEnabled ? 'bg-indigo-500' : 'bg-gray-300'}`}
+            aria-pressed={offerEnabled}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${offerEnabled ? 'translate-x-5' : 'translate-x-1'}`}
+            />
+          </button>
+        </div>
+        <div className={`rounded-lg border border-indigo-200 bg-indigo-50 p-4 ${!offerEnabled ? 'opacity-60' : ''}`}>
+          <textarea
+            id="custom_incentive"
+            value={formData.custom_incentive}
+            onChange={e => setFormData(prev => ({ ...prev, custom_incentive: e.target.value }))}
+            placeholder="Review us on 3 platforms and get 10% off your next service!"
+            className="block w-full rounded-md border border-indigo-200 bg-indigo-50 focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-3 px-4"
+            rows={2}
+            disabled={!offerEnabled}
+          />
+        </div>
+      </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mt-4 mb-2">Review Platforms</label>
+        <label className="block text-xl font-semibold text-gray-800 mt-4 mb-4">Review Platforms</label>
         <p className="text-sm text-gray-500 mt-1 mb-2">Your business profile platforms have been pre-loaded. You can add more if needed.</p>
+        {/* Universal Prompt Page note */}
+        {isUniversal && (
+          <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded text-yellow-900 text-sm">
+            Universal Prompt Pages are designed for sharing with many people. Each reviewer should generate their own unique review using AI. You cannot pre-set review text for these pages.
+          </div>
+        )}
         <div className="mt-1 space-y-4">
           {formData.review_platforms.map((link, index) => (
-            <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-6 border rounded-lg bg-gray-50">
-              <div className="space-y-4 flex flex-col justify-between">
-                <div>
-                  <label htmlFor={`platform-${index}`} className="block text-sm font-medium text-gray-700 mb-1">
+            <div key={index} className="relative mb-6 mt-6 p-6 border rounded-lg bg-gray-50">
+              {/* Platform icon in top left */}
+              {link.url && (
+                <div className="absolute -top-4 -left-4 bg-white rounded-full shadow p-2 flex items-center justify-center" title={getPlatformIcon(link.url, link.platform).label}>
+                  {(() => {
+                    const { icon: Icon } = getPlatformIcon(link.url, link.platform);
+                    return <Icon className="w-6 h-6" />;
+                  })()}
+                </div>
+              )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="mb-4">
+                  <label htmlFor={`platform-${index}`} className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
                     Platform Name
+                    <Tooltip text="The name of the review platform (e.g., Google Reviews, Yelp, Trustpilot)." />
                   </label>
                   <input
                     type="text"
@@ -365,9 +480,10 @@ export default function EditPromptPage() {
                     className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
                   />
                 </div>
-                <div>
-                  <label htmlFor={`url-${index}`} className="block text-sm font-medium text-gray-700 mb-1">
+                <div className="mb-4">
+                  <label htmlFor={`url-${index}`} className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
                     Review URL
+                    <Tooltip text="Paste the direct link to your business's review page on this platform." />
                   </label>
                   <input
                     type="url"
@@ -378,9 +494,10 @@ export default function EditPromptPage() {
                     className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
                   />
                 </div>
-                <div>
-                  <label htmlFor={`wordCount-${index}`} className="block text-sm font-medium text-gray-700 mb-1">
+                <div className="mb-4">
+                  <label htmlFor={`wordCount-${index}`} className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
                     Word Count Limit
+                    <Tooltip text="Set a maximum word count for the review. Most platforms have a limit; 200 is a good default." />
                   </label>
                   <input
                     type="number"
@@ -393,57 +510,49 @@ export default function EditPromptPage() {
                     max="1000"
                   />
                 </div>
-                {formData.review_platforms.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => handleRemovePlatform(index)}
-                    className="inline-flex items-center p-1.5 border border-transparent rounded-full text-red-600 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 self-start mt-2"
-                  >
-                    <span className="sr-only">Remove platform</span>
-                    <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path
-                        fillRule="evenodd"
-                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </button>
-                )}
+                <div className="mb-4">
+                  <label htmlFor={`customInstructions-${index}`} className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                    Custom Instructions
+                    <Tooltip text="Add any special instructions for this platform (optional). For example, mention if you want the reviewer to focus on a specific aspect." />
+                  </label>
+                  <input
+                    type="text"
+                    id={`customInstructions-${index}`}
+                    value={link.customInstructions || ''}
+                    onChange={e => handlePlatformChange(index, 'customInstructions', e.target.value)}
+                    placeholder="Add custom instructions for this platform"
+                    className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                  />
+                </div>
               </div>
-              <div className="flex flex-col h-full justify-between">
-                <div>
-                  <div>
-                    <label htmlFor={`customInstructions-${index}`} className="block text-sm font-medium text-gray-700 mb-1">
-                      Custom Instructions
-                    </label>
-                    <input
-                      type="text"
-                      id={`customInstructions-${index}`}
-                      value={link.customInstructions || ''}
-                      onChange={e => handlePlatformChange(index, 'customInstructions', e.target.value)}
-                      placeholder="Add custom instructions for this platform"
-                      className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4 mb-4"
-                    />
+              {/* Only show review text/AI controls if not universal */}
+              {!isUniversal && (
+                <div className="md:col-span-2 mt-2">
+                  <label htmlFor={`reviewText-${index}`} className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                    Review Text
+                    <Tooltip text="Write or generate the review text that will be suggested to the customer. You can edit or personalize it as needed." />
+                  </label>
+                  <textarea
+                    id={`reviewText-${index}`}
+                    value={link.reviewText || ''}
+                    onChange={e => handlePlatformChange(index, 'reviewText', e.target.value)}
+                    placeholder="Write or generate a review for this platform"
+                    className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4 mb-1"
+                    rows={5}
+                  />
+                  <div className="flex justify-end mt-2">
+                    {link.reviewText && (
+                      <span className="text-xs text-gray-400 whitespace-nowrap">
+                        {link.reviewText.split(/\s+/).length} words
+                      </span>
+                    )}
                   </div>
-                  <div>
-                    <label htmlFor={`reviewText-${index}`} className="block text-sm font-medium text-gray-700 mb-1">
-                      Review Text
-                    </label>
-                    <textarea
-                      id={`reviewText-${index}`}
-                      value={link.reviewText || ''}
-                      onChange={e => handlePlatformChange(index, 'reviewText', e.target.value)}
-                      placeholder="Write or generate a review for this platform"
-                      className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4 mb-2"
-                      rows={5}
-                    />
-                  </div>
-                  <div className="flex items-center gap-2 justify-between mt-2">
+                  <div className="flex justify-between items-center mt-4">
                     <button
                       type="button"
                       onClick={() => handleGenerateAIReview(index)}
                       disabled={generatingReview === index}
-                      className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm font-medium shadow disabled:opacity-50 disabled:cursor-not-allowed ml-auto"
+                      className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm font-medium shadow disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {generatingReview === index ? (
                         <>
@@ -457,14 +566,9 @@ export default function EditPromptPage() {
                         'Generate with AI'
                       )}
                     </button>
-                    {link.reviewText && (
-                      <span className="text-sm text-gray-500 ml-2">
-                        {link.reviewText.split(/\s+/).length} words
-                      </span>
-                    )}
                   </div>
                 </div>
-              </div>
+              )}
             </div>
           ))}
           <button
@@ -524,56 +628,71 @@ export default function EditPromptPage() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        {error && (
-          <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-md">
-            {error}
-          </div>
-        )}
-        {successMessage && (
-          <div className="mb-4 p-4 bg-green-50 text-green-700 rounded-md">
-            {successMessage}
-          </div>
-        )}
-
-        <div className="bg-white shadow rounded-lg p-12">
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-900">Edit Prompt Page</h1>
-            <p className="mt-2 text-sm text-gray-600">
-              Customize your prompt page to collect reviews from your customers.
-            </p>
-          </div>
-
-          <div className="mb-8">
-            <div className="flex items-center space-x-4">
-              <div
-                className={`flex items-center justify-center w-8 h-8 rounded-full ${
-                  step >= 1 ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-600'
-                }`}
-              >
-                1
-              </div>
-              <div className={`text-sm ${step >= 1 ? 'text-indigo-600' : 'text-gray-500'}`}>
-                Basic Information
-              </div>
-              <div className="flex-1 h-px bg-gray-200"></div>
-              <div
-                className={`flex items-center justify-center w-8 h-8 rounded-full ${
-                  step >= 2 ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-600'
-                }`}
-              >
-                2
-              </div>
-              <div className={`text-sm ${step >= 2 ? 'text-indigo-600' : 'text-gray-500'}`}>
-                Review Platforms
-              </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-400 via-indigo-300 to-purple-200">
+      <div className="max-w-4xl mx-auto mt-10">
+        <div className="bg-white shadow-xl rounded-2xl p-12">
+          {error && (
+            <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-md">
+              {error}
             </div>
-          </div>
+          )}
+          {successMessage && (
+            <div className="mb-4 p-4 bg-green-50 text-green-700 rounded-md">
+              {successMessage}
+            </div>
+          )}
 
-          <form onSubmit={(e) => handleSubmit(e, 'publish')}>
-            {step === 1 ? renderStep1() : renderStep2()}
-          </form>
+          <div>
+            <div className="mb-8">
+              {isUniversal ? (
+                <>
+                  <h1 className="text-2xl font-bold text-gray-900">Edit Universal Prompt Page</h1>
+                  <p className="mt-2 text-sm text-gray-600">
+                    Edit your universal prompt page for general use. This page is not customer-specific and is ideal for QR codes, business cards, or general review collection.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h1 className="text-2xl font-bold text-gray-900">Edit Prompt Page</h1>
+                  <p className="mt-2 text-sm text-gray-600">
+                    Customize your prompt page to collect reviews from your customers.
+                  </p>
+                </>
+              )}
+            </div>
+
+            {!isUniversal && (
+              <div className="mb-8">
+                <div className="flex items-center space-x-4">
+                  <div
+                    className={`flex items-center justify-center w-8 h-8 rounded-full ${
+                      step >= 1 ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-600'
+                    }`}
+                  >
+                    1
+                  </div>
+                  <div className={`text-sm ${step >= 1 ? 'text-indigo-600' : 'text-gray-500'}`}>
+                    Basic Information
+                  </div>
+                  <div className="flex-1 h-px bg-gray-200"></div>
+                  <div
+                    className={`flex items-center justify-center w-8 h-8 rounded-full ${
+                      step >= 2 ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-600'
+                    }`}
+                  >
+                    2
+                  </div>
+                  <div className={`text-sm ${step >= 2 ? 'text-indigo-600' : 'text-gray-500'}`}>
+                    Review Platforms
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <form onSubmit={(e) => handleSubmit(e, 'publish')}>
+              {isUniversal ? renderStep2() : (step === 1 ? renderStep1() : renderStep2())}
+            </form>
+          </div>
         </div>
       </div>
     </div>
