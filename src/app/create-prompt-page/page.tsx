@@ -550,9 +550,7 @@ export default function CreatePromptPage() {
               </div>
             </div>
             {error && (
-              <div className="mb-4 bg-red-50 border border-red-200 rounded-md p-4">
-                <p className="text-red-600">{error}</p>
-              </div>
+              <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-md">{error}</div>
             )}
             <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
               {step === 1 ? renderStep1() : renderStep2()}

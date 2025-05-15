@@ -113,6 +113,12 @@ export default function PromptPage() {
     if (params.slug) fetchData();
   }, [params.slug, supabase]);
 
+  useEffect(() => {
+    if (promptPage && promptPage.review_platforms && promptPage.review_platforms[0]?.reviewText) {
+      setReviewText(promptPage.review_platforms[0].reviewText);
+    }
+  }, [promptPage]);
+
   const handleEditReviewText = async (platformIndex: number, newText: string) => {
     if (!promptPage) return;
 
@@ -148,7 +154,7 @@ export default function PromptPage() {
       if (!response.ok) throw new Error('Failed to generate review');
       
       const { text } = await response.json();
-      await handleEditReviewText(platformIndex, text);
+      setReviewText(text);
     } catch (err) {
       console.error('Error generating review:', err);
     }
@@ -156,7 +162,16 @@ export default function PromptPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission
+    if (!promptPage) return;
+    const updatedPlatforms = [...promptPage.review_platforms];
+    updatedPlatforms[0] = {
+      ...updatedPlatforms[0],
+      reviewText: reviewText
+    };
+    await supabase
+      .from('prompt_pages')
+      .update({ review_platforms: updatedPlatforms })
+      .eq('id', promptPage.id);
   };
 
   if (loading) {

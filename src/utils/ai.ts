@@ -81,19 +81,19 @@ export async function generateAIReview(
       body: JSON.stringify({ prompt, wordCountLimit }),
     });
     const data = await response.json();
-    if (!response.ok || !data.review) {
+    if (!response.ok || !data.text) {
       throw new Error(data.error || 'Failed to generate review');
     }
 
     // Ensure the review is within the word count limit
-    const words = data.review.split(/\s+/);
+    const words = data.text.split(/\s+/);
     if (words.length > wordCountLimit) {
       return words.slice(0, wordCountLimit).join(' ') + '...';
     }
 
-    return data.review;
+    return data.text;
   } catch (error) {
     console.error('Error generating AI review:', error);
-    throw new Error('Failed to generate review. Please try again.');
+    throw new Error(error instanceof Error ? error.message : 'Failed to generate review. Please try again.');
   }
 }
