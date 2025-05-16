@@ -23,6 +23,9 @@ export type PromptPage = {
     url: string;
   }[];
   custom_incentive: string | null;
+  offer_enabled?: boolean;
+  offer_title?: string;
+  offer_body?: string;
   account_id: string;
   status: 'draft' | 'published';
 };

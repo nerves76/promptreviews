@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { RefObject, useState, useEffect } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { useAuthGuard } from '@/utils/authGuard';
+import { FaGlobe } from 'react-icons/fa';
 
 interface DashboardContentProps {
   userName: string;
@@ -209,75 +210,80 @@ export default function DashboardContent({
 
   return (
     <>
-      <div className="min-h-screen">
+      <div className="min-h-screen pt-16">
         <div className="max-w-4xl mx-auto bg-white rounded-lg shadow pt-8 pb-24 px-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">
-              Welcome, {userName}!
-            </h1>
-            <p className="mt-2 text-sm text-gray-600">
-              {business ? `Manage your prompt pages for ${business.name} from here.` : 'Manage your prompt pages and business profile from here.'}
-            </p>
-          </div>
-          <div className="md:flex md:items-center md:justify-between">
-            <div className="min-w-0 flex-1">
-              {/* Remove duplicate welcome message */}
+          <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Welcome, {userName}!
+              </h1>
+              <p className="mt-2 text-sm text-gray-600">
+                {business ? `Manage your prompt pages for ${business.name} from here.` : 'Manage your prompt pages and business profile from here.'}
+              </p>
             </div>
-            <div className="mt-4 flex md:ml-4 md:mt-0">
-              <a
-                href="/create-prompt-page"
-                ref={createPromptPageRef}
-                onClick={handleCreatePromptPageClick}
-                className="ml-3 inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-              >
-                Create Prompt Page
-              </a>
-            </div>
+            <a
+              href="/create-prompt-page"
+              ref={createPromptPageRef}
+              onClick={handleCreatePromptPageClick}
+              className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 whitespace-nowrap"
+            >
+              Create Prompt Page
+            </a>
           </div>
-
-          <div className="mt-8 space-y-8">
+          <div className="mt-2 space-y-4">
             {/* Universal Prompt Page Card */}
             {universalPromptPage && (
-              <div className="rounded-lg p-6 bg-blue-50 border border-blue-200 flex items-center gap-4 shadow relative">
-                <div className="flex-shrink-0">
-                  <svg className="h-10 w-10 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.364-6.364l-1.414 1.414M6.05 17.95l-1.414 1.414m12.728 0l-1.414-1.414M6.05 6.05L4.636 4.636M12 7a5 5 0 100 10 5 5 0 000-10z" />
-                  </svg>
+              <div className="rounded-lg p-6 bg-blue-50 border border-blue-200 flex items-center gap-4 shadow relative mb-16">
+                <div className="absolute -top-4 -left-4 bg-white rounded-full shadow p-2 flex items-center justify-center" title="Universal">
+                  <FaGlobe className="w-7 h-7 text-blue-400" />
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-lg font-bold text-blue-800">Universal Prompt Page</span>
                     <span className="inline-block bg-blue-200 text-blue-800 text-xs font-semibold px-2 py-0.5 rounded">General Use</span>
                   </div>
-                  <p className="text-blue-900 mb-2 text-sm">This prompt page is general use and not customer specific. Good for situations where you don't know much about the customer or client you want reviews from. Also useful if you want to post a QR code in your place of business or on a business card.</p>
+                  <p className="text-blue-900 mb-2 text-sm">Your Universal Prompt Page is general-use and not customer specific. The reviews are not prewritten but there is an AI button that will generate a unique review instantly based on your business profile. Your customers/clients can edit before they post. Print your QR code, frame it, and hang it in your place of business for a super-easy way to get customers/clients to post a review. Add the QR code to business cards, menus, flyers, etc.</p>
                   <div className="flex flex-wrap gap-2 items-center mt-2">
-                    <Link href={`/r/${universalPromptPage.slug}`} className="text-indigo-600 underline hover:text-indigo-800 hover:underline">
-                      View
-                    </Link>
-                    <Link href={`/dashboard/edit-prompt-page/${universalPromptPage.slug}`} className="text-indigo-600 underline hover:text-indigo-800 hover:underline">
-                      Edit
-                    </Link>
-                    <button
-                      type="button"
-                      onClick={handleCopyLink}
-                      className="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium shadow h-9 align-middle"
-                    >
-                      Copy Link
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setShowQR(true)}
-                      className="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium shadow h-9 align-middle"
-                    >
-                      Show QR Code
-                    </button>
-                    {copySuccess && <span className="ml-2 text-green-600 text-xs font-semibold">{copySuccess}</span>}
+                    <div className="flex gap-2 items-center">
+                      <Link href={`/r/${universalPromptPage.slug}`} className="text-indigo-600 underline hover:text-indigo-800 hover:underline">
+                        View
+                      </Link>
+                      <Link href={`/dashboard/edit-prompt-page/${universalPromptPage.slug}`} className="text-indigo-600 underline hover:text-indigo-800 hover:underline">
+                        Edit
+                      </Link>
+                    </div>
+                    <div className="flex flex-wrap gap-2 items-center ml-auto">
+                      <button
+                        type="button"
+                        onClick={handleCopyLink}
+                        className="inline-flex items-center px-3 py-1.5 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
+                      >
+                        Copy Link
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowQR(true)}
+                        className="inline-flex items-center px-3 py-1.5 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
+                      >
+                        Show QR Code
+                      </button>
+                      {copySuccess && <span className="ml-2 text-green-600 text-xs font-semibold">{copySuccess}</span>}
+                    </div>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Tabs for status filtering - moved here */}
+            <div className="mb-24">
+              <div className="flex items-center gap-2">
+                <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+                <h3 className="text-lg font-medium leading-6 text-indigo-900">Your Custom Prompt Pages</h3>
+              </div>
+              <p className="mt-2 text-sm text-gray-500">Manage your customer-specific prompt pages and their review status.</p>
+            </div>
+
             <div className="flex gap-2 mb-4">
               <button
                 className={`px-4 py-2 rounded-t-md font-semibold border-b-2 transition-colors ${selectedTab === 'in_queue' ? 'border-indigo-600 text-indigo-700 bg-indigo-50' : 'border-transparent text-gray-600 bg-gray-100 hover:bg-gray-200'}`}
@@ -300,8 +306,7 @@ export default function DashboardContent({
             </div>
 
             {/* Custom Prompt Pages Table */}
-            <div>
-              <h3 className="text-lg font-medium leading-6 text-gray-900">Your Custom Prompt Pages</h3>
+            <div className="mt-0">
               <div className="mt-4">
                 {business && filteredPromptPages.length === 0 ? (
                   <div className="text-center py-24 bg-white rounded-lg border border-gray-200">

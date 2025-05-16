@@ -217,6 +217,9 @@ export default function CreatePromptPage() {
         services_offered: (formData.services_offered || '').split('\n').map(s => s.trim()).filter(Boolean),
         status: action === 'publish' ? 'published' : 'draft',
         slug: slug,
+        offer_enabled: offerEnabled,
+        offer_title: offerTitle,
+        offer_body: offerBody,
       };
 
       const { data, error: insertError } = await supabase

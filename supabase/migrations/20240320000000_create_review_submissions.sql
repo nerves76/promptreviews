@@ -13,19 +13,12 @@ CREATE TABLE IF NOT EXISTS public.review_submissions (
 -- Add RLS policies
 ALTER TABLE public.review_submissions ENABLE ROW LEVEL SECURITY;
 
--- Allow insert for authenticated users
-CREATE POLICY "Allow insert for authenticated users"
-    ON public.review_submissions
-    FOR INSERT
-    TO authenticated
-    WITH CHECK (true);
-
 -- Allow select for authenticated users
-CREATE POLICY "Allow select for authenticated users"
-    ON public.review_submissions
-    FOR SELECT
-    TO authenticated
-    USING (true);
+-- CREATE POLICY "Allow select for authenticated users"
+--     ON public.review_submissions
+--     FOR SELECT
+--     TO authenticated
+--     USING (true);
 
 -- Create index for faster queries
 CREATE INDEX IF NOT EXISTS idx_review_submissions_prompt_page_id 

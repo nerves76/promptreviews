@@ -8,6 +8,8 @@ import Cropper from 'react-easy-crop';
 import type { Area } from 'react-easy-crop';
 import { useAuthGuard } from '@/utils/authGuard';
 import { sanitizePromptPageInsert } from '@/utils/sanitizePromptPageInsert';
+import { slugify } from '@/utils/slugify';
+import { FaImage } from 'react-icons/fa';
 
 export default function CreateBusinessPage() {
   useAuthGuard({ requireBusinessProfile: false });
@@ -33,6 +35,12 @@ export default function CreateBusinessPage() {
     default_offer_enabled: false,
     default_offer_title: 'Review Rewards',
     default_offer_body: '',
+    address_street: "",
+    address_city: "",
+    address_state: "",
+    address_zip: "",
+    address_country: "",
+    business_website: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -137,6 +145,12 @@ export default function CreateBusinessPage() {
         default_offer_enabled: form.default_offer_enabled,
         default_offer_title: form.default_offer_title,
         default_offer_body: form.default_offer_body,
+        address_street: form.address_street,
+        address_city: form.address_city,
+        address_state: form.address_state,
+        address_zip: form.address_zip,
+        address_country: form.address_country,
+        business_website: form.business_website,
       })
       .select()
       .single();
@@ -149,7 +163,7 @@ export default function CreateBusinessPage() {
     console.log('About to insert universal prompt page');
     const promptPageData = sanitizePromptPageInsert({
       account_id: user.id,
-      slug: `universal-${user.id}`,
+      slug: `universal-${slugify(form.name)}`,
       client_name: '',
       location: '',
       tone_of_voice: '',
@@ -309,13 +323,36 @@ export default function CreateBusinessPage() {
               <a href="/create-prompt-page" className="inline-block mt-2 text-blue-700 underline font-medium">Create Prompt Page</a>
             </div>
           )}
-          <div>
-            <label className="block font-medium mb-1">Business Name *</label>
+          <div className="mb-4">
+            <label className="block font-semibold text-sm text-gray-500 mb-1">Business Name *</label>
             <input type="text" name="name" className="w-full border px-3 py-2 rounded" value={form.name} onChange={handleChange} required />
             <p className="text-sm text-gray-500 mt-1">The name of your business or organization as you want it to appear to clients.</p>
           </div>
-          <div>
-            <label className="block font-medium mb-1">Services Offered *</label>
+          <div className="mb-4">
+            <label className="block font-semibold text-sm text-gray-500 mb-1">Business Website</label>
+            <input
+              type="url"
+              name="business_website"
+              className="w-full border px-3 py-2 rounded"
+              value={form.business_website || ''}
+              onChange={handleChange}
+              placeholder="https://yourbusiness.com"
+            />
+            <p className="text-sm text-gray-500 mt-1">Add your main website URL. This will be shown on your public prompt page.</p>
+          </div>
+          <div className="mb-4">
+            <label className="block font-semibold text-sm text-gray-500 mb-1">Business Address *</label>
+            <input type="text" name="address_street" className="w-full border px-3 py-2 rounded mb-2" value={form.address_street} onChange={handleChange} required placeholder="Street Address" />
+            <div className="flex gap-2 mb-2">
+              <input type="text" name="address_city" className="flex-1 border px-3 py-2 rounded" value={form.address_city} onChange={handleChange} required placeholder="City" />
+              <input type="text" name="address_state" className="w-24 border px-3 py-2 rounded" value={form.address_state} onChange={handleChange} required placeholder="State" />
+              <input type="text" name="address_zip" className="w-32 border px-3 py-2 rounded" value={form.address_zip} onChange={handleChange} required placeholder="ZIP" />
+            </div>
+            <input type="text" name="address_country" className="w-full border px-3 py-2 rounded" value={form.address_country} onChange={handleChange} required placeholder="Country" />
+            <p className="text-sm text-gray-500 mt-1">Enter your primary business address. This will help with location-specific features in the future.</p>
+          </div>
+          <div className="mb-4">
+            <label className="block font-semibold text-sm text-gray-500 mb-1">Services Offered *</label>
             <div className="space-y-2">
               {services.map((service, idx) => (
                 <div key={idx} className="flex items-center gap-2">
@@ -336,33 +373,33 @@ export default function CreateBusinessPage() {
             </div>
             <p className="text-sm text-gray-500 mt-1">Add each service or product you provide as a separate line.</p>
           </div>
-          <div>
-            <label className="block font-medium mb-1">Company Values *</label>
+          <div className="mb-4">
+            <label className="block font-semibold text-sm text-gray-500 mb-1">Company Values *</label>
             <textarea name="company_values" className="w-full border px-3 py-2 rounded" value={form.company_values} onChange={handleChange} required />
             <p className="text-sm text-gray-500 mt-1">Share your core values or guiding principles (e.g., integrity, innovation, customer focus).</p>
           </div>
-          <div>
-            <label className="block font-medium mb-1">Differentiators / Unique Selling Points *</label>
+          <div className="mb-4">
+            <label className="block font-semibold text-sm text-gray-500 mb-1">Differentiators / Unique Selling Points *</label>
             <textarea name="differentiators" className="w-full border px-3 py-2 rounded" value={form.differentiators} onChange={handleChange} required />
             <p className="text-sm text-gray-500 mt-1">What makes your business stand out from competitors? (e.g., experience, awards, specializations)</p>
           </div>
-          <div>
-            <label className="block font-medium mb-1">Years in Business *</label>
+          <div className="mb-4">
+            <label className="block font-semibold text-sm text-gray-500 mb-1">Years in Business *</label>
             <input type="number" name="years_in_business" min="0" className="w-full border px-3 py-2 rounded" value={form.years_in_business} onChange={handleChange} required />
             <p className="text-sm text-gray-500 mt-1">How many years have you been in business? Enter a number.</p>
           </div>
-          <div>
-            <label className="block font-medium mb-1">Industries Served *</label>
+          <div className="mb-4">
+            <label className="block font-semibold text-sm text-gray-500 mb-1">Industries Served *</label>
             <textarea name="industries_served" className="w-full border px-3 py-2 rounded" value={form.industries_served} onChange={handleChange} required />
             <p className="text-sm text-gray-500 mt-1">List the industries or types of clients you typically serve (e.g., healthcare, retail, tech).</p>
           </div>
-          <div>
-            <label className="block font-medium mb-1">Taglines</label>
+          <div className="mb-4">
+            <label className="block font-semibold text-sm text-gray-500 mb-1">Taglines</label>
             <textarea name="taglines" className="w-full border px-3 py-2 rounded" value={form.taglines} onChange={handleChange} />
             <p className="text-sm text-gray-500 mt-1">Enter any slogans or taglines you use in your marketing.</p>
           </div>
-          <div>
-            <label className="block font-medium mb-1">Team or Founder Info (optional)</label>
+          <div className="mb-4">
+            <label className="block font-semibold text-sm text-gray-500 mb-1">Team or Founder Info (optional)</label>
             <textarea name="team_info" className="w-full border px-3 py-2 rounded" value={form.team_info} onChange={handleChange} />
             <p className="text-sm text-gray-500 mt-1">Share a brief bio or background about your team or founder (optional).</p>
           </div>
@@ -403,41 +440,51 @@ export default function CreateBusinessPage() {
             </div>
           </div>
           <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Social Media Links</h2>
-            <div>
-              <label className="block font-medium mb-1">Facebook URL</label>
+            <h2 className="text-2xl font-bold text-indigo-700 mb-16 flex items-center gap-2">Social Media Links</h2>
+            <div className="mb-4">
+              <label className="block font-semibold text-sm text-gray-500 mb-1">Facebook URL</label>
               <input type="url" name="facebook_url" className="w-full border px-3 py-2 rounded" value={form.facebook_url} onChange={handleChange} placeholder="https://facebook.com/yourbusiness" />
             </div>
-            <div>
-              <label className="block font-medium mb-1">Instagram URL</label>
+            <div className="mb-4">
+              <label className="block font-semibold text-sm text-gray-500 mb-1">Instagram URL</label>
               <input type="url" name="instagram_url" className="w-full border px-3 py-2 rounded" value={form.instagram_url} onChange={handleChange} placeholder="https://instagram.com/yourbusiness" />
             </div>
-            <div>
-              <label className="block font-medium mb-1">Bluesky URL</label>
+            <div className="mb-4">
+              <label className="block font-semibold text-sm text-gray-500 mb-1">Bluesky URL</label>
               <input type="url" name="bluesky_url" className="w-full border px-3 py-2 rounded" value={form.bluesky_url} onChange={handleChange} placeholder="https://bsky.app/profile/yourbusiness" />
             </div>
-            <div>
-              <label className="block font-medium mb-1">TikTok URL</label>
+            <div className="mb-4">
+              <label className="block font-semibold text-sm text-gray-500 mb-1">TikTok URL</label>
               <input type="url" name="tiktok_url" className="w-full border px-3 py-2 rounded" value={form.tiktok_url} onChange={handleChange} placeholder="https://tiktok.com/@yourbusiness" />
             </div>
-            <div>
-              <label className="block font-medium mb-1">YouTube URL</label>
+            <div className="mb-4">
+              <label className="block font-semibold text-sm text-gray-500 mb-1">YouTube URL</label>
               <input type="url" name="youtube_url" className="w-full border px-3 py-2 rounded" value={form.youtube_url} onChange={handleChange} placeholder="https://youtube.com/@yourbusiness" />
             </div>
-            <div>
-              <label className="block font-medium mb-1">LinkedIn URL</label>
+            <div className="mb-4">
+              <label className="block font-semibold text-sm text-gray-500 mb-1">LinkedIn URL</label>
               <input type="url" name="linkedin_url" className="w-full border px-3 py-2 rounded" value={form.linkedin_url} onChange={handleChange} placeholder="https://linkedin.com/company/yourbusiness" />
             </div>
-            <div>
-              <label className="block font-medium mb-1">Pinterest URL</label>
+            <div className="mb-4">
+              <label className="block font-semibold text-sm text-gray-500 mb-1">Pinterest URL</label>
               <input type="url" name="pinterest_url" className="w-full border px-3 py-2 rounded" value={form.pinterest_url} onChange={handleChange} placeholder="https://pinterest.com/yourbusiness" />
             </div>
           </div>
-          <div>
-            <label className="block font-medium mb-1">Preferred Review Platforms *</label>
+          <div className="mb-4">
+            <label className="block font-semibold text-sm text-gray-500 mb-1">Preferred Review Platforms *</label>
+            <p className="text-sm text-gray-500 mb-6">
+              Add your preferred review platforms. We recommend adding at least 3 and we HIGHLY recommend adding your
+              <a href="https://business.google.com/us/business-profile/" target="_blank" rel="noopener noreferrer" className="text-blue-700 underline mx-1">Google Business Profile</a>
+              review link because adding reviews can drastically improve your local search visibility.
+            </p>
             <div className="space-y-4">
               {platforms.map((platform, idx) => (
                 <div key={idx} className="border rounded p-3 bg-gray-50 relative">
+                  <div className="flex gap-2 mb-1 text-sm font-semibold text-gray-700">
+                    <div className="w-1/4">Platform</div>
+                    <div className="w-1/3">Link</div>
+                    <div className="w-24 whitespace-nowrap">Word Count</div>
+                  </div>
                   <div className="flex gap-2 mb-2">
                     <div className="flex-1">
                       <label className="block text-xs font-medium text-gray-700 mb-1">Platform</label>
@@ -471,21 +518,28 @@ export default function CreateBusinessPage() {
               >
                 + Add Platform
               </button>
+              <p className="text-sm text-gray-500 mt-1">Popular review sites: Google Business, Yelp, BBB, Trustpilot, Angi (formerly Angie's List), G2 / Capterra, Facebook, ConsumerAffairs, TripAdvisor</p>
             </div>
           </div>
-          <div className="mb-4">
-            <label className="block font-medium mb-1">Business Logo (PNG or JPG, max 400x400px, max 300KB)</label>
-            <input
-              type="file"
-              accept="image/png, image/jpeg"
-              ref={fileInputRef}
-              onChange={handleLogoChange}
-              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
-            />
-            {logoError && <p className="text-sm text-red-600 mt-1">{logoError}</p>}
+          <h2 className="text-2xl font-bold text-indigo-700 mb-16 flex items-center gap-2">
+            <FaImage className="w-6 h-6 text-indigo-400" />
+            Logo
+          </h2>
+          <div className="mb-10 flex flex-col md:flex-row items-center gap-6">
             {logoUrl && (
-              <img src={logoUrl} alt="Logo Preview" className="mt-2 rounded max-h-32 max-w-32 object-contain border" />
+              <img src={logoUrl} alt="Business Logo" className="rounded-full max-h-32 max-w-32 object-contain border shadow" />
             )}
+            <div className="flex-1 w-full max-w-xs">
+              <label className="block font-medium text-sm text-gray-500 mb-1">Business Logo (PNG or JPG, max 400x400px, max 300KB)</label>
+              <input
+                type="file"
+                accept="image/png, image/jpeg"
+                ref={fileInputRef}
+                onChange={handleLogoChange}
+                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+              />
+              {logoError && <p className="text-sm text-red-600 mt-1">{logoError}</p>}
+            </div>
           </div>
           {/* Cropping Modal */}
           {showCropper && logoUrl && (
@@ -524,8 +578,8 @@ export default function CreateBusinessPage() {
               </div>
             </div>
           )}
-          <div>
-            <label className="block font-medium mb-1">Keywords (comma separated)</label>
+          <div className="mb-4">
+            <label className="block font-semibold text-sm text-gray-500 mb-1">Keywords (comma separated)</label>
             <textarea
               name="keywords"
               className="w-full border px-3 py-2 rounded min-h-[80px]"

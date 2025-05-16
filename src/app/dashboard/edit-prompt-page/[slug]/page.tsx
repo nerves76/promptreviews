@@ -5,6 +5,7 @@ import { createBrowserClient } from '@supabase/ssr';
 import { generateAIReview } from '@/utils/ai';
 import { FaGoogle, FaFacebook, FaYelp, FaTripadvisor, FaRegStar } from 'react-icons/fa';
 import { IconType } from 'react-icons';
+import Link from 'next/link';
 
 interface ReviewPlatformLink {
   platform: string;
@@ -93,6 +94,10 @@ export default function EditPromptPage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUniversal, setIsUniversal] = useState(false);
   const [offerEnabled, setOfferEnabled] = useState(false);
+  const [offerTitle, setOfferTitle] = useState('Review Rewards');
+  const [offerBody, setOfferBody] = useState('');
+  const [analytics, setAnalytics] = useState<any>(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState(true);
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -134,6 +139,9 @@ export default function EditPromptPage() {
           personal_note: promptData.personal_note || '',
         });
         setIsUniversal(!!promptData.is_universal);
+        setOfferEnabled(!!promptData.offer_enabled);
+        setOfferTitle(promptData.offer_title || 'Review Rewards');
+        setOfferBody(promptData.offer_body || '');
 
         // Fetch business profile
         const { data: businessData } = await supabase
@@ -154,12 +162,37 @@ export default function EditPromptPage() {
     loadData();
   }, [params.slug, supabase]);
 
-  // Enable offer if there is already an offer in formData
   useEffect(() => {
-    if (formData.custom_incentive && formData.custom_incentive.trim() !== '') {
-      setOfferEnabled(true);
+    if (offerEnabled) {
+      setFormData(prev => ({ ...prev, custom_incentive: offerBody }));
+    } else {
+      setFormData(prev => ({ ...prev, custom_incentive: '' }));
     }
-  }, [formData.custom_incentive]);
+  }, [offerEnabled, offerBody]);
+
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      setAnalyticsLoading(true);
+      try {
+        const { data: events, error } = await supabase
+          .from('prompt_page_events')
+          .select('*')
+          .eq('prompt_page_id', params.slug);
+        if (error) throw error;
+        const analyticsData = {
+          totalClicks: events.length,
+          aiGenerations: events.filter((e: any) => e.event_type === 'ai_generate').length,
+          copySubmits: events.filter((e: any) => e.event_type === 'copy_submit').length,
+        };
+        setAnalytics(analyticsData);
+      } catch (err) {
+        setAnalytics(null);
+      } finally {
+        setAnalyticsLoading(false);
+      }
+    };
+    fetchAnalytics();
+  }, [params.slug, supabase]);
 
   const handleAddPlatform = () => {
     setFormData(prev => ({
@@ -246,6 +279,9 @@ export default function EditPromptPage() {
         custom_incentive: offerEnabled ? (formData.custom_incentive || null) : null,
         services_offered: (formData.services_offered || '').split('\n').map(s => s.trim()).filter(Boolean),
         personal_note: formData.personal_note,
+        offer_enabled: offerEnabled,
+        offer_title: offerTitle,
+        offer_body: offerBody,
       };
       if (action === 'publish') {
         updateData.status = 'published';
@@ -433,10 +469,17 @@ export default function EditPromptPage() {
           </button>
         </div>
         <div className={`rounded-lg border border-indigo-200 bg-indigo-50 p-4 ${!offerEnabled ? 'opacity-60' : ''}`}>
+          <input
+            type="text"
+            value={offerTitle}
+            onChange={e => setOfferTitle(e.target.value)}
+            placeholder="Offer Title (e.g., Review Rewards)"
+            className="block w-full rounded-md border border-indigo-200 bg-indigo-50 focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-2 px-3 mb-2 font-semibold"
+            disabled={!offerEnabled}
+          />
           <textarea
-            id="custom_incentive"
-            value={formData.custom_incentive}
-            onChange={e => setFormData(prev => ({ ...prev, custom_incentive: e.target.value }))}
+            value={offerBody}
+            onChange={e => setOfferBody(e.target.value)}
             placeholder="Review us on 3 platforms and get 10% off your next service!"
             className="block w-full rounded-md border border-indigo-200 bg-indigo-50 focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-3 px-4"
             rows={2}
@@ -659,6 +702,45 @@ export default function EditPromptPage() {
                   </p>
                 </>
               )}
+            </div>
+
+            {/* Compact Analytics Module */}
+            <div className="mb-8">
+              <div className="bg-indigo-50 border border-indigo-200 rounded-xl shadow-sm p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div className="flex flex-col md:flex-row md:items-center gap-4">
+                  <div>
+                    <div className="text-xs text-indigo-700 font-semibold uppercase tracking-wide mb-1">Analytics</div>
+                    {analyticsLoading ? (
+                      <div className="text-xs text-gray-400">Loading...</div>
+                    ) : analytics ? (
+                      <div className="flex gap-6">
+                        <div>
+                          <div className="text-xs text-gray-500">Total Interactions</div>
+                          <div className="text-lg font-bold text-indigo-900">{analytics.totalClicks}</div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-gray-500">AI Generations</div>
+                          <div className="text-lg font-bold text-indigo-900">{analytics.aiGenerations}</div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-gray-500">Copy & Submits</div>
+                          <div className="text-lg font-bold text-indigo-900">{analytics.copySubmits}</div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-xs text-gray-400">No data</div>
+                    )}
+                  </div>
+                </div>
+                <div className="flex-shrink-0">
+                  <Link
+                    href={`/dashboard/analytics`}
+                    className="inline-flex items-center px-3 py-2 bg-indigo-600 text-white rounded-md text-xs font-semibold shadow hover:bg-indigo-700 transition-colors"
+                  >
+                    View More
+                  </Link>
+                </div>
+              </div>
             </div>
 
             {!isUniversal && (

@@ -19,4 +19,9 @@ export interface BusinessProfile {
   default_offer_enabled?: boolean;
   default_offer_title?: string;
   default_offer_body?: string;
+  address_street?: string;
+  address_city?: string;
+  address_state?: string;
+  address_zip?: string;
+  address_country?: string;
 } 

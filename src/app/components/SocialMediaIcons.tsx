@@ -9,6 +9,7 @@ interface SocialMediaIconsProps {
   linkedin_url?: string;
   pinterest_url?: string;
   color: string;
+  onIconClick?: (platform: string) => void;
 }
 
 export default function SocialMediaIcons({
@@ -19,7 +20,8 @@ export default function SocialMediaIcons({
   youtube_url,
   linkedin_url,
   pinterest_url,
-  color
+  color,
+  onIconClick
 }: SocialMediaIconsProps) {
   const icons = [
     {
@@ -99,6 +101,9 @@ export default function SocialMediaIcons({
             className="text-gray-400 hover:text-gray-500 transition-colors"
             style={{ color }}
             aria-label={`Visit our ${icon.name} page`}
+            onClick={e => {
+              if (onIconClick) onIconClick(icon.name.toLowerCase());
+            }}
           >
             {icon.icon}
           </a>

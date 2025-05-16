@@ -60,6 +60,10 @@ interface BusinessProfile {
   gradient_end: string;
   business_name: string;
   review_platforms: ReviewPlatform[];
+  default_offer_enabled?: boolean;
+  default_offer_title?: string;
+  default_offer_body?: string;
+  business_website?: string;
 }
 
 // Helper to get platform icon based on URL or platform name
@@ -103,22 +107,32 @@ export default function PromptPage() {
           .eq('slug', slug)
           .single();
 
-        if (promptError) throw promptError;
+        if (promptError) {
+          console.error('PromptPage Supabase error:', promptError);
+          throw promptError;
+        }
         setPromptPage(promptData);
 
         const { data: businessData, error: businessError } = await supabase
           .from('businesses')
-          .select('name, logo_url, primary_font, secondary_font, primary_color, secondary_color, background_color, text_color, facebook_url, instagram_url, bluesky_url, tiktok_url, youtube_url, linkedin_url, pinterest_url, background_type, gradient_start, gradient_middle, gradient_end')
+          .select('*')
           .eq('account_id', promptData.account_id)
           .single();
 
-        if (businessError) throw businessError;
+        if (businessError) {
+          console.error('BusinessProfile Supabase error:', businessError);
+          throw businessError;
+        }
+        console.log('Business data from Supabase:', businessData);
         setBusinessProfile({
           ...businessData,
           business_name: businessData.name,
-          review_platforms: []
+          review_platforms: [],
+          business_website: businessData.business_website
         });
+        console.log('Set business profile with website:', businessData.business_website);
       } catch (err) {
+        console.error('PromptPage fetch error:', err);
         setError(err instanceof Error ? err.message : 'Failed to load page');
       } finally {
         setLoading(false);
@@ -135,6 +149,24 @@ export default function PromptPage() {
     }
   }, [promptPage]);
 
+  // Track page view (exclude logged-in users)
+  useEffect(() => {
+    async function trackView() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user && promptPage?.id) {
+        fetch('/api/track-event', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            promptPageId: promptPage.id,
+            eventType: 'view',
+          }),
+        });
+      }
+    }
+    trackView();
+  }, [promptPage, supabase]);
+
   const handleReviewTextChange = (idx: number, value: string) => {
     setPlatformReviewTexts(prev => prev.map((text, i) => i === idx ? value : text));
   };
@@ -147,6 +179,21 @@ export default function PromptPage() {
     if (url) {
       window.open(url, '_blank', 'noopener,noreferrer');
     }
+    // Track copy_submit event (exclude logged-in users)
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user && promptPage?.id && promptPage.review_platforms?.[idx]) {
+        fetch('/api/track-event', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            promptPageId: promptPage.id,
+            eventType: 'copy_submit',
+            platform: promptPage.review_platforms[idx].platform || promptPage.review_platforms[idx].name || '',
+          }),
+        });
+      }
+    })();
   };
 
   const handleRewriteWithAI = async (idx: number) => {
@@ -195,6 +242,11 @@ export default function PromptPage() {
     );
   }
 
+  // Only compute these after promptPage and businessProfile are loaded
+  const showOffer = promptPage?.offer_enabled ?? businessProfile?.default_offer_enabled;
+  const offerTitle = promptPage?.offer_title || businessProfile?.default_offer_title || 'Review Rewards';
+  const offerBody = promptPage?.offer_body || businessProfile?.default_offer_body || '';
+
   return (
     <div 
       className={`min-h-screen ${businessProfile?.primary_font || 'font-inter'}`}
@@ -232,7 +284,7 @@ export default function PromptPage() {
             {businessProfile?.business_name ? `Give ${businessProfile.business_name} a Review` : 'Give Us a Review'}
           </h1>
           {/* Estimated time note */}
-          <div className="text-center text-sm text-gray-500 mb-2">Estimated time to complete: 3-5 minutes</div>
+          <div className="text-center text-sm text-gray-500 mb-2">Estimated time to complete: 2-5 minutes</div>
         </div>
         {/* Personalized Note */}
         {promptPage?.personal_note && !promptPage?.is_universal && (
@@ -242,31 +294,32 @@ export default function PromptPage() {
         )}
 
         {/* Review Rewards (Promotion) */}
-        {promptPage?.custom_incentive && (
-          <div
-            className="rounded-lg p-4 mb-8 flex items-center gap-3 border bg-white animate-slideup"
-            style={{
-              borderColor: businessProfile?.primary_color || '#4F46E5',
-              animationDelay: '200ms',
-            }}
-          >
-            <FaStar
-              className="w-6 h-6 flex-shrink-0"
-              style={{ color: businessProfile?.primary_color || '#4F46E5' }}
-            />
-            <span
-              className="text-lg font-semibold"
-              style={{ color: businessProfile?.text_color || '#1F2937' }}
-            >
-              {promptPage.custom_incentive}
-            </span>
+        {showOffer && (
+          <div className="my-8 rounded-lg border border-yellow-300 bg-yellow-50 p-6 flex items-start gap-4 shadow">
+            <div className="flex-shrink-0 mt-1">
+              <svg className="w-7 h-7 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.178c.969 0 1.371 1.24.588 1.81l-3.385 2.46a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.385-2.46a1 1 0 00-1.175 0l-3.385 2.46c-.784.57-1.838-.196-1.54-1.118l1.287-3.966a1 1 0 00-.364-1.118l-3.385-2.46c-.783-.57-.38-1.81.588-1.81h4.178a1 1 0 00.95-.69l1.286-3.967z"/></svg>
+            </div>
+            <div>
+              <div className="font-bold text-lg text-yellow-900 mb-1">{offerTitle}</div>
+              <div className="text-yellow-800 text-base whitespace-pre-line">{offerBody}</div>
+            </div>
           </div>
         )}
 
         {/* Review Platforms Section */}
         {Array.isArray(promptPage?.review_platforms) && promptPage.review_platforms.length > 0 && (
           <div className="mt-10 mb-12">
-            <h2 className="text-xl font-bold mb-4 text-indigo-800">Review Platforms</h2>
+            <div className="bg-white rounded-2xl shadow p-8 mb-8">
+              <h2
+                className={`text-xl font-bold mb-2 ${businessProfile?.primary_font || 'font-inter'}`}
+                style={{ color: businessProfile?.primary_color || '#4F46E5' }}
+              >
+                Review Platforms
+              </h2>
+              <p className="text-gray-700 text-base">
+                Reviews help small businesses grow. Feel free to use an AI generated review and edit to your liking. Then click <b>"Copy &amp; Submit"</b> to be taken to the site in order to leave your review.
+              </p>
+            </div>
             <div className="flex flex-col gap-8">
               {promptPage.review_platforms.map((platform: any, idx: number) => {
                 const { icon: Icon, label } = getPlatformIcon(platform.url, platform.platform || platform.name);
@@ -274,19 +327,25 @@ export default function PromptPage() {
                 return (
                   <div
                     key={idx}
-                    className="relative bg-white rounded-xl shadow p-6 flex flex-col items-start border border-gray-100 animate-slideup"
+                    className="relative bg-white rounded-xl shadow p-6 pt-10 flex flex-col items-start border border-gray-100 animate-slideup"
                     style={{ animationDelay: `${300 + idx * 100}ms` }}
                   >
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="bg-white rounded-full shadow p-2 flex items-center justify-center" title={label}>
-                        <Icon className="w-7 h-7 text-indigo-500" />
+                    {/* Icon in top-left corner */}
+                    <div className="absolute -top-4 -left-4 bg-white rounded-full shadow p-2 flex items-center justify-center" title={label}>
+                      <Icon className="w-7 h-7 text-indigo-500" />
+                    </div>
+                    <div className="flex items-center gap-3 mb-2 mt-0">
+                      <div
+                        className={`text-lg font-semibold ${businessProfile?.primary_font || 'font-inter'}`}
+                        style={{ color: businessProfile?.primary_color || '#4F46E5' }}
+                      >
+                        {platform.platform || platform.name}
                       </div>
-                      <div className="text-lg font-semibold text-gray-900">{platform.platform || platform.name}</div>
                     </div>
                     <textarea
                       className="w-full mt-2 mb-4 p-4 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                       placeholder="Write your review here..."
-                      value={platformReviewTexts[idx] || ''}
+                      value={isUniversal ? (platformReviewTexts[idx] || '') : (platformReviewTexts[idx] || '')}
                       onChange={e => handleReviewTextChange(idx, e.target.value)}
                       rows={5}
                     />
@@ -298,11 +357,11 @@ export default function PromptPage() {
                       >
                         Copy & Submit
                       </button>
-                      {!isUniversal && (
+                      {isUniversal ? (
                         <div className="flex items-center gap-3">
                           <button
                             type="button"
-                            className="inline-flex items-center px-3 py-2 bg-indigo-100 text-indigo-700 rounded hover:bg-indigo-200 text-xs font-medium shadow disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="inline-flex items-center px-4 py-3 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 text-sm font-medium shadow disabled:opacity-50 disabled:cursor-not-allowed"
                             onClick={() => handleRewriteWithAI(idx)}
                             disabled={aiRewriteCounts[idx] >= 3 || aiLoading === idx}
                           >
@@ -312,7 +371,26 @@ export default function PromptPage() {
                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                               </svg>
                             ) : (
-                              'Rewrite with AI'
+                              'AI Generate'
+                            )}
+                          </button>
+                          <span className="text-xs text-gray-500">{aiRewriteCounts[idx]}/3</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-3">
+                          <button
+                            type="button"
+                            className="inline-flex items-center px-4 py-3 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 text-sm font-medium shadow disabled:opacity-50 disabled:cursor-not-allowed"
+                            onClick={() => handleRewriteWithAI(idx)}
+                            disabled={aiRewriteCounts[idx] >= 3 || aiLoading === idx}
+                          >
+                            {aiLoading === idx ? (
+                              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-indigo-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                            ) : (
+                              'AI Generate'
                             )}
                           </button>
                           <span className="text-xs text-gray-500">{aiRewriteCounts[idx]}/3</span>
@@ -326,31 +404,81 @@ export default function PromptPage() {
           </div>
         )}
 
-        {/* Social Media Section */}
-        <div className="mt-16 text-center">
-          <h2 
-            className={`text-2xl font-bold mb-6 ${businessProfile?.primary_font || 'font-inter'}`}
-            style={{ color: businessProfile?.primary_color || '#000000' }}
-          >
-            Stay Connected
-          </h2>
-          <p 
-            className={`mb-8 ${businessProfile?.secondary_font || 'font-inter'}`}
-            style={{ color: businessProfile?.text_color || '#000000' }}
-          >
-            Follow us on social media for the latest updates and news!
-          </p>
-          <div className="flex justify-center gap-6">
-            <SocialMediaIcons
-              facebook_url={businessProfile?.facebook_url || undefined}
-              instagram_url={businessProfile?.instagram_url || undefined}
-              bluesky_url={businessProfile?.bluesky_url || undefined}
-              tiktok_url={businessProfile?.tiktok_url || undefined}
-              youtube_url={businessProfile?.youtube_url || undefined}
-              linkedin_url={businessProfile?.linkedin_url || undefined}
-              pinterest_url={businessProfile?.pinterest_url || undefined}
-              color={businessProfile?.primary_color || '#000000'}
-            />
+        {/* Website and Social Media Card */}
+        <div className="mt-16 bg-white rounded-2xl shadow p-8 animate-slideup">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Website Column */}
+            <div className="flex flex-col justify-start mb-8 md:mb-0 text-center md:text-left h-full">
+              {businessProfile?.business_website && (
+                <>
+                  <h2 
+                    className={`text-2xl font-bold mt-0 mb-6 ${businessProfile?.primary_font || 'font-inter'}`}
+                    style={{ color: businessProfile?.primary_color || '#000000' }}
+                  >
+                    Visit Our Website
+                  </h2>
+                  <a
+                    href={businessProfile.business_website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block text-blue-700 hover:text-blue-900 hover:underline text-xl font-medium transition-colors duration-200"
+                    onClick={async () => {
+                      if (!promptPage?.id) return;
+                      await fetch('/api/track-event', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          promptPageId: promptPage.id,
+                          eventType: 'website_click',
+                          platform: 'website',
+                        }),
+                      });
+                    }}
+                  >
+                    {businessProfile.business_website.replace(/^https?:\/\//, '')}
+                  </a>
+                </>
+              )}
+            </div>
+            {/* Social Media Column */}
+            <div className="flex flex-col justify-start text-center md:text-left h-full">
+              <h2 
+                className={`text-2xl font-bold mt-0 mb-6 ${businessProfile?.primary_font || 'font-inter'}`}
+                style={{ color: businessProfile?.primary_color || '#000000' }}
+              >
+                Stay Connected
+              </h2>
+              <p 
+                className={`mb-8 ${businessProfile?.secondary_font || 'font-inter'}`}
+                style={{ color: businessProfile?.text_color || '#000000' }}
+              >
+                Follow us on social for the latest!
+              </p>
+              <div className="flex justify-center md:justify-start gap-6">
+                <SocialMediaIcons
+                  facebook_url={businessProfile.facebook_url || undefined}
+                  instagram_url={businessProfile.instagram_url || undefined}
+                  bluesky_url={businessProfile.bluesky_url || undefined}
+                  tiktok_url={businessProfile.tiktok_url || undefined}
+                  youtube_url={businessProfile.youtube_url || undefined}
+                  linkedin_url={businessProfile.linkedin_url || undefined}
+                  pinterest_url={businessProfile.pinterest_url || undefined}
+                  color={businessProfile.primary_color || '#3b82f6'}
+                  onIconClick={async (platform) => {
+                    if (!promptPage?.id) return;
+                    await fetch('/api/track-event', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        promptPageId: promptPage.id,
+                        eventType: 'social_click',
+                        platform,
+                      }),
+                    });
+                  }}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
