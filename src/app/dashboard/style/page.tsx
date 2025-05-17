@@ -9,7 +9,7 @@ import { FaPalette, FaSwatchbook } from 'react-icons/fa';
 interface StyleSettings {
   primary_font: string;
   secondary_font: string;
-  primary_color: string;
+  header_color: string;
   secondary_color: string;
   background_color: string;
   text_color: string;
@@ -60,7 +60,7 @@ export default function StylePage() {
   const [settings, setSettings] = useState<StyleSettings>({
     primary_font: 'Inter',
     secondary_font: 'Inter',
-    primary_color: '#4F46E5',
+    header_color: '#4F46E5',
     secondary_color: '#818CF8',
     background_color: '#FFFFFF',
     text_color: '#1F2937',
@@ -88,7 +88,7 @@ export default function StylePage() {
 
         const { data, error: fetchError } = await supabase
           .from('businesses')
-          .select('primary_font, secondary_font, primary_color, secondary_color, background_color, text_color, background_type, gradient_start, gradient_middle, gradient_end')
+          .select('*')
           .eq('account_id', user.id)
           .single();
 
@@ -101,7 +101,7 @@ export default function StylePage() {
           setSettings({
             primary_font: data.primary_font || 'Inter',
             secondary_font: data.secondary_font || 'Inter',
-            primary_color: data.primary_color || '#4F46E5',
+            header_color: data.header_color || '#4F46E5',
             secondary_color: data.secondary_color || '#818CF8',
             background_color: data.background_color || '#FFFFFF',
             text_color: data.text_color || '#1F2937',
@@ -115,7 +115,7 @@ export default function StylePage() {
           setSettings({
             primary_font: 'Inter',
             secondary_font: 'Inter',
-            primary_color: '#4F46E5',
+            header_color: '#4F46E5',
             secondary_color: '#818CF8',
             background_color: '#FFFFFF',
             text_color: '#1F2937',
@@ -150,7 +150,7 @@ export default function StylePage() {
         .update({
           primary_font: settings.primary_font,
           secondary_font: settings.secondary_font,
-          primary_color: settings.primary_color,
+          header_color: settings.header_color,
           secondary_color: settings.secondary_color,
           background_color: settings.background_color,
           text_color: settings.text_color,
@@ -185,8 +185,8 @@ export default function StylePage() {
 
   return (
     <div className="min-h-screen py-12 px-2">
-      <div className="max-w-4xl mx-auto bg-white rounded-lg shadow pt-4 pb-24 px-8 relative">
-        <div className="absolute -top-4 -left-4 bg-white rounded-full shadow p-2 flex items-center justify-center">
+      <div className="max-w-4xl mx-auto bg-gray-50 rounded-lg shadow pt-4 pb-24 px-8 relative">
+        <div className="absolute -top-4 -left-4 bg-gray-50 rounded-full shadow p-2 flex items-center justify-center">
           <FaPalette className="w-7 h-7 text-indigo-500" />
         </div>
         <div className="flex items-center justify-between mb-16">
@@ -255,40 +255,73 @@ export default function StylePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Primary Color
+                  Header Color
                 </label>
                 <div className="flex items-center space-x-2">
                   <input
                     type="color"
-                    value={settings.primary_color}
-                    onChange={(e) => setSettings({ ...settings, primary_color: e.target.value })}
+                    value={settings.header_color}
+                    onChange={(e) => setSettings({ ...settings, header_color: e.target.value })}
                     className="h-8 w-8 rounded cursor-pointer"
                   />
                   <input
                     type="text"
-                    value={settings.primary_color}
-                    onChange={(e) => setSettings({ ...settings, primary_color: e.target.value })}
+                    value={settings.header_color}
+                    onChange={(e) => {
+                      let value = e.target.value.trim();
+                      // Remove any non-hex characters except #
+                      value = value.replace(/[^#0-9A-Fa-f]/g, '');
+                      // Ensure # prefix
+                      if (!value.startsWith('#')) {
+                        value = '#' + value;
+                      }
+                      // Pad with zeros if needed
+                      if (value.length < 7) {
+                        value = value + '0'.repeat(7 - value.length);
+                      }
+                      // Truncate if too long
+                      if (value.length > 7) {
+                        value = value.slice(0, 7);
+                      }
+                      setSettings({ ...settings, header_color: value });
+                    }}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Secondary Color
-                </label>
-                <div className="flex items-center space-x-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Button Color</label>
+                <div className="flex gap-2">
                   <input
                     type="color"
                     value={settings.secondary_color}
                     onChange={(e) => setSettings({ ...settings, secondary_color: e.target.value })}
-                    className="h-8 w-8 rounded cursor-pointer"
+                    className="h-10 w-10 rounded cursor-pointer"
                   />
                   <input
                     type="text"
                     value={settings.secondary_color}
-                    onChange={(e) => setSettings({ ...settings, secondary_color: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    onChange={(e) => {
+                      let value = e.target.value.trim();
+                      // Remove any non-hex characters except #
+                      value = value.replace(/[^#0-9A-Fa-f]/g, '');
+                      // Ensure # prefix
+                      if (!value.startsWith('#')) {
+                        value = '#' + value;
+                      }
+                      // Pad with zeros if needed
+                      if (value.length < 7) {
+                        value = value + '0'.repeat(7 - value.length);
+                      }
+                      // Truncate if too long
+                      if (value.length > 7) {
+                        value = value.slice(0, 7);
+                      }
+                      setSettings({ ...settings, secondary_color: value });
+                    }}
+                    className="flex-1 px-3 py-2 border rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder="#000000"
                   />
                 </div>
               </div>
@@ -307,7 +340,24 @@ export default function StylePage() {
                   <input
                     type="text"
                     value={settings.text_color}
-                    onChange={(e) => setSettings({ ...settings, text_color: e.target.value })}
+                    onChange={(e) => {
+                      let value = e.target.value.trim();
+                      // Remove any non-hex characters except #
+                      value = value.replace(/[^#0-9A-Fa-f]/g, '');
+                      // Ensure # prefix
+                      if (!value.startsWith('#')) {
+                        value = '#' + value;
+                      }
+                      // Pad with zeros if needed
+                      if (value.length < 7) {
+                        value = value + '0'.repeat(7 - value.length);
+                      }
+                      // Truncate if too long
+                      if (value.length > 7) {
+                        value = value.slice(0, 7);
+                      }
+                      setSettings({ ...settings, text_color: value });
+                    }}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   />
                 </div>
@@ -356,7 +406,24 @@ export default function StylePage() {
                     <input
                       type="text"
                       value={settings.background_color}
-                      onChange={(e) => setSettings({ ...settings, background_color: e.target.value })}
+                      onChange={(e) => {
+                        let value = e.target.value.trim();
+                        // Remove any non-hex characters except #
+                        value = value.replace(/[^#0-9A-Fa-f]/g, '');
+                        // Ensure # prefix
+                        if (!value.startsWith('#')) {
+                          value = '#' + value;
+                        }
+                        // Pad with zeros if needed
+                        if (value.length < 7) {
+                          value = value + '0'.repeat(7 - value.length);
+                        }
+                        // Truncate if too long
+                        if (value.length > 7) {
+                          value = value.slice(0, 7);
+                        }
+                        setSettings({ ...settings, background_color: value });
+                      }}
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                     />
                   </div>
@@ -398,7 +465,24 @@ export default function StylePage() {
                       <input
                         type="text"
                         value={settings.gradient_start}
-                        onChange={(e) => setSettings({ ...settings, gradient_start: e.target.value })}
+                        onChange={(e) => {
+                          let value = e.target.value.trim();
+                          // Remove any non-hex characters except #
+                          value = value.replace(/[^#0-9A-Fa-f]/g, '');
+                          // Ensure # prefix
+                          if (!value.startsWith('#')) {
+                            value = '#' + value;
+                          }
+                          // Pad with zeros if needed
+                          if (value.length < 7) {
+                            value = value + '0'.repeat(7 - value.length);
+                          }
+                          // Truncate if too long
+                          if (value.length > 7) {
+                            value = value.slice(0, 7);
+                          }
+                          setSettings({ ...settings, gradient_start: value });
+                        }}
                         className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                         placeholder="Start color"
                       />
@@ -407,7 +491,24 @@ export default function StylePage() {
                       <input
                         type="text"
                         value={settings.gradient_end}
-                        onChange={(e) => setSettings({ ...settings, gradient_end: e.target.value })}
+                        onChange={(e) => {
+                          let value = e.target.value.trim();
+                          // Remove any non-hex characters except #
+                          value = value.replace(/[^#0-9A-Fa-f]/g, '');
+                          // Ensure # prefix
+                          if (!value.startsWith('#')) {
+                            value = '#' + value;
+                          }
+                          // Pad with zeros if needed
+                          if (value.length < 7) {
+                            value = value + '0'.repeat(7 - value.length);
+                          }
+                          // Truncate if too long
+                          if (value.length > 7) {
+                            value = value.slice(0, 7);
+                          }
+                          setSettings({ ...settings, gradient_end: value });
+                        }}
                         className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                         placeholder="End color"
                       />
@@ -420,15 +521,15 @@ export default function StylePage() {
             {/* Preview */}
             <div className="mt-8 p-6 rounded-lg border">
               <div 
-                className="p-6 rounded-lg bg-white border shadow-sm"
+                className="p-6 rounded-lg bg-gray-50 border shadow-sm"
                 style={{
                   background: settings.background_type === 'solid' 
                     ? settings.background_color 
                     : `linear-gradient(to bottom right, ${settings.gradient_start}, ${settings.gradient_end})`
                 }}
               >
-                <div className="bg-white p-6 rounded-lg border">
-                  <h2 className={`text-xl font-bold mb-4 ${settings.primary_font}`} style={{ color: settings.primary_color }}>
+                <div className="bg-gray-50 p-6 rounded-lg border">
+                  <h2 className={`text-xl font-bold mb-4 ${settings.primary_font}`} style={{ color: settings.header_color }}>
                     Preview Heading
                   </h2>
                   <p className={settings.secondary_font} style={{ color: settings.text_color }}>

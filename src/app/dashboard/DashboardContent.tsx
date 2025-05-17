@@ -76,6 +76,10 @@ export default function DashboardContent({
   const [selectedTab, setSelectedTab] = useState<'in_queue' | 'in_progress' | 'complete' | 'draft'>('in_queue');
   const [sortField, setSortField] = useState<'first_name' | 'last_name' | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [selectedPages, setSelectedPages] = useState<string[]>([]);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState('');
+  const [batchStatus, setBatchStatus] = useState<'in_queue' | 'in_progress' | 'complete' | 'draft'>('in_queue');
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -222,6 +226,72 @@ export default function DashboardContent({
     }
   });
 
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedPages(filteredPromptPages.map(page => page.id));
+    } else {
+      setSelectedPages([]);
+    }
+  };
+
+  const handleSelectPage = (pageId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedPages([...selectedPages, pageId]);
+    } else {
+      setSelectedPages(selectedPages.filter(id => id !== pageId));
+    }
+  };
+
+  const handleBatchStatusUpdate = async () => {
+    try {
+      const { error } = await supabase
+        .from('prompt_pages')
+        .update({ status: batchStatus })
+        .in('id', selectedPages);
+
+      if (error) throw error;
+
+      setPromptPages(pages =>
+        pages.map(page =>
+          selectedPages.includes(page.id) ? { ...page, status: batchStatus } : page
+        )
+      );
+      setSelectedPages([]);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update status';
+      console.error('Error updating status:', {
+        message: errorMessage,
+        error: err
+      });
+      setError(errorMessage);
+    }
+  };
+
+  const handleBatchDelete = async () => {
+    if (deleteConfirmation !== 'DELETE') return;
+
+    try {
+      const { error } = await supabase
+        .from('prompt_pages')
+        .delete()
+        .in('id', selectedPages);
+
+      if (error) throw error;
+
+      setPromptPages(pages => pages.filter(page => !selectedPages.includes(page.id)));
+      setSelectedPages([]);
+      setShowDeleteModal(false);
+      setDeleteConfirmation('');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete pages';
+      console.error('Error deleting pages:', {
+        message: errorMessage,
+        error: err
+      });
+      setError(errorMessage);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen">
@@ -259,8 +329,8 @@ export default function DashboardContent({
             <h2 className="text-2xl font-bold text-indigo-900">
               Welcome, {userName}!
             </h2>
-            <p className="mt-2 text-sm text-gray-600">
-              {business ? `Manage your prompt pages for ${business.name} from here.` : 'Manage your prompt pages and business profile from here.'}
+            <p className="mt-2 text-sm text-gray-600 max-w-[650px]">
+              Put some coffee on! Let's chat with some customers and get some reviews to grow your business.
             </p>
           </div>
           <div className="mt-2 space-y-4">
@@ -268,16 +338,15 @@ export default function DashboardContent({
             {universalPromptPage && (
               <div className="rounded-lg p-6 bg-blue-50 border border-blue-200 flex items-center gap-4 shadow relative mb-16">
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h2 className="text-2xl font-bold text-blue-800 flex items-center gap-3">
-                      <FaGlobe className="w-7 h-7 text-blue-400" />
-                      Universal Prompt Page
-                    </h2>
-                    <span className="inline-block bg-blue-200 text-blue-800 text-xs font-semibold px-2 py-0.5 rounded">General Use</span>
-                  </div>
-                  <p className="mt-2 text-blue-900 mb-2 text-sm">Your Universal Prompt Page is general-use and not customer specific. The reviews are not prewritten but there is an AI button that will generate a unique review instantly based on your business profile. Your customers/clients can edit before they post. Print your QR code, frame it, and hang it in your place of business for a super-easy way to get customers/clients to post a review. Add the QR code to business cards, menus, flyers, etc.</p>
-                  <div className="flex flex-wrap gap-2 items-center mt-2">
-                    <div className="flex gap-2 items-center">
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-2xl font-bold text-blue-800 flex items-center gap-3">
+                        <FaGlobe className="w-7 h-7 text-blue-400" />
+                        Universal Prompt Page
+                      </h2>
+                      <span className="inline-block bg-blue-200 text-blue-800 text-xs font-semibold px-2 py-0.5 rounded ml-4">General Use</span>
+                    </div>
+                    <div className="flex gap-4 items-center">
                       <Link href={`/r/${universalPromptPage.slug}`} className="text-indigo-600 underline hover:text-indigo-800 hover:underline">
                         View
                       </Link>
@@ -285,7 +354,10 @@ export default function DashboardContent({
                         Edit
                       </Link>
                     </div>
-                    <div className="flex flex-wrap gap-2 items-center ml-auto">
+                  </div>
+                  <p className="mt-2 text-blue-900 mb-2 text-sm">Your Universal Prompt Page is general-use and not customer specific. The reviews are not prewritten but there is an AI button that will generate a unique review instantly based on your business profile. Your customers/clients can edit before they post. Print your QR code, frame it, and hang it in your place of business for a super-easy way to get customers/clients to post a review. Add the QR code to business cards, menus, flyers, etc.</p>
+                  <div className="flex flex-wrap gap-2 items-center mt-4">
+                    <div className="flex flex-wrap gap-2 items-center">
                       <button
                         type="button"
                         onClick={handleCopyLink}
@@ -344,6 +416,39 @@ export default function DashboardContent({
               </button>
             </div>
 
+            {/* Batch Actions */}
+            {selectedPages.length > 0 && (
+              <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <span className="text-sm text-gray-600">
+                    {selectedPages.length} page{selectedPages.length !== 1 ? 's' : ''} selected
+                  </span>
+                  <select
+                    value={batchStatus}
+                    onChange={(e) => setBatchStatus(e.target.value as 'in_queue' | 'in_progress' | 'complete' | 'draft')}
+                    className="rounded-md border-gray-300 text-sm"
+                  >
+                    <option value="in_queue">In Queue</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="complete">Complete</option>
+                    <option value="draft">Draft</option>
+                  </select>
+                  <button
+                    onClick={handleBatchStatusUpdate}
+                    className="px-3 py-1.5 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm font-medium"
+                  >
+                    Update Status
+                  </button>
+                </div>
+                <button
+                  onClick={() => setShowDeleteModal(true)}
+                  className="px-3 py-1.5 bg-red-600 text-white rounded hover:bg-red-700 text-sm font-medium"
+                >
+                  Delete Selected
+                </button>
+              </div>
+            )}
+
             {/* Custom Prompt Pages Table */}
             <div className="mt-0">
               <div className="mt-4">
@@ -352,10 +457,18 @@ export default function DashboardContent({
                     <p className="text-gray-500">No prompt pages in this status.</p>
                   </div>
                 ) : (
-                  <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+                  <div className="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
                     <table className="min-w-full divide-y divide-gray-300">
                       <thead className="bg-gray-50">
                         <tr>
+                          <th scope="col" className="relative w-12 px-3 py-3.5">
+                            <input
+                              type="checkbox"
+                              className="absolute left-4 top-1/2 -mt-2 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                              checked={selectedPages.length === filteredPromptPages.length}
+                              onChange={(e) => handleSelectAll(e.target.checked)}
+                            />
+                          </th>
                           <th
                             scope="col"
                             className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 cursor-pointer select-none hover:bg-gray-100 group"
@@ -405,6 +518,14 @@ export default function DashboardContent({
                       <tbody className="divide-y divide-gray-200">
                         {sortedPromptPages.map((page, index) => (
                           <tr key={page.id} className={index % 2 === 0 ? 'bg-white' : 'bg-blue-50'}>
+                            <td className="relative w-12 px-3 py-4">
+                              <input
+                                type="checkbox"
+                                className="absolute left-4 top-1/2 -mt-2 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                                checked={selectedPages.includes(page.id)}
+                                onChange={(e) => handleSelectPage(page.id, e.target.checked)}
+                              />
+                            </td>
                             <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
                               {page.first_name || ''}
                             </td>
@@ -440,30 +561,32 @@ export default function DashboardContent({
                             <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                               {new Date(page.created_at).toLocaleDateString()}
                             </td>
-                            <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6 flex gap-2 items-center">
-                              {!page.is_universal && page.phone && (
-                                <button
-                                  type="button"
-                                  className="inline-flex items-center px-3 py-1.5 bg-green-100 text-green-800 rounded hover:bg-green-200 text-sm font-medium shadow h-9 align-middle"
-                                  onClick={() => {
-                                    const name = page.first_name || '[name]';
-                                    const businessName = business?.name || '[Business]';
-                                    const reviewUrl = `${window.location.origin}/r/${page.slug}`;
-                                    const message = `Hi ${name}, do you have 1-3 minutes to leave a review for ${businessName}? I have a review you can use and everything. Positive reviews really help small business get found online. Thanks so much! ${reviewUrl}`;
-                                    window.location.href = `sms:${page.phone}?&body=${encodeURIComponent(message)}`;
-                                  }}
-                                >
-                                  Send SMS
-                                </button>
-                              )}
-                              {!page.is_universal && page.email && (
-                                <a
-                                  href={`mailto:${page.email}?subject=${encodeURIComponent('Quick Review Request')}&body=${encodeURIComponent(`Hi ${page.first_name || '[name]'}, do you have 1-3 minutes to leave a review for ${business?.name || '[Business]'}? I have a review you can use and everything. Positive reviews really help small business get found online. Thanks so much! ${window.location.origin}/r/${page.slug}`)}`}
-                                  className="inline-flex items-center px-3 py-1.5 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 text-sm font-medium shadow h-9 align-middle"
-                                >
-                                  Send Email
-                                </a>
-                              )}
+                            <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                              <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center justify-end">
+                                {!page.is_universal && page.phone && (
+                                  <button
+                                    type="button"
+                                    className="inline-flex items-center px-3 py-1.5 bg-green-100 text-green-800 rounded hover:bg-green-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap w-full sm:w-auto"
+                                    onClick={() => {
+                                      const name = page.first_name || '[name]';
+                                      const businessName = business?.name || '[Business]';
+                                      const reviewUrl = `${window.location.origin}/r/${page.slug}`;
+                                      const message = `Hi ${name}, do you have 1-3 minutes to leave a review for ${businessName}? I have a review you can use and everything. Positive reviews really help small business get found online. Thanks so much! ${reviewUrl}`;
+                                      window.location.href = `sms:${page.phone}?&body=${encodeURIComponent(message)}`;
+                                    }}
+                                  >
+                                    Send SMS
+                                  </button>
+                                )}
+                                {!page.is_universal && page.email && (
+                                  <a
+                                    href={`mailto:${page.email}?subject=${encodeURIComponent('Quick Review Request')}&body=${encodeURIComponent(`Hi ${page.first_name || '[name]'}, do you have 1-3 minutes to leave a review for ${business?.name || '[Business]'}? I have a review you can use and everything. Positive reviews really help small business get found online. Thanks so much! ${window.location.origin}/r/${page.slug}`)}`}
+                                    className="inline-flex items-center px-3 py-1.5 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap w-full sm:w-auto"
+                                  >
+                                    Send Email
+                                  </a>
+                                )}
+                              </div>
                             </td>
                           </tr>
                         ))}
@@ -485,13 +608,35 @@ export default function DashboardContent({
                 >
                   &times;
                 </button>
-                <h3 className="text-lg font-bold mb-4">Universal Prompt Page QR Code</h3>
+                <h3 className="text-lg font-bold mb-4 text-indigo-900">
+                  {business?.name ? `${business.name}'s ticket to more reviews!` : 'Your ticket to more reviews!'}
+                </h3>
                 {QRCode ? (
-                  <QRCode value={universalUrl} size={180} />
+                  <div className="flex flex-col items-center">
+                    <div className="bg-white p-4 rounded-lg shadow-sm">
+                      <QRCode value={universalUrl} size={180} />
+                    </div>
+                    <button
+                      onClick={() => {
+                        const canvas = document.querySelector('canvas');
+                        if (canvas) {
+                          const pngUrl = canvas.toDataURL('image/png');
+                          const downloadLink = document.createElement('a');
+                          downloadLink.href = pngUrl;
+                          downloadLink.download = `${business?.name ? business.name.toLowerCase().replace(/\s+/g, '-') : 'prompt-review'}-qr-code.png`;
+                          document.body.appendChild(downloadLink);
+                          downloadLink.click();
+                          document.body.removeChild(downloadLink);
+                        }
+                      }}
+                      className="mt-6 w-full px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    >
+                      Download QR Code
+                    </button>
+                  </div>
                 ) : (
                   <div className="w-44 h-44 flex items-center justify-center bg-gray-100 rounded">QR Code</div>
                 )}
-                <p className="mt-4 text-sm text-gray-600 break-all">{universalUrl}</p>
               </div>
             </div>
           )}
@@ -540,6 +685,52 @@ export default function DashboardContent({
                 >
                   Create Prompt Page
                 </a>
+              </div>
+            </div>
+          )}
+
+          {/* Delete Confirmation Modal */}
+          {showDeleteModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+              <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
+                <h3 className="text-lg font-bold mb-4 text-red-600">
+                  Delete Prompt Pages
+                </h3>
+                <p className="mb-4 text-gray-600">
+                  You are about to delete {selectedPages.length} prompt page{selectedPages.length !== 1 ? 's' : ''}. This action cannot be undone.
+                </p>
+                <p className="mb-4 text-gray-600">
+                  Please type DELETE in the box below to continue.
+                </p>
+                <input
+                  type="text"
+                  value={deleteConfirmation}
+                  onChange={(e) => setDeleteConfirmation(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md mb-4"
+                  placeholder="Type DELETE to confirm"
+                />
+                <div className="flex justify-end gap-4">
+                  <button
+                    onClick={() => {
+                      setShowDeleteModal(false);
+                      setDeleteConfirmation('');
+                    }}
+                    className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleBatchDelete}
+                    disabled={deleteConfirmation !== 'DELETE'}
+                    className={`px-4 py-2 rounded ${
+                      deleteConfirmation === 'DELETE'
+                        ? 'bg-red-600 text-white hover:bg-red-700'
+                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    }`}
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             </div>
           )}

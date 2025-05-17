@@ -1,8 +1,8 @@
 -- Add last_name column
-ALTER TABLE contacts ADD COLUMN last_name TEXT;
+-- ALTER TABLE contacts ADD COLUMN last_name TEXT;
 
 -- Rename name to first_name
-ALTER TABLE contacts RENAME COLUMN name TO first_name;
+-- ALTER TABLE contacts RENAME COLUMN name TO first_name;
 
 -- Update RLS policies to use new column names
 DROP POLICY IF EXISTS "Users can view their own contacts" ON contacts;

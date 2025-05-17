@@ -13,6 +13,7 @@ interface ReviewPlatformLink {
   wordCount?: number;
   reviewText?: string;
   customInstructions?: string;
+  customPlatform?: string;
 }
 
 interface BusinessProfile {
@@ -81,12 +82,12 @@ export default function EditPromptPage() {
     last_name: '',
     email: '',
     phone: '',
-    project_type: '',
     outcomes: '',
     review_platforms: [] as ReviewPlatformLink[],
     services_offered: '',
     friendly_note: '',
     status: 'in_queue' as 'in_queue' | 'in_progress' | 'complete' | 'draft',
+    role: '',
   });
   const [businessProfile, setBusinessProfile] = useState<BusinessProfile | null>(null);
   const [generatingReview, setGeneratingReview] = useState<number | null>(null);
@@ -132,7 +133,6 @@ export default function EditPromptPage() {
           last_name: promptData.last_name || '',
           email: promptData.email || '',
           phone: promptData.phone || '',
-          project_type: promptData.project_type || '',
           outcomes: promptData.outcomes || '',
           review_platforms: promptData.review_platforms || [],
           services_offered: Array.isArray(promptData.services_offered) 
@@ -140,6 +140,7 @@ export default function EditPromptPage() {
             : '',
           friendly_note: promptData.friendly_note || '',
           status: promptData.status || 'in_queue' as 'in_queue' | 'in_progress' | 'complete' | 'draft',
+          role: promptData.role || '',
         });
         setIsUniversal(!!promptData.is_universal);
         setOfferEnabled(!!promptData.offer_enabled);
@@ -155,7 +156,10 @@ export default function EditPromptPage() {
           .single();
 
         if (businessData) {
-          setBusinessProfile(businessData);
+          setBusinessProfile({
+            ...businessData,
+            business_name: businessData.name
+          });
         }
       } catch (err) {
         console.error('Error loading data:', err);
@@ -333,9 +337,9 @@ export default function EditPromptPage() {
           last_name: formData.last_name || null,
           phone: formData.phone || null,
           email: formData.email || null,
-          project_type: formData.project_type || null,
           outcomes: formData.outcomes || null,
-          friendly_note: formData.friendly_note || null
+          friendly_note: formData.friendly_note || null,
+          role: formData.role || null,
         };
 
         // Handle review_platforms
@@ -373,7 +377,10 @@ export default function EditPromptPage() {
 
       const { error: updateError } = await supabase
         .from('prompt_pages')
-        .update(updateData)
+        .update({
+          ...updateData,
+          role: formData.role || null,
+        })
         .eq('id', promptPage.id);
 
       if (updateError) {
@@ -382,11 +389,6 @@ export default function EditPromptPage() {
       }
       
       setSuccessMessage('Changes saved successfully!');
-      
-      // Wait for 1.5 seconds to show the success message before redirecting
-      setTimeout(() => {
-        router.push('/dashboard');
-      }, 1500);
       
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update prompt page');
@@ -451,23 +453,24 @@ export default function EditPromptPage() {
       </div>
 
       <div>
-        <label htmlFor="project_type" className="block text-sm font-medium text-gray-700 mt-4 mb-2">
-          Service Rendered
+        <label htmlFor="role" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center">
+          Role/Position
+          <Tooltip text="The role or position of the reviewer helps AI generate more relevant and personalized reviews. For example, a Store Manager might focus on different aspects than a Customer." />
         </label>
-        <textarea
-          id="project_type"
-          value={formData.project_type}
-          onChange={e => setFormData(prev => ({ ...prev, project_type: e.target.value }))}
-          rows={4}
+        <input
+          type="text"
+          id="role"
+          value={formData.role}
+          onChange={e => setFormData(prev => ({ ...prev, role: e.target.value }))}
           className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
-          placeholder="Describe the service you provided"
-          required
+          placeholder="e.g., Store Manager, Marketing Director, Student"
         />
       </div>
 
       <div>
-        <label htmlFor="outcomes" className="block text-sm font-medium text-gray-700 mt-4 mb-2">
+        <label htmlFor="outcomes" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center">
           Outcome
+          <Tooltip text="Describe the results and benefits the client received. This information helps AI generate more specific and impactful reviews that highlight the value provided." />
         </label>
         <p className="text-xs text-gray-500 mt-1 mb-2">Describe the service you provided and how it benefited the individual.</p>
         <textarea
@@ -483,7 +486,7 @@ export default function EditPromptPage() {
 
       <div>
         <label htmlFor="services_offered" className="block text-sm font-medium text-gray-700 mt-4 mb-2">
-          Services Offered (one per line)
+          Services Provided (one per line)
         </label>
         <textarea
           id="services_offered"
@@ -497,8 +500,9 @@ export default function EditPromptPage() {
       </div>
 
       <div>
-        <label htmlFor="friendly_note" className="block text-sm font-medium text-gray-700 mt-4 mb-2">
+        <label htmlFor="friendly_note" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center">
           Personalized Note to Customer
+          <Tooltip text="This note appears at the top of the review page. It helps set the context and tone for the review. The AI will use this information to generate more personalized and relevant reviews." />
         </label>
         <textarea
           id="friendly_note"
@@ -593,16 +597,38 @@ export default function EditPromptPage() {
                 <div className="mb-4">
                   <label htmlFor={`platform-${index}`} className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
                     Platform Name
-                    <Tooltip text="The name of the review platform (e.g., Google Reviews, Yelp, Trustpilot)." />
+                    <Tooltip text="The name of the review platform (e.g., Google Business Profile, Yelp, Trustpilot)." />
                   </label>
-                  <input
-                    type="text"
+                  <select
                     id={`platform-${index}`}
                     value={link.platform}
                     onChange={e => handlePlatformChange(index, 'platform', e.target.value)}
-                    placeholder="e.g., Google Reviews, Yelp, Trustpilot"
                     className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
-                  />
+                    required
+                  >
+                    <option value="">Select a platform</option>
+                    <option value="Google Business Profile">Google Business Profile</option>
+                    <option value="Yelp">Yelp</option>
+                    <option value="Facebook">Facebook</option>
+                    <option value="TripAdvisor">TripAdvisor</option>
+                    <option value="Angi">Angi</option>
+                    <option value="Houzz">Houzz</option>
+                    <option value="BBB">BBB</option>
+                    <option value="Thumbtack">Thumbtack</option>
+                    <option value="HomeAdvisor">HomeAdvisor</option>
+                    <option value="Trustpilot">Trustpilot</option>
+                    <option value="Other">Other</option>
+                  </select>
+                  {link.platform === 'Other' && (
+                    <input
+                      type="text"
+                      className="mt-2 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                      placeholder="Enter platform name"
+                      value={link.customPlatform || ''}
+                      onChange={e => handlePlatformChange(index, 'customPlatform', e.target.value)}
+                      required
+                    />
+                  )}
                 </div>
                 <div className="mb-4">
                   <label htmlFor={`url-${index}`} className="block text-sm font-medium text-gray-700 mb-1 flex items-center">

@@ -61,7 +61,7 @@ export default function Header() {
                     : 'border-transparent text-gray-500 hover:border-indigo-300 hover:text-gray-700'
                 } inline-flex items-center px-1 pt-1 border-b-4 text-sm font-medium transition-colors duration-200 h-16`}
               >
-                Business Profile
+                Your Business
               </Link>
               <Link
                 href="/dashboard/style"
@@ -84,6 +84,16 @@ export default function Header() {
                 Analytics
               </Link>
               <Link
+                href="/dashboard/testimonials"
+                className={`${
+                  isActive('/dashboard/testimonials')
+                    ? 'border-indigo-500 text-gray-900'
+                    : 'border-transparent text-gray-500 hover:border-indigo-300 hover:text-gray-700'
+                } inline-flex items-center px-1 pt-1 border-b-4 text-sm font-medium transition-colors duration-200 h-16`}
+              >
+                Testimonials
+              </Link>
+              <Link
                 href="/dashboard/upload-contacts"
                 className={`${
                   isActive('/dashboard/upload-contacts')
@@ -91,7 +101,7 @@ export default function Header() {
                     : 'border-transparent text-gray-500 hover:border-indigo-300 hover:text-gray-700'
                 } inline-flex items-center px-1 pt-1 border-b-4 text-sm font-medium transition-colors duration-200 h-16`}
               >
-                Upload Contacts
+                Contacts
               </Link>
             </div>
           </div>
@@ -152,7 +162,7 @@ export default function Header() {
                 } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                 onClick={() => setMenuOpen(false)}
               >
-                Business Profile
+                Your Business
               </Link>
               <Link
                 href="/dashboard/style"
@@ -177,6 +187,17 @@ export default function Header() {
                 Analytics
               </Link>
               <Link
+                href="/dashboard/testimonials"
+                className={`${
+                  isActive('/dashboard/testimonials')
+                    ? 'bg-indigo-50 text-indigo-900'
+                    : 'text-gray-700 hover:bg-indigo-50'
+                } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
+                onClick={() => setMenuOpen(false)}
+              >
+                Testimonials
+              </Link>
+              <Link
                 href="/dashboard/upload-contacts"
                 className={`${
                   isActive('/dashboard/upload-contacts')
@@ -185,20 +206,35 @@ export default function Header() {
                 } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                 onClick={() => setMenuOpen(false)}
               >
-                Upload Contacts
+                Contacts
               </Link>
               {user ? (
-                <Link
-                  href="/account"
-                  className={`${
-                    isActive('/account')
-                      ? 'bg-indigo-50 text-indigo-900'
-                      : 'text-gray-700 hover:bg-indigo-50'
-                  } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Account
-                </Link>
+                <>
+                  <Link
+                    href="/account"
+                    className={`${
+                      isActive('/account')
+                        ? 'bg-indigo-50 text-indigo-900'
+                        : 'text-gray-700 hover:bg-indigo-50'
+                    } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Account
+                  </Link>
+                  {user.email === 'chris@promptreviews.com' && (
+                    <Link
+                      href="/admin"
+                      className={`${
+                        isActive('/admin')
+                          ? 'bg-indigo-50 text-indigo-900'
+                          : 'text-gray-700 hover:bg-indigo-50'
+                      } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Admin
+                    </Link>
+                  )}
+                </>
               ) : (
                 <Link
                   href="/login"

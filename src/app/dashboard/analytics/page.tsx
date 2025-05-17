@@ -9,6 +9,7 @@ interface PromptPage {
   id: string;
   slug: string;
   is_universal: boolean;
+  first_name: string;
 }
 
 interface AnalyticsData {
@@ -36,13 +37,16 @@ export default function AnalyticsPage() {
     const fetchPromptPages = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
+        console.log("User:", user);
         if (!user) return;
 
         const { data, error } = await supabase
           .from('prompt_pages')
-          .select('id, title, slug, is_universal')
+          .select('id, first_name, slug, is_universal')
           .eq('account_id', user.id)
           .order('created_at', { ascending: false });
+
+        console.log("Prompt pages data:", data, "Error:", error);
 
         if (error) throw error;
         setPromptPages(data || []);
@@ -68,12 +72,14 @@ export default function AnalyticsPage() {
       
       try {
         setIsLoading(true);
-        const { data: events, error } = await supabase
+        const { data: events, error: eventsError } = await supabase
           .from('prompt_page_events')
           .select('*')
           .eq('prompt_page_id', selectedPageId);
 
-        if (error) throw error;
+        console.log("Prompt page events:", events, "Error:", eventsError);
+
+        if (eventsError) throw eventsError;
 
         const analyticsData: AnalyticsData = {
           totalClicks: events.length,
@@ -105,7 +111,7 @@ export default function AnalyticsPage() {
 
         setAnalytics(analyticsData);
       } catch (err) {
-        if (error) console.error('Supabase analytics error:', error);
+        console.error('Supabase analytics error:', err);
         setError(err instanceof Error ? err.message : 'Failed to load analytics');
       } finally {
         setIsLoading(false);
@@ -166,7 +172,7 @@ export default function AnalyticsPage() {
           >
             {promptPages.map((page) => (
               <option key={page.id} value={page.id}>
-                {page.is_universal ? 'Universal Prompt Page' : page.title}
+                {page.is_universal ? 'Universal Prompt Page' : page.first_name}
               </option>
             ))}
           </select>
@@ -178,7 +184,7 @@ export default function AnalyticsPage() {
               {selectedPage.is_universal ? (
                 <FaGlobe className="w-7 h-7 text-blue-400" />
               ) : null}
-              {selectedPage.is_universal ? 'Universal Prompt Page' : selectedPage.title}
+              {selectedPage.is_universal ? 'Universal Prompt Page' : selectedPage.first_name}
             </h2>
           </div>
         )}

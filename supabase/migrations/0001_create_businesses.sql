@@ -9,6 +9,11 @@ create table if not exists public.businesses (
 -- Enable RLS
 alter table public.businesses enable row level security;
 
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Users can view their own business profile" ON public.businesses;
+DROP POLICY IF EXISTS "Users can update their own business profile" ON public.businesses;
+DROP POLICY IF EXISTS "Users can create their own business profile" ON public.businesses;
+
 -- Create policies
 create policy "Users can view their own business profile"
   on public.businesses for select
@@ -18,7 +23,6 @@ create policy "Users can update their own business profile"
   on public.businesses for update
   using (auth.uid() = id);
 
--- Allow users to create their own business profile
 create policy "Users can create their own business profile"
   on public.businesses for insert
   with check (auth.uid() = id);
@@ -31,6 +35,9 @@ begin
   return new;
 end;
 $$ language plpgsql;
+
+-- Drop existing trigger if it exists
+DROP TRIGGER IF EXISTS handle_businesses_updated_at ON public.businesses;
 
 -- Create trigger for updated_at
 create trigger handle_businesses_updated_at

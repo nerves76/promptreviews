@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { useRouter } from 'next/navigation';
 import Header from '../components/Header';
-import { FaUser, FaIdCard, FaSignOutAlt } from 'react-icons/fa';
+import { FaUser, FaIdCard, FaSignOutAlt, FaChartLine } from 'react-icons/fa';
+import Link from 'next/link';
 
 export default function AccountPage() {
   const router = useRouter();
@@ -96,6 +97,25 @@ export default function AccountPage() {
                 </button>
               </div>
             </div>
+
+            {user.email === 'chris@diviner.agency' && (
+              <div>
+                <h2 className="text-2xl font-bold text-indigo-900 flex items-center gap-3 mb-12">
+                  <FaChartLine className="w-7 h-7 text-indigo-500" />
+                  Admin Access
+                </h2>
+                <div className="bg-purple-50 rounded-lg p-6 border border-purple-100">
+                  <p className="text-purple-800 mb-4">Access comprehensive analytics and management tools for all accounts.</p>
+                  <Link
+                    href="/admin"
+                    className="inline-flex items-center gap-2 px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                  >
+                    <FaChartLine className="w-4 h-4" />
+                    Open Admin Dashboard
+                  </Link>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

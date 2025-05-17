@@ -147,7 +147,7 @@ export default function Dashboard() {
   const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'there';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-400 via-indigo-300 to-purple-200">
+    <div className="min-h-screen">
       <div className="container mx-auto p-4">
         <DashboardContent
           userName={userName}

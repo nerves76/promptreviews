@@ -28,6 +28,9 @@ export type PromptPage = {
   offer_url?: string;
   account_id: string;
   status: 'in_queue' | 'in_progress' | 'complete' | 'draft';
+  first_name?: string;
+  last_name?: string;
+  role?: string;
 };
 
 export type ReviewSubmission = {
@@ -36,8 +39,13 @@ export type ReviewSubmission = {
   platform: string;
   submitted_at: string;
   status: 'clicked' | 'submitted';
-  user_agent: string;
-  ip_address: string;
+  user_agent: string | null;
+  ip_address: string | null;
+  created_at: string;
+  reviewer_name: string;
+  reviewer_role: string | null;
+  review_content: string | null;
+  review_group_id: string;
 };
 
 export type Contact = {
@@ -61,6 +69,7 @@ export type Contact = {
   status: string;
   created_at: string;
   updated_at: string;
+  role: string | null;
 };
 
 export type Database = {

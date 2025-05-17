@@ -89,19 +89,23 @@ CREATE POLICY "Users can delete their own contacts"
     USING (auth.uid() = account_id);
 
 -- Prompt pages policies
+DROP POLICY IF EXISTS "Users can view their own prompt pages" ON prompt_pages;
 CREATE POLICY "Users can view their own prompt pages"
     ON prompt_pages FOR SELECT
     USING (account_id = auth.uid());
 
+DROP POLICY IF EXISTS "Users can insert their own prompt pages" ON prompt_pages;
 CREATE POLICY "Users can insert their own prompt pages"
     ON prompt_pages FOR INSERT
     WITH CHECK (account_id = auth.uid());
 
+DROP POLICY IF EXISTS "Users can update their own prompt pages" ON prompt_pages;
 CREATE POLICY "Users can update their own prompt pages"
     ON prompt_pages FOR UPDATE
     USING (account_id = auth.uid())
     WITH CHECK (account_id = auth.uid());
 
+DROP POLICY IF EXISTS "Users can delete their own prompt pages" ON prompt_pages;
 CREATE POLICY "Users can delete their own prompt pages"
     ON prompt_pages FOR DELETE
     USING (account_id = auth.uid());

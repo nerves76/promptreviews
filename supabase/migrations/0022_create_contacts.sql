@@ -40,7 +40,7 @@ CREATE INDEX IF NOT EXISTS idx_contacts_category ON public.contacts(category);
 -- Add comments
 COMMENT ON TABLE public.contacts IS 'Table for storing contact information for review requests';
 COMMENT ON COLUMN public.contacts.account_id IS 'The ID of the account that owns this contact';
-COMMENT ON COLUMN public.contacts.name IS 'The name of the contact';
+-- COMMENT ON COLUMN public.contacts.name IS 'The name of the contact';
 COMMENT ON COLUMN public.contacts.email IS 'The email address of the contact';
 COMMENT ON COLUMN public.contacts.phone IS 'The phone number of the contact';
 COMMENT ON COLUMN public.contacts.category IS 'Optional category for organizing contacts';

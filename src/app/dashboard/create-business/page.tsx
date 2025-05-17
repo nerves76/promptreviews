@@ -215,9 +215,15 @@ export default function CreateBusinessPage() {
     return '';
   };
 
-  const handlePlatformChange = (idx: number, field: 'name' | 'url', value: string) => {
+  const handlePlatformChange = (idx: number, field: 'name' | 'url' | 'customPlatform', value: string) => {
     const newPlatforms = [...platforms];
-    newPlatforms[idx] = { ...newPlatforms[idx], [field]: value };
+    if (field === 'name') {
+      newPlatforms[idx] = { ...newPlatforms[idx], name: value };
+    } else if (field === 'url') {
+      newPlatforms[idx] = { ...newPlatforms[idx], url: value };
+    } else if (field === 'customPlatform') {
+      newPlatforms[idx] = { ...newPlatforms[idx], customPlatform: value };
+    }
     setPlatforms(newPlatforms);
     // Validate on change
     const error = validatePlatformUrl(newPlatforms[idx].name, newPlatforms[idx].url);
@@ -320,7 +326,7 @@ export default function CreateBusinessPage() {
         </h1>
 
         {/* Business Information Section */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+        <div className="bg-gray-50 rounded-lg shadow-lg p-6 mb-8">
           <h2 className="text-lg font-semibold text-indigo-900 mb-4 flex items-center gap-2">
             <FaInfoCircle className="text-indigo-500" />
             Business Information
@@ -445,7 +451,7 @@ export default function CreateBusinessPage() {
         </div>
 
         {/* Contact Information Section */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+        <div className="bg-gray-50 rounded-lg shadow-lg p-6 mb-8">
           <h2 className="text-lg font-semibold text-indigo-900 mb-4 flex items-center gap-2">
             <FaAddressBook className="text-indigo-500" />
             Contact Information
@@ -499,14 +505,35 @@ export default function CreateBusinessPage() {
                   <div className="flex gap-2 mb-2">
                     <div className="flex-1">
                       <label className="block text-xs font-medium text-gray-700 mb-1">Platform</label>
-                      <input
-                        type="text"
-                        placeholder="Google Business"
+                      <select
                         className="border px-2 py-1 rounded w-full"
                         value={platform.name}
                         onChange={e => handlePlatformChange(idx, 'name', e.target.value)}
                         required
-                      />
+                      >
+                        <option value="">Select a platform</option>
+                        <option value="Google Business Profile">Google Business Profile</option>
+                        <option value="Yelp">Yelp</option>
+                        <option value="Facebook">Facebook</option>
+                        <option value="TripAdvisor">TripAdvisor</option>
+                        <option value="Angi">Angi</option>
+                        <option value="Houzz">Houzz</option>
+                        <option value="BBB">BBB</option>
+                        <option value="Thumbtack">Thumbtack</option>
+                        <option value="HomeAdvisor">HomeAdvisor</option>
+                        <option value="Trustpilot">Trustpilot</option>
+                        <option value="Other">Other</option>
+                      </select>
+                      {platform.name === 'Other' && (
+                        <input
+                          type="text"
+                          className="mt-2 border px-2 py-1 rounded w-full"
+                          placeholder="Enter platform name"
+                          value={platform.customPlatform || ''}
+                          onChange={e => handlePlatformChange(idx, 'customPlatform', e.target.value)}
+                          required
+                        />
+                      )}
                     </div>
                     <div className="flex-1">
                       <label className="block text-xs font-medium text-gray-700 mb-1">Review URL</label>
@@ -555,7 +582,7 @@ export default function CreateBusinessPage() {
           {/* Cropping Modal */}
           {showCropper && logoUrl && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-              <div className="bg-white rounded-lg shadow-lg p-6 max-w-lg w-full">
+              <div className="bg-gray-50 rounded-lg shadow-lg p-6 max-w-lg w-full">
                 <h2 className="text-lg font-bold mb-4">Crop Your Logo</h2>
                 <div className="relative w-full h-64 bg-gray-100">
                   <Cropper
@@ -604,7 +631,7 @@ export default function CreateBusinessPage() {
         </div>
 
         {/* Services Section */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+        <div className="bg-gray-50 rounded-lg shadow-lg p-6 mb-8">
           <h2 className="text-lg font-semibold text-indigo-900 mb-4 flex items-center gap-2">
             <FaList className="text-indigo-500" />
             Services
@@ -613,7 +640,7 @@ export default function CreateBusinessPage() {
         </div>
 
         {/* Social Media Section */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+        <div className="bg-gray-50 rounded-lg shadow-lg p-6 mb-8">
           <h2 className="text-lg font-semibold text-indigo-900 mb-4 flex items-center gap-2">
             <FaShareAlt className="text-indigo-500" />
             Social Media
@@ -622,7 +649,7 @@ export default function CreateBusinessPage() {
         </div>
 
         {/* Business Hours Section */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+        <div className="bg-gray-50 rounded-lg shadow-lg p-6 mb-8">
           <h2 className="text-lg font-semibold text-indigo-900 mb-4 flex items-center gap-2">
             <FaClock className="text-indigo-500" />
             Business Hours
@@ -631,7 +658,7 @@ export default function CreateBusinessPage() {
         </div>
 
         {/* Location Section */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+        <div className="bg-gray-50 rounded-lg shadow-lg p-6 mb-8">
           <h2 className="text-lg font-semibold text-indigo-900 mb-4 flex items-center gap-2">
             <FaMapMarkerAlt className="text-indigo-500" />
             Location

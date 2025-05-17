@@ -6,7 +6,38 @@ import { createBrowserClient } from '@supabase/ssr';
 import Cropper from 'react-easy-crop';
 import type { Area } from 'react-easy-crop';
 import { useAuthGuard } from '@/utils/authGuard';
-import { FaRegStar, FaPhone, FaMapMarkerAlt, FaImage, FaListAlt, FaInfoCircle, FaStar, FaShareAlt, FaClipboardList, FaCheckCircle, FaTimesCircle, FaBuilding, FaAddressBook, FaClock, FaList } from 'react-icons/fa';
+import { FaRegStar, FaPhone, FaMapMarkerAlt, FaImage, FaListAlt, FaInfoCircle, FaStar, FaShareAlt, FaClipboardList, FaCheckCircle, FaTimesCircle, FaBuilding, FaAddressBook, FaClock, FaList, FaQuestionCircle } from 'react-icons/fa';
+
+function Tooltip({ text }: { text: string }) {
+  const [show, setShow] = useState(false);
+  return (
+    <span className="relative inline-block align-middle ml-1">
+      <button
+        type="button"
+        tabIndex={0}
+        aria-label="Show help"
+        className="text-gray-400 hover:text-indigo-600 focus:outline-none"
+        onMouseEnter={() => setShow(true)}
+        onMouseLeave={() => setShow(false)}
+        onFocus={() => setShow(true)}
+        onBlur={() => setShow(false)}
+        style={{ lineHeight: 1 }}
+      >
+        <span
+          className="flex items-center justify-center rounded-full bg-blue-100"
+          style={{ width: 16, height: 16, fontSize: 12, color: '#2563eb', fontWeight: 400 }}
+        >
+          ?
+        </span>
+      </button>
+      {show && (
+        <div className="absolute z-20 left-1/2 -translate-x-1/2 mt-2 w-56 p-2 bg-white border border-gray-200 rounded shadow text-xs text-gray-700">
+          {text}
+        </div>
+      )}
+    </span>
+  );
+}
 
 export default function BusinessProfilePage() {
   useAuthGuard();
@@ -32,6 +63,7 @@ export default function BusinessProfilePage() {
     default_offer_enabled: false,
     default_offer_title: "Review Rewards",
     default_offer_body: "",
+    default_offer_url: "",
     address_street: "",
     address_city: "",
     address_state: "",
@@ -80,9 +112,15 @@ export default function BusinessProfilePage() {
     return '';
   };
 
-  const handlePlatformChange = (idx: number, field: 'name' | 'url', value: string) => {
+  const handlePlatformChange = (idx: number, field: 'name' | 'url' | 'customPlatform', value: string) => {
     const newPlatforms = [...platforms];
-    newPlatforms[idx][field] = value;
+    if (field === 'name') {
+      newPlatforms[idx].name = value;
+    } else if (field === 'url') {
+      newPlatforms[idx].url = value;
+    } else if (field === 'customPlatform') {
+      newPlatforms[idx].customPlatform = value;
+    }
     setPlatforms(newPlatforms);
     // Validate on change
     const error = validatePlatformUrl(newPlatforms[idx].name, newPlatforms[idx].url);
@@ -313,6 +351,7 @@ export default function BusinessProfilePage() {
         default_offer_enabled: form.default_offer_enabled,
         default_offer_title: form.default_offer_title,
         default_offer_body: form.default_offer_body,
+        default_offer_url: form.default_offer_url,
         address_street: form.address_street,
         address_city: form.address_city,
         address_state: form.address_state,
@@ -339,7 +378,7 @@ export default function BusinessProfilePage() {
         <div className="max-w-4xl mx-auto">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading business profile...</p>
+            <p className="mt-4 text-gray-600">Loading your business...</p>
           </div>
         </div>
       </div>
@@ -348,40 +387,46 @@ export default function BusinessProfilePage() {
 
   if (noProfile) {
     return (
-      <div className="max-w-2xl mx-auto mt-10 p-6 bg-white rounded shadow">
-        <h1 className="text-2xl font-bold mb-4">No Business Profile Found</h1>
-        <p className="mb-4">You don't have a business profile yet.</p>
-        <a href="/dashboard/create-business" className="text-blue-600 underline">Create your business profile</a>
+      <div className="max-w-2xl mx-auto mt-10 p-6 bg-gray-50 rounded shadow">
+        <h1 className="text-2xl font-bold mb-4">No Business Found</h1>
+        <p className="mb-4">You don't have a business yet.</p>
+        <a href="/dashboard/create-business" className="text-blue-600 underline">Create your business</a>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen py-12 px-2">
-      <div className="max-w-4xl mx-auto bg-white rounded-lg shadow pt-4 pb-24 px-8 relative">
-        <div className="absolute -top-4 -left-4 bg-white rounded-full shadow p-2 flex items-center justify-center">
+      <form onSubmit={handleSubmit} className="max-w-4xl mx-auto bg-gray-50 rounded-lg shadow pt-4 pb-24 px-8 relative">
+        <div className="absolute -top-4 -left-4 bg-gray-50 rounded-full shadow p-2 flex items-center justify-center">
           <FaBuilding className="w-7 h-7 text-indigo-500" />
         </div>
-        <div className="flex items-center justify-between mb-16">
+        <div className="flex items-center justify-between mb-2">
           <h1 className="text-xl font-bold text-gray-900">
-            Business Profile
+            Your Business
           </h1>
         </div>
-
-        {/* Business Information Section */}
+        <p className="text-sm text-gray-600 mb-16 max-w-2xl">
+          Share more details about your business to get better prompts and reviews.
+        </p>
         <div className="mb-16">
-          <h2 className="text-2xl font-bold text-indigo-900 flex items-center gap-3 mb-12">
-            <FaInfoCircle className="w-7 h-7 text-indigo-500" />
+          <h2 className="text-2xl font-bold text-indigo-900 flex items-center gap-3 mb-4">
+            <FaBuilding className="w-7 h-7 text-indigo-500" />
             Business Information
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="mb-4">
-              <label className="block font-semibold text-sm text-gray-500 mb-1">Business Name *</label>
+              <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
+                Business Name *
+                <Tooltip text="The name of your business or organization as you want it to appear to clients." />
+              </label>
               <input type="text" name="name" className="w-full border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.name || ""} onChange={handleChange} required />
-              <p className="text-sm text-gray-500 mt-1">The name of your business or organization as you want it to appear to clients.</p>
             </div>
             <div className="mb-4">
-              <label className="block font-semibold text-sm text-gray-500 mb-1">Business Website</label>
+              <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
+                Business Website
+                <Tooltip text="Add your main website URL. This will be shown on your public prompt page." />
+              </label>
               <input
                 type="url"
                 name="business_website"
@@ -390,7 +435,6 @@ export default function BusinessProfilePage() {
                 onChange={handleChange}
                 placeholder="https://yourbusiness.com"
               />
-              <p className="text-sm text-gray-500 mt-1">Add your main website URL. This will be shown on your public prompt page.</p>
             </div>
             <div className="mb-4">
               <label className="block font-semibold text-sm text-gray-500 mb-1">Business Phone</label>
@@ -409,35 +453,53 @@ export default function BusinessProfilePage() {
           </div>
         </div>
 
-        {/* Contact Information Section */}
+        {/* About Your Business Section */}
         <div className="mb-16">
           <h2 className="text-2xl font-bold text-indigo-900 flex items-center gap-3 mb-12">
             <FaAddressBook className="w-7 h-7 text-indigo-500" />
-            Contact Information
+            About Your Business
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block font-semibold text-sm text-gray-500 mb-1">Company Values</label>
+              <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
+                Company Values
+                <Tooltip text="Share your core values or guiding principles (e.g., integrity, innovation, customer focus)." />
+              </label>
               <textarea name="company_values" className="w-full border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.company_values} onChange={handleChange} />
             </div>
             <div>
-              <label className="block font-semibold text-sm text-gray-500 mb-1">Differentiators</label>
+              <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
+                Differentiators
+                <Tooltip text="What makes your business stand out from competitors? (e.g., experience, awards, specializations)" />
+              </label>
               <textarea name="differentiators" className="w-full border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.differentiators} onChange={handleChange} />
             </div>
             <div>
-              <label className="block font-semibold text-sm text-gray-500 mb-1">Years in Business</label>
+              <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
+                Years in Business
+                <Tooltip text="How many years have you been in business? Enter a number." />
+              </label>
               <input type="number" name="years_in_business" className="w-full border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.years_in_business || ''} onChange={handleChange} />
             </div>
             <div>
-              <label className="block font-semibold text-sm text-gray-500 mb-1">Industries Served</label>
+              <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
+                Industries Served
+                <Tooltip text="List the industries or types of clients you typically serve (e.g., healthcare, retail, tech)." />
+              </label>
               <textarea name="industries_served" className="w-full border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.industries_served} onChange={handleChange} />
             </div>
             <div>
-              <label className="block font-semibold text-sm text-gray-500 mb-1">Tagline</label>
+              <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
+                Tagline
+                <Tooltip text="Enter any slogans or taglines you use in your marketing." />
+              </label>
               <textarea name="taglines" className="w-full border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.taglines} onChange={handleChange} />
             </div>
             <div>
-              <label className="block font-semibold text-sm text-gray-500 mb-1">Keywords (comma separated)</label>
+              <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
+                Keywords (comma separated)
+                <Tooltip text="Add relevant keywords that describe your business and services. These help with search and prompt generation." />
+              </label>
               <textarea
                 name="keywords"
                 className="w-full border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300 min-h-[80px]"
@@ -448,7 +510,10 @@ export default function BusinessProfilePage() {
               />
             </div>
             <div className="md:col-span-2">
-              <label className="block font-semibold text-sm text-gray-500 mb-1">Team or Founder Info (optional)</label>
+              <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
+                Team or Founder Info (optional)
+                <Tooltip text="Share a brief bio or background about your team or founder (optional)." />
+              </label>
               <textarea name="team_info" className="w-full border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.team_info} onChange={handleChange} />
             </div>
           </div>
@@ -518,8 +583,73 @@ export default function BusinessProfilePage() {
           </div>
         </div>
 
+        {/* Review Rewards Section */}
+        <div className="mb-16">
+          <h2 className="text-2xl font-bold text-indigo-900 flex items-center gap-3 mb-12">
+            <FaRegStar className="w-7 h-7 text-indigo-500" />
+            Review Rewards
+          </h2>
+          <div className="mb-4">
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-lg font-semibold text-indigo-800 flex items-center">
+                Enable Review Rewards
+                <Tooltip text="Reward users who complete a set number of reviews and include a link to your rewards page or contact form so they can claim their prize." />
+              </label>
+              <button
+                type="button"
+                onClick={() => setForm(f => ({ ...f, default_offer_enabled: !f.default_offer_enabled }))}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${form.default_offer_enabled ? 'bg-indigo-500' : 'bg-gray-300'}`}
+                aria-pressed={!!form.default_offer_enabled}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${form.default_offer_enabled ? 'translate-x-5' : 'translate-x-1'}`}
+                />
+              </button>
+            </div>
+            <div className={`rounded-lg border border-indigo-200 bg-indigo-50 p-4 ${!form.default_offer_enabled ? 'opacity-60' : ''}`}>
+              <input
+                type="text"
+                name="default_offer_title"
+                value={form.default_offer_title ?? 'Review Rewards'}
+                onChange={e => setForm(f => ({ ...f, default_offer_title: e.target.value }))}
+                placeholder="Offer Title (e.g., Review Rewards)"
+                className="block w-full rounded-md border border-indigo-200 bg-indigo-50 focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-2 px-3 mb-2 font-semibold"
+                disabled={!form.default_offer_enabled}
+              />
+              <textarea
+                name="default_offer_body"
+                value={form.default_offer_body || ''}
+                onChange={e => setForm(f => ({ ...f, default_offer_body: e.target.value }))}
+                placeholder="Review us on 3 platforms and get 10% off your next service!"
+                className="block w-full rounded-md border border-indigo-200 bg-indigo-50 focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-3 px-4"
+                rows={2}
+                disabled={!form.default_offer_enabled}
+              />
+              <input
+                type="url"
+                name="default_offer_url"
+                value={form.default_offer_url || ''}
+                onChange={e => setForm(f => ({ ...f, default_offer_url: e.target.value }))}
+                placeholder="Offer URL (e.g., https://yourbusiness.com/claim-reward)"
+                className="block w-full rounded-md border border-indigo-200 bg-indigo-50 focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-2 px-3 mt-2"
+                disabled={!form.default_offer_enabled}
+              />
+            </div>
+          </div>
+        </div>
+
         {/* Save Button */}
-        <div className="flex justify-end">
+        <div className="flex flex-col items-end gap-4">
+          {error && (
+            <div className="p-4 bg-red-50 text-red-700 rounded-lg">
+              {error}
+            </div>
+          )}
+          {success && (
+            <div className="p-4 bg-green-50 text-green-700 rounded-lg">
+              {success}
+            </div>
+          )}
           <button
             type="submit"
             className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
@@ -531,7 +661,7 @@ export default function BusinessProfilePage() {
         {/* Cropping Modal */}
         {showCropper && logoUrl && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-            <div className="bg-white rounded-lg shadow-lg p-6 max-w-lg w-full">
+            <div className="bg-gray-50 rounded-lg shadow-lg p-6 max-w-lg w-full">
               <h2 className="text-lg font-bold mb-4">Crop Your Logo</h2>
               <div className="relative w-full h-64 bg-gray-100">
                 <Cropper
@@ -565,7 +695,7 @@ export default function BusinessProfilePage() {
             </div>
           </div>
         )}
-      </div>
+      </form>
     </div>
   );
 } 

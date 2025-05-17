@@ -1,6 +1,6 @@
 -- Rename business_id to reviewer_id in prompt_pages table
-ALTER TABLE public.prompt_pages 
-RENAME COLUMN business_id TO reviewer_id;
+-- ALTER TABLE public.prompt_pages 
+-- RENAME COLUMN business_id TO reviewer_id;
 
 -- Rename owner_id to reviewer_id in businesses table
 ALTER TABLE public.businesses 

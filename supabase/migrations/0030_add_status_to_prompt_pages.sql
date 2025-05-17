@@ -13,9 +13,10 @@ DO $$ BEGIN
 
     -- Update the new column based on existing values
     UPDATE prompt_pages
-    SET status_new = CASE 
+    SET status_new = CASE
         WHEN status = 'draft' THEN 'draft'::prompt_page_status
         WHEN status = 'on_hold' THEN 'in_progress'::prompt_page_status
+        WHEN status = 'in_progress' THEN 'in_progress'::prompt_page_status
         ELSE 'in_queue'::prompt_page_status
     END;
 
