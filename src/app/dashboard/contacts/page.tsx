@@ -237,7 +237,7 @@ export default function UploadContactsPage() {
         </div>
         <div className="flex items-center justify-between mb-16">
           <h1 className="text-xl font-bold text-gray-900">
-            Upload Contacts
+            Contacts
           </h1>
         </div>
 
@@ -283,7 +283,7 @@ export default function UploadContactsPage() {
                 </div>
               )}
             </li>
-            <li>Save as CSV and upload using the file picker</li>
+            <li>Upload your CSV and your contacts will be added to your prompt pages table in the drafts tab.</li>
           </ol>
         </div>
 
