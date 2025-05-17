@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { useAuthGuard } from '@/utils/authGuard';
 import { HexColorPicker } from 'react-colorful';
+import { FaPalette, FaSwatchbook } from 'react-icons/fa';
 
 interface StyleSettings {
   primary_font: string;
@@ -171,13 +172,11 @@ export default function StylePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen">
-        <div className="max-w-4xl mx-auto bg-white rounded-lg shadow p-8">
-          <div className="bg-white shadow rounded-lg p-6">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600">Loading style settings...</p>
-            </div>
+      <div className="min-h-screen py-12">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading style settings...</p>
           </div>
         </div>
       </div>
@@ -185,11 +184,23 @@ export default function StylePage() {
   }
 
   return (
-    <div className="min-h-screen">
-      <div className="max-w-4xl mx-auto bg-white rounded-lg shadow p-8">
-        <div className="bg-white shadow rounded-lg p-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-8">Style Settings</h1>
-          
+    <div className="min-h-screen py-12 px-2">
+      <div className="max-w-4xl mx-auto bg-white rounded-lg shadow pt-4 pb-24 px-8 relative">
+        <div className="absolute -top-4 -left-4 bg-white rounded-full shadow p-2 flex items-center justify-center">
+          <FaPalette className="w-7 h-7 text-indigo-500" />
+        </div>
+        <div className="flex items-center justify-between mb-16">
+          <h1 className="text-xl font-bold text-gray-900">
+            Style Settings
+          </h1>
+        </div>
+
+        {/* Color Scheme Section */}
+        <div className="mb-16">
+          <h2 className="text-2xl font-bold text-indigo-900 flex items-center gap-3 mb-12">
+            <FaSwatchbook className="w-7 h-7 text-indigo-500" />
+            Color Scheme
+          </h2>
           {error && (
             <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-md">
               {error}

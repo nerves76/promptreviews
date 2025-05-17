@@ -5,13 +5,14 @@ import { createBrowserClient } from '@supabase/ssr';
 import { generateAIReview } from '@/utils/ai';
 import Header from '../components/Header';
 import { slugify } from '@/utils/slugify';
+import { FaFileAlt, FaInfoCircle, FaStar, FaGift } from 'react-icons/fa';
 
 interface ReviewPlatformLink {
   platform: string;
   url: string;
   wordCount?: number;
-  reviewText?: string;
   customInstructions?: string;
+  reviewText?: string;
 }
 
 interface BusinessProfile {
@@ -35,23 +36,23 @@ export default function CreatePromptPage() {
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
-    title: '',
-    first_name: '',
-    last_name: '',
-    email: '',
-    phone: '',
+    client_name: '',
+    location: '',
+    tone_of_voice: '',
     project_type: '',
-    outcomes: '',
-    review_platforms: [] as ReviewPlatformLink[],
-    custom_incentive: '',
     services_offered: '',
+    outcomes: '',
+    date_completed: '',
+    team_member: '',
+    review_platforms: [] as { platform: string; url: string }[],
+    offer_enabled: false,
+    offer_title: '',
+    offer_body: '',
+    status: 'draft' as const
   });
   const [businessProfile, setBusinessProfile] = useState<BusinessProfile | null>(null);
   const [generatingReview, setGeneratingReview] = useState<number | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [offerEnabled, setOfferEnabled] = useState(false);
-  const [offerTitle, setOfferTitle] = useState('Review Rewards');
-  const [offerBody, setOfferBody] = useState('');
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -79,10 +80,7 @@ export default function CreatePromptPage() {
           setBusinessProfile(businessData);
           // Pre-fill offer fields from business default if enabled
           if (businessData.default_offer_enabled) {
-            setOfferEnabled(true);
-            setOfferTitle(businessData.default_offer_title || 'Review Rewards');
-            setOfferBody(businessData.default_offer_body || '');
-            setFormData(prev => ({ ...prev, custom_incentive: businessData.default_offer_body || '' }));
+            setFormData(prev => ({ ...prev, offer_enabled: true, offer_title: businessData.default_offer_title || 'Review Rewards', offer_body: businessData.default_offer_body || '' }));
           }
           if (businessData.preferred_review_platforms) {
             try {
@@ -149,9 +147,8 @@ export default function CreatePromptPage() {
       const review = await generateAIReview(
         businessProfile,
         {
-          title: formData.title,
-          first_name: formData.first_name,
-          last_name: formData.last_name,
+          first_name: formData.client_name,
+          last_name: formData.location,
           project_type: formData.project_type,
           outcomes: formData.outcomes,
         },
@@ -177,143 +174,96 @@ export default function CreatePromptPage() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent, action: 'preview' | 'publish') => {
+  const handleOfferFieldsChange = (offerBody: string) => {
+    if (offerBody) {
+      setFormData(prev => ({ ...prev, offer_body: offerBody }));
+    } else {
+      setFormData(prev => ({ ...prev, offer_body: '' }));
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    setError(null);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        throw new Error('You must be signed in to create a prompt page');
-      }
-      // Filter out empty platform links
-      const filteredPlatformLinks = formData.review_platforms.filter(
-        link => link.platform.trim() && link.url.trim()
-      );
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('No user found');
 
-      // Generate a slug from the title using the utility
-      const slug = slugify(formData.title, Date.now().toString(36));
+      const { data: businessData } = await supabase
+        .from('businesses')
+        .select('*')
+        .eq('account_id', user.id)
+        .single();
 
-      // Check if slug exists using a simpler query
-      const { data: existingPages } = await supabase
+      if (!businessData) throw new Error('No business found');
+
+      const { data, error } = await supabase
         .from('prompt_pages')
-        .select('slug')
-        .ilike('slug', slug);
-
-      if (existingPages && existingPages.length > 0) {
-        throw new Error('A page with this title already exists. Please try a different title.');
-      }
-
-      // Prepare the data for insertion
-      const pageData = {
-        account_id: session.user.id,
-        title: formData.title,
-        first_name: formData.first_name,
-        last_name: formData.last_name,
-        project_type: formData.project_type,
-        outcomes: formData.outcomes,
-        review_platforms: filteredPlatformLinks,
-        custom_incentive: formData.custom_incentive || null,
-        services_offered: (formData.services_offered || '').split('\n').map(s => s.trim()).filter(Boolean),
-        status: action === 'publish' ? 'published' : 'draft',
-        slug: slug,
-        offer_enabled: offerEnabled,
-        offer_title: offerTitle,
-        offer_body: offerBody,
-      };
-
-      const { data, error: insertError } = await supabase
-        .from('prompt_pages')
-        .insert(pageData)
+        .insert([
+          {
+            ...formData,
+            account_id: user.id,
+            status: 'draft'
+          }
+        ])
         .select()
         .single();
 
-      if (insertError) {
-        console.error('Insert error:', insertError);
-        throw new Error(insertError.message || 'Failed to create prompt page');
-      }
-      
-      if (action === 'preview') {
-        setPreviewUrl(`/r/${data.slug}`);
-      } else {
-        router.push('/dashboard');
-      }
-    } catch (err) {
-      console.error('Error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to create prompt page');
-    } finally {
-      setIsLoading(false);
+      if (error) throw error;
+
+      router.push(`/dashboard/edit-prompt-page/${data.slug}`);
+    } catch (error) {
+      console.error('Error creating prompt page:', error);
+      setError('Failed to create prompt page. Please try again.');
     }
   };
 
   const renderStep1 = () => (
     <div className="space-y-6">
       <div>
-        <label htmlFor="title" className="block text-sm font-medium text-gray-700 mt-10 mb-2">
-          Title
-        </label>
-        <div className="text-xs text-gray-500 mt-1 mb-2">This can be the business you want a review from, or just something memorable like "Review From Mark".</div>
+        <label htmlFor="client_name" className="block text-sm font-medium text-gray-700 mt-4 mb-2">Client Name</label>
         <input
           type="text"
-          id="title"
-          value={formData.title}
-          onChange={e => setFormData(prev => ({ ...prev, title: e.target.value }))}
+          id="client_name"
+          value={formData.client_name}
+          onChange={e => setFormData(prev => ({ ...prev, client_name: e.target.value }))}
           className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
-          placeholder="Enter a title for your prompt page"
+          placeholder="Client Name"
+          required
+        />
+      </div>
+      <div>
+        <label htmlFor="location" className="block text-sm font-medium text-gray-700 mt-4 mb-2">Location</label>
+        <input
+          type="text"
+          id="location"
+          value={formData.location}
+          onChange={e => setFormData(prev => ({ ...prev, location: e.target.value }))}
+          className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+          placeholder="Location"
           required
         />
       </div>
 
-      <h3 className="text-lg font-semibold text-gray-800 mt-16 mb-2">Customer/Client Details</h3>
-
       <div className="flex gap-4">
         <div className="flex-1">
-          <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 mt-4 mb-2">First Name</label>
+          <label htmlFor="tone_of_voice" className="block text-sm font-medium text-gray-700 mt-4 mb-2">Tone of Voice</label>
           <input
             type="text"
-            id="first_name"
-            value={formData.first_name}
-            onChange={e => setFormData(prev => ({ ...prev, first_name: e.target.value }))}
+            id="tone_of_voice"
+            value={formData.tone_of_voice}
+            onChange={e => setFormData(prev => ({ ...prev, tone_of_voice: e.target.value }))}
             className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
-            placeholder="First Name"
-            required
+            placeholder="Tone of Voice"
           />
         </div>
         <div className="flex-1">
-          <label htmlFor="last_name" className="block text-sm font-medium text-gray-700 mt-4 mb-2">Last Name</label>
+          <label htmlFor="date_completed" className="block text-sm font-medium text-gray-700 mt-4 mb-2">Date Completed</label>
           <input
-            type="text"
-            id="last_name"
-            value={formData.last_name}
-            onChange={e => setFormData(prev => ({ ...prev, last_name: e.target.value }))}
+            type="date"
+            id="date_completed"
+            value={formData.date_completed}
+            onChange={e => setFormData(prev => ({ ...prev, date_completed: e.target.value }))}
             className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
-            placeholder="Last Name"
-            required
-          />
-        </div>
-      </div>
-
-      <div className="flex gap-4">
-        <div className="flex-1">
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mt-4 mb-2">Email</label>
-          <input
-            type="email"
-            id="email"
-            value={formData.email}
-            onChange={e => setFormData(prev => ({ ...prev, email: e.target.value }))}
-            className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
-            placeholder="Email address"
-          />
-        </div>
-        <div className="flex-1">
-          <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mt-4 mb-2">Phone Number</label>
-          <input
-            type="tel"
-            id="phone"
-            value={formData.phone}
-            onChange={e => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-            className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
-            placeholder="Phone number"
           />
         </div>
       </div>
@@ -384,31 +334,31 @@ export default function CreatePromptPage() {
           <label className="block text-lg font-semibold text-indigo-800">Review Rewards</label>
           <button
             type="button"
-            onClick={() => setOfferEnabled(v => !v)}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${offerEnabled ? 'bg-indigo-500' : 'bg-gray-300'}`}
-            aria-pressed={offerEnabled}
+            onClick={() => setFormData(prev => ({ ...prev, offer_enabled: !prev.offer_enabled }))}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${formData.offer_enabled ? 'bg-indigo-500' : 'bg-gray-300'}`}
+            aria-pressed={formData.offer_enabled}
           >
             <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${offerEnabled ? 'translate-x-5' : 'translate-x-1'}`}
+              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${formData.offer_enabled ? 'translate-x-5' : 'translate-x-1'}`}
             />
           </button>
         </div>
-        <div className={`rounded-lg border border-indigo-200 bg-indigo-50 p-4 ${!offerEnabled ? 'opacity-60' : ''}`}>
+        <div className={`rounded-lg border border-indigo-200 bg-indigo-50 p-4 ${!formData.offer_enabled ? 'opacity-60' : ''}`}>
           <input
             type="text"
-            value={offerTitle}
-            onChange={e => setOfferTitle(e.target.value)}
+            value={formData.offer_title}
+            onChange={e => setFormData(prev => ({ ...prev, offer_title: e.target.value }))}
             placeholder="Offer Title (e.g., Review Rewards)"
             className="block w-full rounded-md border border-indigo-200 bg-indigo-50 focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-2 px-3 mb-2 font-semibold"
-            disabled={!offerEnabled}
+            disabled={!formData.offer_enabled}
           />
           <textarea
-            value={offerBody}
-            onChange={e => setOfferBody(e.target.value)}
+            value={formData.offer_body}
+            onChange={e => handleOfferFieldsChange(e.target.value)}
             placeholder="Review us on 3 platforms and get 10% off your next service!"
             className="block w-full rounded-md border border-indigo-200 bg-indigo-50 focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-3 px-4"
             rows={2}
-            disabled={!offerEnabled}
+            disabled={!formData.offer_enabled}
           />
         </div>
       </div>
@@ -592,12 +542,12 @@ export default function CreatePromptPage() {
 
   // When offer fields change, update formData.custom_incentive
   useEffect(() => {
-    if (offerEnabled) {
-      setFormData(prev => ({ ...prev, custom_incentive: offerBody }));
+    if (formData.offer_enabled) {
+      setFormData(prev => ({ ...prev, custom_incentive: formData.offer_body }));
     } else {
       setFormData(prev => ({ ...prev, custom_incentive: '' }));
     }
-  }, [offerEnabled, offerBody]);
+  }, [formData.offer_enabled, formData.offer_body]);
 
   return (
     <>
@@ -607,9 +557,10 @@ export default function CreatePromptPage() {
           <div className="px-4 py-5 sm:p-6">
             <div className="md:flex md:items-center md:justify-between mb-8">
               <div className="min-w-0 flex-1">
-                <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
+                <h1 className="text-2xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+                  <FaFileAlt className="text-indigo-500" />
                   Create Prompt Page
-                </h2>
+                </h1>
                 <div className="mt-1 text-xs text-gray-500 max-w-2xl">Create a landing page that makes it incredibly easy for your customers, clients, fans, and friends to post a positive review.</div>
               </div>
             </div>

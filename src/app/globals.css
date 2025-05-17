@@ -29,7 +29,7 @@ html {
 }
 
 body {
-  @apply min-h-screen bg-gradient-to-br from-blue-400 via-indigo-300 to-purple-200 bg-no-repeat bg-fixed;
+  @apply min-h-screen bg-no-repeat bg-fixed;
   box-sizing: border-box;
 }
 

@@ -5,6 +5,7 @@ import { createBrowserClient } from '@supabase/ssr';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { QRCodeSVG } from 'qrcode.react';
 import DashboardContent from './DashboardContent';
+import { FaHome, FaBuilding } from 'react-icons/fa';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -119,37 +120,54 @@ export default function Dashboard() {
   };
 
   if (isLoading) {
-    return <div className="min-h-screen bg-gradient-to-br from-blue-400 via-indigo-300 to-purple-200 flex items-center justify-center">
-      <div className="text-white text-xl">Loading...</div>
-    </div>;
+    return (
+      <div className="min-h-screen py-12 px-2">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading dashboard...</p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="min-h-screen bg-gradient-to-br from-blue-400 via-indigo-300 to-purple-200 flex items-center justify-center">
-      <div className="text-white text-xl">{error}</div>
-    </div>;
+    return (
+      <div className="min-h-screen py-12">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center text-red-600">
+            <p>{error}</p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'there';
 
   return (
-    <DashboardContent
-      userName={userName}
-      business={business}
-      customPromptPages={customPromptPages}
-      universalPromptPage={universalPromptPage}
-      createPromptPageRef={createPromptPageRef}
-      handleCreatePromptPageClick={handleCreatePromptPageClick}
-      showQR={showQR}
-      handleCopyLink={handleCopyLink}
-      copySuccess={copySuccess}
-      showProfileModal={showProfileModal}
-      setShowProfileModal={setShowProfileModal}
-      showSuccessModal={showSuccessModal}
-      setShowSuccessModal={setShowSuccessModal}
-      universalUrl={universalUrl}
-      QRCode={QRCodeSVG}
-      setShowQR={setShowQR}
-    />
+    <div className="min-h-screen bg-gradient-to-br from-blue-400 via-indigo-300 to-purple-200">
+      <div className="container mx-auto p-4">
+        <DashboardContent
+          userName={userName}
+          business={business}
+          customPromptPages={customPromptPages}
+          universalPromptPage={universalPromptPage}
+          createPromptPageRef={createPromptPageRef}
+          handleCreatePromptPageClick={handleCreatePromptPageClick}
+          showQR={showQR}
+          handleCopyLink={handleCopyLink}
+          copySuccess={copySuccess}
+          showProfileModal={showProfileModal}
+          setShowProfileModal={setShowProfileModal}
+          showSuccessModal={showSuccessModal}
+          setShowSuccessModal={setShowSuccessModal}
+          universalUrl={universalUrl}
+          QRCode={QRCodeSVG}
+          setShowQR={setShowQR}
+        />
+      </div>
+    </div>
   );
 }

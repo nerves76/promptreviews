@@ -40,10 +40,17 @@ export async function middleware(req: NextRequest) {
     }
   }
 
+  // Protect API routes
+  if (req.nextUrl.pathname.startsWith('/api')) {
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+  }
+
   return res
 }
 
 // Configure which routes to run middleware on
 export const config = {
-  matcher: ['/dashboard/:path*']
+  matcher: ['/dashboard/:path*', '/api/:path*']
 } 

@@ -1,6 +1,6 @@
 -- Create status enum type if it doesn't exist
 DO $$ BEGIN
-    CREATE TYPE prompt_page_status AS ENUM ('in_queue', 'on_hold', 'accomplished', 'draft');
+    CREATE TYPE prompt_page_status AS ENUM ('in_queue', 'in_progress', 'complete', 'draft');
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
@@ -15,6 +15,7 @@ DO $$ BEGIN
     UPDATE prompt_pages
     SET status_new = CASE 
         WHEN status = 'draft' THEN 'draft'::prompt_page_status
+        WHEN status = 'on_hold' THEN 'in_progress'::prompt_page_status
         ELSE 'in_queue'::prompt_page_status
     END;
 
@@ -39,3 +40,9 @@ DO $$ BEGIN
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
+
+-- Add offer_learn_more_url to prompt_pages if not exists
+ALTER TABLE prompt_pages ADD COLUMN IF NOT EXISTS offer_learn_more_url TEXT;
+
+-- Add offer_learn_more_url to businesses if not exists
+ALTER TABLE businesses ADD COLUMN IF NOT EXISTS offer_learn_more_url TEXT;

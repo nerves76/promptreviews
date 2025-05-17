@@ -6,7 +6,7 @@ import { createBrowserClient } from '@supabase/ssr';
 import Cropper from 'react-easy-crop';
 import type { Area } from 'react-easy-crop';
 import { useAuthGuard } from '@/utils/authGuard';
-import { FaRegStar, FaPhone, FaMapMarkerAlt, FaImage, FaListAlt, FaInfoCircle, FaStar, FaShareAlt, FaClipboardList, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
+import { FaRegStar, FaPhone, FaMapMarkerAlt, FaImage, FaListAlt, FaInfoCircle, FaStar, FaShareAlt, FaClipboardList, FaCheckCircle, FaTimesCircle, FaBuilding, FaAddressBook, FaClock, FaList } from 'react-icons/fa';
 
 export default function BusinessProfilePage() {
   useAuthGuard();
@@ -39,6 +39,7 @@ export default function BusinessProfilePage() {
     address_country: "",
     phone: "",
     business_website: "",
+    offer_learn_more_url: "",
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -141,6 +142,7 @@ export default function BusinessProfilePage() {
         address_state: data.address_state || "",
         address_zip: data.address_zip || "",
         address_country: data.address_country || "",
+        offer_learn_more_url: data.offer_learn_more_url || "",
       });
       setServices(
         Array.isArray(data.services_offered)
@@ -318,6 +320,7 @@ export default function BusinessProfilePage() {
         address_country: form.address_country,
         phone: form.phone,
         business_website: form.business_website,
+        offer_learn_more_url: form.offer_learn_more_url,
       })
       .eq("account_id", user.id);
     if (updateError) {
@@ -331,7 +334,16 @@ export default function BusinessProfilePage() {
   };
 
   if (loading) {
-    return <div className="max-w-2xl mx-auto mt-10 p-6 bg-white rounded shadow">Loading...</div>;
+    return (
+      <div className="min-h-screen py-12 px-2">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading business profile...</p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (noProfile) {
@@ -346,310 +358,176 @@ export default function BusinessProfilePage() {
 
   return (
     <div className="min-h-screen py-12 px-2">
-      <div className="max-w-3xl mx-auto rounded-3xl shadow-2xl bg-white p-8 sm:p-12">
-        <h1 className="text-3xl font-extrabold text-indigo-800 mb-20 flex items-center gap-3">
-          <span className="inline-flex items-center justify-center bg-indigo-100 rounded-full p-2">
-            <FaRegStar className="w-7 h-7 text-indigo-500" />
-          </span>
-          Edit Your Business Profile
-        </h1>
-        <h2 className="text-2xl font-bold text-indigo-700 mb-16 flex items-center gap-2">
-          <FaImage className="w-6 h-6 text-indigo-400" />
-          Logo
-        </h2>
-        <div className="mb-10 flex flex-col md:flex-row items-center gap-6">
-          {logoUrl && (
-            <img src={logoUrl} alt="Business Logo" className="rounded-full max-h-32 max-w-32 object-contain border shadow" />
-          )}
-          <div className="flex-1 w-full max-w-xs">
-            <label className="block font-medium text-sm text-gray-500 mb-1">Business Logo (PNG or JPG, max 400x400px, max 300KB)</label>
-            <input
-              type="file"
-              accept="image/png, image/jpeg"
-              ref={fileInputRef}
-              onChange={handleLogoChange}
-              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
-            />
-            {logoError && <p className="text-sm text-red-600 mt-1">{logoError}</p>}
+      <div className="max-w-4xl mx-auto bg-white rounded-lg shadow pt-4 pb-24 px-8 relative">
+        <div className="absolute -top-4 -left-4 bg-white rounded-full shadow p-2 flex items-center justify-center">
+          <FaBuilding className="w-7 h-7 text-indigo-500" />
+        </div>
+        <div className="flex items-center justify-between mb-16">
+          <h1 className="text-xl font-bold text-gray-900">
+            Business Profile
+          </h1>
+        </div>
+
+        {/* Business Information Section */}
+        <div className="mb-16">
+          <h2 className="text-2xl font-bold text-indigo-900 flex items-center gap-3 mb-12">
+            <FaInfoCircle className="w-7 h-7 text-indigo-500" />
+            Business Information
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="mb-4">
+              <label className="block font-semibold text-sm text-gray-500 mb-1">Business Name *</label>
+              <input type="text" name="name" className="w-full border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.name || ""} onChange={handleChange} required />
+              <p className="text-sm text-gray-500 mt-1">The name of your business or organization as you want it to appear to clients.</p>
+            </div>
+            <div className="mb-4">
+              <label className="block font-semibold text-sm text-gray-500 mb-1">Business Website</label>
+              <input
+                type="url"
+                name="business_website"
+                className="w-full border px-3 py-2 rounded"
+                value={form.business_website || ''}
+                onChange={handleChange}
+                placeholder="https://yourbusiness.com"
+              />
+              <p className="text-sm text-gray-500 mt-1">Add your main website URL. This will be shown on your public prompt page.</p>
+            </div>
+            <div className="mb-4">
+              <label className="block font-semibold text-sm text-gray-500 mb-1">Business Phone</label>
+              <input type="tel" name="phone" className="w-full border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.phone || ''} onChange={handleChange} placeholder="e.g., (555) 123-4567" />
+            </div>
+          </div>
+          <div className="mt-6">
+            <label className="block font-semibold text-sm text-gray-500 mb-1">Business Address *</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <input type="text" name="address_street" className="border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.address_street || ''} onChange={handleChange} required placeholder="Street Address" />
+              <input type="text" name="address_city" className="border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.address_city || ''} onChange={handleChange} required placeholder="City" />
+              <input type="text" name="address_state" className="border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.address_state || ''} onChange={handleChange} required placeholder="State" />
+              <input type="text" name="address_zip" className="border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.address_zip || ''} onChange={handleChange} required placeholder="ZIP" />
+              <input type="text" name="address_country" className="border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300 md:col-span-2" value={form.address_country || ''} onChange={handleChange} required placeholder="Country" />
+            </div>
           </div>
         </div>
-        <form onSubmit={handleSubmit} className="mt-16 mb-20">
-          {/* Business Info Section */}
-          <div className="mt-12 mb-20">
-            <h2 className="text-2xl font-bold text-indigo-700 mb-16 flex items-center gap-2">
-              <FaInfoCircle className="w-6 h-6 text-indigo-400" />
-              Business Info
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="mb-4">
-                <label className="block font-semibold text-sm text-gray-500 mb-1">Business Name *</label>
-                <input type="text" name="name" className="w-full border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.name || ""} onChange={handleChange} required />
-                <p className="text-sm text-gray-500 mt-1">The name of your business or organization as you want it to appear to clients.</p>
-              </div>
-              <div className="mb-4">
-                <label className="block font-semibold text-sm text-gray-500 mb-1">Business Website</label>
-                <input
-                  type="url"
-                  name="business_website"
-                  className="w-full border px-3 py-2 rounded"
-                  value={form.business_website || ''}
-                  onChange={handleChange}
-                  placeholder="https://yourbusiness.com"
-                />
-                <p className="text-sm text-gray-500 mt-1">Add your main website URL. This will be shown on your public prompt page.</p>
-              </div>
-              <div className="mb-4">
-                <label className="block font-semibold text-sm text-gray-500 mb-1">Business Phone</label>
-                <input type="tel" name="phone" className="w-full border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.phone || ''} onChange={handleChange} placeholder="e.g., (555) 123-4567" />
-              </div>
+
+        {/* Contact Information Section */}
+        <div className="mb-16">
+          <h2 className="text-2xl font-bold text-indigo-900 flex items-center gap-3 mb-12">
+            <FaAddressBook className="w-7 h-7 text-indigo-500" />
+            Contact Information
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block font-semibold text-sm text-gray-500 mb-1">Company Values</label>
+              <textarea name="company_values" className="w-full border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.company_values} onChange={handleChange} />
             </div>
-            <div className="mt-6">
-              <label className="block font-semibold text-sm text-gray-500 mb-1">Business Address *</label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input type="text" name="address_street" className="border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.address_street || ''} onChange={handleChange} required placeholder="Street Address" />
-                <input type="text" name="address_city" className="border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.address_city || ''} onChange={handleChange} required placeholder="City" />
-                <input type="text" name="address_state" className="border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.address_state || ''} onChange={handleChange} required placeholder="State" />
-                <input type="text" name="address_zip" className="border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.address_zip || ''} onChange={handleChange} required placeholder="ZIP" />
-                <input type="text" name="address_country" className="border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300 md:col-span-2" value={form.address_country || ''} onChange={handleChange} required placeholder="Country" />
-              </div>
+            <div>
+              <label className="block font-semibold text-sm text-gray-500 mb-1">Differentiators</label>
+              <textarea name="differentiators" className="w-full border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.differentiators} onChange={handleChange} />
             </div>
-          </div>
-          <hr className="my-8 border-indigo-100" />
-          {/* Services Section */}
-          <div className="mt-12 mb-20">
-            <h2 className="text-2xl font-bold text-indigo-700 mb-16 flex items-center gap-2">
-              <FaListAlt className="w-6 h-6 text-indigo-400" />
-              Services
-            </h2>
-            <div className="space-y-2">
-              {services.map((service, idx) => (
-                <div key={idx} className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    className="w-full border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300"
-                    value={service}
-                    onChange={e => handleServiceChange(idx, e.target.value)}
-                    required
-                    placeholder="e.g., Web Design"
-                  />
-                  {services.length > 1 && (
-                    <button type="button" onClick={() => removeService(idx)} className="text-red-600 font-bold text-xl">&times;</button>
-                  )}
-                </div>
-              ))}
-              <button type="button" onClick={addService} className="text-blue-600 underline mt-2">+ Add Service</button>
+            <div>
+              <label className="block font-semibold text-sm text-gray-500 mb-1">Years in Business</label>
+              <input type="number" name="years_in_business" className="w-full border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.years_in_business || ''} onChange={handleChange} />
             </div>
-          </div>
-          <hr className="my-8 border-indigo-100" />
-          {/* Company Details Section */}
-          <div className="mt-12 mb-20">
-            <h2 className="text-2xl font-bold text-indigo-700 mb-16 flex items-center gap-2">
-              <FaInfoCircle className="w-6 h-6 text-indigo-400" />
-              Company Details
-            </h2>
-            <p className="text-sm text-gray-500 mb-10">This information helps AI compose better review copy.</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block font-semibold text-sm text-gray-500 mb-1">Company Values</label>
-                <textarea name="company_values" className="w-full border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.company_values} onChange={handleChange} />
-              </div>
-              <div>
-                <label className="block font-semibold text-sm text-gray-500 mb-1">Differentiators</label>
-                <textarea name="differentiators" className="w-full border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.differentiators} onChange={handleChange} />
-              </div>
-              <div>
-                <label className="block font-semibold text-sm text-gray-500 mb-1">Years in Business</label>
-                <input type="number" name="years_in_business" className="w-full border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.years_in_business || ''} onChange={handleChange} />
-              </div>
-              <div>
-                <label className="block font-semibold text-sm text-gray-500 mb-1">Industries Served</label>
-                <textarea name="industries_served" className="w-full border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.industries_served} onChange={handleChange} />
-              </div>
-              <div>
-                <label className="block font-semibold text-sm text-gray-500 mb-1">Tagline</label>
-                <textarea name="taglines" className="w-full border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.taglines} onChange={handleChange} />
-              </div>
-              <div>
-                <label className="block font-semibold text-sm text-gray-500 mb-1">Keywords (comma separated)</label>
-                <textarea
-                  name="keywords"
-                  className="w-full border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300 min-h-[80px]"
-                  value={form.keywords}
-                  onChange={handleChange}
-                  placeholder="best therapist in Portland, amazing ADHD therapist, group sessions, works with most insurance companies, compassionate"
-                  rows={4}
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block font-semibold text-sm text-gray-500 mb-1">Team or Founder Info (optional)</label>
-                <textarea name="team_info" className="w-full border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.team_info} onChange={handleChange} />
-              </div>
+            <div>
+              <label className="block font-semibold text-sm text-gray-500 mb-1">Industries Served</label>
+              <textarea name="industries_served" className="w-full border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.industries_served} onChange={handleChange} />
             </div>
-          </div>
-          <hr className="my-8 border-indigo-100" />
-          {/* Review Rewards Section */}
-          <div className="mt-12 mb-20">
-            <h2 className="text-2xl font-bold text-indigo-700 mb-16 flex items-center gap-2">
-              <FaStar className="w-6 h-6 text-indigo-400" />
-              Review Rewards
-            </h2>
-            <div className="flex items-center justify-between mb-2">
-              <button
-                type="button"
-                onClick={() => setForm(f => ({ ...f, default_offer_enabled: !f.default_offer_enabled }))}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${form.default_offer_enabled ? 'bg-indigo-500' : 'bg-gray-300'}`}
-                aria-pressed={!!form.default_offer_enabled}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${form.default_offer_enabled ? 'translate-x-5' : 'translate-x-1'}`}
-                />
-              </button>
+            <div>
+              <label className="block font-semibold text-sm text-gray-500 mb-1">Tagline</label>
+              <textarea name="taglines" className="w-full border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.taglines} onChange={handleChange} />
             </div>
-            <div className={`rounded-lg border border-indigo-200 bg-indigo-50 p-4 ${!form.default_offer_enabled ? 'opacity-60' : ''}`}>
-              <input
-                type="text"
-                name="default_offer_title"
-                value={form.default_offer_title ?? 'Review Rewards'}
-                onChange={e => setForm(f => ({ ...f, default_offer_title: e.target.value }))}
-                placeholder="Offer Title (e.g., Review Rewards)"
-                className="block w-full rounded-md border border-indigo-200 bg-indigo-50 focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-2 px-3 mb-2 font-semibold"
-                disabled={!form.default_offer_enabled}
-              />
+            <div>
+              <label className="block font-semibold text-sm text-gray-500 mb-1">Keywords (comma separated)</label>
               <textarea
-                name="default_offer_body"
-                value={form.default_offer_body || ''}
-                onChange={e => setForm(f => ({ ...f, default_offer_body: e.target.value }))}
-                placeholder="Review us on 3 platforms and get 10% off your next service!"
-                className="block w-full rounded-md border border-indigo-200 bg-indigo-50 focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-3 px-4"
-                rows={2}
-                disabled={!form.default_offer_enabled}
+                name="keywords"
+                className="w-full border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300 min-h-[80px]"
+                value={form.keywords}
+                onChange={handleChange}
+                placeholder="best therapist in Portland, amazing ADHD therapist, group sessions, works with most insurance companies, compassionate"
+                rows={4}
               />
             </div>
-          </div>
-          <hr className="my-8 border-indigo-100" />
-          {/* Social Media Section */}
-          <div className="mt-12 mb-20">
-            <h2 className="text-2xl font-bold text-indigo-700 mb-16 flex items-center gap-2">
-              <FaShareAlt className="w-6 h-6 text-indigo-400" />
-              Social Media Links
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block font-semibold text-sm text-gray-500 mb-1">Facebook URL</label>
-                <input type="url" name="facebook_url" className="w-full border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.facebook_url} onChange={handleChange} placeholder="https://facebook.com/yourbusiness" />
-              </div>
-              <div>
-                <label className="block font-semibold text-sm text-gray-500 mb-1">Instagram URL</label>
-                <input type="url" name="instagram_url" className="w-full border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.instagram_url} onChange={handleChange} placeholder="https://instagram.com/yourbusiness" />
-              </div>
-              <div>
-                <label className="block font-semibold text-sm text-gray-500 mb-1">Bluesky URL</label>
-                <input type="url" name="bluesky_url" className="w-full border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.bluesky_url} onChange={handleChange} placeholder="https://bsky.app/profile/yourbusiness" />
-              </div>
-              <div>
-                <label className="block font-semibold text-sm text-gray-500 mb-1">TikTok URL</label>
-                <input type="url" name="tiktok_url" className="w-full border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.tiktok_url} onChange={handleChange} placeholder="https://tiktok.com/@yourbusiness" />
-              </div>
-              <div>
-                <label className="block font-semibold text-sm text-gray-500 mb-1">YouTube URL</label>
-                <input type="url" name="youtube_url" className="w-full border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.youtube_url} onChange={handleChange} placeholder="https://youtube.com/@yourbusiness" />
-              </div>
-              <div>
-                <label className="block font-semibold text-sm text-gray-500 mb-1">LinkedIn URL</label>
-                <input type="url" name="linkedin_url" className="w-full border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.linkedin_url} onChange={handleChange} placeholder="https://linkedin.com/company/yourbusiness" />
-              </div>
-              <div>
-                <label className="block font-semibold text-sm text-gray-500 mb-1">Pinterest URL</label>
-                <input type="url" name="pinterest_url" className="w-full border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.pinterest_url} onChange={handleChange} placeholder="https://pinterest.com/yourbusiness" />
-              </div>
+            <div className="md:col-span-2">
+              <label className="block font-semibold text-sm text-gray-500 mb-1">Team or Founder Info (optional)</label>
+              <textarea name="team_info" className="w-full border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.team_info} onChange={handleChange} />
             </div>
           </div>
-          <hr className="my-8 border-indigo-100" />
-          {/* Review Platforms Section */}
-          <div className="mt-12 mb-20">
-            <h2 className="text-2xl font-bold text-indigo-700 mb-4 flex items-center gap-2">
-              <FaClipboardList className="w-6 h-6 text-indigo-400" />
-              Preferred Review Platforms
-            </h2>
-            <p className="text-sm text-gray-500 mb-6">
-              Add your preferred review platforms. We recommend adding at least 3 and we HIGHLY recommend adding your
-              <a href="https://business.google.com/us/business-profile/" target="_blank" rel="noopener noreferrer" className="text-blue-700 underline mx-1">Google Business Profile</a>
-              review link because adding reviews can drastically improve your local search visibility.
-            </p>
-            <div className="space-y-4">
-              <div className="flex gap-2 mb-1 text-sm font-semibold text-gray-700">
-                <div className="w-1/4">Platform</div>
-                <div className="w-1/3">Link</div>
-                <div className="w-40 whitespace-nowrap">Word count limit</div>
+        </div>
+
+        {/* Services Section */}
+        <div className="mb-16">
+          <h2 className="text-2xl font-bold text-indigo-900 flex items-center gap-3 mb-12">
+            <FaList className="w-7 h-7 text-indigo-500" />
+            Services
+          </h2>
+          <div className="space-y-2">
+            {services.map((service, idx) => (
+              <div key={idx} className="flex items-center gap-2">
+                <input
+                  type="text"
+                  className="w-full border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300"
+                  value={service}
+                  onChange={e => handleServiceChange(idx, e.target.value)}
+                  required
+                  placeholder="e.g., Web Design"
+                />
+                {services.length > 1 && (
+                  <button type="button" onClick={() => removeService(idx)} className="text-red-600 font-bold text-xl">&times;</button>
+                )}
               </div>
-              {platforms.map((platform, idx) => (
-                <div key={idx} className="border rounded-lg p-3 bg-gray-50 relative flex flex-col gap-2">
-                  <div className="flex gap-2 mb-2">
-                    <input
-                      type="text"
-                      placeholder="Platform Name (e.g., Google)"
-                      className="border px-2 py-1 rounded w-1/4"
-                      value={platform.name ?? ""}
-                      onChange={e => handlePlatformChange(idx, 'name', e.target.value)}
-                      required
-                    />
-                    <input
-                      type="text"
-                      placeholder="Review URL"
-                      className="border px-2 py-1 rounded w-1/3"
-                      value={platform.url ?? ""}
-                      onChange={e => handlePlatformChange(idx, 'url', e.target.value)}
-                      required
-                    />
-                    <input
-                      type="number"
-                      min={50}
-                      max={1000}
-                      placeholder="Word Count"
-                      className="border px-2 py-1 rounded w-24"
-                      value={platform.wordCount ?? 200}
-                      onChange={e => {
-                        const newPlatforms = [...platforms];
-                        newPlatforms[idx].wordCount = parseInt(e.target.value, 10) || 200;
-                        setPlatforms(newPlatforms);
-                      }}
-                      required
-                    />
-                    {platforms.length > 1 && (
-                      <button type="button" onClick={() => removePlatform(idx)} className="ml-2 text-red-600 font-bold text-xl">&times;</button>
-                    )}
-                  </div>
-                  {/* Yelp warning note below the row */}
-                  {platform.name && platform.name.toLowerCase() === 'yelp' && platform.url && platform.url.startsWith('https://www.yelp.com/biz/') && !platformErrors[idx] && (
-                    <p className="text-xs text-yellow-700 bg-yellow-50 border border-yellow-200 rounded px-2 py-1 mt-2">
-                      <strong>Note:</strong> Yelp is not a big fan of solicited reviews. If a user signs up to Yelp just to leave a review, it will be hidden and usually won't show up unless the user becomes an active Yelp user.
-                    </p>
-                  )}
-                  {platformErrors[idx] && (
-                    <p className="text-sm text-red-600">{platformErrors[idx]}</p>
-                  )}
-                </div>
-              ))}
-              <button type="button" onClick={addPlatform} className="text-blue-600 underline mt-2">+ Add Platform</button>
-              <p className="text-sm text-gray-500 mt-1">Popular review sites: Google Business, Yelp, BBB, Trustpilot, Angi (formerly Angie's List), G2 / Capterra, Facebook, ConsumerAffairs, TripAdvisor</p>
+            ))}
+            <button type="button" onClick={addService} className="text-blue-600 underline mt-2">+ Add Service</button>
+          </div>
+        </div>
+
+        {/* Social Media Section */}
+        <div className="mb-16">
+          <h2 className="text-2xl font-bold text-indigo-900 flex items-center gap-3 mb-12">
+            <FaShareAlt className="w-7 h-7 text-indigo-500" />
+            Social Media
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block font-semibold text-sm text-gray-500 mb-1">Facebook URL</label>
+              <input type="url" name="facebook_url" className="w-full border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.facebook_url} onChange={handleChange} placeholder="https://facebook.com/yourbusiness" />
+            </div>
+            <div>
+              <label className="block font-semibold text-sm text-gray-500 mb-1">Instagram URL</label>
+              <input type="url" name="instagram_url" className="w-full border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.instagram_url} onChange={handleChange} placeholder="https://instagram.com/yourbusiness" />
+            </div>
+            <div>
+              <label className="block font-semibold text-sm text-gray-500 mb-1">Bluesky URL</label>
+              <input type="url" name="bluesky_url" className="w-full border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.bluesky_url} onChange={handleChange} placeholder="https://bsky.app/profile/yourbusiness" />
+            </div>
+            <div>
+              <label className="block font-semibold text-sm text-gray-500 mb-1">TikTok URL</label>
+              <input type="url" name="tiktok_url" className="w-full border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.tiktok_url} onChange={handleChange} placeholder="https://tiktok.com/@yourbusiness" />
+            </div>
+            <div>
+              <label className="block font-semibold text-sm text-gray-500 mb-1">YouTube URL</label>
+              <input type="url" name="youtube_url" className="w-full border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.youtube_url} onChange={handleChange} placeholder="https://youtube.com/@yourbusiness" />
+            </div>
+            <div>
+              <label className="block font-semibold text-sm text-gray-500 mb-1">LinkedIn URL</label>
+              <input type="url" name="linkedin_url" className="w-full border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.linkedin_url} onChange={handleChange} placeholder="https://linkedin.com/company/yourbusiness" />
+            </div>
+            <div>
+              <label className="block font-semibold text-sm text-gray-500 mb-1">Pinterest URL</label>
+              <input type="url" name="pinterest_url" className="w-full border px-3 py-2 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-300" value={form.pinterest_url} onChange={handleChange} placeholder="https://pinterest.com/yourbusiness" />
             </div>
           </div>
-          {error && (
-            <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-md flex items-center gap-2">
-              <FaTimesCircle className="w-5 h-5 text-red-400" />
-              {error}
-            </div>
-          )}
-          {success && (
-            <div className="mb-4 p-4 bg-green-50 text-green-700 rounded-md flex items-center gap-2">
-              <FaCheckCircle className="w-5 h-5 text-green-400" />
-              {success}
-            </div>
-          )}
-          <button type="submit" className="w-full bg-indigo-600 text-white py-3 rounded-xl text-lg font-bold shadow hover:bg-indigo-700 transition-colors duration-150" disabled={loading}>
-            {loading ? "Saving..." : "Save Changes"}
+        </div>
+
+        {/* Save Button */}
+        <div className="flex justify-end">
+          <button
+            type="submit"
+            className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+          >
+            Save Changes
           </button>
-        </form>
+        </div>
+
         {/* Cropping Modal */}
         {showCropper && logoUrl && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">

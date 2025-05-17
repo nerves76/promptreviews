@@ -9,7 +9,7 @@ import type { Area } from 'react-easy-crop';
 import { useAuthGuard } from '@/utils/authGuard';
 import { sanitizePromptPageInsert } from '@/utils/sanitizePromptPageInsert';
 import { slugify } from '@/utils/slugify';
-import { FaImage } from 'react-icons/fa';
+import { FaImage, FaBuilding, FaInfoCircle, FaAddressBook, FaList, FaShareAlt, FaClock, FaMapMarkerAlt } from 'react-icons/fa';
 
 export default function CreateBusinessPage() {
   useAuthGuard({ requireBusinessProfile: false });
@@ -177,7 +177,6 @@ export default function CreateBusinessPage() {
       date_completed: '',
       team_member: null,
       review_platforms: platformsWithWordCount,
-      custom_incentive: null,
       status: 'published',
       is_universal: true
     });
@@ -315,14 +314,17 @@ export default function CreateBusinessPage() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <div className="max-w-[850px] mx-auto mt-10 p-8 bg-white rounded-lg shadow">
-        <h1 className="text-2xl font-bold mb-4">Create Your Business Profile</h1>
-        <form onSubmit={handleSubmit} className="space-y-8">
-          {success && (
-            <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-6 text-center">
-              <p className="font-semibold">{success}</p>
-              <a href="/create-prompt-page" className="inline-block mt-2 text-blue-700 underline font-medium">Create Prompt Page</a>
-            </div>
-          )}
+        <h1 className="text-2xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+          <FaBuilding className="text-indigo-500" />
+          Create Business
+        </h1>
+
+        {/* Business Information Section */}
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+          <h2 className="text-lg font-semibold text-indigo-900 mb-4 flex items-center gap-2">
+            <FaInfoCircle className="text-indigo-500" />
+            Business Information
+          </h2>
           <div className="mb-4">
             <label className="block font-semibold text-sm text-gray-500 mb-1">Business Name *</label>
             <input type="text" name="name" className="w-full border px-3 py-2 rounded" value={form.name} onChange={handleChange} required />
@@ -418,6 +420,7 @@ export default function CreateBusinessPage() {
                 />
               </button>
             </div>
+            <p className="text-sm text-gray-500 mb-3">Reward users who complete a set number of reviews and include a link to your rewards page or contact form so they can claim their prize.</p>
             <div className={`rounded-lg border border-indigo-200 bg-indigo-50 p-4 ${!form.default_offer_enabled ? 'opacity-60' : ''}`}>
               <input
                 type="text"
@@ -439,6 +442,14 @@ export default function CreateBusinessPage() {
               />
             </div>
           </div>
+        </div>
+
+        {/* Contact Information Section */}
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+          <h2 className="text-lg font-semibold text-indigo-900 mb-4 flex items-center gap-2">
+            <FaAddressBook className="text-indigo-500" />
+            Contact Information
+          </h2>
           <div className="space-y-4">
             <h2 className="text-2xl font-bold text-indigo-700 mb-16 flex items-center gap-2">Social Media Links</h2>
             <div className="mb-4">
@@ -590,11 +601,53 @@ export default function CreateBusinessPage() {
             />
             <p className="text-sm text-gray-500 mt-1">Add 5-10 keywords that you would like to see appear in your reviews.</p>
           </div>
-          {error && <div className="text-red-600">{error}</div>}
-          <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded" disabled={loading || !!success}>
-            {loading ? "Creating..." : "Create Business"}
+        </div>
+
+        {/* Services Section */}
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+          <h2 className="text-lg font-semibold text-indigo-900 mb-4 flex items-center gap-2">
+            <FaList className="text-indigo-500" />
+            Services
+          </h2>
+          {/* ... content ... */}
+        </div>
+
+        {/* Social Media Section */}
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+          <h2 className="text-lg font-semibold text-indigo-900 mb-4 flex items-center gap-2">
+            <FaShareAlt className="text-indigo-500" />
+            Social Media
+          </h2>
+          {/* ... content ... */}
+        </div>
+
+        {/* Business Hours Section */}
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+          <h2 className="text-lg font-semibold text-indigo-900 mb-4 flex items-center gap-2">
+            <FaClock className="text-indigo-500" />
+            Business Hours
+          </h2>
+          {/* ... content ... */}
+        </div>
+
+        {/* Location Section */}
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+          <h2 className="text-lg font-semibold text-indigo-900 mb-4 flex items-center gap-2">
+            <FaMapMarkerAlt className="text-indigo-500" />
+            Location
+          </h2>
+          {/* ... content ... */}
+        </div>
+
+        {/* Save Button */}
+        <div className="flex justify-end">
+          <button
+            type="submit"
+            className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+          >
+            Create Business
           </button>
-        </form>
+        </div>
       </div>
     </Suspense>
   );

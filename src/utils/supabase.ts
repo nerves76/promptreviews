@@ -22,12 +22,12 @@ export type PromptPage = {
     platform: string;
     url: string;
   }[];
-  custom_incentive: string | null;
   offer_enabled?: boolean;
   offer_title?: string;
   offer_body?: string;
+  offer_url?: string;
   account_id: string;
-  status: 'draft' | 'published';
+  status: 'in_queue' | 'in_progress' | 'complete' | 'draft';
 };
 
 export type ReviewSubmission = {
@@ -38,6 +38,29 @@ export type ReviewSubmission = {
   status: 'clicked' | 'submitted';
   user_agent: string;
   ip_address: string;
+};
+
+export type Contact = {
+  id: string;
+  account_id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  category: string | null;
+  notes: string | null;
+  google_url: string | null;
+  yelp_url: string | null;
+  facebook_url: string | null;
+  google_review: string | null;
+  yelp_review: string | null;
+  facebook_review: string | null;
+  google_instructions: string | null;
+  yelp_instructions: string | null;
+  facebook_instructions: string | null;
+  review_rewards: string | null;
+  status: string;
+  created_at: string;
+  updated_at: string;
 };
 
 export type Database = {
@@ -52,6 +75,11 @@ export type Database = {
         Row: ReviewSubmission;
         Insert: Omit<ReviewSubmission, 'id' | 'submitted_at'>;
         Update: Partial<Omit<ReviewSubmission, 'id'>>;
+      };
+      contacts: {
+        Row: Contact;
+        Insert: Omit<Contact, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<Contact, 'id'>>;
       };
     };
   };

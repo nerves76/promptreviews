@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { createBrowserClient } from '@supabase/ssr';
 import { FiMenu, FiX } from 'react-icons/fi';
 
 export default function Header() {
   const router = useRouter();
+  const pathname = usePathname();
   const [user, setUser] = useState<any>(null);
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -24,6 +25,12 @@ export default function Header() {
     getUser();
   }, [supabase]);
 
+  const isActive = (path: string) => {
+    if (path === '/dashboard' && pathname === '/dashboard') return true;
+    if (path !== '/dashboard' && pathname.startsWith(path)) return true;
+    return false;
+  };
+
   return (
     <header className="bg-white shadow">
       <nav className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -38,27 +45,53 @@ export default function Header() {
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
               <Link
                 href="/dashboard"
-                className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                className={`${
+                  isActive('/dashboard')
+                    ? 'border-indigo-500 text-gray-900'
+                    : 'border-transparent text-gray-500 hover:border-indigo-300 hover:text-gray-700'
+                } inline-flex items-center px-1 pt-1 border-b-4 text-sm font-medium transition-colors duration-200 h-16`}
               >
                 Dashboard
               </Link>
               <Link
                 href="/dashboard/business-profile"
-                className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                className={`${
+                  isActive('/dashboard/business-profile')
+                    ? 'border-indigo-500 text-gray-900'
+                    : 'border-transparent text-gray-500 hover:border-indigo-300 hover:text-gray-700'
+                } inline-flex items-center px-1 pt-1 border-b-4 text-sm font-medium transition-colors duration-200 h-16`}
               >
                 Business Profile
               </Link>
               <Link
                 href="/dashboard/style"
-                className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                className={`${
+                  isActive('/dashboard/style')
+                    ? 'border-indigo-500 text-gray-900'
+                    : 'border-transparent text-gray-500 hover:border-indigo-300 hover:text-gray-700'
+                } inline-flex items-center px-1 pt-1 border-b-4 text-sm font-medium transition-colors duration-200 h-16`}
               >
                 Style
               </Link>
               <Link
                 href="/dashboard/analytics"
-                className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                className={`${
+                  isActive('/dashboard/analytics')
+                    ? 'border-indigo-500 text-gray-900'
+                    : 'border-transparent text-gray-500 hover:border-indigo-300 hover:text-gray-700'
+                } inline-flex items-center px-1 pt-1 border-b-4 text-sm font-medium transition-colors duration-200 h-16`}
               >
                 Analytics
+              </Link>
+              <Link
+                href="/dashboard/upload-contacts"
+                className={`${
+                  isActive('/dashboard/upload-contacts')
+                    ? 'border-indigo-500 text-gray-900'
+                    : 'border-transparent text-gray-500 hover:border-indigo-300 hover:text-gray-700'
+                } inline-flex items-center px-1 pt-1 border-b-4 text-sm font-medium transition-colors duration-200 h-16`}
+              >
+                Upload Contacts
               </Link>
             </div>
           </div>
@@ -67,14 +100,18 @@ export default function Header() {
             {user ? (
               <Link
                 href="/account"
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                className={`${
+                  isActive('/account')
+                    ? 'bg-indigo-200 text-indigo-900'
+                    : 'bg-indigo-100 text-indigo-800 hover:bg-indigo-200'
+                } inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 transition-colors duration-200`}
               >
                 Account
               </Link>
             ) : (
               <Link
                 href="/login"
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md bg-indigo-100 text-indigo-800 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 transition-colors duration-200"
               >
                 Sign In
               </Link>
@@ -97,36 +134,67 @@ export default function Header() {
             <div className="px-2 pt-2 pb-3 space-y-1 flex flex-col">
               <Link
                 href="/dashboard"
-                className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-indigo-50"
+                className={`${
+                  isActive('/dashboard')
+                    ? 'bg-indigo-50 text-indigo-900'
+                    : 'text-gray-700 hover:bg-indigo-50'
+                } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                 onClick={() => setMenuOpen(false)}
               >
                 Dashboard
               </Link>
               <Link
                 href="/dashboard/business-profile"
-                className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-indigo-50"
+                className={`${
+                  isActive('/dashboard/business-profile')
+                    ? 'bg-indigo-50 text-indigo-900'
+                    : 'text-gray-700 hover:bg-indigo-50'
+                } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                 onClick={() => setMenuOpen(false)}
               >
                 Business Profile
               </Link>
               <Link
                 href="/dashboard/style"
-                className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-indigo-50"
+                className={`${
+                  isActive('/dashboard/style')
+                    ? 'bg-indigo-50 text-indigo-900'
+                    : 'text-gray-700 hover:bg-indigo-50'
+                } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                 onClick={() => setMenuOpen(false)}
               >
                 Style
               </Link>
               <Link
                 href="/dashboard/analytics"
-                className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-indigo-50"
+                className={`${
+                  isActive('/dashboard/analytics')
+                    ? 'bg-indigo-50 text-indigo-900'
+                    : 'text-gray-700 hover:bg-indigo-50'
+                } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                 onClick={() => setMenuOpen(false)}
               >
                 Analytics
               </Link>
+              <Link
+                href="/dashboard/upload-contacts"
+                className={`${
+                  isActive('/dashboard/upload-contacts')
+                    ? 'bg-indigo-50 text-indigo-900'
+                    : 'text-gray-700 hover:bg-indigo-50'
+                } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
+                onClick={() => setMenuOpen(false)}
+              >
+                Upload Contacts
+              </Link>
               {user ? (
                 <Link
                   href="/account"
-                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-indigo-50"
+                  className={`${
+                    isActive('/account')
+                      ? 'bg-indigo-50 text-indigo-900'
+                      : 'text-gray-700 hover:bg-indigo-50'
+                  } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                   onClick={() => setMenuOpen(false)}
                 >
                   Account
@@ -134,7 +202,7 @@ export default function Header() {
               ) : (
                 <Link
                   href="/login"
-                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-indigo-50"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-indigo-50 transition-colors duration-200"
                   onClick={() => setMenuOpen(false)}
                 >
                   Sign In

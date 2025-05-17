@@ -47,9 +47,11 @@ export async function POST(request: Request) {
       date_completed: body.date_completed,
       team_member: body.team_member,
       review_platforms: body.review_platform_links,
-      custom_incentive: body.custom_incentive,
+      offer_enabled: body.offer_enabled,
+      offer_title: body.offer_title,
+      offer_body: body.offer_body,
+      status: body.status,
       account_id: body.business_id, // This should come from the authenticated user
-      status: 'draft',
     });
     const { data, error } = await supabase
       .from('prompt_pages')

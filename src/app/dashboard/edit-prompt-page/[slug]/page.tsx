@@ -77,7 +77,6 @@ export default function EditPromptPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
-    title: '',
     first_name: '',
     last_name: '',
     email: '',
@@ -85,9 +84,9 @@ export default function EditPromptPage() {
     project_type: '',
     outcomes: '',
     review_platforms: [] as ReviewPlatformLink[],
-    custom_incentive: '',
     services_offered: '',
-    personal_note: '',
+    friendly_note: '',
+    status: 'in_queue' as 'in_queue' | 'in_progress' | 'complete' | 'draft',
   });
   const [businessProfile, setBusinessProfile] = useState<BusinessProfile | null>(null);
   const [generatingReview, setGeneratingReview] = useState<number | null>(null);
@@ -96,8 +95,10 @@ export default function EditPromptPage() {
   const [offerEnabled, setOfferEnabled] = useState(false);
   const [offerTitle, setOfferTitle] = useState('Review Rewards');
   const [offerBody, setOfferBody] = useState('');
+  const [offerUrl, setOfferUrl] = useState('');
   const [analytics, setAnalytics] = useState<any>(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(true);
+  const [selectedTab, setSelectedTab] = useState<'in_queue' | 'in_progress' | 'complete' | 'draft'>('in_queue');
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -122,9 +123,11 @@ export default function EditPromptPage() {
 
         if (promptError) throw promptError;
 
+        // Debug log
+        console.log('Loaded promptData:', promptData);
+
         // Set form data from the prompt page, ensuring all string values have defaults
         setFormData({
-          title: promptData.title || '',
           first_name: promptData.first_name || '',
           last_name: promptData.last_name || '',
           email: promptData.email || '',
@@ -132,17 +135,18 @@ export default function EditPromptPage() {
           project_type: promptData.project_type || '',
           outcomes: promptData.outcomes || '',
           review_platforms: promptData.review_platforms || [],
-          custom_incentive: promptData.custom_incentive || '',
           services_offered: Array.isArray(promptData.services_offered) 
             ? promptData.services_offered.join('\n')
             : '',
-          personal_note: promptData.personal_note || '',
+          friendly_note: promptData.friendly_note || '',
+          status: promptData.status || 'in_queue' as 'in_queue' | 'in_progress' | 'complete' | 'draft',
         });
         setIsUniversal(!!promptData.is_universal);
         setOfferEnabled(!!promptData.offer_enabled);
         setOfferTitle(promptData.offer_title || 'Review Rewards');
         setOfferBody(promptData.offer_body || '');
-
+        setOfferUrl(promptData.offer_url || '');
+      
         // Fetch business profile
         const { data: businessData } = await supabase
           .from('businesses')
@@ -156,10 +160,14 @@ export default function EditPromptPage() {
       } catch (err) {
         console.error('Error loading data:', err);
         setError('Failed to load page data');
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    loadData();
+    if (params.slug) {
+      loadData();
+    }
   }, [params.slug, supabase]);
 
   useEffect(() => {
@@ -172,13 +180,26 @@ export default function EditPromptPage() {
 
   useEffect(() => {
     const fetchAnalytics = async () => {
+      if (!params.slug) return;
+      
       setAnalyticsLoading(true);
       try {
+        // First, get the prompt page ID by slug
+        const { data: promptPage, error: fetchError } = await supabase
+          .from('prompt_pages')
+          .select('id')
+          .eq('slug', params.slug)
+          .single();
+          
+        if (fetchError || !promptPage) throw fetchError || new Error('Prompt page not found');
+        
         const { data: events, error } = await supabase
           .from('prompt_page_events')
           .select('*')
-          .eq('prompt_page_id', params.slug);
+          .eq('prompt_page_id', promptPage.id);
+          
         if (error) throw error;
+        
         const analyticsData = {
           totalClicks: events.length,
           aiGenerations: events.filter((e: any) => e.event_type === 'ai_generate').length,
@@ -186,11 +207,13 @@ export default function EditPromptPage() {
         };
         setAnalytics(analyticsData);
       } catch (err) {
+        console.error('Error fetching analytics:', err);
         setAnalytics(null);
       } finally {
         setAnalyticsLoading(false);
       }
     };
+
     fetchAnalytics();
   }, [params.slug, supabase]);
 
@@ -212,8 +235,13 @@ export default function EditPromptPage() {
     setFormData(prev => ({
       ...prev,
       review_platforms: prev.review_platforms.map((link, i) =>
-        i === index ? { ...link, [field]: value } : link
-      ),
+        i === index ? {
+          ...link,
+          [field]: field === 'wordCount' 
+            ? Math.max(200, Number(value) || 200)
+            : value
+        } : link
+      )
     }));
   };
 
@@ -227,7 +255,6 @@ export default function EditPromptPage() {
       const review = await generateAIReview(
         businessProfile,
         {
-          title: formData.title,
           first_name: formData.first_name,
           last_name: formData.last_name,
           project_type: formData.project_type,
@@ -261,38 +288,98 @@ export default function EditPromptPage() {
         throw new Error('You must be signed in to edit a prompt page');
       }
 
-      // Filter out empty platform links
-      const filteredPlatformLinks = formData.review_platforms.filter(
-        link => link.platform.trim() && link.url.trim()
-      );
+      // First, get the prompt page ID
+      const { data: promptPage, error: fetchError } = await supabase
+        .from('prompt_pages')
+        .select('id')
+        .eq('slug', params.slug)
+        .single();
+
+      if (fetchError) throw fetchError;
+      if (!promptPage) throw new Error('Prompt page not found');
 
       // Build update object
-      const updateData: any = {
-        title: formData.title,
-        first_name: formData.first_name,
-        last_name: formData.last_name,
-        phone: formData.phone,
-        email: formData.email,
-        project_type: formData.project_type,
-        outcomes: formData.outcomes,
-        review_platforms: filteredPlatformLinks,
-        custom_incentive: offerEnabled ? (formData.custom_incentive || null) : null,
-        services_offered: (formData.services_offered || '').split('\n').map(s => s.trim()).filter(Boolean),
-        personal_note: formData.personal_note,
-        offer_enabled: offerEnabled,
-        offer_title: offerTitle,
-        offer_body: offerBody,
-      };
-      if (action === 'publish') {
-        updateData.status = 'published';
+      let updateData: any;
+      if (isUniversal) {
+        updateData = {
+          offer_enabled: offerEnabled,
+          offer_title: offerTitle,
+          offer_body: offerBody,
+          offer_url: offerUrl || null,
+          status: 'draft' as const,
+        };
+        if (formData.review_platforms && formData.review_platforms.length > 0) {
+          const validPlatforms = formData.review_platforms
+            .map(link => ({
+              platform: link.platform,
+              url: link.url,
+              wordCount: Math.max(200, Number(link.wordCount) || 200),
+              customInstructions: link.customInstructions || '',
+              reviewText: link.reviewText || ''
+            }))
+            .filter(link => link.platform && link.url);
+          if (validPlatforms.length > 0) {
+            updateData.review_platforms = validPlatforms;
+          }
+        }
+      } else {
+        updateData = {
+          offer_enabled: offerEnabled,
+          offer_title: offerTitle,
+          offer_body: offerBody,
+          offer_url: offerUrl || null,
+          status: (formData.status || 'in_queue') as 'in_queue' | 'in_progress' | 'complete' | 'draft',
+          first_name: formData.first_name || null,
+          last_name: formData.last_name || null,
+          phone: formData.phone || null,
+          email: formData.email || null,
+          project_type: formData.project_type || null,
+          outcomes: formData.outcomes || null,
+          friendly_note: formData.friendly_note || null
+        };
+
+        // Handle review_platforms
+        if (formData.review_platforms && formData.review_platforms.length > 0) {
+          updateData.review_platforms = formData.review_platforms
+            .map(link => ({
+              platform: link.platform,
+              url: link.url,
+              wordCount: Math.max(200, Number(link.wordCount) || 200),
+              customInstructions: link.customInstructions || '',
+              reviewText: link.reviewText || ''
+            }))
+            .filter(link => link.platform && link.url);
+        } else {
+          updateData.review_platforms = null;
+        }
+
+        // Handle services_offered
+        if (formData.services_offered) {
+          const services = formData.services_offered.split('\n')
+            .map(s => s.trim())
+            .filter(Boolean);
+          updateData.services_offered = services.length > 0 ? services : null;
+        } else {
+          updateData.services_offered = null;
+        }
+
+        if (action === 'publish') {
+          updateData.status = 'in_queue' as const;
+        }
       }
+
+      // Debug log
+      console.log('Saving prompt page with data:', updateData, 'PromptPage ID:', promptPage.id);
 
       const { error: updateError } = await supabase
         .from('prompt_pages')
         .update(updateData)
-        .eq('slug', params.slug);
+        .eq('id', promptPage.id);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('Update error:', updateError);
+        throw updateError;
+      }
       
       setSuccessMessage('Changes saved successfully!');
       
@@ -310,21 +397,6 @@ export default function EditPromptPage() {
 
   const renderStep1 = () => (
     <div className="space-y-6">
-      <div>
-        <label htmlFor="title" className="block text-sm font-medium text-gray-700 mt-10 mb-2">
-          Title
-        </label>
-        <div className="text-xs text-gray-500 mt-1 mb-2">This can be the business you want a review from, or just something memorable like "Review From Mark".</div>
-        <input
-          type="text"
-          id="title"
-          value={formData.title}
-          onChange={e => setFormData(prev => ({ ...prev, title: e.target.value }))}
-          className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
-          placeholder="Enter a title for your prompt page"
-          required
-        />
-      </div>
       <div className="flex gap-4">
         <div className="flex-1">
           <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mt-4 mb-2">Phone Number</label>
@@ -425,13 +497,13 @@ export default function EditPromptPage() {
       </div>
 
       <div>
-        <label htmlFor="personal_note" className="block text-sm font-medium text-gray-700 mt-4 mb-2">
+        <label htmlFor="friendly_note" className="block text-sm font-medium text-gray-700 mt-4 mb-2">
           Personalized Note to Customer
         </label>
         <textarea
-          id="personal_note"
-          value={formData.personal_note}
-          onChange={e => setFormData(prev => ({ ...prev, personal_note: e.target.value }))}
+          id="friendly_note"
+          value={formData.friendly_note}
+          onChange={e => setFormData(prev => ({ ...prev, friendly_note: e.target.value }))}
           rows={4}
           className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
           placeholder={`Hi ${formData.first_name || '[name]'}, thanks so much for doing business with ${businessProfile?.business_name || '[business name]'}. As a small business, getting reviews online is super valuable and extends our reach. Thank you for supporting us!\n\n- ${businessProfile?.business_name || '[Account holder name]'}`}
@@ -468,6 +540,7 @@ export default function EditPromptPage() {
             />
           </button>
         </div>
+        <p className="text-sm text-gray-500 mb-3">Reward users who complete a set number of reviews and include a link to your rewards page or contact form so they can claim their prize.</p>
         <div className={`rounded-lg border border-indigo-200 bg-indigo-50 p-4 ${!offerEnabled ? 'opacity-60' : ''}`}>
           <input
             type="text"
@@ -485,6 +558,14 @@ export default function EditPromptPage() {
             rows={2}
             disabled={!offerEnabled}
           />
+          <input
+            type="url"
+            value={offerUrl}
+            onChange={e => setOfferUrl(e.target.value)}
+            placeholder="Offer URL (e.g., https://yourbusiness.com/claim-reward)"
+            className="block w-full rounded-md border border-indigo-200 bg-indigo-50 focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-2 px-3 mt-2"
+            disabled={!offerEnabled}
+          />
         </div>
       </div>
       <div>
@@ -493,7 +574,7 @@ export default function EditPromptPage() {
         {/* Universal Prompt Page note */}
         {isUniversal && (
           <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded text-yellow-900 text-sm">
-            Universal Prompt Pages are designed for sharing with many people. Each reviewer should generate their own unique review using AI. You cannot pre-set review text for these pages.
+            Note: you cannot pre-write reviews on your Universal Prompt Page because you would get the same review over and over.
           </div>
         )}
         <div className="mt-1 space-y-4">
@@ -546,17 +627,16 @@ export default function EditPromptPage() {
                     type="number"
                     id={`wordCount-${index}`}
                     value={link.wordCount ?? 200}
-                    onChange={e => handlePlatformChange(index, 'wordCount', parseInt(e.target.value))}
+                    onChange={e => handlePlatformChange(index, 'wordCount', Math.max(200, parseInt(e.target.value) || 200))}
                     className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
                     placeholder="Word count limit"
-                    min="50"
-                    max="1000"
+                    min="200"
                   />
                 </div>
                 <div className="mb-4">
                   <label htmlFor={`customInstructions-${index}`} className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
                     Custom Instructions
-                    <Tooltip text="Add any special instructions for this platform (optional). For example, mention if you want the reviewer to focus on a specific aspect." />
+                    <Tooltip text="These instructions will appear as a pop-up when the question mark is clicked on the public prompt page." />
                   </label>
                   <input
                     type="text"
@@ -564,7 +644,7 @@ export default function EditPromptPage() {
                     value={link.customInstructions || ''}
                     onChange={e => handlePlatformChange(index, 'customInstructions', e.target.value)}
                     placeholder="Add custom instructions for this platform"
-                    className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                    className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4 min-h-[48px]"
                   />
                 </div>
               </div>
@@ -636,7 +716,7 @@ export default function EditPromptPage() {
           <button
             type="submit"
             onClick={(e) => handleSubmit(e, 'save')}
-            className="inline-flex justify-center rounded-md border border-transparent bg-green-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            className="inline-flex justify-center rounded-md border border-transparent bg-indigo-800 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
             disabled={isLoading}
           >
             Save
@@ -670,10 +750,39 @@ export default function EditPromptPage() {
     </div>
   );
 
+  // Add a loading guard before rendering the form
+  if (isLoading) {
+    return <div className="min-h-screen flex items-center justify-center"><div>Loading...</div></div>;
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-400 via-indigo-300 to-purple-200">
-      <div className="max-w-4xl mx-auto mt-10">
+      <div className="max-w-4xl mx-auto mt-6">
         <div className="bg-white shadow-xl rounded-2xl p-12">
+          {/* Top Save and View Buttons - now at the very top */}
+          {(isUniversal || step === 2) && (
+            <div className="flex justify-between items-center mb-8" style={{ marginTop: '-15px' }}>
+              <div></div>
+              <div className="flex gap-4">
+                <button
+                  type="submit"
+                  onClick={(e) => handleSubmit(e, 'save')}
+                  className="inline-flex justify-center rounded-md border border-transparent bg-indigo-800 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                  disabled={isLoading}
+                >
+                  Save
+                </button>
+                <a
+                  href={`/r/${params.slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                >
+                  View
+                </a>
+              </div>
+            </div>
+          )}
           {error && (
             <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-md">
               {error}
@@ -691,14 +800,14 @@ export default function EditPromptPage() {
                 <>
                   <h1 className="text-2xl font-bold text-gray-900">Edit Universal Prompt Page</h1>
                   <p className="mt-2 text-sm text-gray-600">
-                    Edit your universal prompt page for general use. This page is not customer-specific and is ideal for QR codes, business cards, or general review collection.
+                    The Universal prompt page can be sent to any client/customer. Put your QR code on business cards, flyers, or frame a picture of it and hang it in your business to make it easy for people to give you a review from their phone in seconds.
                   </p>
                 </>
               ) : (
                 <>
                   <h1 className="text-2xl font-bold text-gray-900">Edit Prompt Page</h1>
                   <p className="mt-2 text-sm text-gray-600">
-                    Customize your prompt page to collect reviews from your customers.
+                    Create a friendly and personalized prompt page for your customer or client.
                   </p>
                 </>
               )}
@@ -735,7 +844,7 @@ export default function EditPromptPage() {
                 <div className="flex-shrink-0">
                   <Link
                     href={`/dashboard/analytics`}
-                    className="inline-flex items-center px-3 py-2 bg-indigo-600 text-white rounded-md text-xs font-semibold shadow hover:bg-indigo-700 transition-colors"
+                    className="inline-flex items-center px-3 py-2 bg-indigo-100 text-indigo-800 rounded-md text-xs font-semibold shadow hover:bg-indigo-200 transition-colors"
                   >
                     View More
                   </Link>
@@ -743,30 +852,55 @@ export default function EditPromptPage() {
               </div>
             </div>
 
+            {/* Status Change Section for Individual Prompt Pages */}
             {!isUniversal && (
               <div className="mb-8">
-                <div className="flex items-center space-x-4">
-                  <div
-                    className={`flex items-center justify-center w-8 h-8 rounded-full ${
-                      step >= 1 ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-600'
-                    }`}
-                  >
-                    1
-                  </div>
-                  <div className={`text-sm ${step >= 1 ? 'text-indigo-600' : 'text-gray-500'}`}>
-                    Basic Information
-                  </div>
-                  <div className="flex-1 h-px bg-gray-200"></div>
-                  <div
-                    className={`flex items-center justify-center w-8 h-8 rounded-full ${
-                      step >= 2 ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-600'
-                    }`}
-                  >
-                    2
-                  </div>
-                  <div className={`text-sm ${step >= 2 ? 'text-indigo-600' : 'text-gray-500'}`}>
-                    Review Platforms
-                  </div>
+                <div className="flex items-center gap-4">
+                  <span className="text-sm font-semibold text-gray-700">Page Status:</span>
+                  <label className="inline-flex items-center gap-1">
+                    <input
+                      type="radio"
+                      name="status"
+                      value="draft"
+                      checked={formData.status === 'draft'}
+                      onChange={() => setFormData(prev => ({ ...prev, status: 'draft' }))}
+                      className="form-radio text-indigo-600"
+                    />
+                    <span className="text-sm">Draft</span>
+                  </label>
+                  <label className="inline-flex items-center gap-1">
+                    <input
+                      type="radio"
+                      name="status"
+                      value="in_queue"
+                      checked={formData.status === 'in_queue'}
+                      onChange={() => setFormData(prev => ({ ...prev, status: 'in_queue' }))}
+                      className="form-radio text-indigo-600"
+                    />
+                    <span className="text-sm">In Queue</span>
+                  </label>
+                  <label className="inline-flex items-center gap-1">
+                    <input
+                      type="radio"
+                      name="status"
+                      value="in_progress"
+                      checked={formData.status === 'in_progress'}
+                      onChange={() => setFormData(prev => ({ ...prev, status: 'in_progress' }))}
+                      className="form-radio text-indigo-600"
+                    />
+                    <span className="text-sm">In Progress</span>
+                  </label>
+                  <label className="inline-flex items-center gap-1">
+                    <input
+                      type="radio"
+                      name="status"
+                      value="complete"
+                      checked={formData.status === 'complete'}
+                      onChange={() => setFormData(prev => ({ ...prev, status: 'complete' }))}
+                      className="form-radio text-indigo-600"
+                    />
+                    <span className="text-sm">Complete</span>
+                  </label>
                 </div>
               </div>
             )}

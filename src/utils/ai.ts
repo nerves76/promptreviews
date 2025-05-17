@@ -11,7 +11,6 @@ interface BusinessProfile {
 }
 
 interface PromptPageData {
-  title: string;
   first_name: string;
   last_name: string;
   project_type: string;
