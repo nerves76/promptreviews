@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { getUserOrMock } from '@/utils/supabase';
 
 export async function POST(req: NextRequest) {
   const supabase = createServerClient(
@@ -10,7 +11,7 @@ export async function POST(req: NextRequest) {
   );
 
   // Check if user is logged in
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user } } = await getUserOrMock(supabase);
   if (user) {
     // Do not record event for logged-in users
     return NextResponse.json({}, { status: 204 });

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Header from '../components/Header';
 import { FaUser, FaIdCard, FaSignOutAlt, FaChartLine } from 'react-icons/fa';
 import Link from 'next/link';
+import { getUserOrMock } from '@/utils/supabase';
 
 export default function AccountPage() {
   const router = useRouter();
@@ -19,7 +20,7 @@ export default function AccountPage() {
   useEffect(() => {
     const getUser = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await getUserOrMock(supabase);
         if (!user) {
           router.push('/auth/sign-in');
           return;

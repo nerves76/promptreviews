@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { createServerClient } from '@supabase/ssr';
+import { getSessionOrMock } from '@/utils/supabase';
 
 export async function GET() {
   const cookieStore = cookies() as any;
@@ -21,7 +22,7 @@ export async function GET() {
     }
   );
 
-  const { data: { session }, error } = await supabase.auth.getSession();
+  const { data: { session }, error } = await getSessionOrMock(supabase);
 
   return NextResponse.json({
     cookies: allCookies,

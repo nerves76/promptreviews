@@ -3,7 +3,8 @@ import Link from 'next/link';
 import { RefObject, useState, useEffect } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { useAuthGuard } from '@/utils/authGuard';
-import { FaGlobe, FaHome, FaBuilding, FaHistory, FaBolt } from 'react-icons/fa';
+import { FaGlobe, FaHome, FaBuilding, FaHistory, FaBolt, FaRegComment } from 'react-icons/fa';
+import { getUserOrMock } from '@/utils/supabase';
 
 interface DashboardContentProps {
   userName: string;
@@ -44,8 +45,8 @@ const STATUS_COLORS = {
 };
 
 const STATUS_LABELS = {
-  in_queue: 'In Queue',
-  in_progress: 'In Progress',
+  in_queue: 'In queue',
+  in_progress: 'In progress',
   complete: 'Complete',
   draft: 'Draft',
 };
@@ -103,7 +104,7 @@ export default function DashboardContent({
         const { data: testData, error: testError } = await supabase.from('prompt_pages').select('count').limit(1);
         console.log('Supabase connection test:', { testData, testError });
 
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        const { data: { user }, error: userError } = await getUserOrMock(supabase);
         console.log('Auth check:', { 
           hasUser: !!user, 
           userId: user?.id,
@@ -313,7 +314,7 @@ export default function DashboardContent({
             <FaHome className="w-7 h-7 text-indigo-500" />
           </div>
           <div className="flex items-center justify-between mb-8">
-            <h1 className="text-xl font-bold text-gray-900">
+            <h1 className="text-4xl font-bold text-[#452F9F]">
               Dashboard
             </h1>
             <a
@@ -330,7 +331,7 @@ export default function DashboardContent({
               Welcome, {userName}!
             </h2>
             <p className="mt-2 text-sm text-gray-600 max-w-[650px]">
-              Put some coffee on! Let's chat with some customers and get some reviews to grow your business.
+              Put the kettle on! Let's chat with some customers and get some reviews to grow your business.
             </p>
           </div>
           <div className="mt-2 space-y-4">
@@ -379,14 +380,12 @@ export default function DashboardContent({
               </div>
             )}
 
-            <div className="mb-24">
-              <h2 className="text-2xl font-bold text-indigo-900 flex items-center gap-3">
-                <svg className="w-7 h-7 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                </svg>
-                Your Custom Prompt Pages
+            <div className="mb-6">
+              <h2 className="text-3xl font-bold text-[#452F9F] mb-2 flex items-center gap-3">
+                <FaRegComment className="w-8 h-8 text-indigo-500" />
+                Your custom prompt pages
               </h2>
-              <p className="mt-2 text-sm text-gray-500 mb-16">Manage your customer-specific prompt pages and their review status.</p>
+              <p className="text-gray-600 text-base max-w-2xl mb-4">Manage your customer-specific prompt pages and their review status.</p>
             </div>
 
             <div className="flex gap-2 mb-4">
@@ -400,13 +399,13 @@ export default function DashboardContent({
                 className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors ${selectedTab === 'in_queue' ? 'border-indigo-600 text-indigo-700 bg-indigo-50' : 'border-transparent text-gray-600 bg-gray-100 hover:bg-gray-200'}`}
                 onClick={() => setSelectedTab('in_queue')}
               >
-                In Queue ({inQueueCount})
+                In queue ({inQueueCount})
               </button>
               <button
                 className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors ${selectedTab === 'in_progress' ? 'border-yellow-500 text-yellow-700 bg-yellow-50' : 'border-transparent text-gray-600 bg-gray-100 hover:bg-gray-200'}`}
                 onClick={() => setSelectedTab('in_progress')}
               >
-                In Progress ({inProgressCount})
+                In progress ({inProgressCount})
               </button>
               <button
                 className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors ${selectedTab === 'complete' ? 'border-green-600 text-green-700 bg-green-50' : 'border-transparent text-gray-600 bg-gray-100 hover:bg-green-50'}`}
@@ -428,8 +427,8 @@ export default function DashboardContent({
                     onChange={(e) => setBatchStatus(e.target.value as 'in_queue' | 'in_progress' | 'complete' | 'draft')}
                     className="rounded-md border-gray-300 text-sm"
                   >
-                    <option value="in_queue">In Queue</option>
-                    <option value="in_progress">In Progress</option>
+                    <option value="in_queue">In queue</option>
+                    <option value="in_progress">In progress</option>
                     <option value="complete">Complete</option>
                     <option value="draft">Draft</option>
                   </select>
@@ -475,7 +474,7 @@ export default function DashboardContent({
                             onClick={() => handleSort('first_name')}
                           >
                             <div className="flex items-center gap-1">
-                              First Name
+                              First
                               <span className="text-gray-400 opacity-50 group-hover:opacity-100">
                                 {sortField === 'first_name' ? (
                                   sortDirection === 'asc' ? '↑' : '↓'
@@ -491,7 +490,7 @@ export default function DashboardContent({
                             onClick={() => handleSort('last_name')}
                           >
                             <div className="flex items-center gap-1">
-                              Last Name
+                              Last
                               <span className="text-gray-400 opacity-50 group-hover:opacity-100">
                                 {sortField === 'last_name' ? (
                                   sortDirection === 'asc' ? '↑' : '↓'
@@ -552,8 +551,8 @@ export default function DashboardContent({
                                 onChange={(e) => updateStatus(page.id, e.target.value as 'in_queue' | 'in_progress' | 'complete' | 'draft')}
                                 className={`rounded-full px-2 py-1 text-xs font-medium ${STATUS_COLORS[page.status] || 'bg-gray-100 text-gray-800'}`}
                               >
-                                <option value="in_queue">In Queue</option>
-                                <option value="in_progress">In Progress</option>
+                                <option value="in_queue">In queue</option>
+                                <option value="in_progress">In progress</option>
                                 <option value="complete">Complete</option>
                                 <option value="draft">Draft</option>
                               </select>

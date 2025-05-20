@@ -5,6 +5,7 @@ import { createBrowserClient } from '@supabase/ssr';
 import { useAuthGuard } from '@/utils/authGuard';
 import { HexColorPicker } from 'react-colorful';
 import { FaPalette, FaSwatchbook } from 'react-icons/fa';
+import { getUserOrMock } from '@/utils/supabase';
 
 interface StyleSettings {
   primary_font: string;
@@ -78,7 +79,7 @@ export default function StylePage() {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        const { data: { user }, error: userError } = await getUserOrMock(supabase);
         if (userError) throw userError;
         if (!user) {
           setError('Not authenticated');
@@ -142,7 +143,7 @@ export default function StylePage() {
     setSuccess(null);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await getUserOrMock(supabase);
       if (!user) throw new Error('Not authenticated');
 
       const { error: updateError } = await supabase
@@ -184,22 +185,23 @@ export default function StylePage() {
   }
 
   return (
-    <div className="min-h-screen py-12 px-2">
-      <div className="max-w-4xl mx-auto bg-gray-50 rounded-lg shadow pt-4 pb-24 px-8 relative">
-        <div className="absolute -top-4 -left-4 bg-gray-50 rounded-full shadow p-2 flex items-center justify-center">
-          <FaPalette className="w-7 h-7 text-indigo-500" />
+    <div className="min-h-screen mt-6 px-2">
+      <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-8 relative">
+        <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center">
+          <FaPalette className="w-9 h-9 text-indigo-500" />
         </div>
-        <div className="flex items-center justify-between mb-16">
-          <h1 className="text-xl font-bold text-gray-900">
-            Style Settings
-          </h1>
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex flex-col">
+            <h1 className="text-4xl font-bold text-[#452F9F]">Style settings</h1>
+            {/* Optionally add subcopy here if needed */}
+          </div>
         </div>
 
         {/* Color Scheme Section */}
         <div className="mb-16">
-          <h2 className="text-2xl font-bold text-indigo-900 flex items-center gap-3 mb-12">
+          <h2 className="mt-20 text-2xl font-bold text-indigo-900 flex items-center gap-3 mb-12">
             <FaSwatchbook className="w-7 h-7 text-indigo-500" />
-            Color Scheme
+            Color scheme
           </h2>
           {error && (
             <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-md">
@@ -255,7 +257,7 @@ export default function StylePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Header Color
+                  Header color
                 </label>
                 <div className="flex items-center space-x-2">
                   <input
@@ -291,7 +293,7 @@ export default function StylePage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Button Color</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Button color</label>
                 <div className="flex gap-2">
                   <input
                     type="color"
@@ -328,7 +330,7 @@ export default function StylePage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Text Color
+                  Text color
                 </label>
                 <div className="flex items-center space-x-2">
                   <input
@@ -368,7 +370,7 @@ export default function StylePage() {
             <div className="border-t pt-6">
               <div className="flex items-center justify-between mb-4">
                 <label className="block text-sm font-medium text-gray-700">
-                  Background Type
+                  Background type
                 </label>
                 <div className="flex gap-4">
                   <label className="inline-flex items-center">
@@ -530,7 +532,7 @@ export default function StylePage() {
               >
                 <div className="bg-gray-50 p-6 rounded-lg border">
                   <h2 className={`text-xl font-bold mb-4 ${settings.primary_font}`} style={{ color: settings.header_color }}>
-                    Preview Heading
+                    Preview heading
                   </h2>
                   <p className={settings.secondary_font} style={{ color: settings.text_color }}>
                     This is how your text will look with the selected fonts and colors. The heading uses your primary font and color, while this paragraph uses your secondary font and text color.

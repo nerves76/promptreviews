@@ -3,9 +3,10 @@ import { useRouter, useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { generateAIReview } from '@/utils/ai';
-import { FaGoogle, FaFacebook, FaYelp, FaTripadvisor, FaRegStar } from 'react-icons/fa';
+import { FaGoogle, FaFacebook, FaYelp, FaTripadvisor, FaRegStar, FaGift } from 'react-icons/fa';
 import { IconType } from 'react-icons';
 import Link from 'next/link';
+import { getUserOrMock, getSessionOrMock } from '@/utils/supabase';
 
 interface ReviewPlatformLink {
   platform: string;
@@ -94,7 +95,7 @@ export default function EditPromptPage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUniversal, setIsUniversal] = useState(false);
   const [offerEnabled, setOfferEnabled] = useState(false);
-  const [offerTitle, setOfferTitle] = useState('Review Rewards');
+  const [offerTitle, setOfferTitle] = useState('Special Offer');
   const [offerBody, setOfferBody] = useState('');
   const [offerUrl, setOfferUrl] = useState('');
   const [analytics, setAnalytics] = useState<any>(null);
@@ -109,7 +110,7 @@ export default function EditPromptPage() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await getUserOrMock(supabase);
         if (!user) {
           console.log('No user found');
           return;
@@ -144,7 +145,7 @@ export default function EditPromptPage() {
         });
         setIsUniversal(!!promptData.is_universal);
         setOfferEnabled(!!promptData.offer_enabled);
-        setOfferTitle(promptData.offer_title || 'Review Rewards');
+        setOfferTitle(promptData.offer_title || 'Special Offer');
         setOfferBody(promptData.offer_body || '');
         setOfferUrl(promptData.offer_url || '');
       
@@ -261,7 +262,7 @@ export default function EditPromptPage() {
         {
           first_name: formData.first_name,
           last_name: formData.last_name,
-          project_type: formData.project_type,
+          project_type: formData.services_offered,
           outcomes: formData.outcomes,
         },
         formData.review_platforms[index].platform,
@@ -287,7 +288,7 @@ export default function EditPromptPage() {
     setError(null);
     setSuccessMessage(null);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await getSessionOrMock(supabase);
       if (!session) {
         throw new Error('You must be signed in to edit a prompt page');
       }
@@ -427,7 +428,7 @@ export default function EditPromptPage() {
 
       <div className="flex gap-4">
         <div className="flex-1">
-          <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 mt-4 mb-2">First Name</label>
+          <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 mt-4 mb-2">First name</label>
           <input
             type="text"
             id="first_name"
@@ -439,7 +440,7 @@ export default function EditPromptPage() {
           />
         </div>
         <div className="flex-1">
-          <label htmlFor="last_name" className="block text-sm font-medium text-gray-700 mt-4 mb-2">Last Name</label>
+          <label htmlFor="last_name" className="block text-sm font-medium text-gray-700 mt-4 mb-2">Last name</label>
           <input
             type="text"
             id="last_name"
@@ -454,7 +455,7 @@ export default function EditPromptPage() {
 
       <div>
         <label htmlFor="role" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center">
-          Role/Position
+          Role/position
           <Tooltip text="The role or position of the reviewer helps AI generate more relevant and personalized reviews. For example, a Store Manager might focus on different aspects than a Customer." />
         </label>
         <input
@@ -486,7 +487,7 @@ export default function EditPromptPage() {
 
       <div>
         <label htmlFor="services_offered" className="block text-sm font-medium text-gray-700 mt-4 mb-2">
-          Services Provided (one per line)
+          Services provided (one per line)
         </label>
         <textarea
           id="services_offered"
@@ -501,7 +502,7 @@ export default function EditPromptPage() {
 
       <div>
         <label htmlFor="friendly_note" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center">
-          Personalized Note to Customer
+          Personalized note to customer
           <Tooltip text="This note appears at the top of the review page. It helps set the context and tone for the review. The AI will use this information to generate more personalized and relevant reviews." />
         </label>
         <textarea
@@ -529,51 +530,57 @@ export default function EditPromptPage() {
 
   const renderStep2 = () => (
     <div className="space-y-6">
-      {/* Review Rewards Section */}
+      {/* Special Offer Section */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-2">
-          <label className="block text-lg font-semibold text-indigo-800">Review Rewards</label>
+          <label className="block text-lg font-semibold text-indigo-800 flex items-center">
+            <FaGift className="w-6 h-6 mr-2 text-indigo-500" />
+            Special offer
+            <Tooltip text="Offer a discount or special offer and a link for users to redeem or learn about the steps they need to take." />
+          </label>
           <button
             type="button"
             onClick={() => setOfferEnabled(v => !v)}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${offerEnabled ? 'bg-indigo-500' : 'bg-gray-300'}`}
-            aria-pressed={offerEnabled}
+            aria-pressed={!!offerEnabled}
           >
             <span
               className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${offerEnabled ? 'translate-x-5' : 'translate-x-1'}`}
             />
           </button>
         </div>
-        <p className="text-sm text-gray-500 mb-3">Reward users who complete a set number of reviews and include a link to your rewards page or contact form so they can claim their prize.</p>
         <div className={`rounded-lg border border-indigo-200 bg-indigo-50 p-4 ${!offerEnabled ? 'opacity-60' : ''}`}>
           <input
             type="text"
-            value={offerTitle}
+            value={offerTitle ?? 'Special Offer'}
             onChange={e => setOfferTitle(e.target.value)}
-            placeholder="Offer Title (e.g., Review Rewards)"
+            placeholder="Offer Title (e.g., Special Offer)"
             className="block w-full rounded-md border border-indigo-200 bg-indigo-50 focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-2 px-3 mb-2 font-semibold"
             disabled={!offerEnabled}
           />
           <textarea
-            value={offerBody}
+            value={offerBody || ''}
             onChange={e => setOfferBody(e.target.value)}
-            placeholder="Review us on 3 platforms and get 10% off your next service!"
+            placeholder="Get 10% off your next visit"
             className="block w-full rounded-md border border-indigo-200 bg-indigo-50 focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-3 px-4"
             rows={2}
             disabled={!offerEnabled}
           />
           <input
             type="url"
-            value={offerUrl}
+            value={offerUrl || ''}
             onChange={e => setOfferUrl(e.target.value)}
             placeholder="Offer URL (e.g., https://yourbusiness.com/claim-reward)"
             className="block w-full rounded-md border border-indigo-200 bg-indigo-50 focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-2 px-3 mt-2"
             disabled={!offerEnabled}
           />
         </div>
+        <div className="text-xs text-gray-500 mt-2">
+          Note: Services like Google and Yelp have policies against providing rewards in exchange for reviews, so it's best not to promise a reward for "x" number of reviews, etc.
+        </div>
       </div>
       <div>
-        <label className="block text-xl font-semibold text-gray-800 mt-4 mb-4">Review Platforms</label>
+        <label className="block text-xl font-semibold text-gray-800 mt-4 mb-4">Review platforms</label>
         <p className="text-sm text-gray-500 mt-1 mb-2">Your business profile platforms have been pre-loaded. You can add more if needed.</p>
         {/* Universal Prompt Page note */}
         {isUniversal && (
@@ -596,7 +603,7 @@ export default function EditPromptPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="mb-4">
                   <label htmlFor={`platform-${index}`} className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
-                    Platform Name
+                    Platform name
                     <Tooltip text="The name of the review platform (e.g., Google Business Profile, Yelp, Trustpilot)." />
                   </label>
                   <select
@@ -646,7 +653,7 @@ export default function EditPromptPage() {
                 </div>
                 <div className="mb-4">
                   <label htmlFor={`wordCount-${index}`} className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
-                    Word Count Limit
+                    Word count limit
                     <Tooltip text="Set a maximum word count for the review. Most platforms have a limit; 200 is a good default." />
                   </label>
                   <input
@@ -661,7 +668,7 @@ export default function EditPromptPage() {
                 </div>
                 <div className="mb-4">
                   <label htmlFor={`customInstructions-${index}`} className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
-                    Custom Instructions
+                    Custom instructions
                     <Tooltip text="These instructions will appear as a pop-up when the question mark is clicked on the public prompt page." />
                   </label>
                   <input
@@ -782,8 +789,17 @@ export default function EditPromptPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-400 via-indigo-300 to-purple-200">
-      <div className="max-w-4xl mx-auto mt-6">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-400 via-indigo-300 to-purple-300">
+      <div className="max-w-4xl mx-auto mt-6 relative">
+        {/* Floating Icon */}
+        <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center">
+          <img
+            src="https://promptreviews.app/wp-content/uploads/2025/05/cropped-Prompt-Reviews-4-300x108.png"
+            alt="PromptReviews Logo"
+            className="w-24 h-auto object-contain filter invert-0"
+            style={{ filter: 'invert(18%) sepia(67%) saturate(7472%) hue-rotate(243deg) brightness(80%) contrast(110%)' }}
+          />
+        </div>
         <div className="bg-white shadow-xl rounded-2xl p-12">
           {/* Top Save and View Buttons - now at the very top */}
           {(isUniversal || step === 2) && (
@@ -824,15 +840,15 @@ export default function EditPromptPage() {
             <div className="mb-8">
               {isUniversal ? (
                 <>
-                  <h1 className="text-2xl font-bold text-gray-900">Edit Universal Prompt Page</h1>
-                  <p className="mt-2 text-sm text-gray-600">
+                  <h1 className="text-4xl font-bold text-[#452F9F]">Edit universal prompt page</h1>
+                  <p className="mt-2 text-sm text-gray-600 max-w-md">
                     The Universal prompt page can be sent to any client/customer. Put your QR code on business cards, flyers, or frame a picture of it and hang it in your business to make it easy for people to give you a review from their phone in seconds.
                   </p>
                 </>
               ) : (
                 <>
-                  <h1 className="text-2xl font-bold text-gray-900">Edit Prompt Page</h1>
-                  <p className="mt-2 text-sm text-gray-600">
+                  <h1 className="text-4xl font-bold text-[#452F9F]">Edit prompt page</h1>
+                  <p className="mt-2 text-sm text-gray-600 max-w-md">
                     Create a friendly and personalized prompt page for your customer or client.
                   </p>
                 </>

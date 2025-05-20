@@ -107,7 +107,7 @@ enabled = true
 # in emails.
 site_url = "http://localhost:3001"
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
-additional_redirect_urls = ["https://localhost:3001"]
+additional_redirect_urls = ["http://localhost:3001", "https://localhost:3001"]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 seconds (one
 # week).
 jwt_expiry = 3600
@@ -130,7 +130,7 @@ password_requirements = ""
 
 [auth.rate_limit]
 # Number of emails that can be sent per hour. Requires auth.email.smtp to be enabled.
-email_sent = 2
+email_sent = 10
 # Number of SMS messages that can be sent per hour. Requires auth.sms to be enabled.
 sms_sent = 30
 # Number of anonymous sign-ins that can be made per hour per IP address. Requires enable_anonymous_sign_ins = true.
@@ -138,7 +138,7 @@ anonymous_users = 30
 # Number of sessions that can be refreshed in a 5 minute interval per IP address.
 token_refresh = 150
 # Number of sign up and sign-in requests that can be made in a 5 minute interval per IP address (excludes anonymous users).
-sign_in_sign_ups = 30
+sign_in_sign_ups = 100
 # Number of OTP / Magic link verifications that can be made in a 5 minute interval per IP address.
 token_verifications = 30
 
@@ -153,7 +153,7 @@ token_verifications = 30
 enable_signup = true
 # If enabled, a user will be required to confirm any email change on both the old, and new email
 # addresses. If disabled, only the new email is required to confirm.
-double_confirm_changes = true
+double_confirm_changes = false
 # If enabled, users need to confirm their email address before signing in.
 enable_confirmations = false
 # If enabled, users will need to reauthenticate or have logged in recently to change their password.
@@ -165,15 +165,15 @@ otp_length = 6
 # Number of seconds before the email OTP expires (defaults to 1 hour).
 otp_expiry = 3600
 
-# Use a production-ready SMTP server
-# [auth.email.smtp]
-# enabled = true
-# host = "smtp.sendgrid.net"
-# port = 587
-# user = "apikey"
-# pass = "env(SENDGRID_API_KEY)"
-# admin_email = "admin@email.com"
-# sender_name = "Admin"
+# Use Mailgun SMTP server
+[auth.email.smtp]
+enabled = false
+host = "smtp.mailgun.org"
+port = 587
+user = "chris@mg.promptreviews.com"
+pass = "env(MAILGUN_SMTP_PASSWORD)"
+admin_email = "chris@mg.promptreviews.com"
+sender_name = "Prompt Reviews"
 
 # Uncomment to customize email template
 # [auth.email.template.invite]

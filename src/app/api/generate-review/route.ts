@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
+import { createBrowserClient } from '@supabase/ssr';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,7 +15,7 @@ export async function POST(request: Request) {
     apiKey: process.env.OPENAI_API_KEY,
   });
   try {
-    const { prompt } = await request.json();
+    const { prompt, user_id } = await request.json();
 
     const completion = await openai.chat.completions.create({
       messages: [
@@ -29,6 +30,29 @@ export async function POST(request: Request) {
       ],
       model: "gpt-3.5-turbo",
     });
+
+    // Log token usage and cost to ai_usage table
+    const usage = completion.usage;
+    if (usage) {
+      // Pricing for GPT-3.5 Turbo (as of June 2024)
+      const inputPrice = 0.0005; // $ per 1K tokens
+      const outputPrice = 0.0015; // $ per 1K tokens
+      const cost = (usage.prompt_tokens / 1000) * inputPrice + (usage.completion_tokens / 1000) * outputPrice;
+
+      // Insert into ai_usage table
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
+      await supabase.from('ai_usage').insert({
+        user_id: user_id || null,
+        prompt_tokens: usage.prompt_tokens,
+        completion_tokens: usage.completion_tokens,
+        total_tokens: usage.total_tokens,
+        cost_usd: cost,
+        created_at: new Date().toISOString()
+      });
+    }
 
     return NextResponse.json({ text: completion.choices[0].message.content });
   } catch (error) {

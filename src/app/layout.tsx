@@ -1,7 +1,7 @@
 import './globals.css'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import { Providers } from '@/components/Providers'
+import ClientRoot from './ClientRoot'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -17,10 +17,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} bg-gradient-to-br from-blue-400 via-indigo-300 to-purple-200`}>
-        <Providers>
+      <body className={`${inter.className} min-h-screen bg-gradient-to-br from-[#452F9F]/5 via-white to-[#452F9F]/5 overscroll-x-auto`}>
+        <ClientRoot>
           {children}
-        </Providers>
+        </ClientRoot>
       </body>
     </html>
   )

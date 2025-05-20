@@ -1,9 +1,15 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { getSessionOrMock } from '@/utils/supabase'
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next()
+
+  // Only require auth in production
+  if (process.env.NODE_ENV !== 'production') {
+    return res;
+  }
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -30,13 +36,25 @@ export async function middleware(req: NextRequest) {
   )
 
   // Refresh session if expired - required for Server Components
-  const { data: { session } } = await supabase.auth.getSession()
+  const { data: { session } } = await getSessionOrMock(supabase)
 
-  // Protect dashboard routes
+  // Protect dashboard routes and specific subpages in production only
+  const protectedDashboardSubpages = [
+    '/dashboard/analytics',
+    '/dashboard/business-profile',
+    '/dashboard/style',
+    '/dashboard/contacts',
+  ];
+
   if (req.nextUrl.pathname.startsWith('/dashboard')) {
     if (!session) {
-      const redirectUrl = new URL('/auth/sign-in', req.url)
-      return NextResponse.redirect(redirectUrl)
+      const isUniversal = req.nextUrl.pathname.startsWith('/dashboard/universal');
+      const isPrompt = req.nextUrl.pathname.startsWith('/dashboard/prompt-pages');
+      const isProtectedSubpage = protectedDashboardSubpages.some((subpage) => req.nextUrl.pathname.startsWith(subpage));
+      if (!isUniversal && !isPrompt && (req.nextUrl.pathname === '/dashboard' || isProtectedSubpage)) {
+        const redirectUrl = new URL('/auth/sign-in', req.url)
+        return NextResponse.redirect(redirectUrl)
+      }
     }
   }
 

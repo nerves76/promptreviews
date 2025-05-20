@@ -11,6 +11,7 @@ import { FaStar, FaGoogle, FaFacebook, FaYelp, FaTripadvisor, FaRegStar, FaQuest
 import { IconType } from 'react-icons';
 import ReviewSubmissionForm from '@/components/ReviewSubmissionForm';
 import { useReviewer } from '@/contexts/ReviewerContext';
+import { getUserOrMock } from '@/utils/supabase';
 
 interface StyleSettings {
   name: string;
@@ -67,7 +68,7 @@ interface BusinessProfile {
   default_offer_title?: string;
   default_offer_body?: string;
   business_website?: string;
-  offer_learn_more_url?: string;
+  default_offer_url?: string;
 }
 
 // Helper to get platform icon based on URL or platform name
@@ -107,6 +108,8 @@ export default function PromptPage() {
   const [isSubmitting, setIsSubmitting] = useState<number | null>(null);
   const [reviewerNames, setReviewerNames] = useState<string[]>(() => promptPage?.review_platforms?.map(() => '') || []);
   const [reviewerRoles, setReviewerRoles] = useState<string[]>(() => promptPage?.review_platforms?.map(() => '') || []);
+  const [logoDropped, setLogoDropped] = useState(false);
+  const [canShowPersonalNote, setCanShowPersonalNote] = useState(false);
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -148,7 +151,7 @@ export default function PromptPage() {
           business_name: businessData.name,
           review_platforms: [],
           business_website: businessData.business_website,
-          offer_learn_more_url: businessData.offer_learn_more_url
+          default_offer_url: businessData.default_offer_url
         });
         console.log('Set business profile with website:', businessData.business_website);
       } catch (err) {
@@ -174,7 +177,7 @@ export default function PromptPage() {
   // Track page view (exclude logged-in users)
   useEffect(() => {
     async function trackView() {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await getUserOrMock(supabase);
       if (!user && promptPage?.id) {
         fetch('/api/track-event', {
           method: 'POST',
@@ -202,7 +205,7 @@ export default function PromptPage() {
     setIsSubmitting(idx);
     try {
       const reviewGroupId = (localStorage.getItem('reviewGroupId') || (() => { const id = crypto.randomUUID(); localStorage.setItem('reviewGroupId', id); return id; })());
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await getUserOrMock(supabase);
       if (!user) {
         // Check for existing review from this group for this prompt page
         const { data: existingReviews, error: checkError } = await supabase
@@ -396,6 +399,15 @@ export default function PromptPage() {
     setAvailableFeatures(features);
   }, []);
 
+  useEffect(() => {
+    requestAnimationFrame(() => setLogoDropped(true));
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setCanShowPersonalNote(true), 700);
+    return () => clearTimeout(timer);
+  }, []);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: businessProfile?.background_color || '#FFFFFF' }}>
@@ -424,7 +436,7 @@ export default function PromptPage() {
   const showOffer = promptPage?.offer_enabled ?? businessProfile?.default_offer_enabled;
   const offerTitle = promptPage?.offer_title || businessProfile?.default_offer_title || 'Review Rewards';
   const offerBody = promptPage?.offer_body || businessProfile?.default_offer_body || '';
-  const offerLearnMoreUrl = promptPage?.offer_learn_more_url || businessProfile?.offer_learn_more_url || '';
+  const offerLearnMoreUrl = promptPage?.default_offer_url || businessProfile?.default_offer_url || '';
 
   // Review Rewards Banner logic
   const showBanner = showRewardsBanner && promptPage.offer_enabled && promptPage.offer_title && promptPage.offer_body;
@@ -599,20 +611,22 @@ export default function PromptPage() {
           {/* Business Info Card */}
           <div className="bg-gray-50 rounded-2xl shadow p-6 mb-8 flex flex-col items-center mx-auto max-w-md animate-slideup relative mt-20">
             {/* Business Logo - Made slightly smaller */}
-            <div className="absolute -top-20 left-1/2 -translate-x-1/2">
-              {businessProfile?.logo_url ? (
-                <img
-                  src={businessProfile.logo_url}
-                  alt={`${businessProfile?.business_name || 'Business'} logo`}
-                  className="h-44 w-44 object-contain rounded-full border-4 border-white shadow-lg"
-                />
-              ) : (
-                <div className="h-44 w-44 bg-gray-200 rounded-full flex items-center justify-center border-4 border-white shadow-lg">
-                  <span className="text-5xl text-gray-500">
-                    {businessProfile?.business_name?.[0] || 'B'}
-                  </span>
-                </div>
-              )}
+            <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-44 h-44 flex items-center justify-center" style={{ pointerEvents: 'none' }}>
+              <div className={`transition-all duration-700 ease-out ${logoDropped ? 'translate-y-0 opacity-100' : '-translate-y-20 opacity-0'}`} style={{ willChange: 'transform, opacity' }}>
+                {businessProfile?.logo_url ? (
+                  <img
+                    src={businessProfile.logo_url}
+                    alt={`${businessProfile?.business_name || 'Business'} logo`}
+                    className="h-44 w-44 object-contain rounded-full border-4 border-white shadow-lg"
+                  />
+                ) : (
+                  <div className="h-44 w-44 bg-gray-200 rounded-full flex items-center justify-center border-4 border-white shadow-lg">
+                    <span className="text-5xl text-gray-500">
+                      {businessProfile?.business_name?.[0] || 'B'}
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
             {/* Business Name - Added more space above */}
             <h1 
@@ -625,7 +639,7 @@ export default function PromptPage() {
             <div className="text-center text-sm text-gray-500">Estimated time to complete: 2-5 minutes</div>
           </div>
           {/* Personalized Note */}
-          {promptPage?.friendly_note && !promptPage?.is_universal && showPersonalNote && (
+          {promptPage?.friendly_note && !promptPage?.is_universal && showPersonalNote && canShowPersonalNote && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fadein">
               <div className="bg-white rounded-lg p-6 max-w-lg mx-4 relative animate-slideup">
                 <button
@@ -769,12 +783,12 @@ export default function PromptPage() {
           )}
 
           {/* Website and Social Media Card */}
-          <div className="mb-8 bg-gray-50 rounded-2xl shadow p-8 animate-slideup">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* Website Column */}
-              <div className="flex flex-col justify-start mb-8 md:mb-0 text-center md:text-left h-full">
+          {(businessProfile?.facebook_url || businessProfile?.instagram_url || businessProfile?.bluesky_url || businessProfile?.tiktok_url || businessProfile?.youtube_url || businessProfile?.linkedin_url || businessProfile?.pinterest_url) && (
+            <div className="mb-8 bg-gray-50 rounded-2xl shadow p-8 animate-slideup">
+              <div className="flex flex-col gap-8 w-full">
+                {/* Website Section */}
                 {businessProfile?.business_website && (
-                  <>
+                  <div className="flex flex-col justify-start text-center md:text-left w-full">
                     <h2 
                       className={`text-2xl font-bold mt-0 mb-6 ${businessProfile?.primary_font || 'font-inter'}`}
                       style={{ color: businessProfile?.header_color || '#000000' }}
@@ -802,83 +816,87 @@ export default function PromptPage() {
                     >
                       {businessProfile.business_website.replace(/^https?:\/\//, '')}
                     </a>
-                  </>
+                  </div>
                 )}
-              </div>
-              {/* Social Media Column */}
-              <div className="flex flex-col justify-start text-center md:text-left h-full">
-                <h2 
-                  className={`text-2xl font-bold mt-0 mb-6 ${businessProfile?.primary_font || 'font-inter'}`}
-                  style={{ color: businessProfile?.header_color || '#000000' }}
-                >
-                  Stay Connected
-                </h2>
-                <p 
-                  className={`mb-8 ${businessProfile?.secondary_font || 'font-inter'}`}
-                  style={{ color: businessProfile?.text_color || '#000000' }}
-                >
-                  Follow us on social for the latest!
-                </p>
-                <div className="flex justify-center md:justify-start gap-6">
-                  <SocialMediaIcons
-                    facebook_url={businessProfile.facebook_url || undefined}
-                    instagram_url={businessProfile.instagram_url || undefined}
-                    bluesky_url={businessProfile.bluesky_url || undefined}
-                    tiktok_url={businessProfile.tiktok_url || undefined}
-                    youtube_url={businessProfile.youtube_url || undefined}
-                    linkedin_url={businessProfile.linkedin_url || undefined}
-                    pinterest_url={businessProfile.pinterest_url || undefined}
-                    color={businessProfile.header_color || '#3b82f6'}
-                    onIconClick={async (platform) => {
-                      if (!promptPage?.id) return;
-                      await fetch('/api/track-event', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                          promptPageId: promptPage.id,
-                          eventType: 'social_click',
-                          platform,
-                        }),
-                      });
-                    }}
-                  />
+                {/* Social Media Section */}
+                <div className="flex flex-col justify-start text-center md:text-left w-full">
+                  <h2 
+                    className={`text-2xl font-bold mt-0 mb-6 text-center ${businessProfile?.primary_font || 'font-inter'}`}
+                    style={{ color: businessProfile?.header_color || '#000000' }}
+                  >
+                    {`Follow ${businessProfile?.business_name || 'us'} on Social`}
+                  </h2>
+                  <div className="flex flex-wrap justify-center gap-6 p-2 w-full">
+                    <SocialMediaIcons
+                      facebook_url={businessProfile.facebook_url || undefined}
+                      instagram_url={businessProfile.instagram_url || undefined}
+                      bluesky_url={businessProfile.bluesky_url || undefined}
+                      tiktok_url={businessProfile.tiktok_url || undefined}
+                      youtube_url={businessProfile.youtube_url || undefined}
+                      linkedin_url={businessProfile.linkedin_url || undefined}
+                      pinterest_url={businessProfile.pinterest_url || undefined}
+                      color={businessProfile.header_color || '#3b82f6'}
+                      onIconClick={async (platform) => {
+                        if (!promptPage?.id) return;
+                        await fetch('/api/track-event', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            promptPageId: promptPage.id,
+                            eventType: 'social_click',
+                            platform,
+                          }),
+                        });
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* PromptReviews Advertisement */}
           <div className="mt-16 bg-white rounded-2xl shadow p-8 animate-slideup">
-            <div className="flex flex-col items-center text-center">
-              <div className="flex items-center gap-2 mb-4">
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
+            <div className="flex flex-col md:flex-row items-center text-center md:text-left gap-8 md:items-center">
+              <div className="flex-shrink-0 flex items-center justify-center w-full md:w-48 mb-4 md:mb-0">
+                <img
+                  src="https://promptreviews.app/wp-content/uploads/2025/05/cropped-Prompt-Reviews-4-300x108.png"
+                  alt="Prompt Reviews Logo"
+                  className="w-40 h-auto object-contain mx-auto"
+                  style={{ filter: 'invert(18%) sepia(67%) saturate(7472%) hue-rotate(243deg) brightness(80%) contrast(110%)' }}
+                />
+              </div>
+              <div className="flex-1 flex flex-col justify-center">
+                <div className="flex items-center gap-2 mb-4 justify-center md:justify-start">
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    style={{ color: businessProfile?.header_color || '#4F46E5' }}
+                  >
+                    <path
+                      d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                  <span className="text-lg font-semibold" style={{ color: businessProfile?.header_color || '#4F46E5' }}>Powered by Prompt Reviews</span>
+                </div>
+                <p className="text-gray-600 max-w-2xl">
+                  Get more reviews for your business with our easy-to-use review management platform. 
+                  Create custom review pages, track your progress, and grow your online presence.
+                </p>
+                <a
+                  href="https://promptreviews.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-4 font-medium hover:opacity-80 transition-opacity inline-block"
                   style={{ color: businessProfile?.header_color || '#4F46E5' }}
                 >
-                  <path
-                    d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
-                    fill="currentColor"
-                  />
-                </svg>
-                <span className="text-lg font-semibold" style={{ color: businessProfile?.header_color || '#4F46E5' }}>Powered by PromptReviews</span>
+                  Learn more about Prompt Reviews →
+                </a>
               </div>
-              <p className="text-gray-600 max-w-2xl">
-                Get more reviews for your business with our easy-to-use review management platform. 
-                Create custom review pages, track your progress, and grow your online presence.
-              </p>
-              <a
-                href="https://promptreviews.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-4 font-medium hover:opacity-80 transition-opacity"
-                style={{ color: businessProfile?.header_color || '#4F46E5' }}
-              >
-                Learn more about PromptReviews →
-              </a>
             </div>
           </div>
         </div>

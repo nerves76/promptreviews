@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuthGuard } from '@/utils/authGuard';
 import { createBrowserClient } from '@supabase/ssr';
 import { FaDownload, FaUpload, FaInfoCircle, FaQuestionCircle, FaList, FaEye, FaUsers } from 'react-icons/fa';
+import { getSessionOrMock } from '@/utils/supabase';
 
 export default function UploadContactsPage() {
   useAuthGuard();
@@ -21,7 +22,7 @@ export default function UploadContactsPage() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
+      const { data: { session }, error } = await getSessionOrMock(supabase);
       if (error || !session) {
         setError('Please sign in to upload contacts');
       }
@@ -163,8 +164,8 @@ export default function UploadContactsPage() {
     setIsLoading(true);
     
     try {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError || !session) {
+      const { data: { session }, error } = await getSessionOrMock(supabase);
+      if (error || !session) {
         setError('Please sign in to upload contacts');
         return;
       }
@@ -231,21 +232,22 @@ export default function UploadContactsPage() {
 
   return (
     <div className="min-h-screen py-12 px-2">
-      <div className="max-w-4xl mx-auto bg-white rounded-lg shadow pt-4 pb-24 px-8 relative">
-        <div className="absolute -top-4 -left-4 bg-white rounded-full shadow p-2 flex items-center justify-center">
-          <FaUpload className="w-7 h-7 text-indigo-500" />
+      <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-8 relative">
+        <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center">
+          <FaUpload className="w-9 h-9 text-indigo-500" />
         </div>
-        <div className="flex items-center justify-between mb-16">
-          <h1 className="text-xl font-bold text-gray-900">
-            Contacts
-          </h1>
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex flex-col">
+            <h1 className="text-4xl font-bold text-[#452F9F]">Contacts</h1>
+            {/* Optionally add subcopy here if needed */}
+          </div>
         </div>
 
         {/* Upload Instructions Section */}
         <div className="mb-16">
-          <h2 className="text-2xl font-bold text-indigo-900 flex items-center gap-3 mb-12">
+          <h2 className="mt-20 text-2xl font-bold text-indigo-900 flex items-center gap-3 mb-12">
             <FaInfoCircle className="w-7 h-7 text-indigo-500" />
-            How to Upload Contacts
+            How to upload contacts
           </h2>
           <ol className="list-decimal list-inside space-y-2 text-indigo-800">
             <li>Download the CSV template using the button below</li>
@@ -298,7 +300,7 @@ export default function UploadContactsPage() {
             <div className="flex items-center gap-4">
               <label className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
                 <FaUpload className="text-blue-500" />
-                <span className="text-blue-700">Choose CSV File</span>
+                <span className="text-blue-700">Choose CSV file</span>
                 <input
                   type="file"
                   accept=".csv"
@@ -393,12 +395,12 @@ export default function UploadContactsPage() {
         <div className="mb-16">
           <h2 className="text-2xl font-bold text-indigo-900 flex items-center gap-3 mb-12">
             <FaList className="w-7 h-7 text-indigo-500" />
-            CSV Column Descriptions
+            CSV column descriptions
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-8">
               <div>
-                <h3 className="font-semibold text-gray-900">Required Fields</h3>
+                <h3 className="font-semibold text-gray-900">Required fields</h3>
                 <ul className="mt-2 space-y-2 text-sm text-gray-600">
                   <li><span className="font-bold">first_name</span> - Contact's first name</li>
                   <li><span className="font-bold">email</span> - Contact's email address (required if phone not provided)</li>
@@ -406,7 +408,7 @@ export default function UploadContactsPage() {
                 </ul>
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900">Basic Information</h3>
+                <h3 className="font-semibold text-gray-900">Basic information</h3>
                 <ul className="mt-2 space-y-2 text-sm text-gray-600">
                   <li><span className="font-bold">last_name</span> - Contact's last name</li>
                   <li><span className="font-bold">category</span> - Contact category (e.g., VIP, Regular)</li>

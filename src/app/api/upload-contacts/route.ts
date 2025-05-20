@@ -3,6 +3,8 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { parse } from 'csv-parse/sync';
 import slugify from 'slugify';
+import { checkAccountLimits } from '@/utils/accountLimits';
+import { getUserOrMock, getSessionOrMock } from '@/utils/supabase';
 
 export async function POST(request: Request) {
   try {
@@ -12,7 +14,7 @@ export async function POST(request: Request) {
     
     // Check authentication
     console.log('Checking authentication...');
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    const { data: { session }, error: sessionError } = await getSessionOrMock(supabase);
     let user;
     
     // If no session in cookies, try to get from Authorization header
@@ -21,7 +23,7 @@ export async function POST(request: Request) {
       const authHeader = request.headers.get('Authorization');
       if (authHeader?.startsWith('Bearer ')) {
         const token = authHeader.split(' ')[1];
-        const { data: { user: tokenUser }, error: tokenError } = await supabase.auth.getUser(token);
+        const { data: { user: tokenUser }, error: tokenError } = await getUserOrMock(supabase);
         if (tokenError || !tokenUser) {
           console.error('Token auth error:', tokenError);
           return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -40,6 +42,12 @@ export async function POST(request: Request) {
     if (!user) {
       console.error('No user found after authentication');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // ENFORCE ACCOUNT LIMITS
+    const limitCheck = await checkAccountLimits(supabase, user.id, 'contact');
+    if (!limitCheck.allowed) {
+      return NextResponse.json({ error: limitCheck.reason || 'Upgrade required to add contacts.' }, { status: 403 });
     }
 
     // Get the form data

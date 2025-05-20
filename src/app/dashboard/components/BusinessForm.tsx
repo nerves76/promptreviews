@@ -1,0 +1,432 @@
+import React from 'react';
+import Cropper from 'react-easy-crop';
+import type { Area } from 'react-easy-crop';
+import { FaImage, FaShareAlt, FaGift, FaStar, FaList, FaMapMarkerAlt, FaClock, FaBuilding, FaInfoCircle } from 'react-icons/fa';
+
+interface Platform {
+  name: string;
+  url: string;
+  wordCount: number;
+  customPlatform?: string;
+}
+
+interface BusinessFormProps {
+  form: any;
+  setForm: (form: any) => void;
+  services: string[];
+  setServices: (services: string[]) => void;
+  platforms: Platform[];
+  setPlatforms: (platforms: Platform[]) => void;
+  platformErrors: string[];
+  setPlatformErrors: (errors: string[]) => void;
+  logoUrl: string | null;
+  setLogoUrl: (url: string | null) => void;
+  logoFile: File | null;
+  setLogoFile: (file: File | null) => void;
+  logoError: string;
+  setLogoError: (err: string) => void;
+  fileInputRef: React.RefObject<HTMLInputElement>;
+  showCropper: boolean;
+  setShowCropper: (show: boolean) => void;
+  crop: { x: number; y: number };
+  setCrop: (crop: { x: number; y: number }) => void;
+  zoom: number;
+  setZoom: (zoom: number) => void;
+  croppedAreaPixels: Area | null;
+  setCroppedAreaPixels: (area: Area | null) => void;
+  rawLogoFile: File | null;
+  setRawLogoFile: (file: File | null) => void;
+  loading: boolean;
+  error: string;
+  success: string;
+  onSubmit: (e: React.FormEvent) => void;
+  handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  handleServiceChange: (idx: number, value: string) => void;
+  addService: () => void;
+  removeService: (idx: number) => void;
+  handlePlatformChange: (idx: number, field: 'name' | 'url' | 'customPlatform' | 'wordCount', value: string) => void;
+  addPlatform: () => void;
+  removePlatform: (idx: number) => void;
+  handleLogoChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleCropConfirm: () => void;
+  handleCropCancel: () => void;
+  formId: string;
+}
+
+export default function BusinessForm({
+  form,
+  setForm,
+  services,
+  setServices,
+  platforms,
+  setPlatforms,
+  platformErrors,
+  setPlatformErrors,
+  logoUrl,
+  setLogoUrl,
+  logoFile,
+  setLogoFile,
+  logoError,
+  setLogoError,
+  fileInputRef,
+  showCropper,
+  setShowCropper,
+  crop,
+  setCrop,
+  zoom,
+  setZoom,
+  croppedAreaPixels,
+  setCroppedAreaPixels,
+  rawLogoFile,
+  setRawLogoFile,
+  loading,
+  error,
+  success,
+  onSubmit,
+  handleChange,
+  handleServiceChange,
+  addService,
+  removeService,
+  handlePlatformChange,
+  addPlatform,
+  removePlatform,
+  handleLogoChange,
+  handleCropConfirm,
+  handleCropCancel,
+  formId,
+}: BusinessFormProps) {
+  return (
+    <form onSubmit={onSubmit} className="max-w-4xl mx-auto relative" id={formId}>
+      {/* Logo Upload Section */}
+      <div className="mb-16">
+        <h2 className="mt-20 mb-8 text-2xl font-bold text-indigo-900 flex items-center gap-3">
+          <FaImage className="w-7 h-7 text-indigo-500" />
+          Logo
+        </h2>
+        <div className="mb-10 flex flex-col md:flex-row items-center gap-6">
+          {logoUrl && (
+            <img src={logoUrl} alt="Business Logo" className="rounded-full max-h-32 max-w-32 object-contain border shadow" />
+          )}
+          <div className="flex-1 w-full max-w-xs">
+            <label className="block font-medium text-sm text-gray-500 mb-1">Business logo (PNG or JPG, max 400x400px, max 300KB)</label>
+            <input
+              type="file"
+              accept="image/png, image/jpeg"
+              ref={fileInputRef}
+              onChange={handleLogoChange}
+              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+            />
+            {logoError && <p className="text-sm text-red-600 mt-1">{logoError}</p>}
+          </div>
+        </div>
+        {/* Cropping Modal */}
+        {showCropper && logoUrl && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+            <div className="bg-white rounded-lg shadow-lg p-6 max-w-lg w-full">
+              <h2 className="text-lg font-bold mb-4">Crop Your Logo</h2>
+              <div className="relative w-full h-64 bg-white">
+                <Cropper
+                  image={logoUrl}
+                  crop={crop}
+                  zoom={zoom}
+                  aspect={1}
+                  cropShape="round"
+                  showGrid={false}
+                  onCropChange={setCrop}
+                  onZoomChange={setZoom}
+                  onCropComplete={(_, croppedAreaPixels) => setCroppedAreaPixels(croppedAreaPixels)}
+                />
+              </div>
+              <div className="flex items-center gap-4 mt-4">
+                <label className="text-sm">Zoom</label>
+                <input
+                  type="range"
+                  min={1}
+                  max={3}
+                  step={0.01}
+                  value={zoom}
+                  onChange={e => setZoom(Number(e.target.value))}
+                  className="w-full"
+                />
+              </div>
+              <div className="flex justify-end gap-2 mt-6">
+                <button onClick={handleCropCancel} type="button" className="px-4 py-2 rounded bg-gray-200 text-gray-700">Cancel</button>
+                <button onClick={handleCropConfirm} type="button" className="px-4 py-2 rounded bg-indigo-600 text-white">Crop & Save</button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+      {/* Business Info Section */}
+      <div className="mb-8">
+        <h2 className="mt-32 mb-8 text-2xl font-bold text-indigo-900 flex items-center gap-3">
+          <FaInfoCircle className="w-7 h-7 text-indigo-500" />
+          Business info
+        </h2>
+        <div className="mb-4">
+          <label className="block font-semibold text-sm text-gray-500 mb-1">Business name *</label>
+          <input type="text" name="name" className="w-full border px-3 py-2 rounded" value={form.name} onChange={handleChange} required />
+        </div>
+        <div className="mb-4">
+          <label className="block font-semibold text-sm text-gray-500 mb-1">Business website</label>
+          <input
+            type="url"
+            name="business_website"
+            className="w-full border px-3 py-2 rounded"
+            value={form.business_website || ''}
+            onChange={handleChange}
+            placeholder="https://yourbusiness.com"
+          />
+        </div>
+        <div className="mb-4 flex flex-col md:flex-row gap-4">
+          <div className="w-full md:w-1/2">
+            <label className="block font-semibold text-sm text-gray-500 mb-1">Business phone</label>
+            <input type="tel" name="phone" className="w-full border px-3 py-2 rounded" value={form.phone || ''} onChange={handleChange} placeholder="e.g., (555) 123-4567" />
+          </div>
+          <div className="w-full md:w-1/2">
+            <label className="block font-semibold text-sm text-gray-500 mb-1">Business email</label>
+            <input type="email" name="business_email" className="w-full border px-3 py-2 rounded" value={form.business_email || ''} onChange={handleChange} placeholder="contact@yourbusiness.com" />
+          </div>
+        </div>
+        <div className="mb-4">
+          <label className="block font-semibold text-sm text-gray-500 mb-1">Business address *</label>
+          <input type="text" name="address_street" className="w-full border px-3 py-2 rounded mb-2" value={form.address_street} onChange={handleChange} required placeholder="Street Address" />
+          <div className="flex gap-2 mb-2">
+            <input type="text" name="address_city" className="flex-1 border px-3 py-2 rounded" value={form.address_city} onChange={handleChange} required placeholder="City" />
+            <input type="text" name="address_state" className="w-24 border px-3 py-2 rounded" value={form.address_state} onChange={handleChange} required placeholder="State" />
+            <input type="text" name="address_zip" className="w-32 border px-3 py-2 rounded" value={form.address_zip} onChange={handleChange} required placeholder="ZIP" />
+          </div>
+          <input type="text" name="address_country" className="w-full border px-3 py-2 rounded" value={form.address_country} onChange={handleChange} required placeholder="Country" />
+        </div>
+      </div>
+      {/* Services Section */}
+      <div className="mb-8">
+        <h2 className="mt-32 mb-8 text-2xl font-bold text-indigo-900 flex items-center gap-3">
+          <FaList className="w-7 h-7 text-indigo-500" />
+          Services
+        </h2>
+        <div className="space-y-2">
+          {services.map((service, idx) => (
+            <div key={idx} className="flex items-center gap-2">
+              <input
+                type="text"
+                className="w-full border px-3 py-2 rounded"
+                value={service}
+                onChange={e => handleServiceChange(idx, e.target.value)}
+                required
+                placeholder="e.g., Web Design"
+              />
+              {services.length > 1 && (
+                <button type="button" onClick={() => removeService(idx)} className="text-red-600 font-bold">&times;</button>
+              )}
+            </div>
+          ))}
+          <button type="button" onClick={addService} className="text-blue-600 underline mt-2">+ Add Service</button>
+        </div>
+      </div>
+      {/* What Makes Your Business Unique Section */}
+      <div className="mb-8">
+        <h2 className="mt-32 mb-8 text-2xl font-bold text-indigo-900 flex items-center gap-3">
+          <FaStar className="w-7 h-7 text-indigo-500" />
+          What makes your business unique?
+        </h2>
+        <div className="mb-4">
+          <label className="block font-semibold text-sm text-gray-500 mb-1">Company values *</label>
+          <textarea name="company_values" className="w-full border px-3 py-2 rounded" value={form.company_values} onChange={handleChange} required />
+        </div>
+        <div className="mb-4">
+          <label className="block font-semibold text-sm text-gray-500 mb-1">Differentiators / unique selling points *</label>
+          <textarea name="differentiators" className="w-full border px-3 py-2 rounded" value={form.differentiators} onChange={handleChange} required />
+        </div>
+        <div className="mb-4">
+          <label className="block font-semibold text-sm text-gray-500 mb-1">Years in business *</label>
+          <input type="number" name="years_in_business" min="0" className="w-full border px-3 py-2 rounded" value={form.years_in_business} onChange={handleChange} required />
+        </div>
+        <div className="mb-4">
+          <label className="block font-semibold text-sm text-gray-500 mb-1">Industries served *</label>
+          <textarea name="industries_served" className="w-full border px-3 py-2 rounded" value={typeof form.industries_served === 'string' ? form.industries_served : Array.isArray(form.industries_served) ? form.industries_served.join(', ') : ''} onChange={handleChange} required />
+        </div>
+        <div className="mb-4">
+          <label className="block font-semibold text-sm text-gray-500 mb-1">Taglines</label>
+          <textarea name="taglines" className="w-full border px-3 py-2 rounded" value={form.taglines} onChange={handleChange} />
+        </div>
+        <div className="mb-4">
+          <label className="block font-semibold text-sm text-gray-500 mb-1">Keywords (comma separated)</label>
+          <textarea
+            name="keywords"
+            className="w-full border px-3 py-2 rounded min-h-[80px]"
+            value={typeof form.keywords === 'string' ? form.keywords : Array.isArray(form.keywords) ? form.keywords.join(', ') : ''}
+            onChange={handleChange}
+            placeholder="best therapist in Portland, amazing ADHD therapist, group sessions, works with most insurance companies, compassionate"
+            rows={4}
+          />
+        </div>
+      </div>
+      {/* Review Platforms Section */}
+      <div className="mb-16">
+        <h2 className="mt-32 mb-8 text-2xl font-bold text-indigo-900 flex items-center gap-3">
+          <FaStar className="w-7 h-7 text-indigo-500" />
+          Review platforms
+        </h2>
+        <div className="space-y-4">
+          <div className="flex gap-2 items-center mb-2">
+            <span className="w-1/3 text-xs font-semibold text-gray-500">Platform Name</span>
+            <span className="w-1/2 text-xs font-semibold text-gray-500">Platform URL</span>
+            <span className="w-1/6 text-xs font-semibold text-gray-500">Word Count</span>
+          </div>
+          {platforms.map((platform, idx) => (
+            <div key={idx} className="flex gap-2 items-center">
+              <input
+                type="text"
+                className="w-1/3 border px-3 py-2 rounded-lg bg-white"
+                placeholder="Platform Name (e.g., Google)"
+                value={platform.name}
+                onChange={e => handlePlatformChange(idx, 'name', e.target.value)}
+                required
+              />
+              <input
+                type="url"
+                className="w-1/2 border px-3 py-2 rounded-lg bg-white"
+                placeholder="Review URL"
+                value={platform.url}
+                onChange={e => handlePlatformChange(idx, 'url', e.target.value)}
+                required
+              />
+              <input
+                type="number"
+                className="w-1/6 border px-3 py-2 rounded-lg bg-white"
+                placeholder="Word Count"
+                value={platform.wordCount}
+                onChange={e => handlePlatformChange(idx, 'wordCount', e.target.value)}
+                min={50}
+                max={1000}
+                required
+              />
+              {platforms.length > 1 && (
+                <button type="button" onClick={() => removePlatform(idx)} className="text-red-600 font-bold text-xl">&times;</button>
+              )}
+              {platformErrors[idx] && (
+                <span className="text-red-500 text-xs ml-2">{platformErrors[idx]}</span>
+              )}
+            </div>
+          ))}
+          <button type="button" onClick={addPlatform} className="text-blue-600 underline mt-2">+ Add Platform</button>
+        </div>
+      </div>
+      {/* Special Offer Section */}
+      <div className="mb-16">
+        <h2 className="mt-32 mb-8 text-2xl font-bold text-indigo-900 flex items-center gap-3">
+          <FaGift className="w-7 h-7 text-indigo-500" />
+          Special offer
+        </h2>
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-lg font-semibold text-indigo-800 flex items-center">
+              Enable Special Offer
+            </label>
+            <button
+              type="button"
+              onClick={() => setForm((f: any) => ({ ...f, default_offer_enabled: !f.default_offer_enabled }))}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${form.default_offer_enabled ? 'bg-indigo-500' : 'bg-gray-300'}`}
+              aria-pressed={!!form.default_offer_enabled}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${form.default_offer_enabled ? 'translate-x-5' : 'translate-x-1'}`}
+              />
+            </button>
+          </div>
+          <div className={`rounded-lg border border-indigo-200 bg-white p-4 ${!form.default_offer_enabled ? 'opacity-60' : ''}`}>
+            <input
+              type="text"
+              name="default_offer_title"
+              value={form.default_offer_title || 'Special Offer'}
+              onChange={e => setForm((f: any) => ({ ...f, default_offer_title: e.target.value }))}
+              placeholder="Offer Title (e.g., Special Offer)"
+              className="block w-full rounded-md border border-indigo-200 bg-white focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-2 px-3 mb-2 font-semibold"
+              disabled={!form.default_offer_enabled}
+            />
+            <textarea
+              name="default_offer_body"
+              value={form.default_offer_body || ''}
+              onChange={e => setForm((f: any) => ({ ...f, default_offer_body: e.target.value }))}
+              placeholder="Get 10% off your next visit"
+              className="block w-full rounded-md border border-indigo-200 bg-white focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-3 px-4"
+              rows={2}
+              disabled={!form.default_offer_enabled}
+            />
+            <input
+              type="url"
+              name="default_offer_url"
+              value={form.default_offer_url || ''}
+              onChange={e => setForm((f: any) => ({ ...f, default_offer_url: e.target.value }))}
+              placeholder="Offer URL (e.g., https://yourbusiness.com/claim-reward)"
+              className="block w-full rounded-md border border-indigo-200 bg-white focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-2 px-3 mt-2"
+              disabled={!form.default_offer_enabled}
+            />
+          </div>
+          <div className="text-xs text-gray-500 mt-2">
+            Note: Services like Google and Yelp have policies against providing rewards in exchange for reviews, so it's best not to promise a reward for "x" number of reviews, etc.
+          </div>
+        </div>
+      </div>
+      {/* Social Media Section */}
+      <div className="mb-16">
+        <h2 className="mt-32 mb-8 text-2xl font-bold text-indigo-900 flex items-center gap-3">
+          <FaShareAlt className="w-7 h-7 text-indigo-500" />
+          Social media
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block font-semibold text-sm text-gray-500 mb-1">Facebook URL</label>
+            <input type="url" name="facebook_url" className="w-full border px-3 py-2 rounded-lg bg-white focus:ring-2 focus:ring-indigo-300" value={form.facebook_url} onChange={handleChange} placeholder="https://facebook.com/yourbusiness" />
+          </div>
+          <div>
+            <label className="block font-semibold text-sm text-gray-500 mb-1">Instagram URL</label>
+            <input type="url" name="instagram_url" className="w-full border px-3 py-2 rounded-lg bg-white focus:ring-2 focus:ring-indigo-300" value={form.instagram_url} onChange={handleChange} placeholder="https://instagram.com/yourbusiness" />
+          </div>
+          <div>
+            <label className="block font-semibold text-sm text-gray-500 mb-1">Bluesky URL</label>
+            <input type="url" name="bluesky_url" className="w-full border px-3 py-2 rounded-lg bg-white focus:ring-2 focus:ring-indigo-300" value={form.bluesky_url} onChange={handleChange} placeholder="https://bsky.app/profile/yourbusiness" />
+          </div>
+          <div>
+            <label className="block font-semibold text-sm text-gray-500 mb-1">TikTok URL</label>
+            <input type="url" name="tiktok_url" className="w-full border px-3 py-2 rounded-lg bg-white focus:ring-2 focus:ring-indigo-300" value={form.tiktok_url} onChange={handleChange} placeholder="https://tiktok.com/@yourbusiness" />
+          </div>
+          <div>
+            <label className="block font-semibold text-sm text-gray-500 mb-1">YouTube URL</label>
+            <input type="url" name="youtube_url" className="w-full border px-3 py-2 rounded-lg bg-white focus:ring-2 focus:ring-indigo-300" value={form.youtube_url} onChange={handleChange} placeholder="https://youtube.com/@yourbusiness" />
+          </div>
+          <div>
+            <label className="block font-semibold text-sm text-gray-500 mb-1">LinkedIn URL</label>
+            <input type="url" name="linkedin_url" className="w-full border px-3 py-2 rounded-lg bg-white focus:ring-2 focus:ring-indigo-300" value={form.linkedin_url} onChange={handleChange} placeholder="https://linkedin.com/company/yourbusiness" />
+          </div>
+          <div>
+            <label className="block font-semibold text-sm text-gray-500 mb-1">Pinterest URL</label>
+            <input type="url" name="pinterest_url" className="w-full border px-3 py-2 rounded-lg bg-white focus:ring-2 focus:ring-indigo-300" value={form.pinterest_url} onChange={handleChange} placeholder="https://pinterest.com/yourbusiness" />
+          </div>
+        </div>
+      </div>
+      {/* Error/Success Messages */}
+      {error && (
+        <div className="p-4 bg-red-50 text-red-700 rounded-lg mb-4">
+          {error}
+        </div>
+      )}
+      {success && (
+        <div className="p-4 bg-green-50 text-green-700 rounded-lg mb-4">
+          {success}
+        </div>
+      )}
+      {/* Save Button - Bottom Right */}
+      <div className="flex justify-end mt-12">
+        <button
+          type="submit"
+          disabled={loading}
+          className="py-2 px-6 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#452F9F] hover:bg-[#452F9F]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#452F9F] disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {loading ? 'Saving...' : 'Save Changes'}
+        </button>
+      </div>
+    </form>
+  );
+} 

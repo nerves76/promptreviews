@@ -6,6 +6,9 @@ import { generateAIReview } from '@/utils/ai';
 import Header from '../components/Header';
 import { slugify } from '@/utils/slugify';
 import { FaFileAlt, FaInfoCircle, FaStar, FaGift } from 'react-icons/fa';
+import { checkAccountLimits } from '@/utils/accountLimits';
+import { Dialog } from '@headlessui/react';
+import { getUserOrMock } from '@/utils/supabase';
 
 interface ReviewPlatformLink {
   platform: string;
@@ -81,10 +84,13 @@ export default function CreatePromptPage() {
     offer_enabled: false,
     offer_title: '',
     offer_body: '',
+    offer_url: '',
   });
   const [businessProfile, setBusinessProfile] = useState<BusinessProfile | null>(null);
   const [generatingReview, setGeneratingReview] = useState<number | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeModalMessage, setUpgradeModalMessage] = useState<string | null>(null);
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -94,7 +100,7 @@ export default function CreatePromptPage() {
   useEffect(() => {
     const loadBusinessProfile = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await getUserOrMock(supabase);
         if (!user) {
           console.log('No user found');
           return;
@@ -112,7 +118,7 @@ export default function CreatePromptPage() {
           setBusinessProfile(businessData);
           // Pre-fill offer fields from business default if enabled
           if (businessData.default_offer_enabled) {
-            setFormData(prev => ({ ...prev, offer_enabled: true, offer_title: businessData.default_offer_title || 'Review Rewards', offer_body: businessData.default_offer_body || '' }));
+            setFormData(prev => ({ ...prev, offer_enabled: true, offer_title: businessData.default_offer_title || 'Special Offer', offer_body: businessData.default_offer_body || '' }));
           }
           if (businessData.preferred_review_platforms) {
             try {
@@ -211,8 +217,16 @@ export default function CreatePromptPage() {
 
   const handleSubmit = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await getUserOrMock(supabase);
       if (!user) throw new Error('No user found');
+
+      // Check account limits before creating prompt page
+      const { allowed, reason } = await checkAccountLimits(supabase, user.id, 'prompt_page');
+      if (!allowed) {
+        setUpgradeModalMessage(reason || 'You have reached your plan limit. Please upgrade to create more prompt pages.');
+        setShowUpgradeModal(true);
+        return;
+      }
 
       const { data: businessData } = await supabase
         .from('businesses')
@@ -376,10 +390,14 @@ export default function CreatePromptPage() {
 
   const renderStep2 = () => (
     <div className="space-y-6">
-      {/* Review Rewards Section */}
+      {/* Special Offer Section */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-2">
-          <label className="block text-lg font-semibold text-indigo-800">Review Rewards</label>
+          <label className="block text-lg font-semibold text-indigo-800 flex items-center">
+            <FaGift className="w-6 h-6 mr-2 text-indigo-500" />
+            Special Offer
+            <Tooltip text="Offer a discount or special offer and a link for users to redeem or learn about the steps they need to take." />
+          </label>
           <button
             type="button"
             onClick={() => setFormData(prev => ({ ...prev, offer_enabled: !prev.offer_enabled }))}
@@ -394,20 +412,31 @@ export default function CreatePromptPage() {
         <div className={`rounded-lg border border-indigo-200 bg-indigo-50 p-4 ${!formData.offer_enabled ? 'opacity-60' : ''}`}>
           <input
             type="text"
-            value={formData.offer_title}
+            value={formData.offer_title ?? 'Special Offer'}
             onChange={e => setFormData(prev => ({ ...prev, offer_title: e.target.value }))}
-            placeholder="Offer Title (e.g., Review Rewards)"
+            placeholder="Offer Title (e.g., Special Offer)"
             className="block w-full rounded-md border border-indigo-200 bg-indigo-50 focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-2 px-3 mb-2 font-semibold"
             disabled={!formData.offer_enabled}
           />
           <textarea
-            value={formData.offer_body}
-            onChange={e => handleOfferFieldsChange(e.target.value)}
-            placeholder="Review us on 3 platforms and get 10% off your next service!"
+            value={formData.offer_body || ''}
+            onChange={e => setFormData(prev => ({ ...prev, offer_body: e.target.value }))}
+            placeholder="Get 10% off your next visit"
             className="block w-full rounded-md border border-indigo-200 bg-indigo-50 focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-3 px-4"
             rows={2}
             disabled={!formData.offer_enabled}
           />
+          <input
+            type="url"
+            value={formData.offer_url || ''}
+            onChange={e => setFormData(prev => ({ ...prev, offer_url: e.target.value }))}
+            placeholder="Offer URL (e.g., https://yourbusiness.com/claim-reward)"
+            className="block w-full rounded-md border border-indigo-200 bg-indigo-50 focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-2 px-3 mt-2"
+            disabled={!formData.offer_enabled}
+          />
+        </div>
+        <div className="text-xs text-gray-500 mt-2">
+          Note: Services like Google and Yelp have policies against providing rewards in exchange for reviews, so it's best not to promise a reward for "x" number of reviews, etc.
         </div>
       </div>
 
@@ -623,6 +652,36 @@ export default function CreatePromptPage() {
     <>
       <Header />
       <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        {/* Upgrade Modal */}
+        <Dialog open={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} className="fixed z-50 inset-0 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen px-4">
+            <div className="fixed inset-0 bg-black opacity-30" aria-hidden="true" />
+            <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-auto p-8 z-10">
+              <Dialog.Title className="text-lg font-bold mb-4">
+                {upgradeModalMessage && upgradeModalMessage.includes('Trial ended') ? 'Trial Ended' : 'Upgrade Required'}
+              </Dialog.Title>
+              <Dialog.Description className="mb-6 text-gray-700 whitespace-pre-line">
+                {upgradeModalMessage}
+              </Dialog.Description>
+              <button
+                className="w-full py-2 px-4 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-semibold"
+                onClick={() => {
+                  setShowUpgradeModal(false);
+                  router.push('/upgrade');
+                }}
+              >
+                Upgrade Now
+              </button>
+              <button
+                className="w-full mt-2 py-2 px-4 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+                onClick={() => setShowUpgradeModal(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </Dialog>
+
         <div className="bg-white shadow sm:rounded-lg">
           <div className="px-4 py-5 sm:p-6">
             <div className="md:flex md:items-center md:justify-between mb-8">

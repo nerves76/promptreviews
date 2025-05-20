@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { createBrowserClient } from "@supabase/ssr";
-import { FaChevronDown, FaChevronRight, FaDownload, FaStar, FaTrash, FaGoogle, FaFacebook, FaYelp, FaTripadvisor, FaRegStar } from "react-icons/fa";
-import { SiAngi, SiHouzz, SiThumbtack, SiHomeadvisor, SiTrustpilot } from "react-icons/si";
+import { FaChevronDown, FaChevronRight, FaDownload, FaStar, FaTrash, FaGoogle, FaFacebook, FaYelp, FaTripadvisor, FaRegStar, FaPalette } from "react-icons/fa";
+import { SiHouzz, SiThumbtack, SiHomeadvisor, SiTrustpilot } from "react-icons/si";
 import { IconType } from "react-icons";
 
 interface Review {
@@ -261,21 +261,15 @@ export default function TestimonialsPage() {
 
   return (
     <div className="min-h-screen py-12 px-2">
-      <div className="max-w-4xl mx-auto bg-white rounded-lg shadow pt-4 pb-24 px-8 relative">
-        <div className="absolute -top-4 -left-4 bg-white rounded-full shadow p-2 flex items-center justify-center">
-          <FaStar className="w-7 h-7 text-indigo-500" />
+      <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-8 relative">
+        <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center">
+          <FaPalette className="w-9 h-9 text-indigo-500" />
         </div>
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-xl font-bold text-gray-900">
-            Testimonials
-          </h1>
-          <button
-            onClick={handleExport}
-            className="flex items-center gap-2 px-4 py-2 bg-white border border-indigo-200 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            <FaDownload className="text-indigo-500" />
-            Export CSV
-          </button>
+          <div className="flex flex-col">
+            <h1 className="text-4xl font-bold text-[#452F9F]">Testimonials</h1>
+            {/* Optionally add subcopy here if needed */}
+          </div>
         </div>
 
         {/* Tabs */}
@@ -286,8 +280,8 @@ export default function TestimonialsPage() {
               onClick={() => setActiveTab(tab.key as 'reviewer' | 'platform')}
               className={`px-4 py-2 -mb-px border-b-2 font-medium transition-colors ${
                 activeTab === tab.key
-                  ? 'border-indigo-500 text-indigo-700'
-                  : 'border-transparent text-gray-500 hover:text-indigo-500'
+                  ? 'border-[#452F9F] text-[#452F9F]'
+                  : 'border-transparent text-gray-500 hover:text-[#452F9F]'
               }`}
             >
               {tab.label}
@@ -300,7 +294,7 @@ export default function TestimonialsPage() {
           <input
             type="text"
             placeholder="Search by reviewer, platform, or text..."
-            className="w-full max-w-md rounded-lg border border-gray-200 px-4 py-2 shadow-sm focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+            className="w-full max-w-md rounded-lg border border-gray-200 px-4 py-2 shadow-sm focus:ring-2 focus:ring-[#452F9F] focus:outline-none"
             disabled
           />
         </div>
@@ -308,7 +302,7 @@ export default function TestimonialsPage() {
         {/* Reviews Section */}
         {loading ? (
           <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#452F9F] mx-auto"></div>
             <p className="mt-4 text-gray-600">Loading reviews...</p>
           </div>
         ) : error ? (
@@ -326,9 +320,9 @@ export default function TestimonialsPage() {
                       onClick={() => toggleExpand(group.reviewerKey)}
                     >
                       {expanded[group.reviewerKey] ? (
-                        <FaChevronDown className="text-indigo-500" />
+                        <FaChevronDown className="text-[#452F9F]" />
                       ) : (
-                        <FaChevronRight className="text-indigo-500" />
+                        <FaChevronRight className="text-[#452F9F]" />
                       )}
                       <span className="font-semibold text-lg text-gray-800">
                         {group.reviewer_name || "[No Name]"}
@@ -348,10 +342,10 @@ export default function TestimonialsPage() {
                             <div key={review.id} className="bg-white rounded-lg p-4 border border-gray-200 relative">
                               {/* Platform icon in top-left corner */}
                               <div className="absolute -top-4 -left-4 bg-white rounded-full shadow p-2 flex items-center justify-center" title={label}>
-                                <PlatformIcon className="w-6 h-6 text-indigo-500" />
+                                <PlatformIcon className="w-6 h-6 text-[#452F9F]" />
                               </div>
                               <div className="flex items-center gap-2 mb-2">
-                                <span className="font-semibold text-indigo-700">{review.platform}</span>
+                                <span className="font-semibold text-[#452F9F]">{review.platform}</span>
                                 <span className="text-xs text-gray-400 ml-2">{new Date(review.created_at).toLocaleDateString()}</span>
                                 <span className={`ml-2 text-xs px-2 py-1 rounded ${
                                   review.status === 'submitted' 
@@ -420,9 +414,9 @@ export default function TestimonialsPage() {
                       onClick={() => toggleExpand(group.platform)}
                     >
                       {expanded[group.platform] ? (
-                        <FaChevronDown className="text-indigo-500" />
+                        <FaChevronDown className="text-[#452F9F]" />
                       ) : (
-                        <FaChevronRight className="text-indigo-500" />
+                        <FaChevronRight className="text-[#452F9F]" />
                       )}
                       <span className="font-semibold text-lg text-gray-800">
                         {group.platform}
@@ -439,10 +433,10 @@ export default function TestimonialsPage() {
                             <div key={review.id} className="bg-white rounded-lg p-4 border border-gray-200 relative">
                               {/* Platform icon in top-left corner */}
                               <div className="absolute -top-4 -left-4 bg-white rounded-full shadow p-2 flex items-center justify-center" title={label}>
-                                <PlatformIcon className="w-6 h-6 text-indigo-500" />
+                                <PlatformIcon className="w-6 h-6 text-[#452F9F]" />
                               </div>
                               <div className="flex items-center gap-2 mb-2">
-                                <span className="font-semibold text-indigo-700">{review.reviewer_name || "[No Name]"}</span>
+                                <span className="font-semibold text-[#452F9F]">{review.reviewer_name || "[No Name]"}</span>
                                 {review.reviewer_role && (
                                   <span className="ml-2 text-sm text-gray-500">({review.reviewer_role})</span>
                                 )}

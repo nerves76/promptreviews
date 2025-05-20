@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react';
 import { useAuthGuard } from '@/utils/authGuard';
 import { createBrowserClient } from '@supabase/ssr';
 import { FaDownload, FaUpload, FaInfoCircle, FaQuestionCircle, FaList, FaEye, FaUsers } from 'react-icons/fa';
+import { Dialog } from '@headlessui/react';
+import { useRouter } from 'next/navigation';
+import { getUserOrMock, getSessionOrMock } from '@/utils/supabase';
 
 export default function UploadContactsPage() {
   useAuthGuard();
@@ -13,6 +16,10 @@ export default function UploadContactsPage() {
   const [preview, setPreview] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showGoogleUrlHelp, setShowGoogleUrlHelp] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeModalMessage, setUpgradeModalMessage] = useState<string | null>(null);
+  const [account, setAccount] = useState<any>(null);
+  const router = useRouter();
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -21,7 +28,7 @@ export default function UploadContactsPage() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
+      const { data: { session }, error } = await getSessionOrMock(supabase);
       if (error || !session) {
         setError('Please sign in to upload contacts');
       }
@@ -30,10 +37,30 @@ export default function UploadContactsPage() {
   }, [supabase]);
 
   useEffect(() => {
+    const fetchAccount = async () => {
+      const { data: { user } } = await getUserOrMock(supabase);
+      if (!user) return;
+      const { data, error } = await supabase.from('accounts').select('*').eq('id', user.id).single();
+      if (!error && data) setAccount(data);
+    };
+    fetchAccount();
+  }, [supabase]);
+
+  useEffect(() => {
     console.log('State updated:', { selectedFile, preview, error, success });
   }, [selectedFile, preview, error, success]);
 
+  // Helper to determine if user is blocked from uploading contacts
+  const isUploadBlocked = account && account.plan === 'community_grower' && !account.is_free;
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isUploadBlocked) {
+      setUpgradeModalMessage(
+        'Looking to upgrade? Upload your contact list and start doing personal outreach and growing your reviews and testimonials. Create review workflows, track activity, do follow ups, and send special offers. Not in a spammy way. In a human to human way.'
+      );
+      setShowUpgradeModal(true);
+      return;
+    }
     console.log('File select event:', e);
     const file = e.target.files?.[0];
     console.log('Selected file:', file);
@@ -163,8 +190,8 @@ export default function UploadContactsPage() {
     setIsLoading(true);
     
     try {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError || !session) {
+      const { data: { session }, error } = await getSessionOrMock(supabase);
+      if (error || !session) {
         setError('Please sign in to upload contacts');
         return;
       }
@@ -186,7 +213,20 @@ export default function UploadContactsPage() {
       console.log('Upload response:', data);
       
       if (!response.ok) {
-        console.error('Upload error response:', data);
+        if (response.status === 403 && data.error && data.error.includes('Limit reached for your plan (100 contacts)')) {
+          setUpgradeModalMessage(
+            `Contact Limit Reached\n\nYou've reached the maximum of 100 contacts for the Community Builder plan. Upgrade to Community Champion for up to 500 contacts, more outreach, and more growth!`
+          );
+          setShowUpgradeModal(true);
+          return;
+        }
+        if (response.status === 403 && data.error && data.error.includes('Limit reached for your plan (500 contacts)')) {
+          setUpgradeModalMessage(
+            `Contact Limit Reached\n\nYou've reached the maximum of 500 contacts for the Community Champion plan.\nNeed more? We offer custom plans for high-volume outreach.`
+          );
+          setShowUpgradeModal(true);
+          return;
+        }
         if (data.invalidRecords) {
           const errorDetails = data.invalidRecords.map((r: any) => 
             `Row ${r.row}: Missing ${r.missingFields}`
@@ -231,21 +271,55 @@ export default function UploadContactsPage() {
 
   return (
     <div className="min-h-screen py-12 px-2">
-      <div className="max-w-4xl mx-auto bg-white rounded-lg shadow pt-4 pb-24 px-8 relative">
-        <div className="absolute -top-4 -left-4 bg-white rounded-full shadow p-2 flex items-center justify-center">
-          <FaUpload className="w-7 h-7 text-indigo-500" />
+      {/* Upgrade Modal */}
+      <Dialog open={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} className="fixed z-50 inset-0 overflow-y-auto">
+        <div className="flex items-center justify-center min-h-screen px-4">
+          <div className="fixed inset-0 bg-black opacity-30" aria-hidden="true" />
+          <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-auto p-8 z-10">
+            <Dialog.Title className="text-lg font-bold mb-4">
+              {upgradeModalMessage && upgradeModalMessage.startsWith('Contact Limit Reached') ? 'Contact Limit Reached' : 'Looking to upgrade?'}
+            </Dialog.Title>
+            <Dialog.Description className="mb-6 text-gray-700 whitespace-pre-line">
+              {upgradeModalMessage}
+            </Dialog.Description>
+            <button
+              className="w-full py-2 px-4 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-semibold"
+              onClick={() => {
+                setShowUpgradeModal(false);
+                if (upgradeModalMessage && upgradeModalMessage.includes('500 contacts')) {
+                  router.push('/contact');
+                } else {
+                  router.push('/upgrade');
+                }
+              }}
+            >
+              {upgradeModalMessage && upgradeModalMessage.includes('500 contacts') ? 'Contact us' : 'Upgrade now'}
+            </button>
+            <button
+              className="w-full mt-2 py-2 px-4 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+              onClick={() => setShowUpgradeModal(false)}
+            >
+              Cancel
+            </button>
+          </div>
         </div>
-        <div className="flex items-center justify-between mb-16">
-          <h1 className="text-xl font-bold text-gray-900">
-            Contacts
-          </h1>
+      </Dialog>
+      <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-8 relative">
+        <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center">
+          <FaUpload className="w-9 h-9 text-indigo-500" />
+        </div>
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex flex-col">
+            <h1 className="text-4xl font-bold text-[#452F9F]">Upload Contacts</h1>
+            {/* Optionally add subcopy here if needed */}
+          </div>
         </div>
 
         {/* Upload Instructions Section */}
         <div className="mb-16">
-          <h2 className="text-2xl font-bold text-indigo-900 flex items-center gap-3 mb-12">
+          <h2 className="mt-20 text-2xl font-bold text-indigo-900 flex items-center gap-3 mb-12">
             <FaInfoCircle className="w-7 h-7 text-indigo-500" />
-            How to Upload Contacts
+            How to upload contacts
           </h2>
           <ol className="list-decimal list-inside space-y-2 text-indigo-800">
             <li>Download the CSV template using the button below</li>
@@ -266,14 +340,14 @@ export default function UploadContactsPage() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
               <label className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                <FaUpload className="text-blue-500" />
-                <span className="text-blue-700">Choose CSV File</span>
                 <input
                   type="file"
                   accept=".csv"
                   onChange={handleFileSelect}
                   className="hidden"
+                  disabled={isUploadBlocked}
                 />
+                <span className={`text-blue-700 ${isUploadBlocked ? 'opacity-50 cursor-not-allowed' : ''}`}>Choose CSV file</span>
               </label>
 
               {selectedFile && (
@@ -288,7 +362,7 @@ export default function UploadContactsPage() {
               className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
               <FaDownload className="text-blue-500" />
-              Download CSV Template
+              Download CSV template
             </button>
           </div>
 
@@ -362,12 +436,12 @@ export default function UploadContactsPage() {
         <div className="mb-16">
           <h2 className="text-2xl font-bold text-indigo-900 flex items-center gap-3 mb-12">
             <FaList className="w-7 h-7 text-indigo-500" />
-            CSV Column Descriptions
+            CSV column descriptions
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-8">
               <div>
-                <h3 className="font-semibold text-gray-900">Required Fields</h3>
+                <h3 className="font-semibold text-gray-900">Required fields</h3>
                 <ul className="mt-2 space-y-2 text-sm text-gray-600">
                   <li><span className="font-bold">first_name</span> - Contact's first name</li>
                   <li><span className="font-bold">email</span> - Contact's email address (required if phone not provided)</li>
@@ -375,7 +449,7 @@ export default function UploadContactsPage() {
                 </ul>
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900">Basic Information</h3>
+                <h3 className="font-semibold text-gray-900">Basic information</h3>
                 <ul className="mt-2 space-y-2 text-sm text-gray-600">
                   <li><span className="font-bold">last_name</span> - Contact's last name</li>
                   <li><span className="font-bold">category</span> - Contact category (e.g., VIP, Regular)</li>

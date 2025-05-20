@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { useAuthGuard } from '@/utils/authGuard';
 import { FaChartLine, FaGlobe, FaList } from 'react-icons/fa';
+import { getUserOrMock } from '@/utils/supabase';
 
 interface PromptPage {
   id: string;
@@ -36,7 +37,7 @@ export default function AnalyticsPage() {
   useEffect(() => {
     const fetchPromptPages = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await getUserOrMock(supabase);
         console.log("User:", user);
         if (!user) return;
 
@@ -150,19 +151,19 @@ export default function AnalyticsPage() {
 
   return (
     <div className="min-h-screen py-12 px-2">
-      <div className="max-w-4xl mx-auto bg-white rounded-lg shadow pt-4 pb-24 px-8 relative">
+      <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-8 relative">
         <div className="absolute -top-4 -left-4 bg-white rounded-full shadow p-2 flex items-center justify-center">
           <FaChartLine className="w-7 h-7 text-indigo-500" />
         </div>
-        <div className="flex items-center justify-between mb-16">
-          <h1 className="text-2xl font-bold text-gray-900">
-            Analytics
-          </h1>
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex flex-col">
+            <h1 className="text-4xl font-bold text-[#452F9F]">Analytics</h1>
+          </div>
         </div>
           
         <div className="mb-16">
           <h3 className="text-base font-bold text-gray-900 mb-2">
-            Select Prompt Page
+            Select prompt page
           </h3>
           <select
             id="page-select"
@@ -180,7 +181,7 @@ export default function AnalyticsPage() {
 
         {selectedPage && (
           <div className="mb-16">
-            <h2 className="text-lg font-bold text-indigo-900 flex items-center gap-3 mb-2">
+            <h2 className="mt-20 text-2xl font-bold text-indigo-900 flex items-center gap-3 mb-12">
               {selectedPage.is_universal ? (
                 <FaGlobe className="w-7 h-7 text-blue-400" />
               ) : null}

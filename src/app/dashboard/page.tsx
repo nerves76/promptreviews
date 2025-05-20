@@ -6,6 +6,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { QRCodeSVG } from 'qrcode.react';
 import DashboardContent from './DashboardContent';
 import { FaHome, FaBuilding } from 'react-icons/fa';
+import { getUserOrMock, getSessionOrMock } from '@/utils/supabase';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -32,7 +33,7 @@ export default function Dashboard() {
   useEffect(() => {
     const getUser = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await getUserOrMock(supabase);
         if (!user) {
           router.push('/auth/sign-in');
           return;
@@ -54,7 +55,7 @@ export default function Dashboard() {
       try {
         setIsLoading(true);
 
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session } } = await getSessionOrMock(supabase);
         if (!session) {
           throw new Error('No active session found. Please sign in again.');
         }

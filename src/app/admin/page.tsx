@@ -3,8 +3,10 @@
 import { useEffect, useState } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { useRouter } from 'next/navigation';
-import { FaChartLine, FaUsers, FaFileAlt, FaHistory, FaRobot, FaUpload } from 'react-icons/fa';
+import { FaChartLine, FaUsers, FaFileAlt, FaHistory, FaRobot, FaUpload, FaDollarSign } from 'react-icons/fa';
 import Header from '@/app/components/Header';
+import { Switch } from '@headlessui/react';
+import { getUserOrMock } from '@/utils/supabase';
 
 interface AdminStats {
   totalAccounts: number;
@@ -27,12 +29,32 @@ interface AdminStats {
   }[];
 }
 
+interface AIUsageByDay {
+  date: string;
+  total_tokens: number;
+  total_cost: number;
+}
+
+interface AIUsageByUser {
+  user_id: string;
+  total_tokens: number;
+  total_cost: number;
+  usage_count: number;
+}
+
 export default function AdminDashboard() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d'>('7d');
+  const [aiUsageByDay, setAIUsageByDay] = useState<AIUsageByDay[]>([]);
+  const [aiUsageByUser, setAIUsageByUser] = useState<AIUsageByUser[]>([]);
+  const [accounts, setAccounts] = useState<any[]>([]);
+  const [accountsLoading, setAccountsLoading] = useState(false);
+  const [accountsError, setAccountsError] = useState<string | null>(null);
+  const [toggleLoading, setToggleLoading] = useState<string | null>(null);
+  const [toggleMessage, setToggleMessage] = useState<string | null>(null);
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -42,12 +64,15 @@ export default function AdminDashboard() {
   useEffect(() => {
     const checkAdminAccess = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await getUserOrMock(supabase);
         if (!user || user.email !== 'chris@diviner.agency') {
           router.push('/');
           return;
         }
         fetchStats();
+        fetchAIUsageByDay();
+        fetchAIUsageByUser();
+        fetchAccounts();
       } catch (err) {
         console.error('Error checking admin access:', err);
         router.push('/');
@@ -199,8 +224,77 @@ export default function AdminDashboard() {
       }
     };
 
+    // Fetch AI usage by day
+    const fetchAIUsageByDay = async () => {
+      const days = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90;
+      const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+      const { data, error } = await supabase
+        .from('ai_usage')
+        .select('created_at, total_tokens, cost_usd')
+        .gte('created_at', since);
+      if (error) return;
+      // Group by date
+      const usageByDay: { [date: string]: { total_tokens: number; total_cost: number } } = {};
+      data?.forEach((row) => {
+        const date = row.created_at.split('T')[0];
+        if (!usageByDay[date]) usageByDay[date] = { total_tokens: 0, total_cost: 0 };
+        usageByDay[date].total_tokens += row.total_tokens || 0;
+        usageByDay[date].total_cost += Number(row.cost_usd) || 0;
+      });
+      // Fill in all days
+      const result: AIUsageByDay[] = [];
+      for (let i = days - 1; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const dateStr = d.toISOString().split('T')[0];
+        result.push({
+          date: dateStr,
+          total_tokens: usageByDay[dateStr]?.total_tokens || 0,
+          total_cost: usageByDay[dateStr]?.total_cost || 0,
+        });
+      }
+      setAIUsageByDay(result);
+    };
+
+    // Fetch AI usage by user
+    const fetchAIUsageByUser = async () => {
+      const { data, error } = await supabase
+        .from('ai_usage')
+        .select('user_id, total_tokens, cost_usd')
+        .not('user_id', 'is', null);
+      if (error) return;
+      // Group by user
+      const usageByUser: { [user_id: string]: { total_tokens: number; total_cost: number; usage_count: number } } = {};
+      data?.forEach((row) => {
+        if (!row.user_id) return;
+        if (!usageByUser[row.user_id]) usageByUser[row.user_id] = { total_tokens: 0, total_cost: 0, usage_count: 0 };
+        usageByUser[row.user_id].total_tokens += row.total_tokens || 0;
+        usageByUser[row.user_id].total_cost += Number(row.cost_usd) || 0;
+        usageByUser[row.user_id].usage_count += 1;
+      });
+      setAIUsageByUser(
+        Object.entries(usageByUser).map(([user_id, v]) => ({ user_id, ...v }))
+          .sort((a, b) => b.total_cost - a.total_cost)
+      );
+    };
+
+    // Fetch all accounts for admin toggle
+    const fetchAccounts = async () => {
+      setAccountsLoading(true);
+      setAccountsError(null);
+      try {
+        const { data, error } = await supabase.from('accounts').select('*');
+        if (error) throw error;
+        setAccounts(data || []);
+      } catch (err) {
+        setAccountsError(err instanceof Error ? err.message : 'Failed to fetch accounts');
+      } finally {
+        setAccountsLoading(false);
+      }
+    };
+
     checkAdminAccess();
-  }, [supabase, router, timeRange]);
+  }, [supabase, router, timeRange, toggleMessage]);
 
   if (isLoading) {
     return (
@@ -452,6 +546,140 @@ export default function AdminDashboard() {
                   </tbody>
                 </table>
               </div>
+            </div>
+          </div>
+
+          {/* AI Usage and Cost Overview */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mb-8">
+            <div className="bg-white rounded-lg shadow p-6">
+              <div className="flex items-center">
+                <div className="p-3 rounded-full bg-purple-100 text-purple-600">
+                  <FaRobot className="w-6 h-6" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Total AI Tokens (OpenAI)</p>
+                  <p className="text-2xl font-semibold text-gray-900">{aiUsageByDay.reduce((sum, d) => sum + d.total_tokens, 0).toLocaleString()}</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white rounded-lg shadow p-6">
+              <div className="flex items-center">
+                <div className="p-3 rounded-full bg-green-100 text-green-600">
+                  <FaDollarSign className="w-6 h-6" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Total AI Cost (OpenAI)</p>
+                  <p className="text-2xl font-semibold text-gray-900">${aiUsageByDay.reduce((sum, d) => sum + d.total_cost, 0).toFixed(4)}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* AI Usage by Day Table */}
+          <div className="bg-white rounded-lg shadow p-6 mb-8">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">AI Usage by Day</h2>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead>
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tokens</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cost (USD)</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {aiUsageByDay.map((row) => (
+                    <tr key={row.date}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.date}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.total_tokens.toLocaleString()}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${row.total_cost.toFixed(4)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* AI Usage by User Table */}
+          <div className="bg-white rounded-lg shadow p-6 mb-8">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">AI Usage by User</h2>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead>
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User ID</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tokens</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cost (USD)</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Generations</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {aiUsageByUser.map((row) => (
+                    <tr key={row.user_id}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.user_id}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.total_tokens.toLocaleString()}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${row.total_cost.toFixed(4)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.usage_count}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Accounts Free Toggle Section */}
+          <div className="bg-white rounded-lg shadow p-6 mb-8">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Accounts: Mark as Free</h2>
+            {accountsError && <div className="text-red-600 mb-2">{accountsError}</div>}
+            {toggleMessage && <div className="text-green-600 mb-2">{toggleMessage}</div>}
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead>
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Account ID</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Plan</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trial End</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Is Free</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {accounts.map((account) => (
+                    <tr key={account.id}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{account.id}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{account.plan}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{account.trial_end ? new Date(account.trial_end).toLocaleDateString() : '-'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <Switch
+                          checked={!!account.is_free}
+                          onChange={async (checked) => {
+                            setToggleLoading(account.id);
+                            setToggleMessage(null);
+                            try {
+                              const { error } = await supabase
+                                .from('accounts')
+                                .update({ is_free: checked })
+                                .eq('id', account.id);
+                              if (error) throw error;
+                              setToggleMessage(`Account ${account.id} marked as ${checked ? 'free' : 'paid'}.`);
+                            } catch (err) {
+                              setAccountsError(err instanceof Error ? err.message : 'Failed to update account');
+                            } finally {
+                              setToggleLoading(null);
+                            }
+                          }}
+                          className={`${account.is_free ? 'bg-green-600' : 'bg-gray-200'} relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none`}
+                          disabled={toggleLoading === account.id}
+                        >
+                          <span
+                            className={`${account.is_free ? 'translate-x-6' : 'translate-x-1'} inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                          />
+                        </Switch>
+                        {toggleLoading === account.id && <span className="ml-2 text-xs text-gray-400">Updating...</span>}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
