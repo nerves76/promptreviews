@@ -7,7 +7,7 @@ import SocialMediaIcons from '@/app/components/SocialMediaIcons';
 import { Button } from '@/app/components/ui/button';
 import { Textarea } from '@/app/components/ui/textarea';
 import { Card } from '@/app/components/ui/card';
-import { FaStar, FaGoogle, FaFacebook, FaYelp, FaTripadvisor, FaRegStar, FaQuestionCircle, FaPenFancy, FaHeart, FaBookmark, FaHome, FaEnvelope, FaStar as FaFavorites, FaCalendarAlt, FaBell, FaLink } from 'react-icons/fa';
+import { FaStar, FaGoogle, FaFacebook, FaYelp, FaTripadvisor, FaRegStar, FaQuestionCircle, FaPenFancy, FaHeart, FaBookmark, FaHome, FaEnvelope, FaStar as FaFavorites, FaCalendarAlt, FaBell, FaThumbsUp, FaLink } from 'react-icons/fa';
 import { IconType } from 'react-icons';
 import ReviewSubmissionForm from '@/components/ReviewSubmissionForm';
 import { useReviewer } from '@/contexts/ReviewerContext';
@@ -108,8 +108,9 @@ export default function PromptPage() {
   const [isSubmitting, setIsSubmitting] = useState<number | null>(null);
   const [reviewerNames, setReviewerNames] = useState<string[]>(() => promptPage?.review_platforms?.map(() => '') || []);
   const [reviewerRoles, setReviewerRoles] = useState<string[]>(() => promptPage?.review_platforms?.map(() => '') || []);
-  const [logoDropped, setLogoDropped] = useState(false);
   const [canShowPersonalNote, setCanShowPersonalNote] = useState(false);
+  const [showStarRain, setShowStarRain] = useState(true);
+  const [fallingIcon, setFallingIcon] = useState('star');
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -400,10 +401,6 @@ export default function PromptPage() {
   }, []);
 
   useEffect(() => {
-    requestAnimationFrame(() => setLogoDropped(true));
-  }, []);
-
-  useEffect(() => {
     const timer = setTimeout(() => setCanShowPersonalNote(true), 700);
     return () => clearTimeout(timer);
   }, []);
@@ -454,6 +451,38 @@ export default function PromptPage() {
 
   return (
     <div className="min-h-screen" style={backgroundStyle}>
+      {/* Falling Animation */}
+      {promptPage?.falling_icon && showStarRain && (
+        <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden">
+          {[...Array(36)].map((_, i) => {
+            const left = Math.random() * 100;
+            const duration = 2 + Math.random() * 1.5;
+            const delay = Math.random() * 0.5;
+            const size = 18 + Math.random() * 18;
+            let IconComp;
+            if (promptPage.falling_icon === 'star') IconComp = <FaStar className="absolute" style={{ color: '#facc15' }} />;
+            else if (promptPage.falling_icon === 'heart') IconComp = <FaHeart className="absolute" style={{ color: '#ef4444' }} />;
+            else if (promptPage.falling_icon === 'rainbow') IconComp = <span className="absolute text-2xl" role="img" aria-label="rainbow">🌈</span>;
+            else if (promptPage.falling_icon === 'thumb') IconComp = <FaThumbsUp className="absolute" style={{ color: '#3b82f6' }} />;
+            else IconComp = <FaStar className="absolute" style={{ color: '#facc15' }} />;
+            return (
+              <span
+                key={i}
+                className="absolute drop-shadow-lg animate-star-fall"
+                style={{
+                  left: `${left}%`,
+                  top: '-40px',
+                  fontSize: `${size}px`,
+                  animationDuration: `${duration}s`,
+                  animationDelay: `${delay}s`,
+                }}
+              >
+                {IconComp}
+              </span>
+            );
+          })}
+        </div>
+      )}
       {/* Save for Later Button */}
       <div 
         className={`fixed right-4 z-50 transition-all duration-300 ${showBanner ? 'top-16' : 'top-4'}`} 
@@ -585,17 +614,18 @@ export default function PromptPage() {
             </svg>
             <span className="font-semibold">{promptPage.offer_title}:</span>
             <span className="ml-1">{promptPage.offer_body}</span>
+            {offerLearnMoreUrl && (
+              <a
+                href={offerLearnMoreUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ml-2 text-blue-600 hover:text-blue-800 underline"
+                style={{ marginLeft: 8 }}
+              >
+                Learn More
+              </a>
+            )}
           </span>
-          {offerLearnMoreUrl && (
-            <a
-              href={offerLearnMoreUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="ml-2 text-blue-600 hover:text-blue-800 underline"
-            >
-              Learn More
-            </a>
-          )}
           <button
             className="absolute right-4 text-black text-lg font-bold hover:text-yellow-600 focus:outline-none"
             aria-label="Dismiss"
@@ -610,23 +640,21 @@ export default function PromptPage() {
         <div className="max-w-4xl mx-auto px-4 py-8">
           {/* Business Info Card */}
           <div className="bg-gray-50 rounded-2xl shadow p-6 mb-8 flex flex-col items-center mx-auto max-w-md animate-slideup relative mt-20">
-            {/* Business Logo - Made slightly smaller */}
+            {/* Business Logo - No drop-down animation */}
             <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-44 h-44 flex items-center justify-center" style={{ pointerEvents: 'none' }}>
-              <div className={`transition-all duration-700 ease-out ${logoDropped ? 'translate-y-0 opacity-100' : '-translate-y-20 opacity-0'}`} style={{ willChange: 'transform, opacity' }}>
-                {businessProfile?.logo_url ? (
-                  <img
-                    src={businessProfile.logo_url}
-                    alt={`${businessProfile?.business_name || 'Business'} logo`}
-                    className="h-44 w-44 object-contain rounded-full border-4 border-white shadow-lg"
-                  />
-                ) : (
-                  <div className="h-44 w-44 bg-gray-200 rounded-full flex items-center justify-center border-4 border-white shadow-lg">
-                    <span className="text-5xl text-gray-500">
-                      {businessProfile?.business_name?.[0] || 'B'}
-                    </span>
-                  </div>
-                )}
-              </div>
+              {businessProfile?.logo_url ? (
+                <img
+                  src={businessProfile.logo_url}
+                  alt={`${businessProfile?.business_name || 'Business'} logo`}
+                  className="h-44 w-44 object-contain rounded-full border-4 border-white shadow-lg"
+                />
+              ) : (
+                <div className="h-44 w-44 bg-gray-200 rounded-full flex items-center justify-center border-4 border-white shadow-lg">
+                  <span className="text-5xl text-gray-500">
+                    {businessProfile?.business_name?.[0] || 'B'}
+                  </span>
+                </div>
+              )}
             </div>
             {/* Business Name - Added more space above */}
             <h1 
