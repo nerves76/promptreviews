@@ -3,13 +3,12 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { generateAIReview } from '@/utils/ai';
-import Header from '../components/Header';
-import { slugify } from '@/utils/slugify';
-import { FaFileAlt, FaInfoCircle, FaStar, FaGift, FaVideo, FaImage, FaQuoteRight, FaCamera, FaHeart, FaThumbsUp } from 'react-icons/fa';
+import { FaFileAlt, FaInfoCircle, FaStar, FaGift, FaVideo, FaImage, FaQuoteRight, FaCamera, FaHeart, FaGoogle, FaYelp, FaFacebook, FaTripadvisor, FaRegStar } from 'react-icons/fa';
 import { checkAccountLimits } from '@/utils/accountLimits';
 import { Dialog } from '@headlessui/react';
 import { getUserOrMock } from '@/utils/supabase';
 import dynamic from 'next/dynamic';
+import Header from '../components/Header';
 
 interface ReviewPlatformLink {
   platform: string;
@@ -139,7 +138,7 @@ function VideoTestimonialSetup({ formData, setFormData }: { formData: typeof ini
   const [videoToken, setVideoToken] = useState<string | null>(null);
 
   return (
-    <div className="space-y-6">
+    <div className="custom-space-y">
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">Recipient Name/Info (optional)</label>
         <input
@@ -257,6 +256,16 @@ function VideoTestimonialSetup({ formData, setFormData }: { formData: typeof ini
 
 const ZiggeoRecorder = dynamic(() => import('react-ziggeo').then(mod => mod.ZiggeoRecorder), { ssr: false }) as any;
 
+function getPlatformIcon(platform: string, url: string) {
+  const lowerPlatform = (platform || '').toLowerCase();
+  const lowerUrl = (url || '').toLowerCase();
+  if (lowerPlatform.includes('google') || lowerUrl.includes('google')) return { icon: FaGoogle, label: 'Google' };
+  if (lowerPlatform.includes('facebook') || lowerUrl.includes('facebook')) return { icon: FaFacebook, label: 'Facebook' };
+  if (lowerPlatform.includes('yelp') || lowerUrl.includes('yelp')) return { icon: FaYelp, label: 'Yelp' };
+  if (lowerPlatform.includes('tripadvisor') || lowerUrl.includes('tripadvisor')) return { icon: FaTripadvisor, label: 'TripAdvisor' };
+  return { icon: FaRegStar, label: 'Other' };
+}
+
 export default function CreatePromptPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -306,7 +315,10 @@ export default function CreatePromptPage() {
         console.log('Fetched businessData:', businessData);
 
         if (businessData) {
-          setBusinessProfile(businessData);
+          setBusinessProfile({
+            ...businessData,
+            business_name: businessData.name || businessData.business_name
+          });
           // Pre-fill offer fields from business default if enabled
           if (businessData.default_offer_enabled) {
             setFormData(prev => ({
@@ -316,24 +328,24 @@ export default function CreatePromptPage() {
               offer_body: businessData.default_offer_body || 'Use this code "1234" to get a discount on your next purchase.'
             }));
           }
-          if (businessData.preferred_review_platforms) {
-            try {
-              console.log('Raw preferred_review_platforms:', businessData.preferred_review_platforms);
-              const platforms = JSON.parse(businessData.preferred_review_platforms);
-              console.log('Parsed platforms:', platforms);
-              if (Array.isArray(platforms)) {
-                setFormData(prev => ({
-                  ...prev,
-                  review_platforms: platforms.map(p => ({
-                    platform: p.name || p.platform || '',
-                    url: p.url,
-                    wordCount: p.wordCount || 200
-                  }))
-                }));
-              }
-            } catch (e) {
-              console.error('Error parsing platforms:', e);
+          // Robustly pre-fill review platforms if not already set
+          if ((!formData.review_platforms || formData.review_platforms.length === 0) && businessData.review_platforms) {
+            let platforms = businessData.review_platforms;
+            if (typeof platforms === 'string') {
+              try { platforms = JSON.parse(platforms); } catch { platforms = []; }
             }
+            if (!Array.isArray(platforms)) platforms = [];
+            setFormData(prev => ({
+              ...prev,
+              review_platforms: platforms.map((p: any) => ({
+                platform: p.name || p.platform || '',
+                url: p.url || '',
+                wordCount: p.wordCount || 200,
+                customInstructions: p.customInstructions || '',
+                reviewText: p.reviewText || '',
+                customPlatform: p.customPlatform || ''
+              }))
+            }));
           }
           if (businessData.services_offered) {
             let arr = businessData.services_offered;
@@ -561,7 +573,7 @@ export default function CreatePromptPage() {
   };
 
   const renderStep1 = () => (
-    <div className="space-y-6">
+    <div className="custom-space-y">
       {formError && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded">{formError}</div>
       )}
@@ -641,40 +653,40 @@ export default function CreatePromptPage() {
         />
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mt-4 mb-2">
-          Services you provided
-        </label>
-        <div className="space-y-2">
-          {services.map((service, idx) => (
-            <div key={idx} className="flex items-center gap-2">
-              <input
-                type="text"
-                className="w-full border px-3 py-2 rounded"
-                value={service}
-                onChange={e => {
-                  const newServices = [...services];
-                  newServices[idx] = e.target.value;
-                  setServices(newServices);
-                  setFormData(prev => ({ ...prev, services_offered: newServices }));
-                }}
-                required
-                placeholder="e.g., Web Design"
-              />
-              {services.length > 1 && (
-                <button type="button" onClick={() => {
-                  const newServices = services.filter((_, i) => i !== idx);
-                  setServices(newServices);
-                  setFormData(prev => ({ ...prev, services_offered: newServices }));
-                }} className="text-red-600 font-bold">&times;</button>
-              )}
-            </div>
-          ))}
-          <button type="button" onClick={() => {
-            setServices([...services, '']);
-            setFormData(prev => ({ ...prev, services_offered: [...services, ''] }));
-          }} className="text-blue-600 underline mt-2">+ Add Service</button>
-        </div>
+      {/* Services Section Header */}
+      <div className="mt-20 mb-2 flex items-center gap-2">
+        <svg stroke="currentColor" fill="currentColor" strokeWidth="0" viewBox="0 0 512 512" className="w-5 h-5 text-[#1A237E]" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M80 368H16a16 16 0 0 0-16 16v64a16 16 0 0 0 16 16h64a16 16 0 0 0 16-16v-64a16 16 0 0 0-16-16zm0-320H16A16 16 0 0 0 0 64v64a16 16 0 0 0 16 16h64a16 16 0 0 0 16-16V64a16 16 0 0 0-16-16zm0 160H16a16 16 0 0 0-16 16v64a16 16 0 0 0 16 16h64a16 16 0 0 0 16-16v-64a16 16 0 0 0-16-16zm416 176H176a16 16 0 0 0-16 16v32a16 16 0 0 0 16 16h320a16 16 0 0 0 16-16v-32a16 16 0 0 0-16-16zm0-320H176a16 16 0 0 0-16 16v32a16 16 0 0 0 16 16h320a16 16 0 0 0 16-16V80a16 16 0 0 0-16-16zm0 160H176a16 16 0 0 0-16 16v32a16 16 0 0 0 16 16h320a16 16 0 0 0 16-16v-32a16 16 0 0 0-16-16z"></path></svg>
+        <h2 className="text-xl font-semibold" style={{ color: '#1A237E' }}>Services you provided</h2>
+      </div>
+      <div className="space-y-2">
+        {services.map((service, idx) => (
+          <div key={idx} className="flex items-center gap-2">
+            <input
+              type="text"
+              className="w-full border px-3 py-2 rounded"
+              value={service}
+              onChange={e => {
+                const newServices = [...services];
+                newServices[idx] = e.target.value;
+                setServices(newServices);
+                setFormData(prev => ({ ...prev, services_offered: newServices }));
+              }}
+              required
+              placeholder="e.g., Web Design"
+            />
+            {services.length > 1 && (
+              <button type="button" onClick={() => {
+                const newServices = services.filter((_, i) => i !== idx);
+                setServices(newServices);
+                setFormData(prev => ({ ...prev, services_offered: newServices }));
+              }} className="text-red-600 font-bold">&times;</button>
+            )}
+          </div>
+        ))}
+        <button type="button" onClick={() => {
+          setServices([...services, '']);
+          setFormData(prev => ({ ...prev, services_offered: [...services, ''] }));
+        }} className="text-blue-600 underline mt-2">+ Add Service</button>
       </div>
 
       <div>
@@ -682,7 +694,7 @@ export default function CreatePromptPage() {
           Outcome for them
           <Tooltip text="Describe the results and benefits the client received. This information helps AI generate more specific and impactful reviews that highlight the value provided." />
         </label>
-        <p className="text-xs text-gray-500 mt-1 mb-2">Describe the service you provided and how it benefited this individual.</p>
+        <p className="text-xs text-gray-500 mt-1 mb-5">Describe the service you provided and how it benefited this individual.</p>
         <textarea
           id="outcomes"
           value={formData.outcomes}
@@ -700,14 +712,15 @@ export default function CreatePromptPage() {
           <Tooltip text="This note appears at the top of the review page. It helps set the context and tone for the review. The AI will use this information to generate more personalized and relevant reviews." />
         </label>
         <textarea
+          key={businessProfile?.business_name || 'no-business-name'}
           id="friendly_note"
           value={formData.friendly_note}
           onChange={e => setFormData(prev => ({ ...prev, friendly_note: e.target.value }))}
           rows={4}
           className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
-          placeholder={`Hi ${formData.first_name || '[name]'}, thanks so much for doing business with ${businessProfile?.business_name || '[business name]'}. As a small business, getting reviews online is super valuable and extends our reach. Thank you for supporting us!\n\n- ${(businessProfile as any)?.name || '[Account holder name]'}`}
+          placeholder={`Hi ${formData.first_name || '[name]'}, thanks so much for doing business with ${businessProfile?.business_name || '[business name]'}. As a small business, getting reviews online is super valuable and extends our reach. Thank you for supporting us!\n\n- ${businessProfile?.business_name || '[Account holder name]'}`}
         />
-        <p className="text-xs text-gray-500 mt-1 mb-2">This note will appear at the top of the review page for your customer/client. Make it personal!</p>
+        <p className="text-xs text-gray-500 mt-1 mb-5">This note will appear at the top of the review page for your customer/client. Make it personal!</p>
       </div>
 
       <div className="flex justify-end">
@@ -723,7 +736,7 @@ export default function CreatePromptPage() {
   );
 
   const renderStep2 = () => (
-    <div className="space-y-6">
+    <div className="custom-space-y">
       {/* Feedback messages */}
       {saveError && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded">{saveError}</div>
@@ -731,161 +744,51 @@ export default function CreatePromptPage() {
       {saveSuccess && (
         <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded">{saveSuccess}</div>
       )}
-      {/* Top right action buttons */}
-      <div className="flex justify-end gap-4 mb-4">
-        <a
-          href={previewUrl || '#'}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-        >
-          View
-        </a>
-        <button
-          type="submit"
-          className="inline-flex justify-center rounded-md border border-transparent bg-indigo-800 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-          disabled={isSaving}
-        >
-          {isSaving ? 'Publishing...' : 'Save & publish'}
-        </button>
-      </div>
-      {/* Special Offer Section */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-2">
-          <label className="block text-lg font-semibold flex items-center" style={{ color: '#1A237E' }}>
-            <FaGift className="w-6 h-6 mr-2" style={{ color: '#1A237E' }} />
-            Special Offer
-            <Tooltip text="Offer a discount or special offer and a link for users to redeem or learn about the steps they need to take." />
-          </label>
-          <button
-            type="button"
-            onClick={() => setFormData(prev => ({
-              ...prev,
-              offer_enabled: !prev.offer_enabled,
-              offer_title: 'Special Offer',
-              offer_body: 'Use this code "1234" to get a discount on your next purchase.'
-            }))}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${formData.offer_enabled ? 'bg-indigo-500' : 'bg-gray-300'}`}
-            aria-pressed={formData.offer_enabled}
-          >
-            <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${formData.offer_enabled ? 'translate-x-5' : 'translate-x-1'}`}
-            />
-          </button>
-        </div>
-        <div className={`rounded-lg border border-indigo-200 bg-indigo-50 p-4 ${!formData.offer_enabled ? 'opacity-60' : ''}`}>
-          <input
-            type="text"
-            value={formData.offer_title ?? 'Special Offer'}
-            onChange={e => setFormData(prev => ({ ...prev, offer_title: e.target.value }))}
-            placeholder="Offer Title (e.g., Special Offer)"
-            className="block w-full rounded-md border border-indigo-200 bg-indigo-50 focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-2 px-3 mb-2 font-semibold"
-            disabled={!formData.offer_enabled}
-          />
-          <textarea
-            value={formData.offer_body || ''}
-            onChange={e => setFormData(prev => ({ ...prev, offer_body: e.target.value }))}
-            placeholder="Use this code '1234' to get a discount on your next purchase."
-            className="block w-full rounded-md border border-indigo-200 bg-indigo-50 focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-3 px-4"
-            rows={2}
-            disabled={!formData.offer_enabled}
-          />
-          <input
-            type="url"
-            value={formData.offer_url || ''}
-            onChange={e => setFormData(prev => ({ ...prev, offer_url: e.target.value }))}
-            placeholder="Offer URL (e.g., https://yourbusiness.com/claim-reward)"
-            className="block w-full rounded-md border border-indigo-200 bg-indigo-50 focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-2 px-3 mt-2"
-            disabled={!formData.offer_enabled}
-          />
-        </div>
-        <div className="text-xs text-gray-500 mt-2">
-          Note: Services like Google and Yelp have policies against providing rewards in exchange for reviews, so it's best not to promise a reward for "x" number of reviews, etc.
-        </div>
-      </div>
-
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-2">
-          <label className="block text-lg font-semibold flex items-center" style={{ color: '#1A237E' }}>
-            <FaStar className="w-6 h-6" style={{ color: '#FFD600' }} />
-            Falling Icon Effect
-            <Tooltip text="Choose an icon for the fun falling animation. This effect will trigger after a photo is uploaded." />
-          </label>
-          <button
-            type="button"
-            onClick={() => setFormData(prev => ({
-              ...prev,
-              falling_icon: !prev.falling_icon ? 'star' : null,
-            }))}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${formData.falling_icon ? 'bg-indigo-500' : 'bg-gray-300'}`}
-            aria-pressed={formData.falling_icon}
-          >
-            <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${formData.falling_icon ? 'translate-x-5' : 'translate-x-1'}`}
-            />
-          </button>
-        </div>
-        <div className={`flex gap-2 bg-white/80 rounded-full px-3 py-1 border border-gray-200 shadow w-max ${!formData.falling_icon ? 'opacity-60 pointer-events-none' : ''}`}>
-          {[
-            { key: 'star', label: 'Stars', icon: <FaStar className="w-6 h-6" style={{ color: '#FFD600' }} /> },
-            { key: 'heart', label: 'Hearts', icon: <FaHeart className="w-6 h-6" style={{ color: '#E53935' }} /> },
-            { key: 'rainbow', label: 'Rainbows', icon: <span className="w-6 h-6 text-2xl">🌈</span> },
-            { key: 'thumb', label: 'Thumbs Up', icon: <span className="w-6 h-6 text-2xl">👍</span> },
-          ].map(opt => (
-            <button
-              key={opt.key}
-              className={`p-1 rounded-full focus:outline-none transition-all ${formData.falling_icon === opt.key ? 'ring-2 ring-indigo-400 bg-indigo-50' : ''}`}
-              onClick={() => formData.falling_icon && setFormData(prev => ({ ...prev, falling_icon: opt.key }))}
-              aria-label={opt.label}
-              type="button"
-              disabled={!formData.falling_icon}
+      {/* Page Title and top right action buttons */}
+      <div className="flex items-center justify-between mb-12">
+        <h1 className="text-4xl font-bold text-[#1A237E]">Create Your Prompt Page</h1>
+        {step === 2 && (
+          <div className="flex gap-4 items-center">
+            <a
+              href={previewUrl || '#'}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
             >
-              {opt.icon}
+              View
+            </a>
+            <button
+              type="submit"
+              className="inline-flex justify-center rounded-md border border-transparent bg-indigo-800 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              disabled={isSaving}
+            >
+              {isSaving ? 'Publishing...' : 'Save & publish'}
             </button>
-          ))}
-        </div>
-        <div className="text-xs text-gray-500 mt-2">This animation will play after a photo is uploaded.</div>
+          </div>
+        )}
       </div>
-
-      {(formData.review_type === 'photo' || formData.review_type === 'photo_testimonial') ? (
+      {/* Review Platforms Section - moved to top */}
+      {!(formData.review_type === 'photo' || formData.review_type === 'photo_testimonial') && (
         <div>
-          <label className="block text-sm font-medium text-gray-700 mt-4 mb-2">Review Template</label>
-          <textarea
-            className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4 mb-2"
-            rows={6}
-            placeholder="Write or generate a testimonial template for your photo review."
-            value={noPlatformReviewTemplate}
-            onChange={e => {
-              setNoPlatformReviewTemplate(e.target.value);
-              setFormData(prev => ({ ...prev, no_platform_review_template: e.target.value }));
-            }}
-          />
-          <button
-            type="button"
-            onClick={handleGeneratePhotoTemplate}
-            disabled={aiLoadingPhoto}
-            className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm font-medium shadow disabled:opacity-50 disabled:cursor-not-allowed mt-2"
-          >
-            {aiLoadingPhoto ? (
-              <>
-                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Generating...
-              </>
-            ) : (
-              'Generate with AI'
-            )}
-          </button>
-        </div>
-      ) : (
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mt-4 mb-2">Review Platforms</label>
-          <p className="text-sm text-gray-500 mt-1 mb-2">Your business profile platforms have been pre-loaded. You can add more if needed.</p>
+          <div className="mt-8 mb-2 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <FaStar className="w-5 h-5 text-[#1A237E]" />
+              <h2 className="text-xl font-semibold" style={{ color: '#1A237E' }}>Review Platforms</h2>
+            </div>
+          </div>
+          <p className="text-sm text-gray-500 mt-1" style={{ marginBottom: 24 }}>Your business profile platforms have been pre-loaded. You can add more if needed.</p>
           <div className="mt-1 space-y-4">
             {formData.review_platforms.map((link, index) => (
-              <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-6 border rounded-lg bg-gray-50">
+              <div key={index} className="relative grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-6 border rounded-lg bg-gray-50">
+                {/* Platform icon in top left */}
+                {(link.platform || link.url) && (
+                  <div className="absolute -top-4 -left-4 bg-white rounded-full shadow p-2 flex items-center justify-center" title={getPlatformIcon(link.platform, link.url).label}>
+                    {(() => {
+                      const { icon: Icon } = getPlatformIcon(link.platform, link.url);
+                      return <Icon className="w-6 h-6" />;
+                    })()}
+                  </div>
+                )}
                 <div className="space-y-4 flex flex-col justify-between">
                   <div>
                     <label htmlFor={`platform-${index}`} className="block text-sm font-medium text-gray-700 mb-1">
@@ -1034,39 +937,136 @@ export default function CreatePromptPage() {
           </div>
         </div>
       )}
-
-      {/* Bottom right action buttons */}
-      <div className="flex justify-end gap-4 mt-8 pt-6 border-t">
-        <a
-          href={previewUrl || '#'}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-        >
-          View
-        </a>
-        <button
-          type="submit"
-          className="inline-flex justify-center rounded-md border border-transparent bg-indigo-800 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-          disabled={isSaving}
-        >
-          {isSaving ? 'Publishing...' : 'Save & publish'}
-        </button>
+      {/* Special Offer Section */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-2">
+          <label className="block text-lg font-semibold flex items-center" style={{ color: '#1A237E' }}>
+            <FaGift className="w-6 h-6 mr-2" style={{ color: '#1A237E' }} />
+            Special Offer
+            <Tooltip text="Offer a discount or special offer and a link for users to redeem or learn about the steps they need to take." />
+          </label>
+          <button
+            type="button"
+            onClick={() => setFormData(prev => ({
+              ...prev,
+              offer_enabled: !prev.offer_enabled,
+              offer_title: 'Special Offer',
+              offer_body: 'Use this code "1234" to get a discount on your next purchase.'
+            }))}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${formData.offer_enabled ? 'bg-indigo-500' : 'bg-gray-300'}`}
+            aria-pressed={formData.offer_enabled}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${formData.offer_enabled ? 'translate-x-5' : 'translate-x-1'}`}
+            />
+          </button>
+        </div>
+        <div className={`rounded-lg border border-indigo-200 bg-indigo-50 p-4 ${!formData.offer_enabled ? 'opacity-60' : ''}`}>
+          <input
+            type="text"
+            value={formData.offer_title ?? 'Special Offer'}
+            onChange={e => setFormData(prev => ({ ...prev, offer_title: e.target.value }))}
+            placeholder="Offer Title (e.g., Special Offer)"
+            className="block w-full rounded-md border border-indigo-200 bg-indigo-50 focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-2 px-3 mb-2 font-semibold"
+            disabled={!formData.offer_enabled}
+          />
+          <textarea
+            value={formData.offer_body || ''}
+            onChange={e => setFormData(prev => ({ ...prev, offer_body: e.target.value }))}
+            placeholder="Use this code '1234' to get a discount on your next purchase."
+            className="block w-full rounded-md border border-indigo-200 bg-indigo-50 focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-3 px-4"
+            rows={2}
+            disabled={!formData.offer_enabled}
+          />
+          <input
+            type="url"
+            value={formData.offer_url || ''}
+            onChange={e => setFormData(prev => ({ ...prev, offer_url: e.target.value }))}
+            placeholder="Offer URL (e.g., https://yourbusiness.com/claim-reward)"
+            className="block w-full rounded-md border border-indigo-200 bg-indigo-50 focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-2 px-3 mt-2"
+            disabled={!formData.offer_enabled}
+          />
+        </div>
+        <div className="text-xs text-gray-500 mt-2">
+          Note: Services like Google and Yelp have policies against providing rewards in exchange for reviews, so it's best not to promise a reward for "x" number of reviews, etc.
+        </div>
       </div>
 
-      {previewUrl && (
-        <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-md">
-          <p className="text-sm text-green-700">
-            Preview page created!{' '}
-            <a
-              href={previewUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-medium underline hover:text-green-800"
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-2">
+          <label className="block text-lg font-semibold flex items-center" style={{ color: '#1A237E' }}>
+            <FaStar className="w-6 h-6" style={{ color: '#FFD600' }} />
+            Falling Icon Effect
+            <Tooltip text="Choose an icon for the fun falling animation. This effect will trigger after a photo is uploaded." />
+          </label>
+          <button
+            type="button"
+            onClick={() => setFormData(prev => ({
+              ...prev,
+              falling_icon: !prev.falling_icon ? 'star' : null,
+            }))}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${formData.falling_icon ? 'bg-indigo-500' : 'bg-gray-300'}`}
+            aria-pressed={formData.falling_icon}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${formData.falling_icon ? 'translate-x-5' : 'translate-x-1'}`}
+            />
+          </button>
+        </div>
+        <div className={`flex gap-2 bg-white/80 rounded-full px-3 py-1 border border-gray-200 shadow w-max ${!formData.falling_icon ? 'opacity-60 pointer-events-none' : ''}`}>
+          {[
+            { key: 'star', label: 'Stars', icon: <FaStar className="w-6 h-6" style={{ color: '#FFD600' }} /> },
+            { key: 'heart', label: 'Hearts', icon: <FaHeart className="w-6 h-6" style={{ color: '#E53935' }} /> },
+            { key: 'rainbow', label: 'Rainbows', icon: <span className="w-6 h-6 text-2xl">🌈</span> },
+            { key: 'thumb', label: 'Thumbs Up', icon: <span className="w-6 h-6 text-2xl">👍</span> },
+          ].map(opt => (
+            <button
+              key={opt.key}
+              className={`p-1 rounded-full focus:outline-none transition-all ${formData.falling_icon === opt.key ? 'ring-2 ring-indigo-400 bg-indigo-50' : ''}`}
+              onClick={() => formData.falling_icon && setFormData(prev => ({ ...prev, falling_icon: opt.key }))}
+              aria-label={opt.label}
+              type="button"
+              disabled={!formData.falling_icon}
             >
-              Click here to view
-            </a>
-          </p>
+              {opt.icon}
+            </button>
+          ))}
+        </div>
+        <div className="text-xs text-gray-500 mt-2">This animation will play after a photo is uploaded.</div>
+      </div>
+
+      {/* Only show the review template section for photo/photo_testimonial types at the bottom */}
+      {(formData.review_type === 'photo' || formData.review_type === 'photo_testimonial') && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mt-4 mb-2">Review Template</label>
+          <textarea
+            className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4 mb-2"
+            rows={6}
+            placeholder="Write or generate a testimonial template for your photo review."
+            value={noPlatformReviewTemplate}
+            onChange={e => {
+              setNoPlatformReviewTemplate(e.target.value);
+              setFormData(prev => ({ ...prev, no_platform_review_template: e.target.value }));
+            }}
+          />
+          <button
+            type="button"
+            onClick={handleGeneratePhotoTemplate}
+            disabled={aiLoadingPhoto}
+            className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm font-medium shadow disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+          >
+            {aiLoadingPhoto ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Generating...
+              </>
+            ) : (
+              'Generate with AI'
+            )}
+          </button>
         </div>
       )}
     </div>
@@ -1102,97 +1102,25 @@ export default function CreatePromptPage() {
   }, [searchParams]);
 
   return (
-    <>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-400 via-indigo-300 to-purple-300">
       <Header />
-      {(formData.review_type === 'photo' || formData.review_type === 'photo_testimonial') ? (
-        <div
-          className="min-h-screen w-full flex flex-col items-center px-4 sm:px-6 md:px-8"
-          style={businessProfile?.background_type === 'gradient'
-            ? {
-                background: `linear-gradient(to bottom right, ${businessProfile.gradient_start}, ${businessProfile.gradient_middle}, ${businessProfile.gradient_end})`,
-                color: businessProfile?.text_color || '#1F2937',
-              }
-            : {
-                backgroundColor: businessProfile?.background_color || '#FFFFFF',
-                color: businessProfile?.text_color || '#1F2937',
-              }
-          }
-        >
-          <div className="relative bg-white rounded-2xl shadow-lg p-10 animate-slideup w-full mt-24" style={{ maxWidth: 1000 }}>
-            {/* Floating Icon */}
-            <div className="absolute -top-8 -left-8 z-10 bg-white rounded-full shadow-lg p-4 flex items-center justify-center" style={{ width: 64, height: 64 }}>
-              <FaCamera className="w-8 h-8 text-[#1A237E]" style={{ color: '#1A237E' }} />
-            </div>
-            <h1 className="text-3xl font-bold text-left" style={{ color: '#1A237E' }}>
-              Photo + Testimonial
-            </h1>
-            <div className="mt-2 mb-10 text-gray-600 text-base">Fill out as much as you can. It will help the AI generate a better review template.</div>
-            {/* Main Card Content */}
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {step === 1 ? renderStep1() : renderStep2()}
-            </form>
+      <div className="w-full px-4 mt-16 mb-12 mx-auto flex justify-center">
+        <div className="relative w-full" style={{maxWidth: 1000}}>
+          {/* Floating Icon - now relative to the card */}
+          <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center w-16 h-16">
+            <span className="font-bold text-3xl text-[#1A237E]" style={{fontFamily: 'Inter, sans-serif'}}>[P]</span>
+          </div>
+          <div className="rounded-lg shadow-lg p-8 bg-white relative mx-auto" style={{paddingTop: 32, maxWidth: 1000}}>
+            {/* Main form content */}
+            {step === 1 ? renderStep1() : renderStep2()}
           </div>
         </div>
-      ) : (
-        <div className="min-h-screen flex justify-center items-start px-4 sm:px-6 md:px-8">
-          <div className="relative">
-            {/* Floating Icon */}
-            <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center">
-              <FaFileAlt className="w-9 h-9 text-indigo-500" />
-            </div>
-            {/* Main Card */}
-            <div className="rounded-lg shadow-lg p-8 bg-white px-4 sm:px-6 md:px-8">
-              <div className="flex items-center justify-between mb-8">
-                <div className="flex flex-col">
-                  <h1 className="text-4xl font-bold text-indigo-500 flex items-center gap-3">
-                    Create Prompt Page
-                  </h1>
-                  <div className="mt-1 text-xs text-gray-500 max-w-2xl">Create a landing page that makes it incredibly easy for your customers, clients, fans, and friends to post a positive review.</div>
-                </div>
-              </div>
-              {error && (
-                <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-md">{error}</div>
-              )}
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {formData.review_type === 'video' ? <VideoTestimonialSetup formData={formData} setFormData={setFormData} /> : (step === 1 ? renderStep1() : renderStep2())}
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
-      {/* Post-save modal */}
-      <Dialog open={showPostSaveModal} onClose={() => setShowPostSaveModal(false)} className="fixed inset-0 z-[9999] overflow-y-auto border-4 border-red-500">
-        <div className="fixed inset-0 bg-black opacity-30" aria-hidden="true" />
-        <div className="flex items-center justify-center min-h-screen px-4">
-          <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-auto p-8 z-50">
-            <Dialog.Title className="text-xl font-bold mb-4">Prompt Page Saved!</Dialog.Title>
-            <div className="mb-6 text-gray-700">Share your prompt page with your customer:</div>
-            <div className="flex flex-col gap-3">
-              <a
-                href={`sms:?body=${encodeURIComponent('Please leave a review: ' + (pageOrigin + (savedPromptPageUrl || '')) )}`}
-                className="w-full inline-flex items-center justify-center px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition"
-                target="_blank" rel="noopener noreferrer"
-              >Send via SMS</a>
-              <a
-                href={`mailto:?subject=Please leave a review&body=${encodeURIComponent('Please leave a review: ' + (pageOrigin + (savedPromptPageUrl || '')) )}`}
-                className="w-full inline-flex items-center justify-center px-4 py-2 bg-indigo-50 text-indigo-800 rounded-lg font-medium border border-indigo-200 hover:bg-indigo-100 transition"
-                target="_blank" rel="noopener noreferrer"
-              >Send via Email</a>
-              <button
-                onClick={() => {navigator.clipboard.writeText(pageOrigin + (savedPromptPageUrl || '')); setShowPostSaveModal(false);}}
-                className="w-full inline-flex items-center justify-center px-4 py-2 bg-gray-100 text-gray-800 rounded-lg font-medium border border-gray-300 hover:bg-gray-200 transition"
-              >Copy Link</button>
-              <a
-                href={savedPromptPageUrl || '#'}
-                target="_blank" rel="noopener noreferrer"
-                className="w-full inline-flex items-center justify-center px-4 py-2 bg-white text-indigo-700 rounded-lg font-medium border border-indigo-200 hover:bg-indigo-50 transition"
-              >View Page</a>
-            </div>
-            <button className="absolute top-2 right-2 text-gray-400 hover:text-gray-600" onClick={() => setShowPostSaveModal(false)} aria-label="Close">&times;</button>
-          </div>
-        </div>
-      </Dialog>
-      <button onClick={() => setShowPostSaveModal(true)} style={{position: 'fixed', top: 10, right: 10, zIndex: 99999, background: 'red', color: 'white', padding: 8, borderRadius: 4}}>Force Show Modal</button>
-    </>
+      </div>
+      <style jsx global>{`
+        .custom-space-y > :not([hidden]) ~ :not([hidden]) {
+          margin-top: 2em;
+        }
+      `}</style>
+    </div>
   );
 }
