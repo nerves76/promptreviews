@@ -24,6 +24,9 @@ export default function Dashboard() {
   const [universalPromptPage, setUniversalPromptPage] = useState<any>(null);
   const [customPromptPages, setCustomPromptPages] = useState<any[]>([]);
   const [universalUrl, setUniversalUrl] = useState('');
+  const [showPostSaveModal, setShowPostSaveModal] = useState(false);
+  const [savedPromptPageUrl, setSavedPromptPageUrl] = useState<string | null>(null);
+  const [account, setAccount] = useState<any>(null);
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -58,6 +61,16 @@ export default function Dashboard() {
         const { data: { session } } = await getSessionOrMock(supabase);
         if (!session) {
           throw new Error('No active session found. Please sign in again.');
+        }
+
+        // Fetch account profile
+        const { data: accountData, error: accountError } = await supabase
+          .from('accounts')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+        if (!accountError && accountData) {
+          setAccount(accountData);
         }
 
         // Fetch business profile
@@ -105,6 +118,21 @@ export default function Dashboard() {
     fetchData();
   }, [user, searchParams, supabase]);
 
+  useEffect(() => {
+    // Check for post-save modal flag in localStorage
+    if (typeof window !== 'undefined') {
+      const flag = localStorage.getItem('showPostSaveModal');
+      if (flag) {
+        try {
+          const { url } = JSON.parse(flag);
+          setSavedPromptPageUrl(url);
+          setShowPostSaveModal(true);
+        } catch {}
+        localStorage.removeItem('showPostSaveModal');
+      }
+    }
+  }, []);
+
   const handleCreatePromptPageClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (!business) {
       e.preventDefault();
@@ -146,12 +174,31 @@ export default function Dashboard() {
   }
 
   const userName =
-    user?.user_metadata?.full_name ||
-    user?.email?.split('@')[0] ||
+    (account?.first_name && account.first_name.trim()) ||
+    (business?.first_name && business.first_name.trim()) ||
+    (business?.name && business.name.trim()) ||
+    (user?.user_metadata?.full_name && user.user_metadata.full_name.trim()) ||
+    (user?.email?.split('@')[0]) ||
     'there';
 
   return (
     <div className="min-h-screen">
+      {/* Post-save share modal */}
+      {showPostSaveModal && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-40" onClick={() => setShowPostSaveModal(false)}>
+          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full relative" onClick={e => e.stopPropagation()}>
+            <button className="absolute top-2 right-2 text-gray-400 hover:text-gray-600" onClick={() => setShowPostSaveModal(false)} aria-label="Close">&times;</button>
+            <h2 className="text-2xl font-bold text-indigo-800 mb-2">Prompt Page Saved!</h2>
+            <p className="mb-6 text-gray-700">Share your prompt page with your customer:</p>
+            <div className="flex flex-col gap-3">
+              <a href={`sms:?body=${encodeURIComponent('Please leave a review: ' + window.location.origin + (savedPromptPageUrl || ''))}`} className="w-full inline-flex items-center justify-center px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition" target="_blank" rel="noopener noreferrer">Send via SMS</a>
+              <a href={`mailto:?subject=Please leave a review&body=${encodeURIComponent('Please leave a review: ' + window.location.origin + (savedPromptPageUrl || ''))}`} className="w-full inline-flex items-center justify-center px-4 py-2 bg-indigo-50 text-indigo-800 rounded-lg font-medium border border-indigo-200 hover:bg-indigo-100 transition" target="_blank" rel="noopener noreferrer">Send via Email</a>
+              <button onClick={() => {navigator.clipboard.writeText(window.location.origin + (savedPromptPageUrl || '')); setShowPostSaveModal(false);}} className="w-full inline-flex items-center justify-center px-4 py-2 bg-gray-100 text-gray-800 rounded-lg font-medium border border-gray-300 hover:bg-gray-200 transition">Copy Link</button>
+              <a href={savedPromptPageUrl || '#'} target="_blank" rel="noopener noreferrer" className="w-full inline-flex items-center justify-center px-4 py-2 bg-white text-indigo-700 rounded-lg font-medium border border-indigo-200 hover:bg-indigo-50 transition">View Page</a>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="container mx-auto p-4">
         <DashboardContent
           userName={userName}

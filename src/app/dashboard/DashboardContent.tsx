@@ -3,10 +3,11 @@ import Link from 'next/link';
 import { RefObject, useState, useEffect } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { useAuthGuard } from '@/utils/authGuard';
-import { FaGlobe, FaHome, FaBuilding, FaHistory, FaBolt, FaRegComment } from 'react-icons/fa';
+import { FaGlobe, FaHome, FaBuilding, FaHistory, FaBolt, FaRegComment, FaLink } from 'react-icons/fa';
 import { MdDownload, MdEvent, MdVideoLibrary, MdPhotoCamera } from 'react-icons/md';
 import { getUserOrMock } from '@/utils/supabase';
 import QRCodeGenerator, { QR_FRAME_SIZES } from './components/QRCodeGenerator';
+import { useRouter } from 'next/navigation';
 
 interface DashboardContentProps {
   userName: string;
@@ -77,7 +78,7 @@ export default function DashboardContent({
   const [promptPages, setPromptPages] = useState<PromptPage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedTab, setSelectedTab] = useState<'in_queue' | 'in_progress' | 'complete' | 'draft'>('in_queue');
+  const [selectedTab, setSelectedTab] = useState<'in_queue' | 'in_progress' | 'complete' | 'draft'>('draft');
   const [sortField, setSortField] = useState<'first_name' | 'last_name' | 'review_type' | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [selectedPages, setSelectedPages] = useState<string[]>([]);
@@ -88,6 +89,8 @@ export default function DashboardContent({
   const [selectedFrameSize, setSelectedFrameSize] = useState(QR_FRAME_SIZES[0]);
   const [showTypeModal, setShowTypeModal] = useState(false);
   const [selectedType, setSelectedType] = useState('');
+  const [copyLinkId, setCopyLinkId] = useState<string | null>(null);
+  const router = useRouter();
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -98,7 +101,7 @@ export default function DashboardContent({
     {
       key: 'review',
       label: 'Prompt review',
-      icon: <FaRegComment className="w-7 h-7 text-[#1A237E]" />,
+      icon: <span className="text-2xl font-bold" style={{fontFamily: 'Inter, sans-serif', color: '#1A237E'}}>[P]</span>,
       description: 'Send to an individual and encourage them to edit/copy review and then post on any platform (Google, Yelp, BBB, etc.).'
     },
     {
@@ -123,8 +126,7 @@ export default function DashboardContent({
 
   function handlePromptTypeSelect(typeKey: string) {
     setShowTypeModal(false);
-    // TODO: Route to create page with type, or set state
-    // e.g., router.push(`/dashboard/create-prompt-page?type=${typeKey}`)
+    router.push(`/create-prompt-page?type=${typeKey}`);
   }
 
   useEffect(() => {
@@ -354,14 +356,14 @@ export default function DashboardContent({
 
   return (
     <>
-      <div className="min-h-screen flex justify-center items-start">
-        <div className="relative">
+      <div className="min-h-screen flex justify-center items-start w-full">
+        <div className="relative w-full">
           {/* Floating Icon */}
           <div className="absolute -top-4 -left-4 bg-white rounded-full shadow p-2 flex items-center justify-center">
             <FaHome className="w-7 h-7 text-[#1A237E]" />
           </div>
           {/* Main Card */}
-          <div className="rounded-lg shadow-lg p-8 bg-white" style={{maxWidth: 1000}}>
+          <div className="rounded-lg shadow-lg p-8 bg-white w-full" style={{maxWidth: 1000}}>
             <div className="flex items-center justify-between mb-8">
               <h1 className="text-4xl font-bold text-[#1A237E]">
                 Dashboard
@@ -403,9 +405,11 @@ export default function DashboardContent({
                         <Link href={`/r/${universalPromptPage.slug}`} className="text-indigo-600 underline hover:text-indigo-800 hover:underline">
                           View
                         </Link>
-                        <Link href={`/dashboard/edit-prompt-page/${universalPromptPage.slug}`} className="text-indigo-600 underline hover:text-indigo-800 hover:underline">
-                          Edit
-                        </Link>
+                        {universalPromptPage?.slug && (
+                          <Link href={`/dashboard/edit-prompt-page/${universalPromptPage.slug}`} className="text-indigo-600 underline hover:text-indigo-800 hover:underline">
+                            Edit
+                          </Link>
+                        )}
                       </div>
                     </div>
                     <p className="mt-2 text-blue-900 mb-2 text-sm">Your Universal Prompt Page is general-use and not customer specific. The reviews are not prewritten but there is an AI button that will generate a unique review instantly based on your business profile. Your customers/clients can edit before they post. Print your QR code, frame it, and hang it in your place of business for a super-easy way to get customers/clients to post a review. Add the QR code to business cards, menus, flyers, etc.</p>
@@ -434,10 +438,10 @@ export default function DashboardContent({
 
               <div className="mb-6">
                 <h2 className="text-3xl font-bold text-[#1A237E] mb-2 flex items-center gap-3">
-                  <FaRegComment className="w-8 h-8 text-[#1A237E]" />
+                  <span className="text-3xl font-bold align-middle" style={{fontFamily: 'Inter, sans-serif', color: '#1A237E'}}>[P]</span>
                   Your custom prompt pages
                 </h2>
-                <p className="text-gray-600 text-base max-w-2xl mb-4">Manage your customer-specific prompt pages and their review status.</p>
+                <p className="text-gray-600 text-base max-w-2xl mb-4">Create and manage your prompt pages and outreach efforts.</p>
               </div>
 
               <div className="flex items-center gap-4 mb-4">
@@ -617,18 +621,22 @@ export default function DashboardContent({
                               </td>
                               <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900 capitalize">{page.review_type || 'review'}</td>
                               <td className="whitespace-nowrap px-3 py-4 text-sm flex gap-2 items-center">
-                                <Link
-                                  href={`/r/${page.slug}`}
-                                  className="text-indigo-600 underline hover:text-indigo-800 hover:underline"
-                                >
-                                  View
-                                </Link>
-                                <Link
-                                  href={`/dashboard/edit-prompt-page/${page.slug}`}
-                                  className="text-indigo-600 underline hover:text-indigo-800 hover:underline"
-                                >
-                                  Edit
-                                </Link>
+                                <div className="mt-[6px] flex gap-2">
+                                  <Link
+                                    href={`/r/${page.slug}`}
+                                    className="text-indigo-600 underline hover:text-indigo-800 hover:underline"
+                                  >
+                                    View
+                                  </Link>
+                                  {page.slug && (
+                                    <Link
+                                      href={`/dashboard/edit-prompt-page/${page.slug}`}
+                                      className="text-indigo-600 underline hover:text-indigo-800 hover:underline"
+                                    >
+                                      Edit
+                                    </Link>
+                                  )}
+                                </div>
                               </td>
                               <td className="whitespace-nowrap px-3 py-4 text-sm">
                                 <select
@@ -669,6 +677,20 @@ export default function DashboardContent({
                                     >
                                       Send Email
                                     </a>
+                                  )}
+                                  {!page.is_universal && (
+                                    <button
+                                      type="button"
+                                      className="inline-flex items-center px-2 py-1.5 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap w-full sm:w-auto"
+                                      title="Copy Link"
+                                      onClick={async () => {
+                                        await navigator.clipboard.writeText(`${window.location.origin}/r/${page.slug}`);
+                                        setCopyLinkId(page.id);
+                                        setTimeout(() => setCopyLinkId(null), 2000);
+                                      }}
+                                    >
+                                      <FaLink className="w-5 h-5" />
+                                    </button>
                                   )}
                                   <button
                                     type="button"

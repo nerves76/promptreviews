@@ -36,29 +36,52 @@ export function generateReviewPrompt(
     industryInfo += `\n- Other Industry: ${businessProfile.industry_other}`;
   }
 
-  return `You are a satisfied ${reviewerType || 'customer or client'} writing a review for ${businessProfile.business_name}.
+  // Defensive: ensure all fields are strings and never undefined/null
+  const businessName = businessProfile.business_name || '';
+  const yearsInBusiness = businessProfile.years_in_business || '';
+  const services = businessProfile.services_offered || '';
+  const companyValues = businessProfile.company_values || '';
+  const differentiators = businessProfile.differentiators || '';
+  const industriesServed = businessProfile.industries_served || '';
+  const teamFounderInfo = businessProfile.team_founder_info || '';
+  const keywords = businessProfile.keywords || '';
+  const projectType = promptPageData.project_type || '';
+  const outcomes = promptPageData.outcomes || '';
+  const safePlatform = platform || '';
+  const safeCustomInstructions = customInstructions || '';
+  const safeReviewerType = reviewerType || 'customer or client';
+
+  let customerName = '';
+  if (promptPageData.first_name && promptPageData.last_name) {
+    customerName = `- Customer Name: ${promptPageData.first_name} ${promptPageData.last_name}\n`;
+  } else if (promptPageData.first_name) {
+    customerName = `- Customer Name: ${promptPageData.first_name}\n`;
+  } else if (promptPageData.last_name) {
+    customerName = `- Customer Name: ${promptPageData.last_name}\n`;
+  }
+
+  return `You are a satisfied ${safeReviewerType} writing a review for ${businessName}.
 Please write a genuine, detailed, and positive review based on the following information:
 
 Business Information:
-- Business Name: ${businessProfile.business_name}
-- Years in Business: ${businessProfile.years_in_business}
-- Services: ${businessProfile.services_offered}
-- Company Values: ${businessProfile.company_values}
-- What Makes Them Different: ${businessProfile.differentiators}
-- Industries Served: ${businessProfile.industries_served}
-${industryInfo ? industryInfo + '\n' : ''}- Team/Founder Info: ${businessProfile.team_founder_info}
-- Keywords to Include: ${businessProfile.keywords}
+- Business Name: ${businessName}
+- Years in Business: ${yearsInBusiness}
+- Services: ${services}
+- Company Values: ${companyValues}
+- What Makes Them Different: ${differentiators}
+- Industries Served: ${industriesServed}
+${industryInfo ? industryInfo + '\n' : ''}- Team/Founder Info: ${teamFounderInfo}
+- Keywords to Include: ${keywords}
 
 Customer Experience:
-- Customer Name: ${promptPageData.first_name} ${promptPageData.last_name}
-- Service Received: ${promptPageData.project_type}
-- Outcome/Results: ${promptPageData.outcomes}
+${customerName}- Service Received: ${projectType}
+- Outcome/Results: ${outcomes}
 
-Platform: ${platform}
+Platform: ${safePlatform}
 Word Count Limit: ${wordCountLimit} words
-${customInstructions ? `\nCustom Instructions: ${customInstructions}` : ''}
+${safeCustomInstructions ? `\nCustom Instructions: ${safeCustomInstructions}` : ''}
 
-Important: The reviewer is a ${reviewerType || 'customer or client'}. If unsure, avoid using either term or use "customer or client".
+Important: The reviewer is a ${safeReviewerType}. If unsure, avoid using either term or use "customer or client".
 
 Please write a review that:
 1. Sounds authentic and personal

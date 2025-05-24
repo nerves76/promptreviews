@@ -7,7 +7,7 @@ import SocialMediaIcons from '@/app/components/SocialMediaIcons';
 import { Button } from '@/app/components/ui/button';
 import { Textarea } from '@/app/components/ui/textarea';
 import { Card } from '@/app/components/ui/card';
-import { FaStar, FaGoogle, FaFacebook, FaYelp, FaTripadvisor, FaRegStar, FaQuestionCircle, FaPenFancy, FaHeart, FaBookmark, FaHome, FaEnvelope, FaStar as FaFavorites, FaCalendarAlt, FaBell, FaThumbsUp, FaLink } from 'react-icons/fa';
+import { FaStar, FaGoogle, FaFacebook, FaYelp, FaTripadvisor, FaRegStar, FaQuestionCircle, FaPenFancy, FaHeart, FaBookmark, FaHome, FaEnvelope, FaStar as FaFavorites, FaCalendarAlt, FaBell, FaThumbsUp, FaLink, FaImage, FaCamera } from 'react-icons/fa';
 import { IconType } from 'react-icons';
 import ReviewSubmissionForm from '@/components/ReviewSubmissionForm';
 import { useReviewer } from '@/contexts/ReviewerContext';
@@ -120,6 +120,8 @@ export default function PromptPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const [aiLoadingPhoto, setAiLoadingPhoto] = useState(false);
+  const [photoReviewerName, setPhotoReviewerName] = useState('');
+  const [photoReviewerRole, setPhotoReviewerRole] = useState('');
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -456,8 +458,8 @@ export default function PromptPage() {
           prompt_page_id: promptPage.id,
           platform: 'photo',
           status: 'submitted',
-          reviewer_name: '',
-          reviewer_role: '',
+          reviewer_name: photoReviewerName,
+          reviewer_role: photoReviewerRole,
           review_content: testimonial,
           review_group_id: reviewGroupId,
           user_agent: navigator.userAgent,
@@ -465,10 +467,17 @@ export default function PromptPage() {
           photo_url: photoUrl,
         });
       if (submissionError) throw submissionError;
+      // Update the prompt page status to 'complete'
+      await supabase
+        .from('prompt_pages')
+        .update({ status: 'complete' })
+        .eq('id', promptPage.id);
       setPhotoSuccess(true);
       setPhotoFile(null);
       setPhotoPreview(null);
       setTestimonial('');
+      setPhotoReviewerName('');
+      setPhotoReviewerRole('');
     } catch (err: any) {
       setPhotoError(err.message || 'Failed to submit.');
     } finally {
@@ -710,8 +719,8 @@ export default function PromptPage() {
                 href={offerLearnMoreUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="ml-2 text-blue-600 hover:text-blue-800 underline"
-                style={{ marginLeft: 8 }}
+                className="ml-2 underline"
+                style={{ marginLeft: 8, color: businessProfile?.header_color || '#4F46E5' }}
               >
                 Learn More
               </a>
@@ -729,24 +738,26 @@ export default function PromptPage() {
       )}
       <div className="min-h-screen flex justify-center items-start">
         <div className="relative w-full">
-          <div className="mx-auto w-full" style={{ maxWidth: 1000 }}>
+          <div className="max-w-[1000px] w-full mx-auto px-4">
             {/* Business Info Card */}
-            <div className="bg-gray-50 rounded-2xl shadow p-6 mb-8 flex flex-col items-center mx-auto max-w-md animate-slideup relative mt-20">
+            <div className="bg-gray-50 rounded-2xl shadow p-6 mb-8 flex flex-col items-center max-w-md mx-auto animate-slideup relative mt-32">
               {/* Business Logo - No drop-down animation */}
-              <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-44 h-44 flex items-center justify-center" style={{ pointerEvents: 'none' }}>
-                {businessProfile?.logo_url ? (
-                  <img
-                    src={businessProfile.logo_url}
-                    alt={`${businessProfile?.business_name || 'Business'} logo`}
-                    className="h-44 w-44 object-contain rounded-full border-4 border-white shadow-lg relative z-20"
-                  />
-                ) : (
-                  <div className="h-44 w-44 bg-gray-200 rounded-full flex items-center justify-center border-4 border-white shadow-lg relative z-20">
-                    <span className="text-5xl text-gray-500">
-                      {businessProfile?.business_name?.[0] || 'B'}
-                    </span>
-                  </div>
-                )}
+              <div className="absolute left-1/2 -translate-x-1/2 w-44 h-44 aspect-square flex items-center justify-center mb-10" style={{ pointerEvents: 'none', top: '-100px' }}>
+                <div className="bg-white rounded-full p-3 shadow-lg flex items-center justify-center w-full h-full aspect-square">
+                  {businessProfile?.logo_url ? (
+                    <img
+                      src={businessProfile.logo_url}
+                      alt={`${businessProfile?.business_name || 'Business'} logo`}
+                      className="h-36 w-36 aspect-square object-contain rounded-full"
+                    />
+                  ) : (
+                    <div className="h-36 w-36 aspect-square bg-gray-200 rounded-full flex items-center justify-center">
+                      <span className="text-5xl text-gray-500">
+                        {businessProfile?.business_name?.[0] || 'B'}
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
               {/* Business Name - Added more space above */}
               <h1 
@@ -758,6 +769,113 @@ export default function PromptPage() {
               {/* Estimated time note */}
               <div className="text-center text-sm text-gray-500">Estimated time to complete: 2-5 minutes</div>
             </div>
+            {/* Move Photo + Testimonial Module here */}
+            {(promptPage?.review_type === 'photo' || promptPage?.review_type === 'photo_testimonial') && (
+              <div className="mb-8 bg-gray-50 rounded-2xl shadow p-8 animate-slideup">
+                <div className="flex items-center mb-8">
+                  <FaCamera className="w-8 h-8 mr-3" style={{ color: '#1A237E' }} />
+                  <h1 className="text-3xl font-bold text-left" style={{ color: '#1A237E' }}>
+                    Photo + Testimonial
+                  </h1>
+                </div>
+                {photoSuccess ? (
+                  <div className="text-green-600 text-center text-lg font-semibold py-8">Thank you for your photo and testimonial!</div>
+                ) : (
+                  <form onSubmit={handlePhotoSubmit} className="flex flex-col gap-6 items-center">
+                    <div className="flex gap-4">
+                      <button
+                        type="button"
+                        className="px-4 py-2 bg-indigo-600 text-white rounded shadow hover:bg-indigo-700 focus:outline-none"
+                        onClick={() => cameraInputRef.current?.click()}
+                      >
+                        Take Photo
+                      </button>
+                      <button
+                        type="button"
+                        className="px-4 py-2 bg-gray-200 text-gray-800 rounded shadow hover:bg-gray-300 focus:outline-none"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        Upload Photo
+                      </button>
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      ref={cameraInputRef}
+                      style={{ display: 'none' }}
+                      onChange={handlePhotoChange}
+                    />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      ref={fileInputRef}
+                      style={{ display: 'none' }}
+                      onChange={handlePhotoChange}
+                    />
+                    {photoPreview && (
+                      <img src={photoPreview} alt="Preview" className="rounded-lg shadow max-h-64 object-contain" />
+                    )}
+                    <div className="w-full flex flex-col md:flex-row gap-4">
+                      <div className="flex-1 min-w-[200px] max-w-[400px]">
+                        <label htmlFor="photoReviewerName" className="block text-sm font-medium text-gray-700">
+                          Your Name <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          id="photoReviewerName"
+                          value={photoReviewerName}
+                          onChange={e => setPhotoReviewerName(e.target.value)}
+                          placeholder="Ezra C"
+                          className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                          required
+                        />
+                      </div>
+                      <div className="flex-1 min-w-[200px] max-w-[400px]">
+                        <label htmlFor="photoReviewerRole" className="block text-sm font-medium text-gray-700">
+                          Role/Position/Occupation
+                        </label>
+                        <input
+                          type="text"
+                          id="photoReviewerRole"
+                          value={photoReviewerRole}
+                          onChange={e => setPhotoReviewerRole(e.target.value)}
+                          placeholder="Store Manager, GreenSprout Co-Op"
+                          className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                        />
+                      </div>
+                    </div>
+                    <textarea
+                      className="w-full rounded-lg border border-gray-300 p-4 min-h-[120px] focus:ring-2 focus:ring-indigo-400"
+                      placeholder="Write your testimonial here..."
+                      value={testimonial}
+                      onChange={e => setTestimonial(e.target.value)}
+                      required
+                    />
+                    <div className="flex justify-between w-full gap-2">
+                      <button
+                        type="button"
+                        onClick={handleGeneratePhotoTestimonial}
+                        disabled={aiLoadingPhoto}
+                        className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg hover:bg-gray-50 transition-colors"
+                      >
+                        <FaPenFancy style={{ color: businessProfile?.header_color || '#4F46E5' }} />
+                        <span style={{ color: businessProfile?.header_color || '#4F46E5' }}>{aiLoadingPhoto ? 'Generating...' : 'Generate with AI'}</span>
+                      </button>
+                      <button
+                        type="submit"
+                        className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg hover:bg-gray-50 transition-colors"
+                        style={{ color: businessProfile?.header_color || '#4F46E5' }}
+                        disabled={photoSubmitting}
+                      >
+                        {photoSubmitting ? 'Submitting...' : 'Submit'}
+                      </button>
+                    </div>
+                    {photoError && <div className="text-red-500 text-sm">{photoError}</div>}
+                  </form>
+                )}
+              </div>
+            )}
             {/* Personalized Note */}
             {promptPage?.friendly_note && !promptPage?.is_universal && showPersonalNote && canShowPersonalNote && (
               <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fadein">
@@ -806,19 +924,19 @@ export default function PromptPage() {
                         </div>
                         <div className="flex items-center gap-3 mb-2 mt-0">
                           <div
-                            className={`text-lg font-semibold ${businessProfile?.primary_font || 'font-inter'}`}
-                            style={{ color: businessProfile?.header_color || '#4F46E5' }}
+                            className={`text-2xl font-bold ${businessProfile?.primary_font || 'font-inter'}`}
+                            style={{ color: businessProfile?.header_color || '#1A237E' }}
                           >
                             {platform.platform || platform.name}
                             {platform.customInstructions && platform.customInstructions.trim() && (
                               <button
                                 type="button"
-                                className="ml-2 text-yellow-600 hover:text-yellow-800 focus:outline-none"
+                                className="ml-2 focus:outline-none"
                                 onClick={() => setOpenInstructionsIdx(openInstructionsIdx === idx ? null : idx)}
                                 aria-label="Show custom instructions"
                                 style={{ verticalAlign: 'middle' }}
                               >
-                                <FaQuestionCircle className="inline-block w-5 h-5 align-middle" />
+                                <FaQuestionCircle className="inline-block w-5 h-5 align-middle relative" style={{ color: businessProfile?.header_color || '#1A237E', top: '-2px' }} />
                               </button>
                             )}
                           </div>
@@ -841,7 +959,7 @@ export default function PromptPage() {
                           </div>
                         )}
                         <div className="flex flex-col md:flex-row gap-4 mb-2">
-                          <div className="flex-1">
+                          <div className="flex-1 min-w-[300px] max-w-[400px]">
                             <label htmlFor={`reviewerName-${idx}`} className="block text-sm font-medium text-gray-700">
                               Your Name <span className="text-red-500">*</span>
                             </label>
@@ -855,7 +973,7 @@ export default function PromptPage() {
                               required
                             />
                           </div>
-                          <div className="flex-1">
+                          <div className="flex-1 min-w-[300px] max-w-[400px]">
                             <label htmlFor={`reviewerRole-${idx}`} className="block text-sm font-medium text-gray-700">
                               Role/Position/Occupation
                             </label>
@@ -976,14 +1094,14 @@ export default function PromptPage() {
             )}
 
             {/* PromptReviews Advertisement */}
-            <div className="mt-16 bg-white rounded-2xl shadow p-8 animate-slideup">
+            <div className="mt-12 mb-12 bg-white rounded-2xl shadow p-8 animate-slideup" style={{ background: businessProfile?.header_color || '#4F46E5' }}>
               <div className="flex flex-col md:flex-row items-center text-center md:text-left gap-8 md:items-center">
                 <div className="flex-shrink-0 flex items-center justify-center w-full md:w-48 mb-4 md:mb-0">
                   <img
                     src="https://promptreviews.app/wp-content/uploads/2025/05/cropped-Prompt-Reviews-4-300x108.png"
                     alt="Prompt Reviews Logo"
                     className="w-40 h-auto object-contain mx-auto"
-                    style={{ filter: 'invert(18%) sepia(67%) saturate(7472%) hue-rotate(243deg) brightness(80%) contrast(110%)' }}
+                    style={{ filter: 'brightness(0) invert(1)' }}
                   />
                 </div>
                 <div className="flex-1 flex flex-col justify-center">
@@ -994,16 +1112,16 @@ export default function PromptPage() {
                       viewBox="0 0 24 24"
                       fill="none"
                       xmlns="http://www.w3.org/2000/svg"
-                      style={{ color: businessProfile?.header_color || '#4F46E5' }}
+                      style={{ color: '#fff' }}
                     >
                       <path
                         d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
                         fill="currentColor"
                       />
                     </svg>
-                    <span className="text-lg font-semibold" style={{ color: businessProfile?.header_color || '#4F46E5' }}>Powered by Prompt Reviews</span>
+                    <span className="text-lg font-semibold text-white">Powered by Prompt Reviews</span>
                   </div>
-                  <p className="text-gray-600 max-w-2xl">
+                  <p className="max-w-2xl text-white">
                     Get more reviews for your business with our easy-to-use review management platform. 
                     Create custom review pages, track your progress, and grow your online presence.
                   </p>
@@ -1011,86 +1129,13 @@ export default function PromptPage() {
                     href="https://promptreviews.com"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-4 font-medium hover:opacity-80 transition-opacity inline-block"
-                    style={{ color: businessProfile?.header_color || '#4F46E5' }}
+                    className="mt-4 font-medium hover:opacity-80 transition-opacity inline-block text-white underline"
                   >
                     Learn more about Prompt Reviews →
                   </a>
                 </div>
               </div>
             </div>
-
-            {(promptPage?.review_type === 'photo' || promptPage?.review_type === 'photo_testimonial') && (
-              <div className="mb-8 bg-gray-50 rounded-2xl shadow p-8 animate-slideup max-w-lg mx-auto">
-                <h2 className="text-2xl font-bold mb-4 text-center" style={{ color: businessProfile?.header_color || '#1A237E' }}>Share a Photo & Testimonial</h2>
-                {photoSuccess ? (
-                  <div className="text-green-600 text-center text-lg font-semibold py-8">Thank you for your photo and testimonial!</div>
-                ) : (
-                  <form onSubmit={handlePhotoSubmit} className="flex flex-col gap-6 items-center">
-                    <div className="flex gap-4">
-                      <button
-                        type="button"
-                        className="px-4 py-2 bg-indigo-600 text-white rounded shadow hover:bg-indigo-700 focus:outline-none"
-                        onClick={() => cameraInputRef.current?.click()}
-                      >
-                        Take Photo
-                      </button>
-                      <button
-                        type="button"
-                        className="px-4 py-2 bg-gray-200 text-gray-800 rounded shadow hover:bg-gray-300 focus:outline-none"
-                        onClick={() => fileInputRef.current?.click()}
-                      >
-                        Upload Photo
-                      </button>
-                    </div>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      capture="environment"
-                      ref={cameraInputRef}
-                      style={{ display: 'none' }}
-                      onChange={handlePhotoChange}
-                    />
-                    <input
-                      type="file"
-                      accept="image/*"
-                      ref={fileInputRef}
-                      style={{ display: 'none' }}
-                      onChange={handlePhotoChange}
-                    />
-                    {photoPreview && (
-                      <img src={photoPreview} alt="Preview" className="rounded-lg shadow max-h-64 object-contain" />
-                    )}
-                    <textarea
-                      className="w-full rounded-lg border border-gray-300 p-4 min-h-[120px] focus:ring-2 focus:ring-indigo-400"
-                      placeholder="Write your testimonial here..."
-                      value={testimonial}
-                      onChange={e => setTestimonial(e.target.value)}
-                      required
-                    />
-                    <div className="flex justify-end w-full">
-                      <button
-                        type="button"
-                        onClick={handleGeneratePhotoTestimonial}
-                        disabled={aiLoadingPhoto}
-                        className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg hover:bg-gray-50 transition-colors"
-                      >
-                        <FaPenFancy style={{ color: businessProfile?.header_color || '#4F46E5' }} />
-                        <span style={{ color: businessProfile?.header_color || '#4F46E5' }}>{aiLoadingPhoto ? 'Generating...' : 'Generate with AI'}</span>
-                      </button>
-                    </div>
-                    {photoError && <div className="text-red-500 text-sm">{photoError}</div>}
-                    <button
-                      type="submit"
-                      className="px-6 py-2 bg-green-600 text-white rounded shadow hover:bg-green-700 focus:outline-none"
-                      disabled={photoSubmitting}
-                    >
-                      {photoSubmitting ? 'Submitting...' : 'Submit'}
-                    </button>
-                  </form>
-                )}
-              </div>
-            )}
           </div>
         </div>
       </div>

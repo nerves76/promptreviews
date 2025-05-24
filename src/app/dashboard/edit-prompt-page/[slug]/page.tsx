@@ -88,13 +88,14 @@ export default function EditPromptPage() {
     phone: '',
     outcomes: '',
     review_platforms: [] as ReviewPlatformLink[],
-    services_offered: '',
+    services_offered: [] as string[],
     friendly_note: '',
     status: 'in_queue' as 'in_queue' | 'in_progress' | 'complete' | 'draft',
     role: '',
     industry: [] as string[],
     industry_other: '',
     review_type: 'review',
+    photo_url: '',
   });
   const [businessProfile, setBusinessProfile] = useState<BusinessProfile | null>(null);
   const [generatingReview, setGeneratingReview] = useState<number | null>(null);
@@ -112,6 +113,9 @@ export default function EditPromptPage() {
   const [fallingEnabled, setFallingEnabled] = useState(true);
   const [lastIcon, setLastIcon] = useState('star');
   const [industryType, setIndustryType] = useState<'B2B' | 'B2C' | 'Both'>('Both');
+  const [services, setServices] = useState<string[]>([]);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -147,16 +151,20 @@ export default function EditPromptPage() {
           phone: promptData.phone || '',
           outcomes: promptData.outcomes || '',
           review_platforms: promptData.review_platforms || [],
-          services_offered: Array.isArray(promptData.services_offered) 
-            ? promptData.services_offered.join('\n')
-            : '',
+          services_offered: Array.isArray(promptData.services_offered)
+            ? promptData.services_offered
+            : typeof promptData.services_offered === 'string' && promptData.services_offered.length > 0
+              ? [promptData.services_offered]
+              : [],
           friendly_note: promptData.friendly_note || '',
           status: promptData.status || 'in_queue' as 'in_queue' | 'in_progress' | 'complete' | 'draft',
           role: promptData.role || '',
           industry: promptData.industry || [],
           industry_other: promptData.industry_other || '',
           review_type: promptData.review_type || 'review',
+          photo_url: promptData.photo_url || '',
         });
+        setPhotoUrl(promptData.photo_url || null);
         setIsUniversal(!!promptData.is_universal);
         setOfferEnabled(!!promptData.offer_enabled);
         setOfferTitle(promptData.offer_title || 'Special Offer');
@@ -170,6 +178,15 @@ export default function EditPromptPage() {
           } else {
             setFallingEnabled(false);
           }
+        }
+        if (promptData.services_offered) {
+          let arr = promptData.services_offered;
+          if (typeof arr === 'string') {
+            try { arr = JSON.parse(arr); } catch { arr = arr.split(/\r?\n/); }
+          }
+          if (!Array.isArray(arr)) arr = [];
+          setServices(arr.filter(Boolean));
+          setFormData(prev => ({ ...prev, services_offered: arr.filter(Boolean) }));
         }
       
         // Fetch business profile
@@ -295,7 +312,7 @@ export default function EditPromptPage() {
         {
           first_name: formData.first_name,
           last_name: formData.last_name,
-          project_type: formData.services_offered,
+          project_type: Array.isArray(formData.services_offered) ? formData.services_offered.join(', ') : formData.services_offered,
           outcomes: formData.outcomes,
         },
         formData.review_platforms[index].platform,
@@ -396,11 +413,8 @@ export default function EditPromptPage() {
         }
 
         // Handle services_offered
-        if (formData.services_offered) {
-          const services = formData.services_offered.split('\n')
-            .map(s => s.trim())
-            .filter(Boolean);
-          updateData.services_offered = services.length > 0 ? services : null;
+        if (formData.services_offered && formData.services_offered.length > 0) {
+          updateData.services_offered = formData.services_offered;
         } else {
           updateData.services_offered = null;
         }
@@ -426,7 +440,7 @@ export default function EditPromptPage() {
         throw updateError;
       }
       
-      setSuccessMessage('Changes saved successfully!');
+      setShowShareModal(true);
       
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update prompt page');
@@ -457,9 +471,10 @@ export default function EditPromptPage() {
         await supabase.from('prompt_pages').update({ falling_icon: null }).eq('id', promptPage.id);
         setFallingEnabled(false);
       } else {
-        // Turn on, restore last icon or default
-        await supabase.from('prompt_pages').update({ falling_icon: lastIcon || 'star' }).eq('id', promptPage.id);
-        setFallingIcon(lastIcon || 'star');
+        // Turn on, always set to 'star' by default
+        await supabase.from('prompt_pages').update({ falling_icon: 'star' }).eq('id', promptPage.id);
+        setFallingIcon('star');
+        setLastIcon('star');
         setFallingEnabled(true);
       }
     } finally {
@@ -595,18 +610,39 @@ export default function EditPromptPage() {
       </div>
 
       <div>
-        <label htmlFor="services_offered" className="block text-sm font-medium text-gray-700 mt-4 mb-2">
-          Services provided (one per line)
+        <label className="block text-sm font-medium text-gray-700 mt-4 mb-2">
+          Services provided
         </label>
-        <textarea
-          id="services_offered"
-          value={formData.services_offered}
-          onChange={e => setFormData(prev => ({ ...prev, services_offered: e.target.value }))}
-          rows={3}
-          className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
-          placeholder="Enter each service on a new line"
-          required
-        />
+        <div className="space-y-2">
+          {services.map((service, idx) => (
+            <div key={idx} className="flex items-center gap-2">
+              <input
+                type="text"
+                className="w-full border px-3 py-2 rounded"
+                value={service}
+                onChange={e => {
+                  const newServices = [...services];
+                  newServices[idx] = e.target.value;
+                  setServices(newServices);
+                  setFormData(prev => ({ ...prev, services_offered: newServices }));
+                }}
+                required
+                placeholder="e.g., Web Design"
+              />
+              {services.length > 1 && (
+                <button type="button" onClick={() => {
+                  const newServices = services.filter((_, i) => i !== idx);
+                  setServices(newServices);
+                  setFormData(prev => ({ ...prev, services_offered: newServices }));
+                }} className="text-red-600 font-bold">&times;</button>
+              )}
+            </div>
+          ))}
+          <button type="button" onClick={() => {
+            setServices([...services, '']);
+            setFormData(prev => ({ ...prev, services_offered: [...services, ''] }));
+          }} className="text-blue-600 underline mt-2">+ Add Service</button>
+        </div>
       </div>
 
       <div>
@@ -950,6 +986,21 @@ export default function EditPromptPage() {
           <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center">
             <FaStar className="w-9 h-9 text-[#1A237E]" />
           </div>
+          {/* Photo display area */}
+          {photoUrl && (
+            <div className="flex flex-col items-center mb-8">
+              <div className="w-[200px] h-[200px] rounded-lg overflow-hidden border-2 border-gray-200 flex items-center justify-center bg-gray-50">
+                <img src={photoUrl} alt="Testimonial Photo" className="object-cover w-full h-full" />
+              </div>
+              <a
+                href={photoUrl}
+                download
+                className="mt-2 inline-block px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm font-medium"
+              >
+                Download Photo
+              </a>
+            </div>
+          )}
           <div className="flex items-center justify-between mb-8">
             <div className="flex flex-col">
               <h1 className="text-4xl font-bold text-[#1A237E]">Edit Prompt Page</h1>
@@ -960,6 +1011,21 @@ export default function EditPromptPage() {
           </form>
         </div>
       </div>
+      {showShareModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40" onClick={() => setShowShareModal(false)}>
+          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full relative" onClick={e => e.stopPropagation()}>
+            <button className="absolute top-2 right-2 text-gray-400 hover:text-gray-600" onClick={() => setShowShareModal(false)} aria-label="Close">&times;</button>
+            <h2 className="text-2xl font-bold text-indigo-800 mb-2">Prompt Page Saved!</h2>
+            <p className="mb-6 text-gray-700">Share your prompt page with your customer:</p>
+            <div className="flex flex-col gap-3">
+              <a href={`sms:?body=${encodeURIComponent('Please leave a review: ' + window.location.origin + '/r/' + params.slug)}`} className="w-full inline-flex items-center justify-center px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition" target="_blank" rel="noopener noreferrer">Send via SMS</a>
+              <a href={`mailto:?subject=Please leave a review&body=${encodeURIComponent('Please leave a review: ' + window.location.origin + '/r/' + params.slug)}`} className="w-full inline-flex items-center justify-center px-4 py-2 bg-indigo-50 text-indigo-800 rounded-lg font-medium border border-indigo-200 hover:bg-indigo-100 transition" target="_blank" rel="noopener noreferrer">Send via Email</a>
+              <button onClick={() => {navigator.clipboard.writeText(window.location.origin + '/r/' + params.slug); setShowShareModal(false);}} className="w-full inline-flex items-center justify-center px-4 py-2 bg-gray-100 text-gray-800 rounded-lg font-medium border border-gray-300 hover:bg-gray-200 transition">Copy Link</button>
+              <a href={`/r/${params.slug}`} target="_blank" rel="noopener noreferrer" className="w-full inline-flex items-center justify-center px-4 py-2 bg-white text-indigo-700 rounded-lg font-medium border border-indigo-200 hover:bg-indigo-50 transition">View Page</a>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 
