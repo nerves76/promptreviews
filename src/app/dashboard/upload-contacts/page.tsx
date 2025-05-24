@@ -259,7 +259,7 @@ export default function UploadContactsPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen py-12 px-2">
-        <div className="max-w-4xl mx-auto">
+        <div className="w-full mx-auto">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
             <p className="mt-4 text-gray-600">Loading contacts...</p>
@@ -304,21 +304,21 @@ export default function UploadContactsPage() {
           </div>
         </div>
       </Dialog>
-      <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-8 relative">
+      <div className="w-full mx-auto bg-white rounded-lg shadow-lg p-8 relative" style={{maxWidth: 1000}}>
         <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center">
-          <FaUpload className="w-9 h-9 text-indigo-500" />
+          <FaUpload className="w-9 h-9 text-[#1A237E]" />
         </div>
         <div className="flex items-center justify-between mb-8">
           <div className="flex flex-col">
-            <h1 className="text-4xl font-bold text-[#452F9F]">Upload Contacts</h1>
+            <h1 className="text-4xl font-bold text-[#1A237E]">Upload contacts</h1>
             {/* Optionally add subcopy here if needed */}
           </div>
         </div>
 
         {/* Upload Instructions Section */}
         <div className="mb-16">
-          <h2 className="mt-20 text-2xl font-bold text-indigo-900 flex items-center gap-3 mb-12">
-            <FaInfoCircle className="w-7 h-7 text-indigo-500" />
+          <h2 className="mt-20 text-2xl font-bold text-[#1A237E] flex items-center gap-3 mb-12">
+            <FaInfoCircle className="w-7 h-7 text-[#1A237E]" />
             How to upload contacts
           </h2>
           <ol className="list-decimal list-inside space-y-2 text-indigo-800">
@@ -332,9 +332,9 @@ export default function UploadContactsPage() {
 
         {/* Upload Section with Preview */}
         <div className="mb-16 bg-blue-50 rounded-lg p-6 border border-blue-100">
-          <h2 className="text-2xl font-bold text-blue-900 flex items-center gap-3 mb-12">
-            <FaUsers className="w-7 h-7 text-blue-500" />
-            Add Your Contacts
+          <h2 className="text-2xl font-bold text-[#1A237E] flex items-center gap-3 mb-12">
+            <FaUsers className="w-7 h-7 text-[#1A237E]" />
+            Add your contacts
           </h2>
 
           <div className="flex items-center justify-between mb-4">
@@ -361,7 +361,7 @@ export default function UploadContactsPage() {
               onClick={handleDownloadTemplate}
               className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
-              <FaDownload className="text-blue-500" />
+              <FaDownload className="text-[#1A237E]" />
               Download CSV template
             </button>
           </div>
@@ -381,8 +381,8 @@ export default function UploadContactsPage() {
           {/* Preview Section */}
           {preview.length > 0 && (
             <div className="mt-8">
-              <h2 className="text-2xl font-bold text-blue-900 flex items-center gap-3 mb-12">
-                <FaEye className="w-7 h-7 text-blue-500" />
+              <h2 className="text-2xl font-bold text-[#1A237E] flex items-center gap-3 mb-12">
+                <FaEye className="w-7 h-7 text-[#1A237E]" />
                 Preview
               </h2>
               <div className="overflow-x-auto rounded-lg border border-blue-200 bg-white">
@@ -434,8 +434,8 @@ export default function UploadContactsPage() {
 
         {/* CSV Column Descriptions Section */}
         <div className="mb-16">
-          <h2 className="text-2xl font-bold text-indigo-900 flex items-center gap-3 mb-12">
-            <FaList className="w-7 h-7 text-indigo-500" />
+          <h2 className="text-2xl font-bold text-[#1A237E] flex items-center gap-3 mb-12">
+            <FaList className="w-7 h-7 text-[#1A237E]" />
             CSV column descriptions
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

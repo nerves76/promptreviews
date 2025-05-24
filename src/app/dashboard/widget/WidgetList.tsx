@@ -2,22 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { FaCopy } from 'react-icons/fa';
-
-// Mock widget data for now
-const mockWidgets = [
-  {
-    id: 'widget-1',
-    name: 'Homepage Widget',
-    review_count: 5,
-    is_active: true,
-  },
-  {
-    id: 'widget-2',
-    name: 'Product Page Widget',
-    review_count: 3,
-    is_active: true,
-  },
-];
+import { getUserOrMock } from '@/utils/supabase';
 
 const WORD_LIMIT = 120;
 const MAX_WIDGET_REVIEWS = 8;
@@ -26,8 +11,8 @@ function wordCount(str: string) {
   return str.trim().split(/\s+/).length;
 }
 
-export default function WidgetList({ onSelectWidget, selectedWidgetId, onDesignChange }: { onSelectWidget?: (widget: any) => void, selectedWidgetId?: string, onDesignChange?: (design: any) => void }) {
-  const [widgets, setWidgets] = useState(mockWidgets);
+export default function WidgetList({ onSelectWidget, selectedWidgetId, onDesignChange, design: parentDesign, onWidgetReviewsChange }: { onSelectWidget?: (widget: any) => void, selectedWidgetId?: string, onDesignChange?: (design: any) => void, design?: any, onWidgetReviewsChange?: () => void }) {
+  const [widgets, setWidgets] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null as null | string);
   const [form, setForm] = useState({ name: '', review_count: 5 });
@@ -44,11 +29,13 @@ export default function WidgetList({ onSelectWidget, selectedWidgetId, onDesignC
   const [activeTab, setActiveTab] = useState<'select' | 'edit'>('select');
 
   // Widget design state (for editing)
-  const [design, setDesign] = useState({
+  const [design, setDesign] = useState(parentDesign || {
+    bgType: 'solid', // 'none' | 'solid'
     bgColor: '#ffffff',
     textColor: '#22223b',
     accentColor: '#6c47ff',
-    fontSize: 16,
+    quoteFontSize: 18,
+    attributionFontSize: 15,
     borderRadius: 16,
     shadow: true,
     bgOpacity: 1,
@@ -58,6 +45,9 @@ export default function WidgetList({ onSelectWidget, selectedWidgetId, onDesignC
     borderWidth: 2,
     lineSpacing: 1.4,
     showQuotes: false,
+    showRelativeDate: false,
+    showGrid: false,
+    width: 1000, // Set default width to 1000
   });
 
   // Draggable edit modal state
@@ -68,6 +58,13 @@ export default function WidgetList({ onSelectWidget, selectedWidgetId, onDesignC
 
   // Copy embed code state
   const [copiedWidgetId, setCopiedWidgetId] = useState<string | null>(null);
+
+  // Add these new states at the top with other review management state:
+  const [editedNames, setEditedNames] = useState<{ [id: string]: string }>({});
+  const [editedRoles, setEditedRoles] = useState<{ [id: string]: string }>({});
+
+  // Add this state near other modal states:
+  const [editTabError, setEditTabError] = useState('');
 
   // Center edit modal after mount
   useEffect(() => {
@@ -80,10 +77,17 @@ export default function WidgetList({ onSelectWidget, selectedWidgetId, onDesignC
     }
   }, [showForm]);
 
-  // Notify parent of design changes
+  // Update this effect to only depend on showForm:
   useEffect(() => {
     if (onDesignChange) onDesignChange(design);
   }, [design, onDesignChange]);
+
+  // Listen for openNewWidgetForm event from parent
+  useEffect(() => {
+    const handler = () => handleOpenForm();
+    window.addEventListener('openNewWidgetForm', handler);
+    return () => window.removeEventListener('openNewWidgetForm', handler);
+  }, []);
 
   // Fetch real reviews from Supabase
   useEffect(() => {
@@ -106,7 +110,29 @@ export default function WidgetList({ onSelectWidget, selectedWidgetId, onDesignC
       });
   }, [showReviewModal]);
 
-  const handleOpenForm = (widget?: typeof mockWidgets[0]) => {
+  // On mount, fetch widgets from Supabase
+  useEffect(() => {
+    const fetchWidgets = async () => {
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
+      const { data, error } = await supabase
+        .from('widgets')
+        .select('*')
+        .order('created_at', { ascending: true });
+      if (error) {
+        console.error('[DEBUG] Failed to fetch widgets:', error);
+        setWidgets([]);
+      } else {
+        setWidgets(data || []);
+        console.log('[DEBUG] widgets fetched:', data);
+      }
+    };
+    fetchWidgets();
+  }, []);
+
+  const handleOpenForm = (widget?: typeof widgets[0]) => {
     if (widget) {
       setEditing(widget.id);
       setForm({ name: widget.name, review_count: widget.review_count });
@@ -117,26 +143,101 @@ export default function WidgetList({ onSelectWidget, selectedWidgetId, onDesignC
     setShowForm(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.name.trim()) return;
-    if (editing) {
-      setWidgets(widgets.map(w => w.id === editing ? { ...w, ...form } : w));
-    } else {
-      setWidgets([
-        ...widgets,
-        { id: `widget-${Date.now()}`, name: form.name, review_count: form.review_count, is_active: true },
-      ]);
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+    const { data: { user } } = await getUserOrMock(supabase);
+    if (!user) {
+      alert('You must be signed in to create a widget.');
+      return;
     }
+    if (editing) {
+      // Update existing widget
+      const { error } = await supabase
+        .from('widgets')
+        .update({
+          name: form.name,
+          review_count: form.review_count,
+          theme: design,
+        })
+        .eq('id', editing);
+      if (error) {
+        alert('Failed to update widget: ' + error.message);
+        return;
+      }
+      setWidgets(widgets.map(w => w.id === editing ? { ...w, ...form, theme: design } : w));
+    } else {
+      // Create new widget
+      const { data, error } = await supabase
+        .from('widgets')
+        .insert([
+          {
+            name: form.name,
+            review_count: form.review_count,
+            theme: design,
+            is_active: true,
+            account_id: user.id,
+          },
+        ])
+        .select();
+      if (error) {
+        alert('Failed to create widget: ' + error.message);
+        return;
+      }
+      if (data && data[0]) {
+        setWidgets([...widgets, data[0]]);
+      }
+    }
+    if (onDesignChange) onDesignChange(design);
     setShowForm(false);
   };
 
   // Review management handlers
-  const handleOpenReviewModal = (widgetId: string) => {
+  const handleOpenReviewModal = async (widgetId: string) => {
+    console.log('[DEBUG] Opening review modal for widgetId:', widgetId);
     setSelectedWidget(widgetId);
     setShowReviewModal(true);
-    setSelectedReviews([]);
-    setEditedReviews({});
     setReviewError('');
+    setLoadingReviews(true);
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+    // Fetch widget_reviews for this widget
+    const { data: widgetReviews, error } = await supabase
+      .from('widget_reviews')
+      .select('review_id, review_content, reviewer_name, reviewer_role, platform, created_at')
+      .eq('widget_id', widgetId)
+      .order('order_index', { ascending: true });
+    console.log('[DEBUG] widgetReviews fetched:', widgetReviews, 'error:', error);
+    if (error) {
+      setSelectedReviews([]);
+      setEditedReviews({});
+      setEditedNames({});
+      setEditedRoles({});
+      setLoadingReviews(false);
+      return;
+    }
+    // Set selectedReviews to the reviews in the widget, mapping id: review_id
+    const mappedReviews = (widgetReviews || []).map(r => ({ ...r, id: r.review_id }));
+    setSelectedReviews(mappedReviews);
+    console.log('[DEBUG] selectedReviews set:', mappedReviews);
+    // Set edited fields to match the widget's current reviews
+    const editedReviewsObj: { [id: string]: string } = {};
+    const editedNamesObj: { [id: string]: string } = {};
+    const editedRolesObj: { [id: string]: string } = {};
+    (widgetReviews || []).forEach(r => {
+      editedReviewsObj[r.review_id] = r.review_content;
+      editedNamesObj[r.review_id] = r.reviewer_name;
+      editedRolesObj[r.review_id] = r.reviewer_role;
+    });
+    setEditedReviews(editedReviewsObj);
+    setEditedNames(editedNamesObj);
+    setEditedRoles(editedRolesObj);
+    setLoadingReviews(false);
   };
 
   const handleToggleReview = (review: any) => {
@@ -155,7 +256,8 @@ export default function WidgetList({ onSelectWidget, selectedWidgetId, onDesignC
     setEditedReviews((prev) => ({ ...prev, [id]: value }));
   };
 
-  const handleSaveReviews = () => {
+  const handleSaveReviews = async () => {
+    if (!selectedWidget) return;
     // Validate all selected reviews are within word limit
     for (const review of selectedReviews) {
       const text = editedReviews[review.id] ?? review.review_content;
@@ -164,8 +266,81 @@ export default function WidgetList({ onSelectWidget, selectedWidgetId, onDesignC
         return;
       }
     }
-    // For now, just close modal. In production, save to widget config/db.
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+    // Fetch current widget_reviews for this widget
+    const { data: currentWidgetReviews, error: fetchError } = await supabase
+      .from('widget_reviews')
+      .select('id, review_id')
+      .eq('widget_id', selectedWidget);
+    if (fetchError) {
+      setReviewError('Failed to fetch widget reviews: ' + fetchError.message);
+      return;
+    }
+    const currentIds = (currentWidgetReviews || []).map(r => r.review_id);
+    // Insert new reviews
+    for (let i = 0; i < selectedReviews.length; i++) {
+      const review = selectedReviews[i];
+      const editedText = editedReviews[review.id] ?? review.review_content;
+      const editedName = editedNames[review.id] ?? review.reviewer_name;
+      const editedRole = editedRoles[review.id] ?? review.reviewer_role;
+      if (!currentIds.includes(review.id)) {
+        // Insert new widget_review
+        const { error: insertError } = await supabase
+          .from('widget_reviews')
+          .insert([
+            {
+              widget_id: selectedWidget,
+              review_id: review.id,
+              review_content: editedText,
+              reviewer_name: editedName,
+              reviewer_role: editedRole,
+              platform: review.platform,
+              order_index: i,
+            },
+          ]);
+        if (insertError) {
+          setReviewError('Failed to add review: ' + insertError.message);
+          return;
+        }
+      } else {
+        // Update edited review
+        const widgetReview = (currentWidgetReviews || []).find(r => r.review_id === review.id);
+        if (widgetReview) {
+          const { error: updateError } = await supabase
+            .from('widget_reviews')
+            .update({
+              review_content: editedText,
+              reviewer_name: editedName,
+              reviewer_role: editedRole,
+              platform: review.platform,
+              order_index: i,
+            })
+            .eq('id', widgetReview.id);
+          if (updateError) {
+            setReviewError('Failed to update review: ' + updateError.message);
+            return;
+          }
+        }
+      }
+    }
+    // Delete removed reviews
+    for (const widgetReview of currentWidgetReviews || []) {
+      if (!selectedReviews.some(r => r.id === widgetReview.review_id)) {
+        const { error: deleteError } = await supabase
+          .from('widget_reviews')
+          .delete()
+          .eq('id', widgetReview.id);
+        if (deleteError) {
+          setReviewError('Failed to remove review: ' + deleteError.message);
+          return;
+        }
+      }
+    }
     setShowReviewModal(false);
+    if (onWidgetReviewsChange) onWidgetReviewsChange();
   };
 
   const handleEditMouseDown = (e: React.MouseEvent) => {
@@ -209,17 +384,15 @@ export default function WidgetList({ onSelectWidget, selectedWidgetId, onDesignC
     setTimeout(() => setCopiedWidgetId(null), 1500);
   };
 
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => setIsClient(true), []);
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-indigo-900">Your widgets</h2>
-        <button
-          className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
-          onClick={() => handleOpenForm()}
-        >
-          + New widget
-        </button>
+        {/* Title and button now handled in parent card header */}
       </div>
+      <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Widgets</div>
       <ul className="space-y-4">
         {widgets.map(widget => (
           <li
@@ -228,7 +401,7 @@ export default function WidgetList({ onSelectWidget, selectedWidgetId, onDesignC
             onClick={() => onSelectWidget && onSelectWidget(widget)}
           >
             <div>
-              <div className="font-semibold text-lg text-gray-900">{widget.name}</div>
+              <div className="font-semibold text-lg text-dustyPlum">{widget.name}</div>
               <button
                 className="mt-2 flex items-center gap-2 text-xs text-indigo-700 hover:text-indigo-900 border border-indigo-100 rounded px-2 py-1 bg-indigo-50 hover:bg-indigo-100"
                 onClick={(e) => { e.stopPropagation(); handleCopyEmbed(widget.id); }}
@@ -245,14 +418,14 @@ export default function WidgetList({ onSelectWidget, selectedWidgetId, onDesignC
                 onClick={e => { e.stopPropagation(); handleOpenForm(widget); }}
                 aria-label={`Edit widget ${widget.name}`}
               >
-                Edit
+                Edit Style
               </button>
               <button
-                className="px-3 py-1 bg-green-100 text-green-800 rounded hover:bg-green-200"
-                onClick={e => { e.stopPropagation(); handleOpenReviewModal(widget.id); }}
+                className="px-3 py-1 bg-paleGold text-charcoalBlack border border-paleGold rounded hover:bg-softPeach hover:border-softPeach transition-colors"
+                onClick={async e => { e.stopPropagation(); await handleOpenReviewModal(widget.id); }}
                 aria-label={`Manage reviews for ${widget.name}`}
               >
-                Manage reviews
+                Add/Edit Reviews
               </button>
             </div>
           </li>
@@ -263,37 +436,49 @@ export default function WidgetList({ onSelectWidget, selectedWidgetId, onDesignC
         <div className="fixed inset-0 z-50">
           <div
             ref={editModalRef}
-            className="bg-white rounded-lg shadow-lg pt-0 px-8 pb-8 max-w-sm w-full fixed flex flex-col"
+            className="bg-white rounded-lg shadow-lg pt-0 px-8 pb-8 max-w-3xl w-full fixed flex flex-col"
             style={{
               minHeight: 400,
               left: editModalPos.x,
               top: editModalPos.y,
               cursor: editDragging ? 'grabbing' : undefined,
-              width: 500,
-              maxWidth: '90vw',
+              width: 860,
+              maxWidth: '94vw',
             }}
           >
-            {/* Draggable Header (absolute, full width, taller) */}
+            {/* Draggable Header (absolute, full width, taller) with Save and Close buttons */}
             <div
-              className="absolute left-0 top-0 w-full h-8 rounded-t-lg bg-gradient-to-r from-indigo-100 to-purple-100 cursor-grab select-none flex items-center justify-between px-4 z-10"
+              className="absolute left-0 top-0 w-full h-16 rounded-t-lg bg-gradient-to-r from-indigo-100 to-purple-100 select-none z-20"
               style={{ cursor: editDragging ? 'grabbing' : 'grab' }}
               onMouseDown={e => {
                 if ((e.target as HTMLElement).closest('button')) return;
                 handleEditMouseDown(e);
               }}
             >
-              <span className="text-xs text-gray-400">Drag to move</span>
+              <div className="flex items-center justify-between h-full">
+                <div className="flex items-center gap-4 ml-8">
+                  <span className="text-xl font-bold text-indigo-900">{editing ? 'Edit widget' : 'New widget'}</span>
+                  <span className="text-xs text-gray-400 ml-4">Drag to move</span>
+                </div>
+                <button
+                  className="py-2 px-5 bg-dustyPlum text-pureWhite rounded-lg font-semibold hover:bg-lavenderHaze hover:text-dustyPlum transition-colors shadow mr-8"
+                  onClick={handleSave}
+                  style={{ minWidth: 90 }}
+                >
+                  Save
+                </button>
+              </div>
               <button
-                className="text-gray-400 hover:text-gray-700 text-xl"
+                className="flex items-center justify-center w-10 h-10 bg-white rounded-full shadow text-gray-400 hover:text-gray-700 text-xl z-20 border border-gray-200"
                 onClick={() => setShowForm(false)}
                 aria-label="Close"
-                style={{ cursor: 'pointer' }}
+                style={{ position: 'absolute', top: '-12px', right: '-12px', cursor: 'pointer' }}
               >
                 &times;
               </button>
             </div>
-            <div className="mt-10" />
-            <h3 className="text-xl font-bold mb-4 text-indigo-900">{editing ? 'Edit widget' : 'New widget'}</h3>
+            {/* Add extra space below the draggable header */}
+            <div className="mt-16" />
             <label className="block text-sm font-medium text-gray-700 mb-2">Widget name</label>
             <input
               type="text"
@@ -305,157 +490,360 @@ export default function WidgetList({ onSelectWidget, selectedWidgetId, onDesignC
             />
             {/* Design Controls */}
             <div className="mt-6 mb-4">
-              <h4 className="font-semibold text-indigo-900 mb-2">Design</h4>
-              <div className="flex flex-col gap-4">
-                <div className="flex gap-4 items-center">
-                  <label className="text-sm w-32">Background</label>
-                  <input type="color" value={design.bgColor} onChange={e => setDesign(d => ({ ...d, bgColor: e.target.value }))} />
-                  <input type="text" className="border rounded px-2 py-1 w-28" value={design.bgColor} onChange={e => setDesign(d => ({ ...d, bgColor: e.target.value }))} />
-                </div>
-                <div className="flex gap-4 items-center">
-                  <label className="text-sm w-32">Transparency</label>
-                  <input
-                    type="range"
-                    min={0.1}
-                    max={1}
-                    step={0.01}
-                    value={design.bgOpacity}
-                    onChange={e => setDesign(d => ({ ...d, bgOpacity: Number(e.target.value) }))}
-                    className="w-32"
-                  />
-                  <span className="text-xs text-gray-500">{Math.round(design.bgOpacity * 100)}%</span>
-                </div>
-                <div className="flex gap-4 items-center">
-                  <label className="text-sm w-32">Text</label>
-                  <input type="color" value={design.textColor} onChange={e => setDesign(d => ({ ...d, textColor: e.target.value }))} />
-                  <input type="text" className="border rounded px-2 py-1 w-28" value={design.textColor} onChange={e => setDesign(d => ({ ...d, textColor: e.target.value }))} />
-                </div>
-                <div className="flex gap-4 items-center">
-                  <label className="text-sm w-32">Accent</label>
-                  <input type="color" value={design.accentColor} onChange={e => setDesign(d => ({ ...d, accentColor: e.target.value }))} />
-                  <input type="text" className="border rounded px-2 py-1 w-28" value={design.accentColor} onChange={e => setDesign(d => ({ ...d, accentColor: e.target.value }))} />
-                </div>
-                <div className="flex gap-4 items-center">
-                  <label className="text-sm w-32">Font size</label>
-                  <input type="number" min={12} max={32} value={design.fontSize} onChange={e => setDesign(d => ({ ...d, fontSize: Number(e.target.value) }))} className="border rounded px-2 py-1 w-20" />
-                  <span className="text-xs text-gray-500">px</span>
-                </div>
-                <div className="flex gap-4 items-center">
-                  <label className="text-sm w-32">Shadow</label>
-                  <input type="checkbox" checked={design.shadow} onChange={e => setDesign(d => ({ ...d, shadow: e.target.checked }))} />
-                  <span className="text-xs text-gray-500">On</span>
-                </div>
-                <div className="flex gap-4 items-center">
-                  <label className="text-sm w-32">Auto-advance reviews</label>
-                  <input type="checkbox" checked={design.autoAdvance} onChange={e => setDesign(d => ({ ...d, autoAdvance: e.target.checked }))} />
-                  <span className="text-xs text-gray-500">On</span>
-                </div>
-                {design.autoAdvance && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Widget Type Selector - spans all columns */}
+                <div className="flex flex-col mb-2 md:col-span-3">
+                  <span className="text-sm font-bold text-gray-700 mb-2">Widget type:</span>
                   <div className="flex gap-4 items-center">
-                    <label className="text-sm w-32">Slideshow speed</label>
-                    <input
-                      type="range"
-                      min={2}
-                      max={10}
-                      step={1}
-                      value={design.slideshowSpeed}
-                      onChange={e => setDesign(d => ({ ...d, slideshowSpeed: Number(e.target.value) }))}
-                      className="w-32"
-                    />
-                    <span className="text-xs text-gray-500">{design.slideshowSpeed} sec</span>
+                    <label className="inline-flex items-center">
+                      <input
+                        type="radio"
+                        value="single"
+                        checked={!design.showGrid}
+                        onChange={() => {
+                          const newDesign = { ...design, showGrid: false };
+                          setDesign(newDesign);
+                          if (onDesignChange) onDesignChange(newDesign);
+                        }}
+                      />
+                      <span className="ml-2 text-sm">Single</span>
+                    </label>
+                    <label className="inline-flex items-center">
+                      <input
+                        type="radio"
+                        value="multi"
+                        checked={design.showGrid}
+                        onChange={() => {
+                          const newDesign = { ...design, showGrid: true };
+                          setDesign(newDesign);
+                          if (onDesignChange) onDesignChange(newDesign);
+                        }}
+                      />
+                      <span className="ml-2 text-sm">Multi (3 reviews)</span>
+                    </label>
                   </div>
-                )}
-                <div className="flex gap-4 items-center">
-                  <label className="text-sm w-32">Border</label>
-                  <input type="checkbox" checked={design.border} onChange={e => setDesign(d => ({ ...d, border: e.target.checked }))} />
-                  <span className="text-xs text-gray-500">On</span>
                 </div>
-                {design.border && (
-                  <>
-                    <div className="flex gap-4 items-center">
-                      <label className="text-sm w-32">Border thickness</label>
+                {/* Column 1: Background */}
+                <div className="flex flex-col gap-6">
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold text-gray-700 mb-2">Background type</span>
+                    <div className="flex gap-3 items-center">
+                      <label className="inline-flex items-center">
+                        <input
+                          type="radio"
+                          value="none"
+                          checked={design.bgType === 'none'}
+                          onChange={() => {
+                            const newDesign = { ...design, bgType: 'none', bgColor: 'transparent', bgOpacity: 1 };
+                            setDesign(newDesign);
+                            if (onDesignChange) onDesignChange(newDesign);
+                          }}
+                        />
+                        <span className="ml-2 text-sm">No Background</span>
+                      </label>
+                      <label className="inline-flex items-center">
+                        <input
+                          type="radio"
+                          value="solid"
+                          checked={design.bgType === 'solid'}
+                          onChange={() => {
+                            const newDesign = { ...design, bgType: 'solid', bgColor: design.bgColor === 'transparent' ? '#ffffff' : design.bgColor };
+                            setDesign(newDesign);
+                            if (onDesignChange) onDesignChange(newDesign);
+                          }}
+                        />
+                        <span className="ml-2 text-sm">Solid</span>
+                      </label>
+                    </div>
+                  </div>
+                  {design.bgType !== 'none' && (
+                    <div className="flex flex-col">
+                      <span className="text-sm font-bold text-gray-700 mb-2">Background</span>
+                      <div className="flex gap-3 items-center">
+                        <input type="color" value={design.bgColor} onChange={e => {
+                          const newDesign = { ...design, bgColor: e.target.value };
+                          setDesign(newDesign);
+                          if (onDesignChange) onDesignChange(newDesign);
+                        }} />
+                        <input type="text" className="border rounded px-2 py-1 w-28" value={design.bgColor} onChange={e => {
+                          const newDesign = { ...design, bgColor: e.target.value };
+                          setDesign(newDesign);
+                          if (onDesignChange) onDesignChange(newDesign);
+                        }} />
+                      </div>
+                    </div>
+                  )}
+                  {design.bgType !== 'none' && (
+                    <div className="flex flex-col">
+                      <span className="text-sm font-bold text-gray-700 mb-2">Transparency</span>
+                      <div className="flex gap-3 items-center">
+                        <input
+                          type="range"
+                          min={0.1}
+                          max={1}
+                          step={0.01}
+                          value={design.bgOpacity}
+                          onChange={e => {
+                            const newDesign = { ...design, bgOpacity: Number(e.target.value) };
+                            setDesign(newDesign);
+                            if (onDesignChange) onDesignChange(newDesign);
+                          }}
+                          className="w-32"
+                        />
+                        <span className="text-xs text-gray-500">{Math.round(design.bgOpacity * 100)}%</span>
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold text-gray-700 mb-2">Shadow</span>
+                    <div className="flex gap-3 items-center">
+                      <input type="checkbox" checked={design.shadow} onChange={() => {
+                        const newDesign = { ...design, shadow: !design.shadow };
+                        setDesign(newDesign);
+                        if (onDesignChange) onDesignChange(newDesign);
+                      }} />
+                      <span className="text-xs text-gray-500">On</span>
+                    </div>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold text-gray-700 mb-2">Border</span>
+                    <div className="flex gap-3 items-center">
+                      <input type="checkbox" checked={design.border} onChange={() => {
+                        const newDesign = { ...design, border: !design.border };
+                        setDesign(newDesign);
+                        if (onDesignChange) onDesignChange(newDesign);
+                      }} />
+                      <span className="text-xs text-gray-500">On</span>
+                    </div>
+                  </div>
+                  {design.border && (
+                    <>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-gray-700 mb-2">Border thickness</span>
+                        <div className="flex gap-3 items-center">
+                          <input
+                            type="range"
+                            min={1}
+                            max={8}
+                            step={1}
+                            value={design.borderWidth}
+                            onChange={e => {
+                              const newDesign = { ...design, borderWidth: Number(e.target.value) };
+                              setDesign(newDesign);
+                              if (onDesignChange) onDesignChange(newDesign);
+                            }}
+                            className="w-32"
+                          />
+                          <span className="text-xs text-gray-500">{design.borderWidth}px</span>
+                        </div>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-gray-700 mb-2">Border radius</span>
+                        <div className="flex gap-3 items-center">
+                          <input type="range" min={0} max={32} value={design.borderRadius} onChange={e => {
+                            const newDesign = { ...design, borderRadius: Number(e.target.value) };
+                            setDesign(newDesign);
+                            if (onDesignChange) onDesignChange(newDesign);
+                          }} />
+                          <span className="text-xs text-gray-500">{design.borderRadius}px</span>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+                {/* Column 2: Typography */}
+                <div className="flex flex-col gap-6">
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold text-gray-700 mb-2">Quote font size</span>
+                    <div className="flex gap-3 items-center">
+                      <input type="number" min={12} max={32} value={design.quoteFontSize} onChange={e => {
+                        const newDesign = { ...design, quoteFontSize: Number(e.target.value) };
+                        setDesign(newDesign);
+                        if (onDesignChange) onDesignChange(newDesign);
+                      }} className="border rounded px-2 py-1 w-20" />
+                      <span className="text-xs text-gray-500">px</span>
+                    </div>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold text-gray-700 mb-2">Attribution font size</span>
+                    <div className="flex gap-3 items-center">
+                      <input type="number" min={10} max={24} value={design.attributionFontSize} onChange={e => {
+                        const newDesign = { ...design, attributionFontSize: Number(e.target.value) };
+                        setDesign(newDesign);
+                        if (onDesignChange) onDesignChange(newDesign);
+                      }} className="border rounded px-2 py-1 w-20" />
+                      <span className="text-xs text-gray-500">px</span>
+                    </div>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold text-gray-700 mb-2">Text</span>
+                    <div className="flex gap-3 items-center">
+                      <input type="color" value={design.textColor} onChange={e => {
+                        const newDesign = { ...design, textColor: e.target.value };
+                        setDesign(newDesign);
+                        if (onDesignChange) onDesignChange(newDesign);
+                      }} />
+                      <input type="text" className="border rounded px-2 py-1 w-28" value={design.textColor} onChange={e => {
+                        const newDesign = { ...design, textColor: e.target.value };
+                        setDesign(newDesign);
+                        if (onDesignChange) onDesignChange(newDesign);
+                      }} />
+                    </div>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold text-gray-700 mb-2">Accent</span>
+                    <div className="flex gap-3 items-center">
+                      <input type="color" value={design.accentColor} onChange={e => {
+                        const newDesign = { ...design, accentColor: e.target.value };
+                        setDesign(newDesign);
+                        if (onDesignChange) onDesignChange(newDesign);
+                      }} />
+                      <input type="text" className="border rounded px-2 py-1 w-28" value={design.accentColor} onChange={e => {
+                        const newDesign = { ...design, accentColor: e.target.value };
+                        setDesign(newDesign);
+                        if (onDesignChange) onDesignChange(newDesign);
+                      }} />
+                    </div>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold text-gray-700 mb-2">Line spacing</span>
+                    <div className="flex gap-3 items-center">
                       <input
                         type="range"
                         min={1}
-                        max={8}
-                        step={1}
-                        value={design.borderWidth}
-                        onChange={e => setDesign(d => ({ ...d, borderWidth: Number(e.target.value) }))}
+                        max={2}
+                        step={0.05}
+                        value={design.lineSpacing}
+                        onChange={e => {
+                          const newDesign = { ...design, lineSpacing: Number(e.target.value) };
+                          setDesign(newDesign);
+                          if (onDesignChange) onDesignChange(newDesign);
+                        }}
                         className="w-32"
                       />
-                      <span className="text-xs text-gray-500">{design.borderWidth}px</span>
+                      <span className="text-xs text-gray-500">{design.lineSpacing.toFixed(2)}x</span>
                     </div>
-                    <div className="flex gap-4 items-center">
-                      <label className="text-sm w-32">Border radius</label>
-                      <input type="range" min={0} max={32} value={design.borderRadius} onChange={e => setDesign(d => ({ ...d, borderRadius: Number(e.target.value) }))} />
-                      <span className="text-xs text-gray-500">{design.borderRadius}px</span>
-                    </div>
-                  </>
-                )}
-                <div className="flex gap-4 items-center">
-                  <label className="text-sm w-32">Line spacing</label>
-                  <input
-                    type="range"
-                    min={1}
-                    max={2}
-                    step={0.05}
-                    value={design.lineSpacing}
-                    onChange={e => setDesign(d => ({ ...d, lineSpacing: Number(e.target.value) }))}
-                    className="w-32"
-                  />
-                  <span className="text-xs text-gray-500">{design.lineSpacing.toFixed(2)}x</span>
+                  </div>
                 </div>
-                <div className="flex gap-4 items-center">
-                  <label className="text-sm w-32">Show decorative quotes</label>
-                  <input type="checkbox" checked={design.showQuotes} onChange={e => setDesign(d => ({ ...d, showQuotes: e.target.checked }))} />
-                  <span className="text-xs text-gray-500">On</span>
+                {/* Column 3: Misc */}
+                <div className="flex flex-col gap-6">
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold text-gray-700 mb-2">Show review age & platform</span>
+                    <div className="flex gap-3 items-center">
+                      <input type="checkbox" checked={design.showRelativeDate} onChange={() => {
+                        const newDesign = { ...design, showRelativeDate: !design.showRelativeDate };
+                        setDesign(newDesign);
+                        if (onDesignChange) onDesignChange(newDesign);
+                      }} />
+                      <span className="text-xs text-gray-500">On</span>
+                    </div>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold text-gray-700 mb-2">Show decorative quotes</span>
+                    <div className="flex gap-3 items-center">
+                      <input type="checkbox" checked={design.showQuotes} onChange={() => {
+                        const newDesign = { ...design, showQuotes: !design.showQuotes };
+                        setDesign(newDesign);
+                        if (onDesignChange) onDesignChange(newDesign);
+                      }} />
+                      <span className="text-xs text-gray-500">On</span>
+                    </div>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold text-gray-700 mb-2">Auto-advance reviews</span>
+                    <div className="flex gap-3 items-center">
+                      <input type="checkbox" checked={design.autoAdvance} onChange={e => {
+                        const newDesign = { ...design, autoAdvance: e.target.checked };
+                        setDesign(newDesign);
+                        if (onDesignChange) onDesignChange(newDesign);
+                      }} />
+                      <span className="text-xs text-gray-500">On</span>
+                    </div>
+                  </div>
+                  {design.autoAdvance && (
+                    <div className="flex flex-col">
+                      <span className="text-sm font-bold text-gray-700 mb-2">Slideshow speed</span>
+                      <div className="flex gap-3 items-center">
+                        <input
+                          type="range"
+                          min={2}
+                          max={10}
+                          step={1}
+                          value={design.slideshowSpeed}
+                          onChange={e => {
+                            const newDesign = { ...design, slideshowSpeed: Number(e.target.value) };
+                            setDesign(newDesign);
+                            if (onDesignChange) onDesignChange(newDesign);
+                          }}
+                          className="w-32"
+                        />
+                        <span className="text-xs text-gray-500">{design.slideshowSpeed} sec</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
-            <button
-              className="w-full py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
-              onClick={handleSave}
-            >
-              Save
-            </button>
+            {/* Save button bottom right */}
+            <div className="flex justify-end mt-8">
+              <button
+                className="py-2 px-5 bg-dustyPlum text-pureWhite rounded-lg font-semibold hover:bg-lavenderHaze hover:text-dustyPlum transition-colors shadow"
+                onClick={handleSave}
+                style={{ minWidth: 90 }}
+              >
+                Save
+              </button>
+            </div>
           </div>
         </div>
       )}
       {/* Review Management Modal */}
-      {showReviewModal && (
+      {isClient && showReviewModal && (
         <div className="fixed inset-0 z-50">
           <div
-            ref={modalRef}
+            ref={editModalRef}
             className="bg-white rounded-lg shadow-lg p-8 max-w-2xl w-full fixed flex flex-col"
             style={{
               minHeight: 500,
-              left: modalPos.x,
-              top: modalPos.y,
-              cursor: dragging ? 'grabbing' : undefined,
+              left: editModalPos.x,
+              top: editModalPos.y,
+              cursor: editDragging ? 'grabbing' : undefined,
               width: 600,
               maxWidth: '90vw',
             }}
           >
-            {/* Draggable Header */}
-            <div
-              className="w-full h-6 mb-2 rounded-t-lg bg-gradient-to-r from-indigo-100 to-purple-100 cursor-grab select-none flex items-center justify-between px-4"
-              style={{ cursor: dragging ? 'grabbing' : 'grab' }}
+            {/* Header */}
+            <div className="absolute left-0 top-0 w-full h-16 rounded-t-lg bg-gradient-to-r from-indigo-100 to-purple-100 select-none z-20"
+              style={{ cursor: editDragging ? 'grabbing' : 'grab' }}
               onMouseDown={e => {
                 if ((e.target as HTMLElement).closest('button')) return;
-                handleMouseDown(e);
+                handleEditMouseDown(e);
               }}
             >
-              <span className="text-xs text-gray-400">Drag to move</span>
+              <div className="flex items-center justify-between h-full">
+                <div className="flex items-center gap-4 ml-8">
+                  <span className="text-xl font-bold text-dustyPlum">Manage reviews</span>
+                  <span className="text-xs text-gray-400 ml-4">Drag to move</span>
+                </div>
+                <button
+                  className="py-2 px-5 bg-dustyPlum text-pureWhite rounded-lg font-semibold hover:bg-lavenderHaze hover:text-dustyPlum transition-colors shadow mr-8"
+                  onClick={handleSaveReviews}
+                  style={{ minWidth: 90 }}
+                >
+                  Save
+                </button>
+              </div>
               <button
-                className="text-gray-400 hover:text-gray-700 text-xl"
+                className="flex items-center justify-center w-10 h-10 bg-white rounded-full shadow text-gray-400 hover:text-gray-700 text-xl z-20 border border-gray-200"
                 onClick={() => setShowReviewModal(false)}
                 aria-label="Close"
-                style={{ cursor: 'pointer' }}
+                style={{ position: 'absolute', top: '-12px', right: '-12px', cursor: 'pointer' }}
               >
                 &times;
               </button>
             </div>
-            {/* Tab Bar */}
+            <div className="mt-16" />
+            {/* Modal content starts here */}
             <div className="flex border-b mb-6">
               <button
                 className={`px-4 py-2 font-semibold border-b-2 transition-colors ${activeTab === 'select' ? 'border-indigo-600 text-indigo-700' : 'border-transparent text-gray-500 hover:text-indigo-700'}`}
@@ -465,15 +853,30 @@ export default function WidgetList({ onSelectWidget, selectedWidgetId, onDesignC
               </button>
               <button
                 className={`px-4 py-2 font-semibold border-b-2 transition-colors ${activeTab === 'edit' ? 'border-indigo-600 text-indigo-700' : 'border-transparent text-gray-500 hover:text-indigo-700'}`}
-                onClick={() => setActiveTab('edit')}
-                disabled={selectedReviews.length === 0}
+                onClick={() => {
+                  setActiveTab('edit');
+                  if (selectedReviews.length === 0) {
+                    setEditTabError('No reviews to edit. Add reviews to your widget first.');
+                  } else {
+                    setEditTabError('');
+                  }
+                }}
               >
                 Edit Selected
               </button>
             </div>
-            <h3 className="text-xl font-bold mb-4 text-indigo-900">Manage reviews</h3>
+            {activeTab === 'edit' && editTabError && (
+              <div className="text-red-500 text-center mb-4">{editTabError}</div>
+            )}
+            <h3 className="text-xl font-bold mb-4 text-dustyPlum">Manage reviews</h3>
             {loadingReviews ? (
-              <div className="text-center py-8 text-gray-500">Loading reviews…</div>
+              <div className="flex flex-col items-center justify-center py-8 text-gray-500">
+                <svg className="animate-spin h-8 w-8 text-indigo-500 mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                </svg>
+                Loading reviews…
+              </div>
             ) : (
               <>
                 {/* Tab Content */}
@@ -505,59 +908,36 @@ export default function WidgetList({ onSelectWidget, selectedWidgetId, onDesignC
                             return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
                           }
                         })
-                        .map(r => (
-                          <li key={r.id} className={`border rounded p-2 flex items-start gap-2 ${selectedReviews.some(sel => sel.id === r.id) ? 'bg-indigo-50 border-indigo-400' : 'hover:bg-gray-50'}`}>
-                            <input
-                              type="checkbox"
-                              checked={selectedReviews.some(sel => sel.id === r.id)}
-                              onChange={() => handleToggleReview(r)}
-                              disabled={!selectedReviews.some(sel => sel.id === r.id) && selectedReviews.length >= MAX_WIDGET_REVIEWS}
-                              className="mt-1"
-                            />
-                            <div className="flex-1">
-                              <div className="text-sm text-gray-800">{r.review_content.slice(0, 80)}{r.review_content.length > 80 ? '…' : ''}</div>
-                              <div className="text-xs text-gray-500">— {r.reviewer_name}, {r.reviewer_role} ({r.platform})</div>
-                            </div>
-                          </li>
-                        ))}
+                        .map(r => {
+                          // Create a snippet of the first 10 words of the review
+                          const words = (r.review_content || '').split(/\s+/);
+                          const snippet = words.length > 10 ? words.slice(0, 10).join(' ') + '…' : r.review_content;
+                          return (
+                            <li
+                              key={r.id}
+                              className={`border rounded p-2 flex items-start gap-2 ${selectedReviews.some(sel => sel.id === r.id) ? 'bg-indigo-50 border-indigo-400' : 'hover:bg-gray-50'}`}
+                              onClick={() => handleToggleReview(r)}
+                              style={{ cursor: 'pointer' }}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={selectedReviews.some(sel => sel.id === r.id)}
+                                readOnly
+                                className="mt-1"
+                              />
+                              <div>
+                                <div className="font-semibold flex items-center gap-2">
+                                  {r.reviewer_name}
+                                  <span className="text-xs text-gray-500 font-normal">{snippet}</span>
+                                </div>
+                                <div className="text-xs text-gray-500">{r.reviewer_role}</div>
+                              </div>
+                            </li>
+                          );
+                        })}
                     </ul>
                   </div>
                 )}
-                {activeTab === 'edit' && (
-                  <div className="flex flex-col h-full">
-                    <div className="font-medium mb-2">Edit selected reviews (max {WORD_LIMIT} words each):</div>
-                    {selectedReviews.map(r => {
-                      const tooLong = wordCount(editedReviews[r.id] ?? r.review_content) > WORD_LIMIT;
-                      return (
-                        <div key={r.id} className={`mb-4 border rounded p-3 bg-gray-50 ${tooLong ? 'border-orange-400' : ''}`}>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Review by {r.reviewer_name} ({r.platform}):</label>
-                          <textarea
-                            className={`w-full border rounded px-3 py-2 mb-2 ${tooLong ? 'border-orange-400' : ''}`}
-                            rows={3}
-                            value={editedReviews[r.id] ?? r.review_content}
-                            onChange={e => handleReviewEdit(r.id, e.target.value)}
-                          />
-                          <div className="flex justify-between text-xs">
-                            <span className={tooLong ? 'text-orange-600' : 'text-gray-500'}>
-                              {wordCount(editedReviews[r.id] ?? r.review_content)} / {WORD_LIMIT} words
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-                {/* Error message and Save button bar at bottom */}
-                <div className="mt-auto pt-4 flex flex-col gap-2">
-                  {reviewError && <div className="text-red-600 text-xs mb-2">{reviewError}</div>}
-                  <button
-                    className="w-full px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50"
-                    onClick={handleSaveReviews}
-                    disabled={selectedReviews.some(r => wordCount(editedReviews[r.id] ?? r.review_content) > WORD_LIMIT)}
-                  >
-                    Save to widget
-                  </button>
-                </div>
               </>
             )}
           </div>
@@ -565,4 +945,4 @@ export default function WidgetList({ onSelectWidget, selectedWidgetId, onDesignC
       )}
     </div>
   );
-} 
+}

@@ -3,10 +3,11 @@ import { useRouter, useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { generateAIReview } from '@/utils/ai';
-import { FaGoogle, FaFacebook, FaYelp, FaTripadvisor, FaRegStar, FaGift } from 'react-icons/fa';
+import { FaGoogle, FaFacebook, FaYelp, FaTripadvisor, FaRegStar, FaGift, FaStar, FaHeart, FaThumbsUp } from 'react-icons/fa';
 import { IconType } from 'react-icons';
 import Link from 'next/link';
 import { getUserOrMock, getSessionOrMock } from '@/utils/supabase';
+import IndustrySelector from '@/app/components/IndustrySelector';
 
 interface ReviewPlatformLink {
   platform: string;
@@ -27,6 +28,8 @@ interface BusinessProfile {
   taglines: string;
   team_founder_info: string;
   keywords: string;
+  industry: string[];
+  industry_other: string;
 }
 
 function Tooltip({ text }: { text: string }) {
@@ -89,6 +92,9 @@ export default function EditPromptPage() {
     friendly_note: '',
     status: 'in_queue' as 'in_queue' | 'in_progress' | 'complete' | 'draft',
     role: '',
+    industry: [] as string[],
+    industry_other: '',
+    review_type: 'review',
   });
   const [businessProfile, setBusinessProfile] = useState<BusinessProfile | null>(null);
   const [generatingReview, setGeneratingReview] = useState<number | null>(null);
@@ -101,6 +107,11 @@ export default function EditPromptPage() {
   const [analytics, setAnalytics] = useState<any>(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState<'in_queue' | 'in_progress' | 'complete' | 'draft'>('in_queue');
+  const [fallingIcon, setFallingIcon] = useState('star');
+  const [iconUpdating, setIconUpdating] = useState(false);
+  const [fallingEnabled, setFallingEnabled] = useState(true);
+  const [lastIcon, setLastIcon] = useState('star');
+  const [industryType, setIndustryType] = useState<'B2B' | 'B2C' | 'Both'>('Both');
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -142,12 +153,24 @@ export default function EditPromptPage() {
           friendly_note: promptData.friendly_note || '',
           status: promptData.status || 'in_queue' as 'in_queue' | 'in_progress' | 'complete' | 'draft',
           role: promptData.role || '',
+          industry: promptData.industry || [],
+          industry_other: promptData.industry_other || '',
+          review_type: promptData.review_type || 'review',
         });
         setIsUniversal(!!promptData.is_universal);
         setOfferEnabled(!!promptData.offer_enabled);
         setOfferTitle(promptData.offer_title || 'Special Offer');
         setOfferBody(promptData.offer_body || '');
         setOfferUrl(promptData.offer_url || '');
+        if (promptData) {
+          if (promptData.falling_icon) {
+            setFallingIcon(promptData.falling_icon);
+            setLastIcon(promptData.falling_icon);
+            setFallingEnabled(true);
+          } else {
+            setFallingEnabled(false);
+          }
+        }
       
         // Fetch business profile
         const { data: businessData } = await supabase
@@ -161,6 +184,11 @@ export default function EditPromptPage() {
             ...businessData,
             business_name: businessData.name
           });
+          setFormData(prev => ({
+            ...prev,
+            industry: businessData.industry || [],
+            industry_other: businessData.industry_other || '',
+          }));
         }
       } catch (err) {
         console.error('Error loading data:', err);
@@ -257,6 +285,11 @@ export default function EditPromptPage() {
     }
     setGeneratingReview(index);
     try {
+      // Determine reviewerType based on industryType
+      let reviewerType: 'customer' | 'client' | 'customer or client' = 'customer or client';
+      if (industryType === 'B2B') reviewerType = 'client';
+      else if (industryType === 'B2C') reviewerType = 'customer';
+      // Call generateAIReview with reviewerType
       const review = await generateAIReview(
         businessProfile,
         {
@@ -267,7 +300,8 @@ export default function EditPromptPage() {
         },
         formData.review_platforms[index].platform,
         formData.review_platforms[index].wordCount || 200,
-        formData.review_platforms[index].customInstructions
+        formData.review_platforms[index].customInstructions,
+        reviewerType
       );
       setFormData(prev => ({
         ...prev,
@@ -341,6 +375,9 @@ export default function EditPromptPage() {
           outcomes: formData.outcomes || null,
           friendly_note: formData.friendly_note || null,
           role: formData.role || null,
+          industry: formData.industry || [],
+          industry_other: formData.industry_other || '',
+          review_type: formData.review_type || 'review',
         };
 
         // Handle review_platforms
@@ -349,7 +386,7 @@ export default function EditPromptPage() {
             .map(link => ({
               platform: link.platform,
               url: link.url,
-              wordCount: Math.max(200, Number(link.wordCount) || 200),
+              wordCount: link.wordCount ? Math.max(200, Number(link.wordCount)) : 200,
               customInstructions: link.customInstructions || '',
               reviewText: link.reviewText || ''
             }))
@@ -395,6 +432,62 @@ export default function EditPromptPage() {
       setError(err instanceof Error ? err.message : 'Failed to update prompt page');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const iconOptions = [
+    { key: 'star', label: 'Stars', icon: <FaStar className="w-6 h-6 text-dustyPlum" /> },
+    { key: 'heart', label: 'Hearts', icon: <FaHeart className="w-6 h-6 text-dustyPlum" /> },
+    { key: 'rainbow', label: 'Rainbows', icon: <span className="w-6 h-6 text-2xl">🌈</span> },
+    { key: 'thumb', label: 'Thumbs Up', icon: <FaThumbsUp className="w-6 h-6 text-dustyPlum" /> },
+  ];
+
+  const handleToggleFalling = async () => {
+    if (iconUpdating) return;
+    setIconUpdating(true);
+    try {
+      const { data: promptPage, error: fetchError } = await supabase
+        .from('prompt_pages')
+        .select('id')
+        .eq('slug', params.slug)
+        .single();
+      if (fetchError || !promptPage) throw fetchError || new Error('Prompt page not found');
+      if (fallingEnabled) {
+        // Turn off
+        await supabase.from('prompt_pages').update({ falling_icon: null }).eq('id', promptPage.id);
+        setFallingEnabled(false);
+      } else {
+        // Turn on, restore last icon or default
+        await supabase.from('prompt_pages').update({ falling_icon: lastIcon || 'star' }).eq('id', promptPage.id);
+        setFallingIcon(lastIcon || 'star');
+        setFallingEnabled(true);
+      }
+    } finally {
+      setIconUpdating(false);
+    }
+  };
+
+  const handleIconChange = async (iconKey: string) => {
+    if (iconUpdating) return;
+    setIconUpdating(true);
+    setFallingIcon(iconKey);
+    setLastIcon(iconKey);
+    try {
+      const { data: promptPage, error: fetchError } = await supabase
+        .from('prompt_pages')
+        .select('id')
+        .eq('slug', params.slug)
+        .single();
+      if (fetchError || !promptPage) throw fetchError || new Error('Prompt page not found');
+      const { error } = await supabase
+        .from('prompt_pages')
+        .update({ falling_icon: iconKey })
+        .eq('id', promptPage.id);
+      if (error) {
+        setFallingIcon('star');
+      }
+    } finally {
+      setIconUpdating(false);
     }
   };
 
@@ -486,6 +579,22 @@ export default function EditPromptPage() {
       </div>
 
       <div>
+        <label htmlFor="industry" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center">
+          Industry
+          <Tooltip text="The industry the business operates in. This helps AI generate more relevant and personalized reviews." />
+        </label>
+        <IndustrySelector
+          value={formData.industry || []}
+          onChange={(industries, otherValue) => setFormData(f => ({ ...f, industry: industries, industry_other: otherValue ?? f.industry_other }))}
+          otherValue={formData.industry_other || ''}
+          onOtherChange={val => setFormData(f => ({ ...f, industry_other: val }))}
+          required
+          industryType={industryType}
+          setIndustryType={setIndustryType}
+        />
+      </div>
+
+      <div>
         <label htmlFor="services_offered" className="block text-sm font-medium text-gray-700 mt-4 mb-2">
           Services provided (one per line)
         </label>
@@ -530,6 +639,48 @@ export default function EditPromptPage() {
 
   const renderStep2 = () => (
     <div className="space-y-6">
+      {/* Falling Animation Section */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-2">
+          <label className="block text-lg font-semibold text-indigo-800 flex items-center">
+            <FaStar className="w-6 h-6 mr-2 text-indigo-500" />
+            Falling star animation
+          </label>
+          <button
+            type="button"
+            onClick={handleToggleFalling}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${fallingEnabled ? 'bg-indigo-500' : 'bg-gray-300'}`}
+            aria-pressed={!!fallingEnabled}
+            disabled={iconUpdating}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${fallingEnabled ? 'translate-x-5' : 'translate-x-1'}`}
+            />
+          </button>
+        </div>
+        <div className={`rounded-2xl border border-indigo-200 bg-indigo-50 p-4 ${!fallingEnabled ? 'opacity-60' : ''}`}>
+          <div className="text-sm text-gray-700 mb-3 max-w-xl">
+            This creates a fun animation where stars (or other icons) rain down for a few seconds when the prompt page loads. You can choose the icon below.
+          </div>
+          <div className="flex gap-2 bg-white/80 rounded-full px-3 py-1 border border-gray-200 shadow w-max">
+            {iconOptions.map(opt => (
+              <button
+                key={opt.key}
+                className={`p-1 rounded-full focus:outline-none transition-all ${fallingIcon === opt.key ? 'ring-2 ring-indigo-400 bg-indigo-50' : ''}`}
+                onClick={() => handleIconChange(opt.key)}
+                aria-label={opt.label}
+                type="button"
+                disabled={iconUpdating || !fallingEnabled}
+              >
+                {opt.icon}
+                {iconUpdating && fallingIcon === opt.key && (
+                  <span className="ml-1 animate-spin w-3 h-3 border-2 border-indigo-400 border-t-transparent rounded-full inline-block align-middle"></span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
       {/* Special Offer Section */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-2">
@@ -549,7 +700,7 @@ export default function EditPromptPage() {
             />
           </button>
         </div>
-        <div className={`rounded-lg border border-indigo-200 bg-indigo-50 p-4 ${!offerEnabled ? 'opacity-60' : ''}`}>
+        <div className={`rounded-2xl border border-indigo-200 bg-indigo-50 p-4 ${!offerEnabled ? 'opacity-60' : ''}`}>
           <input
             type="text"
             value={offerTitle ?? 'Special Offer'}
@@ -590,7 +741,7 @@ export default function EditPromptPage() {
         )}
         <div className="mt-1 space-y-4">
           {formData.review_platforms.map((link, index) => (
-            <div key={index} className="relative mb-6 mt-6 p-6 border rounded-lg bg-gray-50">
+            <div key={index} className="relative mb-6 mt-6 p-6 border border-indigo-200 rounded-2xl bg-indigo-50">
               {/* Platform icon in top left */}
               {link.url && (
                 <div className="absolute -top-4 -left-4 bg-white rounded-full shadow p-2 flex items-center justify-center" title={getPlatformIcon(link.url, link.platform).label}>
@@ -766,7 +917,7 @@ export default function EditPromptPage() {
       </div>
 
       {previewUrl && (
-        <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-md">
+        <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-2xl">
           <p className="text-sm text-green-700">
             Preview page updated!{' '}
             <a
@@ -789,168 +940,24 @@ export default function EditPromptPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-400 via-indigo-300 to-purple-300">
-      <div className="max-w-4xl mx-auto mt-6 relative">
+    <div className="min-h-screen bg-white">
+      <div className="w-full mx-auto mt-6 relative">
         {/* Floating Icon */}
-        <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center">
-          <img
-            src="https://promptreviews.app/wp-content/uploads/2025/05/cropped-Prompt-Reviews-4-300x108.png"
-            alt="PromptReviews Logo"
-            className="w-24 h-auto object-contain filter invert-0"
-            style={{ filter: 'invert(18%) sepia(67%) saturate(7472%) hue-rotate(243deg) brightness(80%) contrast(110%)' }}
-          />
+        <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center w-16 h-16">
+          <span className="text-[2.5rem] font-bold text-dustyPlum" style={{fontFamily: 'Inter, sans-serif'}}>[P]</span>
         </div>
-        <div className="bg-white shadow-xl rounded-2xl p-12">
-          {/* Top Save and View Buttons - now at the very top */}
-          {(isUniversal || step === 2) && (
-            <div className="flex justify-between items-center mb-8" style={{ marginTop: '-15px' }}>
-              <div></div>
-              <div className="flex gap-4">
-                <button
-                  type="submit"
-                  onClick={(e) => handleSubmit(e, 'save')}
-                  className="inline-flex justify-center rounded-md border border-transparent bg-indigo-800 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                  disabled={isLoading}
-                >
-                  Save
-                </button>
-                <a
-                  href={`/r/${params.slug}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                >
-                  View
-                </a>
-              </div>
-            </div>
-          )}
-          {error && (
-            <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-md">
-              {error}
-            </div>
-          )}
-          {successMessage && (
-            <div className="mb-4 p-4 bg-green-50 text-green-700 rounded-md">
-              {successMessage}
-            </div>
-          )}
-
-          <div>
-            <div className="mb-8">
-              {isUniversal ? (
-                <>
-                  <h1 className="text-4xl font-bold text-[#452F9F]">Edit universal prompt page</h1>
-                  <p className="mt-2 text-sm text-gray-600 max-w-md">
-                    The Universal prompt page can be sent to any client/customer. Put your QR code on business cards, flyers, or frame a picture of it and hang it in your business to make it easy for people to give you a review from their phone in seconds.
-                  </p>
-                </>
-              ) : (
-                <>
-                  <h1 className="text-4xl font-bold text-[#452F9F]">Edit prompt page</h1>
-                  <p className="mt-2 text-sm text-gray-600 max-w-md">
-                    Create a friendly and personalized prompt page for your customer or client.
-                  </p>
-                </>
-              )}
-            </div>
-
-            {/* Compact Analytics Module */}
-            <div className="mb-8">
-              <div className="bg-indigo-50 border border-indigo-200 rounded-xl shadow-sm p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div className="flex flex-col md:flex-row md:items-center gap-4">
-                  <div>
-                    <div className="text-xs text-indigo-700 font-semibold uppercase tracking-wide mb-1">Analytics</div>
-                    {analyticsLoading ? (
-                      <div className="text-xs text-gray-400">Loading...</div>
-                    ) : analytics ? (
-                      <div className="flex gap-6">
-                        <div>
-                          <div className="text-xs text-gray-500">Total Interactions</div>
-                          <div className="text-lg font-bold text-indigo-900">{analytics.totalClicks}</div>
-                        </div>
-                        <div>
-                          <div className="text-xs text-gray-500">AI Generations</div>
-                          <div className="text-lg font-bold text-indigo-900">{analytics.aiGenerations}</div>
-                        </div>
-                        <div>
-                          <div className="text-xs text-gray-500">Copy & Submits</div>
-                          <div className="text-lg font-bold text-indigo-900">{analytics.copySubmits}</div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="text-xs text-gray-400">No data</div>
-                    )}
-                  </div>
-                </div>
-                <div className="flex-shrink-0">
-                  <Link
-                    href={`/dashboard/analytics`}
-                    className="inline-flex items-center px-3 py-2 bg-indigo-100 text-indigo-800 rounded-md text-xs font-semibold shadow hover:bg-indigo-200 transition-colors"
-                  >
-                    View More
-                  </Link>
-                </div>
-              </div>
-            </div>
-
-            {/* Status Change Section for Individual Prompt Pages */}
-            {!isUniversal && (
-              <div className="mb-8">
-                <div className="flex items-center gap-4">
-                  <span className="text-sm font-semibold text-gray-700">Page Status:</span>
-                  <label className="inline-flex items-center gap-1">
-                    <input
-                      type="radio"
-                      name="status"
-                      value="draft"
-                      checked={formData.status === 'draft'}
-                      onChange={() => setFormData(prev => ({ ...prev, status: 'draft' }))}
-                      className="form-radio text-indigo-600"
-                    />
-                    <span className="text-sm">Draft</span>
-                  </label>
-                  <label className="inline-flex items-center gap-1">
-                    <input
-                      type="radio"
-                      name="status"
-                      value="in_queue"
-                      checked={formData.status === 'in_queue'}
-                      onChange={() => setFormData(prev => ({ ...prev, status: 'in_queue' }))}
-                      className="form-radio text-indigo-600"
-                    />
-                    <span className="text-sm">In Queue</span>
-                  </label>
-                  <label className="inline-flex items-center gap-1">
-                    <input
-                      type="radio"
-                      name="status"
-                      value="in_progress"
-                      checked={formData.status === 'in_progress'}
-                      onChange={() => setFormData(prev => ({ ...prev, status: 'in_progress' }))}
-                      className="form-radio text-indigo-600"
-                    />
-                    <span className="text-sm">In Progress</span>
-                  </label>
-                  <label className="inline-flex items-center gap-1">
-                    <input
-                      type="radio"
-                      name="status"
-                      value="complete"
-                      checked={formData.status === 'complete'}
-                      onChange={() => setFormData(prev => ({ ...prev, status: 'complete' }))}
-                      className="form-radio text-indigo-600"
-                    />
-                    <span className="text-sm">Complete</span>
-                  </label>
-                </div>
-              </div>
-            )}
-
-            <form onSubmit={(e) => handleSubmit(e, 'publish')}>
-              {isUniversal ? renderStep2() : (step === 1 ? renderStep1() : renderStep2())}
-            </form>
+        <div className="w-full mx-auto bg-white rounded-lg shadow-lg p-8 relative" style={{maxWidth: 1000}}>
+          <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center">
+            <FaStar className="w-9 h-9 text-[#1A237E]" />
           </div>
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex flex-col">
+              <h1 className="text-4xl font-bold text-[#1A237E]">Edit Prompt Page</h1>
+            </div>
+          </div>
+          <form onSubmit={(e) => handleSubmit(e, 'publish')}>
+            {isUniversal ? renderStep2() : (step === 1 ? renderStep1() : renderStep2())}
+          </form>
         </div>
       </div>
     </div>

@@ -8,6 +8,8 @@ interface BusinessProfile {
   taglines: string;
   team_founder_info: string;
   keywords: string;
+  industry?: string[];
+  industry_other?: string;
 }
 
 interface PromptPageData {
@@ -22,9 +24,19 @@ export function generateReviewPrompt(
   promptPageData: PromptPageData,
   platform: string,
   wordCountLimit: number,
-  customInstructions?: string
+  customInstructions?: string,
+  reviewerType?: 'customer' | 'client' | 'customer or client',
 ): string {
-  return `You are a satisfied customer writing a review for ${businessProfile.business_name}. 
+  // Compose industry info
+  let industryInfo = '';
+  if (businessProfile.industry && businessProfile.industry.length > 0) {
+    industryInfo += `- Industry: ${businessProfile.industry.join(', ')}`;
+  }
+  if (businessProfile.industry_other && businessProfile.industry_other.trim()) {
+    industryInfo += `\n- Other Industry: ${businessProfile.industry_other}`;
+  }
+
+  return `You are a satisfied ${reviewerType || 'customer or client'} writing a review for ${businessProfile.business_name}.
 Please write a genuine, detailed, and positive review based on the following information:
 
 Business Information:
@@ -34,7 +46,7 @@ Business Information:
 - Company Values: ${businessProfile.company_values}
 - What Makes Them Different: ${businessProfile.differentiators}
 - Industries Served: ${businessProfile.industries_served}
-- Team/Founder Info: ${businessProfile.team_founder_info}
+${industryInfo ? industryInfo + '\n' : ''}- Team/Founder Info: ${businessProfile.team_founder_info}
 - Keywords to Include: ${businessProfile.keywords}
 
 Customer Experience:
@@ -45,6 +57,8 @@ Customer Experience:
 Platform: ${platform}
 Word Count Limit: ${wordCountLimit} words
 ${customInstructions ? `\nCustom Instructions: ${customInstructions}` : ''}
+
+Important: The reviewer is a ${reviewerType || 'customer or client'}. If unsure, avoid using either term or use "customer or client".
 
 Please write a review that:
 1. Sounds authentic and personal
@@ -63,7 +77,8 @@ export async function generateAIReview(
   promptPageData: PromptPageData,
   platform: string,
   wordCountLimit: number,
-  customInstructions?: string
+  customInstructions?: string,
+  reviewerType?: 'customer' | 'client' | 'customer or client',
 ): Promise<string> {
   try {
     const prompt = generateReviewPrompt(
@@ -71,7 +86,8 @@ export async function generateAIReview(
       promptPageData,
       platform,
       wordCountLimit,
-      customInstructions
+      customInstructions,
+      reviewerType
     );
 
     const response = await fetch('/api/generate-review', {

@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Cropper from 'react-easy-crop';
 import type { Area } from 'react-easy-crop';
 import { FaImage, FaShareAlt, FaGift, FaStar, FaList, FaMapMarkerAlt, FaClock, FaBuilding, FaInfoCircle } from 'react-icons/fa';
+import IndustrySelector from '@/app/components/IndustrySelector';
 
 interface Platform {
   name: string;
@@ -53,6 +54,38 @@ interface BusinessFormProps {
   formId: string;
 }
 
+// Tooltip component (copied from edit-prompt-page)
+function Tooltip({ text }: { text: string }) {
+  const [show, setShow] = useState(false);
+  return (
+    <span className="relative inline-block align-middle ml-1">
+      <button
+        type="button"
+        tabIndex={0}
+        aria-label="Show help"
+        className="text-gray-400 hover:text-indigo-600 focus:outline-none"
+        onMouseEnter={() => setShow(true)}
+        onMouseLeave={() => setShow(false)}
+        onFocus={() => setShow(true)}
+        onBlur={() => setShow(false)}
+        style={{ lineHeight: 1 }}
+      >
+        <span
+          className="flex items-center justify-center rounded-full bg-blue-100"
+          style={{ width: 16, height: 16, fontSize: 12, color: '#2563eb', fontWeight: 400 }}
+        >
+          ?
+        </span>
+      </button>
+      {show && (
+        <div className="absolute z-20 left-1/2 -translate-x-1/2 mt-2 w-56 p-2 bg-white border border-gray-200 rounded shadow text-xs text-gray-700">
+          {text}
+        </div>
+      )}
+    </span>
+  );
+}
+
 export default function BusinessForm({
   form,
   setForm,
@@ -95,12 +128,14 @@ export default function BusinessForm({
   handleCropCancel,
   formId,
 }: BusinessFormProps) {
+  const [industryType, setIndustryType] = useState<'B2B' | 'B2C' | 'Both'>('Both');
+
   return (
-    <form onSubmit={onSubmit} className="max-w-4xl mx-auto relative" id={formId}>
+    <form onSubmit={onSubmit} className="w-full mx-auto relative" id={formId}>
       {/* Logo Upload Section */}
       <div className="mb-16">
-        <h2 className="mt-20 mb-8 text-2xl font-bold text-indigo-900 flex items-center gap-3">
-          <FaImage className="w-7 h-7 text-indigo-500" />
+        <h2 className="mt-20 mb-8 text-2xl font-bold text-[#1A237E] flex items-center gap-3">
+          <FaImage className="w-7 h-7 text-[#1A237E]" />
           Logo
         </h2>
         <div className="mb-10 flex flex-col md:flex-row items-center gap-6">
@@ -159,12 +194,15 @@ export default function BusinessForm({
       </div>
       {/* Business Info Section */}
       <div className="mb-8">
-        <h2 className="mt-32 mb-8 text-2xl font-bold text-indigo-900 flex items-center gap-3">
-          <FaInfoCircle className="w-7 h-7 text-indigo-500" />
+        <h2 className="mt-32 mb-8 text-2xl font-bold text-[#1A237E] flex items-center gap-3">
+          <FaInfoCircle className="w-7 h-7 text-[#1A237E]" />
           Business info
         </h2>
         <div className="mb-4">
-          <label className="block font-semibold text-sm text-gray-500 mb-1">Business name *</label>
+          <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
+            Business name *
+            <Tooltip text="The official name of your business as you want it to appear to customers." />
+          </label>
           <input type="text" name="name" className="w-full border px-3 py-2 rounded" value={form.name} onChange={handleChange} required />
         </div>
         <div className="mb-4">
@@ -198,12 +236,32 @@ export default function BusinessForm({
           </div>
           <input type="text" name="address_country" className="w-full border px-3 py-2 rounded" value={form.address_country} onChange={handleChange} required placeholder="Country" />
         </div>
+        {/* Industry Selector Integration */}
+        <IndustrySelector
+          value={form.industry || []}
+          onChange={(industries, otherValue) => setForm((f: any) => ({ ...f, industry: industries, industry_other: otherValue ?? f.industry_other }))}
+          otherValue={form.industry_other || ''}
+          onOtherChange={val => setForm((f: any) => ({ ...f, industry_other: val }))}
+          required
+          industryType={industryType}
+          setIndustryType={setIndustryType}
+        />
+        {(industryType === 'B2B' || industryType === 'Both') && (
+          <div className="mb-4">
+            <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
+              Industries served *
+              <Tooltip text="This helps Prompt AI understand your target audience and tailor reviews for your typical clients or customers." />
+            </label>
+            <textarea name="industries_served" className="w-full border px-3 py-2 rounded" value={typeof form.industries_served === 'string' ? form.industries_served : Array.isArray(form.industries_served) ? form.industries_served.join(', ') : ''} onChange={handleChange} required />
+          </div>
+        )}
       </div>
       {/* Services Section */}
       <div className="mb-8">
-        <h2 className="mt-32 mb-8 text-2xl font-bold text-indigo-900 flex items-center gap-3">
-          <FaList className="w-7 h-7 text-indigo-500" />
+        <h2 className="mt-32 mb-8 text-2xl font-bold text-[#1A237E] flex items-center gap-3">
+          <FaList className="w-7 h-7 text-[#1A237E]" />
           Services
+          <Tooltip text="Prompt AI uses your services list to make reviews specific and relevant to what you offer." />
         </h2>
         <div className="space-y-2">
           {services.map((service, idx) => (
@@ -226,16 +284,22 @@ export default function BusinessForm({
       </div>
       {/* What Makes Your Business Unique Section */}
       <div className="mb-8">
-        <h2 className="mt-32 mb-8 text-2xl font-bold text-indigo-900 flex items-center gap-3">
-          <FaStar className="w-7 h-7 text-indigo-500" />
+        <h2 className="mt-32 mb-8 text-2xl font-bold text-[#1A237E] flex items-center gap-3">
+          <FaStar className="w-7 h-7 text-[#1A237E]" />
           What makes your business unique?
         </h2>
         <div className="mb-4">
-          <label className="block font-semibold text-sm text-gray-500 mb-1">Company values *</label>
+          <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
+            Company values *
+            <Tooltip text="Prompt AI uses your company values to generate reviews that reflect what matters most to your business." />
+          </label>
           <textarea name="company_values" className="w-full border px-3 py-2 rounded" value={form.company_values} onChange={handleChange} required />
         </div>
         <div className="mb-4">
-          <label className="block font-semibold text-sm text-gray-500 mb-1">Differentiators / unique selling points *</label>
+          <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
+            Differentiators / unique selling points *
+            <Tooltip text="Prompt AI will highlight what makes your business unique in the generated reviews." />
+          </label>
           <textarea name="differentiators" className="w-full border px-3 py-2 rounded" value={form.differentiators} onChange={handleChange} required />
         </div>
         <div className="mb-4">
@@ -243,15 +307,17 @@ export default function BusinessForm({
           <input type="number" name="years_in_business" min="0" className="w-full border px-3 py-2 rounded" value={form.years_in_business} onChange={handleChange} required />
         </div>
         <div className="mb-4">
-          <label className="block font-semibold text-sm text-gray-500 mb-1">Industries served *</label>
-          <textarea name="industries_served" className="w-full border px-3 py-2 rounded" value={typeof form.industries_served === 'string' ? form.industries_served : Array.isArray(form.industries_served) ? form.industries_served.join(', ') : ''} onChange={handleChange} required />
-        </div>
-        <div className="mb-4">
-          <label className="block font-semibold text-sm text-gray-500 mb-1">Taglines</label>
+          <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
+            Taglines
+            <Tooltip text="Prompt AI can naturally include your taglines in reviews to boost your brand and recognition." />
+          </label>
           <textarea name="taglines" className="w-full border px-3 py-2 rounded" value={form.taglines} onChange={handleChange} />
         </div>
         <div className="mb-4">
-          <label className="block font-semibold text-sm text-gray-500 mb-1">Keywords (comma separated)</label>
+          <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
+            Keywords (comma separated)
+            <Tooltip text="Prompt AI can include these keywords in reviews to help with SEO and brand visibility." />
+          </label>
           <textarea
             name="keywords"
             className="w-full border px-3 py-2 rounded min-h-[80px]"
@@ -264,8 +330,8 @@ export default function BusinessForm({
       </div>
       {/* Review Platforms Section */}
       <div className="mb-16">
-        <h2 className="mt-32 mb-8 text-2xl font-bold text-indigo-900 flex items-center gap-3">
-          <FaStar className="w-7 h-7 text-indigo-500" />
+        <h2 className="mt-32 mb-8 text-2xl font-bold text-[#1A237E] flex items-center gap-3">
+          <FaStar className="w-7 h-7 text-[#1A237E]" />
           Review platforms
         </h2>
         <div className="space-y-4">
@@ -315,8 +381,8 @@ export default function BusinessForm({
       </div>
       {/* Special Offer Section */}
       <div className="mb-16">
-        <h2 className="mt-32 mb-8 text-2xl font-bold text-indigo-900 flex items-center gap-3">
-          <FaGift className="w-7 h-7 text-indigo-500" />
+        <h2 className="mt-32 mb-8 text-2xl font-bold text-[#1A237E] flex items-center gap-3">
+          <FaGift className="w-7 h-7 text-[#1A237E]" />
           Special offer
         </h2>
         <div className="mb-4">
@@ -371,8 +437,8 @@ export default function BusinessForm({
       </div>
       {/* Social Media Section */}
       <div className="mb-16">
-        <h2 className="mt-32 mb-8 text-2xl font-bold text-indigo-900 flex items-center gap-3">
-          <FaShareAlt className="w-7 h-7 text-indigo-500" />
+        <h2 className="mt-32 mb-8 text-2xl font-bold text-[#1A237E] flex items-center gap-3">
+          <FaShareAlt className="w-7 h-7 text-[#1A237E]" />
           Social media
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

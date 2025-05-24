@@ -394,7 +394,7 @@ export default function BusinessProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex justify-center items-center bg-gradient-to-br from-[#F6F7FB] via-white to-[#F6F7FB]">
+      <div className="min-h-screen flex justify-center items-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading your business...</p>
@@ -405,7 +405,7 @@ export default function BusinessProfilePage() {
 
   if (noProfile) {
     return (
-      <div className="min-h-screen flex justify-center items-center bg-gradient-to-br from-[#F6F7FB] via-white to-[#F6F7FB]">
+      <div className="min-h-screen flex justify-center items-center">
         <div className="bg-white rounded-2xl shadow-lg p-8 max-w-2xl w-full">
           <h1 className="text-2xl font-bold mb-4">No Business Found</h1>
           <p className="mb-4">You don't have a business yet.</p>
@@ -416,74 +416,76 @@ export default function BusinessProfilePage() {
   }
 
   return (
-    <div className="relative w-full max-w-4xl mx-auto">
-      {/* Floating Icon */}
-      <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center">
-        <FaBuilding className="w-9 h-9 text-indigo-500" />
-      </div>
-      {/* Main Card */}
-      <div className="bg-white rounded-lg shadow-lg p-8">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <div className="flex flex-col">
-              <h1 className="text-4xl font-bold text-[#452F9F]">Your Business</h1>
-              <p className="text-gray-600 text-base max-w-md mt-2 mb-0">
-                Fill out your business profile thoroughly and consistently. This is rule #1 in local search engine optimization.
-              </p>
-            </div>
-          </div>
-          <button
-            type="submit"
-            form="business-profile-form"
-            disabled={loading}
-            className="py-2 px-6 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#452F9F] hover:bg-[#452F9F]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#452F9F] disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? 'Saving...' : 'Save Changes'}
-          </button>
+    <div className="min-h-screen flex justify-center items-start">
+      <div className="relative">
+        {/* Floating Icon */}
+        <div className="absolute -top-6 -left-6 z-10 rounded-full shadow p-3 flex items-center justify-center bg-white">
+          <FaBuilding className="w-9 h-9 text-[#1A237E]" />
         </div>
-        <BusinessForm
-          form={form}
-          setForm={setForm}
-          services={services}
-          setServices={setServices}
-          platforms={platforms}
-          setPlatforms={setPlatforms}
-          platformErrors={platformErrors}
-          setPlatformErrors={setPlatformErrors}
-          logoUrl={logoUrl}
-          setLogoUrl={setLogoUrl}
-          logoFile={logoFile}
-          setLogoFile={setLogoFile}
-          logoError={logoError}
-          setLogoError={setLogoError}
-          // @ts-expect-error: React.RefObject<HTMLInputElement> can be initialized with null
-          fileInputRef={fileInputRef}
-          showCropper={showCropper}
-          setShowCropper={setShowCropper}
-          crop={crop}
-          setCrop={setCrop}
-          zoom={zoom}
-          setZoom={setZoom}
-          croppedAreaPixels={croppedAreaPixels}
-          setCroppedAreaPixels={setCroppedAreaPixels}
-          rawLogoFile={rawLogoFile}
-          setRawLogoFile={setRawLogoFile}
-          loading={loading}
-          error={error}
-          success={success}
-          onSubmit={handleSubmit}
-          handleChange={handleChange}
-          handleServiceChange={handleServiceChange}
-          addService={addService}
-          removeService={removeService}
-          handlePlatformChange={handlePlatformChange}
-          addPlatform={addPlatform}
-          removePlatform={removePlatform}
-          handleLogoChange={handleLogoChange}
-          handleCropConfirm={handleCropConfirm}
-          handleCropCancel={handleCropCancel}
-          formId="business-profile-form"
-        />
+        {/* Main Card */}
+        <div className="rounded-lg shadow-lg p-8 bg-white" style={{maxWidth: 1000}}>
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <div className="flex flex-col">
+                <h1 className="text-4xl font-bold text-[#1A237E]">Your business</h1>
+                <p className="text-gray-600 text-base max-w-md mt-2 mb-0">
+                  Fill out your business profile thoroughly and consistently. This is rule #1 in local search engine optimization.
+                </p>
+              </div>
+            </div>
+            <button
+              type="submit"
+              form="business-profile-form"
+              disabled={loading}
+              className="py-2 px-6 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-dustyPlum hover:bg-dustyPlum/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dustyPlum disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+          <BusinessForm
+            form={form}
+            setForm={setForm}
+            services={services}
+            setServices={setServices}
+            platforms={platforms}
+            setPlatforms={setPlatforms}
+            platformErrors={platformErrors}
+            setPlatformErrors={setPlatformErrors}
+            logoUrl={logoUrl}
+            setLogoUrl={setLogoUrl}
+            logoFile={logoFile}
+            setLogoFile={setLogoFile}
+            logoError={logoError}
+            setLogoError={setLogoError}
+            // @ts-expect-error: React.RefObject<HTMLInputElement> can be initialized with null
+            fileInputRef={fileInputRef}
+            showCropper={showCropper}
+            setShowCropper={setShowCropper}
+            crop={crop}
+            setCrop={setCrop}
+            zoom={zoom}
+            setZoom={setZoom}
+            croppedAreaPixels={croppedAreaPixels}
+            setCroppedAreaPixels={setCroppedAreaPixels}
+            rawLogoFile={rawLogoFile}
+            setRawLogoFile={setRawLogoFile}
+            loading={loading}
+            error={error}
+            success={success}
+            onSubmit={handleSubmit}
+            handleChange={handleChange}
+            handleServiceChange={handleServiceChange}
+            addService={addService}
+            removeService={removeService}
+            handlePlatformChange={handlePlatformChange}
+            addPlatform={addPlatform}
+            removePlatform={removePlatform}
+            handleLogoChange={handleLogoChange}
+            handleCropConfirm={handleCropConfirm}
+            handleCropCancel={handleCropCancel}
+            formId="business-profile-form"
+          />
+        </div>
       </div>
     </div>
   );

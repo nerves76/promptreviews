@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { createBrowserClient } from '@supabase/ssr';
 import { FiMenu, FiX } from 'react-icons/fi';
-import { FaUserCircle } from 'react-icons/fa';
+import { FaUserCircle, FaBell } from 'react-icons/fa';
 import { Menu } from '@headlessui/react';
 import { getUserOrMock } from '@/utils/supabase';
 
@@ -18,6 +18,9 @@ export default function Header() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
   const [menuOpen, setMenuOpen] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [showNotif, setShowNotif] = useState(false);
+  const notifDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const getUser = async () => {
@@ -28,11 +31,71 @@ export default function Header() {
     getUser();
   }, [supabase]);
 
+  // Fetch recent reviews as notifications
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      const { data, error } = await supabase
+        .from('review_submissions')
+        .select('id, reviewer_name, platform, review_content, created_at')
+        .gte('created_at', since)
+        .order('created_at', { ascending: false })
+        .limit(7);
+      if (!error && data) {
+        setNotifications(data.map((r: any) => ({
+          id: r.id,
+          message: `New review from ${r.reviewer_name || 'Anonymous'} on ${r.platform}`,
+          preview: r.review_content?.slice(0, 60) || '',
+          created_at: r.created_at,
+          read: false,
+        })));
+      }
+    };
+    fetchNotifications();
+    // eslint-disable-next-line
+  }, []);
+
   const isActive = (path: string) => {
     if (path === '/dashboard' && pathname === '/dashboard') return true;
     if (path !== '/dashboard' && pathname.startsWith(path)) return true;
     return false;
   };
+
+  // Helper to check if a notification is within the last 7 days
+  function isRecentNotification(created_at: string | Date) {
+    const now = new Date();
+    const created = new Date(created_at);
+    return now.getTime() - created.getTime() < 7 * 24 * 60 * 60 * 1000;
+  }
+
+  // Filter and sort notifications for the bell
+  const recentNotifications = notifications
+    .filter(n => isRecentNotification(n.created_at))
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 7);
+  const unreadCount = recentNotifications.filter(n => !n.read).length;
+
+  // Mark notifications as read when dropdown is opened
+  useEffect(() => {
+    if (showNotif && notifications.some(n => !n.read)) {
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    }
+    // Remove notifications older than 7 days
+    setNotifications(prev => prev.filter(n => isRecentNotification(n.created_at)));
+    // eslint-disable-next-line
+  }, [showNotif]);
+
+  // Close notification dropdown when clicking outside
+  useEffect(() => {
+    if (!showNotif) return;
+    function handleClickOutside(event: MouseEvent) {
+      if (notifDropdownRef.current && !notifDropdownRef.current.contains(event.target as Node)) {
+        setShowNotif(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showNotif]);
 
   return (
     <header className="bg-white shadow">
@@ -55,8 +118,8 @@ export default function Header() {
                 href="/dashboard"
                 className={`${
                   isActive('/dashboard')
-                    ? 'border-[#452F9F] text-gray-900'
-                    : 'border-transparent text-gray-500 hover:border-[#452F9F]/30 hover:text-gray-700'
+                    ? 'border-[#1A237E] text-[#1A237E]'
+                    : 'border-transparent text-[#1A237E] hover:border-[#1A237E]/30 hover:text-[#1A237E]'
                 } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16`}
               >
                 Dashboard
@@ -65,8 +128,8 @@ export default function Header() {
                 href="/dashboard/business-profile"
                 className={`${
                   isActive('/dashboard/business-profile')
-                    ? 'border-[#452F9F] text-gray-900'
-                    : 'border-transparent text-gray-500 hover:border-[#452F9F]/30 hover:text-gray-700'
+                    ? 'border-[#1A237E] text-[#1A237E]'
+                    : 'border-transparent text-[#1A237E] hover:border-[#1A237E]/30 hover:text-[#1A237E]'
                 } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16`}
               >
                 Your business
@@ -75,8 +138,8 @@ export default function Header() {
                 href="/dashboard/testimonials"
                 className={`${
                   isActive('/dashboard/testimonials')
-                    ? 'border-[#452F9F] text-gray-900'
-                    : 'border-transparent text-gray-500 hover:border-[#452F9F]/30 hover:text-gray-700'
+                    ? 'border-[#1A237E] text-[#1A237E]'
+                    : 'border-transparent text-[#1A237E] hover:border-[#1A237E]/30 hover:text-[#1A237E]'
                 } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16`}
               >
                 Your reviews
@@ -85,8 +148,8 @@ export default function Header() {
                 href="/dashboard/style"
                 className={`${
                   isActive('/dashboard/style')
-                    ? 'border-[#452F9F] text-gray-900'
-                    : 'border-transparent text-gray-500 hover:border-[#452F9F]/30 hover:text-gray-700'
+                    ? 'border-[#1A237E] text-[#1A237E]'
+                    : 'border-transparent text-[#1A237E] hover:border-[#1A237E]/30 hover:text-[#1A237E]'
                 } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16`}
               >
                 Style
@@ -95,41 +158,79 @@ export default function Header() {
                 href="/dashboard/widget"
                 className={`${
                   isActive('/dashboard/widget')
-                    ? 'border-[#452F9F] text-gray-900'
-                    : 'border-transparent text-gray-500 hover:border-[#452F9F]/30 hover:text-gray-700'
+                    ? 'border-[#1A237E] text-[#1A237E]'
+                    : 'border-transparent text-[#1A237E] hover:border-[#1A237E]/30 hover:text-[#1A237E]'
                 } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16`}
               >
                 Widget
               </Link>
             </div>
+            {/* Notification Bell (moved here) */}
+            <div className="hidden sm:flex items-center ml-10 mr-4">
+              <div className="relative top-1">
+                <button
+                  className="relative focus:outline-none"
+                  onClick={() => setShowNotif(v => !v)}
+                  aria-label="Show notifications"
+                >
+                  <FaBell className="w-6 h-6 text-[#1A237E] hover:text-[#1A237E]/80 transition-colors" />
+                  {notifications.filter(n => !n.read).length > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-pink-300 text-[#1A237E] text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold border border-white">{notifications.filter(n => !n.read).length}</span>
+                  )}
+                </button>
+                {showNotif && (
+                  <div ref={notifDropdownRef} className="absolute right-0 mt-2 w-80 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
+                    <div className="py-2 max-h-80 overflow-y-auto">
+                      {notifications.length === 0 ? (
+                        <div className="px-4 py-6 text-center text-gray-400">No notifications</div>
+                      ) : notifications.map(n => (
+                        <a
+                          key={n.id}
+                          href={`/dashboard/testimonials#${n.id}`}
+                          className="px-4 py-3 border-b last:border-b-0 flex flex-col gap-1 hover:bg-gray-50 transition-colors cursor-pointer no-underline"
+                          onClick={() => setShowNotif(false)}
+                        >
+                          <span className="text-sm text-gray-800">{n.message}</span>
+                          {n.preview && <span className="text-xs text-gray-500 italic">{n.preview}{n.preview.length === 60 ? '…' : ''}</span>}
+                          <span className="text-xs text-gray-400">{new Date(n.created_at).toLocaleString()}</span>
+                        </a>
+                      ))}
+                    </div>
+                    <div className="border-t border-gray-100 px-4 py-2 text-center">
+                      <span className="text-xs text-indigo-700 font-semibold cursor-pointer">View all</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
           {/* Desktop Account/Sign In */}
-          <div className="hidden sm:ml-6 sm:flex sm:items-center">
+          <div className="hidden sm:ml-6 sm:flex sm:items-center gap-4">
             {user ? (
               <Menu as="div" className="relative inline-block text-left">
                 <Menu.Button className="flex items-center focus:outline-none">
-                  <FaUserCircle className="w-8 h-8 text-[#452F9F] hover:text-[#452F9F]/80 transition-colors" />
+                  <FaUserCircle className="w-8 h-8 text-[#1A237E] hover:text-[#1A237E]/80 transition-colors" />
                 </Menu.Button>
                 <Menu.Items className="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
                   <div className="py-1">
                     <Menu.Item>
                       {({ active }) => (
-                        <Link href="/account" className={`${active ? 'bg-[#452F9F]/10 text-[#452F9F]' : 'text-gray-700'} block px-4 py-2 text-sm`}>Account details</Link>
+                        <Link href="/account" className={`${active ? 'bg-[#1A237E]/10 text-[#1A237E]' : 'text-gray-700'} block px-4 py-2 text-sm`}>Account details</Link>
                       )}
                     </Menu.Item>
                     <Menu.Item>
                       {({ active }) => (
-                        <Link href="/dashboard/analytics" className={`${active ? 'bg-[#452F9F]/10 text-[#452F9F]' : 'text-gray-700'} block px-4 py-2 text-sm`}>Analytics</Link>
+                        <Link href="/dashboard/analytics" className={`${active ? 'bg-[#1A237E]/10 text-[#1A237E]' : 'text-gray-700'} block px-4 py-2 text-sm`}>Analytics</Link>
                       )}
                     </Menu.Item>
                     <Menu.Item>
                       {({ active }) => (
-                        <Link href="/dashboard/upload-contacts" className={`${active ? 'bg-[#452F9F]/10 text-[#452F9F]' : 'text-gray-700'} block px-4 py-2 text-sm`}>Contacts</Link>
+                        <Link href="/dashboard/upload-contacts" className={`${active ? 'bg-[#1A237E]/10 text-[#1A237E]' : 'text-gray-700'} block px-4 py-2 text-sm`}>Contacts</Link>
                       )}
                     </Menu.Item>
                     <Menu.Item>
                       {({ active }) => (
-                        <Link href="/dashboard/billing" className={`${active ? 'bg-[#452F9F]/10 text-[#452F9F]' : 'text-gray-700'} block px-4 py-2 text-sm`}>Billing</Link>
+                        <Link href="/dashboard/billing" className={`${active ? 'bg-[#1A237E]/10 text-[#1A237E]' : 'text-gray-700'} block px-4 py-2 text-sm`}>Billing</Link>
                       )}
                     </Menu.Item>
                     <div className="border-t border-gray-100 my-1" />
@@ -177,8 +278,8 @@ export default function Header() {
                 href="/dashboard"
                 className={`${
                   isActive('/dashboard')
-                    ? 'bg-[#452F9F]/10 text-[#452F9F]'
-                    : 'text-gray-700 hover:bg-[#452F9F]/10'
+                    ? 'bg-[#1A237E]/10 text-[#1A237E]'
+                    : 'text-[#1A237E] hover:bg-[#1A237E]/10'
                 } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                 onClick={() => setMenuOpen(false)}
               >
@@ -188,8 +289,8 @@ export default function Header() {
                 href="/dashboard/business-profile"
                 className={`${
                   isActive('/dashboard/business-profile')
-                    ? 'bg-[#452F9F]/10 text-[#452F9F]'
-                    : 'text-gray-700 hover:bg-[#452F9F]/10'
+                    ? 'bg-[#1A237E]/10 text-[#1A237E]'
+                    : 'text-[#1A237E] hover:bg-[#1A237E]/10'
                 } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                 onClick={() => setMenuOpen(false)}
               >
@@ -199,8 +300,8 @@ export default function Header() {
                 href="/dashboard/testimonials"
                 className={`${
                   isActive('/dashboard/testimonials')
-                    ? 'bg-[#452F9F]/10 text-[#452F9F]'
-                    : 'text-gray-700 hover:bg-[#452F9F]/10'
+                    ? 'bg-[#1A237E]/10 text-[#1A237E]'
+                    : 'text-[#1A237E] hover:bg-[#1A237E]/10'
                 } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                 onClick={() => setMenuOpen(false)}
               >
@@ -210,8 +311,8 @@ export default function Header() {
                 href="/dashboard/style"
                 className={`${
                   isActive('/dashboard/style')
-                    ? 'bg-[#452F9F]/10 text-[#452F9F]'
-                    : 'text-gray-700 hover:bg-[#452F9F]/10'
+                    ? 'bg-[#1A237E]/10 text-[#1A237E]'
+                    : 'text-[#1A237E] hover:bg-[#1A237E]/10'
                 } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                 onClick={() => setMenuOpen(false)}
               >
@@ -221,8 +322,8 @@ export default function Header() {
                 href="/dashboard/widget"
                 className={`${
                   isActive('/dashboard/widget')
-                    ? 'bg-[#452F9F]/10 text-[#452F9F]'
-                    : 'text-gray-700 hover:bg-[#452F9F]/10'
+                    ? 'bg-[#1A237E]/10 text-[#1A237E]'
+                    : 'text-[#1A237E] hover:bg-[#1A237E]/10'
                 } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                 onClick={() => setMenuOpen(false)}
               >
@@ -234,8 +335,8 @@ export default function Header() {
                     href="/account"
                     className={`${
                       isActive('/account')
-                        ? 'bg-[#452F9F]/10 text-[#452F9F]'
-                        : 'text-gray-700 hover:bg-[#452F9F]/10'
+                        ? 'bg-[#1A237E]/10 text-[#1A237E]'
+                        : 'text-[#1A237E] hover:bg-[#1A237E]/10'
                     } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                     onClick={() => setMenuOpen(false)}
                   >
@@ -246,8 +347,8 @@ export default function Header() {
                       href="/admin"
                       className={`${
                         isActive('/admin')
-                          ? 'bg-[#452F9F]/10 text-[#452F9F]'
-                          : 'text-gray-700 hover:bg-[#452F9F]/10'
+                          ? 'bg-[#1A237E]/10 text-[#1A237E]'
+                          : 'text-[#1A237E] hover:bg-[#1A237E]/10'
                       } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                       onClick={() => setMenuOpen(false)}
                     >
@@ -258,7 +359,7 @@ export default function Header() {
               ) : (
                 <Link
                   href="/login"
-                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-[#452F9F]/10 transition-colors duration-200"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-[#1A237E]/10 transition-colors duration-200"
                   onClick={() => setMenuOpen(false)}
                 >
                   Sign in

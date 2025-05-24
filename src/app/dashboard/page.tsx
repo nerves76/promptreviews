@@ -123,10 +123,10 @@ export default function Dashboard() {
   if (isLoading) {
     return (
       <div className="min-h-screen py-12 px-2">
-        <div className="max-w-4xl mx-auto">
+        <div className="w-full mx-auto">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading dashboard...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-dustyPlum mx-auto"></div>
+            <p className="mt-4 text-dustyPlum">Loading dashboard...</p>
           </div>
         </div>
       </div>
@@ -136,7 +136,7 @@ export default function Dashboard() {
   if (error) {
     return (
       <div className="min-h-screen py-12">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center text-red-600">
             <p>{error}</p>
           </div>
@@ -145,7 +145,10 @@ export default function Dashboard() {
     );
   }
 
-  const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'there';
+  const userName =
+    user?.user_metadata?.full_name ||
+    user?.email?.split('@')[0] ||
+    'there';
 
   return (
     <div className="min-h-screen">

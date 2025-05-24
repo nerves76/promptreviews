@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createBrowserClient } from '@supabase/ssr';
 
 export default function SignUpPage() {
   const [email, setEmail] = useState('');
@@ -11,7 +11,22 @@ export default function SignUpPage() {
   const [error, setError] = useState('');
   const [emailSent, setEmailSent] = useState(false);
 
-  const supabase = createClientComponentClient();
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
+  const errorMessages: Record<string, string> = {
+    'User already registered': 'This email is already registered. Please sign in instead.',
+    'Invalid login credentials': 'Incorrect email or password. Please try again.',
+    'Email not confirmed': 'Please check your email and confirm your account.',
+    'Password should be at least 6 characters': 'Password must be at least 6 characters.',
+    'Email is not valid': 'Please enter a valid email address.',
+    'Email link is invalid or has expired': 'The sign-in link is invalid or has expired. Please try again.',
+    'Rate limit exceeded': 'Too many attempts. Please wait a moment and try again.',
+    'Network error': 'Network error. Please check your connection and try again.',
+    'Unexpected error': 'Something went wrong. Please try again.',
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,7 +50,8 @@ export default function SignUpPage() {
 
       if (authError) {
         console.error('Sign-up error:', authError);
-        setError(authError.message);
+        const friendly = errorMessages[authError.message] || authError.message;
+        setError(friendly);
         setLoading(false);
         return;
       }
@@ -91,7 +107,17 @@ export default function SignUpPage() {
             autoComplete="new-password"
           />
         </div>
-        {error && <div className="text-red-600">{error}</div>}
+        {error && (
+          <div className="text-red-600">
+            {error}
+            {error === errorMessages['User already registered'] && (
+              <>
+                {' '}
+                <Link href="/auth/sign-in" className="underline text-blue-600 ml-1">Sign in</Link>
+              </>
+            )}
+          </div>
+        )}
         <button
           type="submit"
           className="w-full py-3 bg-blue-600 text-white rounded font-semibold hover:bg-blue-700"

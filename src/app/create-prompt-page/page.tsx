@@ -5,10 +5,11 @@ import { createBrowserClient } from '@supabase/ssr';
 import { generateAIReview } from '@/utils/ai';
 import Header from '../components/Header';
 import { slugify } from '@/utils/slugify';
-import { FaFileAlt, FaInfoCircle, FaStar, FaGift } from 'react-icons/fa';
+import { FaFileAlt, FaInfoCircle, FaStar, FaGift, FaVideo, FaImage, FaQuoteRight } from 'react-icons/fa';
 import { checkAccountLimits } from '@/utils/accountLimits';
 import { Dialog } from '@headlessui/react';
 import { getUserOrMock } from '@/utils/supabase';
+import { ZiggeoRecorder } from 'react-ziggeo';
 
 interface ReviewPlatformLink {
   platform: string;
@@ -33,6 +34,40 @@ interface BusinessProfile {
   default_offer_title: string;
   default_offer_body: string;
 }
+
+const REVIEW_TYPES = [
+  {
+    value: 'review',
+    label: 'Prompt Review',
+    icon: <FaQuoteRight className="w-6 h-6 text-indigo-500" />,
+    description: 'Collect written reviews with AI assistance.'
+  },
+  {
+    value: 'experience',
+    label: 'Experiences & Spaces',
+    icon: <FaStar className="w-6 h-6 text-yellow-500" />,
+    description: 'Gather feedback about experiences or locations.'
+  },
+  {
+    value: 'video',
+    label: 'Video Testimonial',
+    icon: <FaVideo className="w-6 h-6 text-pink-500" />,
+    description: 'Request a video testimonial with custom questions.'
+  },
+  {
+    value: 'photo',
+    label: 'Photo + Testimonial',
+    icon: <FaImage className="w-6 h-6 text-green-500" />,
+    description: 'Collect a photo and a short written testimonial.'
+  }
+];
+
+const VIDEO_PRESETS = [
+  { key: 'quick', label: 'Quick & Easy', length: 30, quality: '720p', desc: '30s, 720p, fast upload' },
+  { key: 'short', label: 'Short & High Quality', length: 30, quality: '1080p', desc: '30s, 1080p, best quality' },
+  { key: 'standard', label: 'Standard', length: 60, quality: '720p', desc: '60s, 720p, slower upload' },
+  { key: 'long', label: 'Long', length: 120, quality: '720p', desc: '120s, 720p, slowest upload' },
+];
 
 function Tooltip({ text }: { text: string }) {
   const [show, setShow] = useState(false);
@@ -65,32 +100,165 @@ function Tooltip({ text }: { text: string }) {
   );
 }
 
+const initialFormData = {
+  first_name: '',
+  last_name: '',
+  email: '',
+  phone: '',
+  outcomes: '',
+  review_platforms: [] as ReviewPlatformLink[],
+  services_offered: '',
+  friendly_note: '',
+  status: 'draft' as const,
+  role: '',
+  offer_enabled: false,
+  offer_title: '',
+  offer_body: '',
+  offer_url: '',
+  review_type: '',
+  video_recipient: '',
+  video_note: '',
+  video_tips: '',
+  video_questions: [''],
+  video_preset: 'quick',
+  video_max_length: 30,
+  video_quality: '720p',
+  falling_star: false,
+};
+
+function VideoTestimonialSetup({ formData, setFormData }: { formData: typeof initialFormData, setFormData: React.Dispatch<React.SetStateAction<typeof initialFormData>> }) {
+  const ZIGGEO_API_KEY = process.env.NEXT_PUBLIC_ZIGGEO_API_KEY || '';
+  const [videoToken, setVideoToken] = useState<string | null>(null);
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Recipient Name/Info (optional)</label>
+        <input
+          type="text"
+          value={formData.video_recipient}
+          onChange={e => setFormData((prev) => ({ ...prev, video_recipient: e.target.value }))}
+          className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+          placeholder="e.g., John Doe, Customer"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Personalized Note</label>
+        <textarea
+          value={formData.video_note}
+          onChange={e => setFormData((prev) => ({ ...prev, video_note: e.target.value }))}
+          rows={3}
+          className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+          placeholder="Add a personal message for the reviewer"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Video Tips/Advice</label>
+        <textarea
+          value={formData.video_tips}
+          onChange={e => setFormData((prev) => ({ ...prev, video_tips: e.target.value }))}
+          rows={2}
+          className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+          placeholder="Tips for recording a great video (lighting, sound, etc.)"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Custom Questions (up to 5)</label>
+        {formData.video_questions.map((q, i) => (
+          <div key={i} className="flex items-center gap-2 mb-2">
+            <input
+              type="text"
+              value={q}
+              onChange={e => setFormData((prev) => ({ ...prev, video_questions: prev.video_questions.map((qq, idx) => idx === i ? e.target.value : qq) }))}
+              className="flex-1 rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-2 px-3"
+              placeholder={`Question ${i + 1}`}
+              maxLength={120}
+            />
+            <button type="button" onClick={() => setFormData((prev) => ({ ...prev, video_questions: prev.video_questions.filter((_, idx) => idx !== i) }))} className="text-red-500 hover:text-red-700 px-2">Remove</button>
+          </div>
+        ))}
+        {formData.video_questions.length < 5 && (
+          <button type="button" onClick={() => setFormData((prev) => ({ ...prev, video_questions: [...prev.video_questions, ''] }))} className="mt-2 px-3 py-1 bg-indigo-100 text-indigo-700 rounded">Add Question</button>
+        )}
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Falling Star Animation</label>
+        <button
+          type="button"
+          onClick={() => setFormData((prev) => ({ ...prev, falling_star: !prev.falling_star }))}
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${formData.falling_star ? 'bg-indigo-500' : 'bg-gray-300'}`}
+        >
+          <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${formData.falling_star ? 'translate-x-5' : 'translate-x-1'}`} />
+        </button>
+        <span className="ml-2 text-xs text-gray-500">Show animation on video upload</span>
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Video Length & Quality</label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {VIDEO_PRESETS.map(preset => (
+            <label key={preset.key} className={`flex items-center gap-3 p-3 rounded border cursor-pointer ${formData.video_preset === preset.key ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200 bg-white'}`}>
+              <input
+                type="radio"
+                name="video_preset"
+                value={preset.key}
+                checked={formData.video_preset === preset.key}
+                onChange={() => setFormData((prev) => ({ ...prev, video_preset: preset.key, video_max_length: preset.length, video_quality: preset.quality }))}
+                className="form-radio text-indigo-600"
+              />
+              <span className="font-medium">{preset.label}</span>
+              <span className="text-xs text-gray-500">{preset.desc}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+      <div className="mt-6">
+        <div className="p-4 bg-gray-50 border border-gray-200 rounded">
+          <div className="font-semibold mb-2">Video Recorder (Ziggeo)</div>
+          <div className="text-xs text-gray-500 mb-2">Recorder will be configured for {formData.video_max_length}s, {formData.video_quality}.</div>
+          <div className="w-full flex items-center justify-center bg-gray-100 rounded border border-dashed border-gray-300 min-h-48 py-4">
+            {ZIGGEO_API_KEY ? (
+              <ZiggeoRecorder
+                apiKey={ZIGGEO_API_KEY}
+                height={240}
+                width={360}
+                maxLength={formData.video_max_length}
+                videoProfile={formData.video_quality === '1080p' ? 'hd' : 'standard'}
+                onUploaded={(embedding: any) => {
+                  setVideoToken(embedding.video.token);
+                  setFormData(prev => ({ ...prev, ziggeo_video_token: embedding.video.token }));
+                }}
+                onError={(err: any) => {
+                  alert('Video recording error: ' + (err?.message || err));
+                }}
+              />
+            ) : (
+              <span className="text-gray-400">[Ziggeo API key not set. Add NEXT_PUBLIC_ZIGGEO_API_KEY to your .env]</span>
+            )}
+          </div>
+          {videoToken && (
+            <div className="mt-2 text-xs text-green-600">Video uploaded! Token: {videoToken}</div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function CreatePromptPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState(1);
-  const [formData, setFormData] = useState({
-    first_name: '',
-    last_name: '',
-    email: '',
-    phone: '',
-    outcomes: '',
-    review_platforms: [] as ReviewPlatformLink[],
-    services_offered: '',
-    friendly_note: '',
-    status: 'draft' as const,
-    role: '',
-    offer_enabled: false,
-    offer_title: '',
-    offer_body: '',
-    offer_url: '',
-  });
+  const [showTypeModal, setShowTypeModal] = useState(true);
+  const [formData, setFormData] = useState(initialFormData);
   const [businessProfile, setBusinessProfile] = useState<BusinessProfile | null>(null);
   const [generatingReview, setGeneratingReview] = useState<number | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [upgradeModalMessage, setUpgradeModalMessage] = useState<string | null>(null);
+
+  // Debug logging
+  console.log('RENDER: review_type:', formData.review_type, 'showTypeModal:', showTypeModal);
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -236,11 +404,16 @@ export default function CreatePromptPage() {
 
       if (!businessData) throw new Error('No business found');
 
+      const review_platforms_with_wordCount = formData.review_platforms.map(link => ({
+        ...link,
+        wordCount: link.wordCount ? Math.max(200, Number(link.wordCount)) : 200
+      }));
       const { data, error } = await supabase
         .from('prompt_pages')
         .insert([
           {
             ...formData,
+            review_platforms: review_platforms_with_wordCount,
             account_id: user.id,
             status: 'draft'
           }
@@ -651,43 +824,40 @@ export default function CreatePromptPage() {
   return (
     <>
       <Header />
-      <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        {/* Upgrade Modal */}
-        <Dialog open={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} className="fixed z-50 inset-0 overflow-y-auto">
-          <div className="flex items-center justify-center min-h-screen px-4">
-            <div className="fixed inset-0 bg-black opacity-30" aria-hidden="true" />
-            <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-auto p-8 z-10">
-              <Dialog.Title className="text-lg font-bold mb-4">
-                {upgradeModalMessage && upgradeModalMessage.includes('Trial ended') ? 'Trial Ended' : 'Upgrade Required'}
-              </Dialog.Title>
-              <Dialog.Description className="mb-6 text-gray-700 whitespace-pre-line">
-                {upgradeModalMessage}
-              </Dialog.Description>
-              <button
-                className="w-full py-2 px-4 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-semibold"
-                onClick={() => {
-                  setShowUpgradeModal(false);
-                  router.push('/upgrade');
-                }}
-              >
-                Upgrade Now
-              </button>
-              <button
-                className="w-full mt-2 py-2 px-4 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
-                onClick={() => setShowUpgradeModal(false)}
-              >
-                Cancel
-              </button>
+      <Dialog open={showTypeModal} onClose={() => {}} className="fixed z-50 inset-0 overflow-y-auto">
+        <div className="flex items-center justify-center min-h-screen px-4">
+          <div className="fixed inset-0 bg-black opacity-30" aria-hidden="true" />
+          <div className="relative bg-white rounded-lg shadow-xl max-w-lg w-full mx-auto p-8 z-10">
+            <Dialog.Title className="text-lg font-bold mb-4">Select Prompt Page Type</Dialog.Title>
+            <div className="grid grid-cols-1 gap-4">
+              {REVIEW_TYPES.map(type => (
+                <button
+                  key={type.value}
+                  className={`flex items-center gap-4 p-4 rounded border w-full text-left ${formData.review_type === type.value ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200 bg-white'} hover:border-indigo-400`}
+                  onClick={() => { setFormData(prev => ({ ...prev, review_type: type.value })); setShowTypeModal(false); }}
+                >
+                  {type.icon}
+                  <div>
+                    <div className="font-semibold">{type.label}</div>
+                    <div className="text-xs text-gray-500">{type.description}</div>
+                  </div>
+                </button>
+              ))}
             </div>
           </div>
-        </Dialog>
-
-        <div className="bg-white shadow sm:rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <div className="md:flex md:items-center md:justify-between mb-8">
-              <div className="min-w-0 flex-1">
-                <h1 className="text-2xl font-bold text-gray-900 mb-8 flex items-center gap-3">
-                  <FaFileAlt className="text-indigo-500" />
+        </div>
+      </Dialog>
+      <div className="min-h-screen flex justify-center items-start">
+        <div className="relative">
+          {/* Floating Icon */}
+          <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center">
+            <FaFileAlt className="w-9 h-9 text-indigo-500" />
+          </div>
+          {/* Main Card */}
+          <div className="rounded-lg shadow-lg p-8 bg-white" style={{maxWidth: 1000}}>
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex flex-col">
+                <h1 className="text-4xl font-bold text-indigo-500 flex items-center gap-3">
                   Create Prompt Page
                 </h1>
                 <div className="mt-1 text-xs text-gray-500 max-w-2xl">Create a landing page that makes it incredibly easy for your customers, clients, fans, and friends to post a positive review.</div>
@@ -697,7 +867,7 @@ export default function CreatePromptPage() {
               <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-md">{error}</div>
             )}
             <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
-              {step === 1 ? renderStep1() : renderStep2()}
+              {formData.review_type === 'video' ? <VideoTestimonialSetup formData={formData} setFormData={setFormData} /> : (step === 1 ? renderStep1() : renderStep2())}
             </form>
           </div>
         </div>

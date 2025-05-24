@@ -47,10 +47,10 @@ export default function DashboardLayout({
   if (loading) return null;
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-b from-indigo-500 via-purple-300 to-peach-100">
+    <div className="min-h-screen w-full bg-gradient-to-b from-[#1A237E] to-[#FFDAB9]">
       <Header />
       <main className="flex min-h-[calc(100vh-64px)] items-center justify-center">
-        <div className="w-full max-w-4xl px-4 mt-16">
+        <div className="w-full px-4 mt-16 mb-12">
           <Suspense fallback={null}>
             {children}
           </Suspense>
@@ -67,7 +67,7 @@ export default function DashboardLayout({
               Your free trial has ended. To continue using PromptReviews, please upgrade your plan.
             </Dialog.Description>
             <button
-              className="w-full py-2 px-4 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-semibold"
+              className="w-full py-2 px-4 bg-dustyPlum text-white rounded-md hover:bg-lavenderHaze font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dustyPlum"
               onClick={() => router.push('/upgrade')}
             >
               Upgrade now

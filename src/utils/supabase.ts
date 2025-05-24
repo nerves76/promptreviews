@@ -1,6 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
 import { Suspense } from 'react';
-import { mockUser, mockSession } from './mockUser';
 
 const supabaseUrl = 'https://kkejemfchqaprtihvgon.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtrZWplbWZjaHFhcHJ0aWh2Z29uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY5MDE3NzksImV4cCI6MjA2MjQ3Nzc3OX0.UF4FLT4-oki29MoYC0guelksm71IPYoXc-RvtcoxlPo';
@@ -96,15 +95,9 @@ export type Database = {
 };
 
 export async function getUserOrMock(supabase: any) {
-  if (process.env.NODE_ENV !== 'production') {
-    return { data: { user: mockUser } };
-  }
   return await supabase.auth.getUser();
 }
 
 export async function getSessionOrMock(supabase: any) {
-  if (process.env.NODE_ENV !== 'production') {
-    return { data: { session: mockSession } };
-  }
   return await supabase.auth.getSession();
 } 

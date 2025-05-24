@@ -14,7 +14,7 @@ interface StyleSettings {
   secondary_color: string;
   background_color: string;
   text_color: string;
-  background_type: 'solid' | 'gradient';
+  background_type: 'solid' | 'gradient' | 'none';
   gradient_start: string;
   gradient_middle: string;
   gradient_end: string;
@@ -186,21 +186,21 @@ export default function StylePage() {
 
   return (
     <div className="min-h-screen mt-6 px-2">
-      <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-8 relative">
+      <div className="w-full mx-auto bg-white rounded-lg shadow-lg p-8 relative" style={{maxWidth: 1000}}>
         <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center">
-          <FaPalette className="w-9 h-9 text-indigo-500" />
+          <FaPalette className="w-9 h-9 text-[#1A237E]" />
         </div>
         <div className="flex items-center justify-between mb-8">
           <div className="flex flex-col">
-            <h1 className="text-4xl font-bold text-[#452F9F]">Style settings</h1>
+            <h1 className="text-4xl font-bold text-[#1A237E]">Style settings</h1>
             {/* Optionally add subcopy here if needed */}
           </div>
         </div>
 
         {/* Color Scheme Section */}
         <div className="mb-16">
-          <h2 className="mt-20 text-2xl font-bold text-indigo-900 flex items-center gap-3 mb-12">
-            <FaSwatchbook className="w-7 h-7 text-indigo-500" />
+          <h2 className="mt-20 text-2xl font-bold text-[#1A237E] flex items-center gap-3 mb-12">
+            <FaSwatchbook className="w-7 h-7 text-[#1A237E]" />
             Color scheme
           </h2>
           {error && (
@@ -376,6 +376,16 @@ export default function StylePage() {
                   <label className="inline-flex items-center">
                     <input
                       type="radio"
+                      value="none"
+                      checked={settings.background_type === 'none'}
+                      onChange={(e) => setSettings({ ...settings, background_type: 'none' })}
+                      className="form-radio h-4 w-4 text-indigo-600"
+                    />
+                    <span className="ml-2 text-sm">No Background</span>
+                  </label>
+                  <label className="inline-flex items-center">
+                    <input
+                      type="radio"
                       value="solid"
                       checked={settings.background_type === 'solid'}
                       onChange={(e) => setSettings({ ...settings, background_type: 'solid' })}
@@ -430,7 +440,7 @@ export default function StylePage() {
                     />
                   </div>
                 </div>
-              ) : (
+              ) : settings.background_type === 'gradient' ? (
                 <div className="space-y-4">
                   <div className="relative h-16 w-full rounded-lg overflow-hidden">
                     <div 
@@ -517,7 +527,7 @@ export default function StylePage() {
                     </div>
                   </div>
                 </div>
-              )}
+              ) : null}
             </div>
 
             {/* Preview */}
@@ -525,9 +535,11 @@ export default function StylePage() {
               <div 
                 className="p-6 rounded-lg bg-gray-50 border shadow-sm"
                 style={{
-                  background: settings.background_type === 'solid' 
-                    ? settings.background_color 
-                    : `linear-gradient(to bottom right, ${settings.gradient_start}, ${settings.gradient_end})`
+                  background: settings.background_type === 'solid'
+                    ? settings.background_color
+                    : settings.background_type === 'gradient'
+                      ? `linear-gradient(to bottom right, ${settings.gradient_start}, ${settings.gradient_end})`
+                      : 'none'
                 }}
               >
                 <div className="bg-gray-50 p-6 rounded-lg border">

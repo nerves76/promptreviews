@@ -44,7 +44,7 @@ export default function AccountPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen py-12 px-2">
-        <div className="max-w-4xl mx-auto">
+        <div className="w-full mx-auto">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
             <p className="mt-4 text-gray-600">Loading account settings...</p>
@@ -62,7 +62,7 @@ export default function AccountPage() {
     <div className="min-h-screen">
       <Header />
       <div className="min-h-screen pt-24 pb-12 px-2">
-        <div className="max-w-4xl mx-auto bg-white rounded-lg shadow pt-4 pb-24 px-8 relative">
+        <div className="w-full mx-auto bg-white rounded-lg shadow pt-4 pb-24 px-8 relative">
           <div className="absolute -top-4 -left-4 bg-white rounded-full shadow p-2 flex items-center justify-center">
             <FaUser className="w-7 h-7 text-indigo-500" />
           </div>

@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { createBrowserClient } from "@supabase/ssr";
-import { FaChevronDown, FaChevronRight, FaDownload, FaStar, FaTrash, FaGoogle, FaFacebook, FaYelp, FaTripadvisor, FaRegStar, FaPalette } from "react-icons/fa";
+import { FaChevronDown, FaChevronRight, FaDownload, FaStar, FaTrash, FaGoogle, FaFacebook, FaYelp, FaTripadvisor, FaRegStar, FaRegComment } from "react-icons/fa";
 import { SiHouzz, SiThumbtack, SiHomeadvisor, SiTrustpilot } from "react-icons/si";
 import { IconType } from "react-icons";
 
@@ -32,8 +32,8 @@ interface PlatformGroup {
 const ITEMS_PER_PAGE = 30;
 
 const TABS = [
-  { key: "reviewer", label: "By Reviewer" },
-  { key: "platform", label: "By Platform" },
+  { key: "reviewer", label: "By reviewer" },
+  { key: "platform", label: "By platform" },
 ];
 
 const SAMPLE_REVIEWS = [
@@ -103,6 +103,14 @@ function getPlatformIcon(platform: string): { icon: IconType, label: string } {
   return { icon: FaRegStar, label: platform || 'Other' };
 }
 
+// Helper to check if a review is new (within 7 days)
+function isNewReview(created_at: string) {
+  const created = new Date(created_at);
+  const now = new Date();
+  const diff = now.getTime() - created.getTime();
+  return diff < 7 * 24 * 60 * 60 * 1000;
+}
+
 export default function TestimonialsPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [grouped, setGrouped] = useState<ReviewerGroup[]>([]);
@@ -114,6 +122,10 @@ export default function TestimonialsPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'reviewer' | 'platform'>('reviewer');
+
+  // Add a ref map to store review refs
+  const reviewRefs = useRef<{ [id: string]: HTMLDivElement | null }>({});
+  const [highlightedId, setHighlightedId] = useState<string | null>(null);
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -259,15 +271,27 @@ export default function TestimonialsPage() {
     alert("Export to CSV coming soon!");
   };
 
+  // Auto-scroll and highlight review if hash matches
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const hash = window.location.hash.replace('#', '');
+    if (hash && reviewRefs.current[hash]) {
+      reviewRefs.current[hash]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setHighlightedId(hash);
+      // Remove highlight after 2 seconds
+      setTimeout(() => setHighlightedId(null), 2000);
+    }
+  }, [reviews]);
+
   return (
     <div className="min-h-screen py-12 px-2">
-      <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-8 relative">
+      <div className="w-full mx-auto bg-white rounded-lg shadow-lg p-8 relative" style={{maxWidth: 1000}}>
         <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center">
-          <FaPalette className="w-9 h-9 text-indigo-500" />
+          <FaStar className="w-9 h-9 text-[#1A237E]" />
         </div>
         <div className="flex items-center justify-between mb-8">
           <div className="flex flex-col">
-            <h1 className="text-4xl font-bold text-[#452F9F]">Testimonials</h1>
+            <h1 className="text-4xl font-bold text-[#1A237E]">Your reviews</h1>
             {/* Optionally add subcopy here if needed */}
           </div>
         </div>
@@ -280,8 +304,8 @@ export default function TestimonialsPage() {
               onClick={() => setActiveTab(tab.key as 'reviewer' | 'platform')}
               className={`px-4 py-2 -mb-px border-b-2 font-medium transition-colors ${
                 activeTab === tab.key
-                  ? 'border-[#452F9F] text-[#452F9F]'
-                  : 'border-transparent text-gray-500 hover:text-[#452F9F]'
+                  ? 'border-[#1A237E] text-[#1A237E]'
+                  : 'border-transparent text-gray-500 hover:text-[#1A237E]'
               }`}
             >
               {tab.label}
@@ -294,7 +318,7 @@ export default function TestimonialsPage() {
           <input
             type="text"
             placeholder="Search by reviewer, platform, or text..."
-            className="w-full max-w-md rounded-lg border border-gray-200 px-4 py-2 shadow-sm focus:ring-2 focus:ring-[#452F9F] focus:outline-none"
+            className="w-full max-w-md rounded-lg border border-gray-200 px-4 py-2 shadow-sm focus:ring-2 focus:ring-[#1A237E] focus:outline-none"
             disabled
           />
         </div>
@@ -302,7 +326,7 @@ export default function TestimonialsPage() {
         {/* Reviews Section */}
         {loading ? (
           <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#452F9F] mx-auto"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1A237E] mx-auto"></div>
             <p className="mt-4 text-gray-600">Loading reviews...</p>
           </div>
         ) : error ? (
@@ -320,9 +344,9 @@ export default function TestimonialsPage() {
                       onClick={() => toggleExpand(group.reviewerKey)}
                     >
                       {expanded[group.reviewerKey] ? (
-                        <FaChevronDown className="text-[#452F9F]" />
+                        <FaChevronDown className="text-[#1A237E]" />
                       ) : (
-                        <FaChevronRight className="text-[#452F9F]" />
+                        <FaChevronRight className="text-[#1A237E]" />
                       )}
                       <span className="font-semibold text-lg text-gray-800">
                         {group.reviewer_name || "[No Name]"}
@@ -339,21 +363,28 @@ export default function TestimonialsPage() {
                         {group.reviews.map((review) => {
                           const { icon: PlatformIcon, label } = getPlatformIcon(review.platform);
                           return (
-                            <div key={review.id} className="bg-white rounded-lg p-4 border border-gray-200 relative">
+                            <div
+                              key={review.id}
+                              ref={el => (reviewRefs.current[review.id] = el)}
+                              className={`bg-white rounded-lg p-4 border border-gray-200 relative transition-colors duration-700 ${highlightedId === review.id ? 'bg-yellow-100 border-yellow-400' : ''}`}
+                            >
                               {/* Platform icon in top-left corner */}
                               <div className="absolute -top-4 -left-4 bg-white rounded-full shadow p-2 flex items-center justify-center" title={label}>
-                                <PlatformIcon className="w-6 h-6 text-[#452F9F]" />
+                                <PlatformIcon className="w-6 h-6 text-[#1A237E]" />
                               </div>
                               <div className="flex items-center gap-2 mb-2">
-                                <span className="font-semibold text-[#452F9F]">{review.platform}</span>
+                                <span className="font-semibold text-[#1A237E]">{review.platform}</span>
                                 <span className="text-xs text-gray-400 ml-2">{new Date(review.created_at).toLocaleDateString()}</span>
                                 <span className={`ml-2 text-xs px-2 py-1 rounded ${
-                                  review.status === 'submitted' 
-                                    ? 'bg-green-100 text-green-600' 
+                                  review.status === 'submitted'
+                                    ? 'bg-green-100 text-green-600'
                                     : 'bg-yellow-100 text-yellow-600'
                                 }`}>
                                   {review.status}
                                 </span>
+                                {isNewReview(review.created_at) && (
+                                  <span className="ml-2 text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700 font-semibold">New</span>
+                                )}
                                 <button
                                   onClick={() => handleDelete(review.id)}
                                   disabled={isDeleting === review.id}
@@ -414,9 +445,9 @@ export default function TestimonialsPage() {
                       onClick={() => toggleExpand(group.platform)}
                     >
                       {expanded[group.platform] ? (
-                        <FaChevronDown className="text-[#452F9F]" />
+                        <FaChevronDown className="text-[#1A237E]" />
                       ) : (
-                        <FaChevronRight className="text-[#452F9F]" />
+                        <FaChevronRight className="text-[#1A237E]" />
                       )}
                       <span className="font-semibold text-lg text-gray-800">
                         {group.platform}
@@ -430,24 +461,31 @@ export default function TestimonialsPage() {
                         {group.reviews.map((review) => {
                           const { icon: PlatformIcon, label } = getPlatformIcon(review.platform);
                           return (
-                            <div key={review.id} className="bg-white rounded-lg p-4 border border-gray-200 relative">
+                            <div
+                              key={review.id}
+                              ref={el => (reviewRefs.current[review.id] = el)}
+                              className={`bg-white rounded-lg p-4 border border-gray-200 relative transition-colors duration-700 ${highlightedId === review.id ? 'bg-yellow-100 border-yellow-400' : ''}`}
+                            >
                               {/* Platform icon in top-left corner */}
                               <div className="absolute -top-4 -left-4 bg-white rounded-full shadow p-2 flex items-center justify-center" title={label}>
-                                <PlatformIcon className="w-6 h-6 text-[#452F9F]" />
+                                <PlatformIcon className="w-6 h-6 text-[#1A237E]" />
                               </div>
                               <div className="flex items-center gap-2 mb-2">
-                                <span className="font-semibold text-[#452F9F]">{review.reviewer_name || "[No Name]"}</span>
+                                <span className="font-semibold text-[#1A237E]">{review.reviewer_name || "[No Name]"}</span>
                                 {review.reviewer_role && (
                                   <span className="ml-2 text-sm text-gray-500">({review.reviewer_role})</span>
                                 )}
                                 <span className="text-xs text-gray-400 ml-2">{new Date(review.created_at).toLocaleDateString()}</span>
                                 <span className={`ml-2 text-xs px-2 py-1 rounded ${
-                                  review.status === 'submitted' 
-                                    ? 'bg-green-100 text-green-600' 
+                                  review.status === 'submitted'
+                                    ? 'bg-green-100 text-green-600'
                                     : 'bg-yellow-100 text-yellow-600'
                                 }`}>
                                   {review.status}
                                 </span>
+                                {isNewReview(review.created_at) && (
+                                  <span className="ml-2 text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700 font-semibold">New</span>
+                                )}
                                 <button
                                   onClick={() => handleDelete(review.id)}
                                   disabled={isDeleting === review.id}

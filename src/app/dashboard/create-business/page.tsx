@@ -11,7 +11,7 @@ import { sanitizePromptPageInsert } from '@/utils/sanitizePromptPageInsert';
 import { slugify } from '@/utils/slugify';
 import { FaImage, FaBuilding, FaInfoCircle, FaAddressBook, FaList, FaShareAlt, FaClock, FaMapMarkerAlt, FaGift } from 'react-icons/fa';
 import { getUserOrMock } from '@/utils/supabase';
-import BusinessForm from './components/BusinessForm';
+import BusinessForm from '../components/BusinessForm';
 
 interface Platform {
   name: string;
@@ -28,7 +28,7 @@ function Tooltip({ text }: { text: string }) {
         type="button"
         tabIndex={0}
         aria-label="Show help"
-        className="text-gray-400 hover:text-indigo-600 focus:outline-none"
+        className="text-gray-400 hover:text-dustyPlum focus:outline-none"
         onMouseEnter={() => setShow(true)}
         onMouseLeave={() => setShow(false)}
         onFocus={() => setShow(true)}
@@ -36,14 +36,14 @@ function Tooltip({ text }: { text: string }) {
         style={{ lineHeight: 1 }}
       >
         <span
-          className="flex items-center justify-center rounded-full bg-blue-100"
+          className="flex items-center justify-center rounded-full bg-softPeach"
           style={{ width: 16, height: 16, fontSize: 12, color: '#2563eb', fontWeight: 400 }}
         >
           ?
         </span>
       </button>
       {show && (
-        <div className="absolute z-20 left-1/2 -translate-x-1/2 mt-2 w-56 p-2 bg-white border border-gray-200 rounded shadow text-xs text-gray-700">
+        <div className="absolute z-20 left-1/2 -translate-x-1/2 mt-2 w-56 p-2 bg-white border border-gray-200 rounded shadow text-xs text-dustyPlum">
           {text}
         </div>
       )}
@@ -249,7 +249,7 @@ export default function CreateBusinessPage() {
     if (!name || !url) return '';
     if (name.toLowerCase() === 'google') {
       return url.match(/^https:\/\/g\.page\/|^https:\/\/search\.google\.com\/local\/write\/review\?placeid=/)
-        ? '' : 'Get Your Google Review Link.<br>Your Google review link can be accessed when you are logged into your Google business account. <a href="https://support.google.com/business/answer/3474122?hl=en#:~:text=Share%20a%20link%20or%20QR,used%20to%20send%20the%20email." target="_blank" rel="noopener noreferrer" class="underline text-blue-600">Click here for instructions.</a>';
+        ? '' : 'Get Your Google Review Link.<br>Your Google review link can be accessed when you are logged into your Google business account. <a href="https://support.google.com/business/answer/3474122?hl=en#:~:text=Share%20a%20link%20or%20QR,used%20to%20send%20the%20email." target="_blank" rel="noopener noreferrer" class="underline text-dustyPlum">Click here for instructions.</a>';
     }
     if (name.toLowerCase() === 'facebook') {
       return url.match(/^https:\/\/www\.facebook\.com\/.+\/reviews/) ? '' : 'Enter a valid Facebook review link.';
@@ -260,14 +260,16 @@ export default function CreateBusinessPage() {
     return '';
   };
 
-  const handlePlatformChange = (idx: number, field: 'name' | 'url' | 'customPlatform', value: string) => {
+  const handlePlatformChange = (idx: number, field: 'name' | 'url' | 'customPlatform' | 'wordCount', value: string) => {
     const newPlatforms = [...platforms];
     if (field === 'name') {
-      newPlatforms[idx] = { ...newPlatforms[idx], name: value };
+      newPlatforms[idx].name = value;
     } else if (field === 'url') {
-      newPlatforms[idx] = { ...newPlatforms[idx], url: value };
+      newPlatforms[idx].url = value;
     } else if (field === 'customPlatform') {
       newPlatforms[idx] = { ...newPlatforms[idx], customPlatform: value };
+    } else if (field === 'wordCount') {
+      newPlatforms[idx].wordCount = Number(value);
     }
     setPlatforms(newPlatforms);
     // Validate on change
@@ -363,24 +365,24 @@ export default function CreateBusinessPage() {
   };
 
   return (
-    <div className="min-h-screen flex justify-center items-start bg-gradient-to-br from-[#F6F7FB] via-white to-[#F6F7FB]">
-      <div className="relative w-full max-w-4xl">
+    <div className="min-h-screen flex justify-center items-start bg-gradient-to-br from-[#1A237E] via-[#3F51B5] to-[#FFDAB9]">
+      <div className="relative w-full">
         {/* Floating Icon */}
         <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center">
-          <FaBuilding className="w-9 h-9 text-indigo-500" />
+          <FaBuilding className="w-9 h-9 text-dustyPlum" />
         </div>
         {/* Main Card */}
-        <div className="bg-white rounded-lg shadow-lg p-8">
+        <div className="w-full mx-auto bg-white rounded-lg shadow-lg p-8 relative" style={{maxWidth: 1000}}>
           <div className="flex items-center justify-between mb-8">
             <div className="flex flex-col">
-              <h1 className="text-4xl font-bold text-[#452F9F]">Your Business</h1>
+              <h1 className="text-4xl font-bold text-dustyPlum">Create Business</h1>
               {/* Optionally add subcopy here if needed */}
             </div>
             <button
               type="submit"
               form="create-business-form"
               disabled={loading}
-              className="py-2 px-6 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#452F9F] hover:bg-[#452F9F]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#452F9F] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="py-2 px-6 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-softPeach hover:bg-lavenderHaze focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-softPeach disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Saving...' : 'Save Changes'}
             </button>

@@ -38,6 +38,17 @@ module.exports = {
         'outfit': ['Outfit', 'sans-serif'],
         'plus-jakarta-sans': ['Plus Jakarta Sans', 'sans-serif']
       },
+      colors: {
+        dustyPlum: '#6E4A7E',
+        lavenderHaze: '#D8C8DC',
+        softPeach: '#FFC8A2',
+        paleGold: '#F9E79F',
+        slateBlue: '#2E4A7D',
+        skyGlass: '#89CFEF',
+        lightGlass: '#E7F6FF',
+        pureWhite: '#FFFFFF',
+        charcoalBlack: '#342D2D',
+      },
     },
   },
   plugins: [],
