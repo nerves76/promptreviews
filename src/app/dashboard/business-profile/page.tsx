@@ -6,7 +6,7 @@ import { createBrowserClient } from '@supabase/ssr';
 import Cropper from 'react-easy-crop';
 import type { Area } from 'react-easy-crop';
 import { useAuthGuard } from '@/utils/authGuard';
-import { FaRegStar, FaPhone, FaMapMarkerAlt, FaImage, FaListAlt, FaInfoCircle, FaStar, FaShareAlt, FaClipboardList, FaCheckCircle, FaTimesCircle, FaBuilding, FaAddressBook, FaClock, FaList, FaQuestionCircle, FaGift, FaRegLightbulb } from 'react-icons/fa';
+import { FaRegStar, FaPhone, FaMapMarkerAlt, FaImage, FaListAlt, FaInfoCircle, FaStar, FaShareAlt, FaClipboardList, FaCheckCircle, FaTimesCircle, FaStore, FaAddressBook, FaClock, FaList, FaQuestionCircle, FaGift, FaRegLightbulb } from 'react-icons/fa';
 import { getUserOrMock } from '@/utils/supabase';
 import BusinessForm from '../components/BusinessForm';
 
@@ -416,28 +416,26 @@ export default function BusinessProfilePage() {
   }
 
   return (
-    <div className="min-h-screen flex justify-center items-start">
-      <div className="relative">
-        {/* Floating Icon */}
-        <div className="absolute -top-6 -left-6 z-10 rounded-full shadow p-3 flex items-center justify-center bg-white">
-          <FaBuilding className="w-9 h-9 text-[#1A237E]" />
-        </div>
-        {/* Main Card */}
-        <div className="rounded-lg shadow-lg p-8 bg-white" style={{maxWidth: 1000}}>
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <div className="flex flex-col">
-                <h1 className="text-4xl font-bold text-[#1A237E]">Your business</h1>
-                <p className="text-gray-600 text-base max-w-md mt-2 mb-0">
-                  Fill out your business profile thoroughly and consistently. This is rule #1 in local search engine optimization.
-                </p>
-              </div>
+    <div className="min-h-screen flex justify-center items-start mb-12">
+      <div className="w-full mx-auto">
+        <div className="rounded-lg shadow-lg p-8 bg-white mx-auto relative" style={{maxWidth: 1000}}>
+          {/* Floating Icon */}
+          <div className="absolute -top-6 -left-6 z-10 rounded-full shadow p-3 flex items-center justify-center bg-white">
+            <FaStore className="w-9 h-9 text-slate-blue" />
+          </div>
+          <div className="flex items-start justify-between mb-8">
+            <div className="flex flex-col">
+              <h1 className="text-4xl font-bold text-slate-blue">Your business</h1>
+              <p className="text-gray-600 text-base max-w-md mt-2 mb-0">
+                Fill out your business profile thoroughly and consistently. This is rule #1 in local search engine optimization.
+              </p>
             </div>
             <button
               type="submit"
               form="business-profile-form"
               disabled={loading}
-              className="py-2 px-6 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-dustyPlum hover:bg-dustyPlum/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dustyPlum disabled:opacity-50 disabled:cursor-not-allowed"
+              className="py-2 px-6 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo hover:bg-indigo/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ marginTop: '0.25rem' }}
             >
               {loading ? 'Saving...' : 'Save Changes'}
             </button>

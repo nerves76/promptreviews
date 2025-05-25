@@ -44,7 +44,7 @@ interface BusinessProfile {
 
 const REVIEW_TYPES = [
   {
-    value: 'review',
+    value: 'prompt',
     label: 'Prompt Review',
     icon: <FaQuoteRight className="w-6 h-6 text-indigo-500" />,
     description: 'Collect written reviews with AI assistance.'
@@ -1080,7 +1080,7 @@ export default function CreatePromptPage() {
   useEffect(() => {
     const typeParam = searchParams?.get('type');
     if (typeParam && formData.review_type !== typeParam) {
-      setFormData(prev => ({ ...prev, review_type: typeParam }));
+      setFormData(prev => ({ ...prev, review_type: typeParam === 'review' ? 'prompt' : typeParam }));
     }
   }, [searchParams]);
 

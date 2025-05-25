@@ -129,30 +129,28 @@ export default function UploadContactsPage() {
       'last_name',
       'email',
       'phone',
-      'category',
-      'google_url',
-      'yelp_url',
-      'facebook_url',
-      'google_review',
-      'yelp_review',
-      'facebook_review',
-      'review_rewards',
-      'offer_url'
+      'offer_url',
+      'offer_title',
+      'offer_body',
+      'role',
+      'review_type',
+      'friendly_note',
+      'services_offered',
+      'outcomes'
     ];
     const sampleData = [
       'John',
       'Doe',
       'john@example.com',
       '555-123-4567',
-      'VIP',
-      'https://g.page/yourbiz',
-      'https://yelp.com/biz/yourbiz',
-      'https://facebook.com/yourbiz',
-      'Great service!',
-      'Loved it!',
-      'Awesome!',
-      'Free coffee',
-      'https://yourbusiness.com/reward'
+      'https://yourbusiness.com/reward',
+      'Special Offer',
+      'Use this code "1234" to get a discount on your next purchase.',
+      'Customer',
+      'prompt',
+      'Thanks for being a great customer!',
+      'Web Design',
+      'Increased website traffic by 30%'
     ];
     
     // Format CSV with proper quoting
@@ -206,7 +204,8 @@ export default function UploadContactsPage() {
         body: formData,
         headers: {
           'Authorization': `Bearer ${session.access_token}`
-        }
+        },
+        credentials: 'include'
       });
       
       const data = await response.json();
@@ -446,38 +445,37 @@ export default function UploadContactsPage() {
                   <li><span className="font-bold">first_name</span> - Contact's first name</li>
                   <li><span className="font-bold">email</span> - Contact's email address (required if phone not provided)</li>
                   <li><span className="font-bold">phone</span> - Contact's phone number (required if email not provided)</li>
+                  <li><span className="font-bold">review_type</span> - Type of prompt page. <span className="italic">Valid values: <span className='text-gray-700'>prompt</span> or <span className='text-gray-700'>photo</span></span>
+                    <p className="mt-2 text-xs text-gray-500">
+                      <span className="font-bold text-gray-700">prompt</span>: A standard review request page.<br />
+                      <span className="font-bold text-gray-700">photo</span>: A page for collecting photo testimonials.
+                    </p>
+                  </li>
                 </ul>
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900">Basic information</h3>
+                <h3 className="font-semibold text-gray-900">Offer & Rewards</h3>
                 <ul className="mt-2 space-y-2 text-sm text-gray-600">
-                  <li><span className="font-bold">last_name</span> - Contact's last name</li>
-                  <li><span className="font-bold">category</span> - Contact category (e.g., VIP, Regular)</li>
+                  <li><span className="font-bold">offer_url</span> - URL where customers can claim their reward or offer</li>
+                  <li><span className="font-bold">offer_title</span> - Title of the special offer or reward</li>
+                  <li><span className="font-bold">offer_body</span> - Description or details of the offer</li>
                 </ul>
               </div>
             </div>
             <div className="space-y-8">
               <div>
-                <h3 className="font-semibold text-gray-900">Review Platform URLs</h3>
+                <h3 className="font-semibold text-gray-900">Basic information</h3>
                 <ul className="mt-2 space-y-2 text-sm text-gray-600">
-                  <li><span className="font-bold">google_url</span> - Your Google Business Profile review link</li>
-                  <li><span className="font-bold">yelp_url</span> - Your Yelp business review link</li>
-                  <li><span className="font-bold">facebook_url</span> - Your Facebook business review link</li>
+                  <li><span className="font-bold">last_name</span> - Contact's last name</li>
+                  <li><span className="font-bold">role</span> - Contact's role or relationship to your business (e.g., Customer, Client, Partner)</li>
                 </ul>
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900">Review Content</h3>
+                <h3 className="font-semibold text-gray-900">Prompt Page Content</h3>
                 <ul className="mt-2 space-y-2 text-sm text-gray-600">
-                  <li><span className="font-bold">google_review</span> - Sample Google review text</li>
-                  <li><span className="font-bold">yelp_review</span> - Sample Yelp review text</li>
-                  <li><span className="font-bold">facebook_review</span> - Sample Facebook review text</li>
-                </ul>
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900">Reward Information</h3>
-                <ul className="mt-2 space-y-2 text-sm text-gray-600">
-                  <li><span className="font-bold">review_rewards</span> - Description of the reward for leaving a review</li>
-                  <li><span className="font-bold">offer_url</span> - URL where customers can claim their reward</li>
+                  <li><span className="font-bold">friendly_note</span> - A personal note to the contact (displayed on the prompt page)</li>
+                  <li><span className="font-bold">services_offered</span> - Services you provided to this contact (comma-separated or single value)</li>
+                  <li><span className="font-bold">outcomes</span> - Outcomes or results achieved for this contact</li>
                 </ul>
               </div>
             </div>

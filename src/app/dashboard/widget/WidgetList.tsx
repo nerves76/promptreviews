@@ -457,11 +457,11 @@ export default function WidgetList({ onSelectWidget, selectedWidgetId, onDesignC
             >
               <div className="flex items-center justify-between h-full">
                 <div className="flex items-center gap-4 ml-8">
-                  <span className="text-xl font-bold text-indigo-900">{editing ? 'Edit widget' : 'New widget'}</span>
-                  <span className="text-xs text-gray-400 ml-4">Drag to move</span>
+                  <span className="text-xl font-bold text-white">{editing ? 'Edit widget' : 'New widget'}</span>
+                  <span className="text-xs text-white ml-4">Drag to move</span>
                 </div>
                 <button
-                  className="py-2 px-5 bg-dustyPlum text-pureWhite rounded-lg font-semibold hover:bg-lavenderHaze hover:text-dustyPlum transition-colors shadow mr-8"
+                  className="py-2 px-5 bg-indigo text-white rounded-lg font-semibold hover:bg-indigo/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo transition-colors shadow mr-8"
                   onClick={handleSave}
                   style={{ minWidth: 90 }}
                 >
@@ -479,7 +479,7 @@ export default function WidgetList({ onSelectWidget, selectedWidgetId, onDesignC
             </div>
             {/* Add extra space below the draggable header */}
             <div className="mt-16" />
-            <label className="block text-sm font-medium text-gray-700 mb-2">Widget name</label>
+            <label className="block text-sm font-medium text-gray-500 mb-2 mt-8">Widget name</label>
             <input
               type="text"
               className="w-full border rounded px-3 py-2 mb-4"
@@ -493,7 +493,7 @@ export default function WidgetList({ onSelectWidget, selectedWidgetId, onDesignC
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Widget Type Selector - spans all columns */}
                 <div className="flex flex-col mb-2 md:col-span-3">
-                  <span className="text-sm font-bold text-gray-700 mb-2">Widget type:</span>
+                  <span className="text-sm font-bold text-gray-500 mb-2">Widget type:</span>
                   <div className="flex gap-4 items-center">
                     <label className="inline-flex items-center">
                       <input
@@ -526,7 +526,7 @@ export default function WidgetList({ onSelectWidget, selectedWidgetId, onDesignC
                 {/* Column 1: Background */}
                 <div className="flex flex-col gap-6">
                   <div className="flex flex-col">
-                    <span className="text-sm font-bold text-gray-700 mb-2">Background type</span>
+                    <span className="text-sm font-bold text-gray-500 mb-2">Background type</span>
                     <div className="flex gap-3 items-center">
                       <label className="inline-flex items-center">
                         <input
@@ -558,7 +558,7 @@ export default function WidgetList({ onSelectWidget, selectedWidgetId, onDesignC
                   </div>
                   {design.bgType !== 'none' && (
                     <div className="flex flex-col">
-                      <span className="text-sm font-bold text-gray-700 mb-2">Background</span>
+                      <span className="text-sm font-bold text-gray-500 mb-2">Background</span>
                       <div className="flex gap-3 items-center">
                         <input type="color" value={design.bgColor} onChange={e => {
                           const newDesign = { ...design, bgColor: e.target.value };
@@ -575,7 +575,7 @@ export default function WidgetList({ onSelectWidget, selectedWidgetId, onDesignC
                   )}
                   {design.bgType !== 'none' && (
                     <div className="flex flex-col">
-                      <span className="text-sm font-bold text-gray-700 mb-2">Transparency</span>
+                      <span className="text-sm font-bold text-gray-500 mb-2">Transparency</span>
                       <div className="flex gap-3 items-center">
                         <input
                           type="range"
@@ -595,7 +595,7 @@ export default function WidgetList({ onSelectWidget, selectedWidgetId, onDesignC
                     </div>
                   )}
                   <div className="flex flex-col">
-                    <span className="text-sm font-bold text-gray-700 mb-2">Shadow</span>
+                    <span className="text-sm font-bold text-gray-500 mb-2">Shadow</span>
                     <div className="flex gap-3 items-center">
                       <input type="checkbox" checked={design.shadow} onChange={() => {
                         const newDesign = { ...design, shadow: !design.shadow };
@@ -606,7 +606,7 @@ export default function WidgetList({ onSelectWidget, selectedWidgetId, onDesignC
                     </div>
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-sm font-bold text-gray-700 mb-2">Border</span>
+                    <span className="text-sm font-bold text-gray-500 mb-2">Border</span>
                     <div className="flex gap-3 items-center">
                       <input type="checkbox" checked={design.border} onChange={() => {
                         const newDesign = { ...design, border: !design.border };
@@ -619,7 +619,7 @@ export default function WidgetList({ onSelectWidget, selectedWidgetId, onDesignC
                   {design.border && (
                     <>
                       <div className="flex flex-col">
-                        <span className="text-sm font-bold text-gray-700 mb-2">Border thickness</span>
+                        <span className="text-sm font-bold text-gray-500 mb-2">Border thickness</span>
                         <div className="flex gap-3 items-center">
                           <input
                             type="range"
@@ -638,7 +638,7 @@ export default function WidgetList({ onSelectWidget, selectedWidgetId, onDesignC
                         </div>
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-sm font-bold text-gray-700 mb-2">Border radius</span>
+                        <span className="text-sm font-bold text-gray-500 mb-2">Border radius</span>
                         <div className="flex gap-3 items-center">
                           <input type="range" min={0} max={32} value={design.borderRadius} onChange={e => {
                             const newDesign = { ...design, borderRadius: Number(e.target.value) };
@@ -654,7 +654,7 @@ export default function WidgetList({ onSelectWidget, selectedWidgetId, onDesignC
                 {/* Column 2: Typography */}
                 <div className="flex flex-col gap-6">
                   <div className="flex flex-col">
-                    <span className="text-sm font-bold text-gray-700 mb-2">Quote font size</span>
+                    <span className="text-sm font-bold text-gray-500 mb-2">Quote font size</span>
                     <div className="flex gap-3 items-center">
                       <input type="number" min={12} max={32} value={design.quoteFontSize} onChange={e => {
                         const newDesign = { ...design, quoteFontSize: Number(e.target.value) };
@@ -665,7 +665,7 @@ export default function WidgetList({ onSelectWidget, selectedWidgetId, onDesignC
                     </div>
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-sm font-bold text-gray-700 mb-2">Attribution font size</span>
+                    <span className="text-sm font-bold text-gray-500 mb-2">Attribution font size</span>
                     <div className="flex gap-3 items-center">
                       <input type="number" min={10} max={24} value={design.attributionFontSize} onChange={e => {
                         const newDesign = { ...design, attributionFontSize: Number(e.target.value) };
@@ -676,7 +676,7 @@ export default function WidgetList({ onSelectWidget, selectedWidgetId, onDesignC
                     </div>
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-sm font-bold text-gray-700 mb-2">Text</span>
+                    <span className="text-sm font-bold text-gray-500 mb-2">Text</span>
                     <div className="flex gap-3 items-center">
                       <input type="color" value={design.textColor} onChange={e => {
                         const newDesign = { ...design, textColor: e.target.value };
@@ -691,7 +691,7 @@ export default function WidgetList({ onSelectWidget, selectedWidgetId, onDesignC
                     </div>
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-sm font-bold text-gray-700 mb-2">Accent</span>
+                    <span className="text-sm font-bold text-gray-500 mb-2">Accent</span>
                     <div className="flex gap-3 items-center">
                       <input type="color" value={design.accentColor} onChange={e => {
                         const newDesign = { ...design, accentColor: e.target.value };
@@ -706,7 +706,7 @@ export default function WidgetList({ onSelectWidget, selectedWidgetId, onDesignC
                     </div>
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-sm font-bold text-gray-700 mb-2">Line spacing</span>
+                    <span className="text-sm font-bold text-gray-500 mb-2">Line spacing</span>
                     <div className="flex gap-3 items-center">
                       <input
                         type="range"
@@ -728,7 +728,7 @@ export default function WidgetList({ onSelectWidget, selectedWidgetId, onDesignC
                 {/* Column 3: Misc */}
                 <div className="flex flex-col gap-6">
                   <div className="flex flex-col">
-                    <span className="text-sm font-bold text-gray-700 mb-2">Show review age & platform</span>
+                    <span className="text-sm font-bold text-gray-500 mb-2">Show review age & platform</span>
                     <div className="flex gap-3 items-center">
                       <input type="checkbox" checked={design.showRelativeDate} onChange={() => {
                         const newDesign = { ...design, showRelativeDate: !design.showRelativeDate };
@@ -739,7 +739,7 @@ export default function WidgetList({ onSelectWidget, selectedWidgetId, onDesignC
                     </div>
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-sm font-bold text-gray-700 mb-2">Show decorative quotes</span>
+                    <span className="text-sm font-bold text-gray-500 mb-2">Show decorative quotes</span>
                     <div className="flex gap-3 items-center">
                       <input type="checkbox" checked={design.showQuotes} onChange={() => {
                         const newDesign = { ...design, showQuotes: !design.showQuotes };
@@ -750,7 +750,7 @@ export default function WidgetList({ onSelectWidget, selectedWidgetId, onDesignC
                     </div>
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-sm font-bold text-gray-700 mb-2">Auto-advance reviews</span>
+                    <span className="text-sm font-bold text-gray-500 mb-2">Auto-advance reviews</span>
                     <div className="flex gap-3 items-center">
                       <input type="checkbox" checked={design.autoAdvance} onChange={e => {
                         const newDesign = { ...design, autoAdvance: e.target.checked };
@@ -762,7 +762,7 @@ export default function WidgetList({ onSelectWidget, selectedWidgetId, onDesignC
                   </div>
                   {design.autoAdvance && (
                     <div className="flex flex-col">
-                      <span className="text-sm font-bold text-gray-700 mb-2">Slideshow speed</span>
+                      <span className="text-sm font-bold text-gray-500 mb-2">Slideshow speed</span>
                       <div className="flex gap-3 items-center">
                         <input
                           type="range"
@@ -787,7 +787,7 @@ export default function WidgetList({ onSelectWidget, selectedWidgetId, onDesignC
             {/* Save button bottom right */}
             <div className="flex justify-end mt-8">
               <button
-                className="py-2 px-5 bg-dustyPlum text-pureWhite rounded-lg font-semibold hover:bg-lavenderHaze hover:text-dustyPlum transition-colors shadow"
+                className="py-2 px-5 bg-indigo text-white rounded-lg font-semibold hover:bg-indigo/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo transition-colors shadow"
                 onClick={handleSave}
                 style={{ minWidth: 90 }}
               >
@@ -822,11 +822,11 @@ export default function WidgetList({ onSelectWidget, selectedWidgetId, onDesignC
             >
               <div className="flex items-center justify-between h-full">
                 <div className="flex items-center gap-4 ml-8">
-                  <span className="text-xl font-bold text-dustyPlum">Manage reviews</span>
-                  <span className="text-xs text-gray-400 ml-4">Drag to move</span>
+                  <span className="text-xl font-bold text-white">Manage reviews</span>
+                  <span className="text-xs text-white ml-4">Drag to move</span>
                 </div>
                 <button
-                  className="py-2 px-5 bg-dustyPlum text-pureWhite rounded-lg font-semibold hover:bg-lavenderHaze hover:text-dustyPlum transition-colors shadow mr-8"
+                  className="py-2 px-5 bg-indigo text-white rounded-lg font-semibold hover:bg-indigo/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo transition-colors shadow mr-8"
                   onClick={handleSaveReviews}
                   style={{ minWidth: 90 }}
                 >

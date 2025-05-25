@@ -153,11 +153,11 @@ export default function AnalyticsPage() {
     <div className="min-h-screen py-12 px-2">
       <div className="w-full mx-auto bg-white rounded-lg shadow-lg p-8 relative" style={{maxWidth: 1000}}>
         <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center">
-          <FaChartLine className="w-9 h-9 text-[#1A237E]" />
+          <FaChartLine className="w-9 h-9 text-slate-blue" />
         </div>
         <div className="flex items-center justify-between mb-8">
           <div className="flex flex-col">
-            <h1 className="text-4xl font-bold text-[#1A237E]">Analytics</h1>
+            <h1 className="text-4xl font-bold text-slate-blue">Analytics</h1>
           </div>
         </div>
           
@@ -181,9 +181,9 @@ export default function AnalyticsPage() {
 
         {selectedPage && (
           <div className="mb-16">
-            <h2 className="mt-20 text-2xl font-bold text-[#1A237E] flex items-center gap-3 mb-12">
+            <h2 className="mt-20 text-2xl font-bold text-slate-blue flex items-center gap-3 mb-12">
               {selectedPage.is_universal ? (
-                <FaGlobe className="w-7 h-7 text-[#1A237E]" />
+                <FaGlobe className="w-7 h-7 text-slate-blue" />
               ) : null}
               {selectedPage.is_universal ? 'Universal Prompt Page' : selectedPage.first_name}
             </h2>

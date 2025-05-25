@@ -39,15 +39,15 @@ module.exports = {
         'plus-jakarta-sans': ['Plus Jakarta Sans', 'sans-serif']
       },
       colors: {
-        dustyPlum: '#6E4A7E',
-        lavenderHaze: '#D8C8DC',
-        softPeach: '#FFC8A2',
-        paleGold: '#F9E79F',
-        slateBlue: '#2E4A7D',
-        skyGlass: '#89CFEF',
-        lightGlass: '#E7F6FF',
-        pureWhite: '#FFFFFF',
-        charcoalBlack: '#342D2D',
+  'slate-blue': '#2E4A7D', // Primary Dark
+  'indigo': '#3730A3', // Secondary Dark
+  'lavender-haze': '#D8C8DC', // Primary Light
+  'soft-peach': '#FFC8A2', // Accent Warm
+  'pale-gold': '#F9E79F', // Accent Gold
+  'sky-glass': '#89CFEF', // Secondary Light
+  'light-glass': '#E7F6FF', // Secondary Light
+  'pure-white': '#FFFFFF', // Neutral Light
+  'charcoal-black': '#342D2D', // Neutral Dark
       },
     },
   },

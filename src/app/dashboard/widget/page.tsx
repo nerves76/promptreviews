@@ -178,7 +178,7 @@ export default function WidgetPage() {
     <div className="pb-12">
       {/* Widget Preview on Gradient */}
       <div className="mx-auto mb-12" style={{ maxWidth: design.showGrid ? 1000 : 800 }}>
-        <h2 className="text-2xl font-bold text-[#1A237E] mb-4 text-center">Live widget preview</h2>
+        <h2 className="text-2xl font-bold text-white mb-4 text-center">Live widget preview</h2>
         <section
           className={`flex flex-col justify-center relative${design.showGrid ? ' bg-transparent shadow-none border-none p-0' : ''}`}
           aria-label="Review carousel preview"

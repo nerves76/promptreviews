@@ -94,7 +94,7 @@ export default function EditPromptPage() {
     role: '',
     industry: [] as string[],
     industry_other: '',
-    review_type: 'review',
+    review_type: 'prompt',
     photo_url: '',
   });
   const [businessProfile, setBusinessProfile] = useState<BusinessProfile | null>(null);
@@ -161,7 +161,7 @@ export default function EditPromptPage() {
           role: promptData.role || '',
           industry: promptData.industry || [],
           industry_other: promptData.industry_other || '',
-          review_type: promptData.review_type || 'review',
+          review_type: promptData.review_type || 'prompt',
           photo_url: promptData.photo_url || '',
         });
         setPhotoUrl(promptData.photo_url || null);
@@ -394,7 +394,7 @@ export default function EditPromptPage() {
           role: formData.role || null,
           industry: formData.industry || [],
           industry_other: formData.industry_other || '',
-          review_type: formData.review_type || 'review',
+          review_type: formData.review_type || 'prompt',
         };
 
         // Handle review_platforms
@@ -450,10 +450,10 @@ export default function EditPromptPage() {
   };
 
   const iconOptions = [
-    { key: 'star', label: 'Stars', icon: <FaStar className="w-6 h-6 text-dustyPlum" /> },
-    { key: 'heart', label: 'Hearts', icon: <FaHeart className="w-6 h-6 text-dustyPlum" /> },
+    { key: 'star', label: 'Stars', icon: <FaStar className="w-6 h-6 text-yellow-400" /> },
+    { key: 'heart', label: 'Hearts', icon: <FaHeart className="w-6 h-6 text-red-500" /> },
     { key: 'rainbow', label: 'Rainbows', icon: <span className="w-6 h-6 text-2xl">🌈</span> },
-    { key: 'thumb', label: 'Thumbs Up', icon: <FaThumbsUp className="w-6 h-6 text-dustyPlum" /> },
+    { key: 'thumb', label: 'Thumbs Up', icon: <span className="w-6 h-6 text-2xl">👍</span> },
   ];
 
   const handleToggleFalling = async () => {
@@ -675,99 +675,12 @@ export default function EditPromptPage() {
 
   const renderStep2 = () => (
     <div className="space-y-6">
-      {/* Falling Animation Section */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-2">
-          <label className="block text-lg font-semibold text-indigo-800 flex items-center">
-            <FaStar className="w-6 h-6 mr-2 text-indigo-500" />
-            Falling star animation
-          </label>
-          <button
-            type="button"
-            onClick={handleToggleFalling}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${fallingEnabled ? 'bg-indigo-500' : 'bg-gray-300'}`}
-            aria-pressed={!!fallingEnabled}
-            disabled={iconUpdating}
-          >
-            <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${fallingEnabled ? 'translate-x-5' : 'translate-x-1'}`}
-            />
-          </button>
-        </div>
-        <div className={`rounded-2xl border border-indigo-200 bg-indigo-50 p-4 ${!fallingEnabled ? 'opacity-60' : ''}`}>
-          <div className="text-sm text-gray-700 mb-3 max-w-xl">
-            This creates a fun animation where stars (or other icons) rain down for a few seconds when the prompt page loads. You can choose the icon below.
-          </div>
-          <div className="flex gap-2 bg-white/80 rounded-full px-3 py-1 border border-gray-200 shadow w-max">
-            {iconOptions.map(opt => (
-              <button
-                key={opt.key}
-                className={`p-1 rounded-full focus:outline-none transition-all ${fallingIcon === opt.key ? 'ring-2 ring-indigo-400 bg-indigo-50' : ''}`}
-                onClick={() => handleIconChange(opt.key)}
-                aria-label={opt.label}
-                type="button"
-                disabled={iconUpdating || !fallingEnabled}
-              >
-                {opt.icon}
-                {iconUpdating && fallingIcon === opt.key && (
-                  <span className="ml-1 animate-spin w-3 h-3 border-2 border-indigo-400 border-t-transparent rounded-full inline-block align-middle"></span>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-      {/* Special Offer Section */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-2">
-          <label className="block text-lg font-semibold text-indigo-800 flex items-center">
-            <FaGift className="w-6 h-6 mr-2 text-indigo-500" />
-            Special offer
-            <Tooltip text="Offer a discount or special offer and a link for users to redeem or learn about the steps they need to take." />
-          </label>
-          <button
-            type="button"
-            onClick={() => setOfferEnabled(v => !v)}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${offerEnabled ? 'bg-indigo-500' : 'bg-gray-300'}`}
-            aria-pressed={!!offerEnabled}
-          >
-            <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${offerEnabled ? 'translate-x-5' : 'translate-x-1'}`}
-            />
-          </button>
-        </div>
-        <div className={`rounded-2xl border border-indigo-200 bg-indigo-50 p-4 ${!offerEnabled ? 'opacity-60' : ''}`}>
-          <input
-            type="text"
-            value={offerTitle ?? 'Special Offer'}
-            onChange={e => setOfferTitle(e.target.value)}
-            placeholder="Offer Title (e.g., Special Offer)"
-            className="block w-full rounded-md border border-indigo-200 bg-indigo-50 focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-2 px-3 mb-2 font-semibold"
-            disabled={!offerEnabled}
-          />
-          <textarea
-            value={offerBody || ''}
-            onChange={e => setOfferBody(e.target.value)}
-            placeholder="Get 10% off your next visit"
-            className="block w-full rounded-md border border-indigo-200 bg-indigo-50 focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-3 px-4"
-            rows={2}
-            disabled={!offerEnabled}
-          />
-          <input
-            type="url"
-            value={offerUrl || ''}
-            onChange={e => setOfferUrl(e.target.value)}
-            placeholder="Offer URL (e.g., https://yourbusiness.com/claim-reward)"
-            className="block w-full rounded-md border border-indigo-200 bg-indigo-50 focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-2 px-3 mt-2"
-            disabled={!offerEnabled}
-          />
-        </div>
-        <div className="text-xs text-gray-500 mt-2">
-          Note: Services like Google and Yelp have policies against providing rewards in exchange for reviews, so it's best not to promise a reward for "x" number of reviews, etc.
-        </div>
-      </div>
+      {/* Review Platforms Section - moved to top with header */}
       <div>
-        <label className="block text-xl font-semibold text-gray-800 mt-4 mb-4">Review platforms</label>
+        <div className="flex items-center mb-4">
+          <FaStar className="w-6 h-6 mr-2 text-indigo-500" />
+          <h2 className="text-xl font-semibold text-gray-800">Review Platforms</h2>
+        </div>
         <p className="text-sm text-gray-500 mt-1 mb-2">Your business profile platforms have been pre-loaded. You can add more if needed.</p>
         {/* Universal Prompt Page note */}
         {isUniversal && (
@@ -923,7 +836,97 @@ export default function EditPromptPage() {
           </button>
         </div>
       </div>
-
+      {/* Falling Animation Section */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-2">
+          <label className="block text-lg font-semibold text-indigo-800 flex items-center">
+            <FaStar className="w-6 h-6 mr-2 text-indigo-500" />
+            Falling star animation
+          </label>
+          <button
+            type="button"
+            onClick={handleToggleFalling}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${fallingEnabled ? 'bg-indigo-500' : 'bg-gray-300'}`}
+            aria-pressed={!!fallingEnabled}
+            disabled={iconUpdating}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${fallingEnabled ? 'translate-x-5' : 'translate-x-1'}`}
+            />
+          </button>
+        </div>
+        <div className={`rounded-2xl border border-indigo-200 bg-indigo-50 p-4 ${!fallingEnabled ? 'opacity-60' : ''}`}>
+          <div className="text-sm text-gray-700 mb-3 max-w-xl">
+            This creates a fun animation where stars (or other icons) rain down for a few seconds when the prompt page loads. You can choose the icon below.
+          </div>
+          <div className="flex gap-2 bg-white rounded-full px-3 py-1 border border-gray-200 shadow w-max">
+            {iconOptions.map(opt => (
+              <button
+                key={opt.key}
+                className={`p-1 rounded-full focus:outline-none transition-all ${fallingIcon === opt.key ? 'ring-2 ring-indigo-400 bg-indigo-50' : ''}`}
+                onClick={() => handleIconChange(opt.key)}
+                aria-label={opt.label}
+                type="button"
+                disabled={iconUpdating || !fallingEnabled}
+              >
+                {opt.icon}
+                {iconUpdating && fallingIcon === opt.key && (
+                  <span className="ml-1 animate-spin w-3 h-3 border-2 border-indigo-400 border-t-transparent rounded-full inline-block align-middle"></span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+      {/* Special Offer Section */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-2">
+          <label className="block text-lg font-semibold text-indigo-800 flex items-center">
+            <FaGift className="w-6 h-6 mr-2 text-indigo-500" />
+            Special offer
+            <Tooltip text="Offer a discount or special offer and a link for users to redeem or learn about the steps they need to take." />
+          </label>
+          <button
+            type="button"
+            onClick={() => setOfferEnabled(v => !v)}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${offerEnabled ? 'bg-indigo-500' : 'bg-gray-300'}`}
+            aria-pressed={!!offerEnabled}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${offerEnabled ? 'translate-x-5' : 'translate-x-1'}`}
+            />
+          </button>
+        </div>
+        <div className={`rounded-2xl border border-indigo-200 bg-indigo-50 p-4 ${!offerEnabled ? 'opacity-60' : ''}`}>
+          <input
+            type="text"
+            value={offerTitle ?? 'Special Offer'}
+            onChange={e => setOfferTitle(e.target.value)}
+            placeholder="Offer Title (e.g., Special Offer)"
+            className="block w-full rounded-md border border-indigo-200 bg-indigo-50 focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-2 px-3 mb-2 font-semibold"
+            disabled={!offerEnabled}
+          />
+          <textarea
+            value={offerBody || ''}
+            onChange={e => setOfferBody(e.target.value)}
+            placeholder="Get 10% off your next visit"
+            className="block w-full rounded-md border border-indigo-200 bg-indigo-50 focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-3 px-4"
+            rows={2}
+            disabled={!offerEnabled}
+          />
+          <input
+            type="url"
+            value={offerUrl || ''}
+            onChange={e => setOfferUrl(e.target.value)}
+            placeholder="Offer URL (e.g., https://yourbusiness.com/claim-reward)"
+            className="block w-full rounded-md border border-indigo-200 bg-indigo-50 focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-2 px-3 mt-2"
+            disabled={!offerEnabled}
+          />
+        </div>
+        <div className="text-xs text-gray-500 mt-2">
+          Note: Services like Google and Yelp have policies against providing rewards in exchange for reviews, so it's best not to promise a reward for "x" number of reviews, etc.
+        </div>
+      </div>
       <div className="flex justify-between items-center mt-8 pt-6 border-t">
         <button
           type="button"
@@ -986,7 +989,7 @@ export default function EditPromptPage() {
             <FaStar className="w-9 h-9 text-[#1A237E]" />
           )}
         </div>
-        <div className="w-full mx-auto rounded-lg shadow-lg p-8 relative" style={{maxWidth: 1000}}>
+        <div className="w-full mx-auto rounded-lg shadow-lg p-8 relative bg-white" style={{maxWidth: 1000}}>
           {/* Photo display area */}
           {photoUrl && (
             <div className="flex flex-col items-center mb-8">

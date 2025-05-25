@@ -134,8 +134,8 @@ export default function BusinessForm({
     <form onSubmit={onSubmit} className="w-full mx-auto relative" id={formId}>
       {/* Logo Upload Section */}
       <div className="mb-16">
-        <h2 className="mt-20 mb-8 text-2xl font-bold text-[#1A237E] flex items-center gap-3">
-          <FaImage className="w-7 h-7 text-[#1A237E]" />
+        <h2 className="mt-20 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
+          <FaImage className="w-7 h-7 text-slate-blue" />
           Logo
         </h2>
         <div className="mb-10 flex flex-col md:flex-row items-center gap-6">
@@ -194,8 +194,8 @@ export default function BusinessForm({
       </div>
       {/* Business Info Section */}
       <div className="mb-8">
-        <h2 className="mt-32 mb-8 text-2xl font-bold text-[#1A237E] flex items-center gap-3">
-          <FaInfoCircle className="w-7 h-7 text-[#1A237E]" />
+        <h2 className="mt-32 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
+          <FaInfoCircle className="w-7 h-7 text-slate-blue" />
           Business info
         </h2>
         <div className="mb-4">
@@ -259,8 +259,8 @@ export default function BusinessForm({
       </div>
       {/* Services Section */}
       <div className="mb-8">
-        <h2 className="mt-32 mb-8 text-2xl font-bold text-[#1A237E] flex items-center gap-3">
-          <FaList className="w-7 h-7 text-[#1A237E]" />
+        <h2 className="mt-32 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
+          <FaList className="w-7 h-7 text-slate-blue" />
           Services
           <Tooltip text="Prompt AI uses your services list to make reviews specific and relevant to what you offer." />
         </h2>
@@ -285,8 +285,8 @@ export default function BusinessForm({
       </div>
       {/* What Makes Your Business Unique Section */}
       <div className="mb-8">
-        <h2 className="mt-32 mb-8 text-2xl font-bold text-[#1A237E] flex items-center gap-3">
-          <FaStar className="w-7 h-7 text-[#1A237E]" />
+        <h2 className="mt-32 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
+          <FaStar className="w-7 h-7 text-slate-blue" />
           What makes your business unique?
         </h2>
         <div className="mb-4">
@@ -331,8 +331,8 @@ export default function BusinessForm({
       </div>
       {/* Review Platforms Section */}
       <div className="mb-16">
-        <h2 className="mt-32 mb-8 text-2xl font-bold text-[#1A237E] flex items-center gap-3">
-          <FaStar className="w-7 h-7 text-[#1A237E]" />
+        <h2 className="mt-32 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
+          <FaStar className="w-7 h-7 text-slate-blue" />
           Review platforms
         </h2>
         <div className="space-y-4">
@@ -403,8 +403,8 @@ export default function BusinessForm({
       </div>
       {/* Special Offer Section */}
       <div className="mb-16">
-        <h2 className="mt-32 mb-8 text-2xl font-bold text-[#1A237E] flex items-center gap-3">
-          <FaGift className="w-7 h-7 text-[#1A237E]" />
+        <h2 className="mt-32 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
+          <FaGift className="w-7 h-7 text-slate-blue" />
           Special offer
         </h2>
         <div className="mb-4">
@@ -459,8 +459,8 @@ export default function BusinessForm({
       </div>
       {/* Social Media Section */}
       <div className="mb-16">
-        <h2 className="mt-32 mb-8 text-2xl font-bold text-[#1A237E] flex items-center gap-3">
-          <FaShareAlt className="w-7 h-7 text-[#1A237E]" />
+        <h2 className="mt-32 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
+          <FaShareAlt className="w-7 h-7 text-slate-blue" />
           Social media
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -505,16 +505,6 @@ export default function BusinessForm({
           {success}
         </div>
       )}
-      {/* Save Button - Bottom Right */}
-      <div className="flex justify-end mt-12">
-        <button
-          type="submit"
-          disabled={loading}
-          className="py-2 px-6 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#452F9F] hover:bg-[#452F9F]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#452F9F] disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {loading ? 'Saving...' : 'Save Changes'}
-        </button>
-      </div>
     </form>
   );
 } 

@@ -5,9 +5,9 @@ import QRCode from 'qrcode';
 
 export const QR_FRAME_SIZES = [
   { label: '4x6" (postcard)', width: 1200, height: 1800 },
-  { label: '5x7"', width: 1500, height: 2100 },
-  { label: '8x10"', width: 2400, height: 3000 },
-  { label: '11x14"', width: 3300, height: 4200 },
+  { label: '5x7" (greeting card)', width: 1500, height: 2100 },
+  { label: '8.5x11" (US Letter, standard printer paper)', width: 2550, height: 3300 },
+  { label: '11x14" (small poster)', width: 3300, height: 4200 },
 ];
 
 interface QRCodeGeneratorProps {
@@ -24,17 +24,24 @@ export default function QRCodeGenerator({ url, clientName, logoUrl, frameSize = 
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // Default logo fallback
-  const defaultLogo = 'https://promptreviews.app/wp-content/uploads/2025/05/cropped-Prompt-Reviews-4-300x108.png';
+  const defaultLogo = 'https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompt-reviews-get-reviews-online.png';
 
   const generateDesign = async () => {
     setIsGenerating(true);
     try {
-      // Generate QR code as image
-      const qrDataUrl = await QRCode.toDataURL(url, {
-        width: Math.floor(frameSize.width * 0.45),
-        margin: 2,
-        color: { dark: '#000000', light: '#ffffff' },
-      });
+      // Calculate all layout variables in order
+      const headerHeight = Math.floor(frameSize.height * 0.12);
+      const headerToStarsGap = Math.floor(frameSize.height * 0.06);
+      const starsY = headerHeight + headerToStarsGap + Math.floor(frameSize.height * 0.06);
+      const qrSize = Math.floor(frameSize.width * 0.45);
+      const logoHeight = Math.floor(frameSize.height * 0.09);
+      const spacing = Math.floor(frameSize.height * 0.04);
+      const labelHeight = Math.floor(frameSize.height * 0.035) + 10;
+      const contentHeight = qrSize + spacing + logoHeight;
+      const availableHeight = frameSize.height - starsY - labelHeight;
+      let startY = starsY + Math.floor((availableHeight - contentHeight) / 2);
+      const extraOffset = Math.floor(frameSize.height * 0.04);
+      startY += extraOffset;
       // Create canvas
       const canvas = document.createElement('canvas');
       canvas.width = frameSize.width;
@@ -45,28 +52,37 @@ export default function QRCodeGenerator({ url, clientName, logoUrl, frameSize = 
       ctx.fillStyle = '#fff';
       ctx.fillRect(0, 0, frameSize.width, frameSize.height);
       // Draw header text
-      ctx.font = `${Math.floor(frameSize.height * 0.06)}px Inter, Arial, sans-serif`;
-      ctx.fillStyle = '#1A237E';
+      ctx.font = `bold ${Math.floor(frameSize.height * 0.06)}px Inter, Arial, sans-serif`;
+      ctx.fillStyle = '#000000';
       ctx.textAlign = 'center';
-      ctx.fillText('Leave us a review!', frameSize.width / 2, Math.floor(frameSize.height * 0.12));
+      ctx.fillText('Leave us a review!', frameSize.width / 2, headerHeight);
+      // Draw 5 gold stars below the header
+      const stars = '★★★★★';
+      ctx.font = `${Math.floor(frameSize.height * 0.07)}px serif`;
+      ctx.fillStyle = '#FFD700';
+      ctx.fillText(stars, frameSize.width / 2, starsY);
       // Draw QR code
+      const qrDataUrl = await QRCode.toDataURL(url, {
+        width: qrSize,
+        margin: 2,
+        color: { dark: '#000000', light: '#ffffff' },
+      });
       const qrImg = new window.Image();
       qrImg.src = qrDataUrl;
       await new Promise(resolve => { qrImg.onload = resolve; });
-      const qrSize = Math.floor(frameSize.width * 0.45);
-      ctx.drawImage(qrImg, (frameSize.width - qrSize) / 2, Math.floor(frameSize.height * 0.18), qrSize, qrSize);
-      // Draw logo at bottom
+      ctx.drawImage(qrImg, (frameSize.width - qrSize) / 2, startY, qrSize, qrSize);
+      // Add frame size label at bottom
+      ctx.font = `${Math.floor(frameSize.height * 0.035)}px Inter, Arial, sans-serif`;
+      ctx.fillStyle = '#888';
+      ctx.fillText(frameSize.label, frameSize.width / 2, frameSize.height - 10);
+      // Draw logo at the very bottom, just above the label
       const logoImg = new window.Image();
       logoImg.crossOrigin = 'anonymous';
       logoImg.src = logoUrl || defaultLogo;
       await new Promise(resolve => { logoImg.onload = resolve; });
-      const logoHeight = Math.floor(frameSize.height * 0.09);
       const logoWidth = Math.floor(logoImg.width * (logoHeight / logoImg.height));
-      ctx.drawImage(logoImg, (frameSize.width - logoWidth) / 2, frameSize.height - logoHeight - 40, logoWidth, logoHeight);
-      // Optional: Add frame size label at bottom
-      ctx.font = `${Math.floor(frameSize.height * 0.035)}px Inter, Arial, sans-serif`;
-      ctx.fillStyle = '#888';
-      ctx.fillText(frameSize.label, frameSize.width / 2, frameSize.height - 10);
+      const logoY = frameSize.height - logoHeight - labelHeight - 10; // 10px margin above label
+      ctx.drawImage(logoImg, (frameSize.width - logoWidth) / 2, logoY, logoWidth, logoHeight);
       // Set preview
       setPreviewUrl(canvas.toDataURL('image/png'));
       // Draw to ref canvas for download

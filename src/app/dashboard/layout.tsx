@@ -47,7 +47,7 @@ export default function DashboardLayout({
   if (loading) return null;
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-b from-[#1A237E] to-[#FFDAB9]">
+    <div className="min-h-screen w-full bg-gradient-to-b from-slate-blue to-[#FFDAB9]">
       <Header />
       <main className="flex min-h-[calc(100vh-64px)] items-center justify-center">
         <div className="w-full px-4 mt-16 mb-12">

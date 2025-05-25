@@ -182,7 +182,7 @@ export default function Dashboard() {
     'there';
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen flex justify-center items-start">
       {/* Post-save share modal */}
       {showPostSaveModal && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-40" onClick={() => setShowPostSaveModal(false)}>
@@ -199,25 +199,27 @@ export default function Dashboard() {
           </div>
         </div>
       )}
-      <div className="container mx-auto p-4">
-        <DashboardContent
-          userName={userName}
-          business={business}
-          customPromptPages={customPromptPages}
-          universalPromptPage={universalPromptPage}
-          createPromptPageRef={createPromptPageRef}
-          handleCreatePromptPageClick={handleCreatePromptPageClick}
-          showQR={showQR}
-          handleCopyLink={handleCopyLink}
-          copySuccess={copySuccess}
-          showProfileModal={showProfileModal}
-          setShowProfileModal={setShowProfileModal}
-          showSuccessModal={showSuccessModal}
-          setShowSuccessModal={setShowSuccessModal}
-          universalUrl={universalUrl}
-          QRCode={QRCodeSVG}
-          setShowQR={setShowQR}
-        />
+      <div className="w-full max-w-7xl mx-auto">
+        <div className="container mx-auto p-4">
+          <DashboardContent
+            userName={userName}
+            business={business}
+            customPromptPages={customPromptPages}
+            universalPromptPage={universalPromptPage}
+            createPromptPageRef={createPromptPageRef}
+            handleCreatePromptPageClick={handleCreatePromptPageClick}
+            showQR={showQR}
+            handleCopyLink={handleCopyLink}
+            copySuccess={copySuccess}
+            showProfileModal={showProfileModal}
+            setShowProfileModal={setShowProfileModal}
+            showSuccessModal={showSuccessModal}
+            setShowSuccessModal={setShowSuccessModal}
+            universalUrl={universalUrl}
+            QRCode={QRCodeSVG}
+            setShowQR={setShowQR}
+          />
+        </div>
       </div>
     </div>
   );

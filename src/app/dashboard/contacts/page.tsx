@@ -101,32 +101,30 @@ export default function UploadContactsPage() {
     const headers = [
       'first_name',
       'last_name',
+      'role',
       'email',
       'phone',
-      'category',
-      'google_url',
-      'yelp_url',
-      'facebook_url',
-      'google_review',
-      'yelp_review',
-      'facebook_review',
-      'review_rewards',
-      'offer_url'
+      'review_type',
+      'offer_url',
+      'offer_title',
+      'offer_body',
+      'friendly_note',
+      'services_offered',
+      'outcomes'
     ];
     const sampleData = [
       'John',
       'Doe',
+      'Customer',
       'john@example.com',
       '555-123-4567',
-      'VIP',
-      'https://g.page/yourbiz',
-      'https://yelp.com/biz/yourbiz',
-      'https://facebook.com/yourbiz',
-      'Great service!',
-      'Loved it!',
-      'Awesome!',
-      'Free coffee',
-      'https://yourbusiness.com/reward'
+      'prompt',
+      'https://yourbusiness.com/reward',
+      'Special Offer',
+      'Use this code "1234" to get a discount on your next purchase.',
+      'Thanks for being a great customer!',
+      'Web Design',
+      'Increased website traffic by 30%'
     ];
     
     // Format CSV with proper quoting
@@ -234,19 +232,19 @@ export default function UploadContactsPage() {
     <div className="min-h-screen py-12 px-2">
       <div className="w-full mx-auto bg-white rounded-lg shadow-lg p-8 relative" style={{maxWidth: 1000}}>
         <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center">
-          <FaUpload className="w-9 h-9 text-[#1A237E]" />
+          <FaUpload className="w-9 h-9 text-slate-blue" />
         </div>
         <div className="flex items-center justify-between mb-8">
           <div className="flex flex-col">
-            <h1 className="text-4xl font-bold text-[#1A237E]">Contacts</h1>
+            <h1 className="text-4xl font-bold text-slate-blue">Contacts</h1>
             {/* Optionally add subcopy here if needed */}
           </div>
         </div>
 
         {/* Upload Instructions Section */}
         <div className="mb-16">
-          <h2 className="mt-20 text-2xl font-bold text-[#1A237E] flex items-center gap-3 mb-12">
-            <FaInfoCircle className="w-7 h-7 text-[#1A237E]" />
+          <h2 className="mt-20 text-2xl font-bold text-slate-blue flex items-center gap-3 mb-12">
+            <FaInfoCircle className="w-7 h-7 text-slate-blue" />
             How to upload contacts
           </h2>
           <ol className="list-decimal list-inside space-y-2 text-indigo-800">
@@ -291,15 +289,15 @@ export default function UploadContactsPage() {
 
         {/* Upload Section with Preview */}
         <div className="mb-16 bg-blue-50 rounded-lg p-6 border border-blue-100">
-          <h2 className="text-2xl font-bold text-[#1A237E] flex items-center gap-3 mb-12">
-            <FaUsers className="w-7 h-7 text-[#1A237E]" />
+          <h2 className="text-2xl font-bold text-slate-blue flex items-center gap-3 mb-12">
+            <FaUsers className="w-7 h-7 text-slate-blue" />
             Add Your Contacts
           </h2>
 
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
               <label className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                <FaUpload className="text-[#1A237E]" />
+                <FaUpload className="text-slate-blue" />
                 <span className="text-blue-700">Choose CSV file</span>
                 <input
                   type="file"
@@ -320,7 +318,7 @@ export default function UploadContactsPage() {
               onClick={handleDownloadTemplate}
               className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
-              <FaDownload className="text-[#1A237E]" />
+              <FaDownload className="text-slate-blue" />
               Download CSV Template
             </button>
           </div>
@@ -340,8 +338,8 @@ export default function UploadContactsPage() {
           {/* Preview Section */}
           {preview.length > 0 && (
             <div className="mt-8">
-              <h2 className="text-2xl font-bold text-[#1A237E] flex items-center gap-3 mb-12">
-                <FaEye className="w-7 h-7 text-[#1A237E]" />
+              <h2 className="text-2xl font-bold text-slate-blue flex items-center gap-3 mb-12">
+                <FaEye className="w-7 h-7 text-slate-blue" />
                 Preview
               </h2>
               <div className="overflow-x-auto rounded-lg border border-blue-200 bg-white">
@@ -383,7 +381,7 @@ export default function UploadContactsPage() {
               <button
                 type="submit"
                 onClick={handleUpload}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="px-6 py-2 bg-indigo text-white rounded-lg hover:bg-indigo/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo transition-colors"
               >
                 Upload Contacts
               </button>
@@ -393,14 +391,14 @@ export default function UploadContactsPage() {
 
         {/* CSV Column Descriptions Section */}
         <div className="mb-16">
-          <h2 className="text-2xl font-bold text-[#1A237E] flex items-center gap-3 mb-12">
-            <FaList className="w-7 h-7 text-[#1A237E]" />
+          <h2 className="text-2xl font-bold text-slate-blue flex items-center gap-3 mb-12">
+            <FaList className="w-7 h-7 text-slate-blue" />
             CSV column descriptions
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-8">
               <div>
-                <h3 className="font-semibold text-gray-900">Required fields</h3>
+                <h3 className="font-semibold text-gray-500">Required fields</h3>
                 <ul className="mt-2 space-y-2 text-sm text-gray-600">
                   <li><span className="font-bold">first_name</span> - Contact's first name</li>
                   <li><span className="font-bold">email</span> - Contact's email address (required if phone not provided)</li>
@@ -408,32 +406,24 @@ export default function UploadContactsPage() {
                 </ul>
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900">Basic information</h3>
+                <h3 className="font-semibold text-gray-500">Basic information</h3>
                 <ul className="mt-2 space-y-2 text-sm text-gray-600">
                   <li><span className="font-bold">last_name</span> - Contact's last name</li>
                   <li><span className="font-bold">category</span> - Contact category (e.g., VIP, Regular)</li>
                 </ul>
               </div>
-            </div>
-            <div className="space-y-8">
               <div>
-                <h3 className="font-semibold text-gray-900">Review Platform URLs</h3>
+                <h3 className="font-semibold text-gray-500">Prompt Page Type</h3>
                 <ul className="mt-2 space-y-2 text-sm text-gray-600">
-                  <li><span className="font-bold">google_url</span> - Your Google Business Profile review link</li>
-                  <li><span className="font-bold">yelp_url</span> - Your Yelp business review link</li>
-                  <li><span className="font-bold">facebook_url</span> - Your Facebook business review link</li>
+                  <li><span className="font-bold">review_type</span> - Type of prompt page. <span className="italic">Valid values: <span className='text-gray-700'>prompt</span> or <span className='text-gray-700'>photo</span></span></li>
                 </ul>
+                <p className="mt-2 text-xs text-gray-500">
+                  <span className="font-bold text-gray-700">prompt</span>: A standard review request page.<br />
+                  <span className="font-bold text-gray-700">photo</span>: A page for collecting photo testimonials.
+                </p>
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900">Review Content</h3>
-                <ul className="mt-2 space-y-2 text-sm text-gray-600">
-                  <li><span className="font-bold">google_review</span> - Sample Google review text</li>
-                  <li><span className="font-bold">yelp_review</span> - Sample Yelp review text</li>
-                  <li><span className="font-bold">facebook_review</span> - Sample Facebook review text</li>
-                </ul>
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900">Reward Information</h3>
+                <h3 className="font-semibold text-gray-500">Reward Information</h3>
                 <ul className="mt-2 space-y-2 text-sm text-gray-600">
                   <li><span className="font-bold">review_rewards</span> - Description of the reward for leaving a review</li>
                   <li><span className="font-bold">offer_url</span> - URL where customers can claim their reward</li>

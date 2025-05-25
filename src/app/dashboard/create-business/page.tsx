@@ -372,11 +372,11 @@ export default function CreateBusinessPage() {
     <div className="w-full mx-auto mt-6 relative rounded-lg shadow-lg p-8 bg-white" style={{maxWidth: 1000}}>
       {/* Floating Icon */}
       <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center w-16 h-16">
-        <FaStore className="w-9 h-9 text-[#1A237E]" />
+        <FaStore className="w-9 h-9 text-slate-blue" />
       </div>
       <div className="flex items-center justify-between mb-8">
         <div className="flex flex-col">
-          <h1 className="text-4xl font-bold text-[#1A237E]">Create Business</h1>
+          <h1 className="text-4xl font-bold text-slate-blue">Create Business</h1>
           <p className="text-sm text-gray-600 mt-2 max-w-xl">Fill out your profile as thoroughly as you can. This will help Prompt AI write better prompt reviews. (You will also be able to add/edit this info later.)</p>
         </div>
         <div className="flex flex-col items-end gap-2">

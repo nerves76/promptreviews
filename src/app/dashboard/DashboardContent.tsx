@@ -99,29 +99,31 @@ export default function DashboardContent({
 
   const promptTypes = [
     {
-      key: 'review',
+      key: 'prompt',
       label: 'Prompt review',
       icon: <span className="text-2xl font-bold" style={{fontFamily: 'Inter, sans-serif', color: '#1A237E'}}>[P]</span>,
       description: 'Send to an individual and encourage them to edit/copy review and then post on any platform (Google, Yelp, BBB, etc.).'
-    },
-    {
-      key: 'experience',
-      label: 'Experiences & spaces',
-      icon: <MdEvent className="w-7 h-7 text-[#1A237E]" />,
-      description: 'For events, rentals, tours, and more.'
-    },
-    {
-      key: 'video',
-      label: 'Video testimonial',
-      icon: <MdVideoLibrary className="w-7 h-7 text-[#1A237E]" />,
-      description: 'Request a video testimonial from your client.'
     },
     {
       key: 'photo',
       label: 'Photo + testimonial',
       icon: <MdPhotoCamera className="w-7 h-7 text-[#1A237E]" />,
       description: 'Collect a photo and a written testimonial.'
-    }
+    },
+    {
+      key: 'video',
+      label: 'Video testimonial',
+      icon: <MdVideoLibrary className="w-7 h-7 text-[#1A237E]" />,
+      description: 'Request a video testimonial from your client.',
+      comingSoon: true
+    },
+    {
+      key: 'experience',
+      label: 'Experiences & spaces',
+      icon: <MdEvent className="w-7 h-7 text-[#1A237E]" />,
+      description: 'For events, rentals, tours, and more.',
+      comingSoon: true
+    },
   ];
 
   function handlePromptTypeSelect(typeKey: string) {
@@ -359,12 +361,12 @@ export default function DashboardContent({
     <>
       <div className="min-h-screen flex justify-center items-start w-full">
         <div className="relative w-full">
-          {/* Floating Icon */}
-          <div className="absolute -top-4 -left-4 bg-white rounded-full shadow p-2 flex items-center justify-center">
-            <FaHome className="w-7 h-7 text-[#1A237E]" />
-          </div>
           {/* Main Card */}
-          <div className="rounded-lg shadow-lg p-8 bg-white w-full" style={{maxWidth: 1000}}>
+          <div className="rounded-lg shadow-lg p-8 bg-white mx-auto relative" style={{maxWidth: 1000}}>
+            {/* Floating Icon */}
+            <div className="absolute -top-4 -left-4 bg-white rounded-full shadow p-2 flex items-center justify-center">
+              <FaHome className="w-7 h-7 text-[#1A237E]" />
+            </div>
             <div className="flex items-center justify-between mb-8">
               <h1 className="text-4xl font-bold text-[#1A237E]">
                 Dashboard
@@ -400,7 +402,6 @@ export default function DashboardContent({
                           <FaGlobe className="w-7 h-7 text-[#1A237E]" />
                           Universal Prompt Page
                         </h2>
-                        <span className="inline-block bg-blue-200 text-blue-800 text-xs font-semibold px-2 py-0.5 rounded ml-4">General Use</span>
                       </div>
                       <div className="flex gap-4 items-center">
                         <Link href={`/r/${universalPromptPage.slug}`} className="text-indigo-600 underline hover:text-indigo-800 hover:underline">
@@ -419,16 +420,18 @@ export default function DashboardContent({
                         <button
                           type="button"
                           onClick={handleCopyLink}
-                          className="inline-flex items-center px-3 py-1.5 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
+                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
                         >
-                          Copy Link
+                          <FaLink className="w-4 h-4" />
+                          Copy link
                         </button>
                         <button
                           type="button"
                           onClick={() => setQrModal({ open: true, url: universalUrl, clientName: business?.name || 'PromptReviews', logoUrl: business?.logo_url })}
-                          className="inline-flex items-center px-3 py-1.5 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
+                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-soft-peach text-slate-blue rounded hover:bg-soft-peach/80 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
                         >
-                          Download QR Code
+                          <MdDownload className="w-5 h-5" />
+                          QR code
                         </button>
                         {copySuccess && <span className="ml-2 text-green-600 text-xs font-semibold">{copySuccess}</span>}
                       </div>
@@ -454,7 +457,7 @@ export default function DashboardContent({
                   className="rounded-md border border-gray-300 px-2 py-1 text-sm"
                 >
                   <option value="">All types</option>
-                  <option value="review">Prompt review</option>
+                  <option value="prompt">Prompt review</option>
                   <option value="experience">Experiences & spaces</option>
                   <option value="video">Video testimonial</option>
                   <option value="photo">Photo + testimonial</option>
@@ -620,7 +623,13 @@ export default function DashboardContent({
                               <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
                                 {page.last_name || ''}
                               </td>
-                              <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900 capitalize">{page.review_type || 'review'}</td>
+                              <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900 capitalize">
+                                {page.review_type === 'prompt' && 'Prompt'}
+                                {page.review_type === 'photo' && 'Photo'}
+                                {page.review_type === 'video' && 'Video'}
+                                {page.review_type === 'experience' && 'Exp.'}
+                                {!['prompt', 'photo', 'video', 'experience'].includes(page.review_type || '') && (page.review_type ? page.review_type.charAt(0).toUpperCase() + page.review_type.slice(1) : 'Prompt')}
+                              </td>
                               <td className="whitespace-nowrap px-3 py-4 text-sm flex gap-2 items-center">
                                 <div className="mt-[6px] flex gap-2">
                                   <Link
@@ -683,19 +692,19 @@ export default function DashboardContent({
                                     <button
                                       type="button"
                                       className="inline-flex items-center px-2 py-1.5 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap w-full sm:w-auto"
-                                      title="Copy Link"
+                                      title="Copy link"
                                       onClick={async () => {
                                         await navigator.clipboard.writeText(`${window.location.origin}/r/${page.slug}`);
                                         setCopyLinkId(page.id);
                                         setTimeout(() => setCopyLinkId(null), 2000);
                                       }}
                                     >
-                                      <FaLink className="w-5 h-5" />
+                                      <FaLink className="w-4 h-4" />
                                     </button>
                                   )}
                                   <button
                                     type="button"
-                                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-softPeach text-[#1A237E] rounded hover:bg-[#FFD1B3] text-sm font-medium shadow h-9 align-middle whitespace-nowrap w-full sm:w-auto"
+                                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-soft-peach text-slate-blue rounded hover:bg-soft-peach/80 text-sm font-medium shadow h-9 align-middle whitespace-nowrap w-full sm:w-auto"
                                     aria-label="Download QR Code"
                                     onClick={() => setQrModal({ open: true, url: `${window.location.origin}/r/${page.slug}`, clientName: `${page.first_name || ''} ${page.last_name || ''}`.trim() || business?.name || 'PromptReviews', logoUrl: business?.logo_url })}
                                   >
@@ -870,12 +879,17 @@ export default function DashboardContent({
                     {promptTypes.map(type => (
                       <button
                         key={type.key}
-                        onClick={() => handlePromptTypeSelect(type.key)}
-                        className="flex flex-col items-center gap-2 p-6 rounded-lg border border-gray-200 hover:border-indigo-400 shadow-sm hover:shadow-md transition-all bg-gray-50 hover:bg-indigo-50 focus:outline-none"
+                        onClick={() => !type.comingSoon && handlePromptTypeSelect(type.key)}
+                        className={`flex flex-col items-center gap-2 p-6 rounded-lg border border-gray-200 hover:border-indigo-400 shadow-sm hover:shadow-md transition-all bg-gray-50 hover:bg-indigo-50 focus:outline-none ${type.comingSoon ? 'opacity-60 cursor-not-allowed relative' : ''}`}
+                        disabled={!!type.comingSoon}
+                        tabIndex={type.comingSoon ? -1 : 0}
                       >
                         {type.icon}
                         <span className="font-semibold text-lg text-[#1A237E]">{type.label}</span>
                         <span className="text-sm text-gray-600 text-center">{type.description}</span>
+                        {type.comingSoon && (
+                          <span className="absolute top-2 right-2 bg-yellow-200 text-yellow-800 text-xs font-semibold px-2 py-0.5 rounded">Coming soon</span>
+                        )}
                       </button>
                     ))}
                   </div>
