@@ -245,11 +245,12 @@ export default function BusinessForm({
           required
           industryType={industryType}
           setIndustryType={setIndustryType}
+          label="Your Industry"
         />
         {(industryType === 'B2B' || industryType === 'Both') && (
           <div className="mb-4">
             <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
-              Industries served *
+              Industries you serve (If applicable) *
               <Tooltip text="This helps Prompt AI understand your target audience and tailor reviews for your typical clients or customers." />
             </label>
             <textarea name="industries_served" className="w-full border px-3 py-2 rounded" value={typeof form.industries_served === 'string' ? form.industries_served : Array.isArray(form.industries_served) ? form.industries_served.join(', ') : ''} onChange={handleChange} required />
@@ -290,21 +291,21 @@ export default function BusinessForm({
         </h2>
         <div className="mb-4">
           <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
-            Company values *
+            Company values
             <Tooltip text="Prompt AI uses your company values to generate reviews that reflect what matters most to your business." />
           </label>
-          <textarea name="company_values" className="w-full border px-3 py-2 rounded" value={form.company_values} onChange={handleChange} required />
+          <textarea name="company_values" className="w-full border px-3 py-2 rounded" value={form.company_values} onChange={handleChange} />
         </div>
         <div className="mb-4">
           <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
-            Differentiators / unique selling points *
+            Differentiators / unique selling points
             <Tooltip text="Prompt AI will highlight what makes your business unique in the generated reviews." />
           </label>
-          <textarea name="differentiators" className="w-full border px-3 py-2 rounded" value={form.differentiators} onChange={handleChange} required />
+          <textarea name="differentiators" className="w-full border px-3 py-2 rounded" value={form.differentiators} onChange={handleChange} />
         </div>
         <div className="mb-4">
-          <label className="block font-semibold text-sm text-gray-500 mb-1">Years in business *</label>
-          <input type="number" name="years_in_business" min="0" className="w-full border px-3 py-2 rounded" value={form.years_in_business} onChange={handleChange} required />
+          <label className="block font-semibold text-sm text-gray-500 mb-1">Years in business</label>
+          <input type="number" name="years_in_business" min="0" className="w-full border px-3 py-2 rounded" value={form.years_in_business} onChange={handleChange} />
         </div>
         <div className="mb-4">
           <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
@@ -342,14 +343,35 @@ export default function BusinessForm({
           </div>
           {platforms.map((platform, idx) => (
             <div key={idx} className="flex gap-2 items-center">
-              <input
-                type="text"
+              <select
                 className="w-1/3 border px-3 py-2 rounded-lg bg-white"
-                placeholder="Platform Name (e.g., Google)"
                 value={platform.name}
                 onChange={e => handlePlatformChange(idx, 'name', e.target.value)}
                 required
-              />
+              >
+                <option value="">Select a platform</option>
+                <option value="Google Business Profile">Google Business Profile</option>
+                <option value="Yelp">Yelp</option>
+                <option value="Facebook">Facebook</option>
+                <option value="TripAdvisor">TripAdvisor</option>
+                <option value="Angi">Angi</option>
+                <option value="Houzz">Houzz</option>
+                <option value="BBB">BBB</option>
+                <option value="Thumbtack">Thumbtack</option>
+                <option value="HomeAdvisor">HomeAdvisor</option>
+                <option value="Trustpilot">Trustpilot</option>
+                <option value="Other">Other</option>
+              </select>
+              {platform.name === 'Other' && (
+                <input
+                  type="text"
+                  className="w-1/3 border px-3 py-2 rounded-lg bg-white"
+                  placeholder="Enter platform name"
+                  value={platform.customPlatform || ''}
+                  onChange={e => handlePlatformChange(idx, 'customPlatform', e.target.value)}
+                  required
+                />
+              )}
               <input
                 type="url"
                 className="w-1/2 border px-3 py-2 rounded-lg bg-white"

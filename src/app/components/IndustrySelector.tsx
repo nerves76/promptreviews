@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef, useEffect, useState } from 'react';
 import Select, { MultiValue } from 'react-select';
 
 // Expanded industry list with B2B/B2C/Both tags
@@ -132,6 +132,20 @@ export default function IndustrySelector({
   industryType,
   setIndustryType,
 }: IndustrySelectorProps) {
+  const [menuIsOpen, setMenuIsOpen] = useState(false);
+  const [touched, setTouched] = useState(false);
+  const selectRef = useRef<any>(null);
+
+  // Open menu when industryType changes
+  useEffect(() => {
+    if (industryType !== 'Both') {
+      setMenuIsOpen(true);
+    }
+  }, [industryType]);
+
+  // Show error if required and nothing selected
+  const showError = required && touched && value.length === 0;
+
   // Filter industries based on type
   const filteredOptions = useMemo(() => {
     if (industryType === 'Both') return INDUSTRY_OPTIONS;
@@ -171,7 +185,7 @@ export default function IndustrySelector({
             name="industry-type"
             value="B2B"
             checked={industryType === 'B2B'}
-            onChange={handleTypeChange}
+            onChange={e => { handleTypeChange(e); setTouched(true); }}
           />{' '}
           B2B
         </label>
@@ -181,7 +195,7 @@ export default function IndustrySelector({
             name="industry-type"
             value="B2C"
             checked={industryType === 'B2C'}
-            onChange={handleTypeChange}
+            onChange={e => { handleTypeChange(e); setTouched(true); }}
           />{' '}
           B2C
         </label>
@@ -191,24 +205,31 @@ export default function IndustrySelector({
             name="industry-type"
             value="Both"
             checked={industryType === 'Both'}
-            onChange={handleTypeChange}
+            onChange={e => { handleTypeChange(e); setTouched(true); }}
           />{' '}
           Both
         </label>
       </div>
       <Select
+        ref={selectRef}
         isMulti
         options={selectOptions}
         value={selectedOptions}
-        onChange={handleSelectChange}
+        onChange={selected => { handleSelectChange(selected); setTouched(true); }}
         classNamePrefix="react-select"
         placeholder="Select industries..."
         closeMenuOnSelect={false}
         isClearable={false}
+        menuIsOpen={menuIsOpen}
+        onMenuOpen={() => setMenuIsOpen(true)}
+        onMenuClose={() => setMenuIsOpen(false)}
         styles={{
           menu: provided => ({ ...provided, zIndex: 20 }),
         }}
       />
+      {showError && (
+        <div className="text-red-500 text-xs mt-1">Please select at least one industry after choosing B2B, B2C, or Both.</div>
+      )}
       {value.includes('Other') && (
         <div className="mt-2">
           <input

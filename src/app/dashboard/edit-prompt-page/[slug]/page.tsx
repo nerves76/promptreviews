@@ -3,7 +3,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { generateAIReview } from '@/utils/ai';
-import { FaGoogle, FaFacebook, FaYelp, FaTripadvisor, FaRegStar, FaGift, FaStar, FaHeart, FaThumbsUp } from 'react-icons/fa';
+import { FaGoogle, FaFacebook, FaYelp, FaTripadvisor, FaRegStar, FaGift, FaStar, FaHeart, FaThumbsUp, FaStore } from 'react-icons/fa';
 import { IconType } from 'react-icons';
 import Link from 'next/link';
 import { getUserOrMock, getSessionOrMock } from '@/utils/supabase';
@@ -976,16 +976,17 @@ export default function EditPromptPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gradient-to-br from-[#452F9F]/5 via-white to-[#452F9F]/5">
       <div className="w-full mx-auto mt-6 relative">
         {/* Floating Icon */}
         <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center w-16 h-16">
-          <span className="text-[2.5rem] font-bold text-dustyPlum" style={{fontFamily: 'Inter, sans-serif'}}>[P]</span>
-        </div>
-        <div className="w-full mx-auto bg-white rounded-lg shadow-lg p-8 relative" style={{maxWidth: 1000}}>
-          <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center">
+          {isUniversal ? (
+            <FaStore className="w-9 h-9 text-[#1A237E]" />
+          ) : (
             <FaStar className="w-9 h-9 text-[#1A237E]" />
-          </div>
+          )}
+        </div>
+        <div className="w-full mx-auto rounded-lg shadow-lg p-8 relative" style={{maxWidth: 1000}}>
           {/* Photo display area */}
           {photoUrl && (
             <div className="flex flex-col items-center mb-8">

@@ -235,6 +235,7 @@ export default function DashboardContent({
   };
 
   const filteredPromptPages = promptPages.filter(page => {
+    if (page.is_universal) return false;
     if (selectedType && page.review_type !== selectedType) return false;
     if (selectedTab === 'in_queue') return page.status === 'in_queue';
     if (selectedTab === 'in_progress') return page.status === 'in_progress';
@@ -243,10 +244,10 @@ export default function DashboardContent({
     return true;
   });
 
-  const inQueueCount = promptPages.filter(page => page.status === 'in_queue').length;
-  const inProgressCount = promptPages.filter(page => page.status === 'in_progress').length;
-  const completeCount = promptPages.filter(page => page.status === 'complete').length;
-  const draftCount = promptPages.filter(page => page.status === 'draft').length;
+  const inQueueCount = promptPages.filter(page => page.status === 'in_queue' && !page.is_universal).length;
+  const inProgressCount = promptPages.filter(page => page.status === 'in_progress' && !page.is_universal).length;
+  const completeCount = promptPages.filter(page => page.status === 'complete' && !page.is_universal).length;
+  const draftCount = promptPages.filter(page => page.status === 'draft' && !page.is_universal).length;
 
   const handleSort = (field: 'first_name' | 'last_name' | 'review_type') => {
     if (sortField === field) {

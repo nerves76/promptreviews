@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { createBrowserClient } from '@supabase/ssr';
+import SimpleMarketingNav from '@/app/components/SimpleMarketingNav';
 
 export default function SignUpPage() {
   const [email, setEmail] = useState('');
@@ -10,6 +11,8 @@ export default function SignUpPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [emailSent, setEmailSent] = useState(false);
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -33,7 +36,7 @@ export default function SignUpPage() {
     setLoading(true);
     setError('');
 
-    if (!email || !password) {
+    if (!firstName || !lastName || !email || !password) {
       setError('Please fill in all fields');
       setLoading(false);
       return;
@@ -45,6 +48,11 @@ export default function SignUpPage() {
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
+          data: {
+            full_name: `${firstName} ${lastName}`.trim(),
+            first_name: firstName,
+            last_name: lastName,
+          },
         },
       });
 
@@ -67,97 +75,101 @@ export default function SignUpPage() {
 
   if (emailSent) {
     return (
-      <div className="min-h-screen flex flex-col justify-center items-center">
-        <div className="bg-white p-8 rounded shadow text-center">
-          <h2 className="text-2xl font-bold mb-4">Check your email</h2>
-          <p className="mb-4">Please check your email and click the confirmation link to activate your account.</p>
-          <Link href="/auth/sign-in">
-            <button className="mt-4 px-6 py-2 bg-blue-600 text-white rounded font-semibold hover:bg-blue-700">
-              Sign in
-            </button>
-          </Link>
+      <>
+        <SimpleMarketingNav />
+        <div className="min-h-screen flex flex-col justify-center items-center">
+          <div className="p-8 rounded shadow text-center bg-white">
+            <h2 className="text-2xl font-bold mb-4 text-[#1A237E]">Check your email</h2>
+            <p className="mb-4">Please check your email and click the confirmation link to activate your account.</p>
+            <Link href="/auth/sign-in">
+              <button className="mt-4 px-6 py-2 bg-blue-600 text-white rounded font-semibold hover:bg-blue-700">
+                Sign in
+              </button>
+            </Link>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center">
-      <form onSubmit={handleSubmit} className="bg-white p-8 rounded shadow w-full max-w-md space-y-6">
-        <h1 className="text-3xl font-bold mb-8 text-center">Sign Up</h1>
-        <div>
-          <label className="block font-medium mb-1">Email</label>
-          <input
-            type="email"
-            required
-            className="w-full border rounded px-3 py-2"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            autoComplete="email"
-          />
+    <>
+      <SimpleMarketingNav />
+      <div className="min-h-screen flex flex-col justify-center items-center">
+        <div className="sm:mx-auto sm:w-full sm:max-w-md">
+          <h1 className="mt-6 text-center text-3xl font-extrabold text-white">Create your account</h1>
+          <p className="mt-2 text-center text-sm text-white">
+            Or{' '}
+            <Link href="/auth/sign-in" className="font-medium text-white hover:text-gray-100 underline">
+              sign in to your account
+            </Link>
+          </p>
         </div>
-        <div>
-          <label className="block font-medium mb-1">Password</label>
-          <input
-            type="password"
-            required
-            className="w-full border rounded px-3 py-2"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            autoComplete="new-password"
-          />
-        </div>
-        {error && (
-          <div className="text-red-600">
-            {error}
-            {error === errorMessages['User already registered'] && (
-              <>
-                {' '}
-                <Link href="/auth/sign-in" className="underline text-blue-600 ml-1">Sign in</Link>
-              </>
-            )}
+        <form onSubmit={handleSubmit} className="mt-8 p-8 rounded shadow w-full max-w-md space-y-6 bg-white">
+          <div>
+            <label className="block font-medium mb-1">First Name</label>
+            <input
+              type="text"
+              required
+              className="w-full border rounded px-3 py-2"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              autoComplete="given-name"
+            />
           </div>
-        )}
-        <button
-          type="submit"
-          className="w-full py-3 bg-blue-600 text-white rounded font-semibold hover:bg-blue-700"
-          disabled={loading}
-        >
-          {loading ? 'Signing up...' : 'Sign Up'}
-        </button>
-        <div className="my-6 flex items-center justify-center">
-          <span className="text-gray-400 text-xs">or</span>
-        </div>
-        <button
-          type="button"
-          onClick={async () => {
-            setLoading(true);
-            setError('');
-            try {
-              const { error } = await supabase.auth.signInWithOAuth({
-                provider: 'google',
-                options: {
-                  redirectTo: `${window.location.origin}/auth/callback`,
-                },
-              });
-              if (error) {
-                setError(error.message);
-                console.error('Google sign-up error:', error);
-              }
-            } catch (err) {
-              setError(err instanceof Error ? err.message : 'Failed to sign up with Google');
-              console.error('Google sign-up error:', err);
-            } finally {
-              setLoading(false);
-            }
-          }}
-          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={loading}
-        >
-          <svg className="w-5 h-5 mr-2" viewBox="0 0 48 48"><g><path fill="#4285F4" d="M24 9.5c3.54 0 6.7 1.22 9.19 3.23l6.85-6.85C36.18 2.36 30.45 0 24 0 14.98 0 6.88 5.8 2.69 14.09l7.98 6.2C12.13 13.13 17.62 9.5 24 9.5z"/><path fill="#34A853" d="M46.1 24.5c0-1.64-.15-3.22-.42-4.74H24v9.01h12.42c-.54 2.9-2.18 5.36-4.65 7.01l7.19 5.6C43.98 37.36 46.1 31.36 46.1 24.5z"/><path fill="#FBBC05" d="M10.67 28.29c-1.13-3.36-1.13-6.93 0-10.29l-7.98-6.2C.86 16.36 0 20.07 0 24c0 3.93.86 7.64 2.69 12.2l7.98-6.2z"/><path fill="#EA4335" d="M24 48c6.45 0 12.18-2.13 16.73-5.8l-7.19-5.6c-2.01 1.35-4.6 2.15-7.54 2.15-6.38 0-11.87-3.63-13.33-8.79l-7.98 6.2C6.88 42.2 14.98 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></g></svg>
-          Sign up with Google
-        </button>
-      </form>
-    </div>
+          <div>
+            <label className="block font-medium mb-1">Last Name</label>
+            <input
+              type="text"
+              required
+              className="w-full border rounded px-3 py-2"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              autoComplete="family-name"
+            />
+          </div>
+          <div>
+            <label className="block font-medium mb-1">Email</label>
+            <input
+              type="email"
+              required
+              className="w-full border rounded px-3 py-2"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+            />
+          </div>
+          <div>
+            <label className="block font-medium mb-1">Password</label>
+            <input
+              type="password"
+              required
+              className="w-full border rounded px-3 py-2"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="new-password"
+            />
+          </div>
+          {error && (
+            <div className="text-red-600">
+              {error}
+              {error === errorMessages['User already registered'] && (
+                <>
+                  {' '}
+                  <Link href="/auth/sign-in" className="underline text-blue-600 ml-1">Sign in</Link>
+                </>
+              )}
+            </div>
+          )}
+          <button
+            type="submit"
+            className="w-full py-3 bg-blue-600 text-white rounded font-semibold hover:bg-blue-700"
+            disabled={loading}
+          >
+            {loading ? 'Signing up...' : 'Sign Up'}
+          </button>
+        </form>
+      </div>
+    </>
   );
 } 

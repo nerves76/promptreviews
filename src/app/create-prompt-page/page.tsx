@@ -9,6 +9,7 @@ import { Dialog } from '@headlessui/react';
 import { getUserOrMock } from '@/utils/supabase';
 import dynamic from 'next/dynamic';
 import Header from '../components/Header';
+import { slugify } from '@/utils/slugify';
 
 interface ReviewPlatformLink {
   platform: string;
@@ -121,7 +122,7 @@ const initialFormData = {
   offer_title: 'Special Offer',
   offer_body: 'Use this code "1234" to get a discount on your next purchase.',
   offer_url: '',
-  review_type: '',
+  review_type: 'custom',
   video_recipient: '',
   video_note: '',
   video_tips: '',
@@ -489,7 +490,7 @@ export default function CreatePromptPage() {
       let insertData: any = { ...formData, account_id: user.id, status: 'draft' };
       // Generate slug before insert
       insertData.slug = slugify(formData.first_name + '-' + formData.last_name, String(Date.now()));
-      if (formData.review_type === 'photo' || formData.review_type === 'photo_testimonial') {
+      if (formData.review_type === 'photo') {
         insertData.review_platforms = undefined;
       } else {
         insertData.review_platforms = formData.review_platforms.map(link => ({
@@ -747,25 +748,23 @@ export default function CreatePromptPage() {
       {/* Page Title and top right action buttons */}
       <div className="flex items-center justify-between mb-12">
         <h1 className="text-4xl font-bold text-[#1A237E]">Create Your Prompt Page</h1>
-        {step === 2 && (
-          <div className="flex gap-4 items-center">
-            <a
-              href={previewUrl || '#'}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-            >
-              View
-            </a>
-            <button
-              type="submit"
-              className="inline-flex justify-center rounded-md border border-transparent bg-indigo-800 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-              disabled={isSaving}
-            >
-              {isSaving ? 'Publishing...' : 'Save & publish'}
-            </button>
-          </div>
-        )}
+        <div className="flex gap-4 items-center">
+          <a
+            href={previewUrl || '#'}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+          >
+            View
+          </a>
+          <button
+            type="submit"
+            className="inline-flex justify-center rounded-md border border-transparent bg-indigo-800 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            disabled={isSaving}
+          >
+            {isSaving ? 'Publishing...' : 'Save & publish'}
+          </button>
+        </div>
       </div>
       {/* Review Platforms Section - moved to top */}
       {!(formData.review_type === 'photo' || formData.review_type === 'photo_testimonial') && (
@@ -779,7 +778,7 @@ export default function CreatePromptPage() {
           <p className="text-sm text-gray-500 mt-1" style={{ marginBottom: 24 }}>Your business profile platforms have been pre-loaded. You can add more if needed.</p>
           <div className="mt-1 space-y-4">
             {formData.review_platforms.map((link, index) => (
-              <div key={index} className="relative grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-6 border rounded-lg bg-gray-50">
+              <div key={index} className="relative mb-6 p-6 border rounded-lg bg-gray-50">
                 {/* Platform icon in top left */}
                 {(link.platform || link.url) && (
                   <div className="absolute -top-4 -left-4 bg-white rounded-full shadow p-2 flex items-center justify-center" title={getPlatformIcon(link.platform, link.url).label}>
@@ -789,89 +788,61 @@ export default function CreatePromptPage() {
                     })()}
                   </div>
                 )}
-                <div className="space-y-4 flex flex-col justify-between">
-                  <div>
-                    <label htmlFor={`platform-${index}`} className="block text-sm font-medium text-gray-700 mb-1">
-                      Platform Name
-                    </label>
-                    <select
-                      id={`platform-${index}`}
-                      value={link.platform}
-                      onChange={e => handlePlatformChange(index, 'platform', e.target.value)}
-                      className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
-                      required
-                    >
-                      <option value="">Select a platform</option>
-                      <option value="Google Business Profile">Google Business Profile</option>
-                      <option value="Yelp">Yelp</option>
-                      <option value="Facebook">Facebook</option>
-                      <option value="TripAdvisor">TripAdvisor</option>
-                      <option value="Angi">Angi</option>
-                      <option value="Houzz">Houzz</option>
-                      <option value="BBB">BBB</option>
-                      <option value="Thumbtack">Thumbtack</option>
-                      <option value="HomeAdvisor">HomeAdvisor</option>
-                      <option value="Trustpilot">Trustpilot</option>
-                      <option value="Other">Other</option>
-                    </select>
-                    {link.platform === 'Other' && (
-                      <input
-                        type="text"
-                        className="mt-2 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
-                        placeholder="Enter platform name"
-                        value={link.customPlatform || ''}
-                        onChange={e => handlePlatformChange(index, 'customPlatform', e.target.value)}
+                {/* 2-column grid for settings */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Left column: Platform name and URL */}
+                  <div className="space-y-4 flex flex-col justify-between">
+                    <div>
+                      <label htmlFor={`platform-${index}`} className="block text-sm font-medium text-gray-700 mb-1">
+                        Platform Name
+                      </label>
+                      <select
+                        id={`platform-${index}`}
+                        value={link.platform}
+                        onChange={e => handlePlatformChange(index, 'platform', e.target.value)}
+                        className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
                         required
-                      />
-                    )}
-                  </div>
-                  <div>
-                    <label htmlFor={`url-${index}`} className="block text-sm font-medium text-gray-700 mb-1">
-                      Review URL
-                    </label>
-                    <input
-                      type="url"
-                      id={`url-${index}`}
-                      value={link.url}
-                      onChange={e => handlePlatformChange(index, 'url', e.target.value)}
-                      placeholder="https://..."
-                      className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor={`wordCount-${index}`} className="block text-sm font-medium text-gray-700 mb-1">
-                      Word Count Limit
-                    </label>
-                    <input
-                      type="number"
-                      id={`wordCount-${index}`}
-                      value={link.wordCount ?? 200}
-                      onChange={e => handlePlatformChange(index, 'wordCount', parseInt(e.target.value))}
-                      className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
-                      placeholder="Word count limit"
-                      min="50"
-                      max="1000"
-                    />
-                  </div>
-                  {formData.review_platforms.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => handleRemovePlatform(index)}
-                      className="inline-flex items-center p-1.5 border border-transparent rounded-full text-red-600 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 self-start mt-2"
-                    >
-                      <span className="sr-only">Remove platform</span>
-                      <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path
-                          fillRule="evenodd"
-                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                          clipRule="evenodd"
+                      >
+                        <option value="">Select a platform</option>
+                        <option value="Google Business Profile">Google Business Profile</option>
+                        <option value="Yelp">Yelp</option>
+                        <option value="Facebook">Facebook</option>
+                        <option value="TripAdvisor">TripAdvisor</option>
+                        <option value="Angi">Angi</option>
+                        <option value="Houzz">Houzz</option>
+                        <option value="BBB">BBB</option>
+                        <option value="Thumbtack">Thumbtack</option>
+                        <option value="HomeAdvisor">HomeAdvisor</option>
+                        <option value="Trustpilot">Trustpilot</option>
+                        <option value="Other">Other</option>
+                      </select>
+                      {link.platform === 'Other' && (
+                        <input
+                          type="text"
+                          className="mt-2 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                          placeholder="Enter platform name"
+                          value={link.customPlatform || ''}
+                          onChange={e => handlePlatformChange(index, 'customPlatform', e.target.value)}
+                          required
                         />
-                      </svg>
-                    </button>
-                  )}
-                </div>
-                <div className="flex flex-col h-full justify-between">
-                  <div>
+                      )}
+                    </div>
+                    <div>
+                      <label htmlFor={`url-${index}`} className="block text-sm font-medium text-gray-700 mb-1">
+                        Review URL
+                      </label>
+                      <input
+                        type="url"
+                        id={`url-${index}`}
+                        value={link.url}
+                        onChange={e => handlePlatformChange(index, 'url', e.target.value)}
+                        placeholder="https://..."
+                        className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                      />
+                    </div>
+                  </div>
+                  {/* Right column: Custom instructions and word count */}
+                  <div className="space-y-4 flex flex-col justify-between">
                     <div>
                       <label htmlFor={`customInstructions-${index}`} className="block text-sm font-medium text-gray-700 mb-1">
                         Custom Instructions
@@ -886,43 +857,58 @@ export default function CreatePromptPage() {
                       />
                     </div>
                     <div>
-                      <label htmlFor={`reviewText-${index}`} className="block text-sm font-medium text-gray-700 mb-1">
-                        Review Text
+                      <label htmlFor={`wordCount-${index}`} className="block text-sm font-medium text-gray-700 mb-1">
+                        Word Count Limit
                       </label>
-                      <textarea
-                        id={`reviewText-${index}`}
-                        value={link.reviewText || ''}
-                        onChange={e => handlePlatformChange(index, 'reviewText', e.target.value)}
-                        placeholder="Write or generate a review for this platform"
-                        className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4 mb-2"
-                        rows={5}
+                      <input
+                        type="number"
+                        id={`wordCount-${index}`}
+                        value={link.wordCount ?? 200}
+                        onChange={e => handlePlatformChange(index, 'wordCount', parseInt(e.target.value))}
+                        className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                        placeholder="Word count limit"
+                        min="50"
+                        max="1000"
                       />
                     </div>
-                    <div className="flex items-center gap-2 justify-between mt-2">
-                      <button
-                        type="button"
-                        onClick={() => handleGenerateAIReview(index)}
-                        disabled={generatingReview === index}
-                        className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm font-medium shadow disabled:opacity-50 disabled:cursor-not-allowed ml-auto"
-                      >
-                        {generatingReview === index ? (
-                          <>
-                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            Generating...
-                          </>
-                        ) : (
-                          'Generate with AI'
-                        )}
-                      </button>
-                      {link.reviewText && (
-                        <span className="text-sm text-gray-500 ml-2">
-                          {link.reviewText.split(/\s+/).length} words
-                        </span>
+                    {/* Word count indicator in right column (desktop only) */}
+                    <span className="hidden md:block text-sm text-gray-500 mb-2 mt-auto">
+                      {link.reviewText ? `${link.reviewText.split(/\s+/).length} words` : ''}
+                    </span>
+                  </div>
+                </div>
+                {/* Full-width review text input below the grid */}
+                <div className="mt-6">
+                  <label htmlFor={`reviewText-${index}`} className="block text-sm font-medium text-gray-700 mb-1">
+                    Review Text
+                  </label>
+                  <textarea
+                    id={`reviewText-${index}`}
+                    value={link.reviewText || ''}
+                    onChange={e => handlePlatformChange(index, 'reviewText', e.target.value)}
+                    placeholder="Write or generate a review for this platform"
+                    className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4 mb-2"
+                    rows={5}
+                  />
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => handleGenerateAIReview(index)}
+                      disabled={generatingReview === index}
+                      className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm font-medium shadow disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {generatingReview === index ? (
+                        <>
+                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Generating...
+                        </>
+                      ) : (
+                        'Generate with AI'
                       )}
-                    </div>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -1069,6 +1055,24 @@ export default function CreatePromptPage() {
           </button>
         </div>
       )}
+      {/* Bottom right action buttons (duplicate of top) */}
+      <div className="flex justify-end gap-4 mt-12">
+        <a
+          href={previewUrl || '#'}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+        >
+          View
+        </a>
+        <button
+          type="submit"
+          className="inline-flex justify-center rounded-md border border-transparent bg-indigo-800 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+          disabled={isSaving}
+        >
+          {isSaving ? 'Publishing...' : 'Save & publish'}
+        </button>
+      </div>
     </div>
   );
 
@@ -1102,9 +1106,9 @@ export default function CreatePromptPage() {
   }, [searchParams]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-400 via-indigo-300 to-purple-300">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-400 via-indigo-300 to-purple-300 pb-24">
       <Header />
-      <div className="w-full px-4 mt-16 mb-12 mx-auto flex justify-center">
+      <div className="w-full px-4 mt-16 mb-24 mx-auto flex justify-center">
         <div className="relative w-full" style={{maxWidth: 1000}}>
           {/* Floating Icon - now relative to the card */}
           <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center w-16 h-16">
@@ -1112,7 +1116,9 @@ export default function CreatePromptPage() {
           </div>
           <div className="rounded-lg shadow-lg p-8 bg-white relative mx-auto" style={{paddingTop: 32, maxWidth: 1000}}>
             {/* Main form content */}
-            {step === 1 ? renderStep1() : renderStep2()}
+            <form onSubmit={handleSubmit}>
+              {step === 1 ? renderStep1() : renderStep2()}
+            </form>
           </div>
         </div>
       </div>
