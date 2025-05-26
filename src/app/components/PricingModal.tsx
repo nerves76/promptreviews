@@ -55,6 +55,7 @@ interface PricingModalProps {
   onSelectTier: (tierKey: string) => void;
   asModal?: boolean;
   currentPlan?: string;
+  hasHadPaidPlan?: boolean;
 }
 
 function getButtonLabel(tierKey: string, currentPlan?: string) {
@@ -78,7 +79,7 @@ const featureTooltips: Record<string, string> = {
   'prompt pages': 'Prompt pages are designed for sending a personalized review request to an individual customer or client.',
 };
 
-export default function PricingModal({ onSelectTier, asModal = true, currentPlan }: PricingModalProps) {
+export default function PricingModal({ onSelectTier, asModal = true, currentPlan, hasHadPaidPlan = false }: PricingModalProps) {
   const [tooltip, setTooltip] = useState<string | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{x: number, y: number} | null>(null);
   const wrapperClass = asModal
@@ -100,7 +101,7 @@ export default function PricingModal({ onSelectTier, asModal = true, currentPlan
                 }
                 style={{ minHeight: 420, marginBottom: '2rem' }}
               >
-                {isGrower && (
+                {isGrower && !hasHadPaidPlan && (
                   <span className="absolute -top-5 left-1/2 -translate-x-1/2 bg-yellow-400 text-slate-900 font-bold px-4 py-1 rounded-full text-xs shadow-lg z-10 border border-yellow-300">14-day Free Trial</span>
                 )}
                 <h3 className={`text-3xl font-bold mb-2 ${tier.text}`}>{tier.name}</h3>
@@ -142,7 +143,7 @@ export default function PricingModal({ onSelectTier, asModal = true, currentPlan
                 >
                   {getButtonLabel(tier.key, currentPlan)}
                 </button>
-                {tier.key === 'grower' && (
+                {tier.key === 'grower' && !hasHadPaidPlan && (
                   <div className="mt-2 text-xs text-gray-500 text-center w-full">*No credit card necessary</div>
                 )}
               </div>

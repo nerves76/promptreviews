@@ -137,13 +137,14 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
-    console.log('Account state for pricing modal:', account);
+    const paidPlans = ['grower', 'builder', 'maven'];
     if (
       account && (
-        // Not on a plan yet
-        (account.is_free_account === false && (!account.plan || account.plan === '')) ||
-        // On a paid plan but not paid
-        ((account.plan === 'builder' || account.plan === 'maven') && account.subscription_status !== 'active')
+        // Not on a paid plan
+        !account.plan ||
+        !paidPlans.includes(account.plan) ||
+        // On a paid plan but not active
+        (paidPlans.includes(account.plan) && account.subscription_status !== 'active')
       )
     ) {
       setShowPricingModal(true);

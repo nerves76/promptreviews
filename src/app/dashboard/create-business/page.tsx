@@ -54,8 +54,6 @@ function Tooltip({ text }: { text: string }) {
 
 export default function CreateBusinessPage() {
   useAuthGuard({ requireBusinessProfile: false });
-  const [showPricingModal, setShowPricingModal] = useState(false);
-  const [account, setAccount] = useState<any>(null);
   const [form, setForm] = useState({
     name: "",
     services_offered: "",
@@ -107,37 +105,49 @@ export default function CreateBusinessPage() {
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [rawLogoFile, setRawLogoFile] = useState<File | null>(null);
+  const [account, setAccount] = useState<any>(null);
+  const [showPricingModal, setShowPricingModal] = useState(false);
+  const [showTrialConfirmation, setShowTrialConfirmation] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 
-  // Fetch account on mount
+  // Fetch account info for plan modal
   useEffect(() => {
-    async function fetchAccount() {
+    const fetchAccount = async () => {
       const { data: { user } } = await getUserOrMock(supabase);
       if (!user) return;
-      const { data: accountData, error: accountError } = await supabase
+      const { data: accountData } = await supabase
         .from('accounts')
-        .select('id, plan, is_free_account, subscription_status')
+        .select('id, plan, is_free_account, subscription_status, has_had_paid_plan')
         .eq('id', user.id)
         .single();
-      console.log('Fetched accountData (create-business):', accountData);
-      if (!accountError && accountData) {
-        setAccount(accountData);
-      }
-    }
+      setAccount(accountData);
+    };
     fetchAccount();
   }, [supabase]);
 
   useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUserEmail(user?.email ?? null);
+    };
+    fetchUser();
+  }, [supabase]);
+
+  useEffect(() => {
+    const paidPlans = ['grower', 'builder', 'maven'];
+    const isOnGrower = account?.plan === 'grower';
+    const isGrowerTrial = isOnGrower && account?.has_had_paid_plan === false && account?.trial_end && new Date(account.trial_end) > new Date();
     if (
       account && (
-        // Not on a plan yet
-        (account.is_free_account === false && (!account.plan || account.plan === '')) ||
-        // On a paid plan but not paid
-        ((account.plan === 'builder' || account.plan === 'maven') && account.subscription_status !== 'active')
+        !account.plan ||
+        !paidPlans.includes(account.plan) ||
+        ([ 'builder', 'maven' ].includes(account.plan) && account.subscription_status !== 'active') ||
+        (isOnGrower && isGrowerTrial)
       )
     ) {
       setShowPricingModal(true);
@@ -146,38 +156,13 @@ export default function CreateBusinessPage() {
     }
   }, [account]);
 
-  const handleSelectTier = async (tierKey: string) => {
-    if (!account) return;
-    if (tierKey === 'grower') {
-      setShowPricingModal(false);
-      await supabase.from('accounts').update({ plan: tierKey }).eq('id', account.id);
-      setAccount({ ...account, plan: tierKey });
-    } else {
-      // Get the user email from Supabase auth
-      const { data: { user } } = await getUserOrMock(supabase);
-      const email = user?.email || user?.user_metadata?.email || '';
-      if (!email) {
-        alert('No email found for your account. Please contact support.');
-        return;
-      }
-      // Paid plan: start Stripe checkout
-      const res = await fetch('/api/create-checkout-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          plan: tierKey,
-          userId: account.id,
-          email,
-        }),
-      });
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        alert('Failed to start checkout. Please try again.');
-      }
+  useEffect(() => {
+    if (typeof window !== 'undefined' && localStorage.getItem('showGrowerSuccess') === '1') {
+      setShowTrialConfirmation(true);
+      localStorage.removeItem('showGrowerSuccess');
+      setTimeout(() => setShowTrialConfirmation(false), 4000);
     }
-  };
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -437,117 +422,161 @@ export default function CreateBusinessPage() {
     setRawLogoFile(null);
   };
 
+  const handleSelectTier = async (tierKey: string) => {
+    if (!account) return;
+    if (tierKey === 'builder' || tierKey === 'maven') {
+      if (!userEmail) {
+        alert('No valid email address found for checkout.');
+        return;
+      }
+      // Call your API to create a Stripe Checkout session
+      const res = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          plan: tierKey,
+          userId: account.id,
+          email: userEmail
+        }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url; // Redirect to Stripe Checkout
+        return;
+      } else {
+        alert('Failed to start checkout: ' + (data.error || 'Unknown error'));
+        return;
+      }
+    }
+    // For grower (trial) or free plans, just update the plan and reload the page
+    await supabase.from('accounts').update({ plan: tierKey }).eq('id', account.id);
+    if (typeof window !== 'undefined' && tierKey === 'grower') {
+      localStorage.setItem('showGrowerSuccess', '1');
+    }
+    window.location.reload();
+  };
+
   return (
-    <div className="w-full mx-auto mt-6 relative rounded-lg shadow-lg p-8 bg-white" style={{maxWidth: 1000}}>
-      {showPricingModal && <PricingModal onSelectTier={handleSelectTier} />}
-      {/* Floating Icon */}
-      <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center w-16 h-16">
-        <FaStore className="w-9 h-9 text-slate-blue" />
-      </div>
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex flex-col">
-          <h1 className="text-4xl font-bold text-slate-blue">Create Business</h1>
-          <p className="text-sm text-gray-600 mt-2 max-w-xl">Fill out your profile as thoroughly as you can. This will help Prompt AI write better prompt reviews. (You will also be able to add/edit this info later.)</p>
+    <>
+      {showTrialConfirmation && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+          <div className="bg-green-100 border border-green-300 text-green-900 px-6 py-4 rounded-lg shadow-lg flex items-center gap-4 text-lg font-semibold pointer-events-auto">
+            Your free trial has started! You have 14 days to explore all features.
+            <button onClick={() => setShowTrialConfirmation(false)} className="ml-2 text-green-900 hover:text-green-700 text-2xl font-bold" aria-label="Dismiss">&times;</button>
+          </div>
         </div>
-        <div className="flex flex-col items-end gap-2">
-          <button
-            type="button"
-            className="py-2 px-4 border border-indigo-300 rounded-md shadow-sm text-xs font-medium text-indigo-800 bg-indigo-50 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-800"
-            onClick={() => {
-              setForm({
-                name: 'Diviner',
-                address_street: '2652 SE 89th ave',
-                address_city: 'Portland',
-                address_state: 'OR',
-                address_zip: '97266',
-                address_country: 'US',
-                business_email: 'chris@diviner.agency',
-                business_website: '',
-                facebook_url: '',
-                instagram_url: '',
-                bluesky_url: '',
-                tiktok_url: '',
-                youtube_url: '',
-                linkedin_url: 'https://www.linkedin.com/in/chris-bolton-a7b146a/',
-                pinterest_url: '',
-                industry: ['B2B'],
-                industry_other: 'professional services',
-                industries_served: 'agencies, small business',
-                services_offered: '', // handled by setServices
-                company_values: 'radical candor, authenticity, partnership',
-                differentiators: 'support for navigating how ai is changing marketing',
-                years_in_business: '1',
-                taglines: '',
-                team_info: '',
-                review_platforms: [], // handled by setPlatforms
-                platform_word_counts: '',
-                keywords: 'SEO expert, friendly, authentic',
-                default_offer_enabled: false,
-                default_offer_title: 'Special Offer',
-                default_offer_body: '',
-                default_offer_url: '',
-              });
-              setServices(['SEO', 'Marketing Consulting', 'SEO Audit']);
-              setPlatforms([
-                { name: 'Google', url: 'https://g.page/r/CTI0Oyvd6N23EAE/review', wordCount: 200 }
-              ]);
-            }}
-          >
-            Fill with Test Data
-          </button>
-          <button
-            type="submit"
-            form="create-business-form"
-            disabled={loading}
-            className="py-2 px-6 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-800 hover:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-800 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? 'Saving...' : 'Save Changes'}
-          </button>
+      )}
+      {showPricingModal && <PricingModal onSelectTier={handleSelectTier} hasHadPaidPlan={account?.has_had_paid_plan} />}
+      <div className="w-full mx-auto mt-6 relative rounded-lg shadow-lg p-8 bg-white" style={{maxWidth: 1000}}>
+        {/* Floating Icon */}
+        <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center w-16 h-16">
+          <FaStore className="w-9 h-9 text-slate-blue" />
         </div>
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex flex-col">
+            <h1 className="text-4xl font-bold text-slate-blue">Create Business</h1>
+            <p className="text-sm text-gray-600 mt-2 max-w-xl">Fill out your profile as thoroughly as you can. This will help Prompt AI write better prompt reviews. (You will also be able to add/edit this info later.)</p>
+          </div>
+          <div className="flex flex-col items-end gap-2">
+            <button
+              type="button"
+              className="py-2 px-4 border border-indigo-300 rounded-md shadow-sm text-xs font-medium text-indigo-800 bg-indigo-50 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-800"
+              onClick={() => {
+                setForm({
+                  name: 'Diviner',
+                  address_street: '2652 SE 89th ave',
+                  address_city: 'Portland',
+                  address_state: 'OR',
+                  address_zip: '97266',
+                  address_country: 'US',
+                  business_email: 'chris@diviner.agency',
+                  business_website: '',
+                  facebook_url: '',
+                  instagram_url: '',
+                  bluesky_url: '',
+                  tiktok_url: '',
+                  youtube_url: '',
+                  linkedin_url: 'https://www.linkedin.com/in/chris-bolton-a7b146a/',
+                  pinterest_url: '',
+                  industry: ['B2B'],
+                  industry_other: 'professional services',
+                  industries_served: 'agencies, small business',
+                  services_offered: '', // handled by setServices
+                  company_values: 'radical candor, authenticity, partnership',
+                  differentiators: 'support for navigating how ai is changing marketing',
+                  years_in_business: '1',
+                  taglines: '',
+                  team_info: '',
+                  review_platforms: [], // handled by setPlatforms
+                  platform_word_counts: '',
+                  keywords: 'SEO expert, friendly, authentic',
+                  default_offer_enabled: false,
+                  default_offer_title: 'Special Offer',
+                  default_offer_body: '',
+                  default_offer_url: '',
+                });
+                setServices(['SEO', 'Marketing Consulting', 'SEO Audit']);
+                setPlatforms([
+                  { name: 'Google', url: 'https://g.page/r/CTI0Oyvd6N23EAE/review', wordCount: 200 }
+                ]);
+              }}
+            >
+              Fill with Test Data
+            </button>
+            <button
+              type="submit"
+              form="create-business-form"
+              disabled={loading}
+              className="py-2 px-6 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-800 hover:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-800 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        </div>
+        <BusinessForm
+          form={form}
+          setForm={setForm}
+          services={services}
+          setServices={setServices}
+          platforms={platforms}
+          setPlatforms={setPlatforms}
+          platformErrors={platformErrors}
+          setPlatformErrors={setPlatformErrors}
+          logoUrl={logoUrl}
+          setLogoUrl={setLogoUrl}
+          logoFile={logoFile}
+          setLogoFile={setLogoFile}
+          logoError={logoError}
+          setLogoError={setLogoError}
+          // @ts-expect-error: React.RefObject<HTMLInputElement> can be initialized with null
+          fileInputRef={fileInputRef}
+          showCropper={showCropper}
+          setShowCropper={setShowCropper}
+          crop={crop}
+          setCrop={setCrop}
+          zoom={zoom}
+          setZoom={setZoom}
+          croppedAreaPixels={croppedAreaPixels}
+          setCroppedAreaPixels={setCroppedAreaPixels}
+          rawLogoFile={rawLogoFile}
+          setRawLogoFile={setRawLogoFile}
+          loading={loading}
+          error={error}
+          success={success}
+          onSubmit={handleSubmit}
+          handleChange={handleChange}
+          handleServiceChange={handleServiceChange}
+          addService={addService}
+          removeService={removeService}
+          handlePlatformChange={handlePlatformChange}
+          addPlatform={addPlatform}
+          removePlatform={removePlatform}
+          handleLogoChange={handleLogoChange}
+          handleCropConfirm={handleCropConfirm}
+          handleCropCancel={handleCropCancel}
+          formId="create-business-form"
+        />
       </div>
-      <BusinessForm
-        form={form}
-        setForm={setForm}
-        services={services}
-        setServices={setServices}
-        platforms={platforms}
-        setPlatforms={setPlatforms}
-        platformErrors={platformErrors}
-        setPlatformErrors={setPlatformErrors}
-        logoUrl={logoUrl}
-        setLogoUrl={setLogoUrl}
-        logoFile={logoFile}
-        setLogoFile={setLogoFile}
-        logoError={logoError}
-        setLogoError={setLogoError}
-        // @ts-expect-error: React.RefObject<HTMLInputElement> can be initialized with null
-        fileInputRef={fileInputRef}
-        showCropper={showCropper}
-        setShowCropper={setShowCropper}
-        crop={crop}
-        setCrop={setCrop}
-        zoom={zoom}
-        setZoom={setZoom}
-        croppedAreaPixels={croppedAreaPixels}
-        setCroppedAreaPixels={setCroppedAreaPixels}
-        rawLogoFile={rawLogoFile}
-        setRawLogoFile={setRawLogoFile}
-        loading={loading}
-        error={error}
-        success={success}
-        onSubmit={handleSubmit}
-        handleChange={handleChange}
-        handleServiceChange={handleServiceChange}
-        addService={addService}
-        removeService={removeService}
-        handlePlatformChange={handlePlatformChange}
-        addPlatform={addPlatform}
-        removePlatform={removePlatform}
-        handleLogoChange={handleLogoChange}
-        handleCropConfirm={handleCropConfirm}
-        handleCropCancel={handleCropCancel}
-        formId="create-business-form"
-      />
-    </div>
+    </>
   );
 } 
