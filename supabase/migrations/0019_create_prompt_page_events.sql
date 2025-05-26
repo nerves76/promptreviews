@@ -1,5 +1,5 @@
--- Create prompt_page_events table for analytics
--- CREATE TABLE prompt_page_events (
+-- Create analytics_events table for analytics
+-- CREATE TABLE analytics_events (
 --   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
 --   prompt_page_id uuid REFERENCES prompt_pages(id) ON DELETE CASCADE,
 --   event_type text NOT NULL, -- 'view', 'copy_submit', etc.

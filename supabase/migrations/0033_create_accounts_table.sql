@@ -1,7 +1,7 @@
 -- Create accounts table
 CREATE TABLE IF NOT EXISTS public.accounts (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-    plan TEXT NOT NULL DEFAULT 'community_grower',
+    plan TEXT NOT NULL DEFAULT 'grower',
     trial_start TIMESTAMPTZ,
     trial_end TIMESTAMPTZ,
     is_free BOOLEAN DEFAULT false,

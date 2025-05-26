@@ -51,7 +51,7 @@ export default function UploadContactsPage() {
   }, [selectedFile, preview, error, success]);
 
   // Helper to determine if user is blocked from uploading contacts
-  const isUploadBlocked = account && account.plan === 'community_grower' && !account.is_free;
+  const isUploadBlocked = account && account.plan === 'grower' && !account.is_free;
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (isUploadBlocked) {

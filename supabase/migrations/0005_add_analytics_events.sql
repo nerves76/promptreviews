@@ -1,13 +1,13 @@
 -- Add required columns for analytics
-ALTER TABLE prompt_page_events 
+ALTER TABLE analytics_events 
 ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}'::jsonb,
 ADD COLUMN IF NOT EXISTS session_id TEXT,
 ADD COLUMN IF NOT EXISTS user_agent TEXT,
 ADD COLUMN IF NOT EXISTS ip_address TEXT;
 
 -- Add new event types to track
-ALTER TABLE prompt_page_events DROP CONSTRAINT IF EXISTS valid_event_type;
-ALTER TABLE prompt_page_events 
+ALTER TABLE analytics_events DROP CONSTRAINT IF EXISTS valid_event_type;
+ALTER TABLE analytics_events 
 ADD CONSTRAINT valid_event_type 
 CHECK (event_type IN (
   'view',              -- Page view
@@ -27,7 +27,7 @@ CHECK (event_type IN (
 CREATE OR REPLACE FUNCTION track_user_login()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO prompt_page_events (
+  INSERT INTO analytics_events (
     event_type,
     created_at,
     user_agent,
@@ -58,7 +58,7 @@ RETURNS TRIGGER AS $$
 BEGIN
   -- Only track if time_spent is provided in metadata
   IF NEW.metadata->>'time_spent' IS NOT NULL THEN
-    INSERT INTO prompt_page_events (
+    INSERT INTO analytics_events (
       prompt_page_id,
       event_type,
       created_at,
@@ -84,9 +84,9 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Create trigger for time spent tracking
-DROP TRIGGER IF EXISTS track_time_spent_trigger ON prompt_page_events;
+DROP TRIGGER IF EXISTS track_time_spent_trigger ON analytics_events;
 CREATE TRIGGER track_time_spent_trigger
-  AFTER INSERT ON prompt_page_events
+  AFTER INSERT ON analytics_events
   FOR EACH ROW
   WHEN (NEW.event_type = 'view')
   EXECUTE FUNCTION track_time_spent();
@@ -95,7 +95,7 @@ CREATE TRIGGER track_time_spent_trigger
 CREATE OR REPLACE FUNCTION track_feature_usage()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO prompt_page_events (
+  INSERT INTO analytics_events (
     prompt_page_id,
     event_type,
     created_at,
@@ -121,24 +121,24 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Create trigger for feature usage tracking
-DROP TRIGGER IF EXISTS track_feature_usage_trigger ON prompt_page_events;
+DROP TRIGGER IF EXISTS track_feature_usage_trigger ON analytics_events;
 CREATE TRIGGER track_feature_usage_trigger
-  AFTER INSERT ON prompt_page_events
+  AFTER INSERT ON analytics_events
   FOR EACH ROW
   WHEN (NEW.event_type IN ('ai_generate', 'contacts_uploaded', 'save_for_later', 'unsave_for_later'))
   EXECUTE FUNCTION track_feature_usage();
 
 -- Add comments
-COMMENT ON CONSTRAINT valid_event_type ON prompt_page_events IS 'Validates that event_type is one of the predefined types';
-COMMENT ON FUNCTION track_user_login IS 'Tracks user logins in prompt_page_events table';
+COMMENT ON CONSTRAINT valid_event_type ON analytics_events IS 'Validates that event_type is one of the predefined types';
+COMMENT ON FUNCTION track_user_login IS 'Tracks user logins in analytics_events table';
 COMMENT ON FUNCTION track_time_spent IS 'Tracks time spent on pages';
 COMMENT ON FUNCTION track_feature_usage IS 'Tracks feature usage across the application';
-COMMENT ON COLUMN prompt_page_events.metadata IS 'Additional event data stored as JSON';
-COMMENT ON COLUMN prompt_page_events.session_id IS 'Unique session identifier for tracking user sessions';
-COMMENT ON COLUMN prompt_page_events.user_agent IS 'User agent string from the browser';
-COMMENT ON COLUMN prompt_page_events.ip_address IS 'IP address of the user';
+COMMENT ON COLUMN analytics_events.metadata IS 'Additional event data stored as JSON';
+COMMENT ON COLUMN analytics_events.session_id IS 'Unique session identifier for tracking user sessions';
+COMMENT ON COLUMN analytics_events.user_agent IS 'User agent string from the browser';
+COMMENT ON COLUMN analytics_events.ip_address IS 'IP address of the user';
 
 -- Add indexes for better query performance
-CREATE INDEX IF NOT EXISTS idx_prompt_page_events_metadata ON prompt_page_events USING gin (metadata);
-CREATE INDEX IF NOT EXISTS idx_prompt_page_events_platform ON prompt_page_events(platform);
+CREATE INDEX IF NOT EXISTS idx_analytics_events_metadata ON analytics_events USING gin (metadata);
+CREATE INDEX IF NOT EXISTS idx_analytics_events_platform ON analytics_events(platform);
 CREATE INDEX IF NOT EXISTS idx_prompt_page_events_session_id ON prompt_page_events(session_id); 

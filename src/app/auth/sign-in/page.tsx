@@ -66,16 +66,20 @@ export default function SignIn() {
 
         // If no account exists, create one
         if (!accountData) {
+          const firstName = data.user.user_metadata?.first_name || '';
+          const lastName = data.user.user_metadata?.last_name || '';
           const { error: createError } = await supabase
             .from('accounts')
             .insert({
               id: data.user.id,
-              plan: 'community_grower',
+              plan: '',
               trial_start: new Date().toISOString(),
               trial_end: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(),
               is_free: true,
               custom_prompt_page_count: 0,
-              contact_count: 0
+              contact_count: 0,
+              first_name: firstName,
+              last_name: lastName
             });
 
           if (createError) {
@@ -119,7 +123,7 @@ export default function SignIn() {
   return (
     <>
       <SimpleMarketingNav />
-      <div className="min-h-screen bg-gradient-to-br from-indigo-400 via-indigo-300 to-purple-300 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-blue-200 via-purple-200 to-yellow-100">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
             Sign in to your account
@@ -131,9 +135,8 @@ export default function SignIn() {
             </Link>
           </p>
         </div>
-
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="bg-gray-50 py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          <div className="bg-white py-8 px-4 shadow rounded w-full">
             {error && (
               <div className="mb-4 bg-red-50 border border-red-200 rounded-md p-4">
                 <p className="text-red-600">{error}</p>
@@ -144,7 +147,6 @@ export default function SignIn() {
                 <p className="text-green-700">{resetMessage}</p>
               </div>
             )}
-
             {!showReset ? (
               <>
                 <form className="space-y-6" onSubmit={handleSubmit}>
@@ -165,7 +167,6 @@ export default function SignIn() {
                       />
                     </div>
                   </div>
-
                   <div>
                     <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                       Password
@@ -192,7 +193,6 @@ export default function SignIn() {
                       </button>
                     </div>
                   </div>
-
                   <div>
                     <button
                       type="submit"
@@ -207,13 +207,13 @@ export default function SignIn() {
             ) : (
               <form className="space-y-6" onSubmit={handleResetPassword}>
                 <div>
-                  <label htmlFor="reset-email" className="block text-sm font-medium text-gray-700">
-                    Enter your email to reset password
+                  <label htmlFor="resetEmail" className="block text-sm font-medium text-gray-700">
+                    Email address
                   </label>
                   <div className="mt-1">
                     <input
-                      id="reset-email"
-                      name="reset-email"
+                      id="resetEmail"
+                      name="resetEmail"
                       type="email"
                       autoComplete="email"
                       required
@@ -223,17 +223,17 @@ export default function SignIn() {
                     />
                   </div>
                 </div>
-                <div className="flex justify-between items-center">
+                <div className="flex items-center justify-between">
                   <button
                     type="button"
-                    className="text-gray-500 hover:text-gray-700 text-sm underline"
+                    className="text-indigo-600 hover:text-indigo-900 text-sm underline"
                     onClick={() => setShowReset(false)}
                   >
                     Back to sign in
                   </button>
                   <button
                     type="submit"
-                    className="ml-4 py-2 px-4 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 text-sm font-medium"
+                    className="ml-4 py-2 px-4 bg-indigo-600 text-white rounded font-semibold hover:bg-indigo-700"
                   >
                     Send reset email
                   </button>

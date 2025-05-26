@@ -175,7 +175,7 @@ export default function IndustrySelector({
 
   return (
     <div className="mb-4">
-      <label className="block font-semibold text-sm text-gray-500 mb-1">
+      <label htmlFor="industry-select" className="block font-semibold text-sm text-gray-500 mb-1">
         {label} {required && <span className="text-red-500">*</span>}
       </label>
       <div className="flex gap-4 mb-2">
@@ -212,6 +212,7 @@ export default function IndustrySelector({
       </div>
       <Select
         ref={selectRef}
+        inputId="industry-select"
         isMulti
         options={selectOptions}
         value={selectedOptions}
@@ -232,7 +233,11 @@ export default function IndustrySelector({
       )}
       {value.includes('Other') && (
         <div className="mt-2">
+          <label htmlFor="industry-other" className="block text-xs font-medium text-gray-700 mb-1">
+            Please specify other industry
+          </label>
           <input
+            id="industry-other"
             type="text"
             className="border px-3 py-2 rounded w-full"
             placeholder="Please specify other industry"

@@ -100,25 +100,25 @@ export default function AdminDashboard() {
 
         // Get total AI usage
         const { count: aiUsageCount } = await supabase
-          .from('prompt_page_events')
+          .from('analytics_events')
           .select('*', { count: 'exact', head: true })
           .eq('event_type', 'ai_generate');
 
         // Get total page views
         const { count: pageViewsCount } = await supabase
-          .from('prompt_page_events')
+          .from('analytics_events')
           .select('*', { count: 'exact', head: true })
           .eq('event_type', 'view');
 
         // Get total reviews submitted
         const { count: reviewsSubmittedCount } = await supabase
-          .from('prompt_page_events')
+          .from('analytics_events')
           .select('*', { count: 'exact', head: true })
           .eq('event_type', 'review_submitted');
 
         // Get recent logins
         const { data: recentLogins } = await supabase
-          .from('prompt_page_events')
+          .from('analytics_events')
           .select('created_at, user_agent, ip_address')
           .eq('event_type', 'login')
           .order('created_at', { ascending: false })
@@ -133,7 +133,7 @@ export default function AdminDashboard() {
             email,
             prompt_pages (
               id,
-              prompt_page_events (
+              analytics_events (
                 event_type,
                 created_at
               )
@@ -151,19 +151,19 @@ export default function AdminDashboard() {
               name,
               email
             ),
-            prompt_page_events (
+            analytics_events (
               event_type,
               created_at
             )
           `)
-          .eq('prompt_page_events.event_type', 'ai_generate')
+          .eq('analytics_events.event_type', 'ai_generate')
           .order('created_at', { ascending: false })
           .limit(10);
 
         // Get daily stats
         const days = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90;
         const { data: dailyStats } = await supabase
-          .from('prompt_page_events')
+          .from('analytics_events')
           .select('created_at, event_type, platform')
           .gte('created_at', new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString());
 
@@ -194,14 +194,14 @@ export default function AdminDashboard() {
           name: account.name,
           email: account.email,
           activity: account.prompt_pages?.reduce((total, page) => 
-            total + (page.prompt_page_events?.length || 0), 0) || 0
+            total + (page.analytics_events?.length || 0), 0) || 0
         })).sort((a, b) => b.activity - a.activity) || [];
 
         const processedAccountsWithMostAI = accountsWithMostAI?.map(page => ({
           id: page.id,
           businessName: page.businesses?.name,
           businessEmail: page.businesses?.email,
-          aiUsage: page.prompt_page_events?.length || 0
+          aiUsage: page.analytics_events?.length || 0
         })).sort((a, b) => b.aiUsage - a.aiUsage) || [];
 
         setStats({

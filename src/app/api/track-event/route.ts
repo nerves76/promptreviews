@@ -4,10 +4,16 @@ import { cookies } from 'next/headers';
 import { getUserOrMock } from '@/utils/supabase';
 
 export async function POST(req: NextRequest) {
+  const nextCookies = await cookies();
+  const supabaseCookies = {
+    getAll: async () => {
+      return nextCookies.getAll().map(({ name, value }) => ({ name, value }));
+    }
+  };
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { cookies }
+    { cookies: supabaseCookies }
   );
 
   // Check if user is logged in
@@ -26,10 +32,10 @@ export async function POST(req: NextRequest) {
 
     // Get user agent and IP address
     const userAgent = req.headers.get('user-agent') || null;
-    const ip = req.headers.get('x-forwarded-for') || req.ip || null;
+    const ip = req.headers.get('x-forwarded-for') || null;
 
     // Insert event
-    const { error } = await supabase.from('prompt_page_events').insert({
+    const { error } = await supabase.from('analytics_events').insert({
       prompt_page_id: promptPageId,
       event_type: eventType,
       platform: platform || null,

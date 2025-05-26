@@ -42,7 +42,7 @@ export async function GET(request: Request) {
 
     // If no account exists, create one with default plan
     if (!accountData) {
-      const plan = session.user.user_metadata?.plan || 'community_grower';
+      const plan = session.user.user_metadata?.plan || 'grower';
       const trialStart = session.user.user_metadata?.trial_start || new Date().toISOString();
       const trialEnd = session.user.user_metadata?.trial_end || new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString();
       
@@ -53,7 +53,7 @@ export async function GET(request: Request) {
           plan,
           trial_start: trialStart,
           trial_end: trialEnd,
-          is_free: plan === 'community_grower',
+          is_free: plan === 'grower',
           custom_prompt_page_count: 0,
           contact_count: 0
         })

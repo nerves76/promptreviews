@@ -22,7 +22,7 @@ interface ReviewPlatformLink {
 
 interface BusinessProfile {
   business_name: string;
-  services_offered: string;
+  services_offered: string[];
   company_values: string;
   differentiators: string;
   years_in_business: number;
@@ -107,16 +107,41 @@ function Tooltip({ text }: { text: string }) {
   );
 }
 
-const initialFormData = {
+const initialFormData: {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  outcomes: string;
+  review_platforms: ReviewPlatformLink[];
+  services_offered: string[];
+  friendly_note: string;
+  status: 'draft';
+  role: string;
+  offer_enabled: boolean;
+  offer_title: string;
+  offer_body: string;
+  offer_url: string;
+  review_type: string;
+  video_recipient: string;
+  video_note: string;
+  video_tips: string;
+  video_questions: string[];
+  video_preset: string;
+  video_max_length: number;
+  video_quality: string;
+  falling_icon: string | null;
+  no_platform_review_template: string;
+} = {
   first_name: '',
   last_name: '',
   email: '',
   phone: '',
   outcomes: '',
   review_platforms: [] as ReviewPlatformLink[],
-  services_offered: '',
+  services_offered: [],
   friendly_note: '',
-  status: 'draft' as const,
+  status: 'draft',
   role: '',
   offer_enabled: false,
   offer_title: 'Special Offer',
@@ -191,16 +216,6 @@ function VideoTestimonialSetup({ formData, setFormData }: { formData: typeof ini
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">Falling Star Animation</label>
-        <button
-          type="button"
-          onClick={() => setFormData((prev) => ({
-            ...prev,
-            falling_icon: !prev.falling_icon ? 'star' : null,
-          }))}
-          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${formData.falling_icon ? 'bg-indigo-500' : 'bg-gray-300'}`}
-        >
-          <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${formData.falling_icon ? 'translate-x-5' : 'translate-x-1'}`} />
-        </button>
         <span className="ml-2 text-xs text-gray-500">Show animation on video upload</span>
       </div>
       <div>
@@ -318,7 +333,12 @@ export default function CreatePromptPage() {
         if (businessData) {
           setBusinessProfile({
             ...businessData,
-            business_name: businessData.name || businessData.business_name
+            business_name: businessData.name || businessData.business_name,
+            services_offered: Array.isArray(businessData.services_offered)
+              ? businessData.services_offered
+              : typeof businessData.services_offered === 'string'
+                ? [businessData.services_offered]
+                : [],
           });
           // Pre-fill offer fields from business default if enabled
           if (businessData.default_offer_enabled) {
@@ -405,7 +425,7 @@ export default function CreatePromptPage() {
         {
           first_name: formData.first_name,
           last_name: formData.last_name,
-          project_type: formData.services_offered,
+          project_type: formData.services_offered.join(', '),
           outcomes: formData.outcomes,
         },
         formData.review_platforms[index].platform,
@@ -445,7 +465,7 @@ export default function CreatePromptPage() {
         {
           first_name: formData.first_name,
           last_name: formData.last_name,
-          project_type: formData.services_offered,
+          project_type: formData.services_offered.join(', '),
           outcomes: formData.outcomes,
         },
         'Photo Testimonial',
@@ -510,7 +530,7 @@ export default function CreatePromptPage() {
       if (typeof insertData.services_offered === 'string') {
         const arr = insertData.services_offered
           .split(/\r?\n/)
-          .map(s => s.trim())
+          .map((s: string) => s.trim())
           .filter(Boolean);
         insertData.services_offered = arr.length > 0 ? arr : null;
       }
@@ -939,11 +959,11 @@ export default function CreatePromptPage() {
               offer_title: 'Special Offer',
               offer_body: 'Use this code "1234" to get a discount on your next purchase.'
             }))}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${formData.offer_enabled ? 'bg-indigo-500' : 'bg-gray-300'}`}
-            aria-pressed={formData.offer_enabled}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${!!formData.offer_enabled ? 'bg-indigo-500' : 'bg-gray-300'}`}
+            aria-pressed={!!formData.offer_enabled}
           >
             <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${formData.offer_enabled ? 'translate-x-5' : 'translate-x-1'}`}
+              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${!!formData.offer_enabled ? 'translate-x-5' : 'translate-x-1'}`}
             />
           </button>
         </div>
@@ -991,11 +1011,11 @@ export default function CreatePromptPage() {
               ...prev,
               falling_icon: !prev.falling_icon ? 'star' : null,
             }))}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${formData.falling_icon ? 'bg-indigo-500' : 'bg-gray-300'}`}
-            aria-pressed={formData.falling_icon}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${!!formData.falling_icon ? 'bg-indigo-500' : 'bg-gray-300'}`}
+            aria-pressed={!!formData.falling_icon}
           >
             <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${formData.falling_icon ? 'translate-x-5' : 'translate-x-1'}`}
+              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${!!formData.falling_icon ? 'translate-x-5' : 'translate-x-1'}`}
             />
           </button>
         </div>

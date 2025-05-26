@@ -19,6 +19,13 @@ interface AnalyticsData {
   clicksByDate: Record<string, number>;
   aiGenerations: number;
   copySubmits: number;
+  views: number;
+  emojiSentiments: Record<string, number>;
+  feedbacks: { sentiment: string; feedback: string; date: string }[];
+  websiteClicks: number;
+  socialClicks: Record<string, number>;
+  aiEvents: { date: string; promptPageId: string; platform: string }[];
+  copySubmitEvents: { date: string; promptPageId: string; platform: string }[];
 }
 
 export default function AnalyticsPage() {
@@ -74,7 +81,7 @@ export default function AnalyticsPage() {
       try {
         setIsLoading(true);
         const { data: events, error: eventsError } = await supabase
-          .from('prompt_page_events')
+          .from('analytics_events')
           .select('*')
           .eq('prompt_page_id', selectedPageId);
 
@@ -88,6 +95,13 @@ export default function AnalyticsPage() {
           clicksByDate: {},
           aiGenerations: 0,
           copySubmits: 0,
+          views: 0,
+          emojiSentiments: {},
+          feedbacks: [],
+          websiteClicks: 0,
+          socialClicks: {},
+          aiEvents: [],
+          copySubmitEvents: [],
         };
 
         events.forEach((event: any) => {
@@ -102,11 +116,51 @@ export default function AnalyticsPage() {
           analyticsData.clicksByDate[date] = 
             (analyticsData.clicksByDate[date] || 0) + 1;
 
-          // Count AI generations and copy submits
-          if (event.event_type === 'ai_generate') {
-            analyticsData.aiGenerations++;
-          } else if (event.event_type === 'copy_submit') {
-            analyticsData.copySubmits++;
+          // Count event types
+          switch (event.event_type) {
+            case 'view':
+              analyticsData.views++;
+              break;
+            case 'generate_with_ai':
+              analyticsData.aiGenerations++;
+              analyticsData.aiEvents.push({
+                date: event.created_at,
+                promptPageId: event.prompt_page_id,
+                platform: event.platform || '',
+              });
+              break;
+            case 'copy_submit':
+              analyticsData.copySubmits++;
+              analyticsData.copySubmitEvents.push({
+                date: event.created_at,
+                promptPageId: event.prompt_page_id,
+                platform: event.platform || '',
+              });
+              break;
+            case 'emoji_sentiment':
+              if (event.emoji_sentiment) {
+                analyticsData.emojiSentiments[event.emoji_sentiment] = 
+                  (analyticsData.emojiSentiments[event.emoji_sentiment] || 0) + 1;
+              }
+              break;
+            case 'constructive_feedback':
+              analyticsData.feedbacks.push({
+                sentiment: event.emoji_sentiment || event.sentiment || '',
+                feedback: event.feedback || (event.metadata?.feedback ?? ''),
+                date: event.created_at,
+              });
+              break;
+            case 'website_click':
+              analyticsData.websiteClicks++;
+              break;
+            case 'social_click':
+              if (event.platform) {
+                analyticsData.socialClicks[event.platform] = 
+                  (analyticsData.socialClicks[event.platform] || 0) + 1;
+              }
+              break;
+            default:
+              break;
           }
         });
 
@@ -249,6 +303,63 @@ export default function AnalyticsPage() {
                 </table>
               </div>
             </div>
+          </div>
+        )}
+
+        {analytics && analytics.aiEvents.length > 0 && (
+          <div className="mb-8">
+            <h3 className="text-lg font-bold mb-2">Generate with AI Events</h3>
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Prompt Page</th>
+                  <th>Page Type</th>
+                  <th>Review Platform</th>
+                </tr>
+              </thead>
+              <tbody>
+                {analytics.aiEvents.map(ev => {
+                  const page = promptPages.find(p => p.id === ev.promptPageId);
+                  return (
+                    <tr key={ev.date + ev.promptPageId + ev.platform}>
+                      <td>{new Date(ev.date).toLocaleString()}</td>
+                      <td>{page?.slug || page?.first_name || ev.promptPageId}</td>
+                      <td>{page?.is_universal ? 'Universal' : 'Custom'}</td>
+                      <td>{ev.platform}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {analytics && analytics.copySubmitEvents.length > 0 && (
+          <div className="mb-8">
+            <h3 className="text-lg font-bold mb-2">Copy & Submit Events</h3>
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Prompt Page</th>
+                  <th>Page Type</th>
+                  <th>Review Platform</th>
+                </tr>
+              </thead>
+              <tbody>
+                {analytics.copySubmitEvents.map(ev => {
+                  const page = promptPages.find(p => p.id === ev.promptPageId);
+                  return (
+                    <tr key={ev.date + ev.promptPageId + ev.platform}>
+                      <td>{new Date(ev.date).toLocaleString()}</td>
+                      <td>{page?.slug || page?.first_name || ev.promptPageId}</td>
+                      <td>{page?.is_universal ? 'Universal' : 'Custom'}</td>
+                      <td>{ev.platform}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         )}
       </div>

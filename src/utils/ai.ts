@@ -1,6 +1,6 @@
 interface BusinessProfile {
   business_name: string;
-  services_offered: string;
+  services_offered: string[];
   company_values: string;
   differentiators: string;
   years_in_business: number;

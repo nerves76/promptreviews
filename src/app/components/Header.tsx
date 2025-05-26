@@ -113,7 +113,7 @@ export default function Header() {
               </Link>
             </div>
             {/* Desktop Nav */}
-            <div className="hidden sm:ml-10 sm:flex sm:space-x-8">
+            <div className="hidden md:ml-10 md:flex md:space-x-8">
               <Link
                 href="/dashboard"
                 className={`${
@@ -166,7 +166,7 @@ export default function Header() {
               </Link>
             </div>
             {/* Notification Bell (moved here) */}
-            <div className="hidden sm:flex items-center ml-10 mr-4">
+            <div className="hidden md:flex items-center ml-10 mr-4">
               <div className="relative top-1">
                 <button
                   className="relative focus:outline-none"
@@ -205,7 +205,7 @@ export default function Header() {
             </div>
           </div>
           {/* Desktop Account/Sign In */}
-          <div className="hidden sm:ml-6 sm:flex sm:items-center gap-4">
+          <div className="hidden md:ml-6 md:flex md:items-center gap-4">
             {user ? (
               <Menu as="div" className="relative inline-block text-left">
                 <Menu.Button className="flex items-center focus:outline-none">
@@ -225,7 +225,12 @@ export default function Header() {
                     </Menu.Item>
                     <Menu.Item>
                       {({ active }) => (
-                        <Link href="/dashboard/upload-contacts" className={`${active ? 'bg-[#1A237E]/10 text-[#1A237E]' : 'text-gray-700'} block px-4 py-2 text-sm`}>Contacts</Link>
+                        <Link href="/dashboard/plan" className={`${active ? 'bg-[#1A237E]/10 text-[#1A237E]' : 'text-gray-700'} block px-4 py-2 text-sm`}>Plan</Link>
+                      )}
+                    </Menu.Item>
+                    <Menu.Item>
+                      {({ active }) => (
+                        <Link href="/dashboard/contacts" className={`${active ? 'bg-[#1A237E]/10 text-[#1A237E]' : 'text-gray-700'} block px-4 py-2 text-sm`}>Contacts</Link>
                       )}
                     </Menu.Item>
                     <Menu.Item>
@@ -260,7 +265,7 @@ export default function Header() {
             )}
           </div>
           {/* Hamburger Icon for Mobile */}
-          <div className="flex sm:hidden">
+          <div className="flex md:hidden">
             <button
               onClick={() => setMenuOpen(!menuOpen)}
               className="inline-flex items-center justify-center p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
@@ -272,7 +277,7 @@ export default function Header() {
         </div>
         {/* Mobile Menu Dropdown */}
         {menuOpen && (
-          <div className="sm:hidden absolute left-0 right-0 bg-white shadow-lg z-50 mt-2 rounded-b-xl">
+          <div className="md:hidden absolute left-0 right-0 bg-white shadow-lg z-50 mt-2 rounded-b-xl">
             <div className="px-2 pt-2 pb-3 space-y-1 flex flex-col">
               <Link
                 href="/dashboard"
@@ -341,6 +346,39 @@ export default function Header() {
                     onClick={() => setMenuOpen(false)}
                   >
                     Account
+                  </Link>
+                  <Link
+                    href="/dashboard/plan"
+                    className={`${
+                      isActive('/dashboard/plan')
+                        ? 'bg-[#1A237E]/10 text-[#1A237E]'
+                        : 'text-[#1A237E] hover:bg-[#1A237E]/10'
+                    } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Plan
+                  </Link>
+                  <Link
+                    href="/dashboard/contacts"
+                    className={`${
+                      isActive('/dashboard/contacts')
+                        ? 'bg-[#1A237E]/10 text-[#1A237E]'
+                        : 'text-[#1A237E] hover:bg-[#1A237E]/10'
+                    } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Contacts
+                  </Link>
+                  <Link
+                    href="/dashboard/billing"
+                    className={`${
+                      isActive('/dashboard/billing')
+                        ? 'bg-[#1A237E]/10 text-[#1A237E]'
+                        : 'text-[#1A237E] hover:bg-[#1A237E]/10'
+                    } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Billing
                   </Link>
                   {user.email === 'chris@promptreviews.com' && (
                     <Link

@@ -5,38 +5,35 @@ import { parse } from 'csv-parse/sync';
 import slugify from 'slugify';
 import { checkAccountLimits } from '@/utils/accountLimits';
 import { getUserOrMock, getSessionOrMock } from '@/utils/supabase';
+import { createClient } from '@supabase/supabase-js';
 
 export async function POST(request: Request) {
   try {
     console.log('Starting upload-contacts API route');
-    const cookieStore = cookies();
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
-    
-    // Check authentication
-    console.log('Checking authentication...');
-    const { data: { session }, error: sessionError } = await getSessionOrMock(supabase);
     let user;
-    
-    // If no session in cookies, try to get from Authorization header
+    let supabase;
+    const cookieStore = cookies();
+    supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+    const { data: { session }, error: sessionError } = await getSessionOrMock(supabase);
+
     if (!session) {
-      console.log('No session found in cookies, checking Authorization header...');
+      // Try to get from Authorization header
       const authHeader = request.headers.get('Authorization');
       if (authHeader?.startsWith('Bearer ')) {
         const token = authHeader.split(' ')[1];
-        const { data: { user: tokenUser }, error: tokenError } = await getUserOrMock(supabase);
+        supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+          global: { headers: { Authorization: `Bearer ${token}` } }
+        });
+        const { data: { user: tokenUser }, error: tokenError } = await supabase.auth.getUser(token);
         if (tokenError || !tokenUser) {
-          console.error('Token auth error:', tokenError);
           return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
         user = tokenUser;
-        console.log('User authenticated via token');
       } else {
-        console.error('No valid auth found');
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
     } else {
       user = session.user;
-      console.log('User authenticated via session');
     }
 
     if (!user) {
@@ -77,32 +74,31 @@ export async function POST(request: Request) {
     const records = parse(lines.join('\n'), {
       columns: (headers) => {
         console.log('Raw headers before mapping:', headers);
-        const mappedHeaders = headers.map(header => {
-          const cleanHeader = header.trim().toLowerCase();
-          console.log(`Processing header: "${header}" -> "${cleanHeader}"`);
-          // Map any variations of column names to our expected format
-          const headerMap: { [key: string]: string } = {
-            'first name': 'first_name',
-            'firstname': 'first_name',
-            'last name': 'last_name',
-            'lastname': 'last_name',
-            'email address': 'email',
-            'phone number': 'phone',
-            'phone #': 'phone',
-            'offer url': 'offer_url',
-            'offer title': 'offer_title',
-            'offer body': 'offer_body',
-            'review type': 'review_type',
-            'friendly note': 'friendly_note',
-            'services offered': 'services_offered',
-            // Add more mappings as needed
-          };
-          const mappedHeader = headerMap[cleanHeader] || cleanHeader;
-          console.log(`Mapped header: "${cleanHeader}" -> "${mappedHeader}"`);
-          return mappedHeader;
+        // Normalize header: lowercase, remove spaces/underscores
+        const normalize = (h) => h.toLowerCase().replace(/\s|_/g, '');
+        const expected = {
+          first_name: ['firstname', 'first name', 'first_name'],
+          last_name: ['lastname', 'last name', 'last_name'],
+          email: ['email', 'emailaddress', 'email_address'],
+          phone: ['phone', 'phonenumber', 'phone_number', 'phone#'],
+          offer_url: ['offerurl', 'offer url'],
+          offer_title: ['offertitle', 'offer title'],
+          offer_body: ['offerbody', 'offer body'],
+          role: ['role'],
+          review_type: ['reviewtype', 'review type'],
+          friendly_note: ['friendlynote', 'friendly note'],
+          services_offered: ['servicesoffered', 'services offered'],
+          outcomes: ['outcomes']
+        };
+        // Map normalized header to expected field
+        return headers.map(header => {
+          const norm = normalize(header);
+          for (const [key, aliases] of Object.entries(expected)) {
+            if (aliases.includes(norm)) return key;
+          }
+          // Ignore unknown columns by returning null
+          return null;
         });
-        console.log('Final mapped headers:', mappedHeaders);
-        return mappedHeaders;
       },
       skip_empty_lines: true,
       trim: true,
@@ -111,100 +107,51 @@ export async function POST(request: Request) {
       quote: '"',
       escape: '"',
       delimiter: ',',
-      skip_records_with_empty_values: true,
-      from_line: 2 // Skip the header row
+      skip_records_with_empty_values: true
     });
 
-    console.log('Parsed records:', records);
-    console.log('Number of parsed records:', records.length);
-
+    console.log('Raw parsed records:', records);
     // Filter out any records that are completely empty
     const validRecords = records.filter((record: any, index: number) => {
-      const values = Object.values(record);
-      const hasData = values.some(value => value && value.toString().trim().length > 0);
-      console.log(`Record ${index + 1} validation:`, {
-        record,
-        hasData,
-        values
+      // Only keep fields that are in our expected list
+      const filtered = Object.fromEntries(Object.entries(record).filter(([k, v]) => k && v !== undefined && v !== null));
+      // Remove keys for columns that mapped to null
+      for (const key in filtered) {
+        if (key === 'null') delete filtered[key];
+      }
+      // Trim all values
+      Object.keys(filtered).forEach(k => {
+        if (typeof filtered[k] === 'string') filtered[k] = filtered[k].trim();
       });
-      return hasData;
+      // Check if all values are empty
+      const hasData = Object.values(filtered).some(value => value && value.toString().trim().length > 0);
+      if (!hasData) return false;
+      records[index] = filtered; // update record in place
+      return true;
     });
 
-    console.log('Valid records after filtering:', validRecords);
+    console.log('Valid records after filtering and trimming:', validRecords);
     console.log('Number of valid records:', validRecords.length);
 
     // Validate required fields
     const invalidRecords = validRecords.filter((record: any, index: number) => {
-      // Log the raw record data
-      console.log(`Validating record ${index + 1}:`, {
-        rawRecord: record,
-        keys: Object.keys(record),
-        values: Object.values(record),
-        first_name: record.first_name,
-        email: record.email,
-        phone: record.phone
-      });
-
-      // Check each required field individually
       const hasFirstName = record.first_name && record.first_name.trim();
       const hasEmail = record.email && record.email.trim();
       const hasPhone = record.phone && record.phone.trim();
-
-      // Log the validation results
-      console.log(`Record ${index + 1} validation:`, {
-        hasFirstName,
-        hasEmail,
-        hasPhone,
-        firstNameValue: record.first_name,
-        emailValue: record.email,
-        phoneValue: record.phone
-      });
-
       const isValid = hasFirstName && (hasEmail || hasPhone);
-      
       if (!isValid) {
-        console.log(`Record ${index + 1} is invalid:`, {
-          hasFirstName,
-          hasEmail,
-          hasPhone,
-          record
-        });
+        console.log(`Record ${index + 1} is invalid:`, record);
       }
-      
       return !isValid;
     });
 
-    if (invalidRecords.length > 0) {
-      console.error('Invalid records found:', invalidRecords);
-      const detailedErrors = invalidRecords.map((record: any, index: number) => {
-        const rowNum = index + 2; // +2 because of 0-based index and header row
-        const missingFields = [];
-        if (!record.first_name?.trim()) missingFields.push('first_name');
-        if (!record.email?.trim() && !record.phone?.trim()) missingFields.push('email or phone');
-        
-        return {
-          row: rowNum,
-          record,
-          missingFields: missingFields.join(', '),
-          rawValues: {
-            first_name: record.first_name,
-            email: record.email,
-            phone: record.phone
-          }
-        };
-      });
-
-      return NextResponse.json({ 
-        error: 'Some records are missing required fields. First name is required, and either email or phone must be provided.',
-        invalidRecords: detailedErrors
-      }, { status: 400 });
-    }
+    console.log('Invalid records:', invalidRecords);
 
     // Prepare contacts for insertion
     console.log('Preparing contacts for insertion...');
     const contacts = validRecords.map((record: any) => ({
       account_id: user.id,
-      first_name: record.first_name.trim(),
+      first_name: record.first_name?.trim() || null,
       last_name: record.last_name?.trim() || null,
       email: record.email?.trim() || null,
       phone: record.phone?.trim() || null,
@@ -219,12 +166,17 @@ export async function POST(request: Request) {
       status: 'in_queue'
     }));
 
-    console.log('Prepared contacts:', contacts);
+    console.log('Contacts to insert:', contacts);
     console.log('User ID:', user.id);
+    if (contacts.length === 0) {
+      console.log('No contacts to insert. Exiting early.');
+    }
 
     // Insert contacts into the database
     console.log('Inserting contacts into database...');
-    console.log('First contact data:', contacts[0]); // Log the first contact's data
+    if (contacts.length > 0) {
+      console.log('First contact data:', contacts[0]); // Log the first contact's data
+    }
     console.log('User ID being used:', user.id); // Log the user ID
     console.log('Session:', session); // Log the session
 
@@ -233,6 +185,7 @@ export async function POST(request: Request) {
       .insert(contacts)
       .select();
 
+    console.log('Insert result:', insertedContacts);
     if (insertError) {
       console.error('Error inserting contacts:', insertError);
       console.error('Error details:', {

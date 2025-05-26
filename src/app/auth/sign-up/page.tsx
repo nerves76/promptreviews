@@ -77,8 +77,8 @@ export default function SignUpPage() {
     return (
       <>
         <SimpleMarketingNav />
-        <div className="min-h-screen flex flex-col justify-center items-center">
-          <div className="p-8 rounded shadow text-center bg-white">
+        <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-blue-200 via-purple-200 to-yellow-100">
+          <div className="p-8 rounded shadow text-center bg-white max-w-md w-full">
             <h2 className="text-2xl font-bold mb-4 text-[#1A237E]">Check your email</h2>
             <p className="mb-4">Please check your email and click the confirmation link to activate your account.</p>
             <Link href="/auth/sign-in">
@@ -95,7 +95,7 @@ export default function SignUpPage() {
   return (
     <>
       <SimpleMarketingNav />
-      <div className="min-h-screen flex flex-col justify-center items-center">
+      <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-blue-200 via-purple-200 to-yellow-100">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <h1 className="mt-6 text-center text-3xl font-extrabold text-white">Create your account</h1>
           <p className="mt-2 text-center text-sm text-white">

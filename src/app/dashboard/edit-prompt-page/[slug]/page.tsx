@@ -3,7 +3,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { generateAIReview } from '@/utils/ai';
-import { FaGoogle, FaFacebook, FaYelp, FaTripadvisor, FaRegStar, FaGift, FaStar, FaHeart, FaThumbsUp, FaStore } from 'react-icons/fa';
+import { FaGoogle, FaFacebook, FaYelp, FaTripadvisor, FaRegStar, FaGift, FaStar, FaHeart, FaThumbsUp, FaStore, FaSmile } from 'react-icons/fa';
 import { IconType } from 'react-icons';
 import Link from 'next/link';
 import { getUserOrMock, getSessionOrMock } from '@/utils/supabase';
@@ -20,7 +20,7 @@ interface ReviewPlatformLink {
 
 interface BusinessProfile {
   business_name: string;
-  services_offered: string;
+  services_offered: string[];
   company_values: string;
   differentiators: string;
   years_in_business: number;
@@ -116,6 +116,9 @@ export default function EditPromptPage() {
   const [services, setServices] = useState<string[]>([]);
   const [showShareModal, setShowShareModal] = useState(false);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [emojiSentimentEnabled, setEmojiSentimentEnabled] = useState(false);
+  const [emojiFeedbackMessage, setEmojiFeedbackMessage] = useState('We value your feedback! Let us know how we can do better.');
+  const [emojiSentimentQuestion, setEmojiSentimentQuestion] = useState('How was your experience?');
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -188,6 +191,9 @@ export default function EditPromptPage() {
           setServices(arr.filter(Boolean));
           setFormData(prev => ({ ...prev, services_offered: arr.filter(Boolean) }));
         }
+        setEmojiSentimentEnabled(!!promptData.emoji_sentiment_enabled);
+        setEmojiFeedbackMessage(promptData.emoji_feedback_message || 'We value your feedback! Let us know how we can do better.');
+        setEmojiSentimentQuestion(promptData.emoji_sentiment_question || 'How was your experience?');
       
         // Fetch business profile
         const { data: businessData } = await supabase
@@ -199,7 +205,12 @@ export default function EditPromptPage() {
         if (businessData) {
           setBusinessProfile({
             ...businessData,
-            business_name: businessData.name
+            business_name: businessData.name,
+            services_offered: Array.isArray(businessData.services_offered)
+              ? businessData.services_offered
+              : typeof businessData.services_offered === 'string'
+                ? [businessData.services_offered]
+                : [],
           });
           setFormData(prev => ({
             ...prev,
@@ -244,7 +255,7 @@ export default function EditPromptPage() {
         if (fetchError || !promptPage) throw fetchError || new Error('Prompt page not found');
         
         const { data: events, error } = await supabase
-          .from('prompt_page_events')
+          .from('analytics_events')
           .select('*')
           .eq('prompt_page_id', promptPage.id);
           
@@ -424,6 +435,10 @@ export default function EditPromptPage() {
         }
       }
 
+      updateData.emoji_sentiment_enabled = emojiSentimentEnabled;
+      updateData.emoji_feedback_message = emojiFeedbackMessage;
+      updateData.emoji_sentiment_question = emojiSentimentQuestion;
+
       // Debug log
       console.log('Saving prompt page with data:', updateData, 'PromptPage ID:', promptPage.id);
 
@@ -444,6 +459,19 @@ export default function EditPromptPage() {
       
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update prompt page');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSaveAndContinue = async (e: React.MouseEvent | React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+    setSuccessMessage(null);
+    try {
+      await handleSubmit(e as any, 'save');
+      setStep(2);
     } finally {
       setIsLoading(false);
     }
@@ -532,7 +560,7 @@ export default function EditPromptPage() {
           />
         </div>
       </div>
-      <h3 className="text-lg font-semibold text-gray-800 mt-16 mb-2">Customer/Client Details</h3>
+      <h3 className="text-lg font-semibold text-slate-blue mt-16 mb-2">Customer/Client Details</h3>
 
       <div className="flex gap-4">
         <div className="flex-1">
@@ -661,13 +689,87 @@ export default function EditPromptPage() {
         <p className="text-xs text-gray-500 mt-1 mb-2">This note will appear at the top of the review page for your customer. Make it personal!</p>
       </div>
 
-      <div className="flex justify-end">
+      {(formData.review_type === 'prompt' || isUniversal) && (
+        <div className="flex items-center justify-between mb-2 mt-8 px-4 py-2">
+          <div className="flex items-center gap-3">
+            <FaSmile className="w-7 h-7 text-[#1A237E]" />
+            <span className="text-2xl font-bold text-[#1A237E]">Emoji Sentiment Feedback</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setEmojiSentimentEnabled(v => !v)}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${emojiSentimentEnabled ? 'bg-slate-blue' : 'bg-gray-200'}`}
+            aria-pressed={!!emojiSentimentEnabled}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${emojiSentimentEnabled ? 'translate-x-5' : 'translate-x-1'}`}
+            />
+          </button>
+        </div>
+      )}
+
+      <div className="rounded-lg p-6 bg-blue-50 border border-blue-200 flex flex-col gap-4 shadow relative">
+        <div className="text-xs text-gray-500 mt-1 mb-2">
+          Enabling this feature triggers a sentiment popup: users who choose "Delighted" or "Satisfied" go to the public-review prompt, while "Neutral" or "Unsatisfied" opens a feedback form that is saved to your account but isn't shared publicly.
+        </div>
+        <div className="text-xs text-blue-700 bg-blue-100 border border-blue-200 rounded px-3 py-2 mb-2">
+          Note: If you have Falling stars feature enabled, it will only run when a user selects "Delighted" or "Satisfied."
+        </div>
+        <div className="mb-2">
+          <label className="block text-xs font-medium text-gray-700 mb-1">Popup question (shown above the emojis):</label>
+          <input
+            type="text"
+            className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-2 px-3"
+            value={emojiSentimentQuestion}
+            onChange={e => setEmojiSentimentQuestion(e.target.value)}
+            placeholder="How was your experience?"
+            maxLength={80}
+          />
+        </div>
+        <div className="flex justify-center gap-3 my-3 select-none">
+          <div className="flex flex-col items-center">
+            <img src="/emojis/delighted.svg" width="40" height="40" alt="Delighted" title="Delighted" />
+            <span className="text-xs mt-1 text-gray-700">Delighted</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <img src="/emojis/satisfied.svg" width="40" height="40" alt="Satisfied" title="Satisfied" />
+            <span className="text-xs mt-1 text-gray-700">Satisfied</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <img src="/emojis/neutral.svg" width="40" height="40" alt="Neutral" title="Neutral" />
+            <span className="text-xs mt-1 text-gray-700">Neutral</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <img src="/emojis/unsatisfied.svg" width="40" height="40" alt="Unsatisfied" title="Unsatisfied" />
+            <span className="text-xs mt-1 text-gray-700">Unsatisfied</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <img src="/emojis/angry.svg" width="40" height="40" alt="Angry" title="Angry" />
+            <span className="text-xs mt-1 text-gray-700">Angry</span>
+          </div>
+        </div>
+        {emojiSentimentEnabled && (
+          <div className="mt-2">
+            <label className="block text-xs font-medium text-gray-700 mb-1">Feedback message (shown to customers who select an indifferent or negative emoji):</label>
+            <textarea
+              className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-2 px-3"
+              value={emojiFeedbackMessage}
+              onChange={e => setEmojiFeedbackMessage(e.target.value)}
+              rows={2}
+            />
+          </div>
+        )}
+      </div>
+
+      <div className="flex justify-end items-center mt-8 pt-6 border-t">
         <button
           type="button"
-          onClick={() => setStep(2)}
-          className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+          onClick={handleSaveAndContinue}
+          style={{ border: '2px solid red', zIndex: 9999 }}
+          className="inline-flex justify-center rounded-md border border-transparent bg-indigo-800 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+          disabled={isLoading}
         >
-          Next
+          Save & Continue
         </button>
       </div>
     </div>
@@ -677,9 +779,9 @@ export default function EditPromptPage() {
     <div className="space-y-6">
       {/* Review Platforms Section - moved to top with header */}
       <div>
-        <div className="flex items-center mb-4">
-          <FaStar className="w-6 h-6 mr-2 text-indigo-500" />
-          <h2 className="text-xl font-semibold text-gray-800">Review Platforms</h2>
+        <div className="flex items-center mb-4 px-4 py-2">
+          <FaStar className="w-6 h-6 mr-2 text-slate-blue" />
+          <h2 className="text-xl font-semibold text-slate-blue">Review Platforms</h2>
         </div>
         <p className="text-sm text-gray-500 mt-1 mb-2">Your business profile platforms have been pre-loaded. You can add more if needed.</p>
         {/* Universal Prompt Page note */}
@@ -836,17 +938,86 @@ export default function EditPromptPage() {
           </button>
         </div>
       </div>
+      {/* Emoji Sentiment Feedback Section */}
+      <div className="flex items-center justify-between mb-2 mt-8 px-4 py-2">
+        <div className="flex items-center gap-3">
+          <FaSmile className="w-7 h-7 text-[#1A237E]" />
+          <span className="text-2xl font-bold text-[#1A237E]">Emoji Sentiment Feedback</span>
+        </div>
+        <button
+          type="button"
+          onClick={() => setEmojiSentimentEnabled(v => !v)}
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${emojiSentimentEnabled ? 'bg-slate-blue' : 'bg-gray-200'}`}
+          aria-pressed={!!emojiSentimentEnabled}
+        >
+          <span
+            className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${emojiSentimentEnabled ? 'translate-x-5' : 'translate-x-1'}`}
+          />
+        </button>
+      </div>
+      <div className="rounded-lg p-6 bg-blue-50 border border-blue-200 flex flex-col gap-4 shadow relative">
+        <div className="text-xs text-gray-500 mt-1 mb-2">
+          Enabling this feature triggers a sentiment popup: users who choose "Delighted" or "Satisfied" go to the public-review prompt, while "Neutral" or "Unsatisfied" opens a feedback form that is saved to your account but isn't shared publicly.
+        </div>
+        <div className="text-xs text-blue-700 bg-blue-100 border border-blue-200 rounded px-3 py-2 mb-2">
+          Note: If you have Falling stars feature enabled, it will only run when a user selects "Delighted" or "Satisfied."
+        </div>
+        <div className="mb-2">
+          <label className="block text-xs font-medium text-gray-700 mb-1">Popup question (shown above the emojis):</label>
+          <input
+            type="text"
+            className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-2 px-3"
+            value={emojiSentimentQuestion}
+            onChange={e => setEmojiSentimentQuestion(e.target.value)}
+            placeholder="How was your experience?"
+            maxLength={80}
+          />
+        </div>
+        <div className="flex justify-center gap-3 my-3 select-none">
+          <div className="flex flex-col items-center">
+            <img src="/emojis/delighted.svg" width="40" height="40" alt="Delighted" title="Delighted" />
+            <span className="text-xs mt-1 text-gray-700">Delighted</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <img src="/emojis/satisfied.svg" width="40" height="40" alt="Satisfied" title="Satisfied" />
+            <span className="text-xs mt-1 text-gray-700">Satisfied</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <img src="/emojis/neutral.svg" width="40" height="40" alt="Neutral" title="Neutral" />
+            <span className="text-xs mt-1 text-gray-700">Neutral</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <img src="/emojis/unsatisfied.svg" width="40" height="40" alt="Unsatisfied" title="Unsatisfied" />
+            <span className="text-xs mt-1 text-gray-700">Unsatisfied</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <img src="/emojis/angry.svg" width="40" height="40" alt="Angry" title="Angry" />
+            <span className="text-xs mt-1 text-gray-700">Angry</span>
+          </div>
+        </div>
+        {emojiSentimentEnabled && (
+          <div className="mt-2">
+            <label className="block text-xs font-medium text-gray-700 mb-1">Feedback message (shown to customers who select an indifferent or negative emoji):</label>
+            <textarea
+              className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-2 px-3"
+              value={emojiFeedbackMessage}
+              onChange={e => setEmojiFeedbackMessage(e.target.value)}
+              rows={2}
+            />
+          </div>
+        )}
+      </div>
       {/* Falling Animation Section */}
       <div className="mb-8">
-        <div className="flex items-center justify-between mb-2">
-          <label className="block text-lg font-semibold text-indigo-800 flex items-center">
-            <FaStar className="w-6 h-6 mr-2 text-indigo-500" />
+        <div className="flex items-center justify-between mb-2 px-4 py-2">
+          <label className="block text-lg font-semibold text-slate-blue flex items-center">
+            <FaStar className="w-6 h-6 mr-2 text-slate-blue" />
             Falling star animation
           </label>
           <button
             type="button"
             onClick={handleToggleFalling}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${fallingEnabled ? 'bg-indigo-500' : 'bg-gray-300'}`}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${fallingEnabled ? 'bg-slate-blue' : 'bg-gray-200'}`}
             aria-pressed={!!fallingEnabled}
             disabled={iconUpdating}
           >
@@ -880,9 +1051,9 @@ export default function EditPromptPage() {
       </div>
       {/* Special Offer Section */}
       <div className="mb-8">
-        <div className="flex items-center justify-between mb-2">
-          <label className="block text-lg font-semibold text-indigo-800 flex items-center">
-            <FaGift className="w-6 h-6 mr-2 text-indigo-500" />
+        <div className="flex items-center justify-between mb-2 px-4 py-2">
+          <label className="block text-lg font-semibold text-slate-blue flex items-center">
+            <FaGift className="w-6 h-6 mr-2 text-slate-blue" />
             Special offer
             <Tooltip text="Offer a discount or special offer and a link for users to redeem or learn about the steps they need to take." />
           </label>
@@ -936,14 +1107,6 @@ export default function EditPromptPage() {
           Back
         </button>
         <div className="flex gap-4">
-          <button
-            type="submit"
-            onClick={(e) => handleSubmit(e, 'save')}
-            className="inline-flex justify-center rounded-md border border-transparent bg-indigo-800 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-            disabled={isLoading}
-          >
-            Save
-          </button>
           <a
             href={`/r/${params.slug}`}
             target="_blank"
@@ -952,6 +1115,15 @@ export default function EditPromptPage() {
           >
             View
           </a>
+          <button
+            type="submit"
+            onClick={e => handleSubmit(e, 'save')}
+            style={{ background: '#3730A3', color: '#fff', border: '2px solid #3730A3', zIndex: 9999 }}
+            className="inline-flex justify-center rounded-md border border-transparent py-2 px-4 text-sm font-medium shadow-sm hover:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            disabled={isLoading}
+          >
+            Save
+          </button>
         </div>
       </div>
 
@@ -978,43 +1150,73 @@ export default function EditPromptPage() {
     return <div className="min-h-screen flex items-center justify-center"><div>Loading...</div></div>;
   }
 
+  console.log('step:', step, 'isUniversal:', isUniversal);
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#452F9F]/5 via-white to-[#452F9F]/5">
-      <div className="w-full mx-auto mt-6 relative">
-        {/* Floating Icon */}
-        <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center w-16 h-16">
-          {isUniversal ? (
-            <FaStore className="w-9 h-9 text-[#1A237E]" />
-          ) : (
-            <FaStar className="w-9 h-9 text-[#1A237E]" />
-          )}
-        </div>
-        <div className="w-full mx-auto rounded-lg shadow-lg p-8 relative bg-white" style={{maxWidth: 1000}}>
-          {/* Photo display area */}
-          {photoUrl && (
-            <div className="flex flex-col items-center mb-8">
-              <div className="w-[200px] h-[200px] rounded-lg overflow-hidden border-2 border-gray-200 flex items-center justify-center bg-gray-50">
-                <img src={photoUrl} alt="Testimonial Photo" className="object-cover w-full h-full" />
-              </div>
-              <a
-                href={photoUrl}
-                download
-                className="mt-2 inline-block px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm font-medium"
-              >
-                Download Photo
-              </a>
-            </div>
-          )}
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex flex-col">
-              <h1 className="text-4xl font-bold text-[#1A237E]">Edit Prompt Page</h1>
-            </div>
+    <div className="relative w-full max-w-[1000px] mx-auto rounded-lg p-8 bg-white mt-10">
+      {/* Floating Icon */}
+      <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center w-16 h-16">
+        {isUniversal ? (
+          <FaStore className="w-9 h-9 text-slate-blue" />
+        ) : (
+          <FaStar className="w-9 h-9 text-slate-blue" />
+        )}
+      </div>
+      {/* Top right buttons */}
+      <div className="absolute top-8 right-8 flex gap-4 z-20">
+        {isUniversal ? (
+          <>
+            <a
+              href={`/r/${params.slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            >
+              View
+            </a>
+            <button
+              type="submit"
+              onClick={e => handleSubmit(e, 'save')}
+              style={{ background: '#3730A3', color: '#fff', border: '2px solid #3730A3', zIndex: 9999 }}
+              className="inline-flex justify-center rounded-md border border-transparent py-2 px-4 text-sm font-medium shadow-sm hover:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              disabled={isLoading}
+            >
+              Save
+            </button>
+          </>
+        ) : (
+          <button
+            type="button"
+            onClick={handleSaveAndContinue}
+            className="inline-flex justify-center rounded-md border border-transparent bg-indigo-800 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            disabled={isLoading}
+          >
+            Save & Continue
+          </button>
+        )}
+      </div>
+      {/* Photo display area */}
+      {photoUrl && (
+        <div className="flex flex-col items-center mb-8">
+          <div className="w-[200px] h-[200px] rounded-lg overflow-hidden border-2 border-gray-200 flex items-center justify-center bg-gray-50">
+            <img src={photoUrl} alt="Testimonial Photo" className="object-cover w-full h-full" />
           </div>
-          <form onSubmit={(e) => handleSubmit(e, 'publish')}>
-            {isUniversal ? renderStep2() : (step === 1 ? renderStep1() : renderStep2())}
-          </form>
+          <a
+            href={photoUrl}
+            download
+            className="mt-2 inline-block px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm font-medium"
+          >
+            Download Photo
+          </a>
+        </div>
+      )}
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col">
+          <h1 className="text-4xl font-bold text-[#1A237E]">{isUniversal ? 'Edit Universal Prompt Page' : 'Edit Prompt Page'}</h1>
         </div>
       </div>
+      <form onSubmit={(e) => handleSubmit(e, 'publish')}>
+        {isUniversal ? renderStep2() : (step === 1 ? renderStep1() : renderStep2())}
+      </form>
       {showShareModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40" onClick={() => setShowShareModal(false)}>
           <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full relative" onClick={e => e.stopPropagation()}>

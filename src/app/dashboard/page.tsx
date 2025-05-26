@@ -7,6 +7,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import DashboardContent from './DashboardContent';
 import { FaHome, FaBuilding } from 'react-icons/fa';
 import { getUserOrMock, getSessionOrMock } from '@/utils/supabase';
+import PricingModal from '../components/PricingModal';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -27,6 +28,7 @@ export default function Dashboard() {
   const [showPostSaveModal, setShowPostSaveModal] = useState(false);
   const [savedPromptPageUrl, setSavedPromptPageUrl] = useState<string | null>(null);
   const [account, setAccount] = useState<any>(null);
+  const [showPricingModal, setShowPricingModal] = useState(false);
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -133,6 +135,14 @@ export default function Dashboard() {
     }
   }, []);
 
+  useEffect(() => {
+    if (account && (!account.plan || account.plan === '' || account.plan === 'free' || account.plan === 'grower')) {
+      setShowPricingModal(true);
+    } else {
+      setShowPricingModal(false);
+    }
+  }, [account]);
+
   const handleCreatePromptPageClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (!business) {
       e.preventDefault();
@@ -146,6 +156,15 @@ export default function Dashboard() {
       setCopySuccess('Link copied!');
       setTimeout(() => setCopySuccess(''), 2000);
     }
+  };
+
+  const handleSelectTier = async (tierKey: string) => {
+    if (!account) return;
+    setShowPricingModal(false);
+    // Update the account plan in Supabase
+    await supabase.from('accounts').update({ plan: tierKey }).eq('id', account.id);
+    // Optionally, refetch account or update state
+    setAccount({ ...account, plan: tierKey });
   };
 
   if (isLoading) {
@@ -183,6 +202,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen flex justify-center items-start">
+      {showPricingModal && <PricingModal onSelectTier={handleSelectTier} />}
       {/* Post-save share modal */}
       {showPostSaveModal && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-40" onClick={() => setShowPostSaveModal(false)}>
