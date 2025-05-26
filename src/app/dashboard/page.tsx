@@ -68,9 +68,10 @@ export default function Dashboard() {
         // Fetch account profile
         const { data: accountData, error: accountError } = await supabase
           .from('accounts')
-          .select('*')
+          .select('id, plan, is_free_account, subscription_status, first_name, last_name, trial_start, trial_end, custom_prompt_page_count, contact_count, created_at, updated_at')
           .eq('id', session.user.id)
           .single();
+        console.log('Fetched accountData:', accountData);
         if (!accountError && accountData) {
           setAccount(accountData);
         }
@@ -136,7 +137,15 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
-    if (account && (!account.plan || account.plan === '' || account.plan === 'free' || account.plan === 'grower')) {
+    console.log('Account state for pricing modal:', account);
+    if (
+      account && (
+        // Not on a plan yet
+        (account.is_free_account === false && (!account.plan || account.plan === '')) ||
+        // On a paid plan but not paid
+        ((account.plan === 'builder' || account.plan === 'maven') && account.subscription_status !== 'active')
+      )
+    ) {
       setShowPricingModal(true);
     } else {
       setShowPricingModal(false);

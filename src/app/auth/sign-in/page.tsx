@@ -75,7 +75,7 @@ export default function SignIn() {
               plan: '',
               trial_start: new Date().toISOString(),
               trial_end: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(),
-              is_free: true,
+              is_free_account: false,
               custom_prompt_page_count: 0,
               contact_count: 0,
               first_name: firstName,
@@ -123,7 +123,7 @@ export default function SignIn() {
   return (
     <>
       <SimpleMarketingNav />
-      <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-blue-200 via-purple-200 to-yellow-100">
+      <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-slate-blue to-[#FFDAB9]">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
             Sign in to your account
@@ -197,7 +197,7 @@ export default function SignIn() {
                     <button
                       type="submit"
                       disabled={isLoading}
-                      className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-slate-blue hover:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isLoading ? 'Signing in...' : 'Sign in'}
                     </button>
@@ -233,7 +233,7 @@ export default function SignIn() {
                   </button>
                   <button
                     type="submit"
-                    className="ml-4 py-2 px-4 bg-indigo-600 text-white rounded font-semibold hover:bg-indigo-700"
+                    className="ml-4 py-2 px-4 bg-slate-blue text-white rounded font-semibold hover:bg-indigo-900"
                   >
                     Send reset email
                   </button>

@@ -1234,10 +1234,9 @@ export default function PromptPage() {
                 <div className="flex flex-col md:flex-row items-center text-center md:text-left gap-8 md:items-center">
                   <div className="flex-shrink-0 flex items-center justify-center w-full md:w-48 mb-4 md:mb-0">
                     <img
-                      src="https://promptreviews.app/wp-content/uploads/2025/05/cropped-Prompt-Reviews-4-300x108.png"
+                      src="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompt-reviews-get-more-reviews-logo.png"
                       alt="Prompt Reviews Logo"
-                      className="w-40 h-auto object-contain mx-auto"
-                      style={{ filter: 'brightness(0) invert(1)' }}
+                      className="h-10 w-auto"
                     />
                   </div>
                   <div className="flex-1 flex flex-col justify-center">

@@ -1,7 +1,7 @@
 // Deployment test comment - forcing a new commit to ensure Vercel builds the latest code
 "use client";
 
-import { useState, useRef, useCallback, Suspense } from "react";
+import { useState, useRef, useCallback, Suspense, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createBrowserClient } from '@supabase/ssr';
 import Cropper from 'react-easy-crop';
@@ -12,6 +12,7 @@ import { slugify } from '@/utils/slugify';
 import { FaImage, FaBuilding, FaInfoCircle, FaAddressBook, FaList, FaShareAlt, FaClock, FaMapMarkerAlt, FaGift, FaStore } from 'react-icons/fa';
 import { getUserOrMock } from '@/utils/supabase';
 import BusinessForm from '../components/BusinessForm';
+import PricingModal from '../../components/PricingModal';
 
 interface Platform {
   name: string;
@@ -53,6 +54,8 @@ function Tooltip({ text }: { text: string }) {
 
 export default function CreateBusinessPage() {
   useAuthGuard({ requireBusinessProfile: false });
+  const [showPricingModal, setShowPricingModal] = useState(false);
+  const [account, setAccount] = useState<any>(null);
   const [form, setForm] = useState({
     name: "",
     services_offered: "",
@@ -109,6 +112,72 @@ export default function CreateBusinessPage() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
+
+  // Fetch account on mount
+  useEffect(() => {
+    async function fetchAccount() {
+      const { data: { user } } = await getUserOrMock(supabase);
+      if (!user) return;
+      const { data: accountData, error: accountError } = await supabase
+        .from('accounts')
+        .select('id, plan, is_free_account, subscription_status')
+        .eq('id', user.id)
+        .single();
+      console.log('Fetched accountData (create-business):', accountData);
+      if (!accountError && accountData) {
+        setAccount(accountData);
+      }
+    }
+    fetchAccount();
+  }, [supabase]);
+
+  useEffect(() => {
+    if (
+      account && (
+        // Not on a plan yet
+        (account.is_free_account === false && (!account.plan || account.plan === '')) ||
+        // On a paid plan but not paid
+        ((account.plan === 'builder' || account.plan === 'maven') && account.subscription_status !== 'active')
+      )
+    ) {
+      setShowPricingModal(true);
+    } else {
+      setShowPricingModal(false);
+    }
+  }, [account]);
+
+  const handleSelectTier = async (tierKey: string) => {
+    if (!account) return;
+    if (tierKey === 'grower') {
+      setShowPricingModal(false);
+      await supabase.from('accounts').update({ plan: tierKey }).eq('id', account.id);
+      setAccount({ ...account, plan: tierKey });
+    } else {
+      // Get the user email from Supabase auth
+      const { data: { user } } = await getUserOrMock(supabase);
+      const email = user?.email || user?.user_metadata?.email || '';
+      if (!email) {
+        alert('No email found for your account. Please contact support.');
+        return;
+      }
+      // Paid plan: start Stripe checkout
+      const res = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          plan: tierKey,
+          userId: account.id,
+          email,
+        }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert('Failed to start checkout. Please try again.');
+      }
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -370,6 +439,7 @@ export default function CreateBusinessPage() {
 
   return (
     <div className="w-full mx-auto mt-6 relative rounded-lg shadow-lg p-8 bg-white" style={{maxWidth: 1000}}>
+      {showPricingModal && <PricingModal onSelectTier={handleSelectTier} />}
       {/* Floating Icon */}
       <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center w-16 h-16">
         <FaStore className="w-9 h-9 text-slate-blue" />

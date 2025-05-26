@@ -10,7 +10,7 @@ export async function checkAccountLimits(supabase: SupabaseClient, userId: strin
   if (accountError || !account) {
     return { allowed: false, reason: 'Account not found' };
   }
-  if (account.is_free) {
+  if (account.is_free_account) {
     return { allowed: true };
   }
   // Check plan and trial
@@ -19,7 +19,7 @@ export async function checkAccountLimits(supabase: SupabaseClient, userId: strin
   let limit = 0;
   if (account.plan === 'grower') {
     limit = type === 'prompt_page' ? 3 : Infinity; // Only limit custom prompt pages
-    if (!inTrial && !account.is_free) {
+    if (!inTrial && !account.is_free_account_account_account) {
       return { allowed: false, reason: 'Trial ended. Please upgrade.' };
     }
   } else if (account.plan === 'builder') {
@@ -55,6 +55,6 @@ export async function isAccountBlocked(supabase: any, userId: string): Promise<b
   const now = new Date();
   const trialEnd = account.trial_end ? new Date(account.trial_end) : null;
   const isTrialExpired = trialEnd && now > trialEnd;
-  const isPaid = account.plan !== 'grower' || account.is_free;
+  const isPaid = account.plan !== 'grower' || account.is_free_account;
   return Boolean(isTrialExpired && !isPaid);
 } 

@@ -10,23 +10,32 @@ const PRICE_IDS: Record<string, string> = {
 };
 
 export async function POST(req: NextRequest) {
-  const { plan, userId, email } = await req.json();
+  try {
+    const { plan, userId, email } = await req.json();
 
-  if (!plan || !PRICE_IDS[plan]) {
-    return NextResponse.json({ error: 'Invalid plan' }, { status: 400 });
+    if (!plan || !PRICE_IDS[plan]) {
+      return NextResponse.json({ error: 'Invalid plan' }, { status: 400 });
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      mode: 'subscription',
+      customer_email: email,
+      line_items: [
+        { price: PRICE_IDS[plan], quantity: 1 }
+      ],
+      metadata: { userId, plan },
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=1`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?canceled=1`,
+    });
+
+    return NextResponse.json({ url: session.url });
+  } catch (error: any) {
+    console.error('Stripe checkout error:', error);
+    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
   }
+}
 
-  const session = await stripe.checkout.sessions.create({
-    payment_method_types: ['card'],
-    mode: 'subscription',
-    customer_email: email,
-    line_items: [
-      { price: PRICE_IDS[plan], quantity: 1 }
-    ],
-    metadata: { userId, plan },
-    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=1`,
-    cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?canceled=1`,
-  });
-
-  return NextResponse.json({ url: session.url });
+export async function GET() {
+  return NextResponse.json({ message: 'GET not supported for this endpoint. Use POST.' }, { status: 405 });
 } 

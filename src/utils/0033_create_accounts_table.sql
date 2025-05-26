@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS public.accounts (
     plan TEXT NOT NULL DEFAULT 'grower',
     trial_start TIMESTAMPTZ,
     trial_end TIMESTAMPTZ,
-    is_free_account BOOLEAN DEFAULT false,
+    is_free_account_account BOOLEAN DEFAULT false,
     custom_prompt_page_count INTEGER DEFAULT 0,
     contact_count INTEGER DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -48,6 +48,6 @@ COMMENT ON TABLE public.accounts IS 'Stores user account information including p
 COMMENT ON COLUMN public.accounts.plan IS 'The user''s subscription plan';
 COMMENT ON COLUMN public.accounts.trial_start IS 'When the user''s trial started';
 COMMENT ON COLUMN public.accounts.trial_end IS 'When the user''s trial ends';
-COMMENT ON COLUMN public.accounts.is_free_account IS 'Whether the account is marked as free';
+COMMENT ON COLUMN public.accounts.is_free_account_account IS 'Whether the account is marked as free';
 COMMENT ON COLUMN public.accounts.custom_prompt_page_count IS 'Number of custom prompt pages created';
 COMMENT ON COLUMN public.accounts.contact_count IS 'Number of contacts created'; 
