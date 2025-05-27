@@ -192,6 +192,11 @@ export default function Dashboard() {
     }
   }, [account, pendingAccountUpdate]);
 
+  useEffect(() => {
+    // Debug log for account and pendingAccountUpdate
+    console.log('Dashboard debug:', { account, pendingAccountUpdate });
+  }, [account, pendingAccountUpdate]);
+
   const handleCreatePromptPageClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (!business) {
       e.preventDefault();
@@ -246,8 +251,22 @@ export default function Dashboard() {
     (user?.email?.split('@')[0]) ||
     'there';
 
+  // Add a function to force refetch account data
+  const forceRefetchAccount = async () => {
+    if (!user) return;
+    const { data: accountData } = await supabase
+      .from('accounts')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+    setAccount(accountData);
+    console.log('Force refetched account:', accountData);
+  };
+
   return (
     <div className="min-h-screen flex justify-center items-start">
+      {/* Debug: Manual refetch account button */}
+      <button onClick={forceRefetchAccount} className="fixed bottom-4 right-4 bg-indigo-600 text-white px-4 py-2 rounded shadow-lg z-50">Refetch Account</button>
       {showPricingModal && <PricingModal onSelectTier={handleSelectTier} />}
       {/* Post-save share modal */}
       {showPostSaveModal && (
