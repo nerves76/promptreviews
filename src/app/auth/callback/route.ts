@@ -43,10 +43,14 @@ export async function GET(request: Request) {
     // If no account exists, create one with first name, last name, and email
     if (!accountData) {
       console.log('Session user in callback:', session.user);
+      const email = session.user.email;
+      if (!email) {
+        console.error('No email found in session.user:', session.user);
+        return NextResponse.redirect(`${requestUrl.origin}/auth/sign-in?error=${encodeURIComponent('No email found in session')}`);
+      }
       const plan = session.user.user_metadata?.plan || '';
       const trialStart = session.user.user_metadata?.trial_start || new Date().toISOString();
       const trialEnd = session.user.user_metadata?.trial_end || new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString();
-      const email = session.user.email || session.user.user_metadata?.email || '';
       const first_name = session.user.user_metadata?.first_name || '';
       const last_name = session.user.user_metadata?.last_name || '';
       const { error: createError } = await supabase
