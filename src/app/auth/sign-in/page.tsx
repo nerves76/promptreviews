@@ -74,7 +74,6 @@ export default function SignIn() {
             .insert({
               id: data.user.id,
               email,
-              plan: 'grower',
               trial_start: new Date().toISOString(),
               trial_end: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(),
               is_free_account: false,

@@ -29,7 +29,7 @@ export default function Dashboard() {
   const [showPostSaveModal, setShowPostSaveModal] = useState(false);
   const [savedPromptPageUrl, setSavedPromptPageUrl] = useState<string | null>(null);
   const [account, setAccount] = useState<any>(null);
-  const [showPricingModal, setShowPricingModal] = useState(false);
+  const [showPricingModal, setShowPricingModal] = useState(true);
   const [pendingAccountUpdate, setPendingAccountUpdate] = useState(false);
   const success = searchParams.get('success');
 
@@ -173,33 +173,17 @@ export default function Dashboard() {
     const trialEnd = account?.trial_end ? new Date(account.trial_end) : null;
     const isOnPaidPlan = paidPlans.includes(account?.plan);
     const isActive = account?.subscription_status === 'active';
-
-    // Show modal if:
-    // - No plan selected
-    // - On grower, but trial not started
-    // - On grower, trial expired and not paid (not active)
-    // - On any paid plan, but not active
-    const shouldShowPricingModal =
-      !account?.plan ||
-      (account.plan === 'grower' && (!trialStart || !trialEnd || now < trialStart || now > trialEnd) && !isActive) ||
-      (isOnPaidPlan && !isActive);
-
-    // Debug logging
-    console.log({
-      plan: account?.plan,
-      trial_start: account?.trial_start,
-      trial_end: account?.trial_end,
-      subscription_status: account?.subscription_status,
-      pendingAccountUpdate,
-      shouldShowPricingModal
-    });
-
-    if (!pendingAccountUpdate && account && shouldShowPricingModal) {
-      setShowPricingModal(true);
-    } else {
-      setShowPricingModal(false);
+    const planExpired =
+      account?.plan === 'grower' && trialEnd && now > trialEnd && !isActive;
+    if (!account?.plan || planExpired || (isOnPaidPlan && !isActive)) {
+      router.replace('/dashboard/plan');
+      return;
     }
-  }, [account, pendingAccountUpdate]);
+    if (!business) {
+      router.replace('/dashboard/create-business');
+      return;
+    }
+  }, [user, account, business, router]);
 
   useEffect(() => {
     // Debug log for account and pendingAccountUpdate
@@ -232,13 +216,14 @@ export default function Dashboard() {
 
   const isDashboardReady = !!user && !!account && !isLoading && !pendingAccountUpdate;
 
-  if (!isDashboardReady) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <FiveStarSpinner />
-      </div>
-    );
-  }
+  // Remove gating logic for debugging
+  // if (!isDashboardReady) {
+  //   return (
+  //     <div className="min-h-screen flex items-center justify-center">
+  //       <FiveStarSpinner />
+  //     </div>
+  //   );
+  // }
 
   if (error) {
     return (
@@ -274,9 +259,14 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen flex justify-center items-start">
+      {/* Dashboard content goes here */}
+      <div style={{ position: 'fixed', top: 100, left: 100, zIndex: 9999, background: 'red', color: 'white', padding: 20 }}>
+        DASHBOARD LOADED
+      </div>
+      {/* Debug: Force show pricing modal */}
+      <PricingModal onSelectTier={handleSelectTier} />
       {/* Debug: Manual refetch account button */}
       <button onClick={forceRefetchAccount} className="fixed bottom-4 right-4 bg-indigo-600 text-white px-4 py-2 rounded shadow-lg z-50">Refetch Account</button>
-      {showPricingModal && <PricingModal onSelectTier={handleSelectTier} />}
       {/* Post-save share modal */}
       {showPostSaveModal && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-40" onClick={() => setShowPostSaveModal(false)}>
