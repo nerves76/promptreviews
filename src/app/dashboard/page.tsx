@@ -180,6 +180,16 @@ export default function Dashboard() {
       (account.plan === 'grower' && (!trialStart || !trialEnd || now < trialStart || now > trialEnd) && !isActive) ||
       (isOnPaidPlan && !isActive);
 
+    // Debug logging
+    console.log({
+      plan: account?.plan,
+      trial_start: account?.trial_start,
+      trial_end: account?.trial_end,
+      subscription_status: account?.subscription_status,
+      pendingAccountUpdate,
+      shouldShowPricingModal
+    });
+
     if (!pendingAccountUpdate && account && shouldShowPricingModal) {
       setShowPricingModal(true);
     } else {
