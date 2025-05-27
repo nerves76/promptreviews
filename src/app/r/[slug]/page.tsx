@@ -126,7 +126,8 @@ export default function PromptPage() {
   const saveMenuRef = useRef<HTMLDivElement>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<number | null>(null);
-  const [reviewerNames, setReviewerNames] = useState<string[]>(() => promptPage?.review_platforms?.map(() => '') || []);
+  const [reviewerFirstNames, setReviewerFirstNames] = useState<string[]>(() => promptPage?.review_platforms?.map(() => '') || []);
+  const [reviewerLastNames, setReviewerLastNames] = useState<string[]>(() => promptPage?.review_platforms?.map(() => '') || []);
   const [reviewerRoles, setReviewerRoles] = useState<string[]>(() => promptPage?.review_platforms?.map(() => '') || []);
   const [canShowPersonalNote, setCanShowPersonalNote] = useState(false);
   const [showStarRain, setShowStarRain] = useState(true);
@@ -213,7 +214,8 @@ export default function PromptPage() {
     if (promptPage && Array.isArray(promptPage.review_platforms)) {
       setPlatformReviewTexts(promptPage.review_platforms.map((p: any) => p.reviewText || ''));
       setAiRewriteCounts(promptPage.review_platforms.map(() => 0));
-      setReviewerNames(promptPage.review_platforms.map(() => promptPage.first_name || ''));
+      setReviewerFirstNames(promptPage.review_platforms.map(() => promptPage.first_name || ''));
+      setReviewerLastNames(promptPage.review_platforms.map(() => promptPage.last_name || ''));
       setReviewerRoles(promptPage.review_platforms.map(() => promptPage.role || ''));
     }
   }, [promptPage]);
@@ -241,18 +243,27 @@ export default function PromptPage() {
     fetchUser();
   }, [supabase]);
 
+  const handleFirstNameChange = (idx: number, value: string) => {
+    setReviewerFirstNames(prev => prev.map((name, i) => i === idx ? value : name));
+  };
+
+  const handleLastNameChange = (idx: number, value: string) => {
+    setReviewerLastNames(prev => prev.map((name, i) => i === idx ? value : name));
+  };
+
   const handleReviewTextChange = (idx: number, value: string) => {
     setPlatformReviewTexts(prev => prev.map((text, i) => i === idx ? value : text));
   };
 
   const handleCopyAndSubmit = async (idx: number, url: string) => {
     setSubmitError(null);
-    if (!reviewerNames[idx].trim()) {
-      setSubmitError('Please enter your name.');
+    if (!reviewerFirstNames[idx].trim() || !reviewerLastNames[idx].trim()) {
+      setSubmitError('Please enter your first and last name.');
       setIsSubmitting(null);
       return;
     }
-    const { first: first_name, last: last_name } = splitName(reviewerNames[idx]);
+    const first_name = reviewerFirstNames[idx];
+    const last_name = reviewerLastNames[idx];
     setIsSubmitting(idx);
     try {
       const reviewGroupId = (localStorage.getItem('reviewGroupId') || (() => { const id = crypto.randomUUID(); localStorage.setItem('reviewGroupId', id); return id; })());
@@ -277,7 +288,7 @@ export default function PromptPage() {
             .update({
               first_name,
               last_name,
-              reviewer_name: reviewerNames[idx].trim(),
+              reviewer_name: `${first_name} ${last_name}`,
               reviewer_role: reviewerRoles[idx] ? reviewerRoles[idx].trim() : null,
               review_content: platformReviewTexts[idx] || '',
               emoji_sentiment_selection: sentiment,
@@ -296,7 +307,7 @@ export default function PromptPage() {
               status: 'submitted',
               first_name,
               last_name,
-              reviewer_name: reviewerNames[idx].trim(),
+              reviewer_name: `${first_name} ${last_name}`,
               reviewer_role: reviewerRoles[idx] ? reviewerRoles[idx].trim() : null,
               review_content: platformReviewTexts[idx] || '',
               emoji_sentiment_selection: sentiment,
@@ -804,16 +815,16 @@ export default function PromptPage() {
               {/* Business Info Card (always visible) */}
               <div className="bg-gray-50 rounded-2xl shadow p-6 mb-8 flex flex-col items-center max-w-md mx-auto animate-slideup relative mt-32">
                 {/* Business Logo - No drop-down animation */}
-                <div className="absolute left-1/2 -translate-x-1/2 w-44 h-44 aspect-square flex items-center justify-center mb-10" style={{ pointerEvents: 'none', top: '-100px' }}>
+                <div className="absolute left-1/2 -translate-x-1/2 w-52 h-52 aspect-square flex items-center justify-center mb-10" style={{ pointerEvents: 'none', top: '-100px' }}>
                   <div className="bg-white rounded-full p-1 shadow-lg flex items-center justify-center w-full h-full aspect-square">
                     {businessProfile?.logo_url ? (
                       <img
                         src={businessProfile.logo_url}
                         alt={`${businessProfile?.business_name || 'Business'} logo`}
-                        className="h-36 w-36 aspect-square object-contain rounded-full"
+                        className="h-48 w-48 aspect-square object-contain rounded-full"
                       />
                     ) : (
-                      <div className="h-36 w-36 aspect-square bg-gray-200 rounded-full flex items-center justify-center">
+                      <div className="h-48 w-48 aspect-square bg-gray-200 rounded-full flex items-center justify-center">
                         <span className="text-5xl text-gray-500">
                           {businessProfile?.business_name?.[0] || 'B'}
                         </span>
@@ -823,7 +834,7 @@ export default function PromptPage() {
                 </div>
                 {/* Business Name - Added more space above */}
                 <h1 
-                  className={`text-3xl font-bold text-center mb-1 mt-20 ${businessProfile?.primary_font || 'font-inter'}`}
+                  className={`text-3xl font-bold text-center mb-1 mt-24 ${businessProfile?.primary_font || 'font-inter'}`}
                   style={{ color: businessProfile?.header_color || '#4F46E5' }}
                 >
                   {businessProfile?.business_name ? `Give ${businessProfile.business_name} a Review` : 'Give Us a Review'}
@@ -1102,22 +1113,36 @@ export default function PromptPage() {
                                   <div>{platform.customInstructions}</div>
                                 </div>
                               )}
-                              <div className="flex flex-col md:flex-row gap-4 mb-2">
-                                <div className="flex-1 min-w-[300px] max-w-[400px]">
-                                  <label htmlFor={`reviewerName-${idx}`} className="block text-sm font-medium text-gray-700">
-                                    Your Name <span className="text-red-500">*</span>
+                              <div className="flex flex-col md:flex-row gap-4 mb-2 w-full">
+                                <div className="flex-1 min-w-[150px] max-w-[200px]">
+                                  <label htmlFor={`reviewerFirstName-${idx}`} className="block text-sm font-medium text-gray-700">
+                                    First Name <span className="text-red-500">*</span>
                                   </label>
                                   <input
                                     type="text"
-                                    id={`reviewerName-${idx}`}
-                                    value={reviewerNames[idx]}
-                                    onChange={e => setReviewerNames(names => names.map((n, i) => i === idx ? e.target.value : n))}
-                                    placeholder="Ezra C"
+                                    id={`reviewerFirstName-${idx}`}
+                                    value={reviewerFirstNames[idx]}
+                                    onChange={e => handleFirstNameChange(idx, e.target.value)}
+                                    placeholder="Ezra"
                                     className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
                                     required
                                   />
                                 </div>
-                                <div className="flex-1 min-w-[300px] max-w-[400px]">
+                                <div className="flex-1 min-w-[150px] max-w-[200px]">
+                                  <label htmlFor={`reviewerLastName-${idx}`} className="block text-sm font-medium text-gray-700">
+                                    Last Name <span className="text-red-500">*</span>
+                                  </label>
+                                  <input
+                                    type="text"
+                                    id={`reviewerLastName-${idx}`}
+                                    value={reviewerLastNames[idx]}
+                                    onChange={e => handleLastNameChange(idx, e.target.value)}
+                                    placeholder="Cohen"
+                                    className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                                    required
+                                  />
+                                </div>
+                                <div className="flex-1 min-w-[200px] max-w-[400px]">
                                   <label htmlFor={`reviewerRole-${idx}`} className="block text-sm font-medium text-gray-700">
                                     Role/Position/Occupation
                                   </label>
@@ -1160,6 +1185,23 @@ export default function PromptPage() {
                             </div>
                           );
                         })}
+                      </div>
+                    </div>
+                  )}
+                  {/* Personalized Note */}
+                  {promptPage?.friendly_note && !promptPage?.is_universal && showPersonalNote && canShowPersonalNote && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fadein">
+                      <div className="bg-white rounded-lg p-6 max-w-lg mx-4 relative animate-slideup">
+                        <button
+                          className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 focus:outline-none"
+                          onClick={() => setShowPersonalNote(false)}
+                          aria-label="Close note"
+                        >
+                          ×
+                        </button>
+                        <div className="text-gray-900 text-base">
+                          {promptPage.friendly_note}
+                        </div>
                       </div>
                     </div>
                   )}
@@ -1241,19 +1283,6 @@ export default function PromptPage() {
                   </div>
                   <div className="flex-1 flex flex-col justify-center">
                     <div className="flex items-center gap-2 mb-4 justify-center md:justify-start">
-                      <svg
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                        style={{ color: '#fff' }}
-                      >
-                        <path
-                          d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
-                          fill="currentColor"
-                        />
-                      </svg>
                       <span className="text-lg font-semibold text-white">Powered by Prompt Reviews</span>
                     </div>
                     <p className="max-w-2xl text-white">
@@ -1274,56 +1303,7 @@ export default function PromptPage() {
             </div>
           </div>
         </div>
-      </div> {/* <-- This closes the main wrapper */}
-      {showSentimentModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 px-10 max-w-xl w-full flex flex-col items-center animate-fadein relative mx-4 sm:mx-6 md:mx-0">
-            <h2 className="text-2xl font-bold text-slate-blue mb-4">{promptPage.emoji_sentiment_question || 'How was your experience?'}</h2>
-            <div className="flex flex-col items-center gap-2 my-4">
-              <div className="grid grid-cols-3 md:grid-cols-5 gap-x-8 gap-y-6 select-none">
-                <div className="flex flex-col items-center">
-                  <button onClick={() => setSentiment('delighted')} aria-label="Delighted" className={`transition-transform hover:scale-125 cursor-pointer ${sentiment==='delighted'?'ring-2 ring-slate-blue rounded-full':''}`}><img src="/emojis/delighted.svg" width="60" height="60" alt="Delighted" /></button>
-                  <span className="w-16 text-center mt-1 text-xs text-gray-600 font-medium">Delighted</span>
-                </div>
-                <div className="flex flex-col items-center">
-                  <button onClick={() => setSentiment('satisfied')} aria-label="Satisfied" className={`transition-transform hover:scale-125 cursor-pointer ${sentiment==='satisfied'?'ring-2 ring-slate-blue rounded-full':''}`}><img src="/emojis/satisfied.svg" width="60" height="60" alt="Satisfied" /></button>
-                  <span className="w-16 text-center mt-1 text-xs text-gray-600 font-medium">Satisfied</span>
-                </div>
-                <div className="flex flex-col items-center">
-                  <button onClick={() => setSentiment('neutral')} aria-label="Neutral" className={`transition-transform hover:scale-125 cursor-pointer ${sentiment==='neutral'?'ring-2 ring-slate-blue rounded-full':''}`}><img src="/emojis/neutral.svg" width="60" height="60" alt="Neutral" /></button>
-                  <span className="w-16 text-center mt-1 text-xs text-gray-600 font-medium">Neutral</span>
-                </div>
-                <div className="flex flex-col items-center">
-                  <button onClick={() => setSentiment('unsatisfied')} aria-label="Unsatisfied" className={`transition-transform hover:scale-125 cursor-pointer ${sentiment==='unsatisfied'?'ring-2 ring-slate-blue rounded-full':''}`}><img src="/emojis/unsatisfied.svg" width="60" height="60" alt="Unsatisfied" /></button>
-                  <span className="w-16 text-center mt-1 text-xs text-gray-600 font-medium">Unsatisfied</span>
-                </div>
-                <div className="flex flex-col items-center">
-                  <button onClick={() => setSentiment('angry')} aria-label="Angry" className={`transition-transform hover:scale-125 cursor-pointer ${sentiment==='angry'?'ring-2 ring-slate-blue rounded-full':''}`}><img src="/emojis/angry.svg" width="60" height="60" alt="Angry" /></button>
-                  <span className="w-16 text-center mt-1 text-xs text-gray-600 font-medium">Angry</span>
-                </div>
-              </div>
-            </div>
-            {!sentiment && (
-              <div className="text-sm text-gray-500 mt-4 mb-2">Please select an emoji to continue</div>
-            )}
-            {sentiment && (
-              <button
-                className="mt-6 px-6 py-2 bg-slate-blue text-white rounded-lg font-semibold shadow hover:bg-indigo-900 transition"
-                onClick={() => { setShowSentimentModal(false); setSentimentComplete(true); if (!currentUser && promptPage?.id && sentiment) {
-                  sendAnalyticsEvent({
-                    promptPageId: promptPage.id,
-                    eventType: 'emoji_sentiment',
-                    platform: 'web',
-                    sentiment,
-                  });
-                }}}
-              >
-                Continue
-              </button>
-            )}
-          </div>
-        </div>
-      )}
+      </div>
     </>
   );
 }
