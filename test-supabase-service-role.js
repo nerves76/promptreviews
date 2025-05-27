@@ -1,8 +1,8 @@
 const { createClient } = require('@supabase/supabase-js');
 
 // Replace with your actual values:
-const SUPABASE_URL = 'https://ltneloufqjktdplodvao.supabase.co';
-const SERVICE_ROLE_KEY = '***REMOVED***'; // <-- Replace with your service_role key from Supabase dashboard
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://your-project.supabase.co';
+const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'YOUR_SERVICE_ROLE_KEY'; // <-- Use env variable, do not hardcode
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
@@ -17,4 +17,5 @@ async function fetchAccount() {
   console.log('Error:', error);
 }
 
-fetchAccount(); 
+fetchAccount();
+// DO NOT COMMIT REAL SERVICE ROLE KEYS. Use environment variables instead. 
