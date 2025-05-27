@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import { createClient } from '@supabase/supabase-js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2023-08-16' });
 
@@ -17,10 +18,32 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid plan' }, { status: 400 });
     }
 
+    // Fetch stripe_customer_id from accounts table
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+    let stripeCustomerId: string | undefined = undefined;
+    if (userId) {
+      const { data: account, error } = await supabase
+        .from('accounts')
+        .select('stripe_customer_id')
+        .eq('id', userId)
+        .single();
+      if (error) {
+        console.error('Error fetching account for checkout:', error);
+      }
+      if (account && account.stripe_customer_id) {
+        stripeCustomerId = account.stripe_customer_id;
+      }
+    }
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       mode: 'subscription',
-      customer_email: email,
+      ...(stripeCustomerId
+        ? { customer: stripeCustomerId }
+        : { customer_email: email }),
       line_items: [
         { price: PRICE_IDS[plan], quantity: 1 }
       ],

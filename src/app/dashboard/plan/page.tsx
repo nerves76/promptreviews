@@ -35,9 +35,36 @@ export default function PlanPage() {
 
   const handleSelectTier = async (tierKey: string) => {
     if (!account) return;
+    if (tierKey === 'builder' || tierKey === 'maven') {
+      // Fetch user email from Supabase Auth
+      const user = await supabase.auth.getUser();
+      const email = user.data.user?.email;
+      if (!email) {
+        alert('No valid email address found for checkout.');
+        return;
+      }
+      // Call API to create Stripe Checkout session
+      const res = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          plan: tierKey,
+          userId: account.id,
+          email
+        }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+        return;
+      } else {
+        alert('Failed to start checkout: ' + (data.error || 'Unknown error'));
+        return;
+      }
+    }
+    // For grower (trial) or free plans, just update the plan and reload the page
     await supabase.from('accounts').update({ plan: tierKey }).eq('id', account.id);
-    setCurrentPlan(tierKey);
-    setAccount({ ...account, plan: tierKey });
+    window.location.reload();
   };
 
   if (isLoading) {

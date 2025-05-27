@@ -40,27 +40,29 @@ export async function GET(request: Request) {
       return NextResponse.redirect(`${requestUrl.origin}/auth/sign-in?error=${encodeURIComponent('Error checking account status')}`)
     }
 
-    // If no account exists, create one with default plan
+    // If no account exists, create one with first name, last name, and email
     if (!accountData) {
-      const plan = session.user.user_metadata?.plan || 'grower';
+      console.log('Session user in callback:', session.user);
+      const plan = session.user.user_metadata?.plan || '';
       const trialStart = session.user.user_metadata?.trial_start || new Date().toISOString();
       const trialEnd = session.user.user_metadata?.trial_end || new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString();
-      
+      const email = session.user.email || session.user.user_metadata?.email || '';
+      const first_name = session.user.user_metadata?.first_name || '';
+      const last_name = session.user.user_metadata?.last_name || '';
       const { error: createError } = await supabase
         .from('accounts')
         .insert({
           id: session.user.id,
+          email,
+          first_name,
+          last_name,
           plan,
           trial_start: trialStart,
           trial_end: trialEnd,
           is_free: plan === 'grower',
-          custom_prompt_page_count: 0,
-          contact_count: 0
-        })
-
+        });
       if (createError) {
-        console.error('Account creation error:', createError)
-        return NextResponse.redirect(`${requestUrl.origin}/auth/sign-in?error=${encodeURIComponent('Error creating account')}`)
+        return NextResponse.json({ error: createError.message }, { status: 500 });
       }
     }
 

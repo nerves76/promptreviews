@@ -8,6 +8,7 @@ import DashboardContent from './DashboardContent';
 import { FaHome, FaBuilding } from 'react-icons/fa';
 import { getUserOrMock, getSessionOrMock } from '@/utils/supabase';
 import PricingModal from '../components/PricingModal';
+import FiveStarSpinner from '../components/FiveStarSpinner';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -29,6 +30,8 @@ export default function Dashboard() {
   const [savedPromptPageUrl, setSavedPromptPageUrl] = useState<string | null>(null);
   const [account, setAccount] = useState<any>(null);
   const [showPricingModal, setShowPricingModal] = useState(false);
+  const [pendingAccountUpdate, setPendingAccountUpdate] = useState(false);
+  const success = searchParams.get('success');
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -137,13 +140,49 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
-    const paidPlans = ['grower', 'builder', 'maven'];
+    if (success === '1') {
+      setPendingAccountUpdate(true);
+    }
+  }, [success]);
+
+  useEffect(() => {
+    // Refetch account if payment was successful
+    if (success === '1' && user) {
+      const fetchAccount = async () => {
+        const { data: accountData } = await supabase
+          .from('accounts')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+        setAccount(accountData);
+        // Logging for debug
+        console.log('Fetched accountData after payment:', accountData);
+      };
+      fetchAccount();
+    }
+  }, [success, user, supabase]);
+
+  useEffect(() => {
+    const paidPlans = ['builder', 'maven'];
     if (
+      success === '1' &&
+      account &&
+      paidPlans.includes(account.plan) &&
+      account.subscription_status === 'active'
+    ) {
+      setPendingAccountUpdate(false);
+      setShowSuccessModal(true);
+      console.log('Account is paid and active, hiding spinner and showing modal.');
+    }
+  }, [success, account]);
+
+  useEffect(() => {
+    const paidPlans = ['builder', 'maven'];
+    if (
+      !pendingAccountUpdate &&
       account && (
-        // Not on a paid plan
         !account.plan ||
         !paidPlans.includes(account.plan) ||
-        // On a paid plan but not active
         (paidPlans.includes(account.plan) && account.subscription_status !== 'active')
       )
     ) {
@@ -151,7 +190,7 @@ export default function Dashboard() {
     } else {
       setShowPricingModal(false);
     }
-  }, [account]);
+  }, [account, pendingAccountUpdate]);
 
   const handleCreatePromptPageClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (!business) {
@@ -177,15 +216,12 @@ export default function Dashboard() {
     setAccount({ ...account, plan: tierKey });
   };
 
-  if (isLoading) {
+  const isDashboardReady = !!user && !!account && !isLoading && !pendingAccountUpdate;
+
+  if (!isDashboardReady) {
     return (
-      <div className="min-h-screen py-12 px-2">
-        <div className="w-full mx-auto">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-dustyPlum mx-auto"></div>
-            <p className="mt-4 text-dustyPlum">Loading dashboard...</p>
-          </div>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <FiveStarSpinner />
       </div>
     );
   }
@@ -248,6 +284,8 @@ export default function Dashboard() {
             universalUrl={universalUrl}
             QRCode={QRCodeSVG}
             setShowQR={setShowQR}
+            account={account}
+            parentLoading={isLoading || pendingAccountUpdate}
           />
         </div>
       </div>

@@ -26,6 +26,9 @@ interface DashboardContentProps {
   universalUrl: string;
   QRCode: any;
   setShowQR: (show: boolean) => void;
+  account: any;
+  successMessage?: string;
+  parentLoading?: boolean;
 }
 
 interface PromptPage {
@@ -71,7 +74,9 @@ export default function DashboardContent({
   setShowSuccessModal,
   universalUrl,
   QRCode,
-  setShowQR
+  setShowQR,
+  account,
+  parentLoading
 }: DashboardContentProps) {
   console.log('DASHBOARD RENDERED');
   useAuthGuard();
@@ -344,7 +349,7 @@ export default function DashboardContent({
     }
   };
 
-  if (isLoading) {
+  if (isLoading && !parentLoading) {
     return (
       <div className="min-h-screen">
         <div className="w-full mx-auto bg-white rounded-lg shadow p-16">
@@ -794,10 +799,10 @@ export default function DashboardContent({
               </div>
             )}
 
-            {/* Success Modal */}
+            {/* Success Modal for Payment Confirmation */}
             {showSuccessModal && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-                <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center relative">
+                <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center relative overflow-hidden">
                   <button
                     className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl"
                     onClick={() => setShowSuccessModal(false)}
@@ -805,14 +810,36 @@ export default function DashboardContent({
                   >
                     &times;
                   </button>
-                  <h2 className="text-xl font-bold mb-4 text-green-700">Business Profile Created!</h2>
-                  <p className="mb-6">Your business profile was created successfully. You can now create prompt pages and start collecting reviews!</p>
-                  <a
-                    href="/create-prompt-page"
-                    className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 inline-block"
+                  {/* Star Falling Animation */}
+                  <div className="absolute inset-0 pointer-events-none z-0">
+                    {[...Array(20)].map((_, i) => (
+                      <span
+                        key={i}
+                        className="absolute animate-fall-star"
+                        style={{
+                          left: `${Math.random() * 100}%`,
+                          top: `${-Math.random() * 40}px`,
+                          fontSize: `${Math.random() * 16 + 16}px`,
+                          color: '#FFD700',
+                          opacity: 0.8 + Math.random() * 0.2,
+                          animationDelay: `${Math.random() * 1.5}s`,
+                        }}
+                      >
+                        ★
+                      </span>
+                    ))}
+                  </div>
+                  <h2 className="text-2xl font-bold mb-4 text-indigo-800 relative z-10">It's official.</h2>
+                  <p className="mb-6 text-lg text-gray-700 font-semibold relative z-10">
+                    You're a {account?.plan ? account.plan.charAt(0).toUpperCase() + account.plan.slice(1) : 'Member'}.<br />
+                    Now let's get some amazing reviews and boost your online presence!
+                  </p>
+                  <button
+                    onClick={() => setShowSuccessModal(false)}
+                    className="bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700 font-semibold mt-2 relative z-10"
                   >
-                    Create Prompt Page
-                  </a>
+                    Let's Go!
+                  </button>
                 </div>
               </div>
             )}
