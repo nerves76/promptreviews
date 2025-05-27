@@ -63,6 +63,10 @@ export default function Dashboard() {
       try {
         setIsLoading(true);
 
+        // Debug: log current user/session before fetching account
+        const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
+        console.log('Current user before account fetch:', currentUser, 'Error:', userError);
+
         const { data: { session } } = await getSessionOrMock(supabase);
         if (!session) {
           throw new Error('No active session found. Please sign in again.');
