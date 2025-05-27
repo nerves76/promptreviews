@@ -7,10 +7,12 @@ import Header from '../components/Header';
 import { FaUser, FaIdCard, FaSignOutAlt, FaChartLine, FaEnvelope } from 'react-icons/fa';
 import Link from 'next/link';
 import { getUserOrMock } from '@/utils/supabase';
+import DashboardCard from '../dashboard/components/DashboardCard';
 
 export default function AccountPage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
+  const [account, setAccount] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -18,7 +20,7 @@ export default function AccountPage() {
   );
 
   useEffect(() => {
-    const getUser = async () => {
+    const getUserAndAccount = async () => {
       try {
         const { data: { user } } = await getUserOrMock(supabase);
         if (!user) {
@@ -26,14 +28,20 @@ export default function AccountPage() {
           return;
         }
         setUser(user);
+        // Fetch account from accounts table
+        const { data: accountData } = await supabase
+          .from('accounts')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+        setAccount(accountData);
       } catch (error) {
-        console.error('Error loading user:', error);
+        console.error('Error loading user/account:', error);
       } finally {
         setIsLoading(false);
       }
     };
-
-    getUser();
+    getUserAndAccount();
   }, [supabase, router]);
 
   const handleSignOut = async () => {
@@ -59,27 +67,17 @@ export default function AccountPage() {
   }
 
   return (
-    <div className="min-h-screen w-full">
+    <div className="bg-gradient-to-b from-slate-blue to-[#FFDAB9] min-h-screen w-full">
       <Header />
       <div className="min-h-screen flex items-center justify-center pt-24 pb-12 px-2">
-        <div className="mx-auto bg-white rounded-lg shadow pt-4 pb-24 px-8 relative" style={{ maxWidth: 1000 }}>
-          <div className="absolute -top-4 -left-4 bg-white rounded-full shadow p-2 flex items-center justify-center">
-            <FaUser className="w-7 h-7" style={{ color: '#1A237E' }} />
+        <DashboardCard>
+          <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center">
+            <FaUser className="w-9 h-9 text-[#1A237E]" />
           </div>
           <div className="flex items-center justify-between mb-16">
             <h1 className="text-3xl font-bold" style={{ color: '#1A237E' }}>
               Account Settings
             </h1>
-            <button
-              onClick={handleSignOut}
-              className="inline-flex items-center gap-2 px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white"
-              style={{ background: '#1A237E' }}
-              onMouseOver={e => (e.currentTarget.style.background = '#3949ab')}
-              onMouseOut={e => (e.currentTarget.style.background = '#1A237E')}
-            >
-              <FaSignOutAlt className="w-4 h-4" />
-              Sign Out
-            </button>
           </div>
           
           <div className="space-y-16">
@@ -126,6 +124,35 @@ export default function AccountPage() {
                   </div>
                 </div>
               </div>
+              {/* Billing Section */}
+              {account?.stripe_customer_id && (
+                <div className="mt-12">
+                  <h3 className="text-xl font-bold flex items-center gap-2 mb-6" style={{ color: '#1A237E' }}>
+                    Billing
+                  </h3>
+                  <button
+                    onClick={async () => {
+                      setIsLoading(true);
+                      const res = await fetch('/api/create-stripe-portal-session', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ customerId: account.stripe_customer_id }),
+                      });
+                      const data = await res.json();
+                      setIsLoading(false);
+                      if (data.url) {
+                        window.location.href = data.url;
+                      } else {
+                        alert('Could not open billing portal.');
+                      }
+                    }}
+                    disabled={isLoading}
+                    className="px-4 py-2 bg-[#2E4A7D] text-white rounded font-semibold shadow hover:bg-[#4666AF] transition-colors"
+                  >
+                    {isLoading ? 'Loading…' : 'Manage Billing (Invoices & Payment Info)'}
+                  </button>
+                </div>
+              )}
             </div>
 
             {user.email === 'chris@diviner.agency' && (
@@ -147,7 +174,7 @@ export default function AccountPage() {
               </div>
             )}
           </div>
-        </div>
+        </DashboardCard>
       </div>
     </div>
   );

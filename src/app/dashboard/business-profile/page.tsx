@@ -9,6 +9,7 @@ import { useAuthGuard } from '@/utils/authGuard';
 import { FaRegStar, FaPhone, FaMapMarkerAlt, FaImage, FaListAlt, FaInfoCircle, FaStar, FaShareAlt, FaClipboardList, FaCheckCircle, FaTimesCircle, FaStore, FaAddressBook, FaClock, FaList, FaQuestionCircle, FaGift, FaRegLightbulb } from 'react-icons/fa';
 import { getUserOrMock } from '@/utils/supabase';
 import BusinessForm from '../components/BusinessForm';
+import DashboardCard from '../components/DashboardCard';
 
 function Tooltip({ text }: { text: string }) {
   const [show, setShow] = useState(false);
@@ -416,75 +417,77 @@ export default function BusinessProfilePage() {
   }
 
   return (
-    <div className="min-h-screen flex justify-center items-start mb-12">
-      <div className="w-full mx-auto">
-        <div className="rounded-lg shadow-lg p-8 bg-white mx-auto relative" style={{maxWidth: 1000}}>
-          {/* Floating Icon */}
-          <div className="absolute -top-6 -left-6 z-10 rounded-full shadow p-3 flex items-center justify-center bg-white">
-            <FaStore className="w-9 h-9 text-slate-blue" />
-          </div>
-          <div className="flex items-start justify-between mb-8">
-            <div className="flex flex-col">
-              <h1 className="text-4xl font-bold text-slate-blue">Your business</h1>
-              <p className="text-gray-600 text-base max-w-md mt-2 mb-0">
-                Fill out your business profile thoroughly and consistently. This is rule #1 in local search engine optimization.
-              </p>
-            </div>
-            <button
-              type="submit"
-              form="business-profile-form"
-              disabled={loading}
-              className="py-2 px-6 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo hover:bg-indigo/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ marginTop: '0.25rem' }}
-            >
-              {loading ? 'Saving...' : 'Save Changes'}
-            </button>
-          </div>
-          <BusinessForm
-            form={form}
-            setForm={setForm}
-            services={services}
-            setServices={setServices}
-            platforms={platforms}
-            setPlatforms={setPlatforms}
-            platformErrors={platformErrors}
-            setPlatformErrors={setPlatformErrors}
-            logoUrl={logoUrl}
-            setLogoUrl={setLogoUrl}
-            logoFile={logoFile}
-            setLogoFile={setLogoFile}
-            logoError={logoError}
-            setLogoError={setLogoError}
-            // @ts-expect-error: React.RefObject<HTMLInputElement> can be initialized with null
-            fileInputRef={fileInputRef}
-            showCropper={showCropper}
-            setShowCropper={setShowCropper}
-            crop={crop}
-            setCrop={setCrop}
-            zoom={zoom}
-            setZoom={setZoom}
-            croppedAreaPixels={croppedAreaPixels}
-            setCroppedAreaPixels={setCroppedAreaPixels}
-            rawLogoFile={rawLogoFile}
-            setRawLogoFile={setRawLogoFile}
-            loading={loading}
-            error={error}
-            success={success}
-            onSubmit={handleSubmit}
-            handleChange={handleChange}
-            handleServiceChange={handleServiceChange}
-            addService={addService}
-            removeService={removeService}
-            handlePlatformChange={handlePlatformChange}
-            addPlatform={addPlatform}
-            removePlatform={removePlatform}
-            handleLogoChange={handleLogoChange}
-            handleCropConfirm={handleCropConfirm}
-            handleCropCancel={handleCropCancel}
-            formId="business-profile-form"
-          />
-        </div>
+    <DashboardCard>
+      {/* Floating Icon */}
+      <div className="absolute -top-6 -left-6 z-10 rounded-full shadow p-3 flex items-center justify-center bg-white">
+        <FaStore className="w-9 h-9 text-slate-blue" />
       </div>
-    </div>
+      <div className="flex items-start justify-between mb-8">
+        <div className="flex flex-col">
+          <h1 className="text-4xl font-bold text-slate-blue">Your business</h1>
+          <p className="text-gray-600 text-base max-w-md mt-2 mb-0">
+            Fill out your business profile thoroughly and consistently. This is rule #1 in local search engine optimization.
+          </p>
+          {services.filter(s => s && s.trim()).length > 0 && (
+            <div className="mt-4">
+              <span className="font-semibold text-gray-700">Services:&nbsp;</span>
+              <span className="text-gray-900">{services.filter(s => s && s.trim()).join(', ')}</span>
+            </div>
+          )}
+        </div>
+        <button
+          type="submit"
+          form="business-profile-form"
+          disabled={loading}
+          className="py-2 px-6 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo hover:bg-indigo/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{ marginTop: '0.25rem' }}
+        >
+          {loading ? 'Saving...' : 'Save Changes'}
+        </button>
+      </div>
+      <BusinessForm
+        form={form}
+        setForm={setForm}
+        services={services}
+        setServices={setServices}
+        platforms={platforms}
+        setPlatforms={setPlatforms}
+        platformErrors={platformErrors}
+        setPlatformErrors={setPlatformErrors}
+        logoUrl={logoUrl}
+        setLogoUrl={setLogoUrl}
+        logoFile={logoFile}
+        setLogoFile={setLogoFile}
+        logoError={logoError}
+        setLogoError={setLogoError}
+        // @ts-expect-error: React.RefObject<HTMLInputElement> can be initialized with null
+        fileInputRef={fileInputRef}
+        showCropper={showCropper}
+        setShowCropper={setShowCropper}
+        crop={crop}
+        setCrop={setCrop}
+        zoom={zoom}
+        setZoom={setZoom}
+        croppedAreaPixels={croppedAreaPixels}
+        setCroppedAreaPixels={setCroppedAreaPixels}
+        rawLogoFile={rawLogoFile}
+        setRawLogoFile={setRawLogoFile}
+        loading={loading}
+        error={error}
+        success={success}
+        onSubmit={handleSubmit}
+        handleChange={handleChange}
+        handleServiceChange={handleServiceChange}
+        addService={addService}
+        removeService={removeService}
+        handlePlatformChange={handlePlatformChange}
+        addPlatform={addPlatform}
+        removePlatform={removePlatform}
+        handleLogoChange={handleLogoChange}
+        handleCropConfirm={handleCropConfirm}
+        handleCropCancel={handleCropCancel}
+        formId="business-profile-form"
+      />
+    </DashboardCard>
   );
 } 

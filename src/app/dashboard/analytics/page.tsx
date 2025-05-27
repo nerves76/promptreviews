@@ -5,6 +5,7 @@ import { createBrowserClient } from '@supabase/ssr';
 import { useAuthGuard } from '@/utils/authGuard';
 import { FaChartLine, FaGlobe, FaList } from 'react-icons/fa';
 import { getUserOrMock } from '@/utils/supabase';
+import DashboardCard from '../components/DashboardCard';
 
 interface PromptPage {
   id: string;
@@ -204,165 +205,163 @@ export default function AnalyticsPage() {
   const selectedPage = promptPages.find(p => p.id === selectedPageId);
 
   return (
-    <div className="min-h-screen py-12 px-2">
-      <div className="w-full mx-auto bg-white rounded-lg shadow-lg p-8 relative" style={{maxWidth: 1000}}>
-        <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center">
-          <FaChartLine className="w-9 h-9 text-slate-blue" />
-        </div>
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex flex-col">
-            <h1 className="text-4xl font-bold text-slate-blue">Analytics</h1>
-          </div>
-        </div>
-          
-        <div className="mb-16">
-          <h3 className="text-base font-bold text-gray-900 mb-2">
-            Select prompt page
-          </h3>
-          <select
-            id="page-select"
-            value={selectedPageId}
-            onChange={(e) => setSelectedPageId(e.target.value)}
-            className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          >
-            {promptPages.map((page) => (
-              <option key={page.id} value={page.id}>
-                {page.is_universal ? 'Universal Prompt Page' : page.first_name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {selectedPage && (
-          <div className="mb-16">
-            <h2 className="mt-20 text-2xl font-bold text-slate-blue flex items-center gap-3 mb-12">
-              {selectedPage.is_universal ? (
-                <FaGlobe className="w-7 h-7 text-slate-blue" />
-              ) : null}
-              {selectedPage.is_universal ? 'Universal Prompt Page' : selectedPage.first_name}
-            </h2>
-          </div>
-        )}
-
-        {analytics && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="bg-indigo-50 rounded-lg p-4">
-              <p className="text-sm font-medium text-indigo-600">Total Interactions</p>
-              <p className="mt-2 text-3xl font-semibold text-indigo-900">
-                {analytics.totalClicks}
-              </p>
-            </div>
-
-            <div className="bg-indigo-50 rounded-lg p-4">
-              <p className="text-sm font-medium text-indigo-600">AI Generations</p>
-              <p className="mt-2 text-3xl font-semibold text-indigo-900">
-                {analytics.aiGenerations}
-              </p>
-            </div>
-
-            <div className="bg-indigo-50 rounded-lg p-4">
-              <p className="text-sm font-medium text-indigo-600">Copy & Submits</p>
-              <p className="mt-2 text-3xl font-semibold text-indigo-900">
-                {analytics.copySubmits}
-              </p>
-            </div>
-
-            <div className="bg-indigo-50 rounded-lg p-4 md:col-span-2 lg:col-span-3">
-              <p className="text-sm font-medium text-indigo-600 mb-4">Platform Distribution</p>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {Object.entries(analytics.clicksByPlatform).map(([platform, count]) => (
-                  <div key={platform} className="bg-white rounded p-3 shadow-sm">
-                    <p className="text-sm text-gray-500">{platform}</p>
-                    <p className="text-lg font-semibold text-indigo-900">{count}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="bg-indigo-50 rounded-lg p-4 md:col-span-2 lg:col-span-3">
-              <p className="text-sm font-medium text-indigo-600 mb-4">Recent Activity</p>
-              <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interactions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {Object.entries(analytics.clicksByDate)
-                      .sort((a, b) => new Date(b[0]).getTime() - new Date(a[0]).getTime())
-                      .slice(0, 7)
-                      .map(([date, count]) => (
-                        <tr key={date}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{date}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{count}</td>
-                        </tr>
-                      ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {analytics && analytics.aiEvents.length > 0 && (
-          <div className="mb-8">
-            <h3 className="text-lg font-bold mb-2">Generate with AI Events</h3>
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Prompt Page</th>
-                  <th>Page Type</th>
-                  <th>Review Platform</th>
-                </tr>
-              </thead>
-              <tbody>
-                {analytics.aiEvents.map(ev => {
-                  const page = promptPages.find(p => p.id === ev.promptPageId);
-                  return (
-                    <tr key={ev.date + ev.promptPageId + ev.platform}>
-                      <td>{new Date(ev.date).toLocaleString()}</td>
-                      <td>{page?.slug || page?.first_name || ev.promptPageId}</td>
-                      <td>{page?.is_universal ? 'Universal' : 'Custom'}</td>
-                      <td>{ev.platform}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-        {analytics && analytics.copySubmitEvents.length > 0 && (
-          <div className="mb-8">
-            <h3 className="text-lg font-bold mb-2">Copy & Submit Events</h3>
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Prompt Page</th>
-                  <th>Page Type</th>
-                  <th>Review Platform</th>
-                </tr>
-              </thead>
-              <tbody>
-                {analytics.copySubmitEvents.map(ev => {
-                  const page = promptPages.find(p => p.id === ev.promptPageId);
-                  return (
-                    <tr key={ev.date + ev.promptPageId + ev.platform}>
-                      <td>{new Date(ev.date).toLocaleString()}</td>
-                      <td>{page?.slug || page?.first_name || ev.promptPageId}</td>
-                      <td>{page?.is_universal ? 'Universal' : 'Custom'}</td>
-                      <td>{ev.platform}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
+    <DashboardCard>
+      <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center">
+        <FaChartLine className="w-9 h-9 text-slate-blue" />
       </div>
-    </div>
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col">
+          <h1 className="text-4xl font-bold text-slate-blue">Analytics</h1>
+        </div>
+      </div>
+          
+      <div className="mb-16">
+        <h3 className="text-base font-bold text-gray-900 mb-2">
+          Select prompt page
+        </h3>
+        <select
+          id="page-select"
+          value={selectedPageId}
+          onChange={(e) => setSelectedPageId(e.target.value)}
+          className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+        >
+          {promptPages.map((page) => (
+            <option key={page.id} value={page.id}>
+              {page.is_universal ? 'Universal Prompt Page' : page.first_name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {selectedPage && (
+        <div className="mb-16">
+          <h2 className="mt-20 text-2xl font-bold text-slate-blue flex items-center gap-3 mb-12">
+            {selectedPage.is_universal ? (
+              <FaGlobe className="w-7 h-7 text-slate-blue" />
+            ) : null}
+            {selectedPage.is_universal ? 'Universal Prompt Page' : selectedPage.first_name}
+          </h2>
+        </div>
+      )}
+
+      {analytics && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="bg-indigo-50 rounded-lg p-4">
+            <p className="text-sm font-medium text-indigo-600">Total Interactions</p>
+            <p className="mt-2 text-3xl font-semibold text-indigo-900">
+              {analytics.totalClicks}
+            </p>
+          </div>
+
+          <div className="bg-indigo-50 rounded-lg p-4">
+            <p className="text-sm font-medium text-indigo-600">AI Generations</p>
+            <p className="mt-2 text-3xl font-semibold text-indigo-900">
+              {analytics.aiGenerations}
+            </p>
+          </div>
+
+          <div className="bg-indigo-50 rounded-lg p-4">
+            <p className="text-sm font-medium text-indigo-600">Copy & Submits</p>
+            <p className="mt-2 text-3xl font-semibold text-indigo-900">
+              {analytics.copySubmits}
+            </p>
+          </div>
+
+          <div className="bg-indigo-50 rounded-lg p-4 md:col-span-2 lg:col-span-3">
+            <p className="text-sm font-medium text-indigo-600 mb-4">Platform Distribution</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {Object.entries(analytics.clicksByPlatform).map(([platform, count]) => (
+                <div key={platform} className="bg-white rounded p-3 shadow-sm">
+                  <p className="text-sm text-gray-500">{platform}</p>
+                  <p className="text-lg font-semibold text-indigo-900">{count}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-indigo-50 rounded-lg p-4 md:col-span-2 lg:col-span-3">
+            <p className="text-sm font-medium text-indigo-600 mb-4">Recent Activity</p>
+            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interactions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {Object.entries(analytics.clicksByDate)
+                    .sort((a, b) => new Date(b[0]).getTime() - new Date(a[0]).getTime())
+                    .slice(0, 7)
+                    .map(([date, count]) => (
+                      <tr key={date}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{date}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{count}</td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {analytics && analytics.aiEvents.length > 0 && (
+        <div className="mb-8">
+          <h3 className="text-lg font-bold mb-2">Generate with AI Events</h3>
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Prompt Page</th>
+                <th>Page Type</th>
+                <th>Review Platform</th>
+              </tr>
+            </thead>
+            <tbody>
+              {analytics.aiEvents.map(ev => {
+                const page = promptPages.find(p => p.id === ev.promptPageId);
+                return (
+                  <tr key={ev.date + ev.promptPageId + ev.platform}>
+                    <td>{new Date(ev.date).toLocaleString()}</td>
+                    <td>{page?.slug || page?.first_name || ev.promptPageId}</td>
+                    <td>{page?.is_universal ? 'Universal' : 'Custom'}</td>
+                    <td>{ev.platform}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {analytics && analytics.copySubmitEvents.length > 0 && (
+        <div className="mb-8">
+          <h3 className="text-lg font-bold mb-2">Copy & Submit Events</h3>
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Prompt Page</th>
+                <th>Page Type</th>
+                <th>Review Platform</th>
+              </tr>
+            </thead>
+            <tbody>
+              {analytics.copySubmitEvents.map(ev => {
+                const page = promptPages.find(p => p.id === ev.promptPageId);
+                return (
+                  <tr key={ev.date + ev.promptPageId + ev.platform}>
+                    <td>{new Date(ev.date).toLocaleString()}</td>
+                    <td>{page?.slug || page?.first_name || ev.promptPageId}</td>
+                    <td>{page?.is_universal ? 'Universal' : 'Custom'}</td>
+                    <td>{ev.platform}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </DashboardCard>
   );
 } 

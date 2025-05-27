@@ -372,12 +372,8 @@ export default function DashboardContent({
     <>
       <div className="min-h-screen flex justify-center items-start w-full">
         <div className="relative w-full">
-          {/* Main Card */}
-          <div className="rounded-lg shadow-lg p-8 bg-white mx-auto relative" style={{maxWidth: 1000}}>
-            {/* Floating Icon */}
-            <div className="absolute -top-4 -left-4 bg-white rounded-full shadow p-2 flex items-center justify-center">
-              <FaHome className="w-7 h-7 text-[#1A237E]" />
-            </div>
+          {/* Main dashboard content, remove pt-12 so title is at the top */}
+          <div>
             <div className="flex items-center justify-between mb-8">
               <h1 className="text-4xl font-bold text-[#1A237E]">
                 Dashboard
@@ -453,7 +449,6 @@ export default function DashboardContent({
                   </div>
                 </div>
               )}
-
               <div className="mb-6">
                 <h2 className="text-3xl font-bold text-[#1A237E] mb-2 flex items-center gap-3">
                   <span className="text-3xl font-bold align-middle" style={{fontFamily: 'Inter, sans-serif', color: '#1A237E'}}>[P]</span>
@@ -461,7 +456,6 @@ export default function DashboardContent({
                 </h2>
                 <p className="text-gray-600 text-base max-w-2xl mb-4">Create and manage your prompt pages and outreach efforts.</p>
               </div>
-
               <div className="flex items-center gap-4 mb-4">
                 <label htmlFor="type-filter" className="text-sm font-medium text-gray-700">Filter by type:</label>
                 <select
@@ -477,7 +471,6 @@ export default function DashboardContent({
                   <option value="photo">Photo + testimonial</option>
                 </select>
               </div>
-
               <div className="flex gap-2 mb-4">
                 <button
                   className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors ${selectedTab === 'draft' ? 'border-gray-600 text-gray-700 bg-gray-50' : 'border-transparent text-gray-600 bg-gray-100 hover:bg-gray-200'}`}
@@ -504,7 +497,6 @@ export default function DashboardContent({
                   Complete ({completeCount})
                 </button>
               </div>
-
               {/* Batch Actions */}
               {selectedPages.length > 0 && (
                 <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-between">
@@ -537,7 +529,6 @@ export default function DashboardContent({
                   </button>
                 </div>
               )}
-
               {/* Custom Prompt Pages Table */}
               <div className="mt-0">
                 <div className="mt-4">
@@ -751,203 +742,203 @@ export default function DashboardContent({
                 </div>
               </div>
             </div>
+          </div>
 
-            {/* QR Code Download Modal */}
-            {qrModal?.open && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-                <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center relative">
-                  <button
-                    className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl"
-                    onClick={() => setQrModal(null)}
-                    aria-label="Close"
+          {/* QR Code Download Modal */}
+          {qrModal?.open && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+              <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center relative">
+                <button
+                  className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl"
+                  onClick={() => setQrModal(null)}
+                  aria-label="Close"
+                >
+                  &times;
+                </button>
+                <h3 className="text-lg font-bold mb-4 text-indigo-900">Download QR Code</h3>
+                <div className="mb-4">
+                  <label htmlFor="frame-size" className="block text-sm font-medium text-gray-700 mb-2">Select frame size</label>
+                  <select
+                    id="frame-size"
+                    value={selectedFrameSize.label}
+                    onChange={e => setSelectedFrameSize(QR_FRAME_SIZES.find(s => s.label === e.target.value) || QR_FRAME_SIZES[0])}
+                    className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   >
-                    &times;
-                  </button>
-                  <h3 className="text-lg font-bold mb-4 text-indigo-900">Download QR Code</h3>
-                  <div className="mb-4">
-                    <label htmlFor="frame-size" className="block text-sm font-medium text-gray-700 mb-2">Select frame size</label>
-                    <select
-                      id="frame-size"
-                      value={selectedFrameSize.label}
-                      onChange={e => setSelectedFrameSize(QR_FRAME_SIZES.find(s => s.label === e.target.value) || QR_FRAME_SIZES[0])}
-                      className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                    >
-                      {QR_FRAME_SIZES.map(size => (
-                        <option key={size.label} value={size.label}>{size.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <QRCodeGenerator
-                    url={qrModal.url}
-                    clientName={qrModal.clientName}
-                    logoUrl={qrModal.logoUrl}
-                    frameSize={selectedFrameSize}
-                  />
-                  <div className="mt-6 flex flex-col gap-2">
-                    <a
-                      href="#"
-                      className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-paleGold hover:bg-yellow-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-                      style={{ background: '#FFD700', color: '#1A237E' }}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Buy Frame/Display
-                    </a>
-                  </div>
+                    {QR_FRAME_SIZES.map(size => (
+                      <option key={size.label} value={size.label}>{size.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <QRCodeGenerator
+                  url={qrModal.url}
+                  clientName={qrModal.clientName}
+                  logoUrl={qrModal.logoUrl}
+                  frameSize={selectedFrameSize}
+                />
+                <div className="mt-6 flex flex-col gap-2">
+                  <a
+                    href="#"
+                    className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-paleGold hover:bg-yellow-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                    style={{ background: '#FFD700', color: '#1A237E' }}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Buy Frame/Display
+                  </a>
                 </div>
               </div>
-            )}
+            </div>
+          )}
 
-            {/* Profile Modal */}
-            {showProfileModal && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-                <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center">
-                  <h2 className="text-xl font-bold mb-4">Let's Get Your Business More Reviews!</h2>
-                  <p className="mb-6">First we need to set up your business profile.</p>
+          {/* Profile Modal */}
+          {showProfileModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+              <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center">
+                <h2 className="text-xl font-bold mb-4">Let's Get Your Business More Reviews!</h2>
+                <p className="mb-6">First we need to set up your business profile.</p>
+                <button
+                  onClick={() => {
+                    setShowProfileModal(false);
+                    window.location.href = '/dashboard/create-business';
+                  }}
+                  className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
+                >
+                  Go to Business Profile
+                </button>
+                <button
+                  onClick={() => setShowProfileModal(false)}
+                  className="ml-4 text-gray-500 hover:text-gray-700"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Success Modal for Payment Confirmation */}
+          {showSuccessModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+              <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center relative overflow-hidden">
+                <button
+                  className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl"
+                  onClick={() => setShowSuccessModal(false)}
+                  aria-label="Close"
+                >
+                  &times;
+                </button>
+                {/* Star Falling Animation */}
+                <div className="absolute inset-0 pointer-events-none z-0">
+                  {[...Array(20)].map((_, i) => (
+                    <span
+                      key={i}
+                      className="absolute animate-fall-star"
+                      style={{
+                        left: `${Math.random() * 100}%`,
+                        top: `${-Math.random() * 40}px`,
+                        fontSize: `${Math.random() * 16 + 16}px`,
+                        color: '#FFD700',
+                        opacity: 0.8 + Math.random() * 0.2,
+                        animationDelay: `${Math.random() * 1.5}s`,
+                      }}
+                    >
+                      ★
+                    </span>
+                  ))}
+                </div>
+                <h2 className="text-2xl font-bold mb-4 text-indigo-800 relative z-10">It's official.</h2>
+                <p className="mb-6 text-lg text-gray-700 font-semibold relative z-10">
+                  You're a {account?.plan ? account.plan.charAt(0).toUpperCase() + account.plan.slice(1) : 'Member'}.<br />
+                  Now let's get some amazing reviews and boost your online presence!
+                </p>
+                <button
+                  onClick={() => setShowSuccessModal(false)}
+                  className="bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700 font-semibold mt-2 relative z-10"
+                >
+                  Let's Go!
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Delete Confirmation Modal */}
+          {showDeleteModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+              <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
+                <h3 className="text-lg font-bold mb-4 text-red-600">
+                  Delete Prompt Pages
+                </h3>
+                <p className="mb-4 text-gray-600">
+                  You are about to delete {selectedPages.length} prompt page{selectedPages.length !== 1 ? 's' : ''}. This action cannot be undone.
+                </p>
+                <p className="mb-4 text-gray-600">
+                  Please type DELETE in the box below to continue.
+                </p>
+                <input
+                  type="text"
+                  value={deleteConfirmation}
+                  onChange={(e) => setDeleteConfirmation(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md mb-4"
+                  placeholder="Type DELETE to confirm"
+                />
+                <div className="flex justify-end gap-4">
                   <button
                     onClick={() => {
-                      setShowProfileModal(false);
-                      window.location.href = '/dashboard/create-business';
+                      setShowDeleteModal(false);
+                      setDeleteConfirmation('');
                     }}
-                    className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
-                  >
-                    Go to Business Profile
-                  </button>
-                  <button
-                    onClick={() => setShowProfileModal(false)}
-                    className="ml-4 text-gray-500 hover:text-gray-700"
+                    className="px-4 py-2 text-gray-600 hover:text-gray-800"
                   >
                     Cancel
                   </button>
-                </div>
-              </div>
-            )}
-
-            {/* Success Modal for Payment Confirmation */}
-            {showSuccessModal && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-                <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center relative overflow-hidden">
                   <button
-                    className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl"
-                    onClick={() => setShowSuccessModal(false)}
-                    aria-label="Close"
+                    onClick={handleBatchDelete}
+                    disabled={deleteConfirmation !== 'DELETE'}
+                    className={`px-4 py-2 rounded ${
+                      deleteConfirmation === 'DELETE'
+                        ? 'bg-red-600 text-white hover:bg-red-700'
+                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    }`}
                   >
-                    &times;
-                  </button>
-                  {/* Star Falling Animation */}
-                  <div className="absolute inset-0 pointer-events-none z-0">
-                    {[...Array(20)].map((_, i) => (
-                      <span
-                        key={i}
-                        className="absolute animate-fall-star"
-                        style={{
-                          left: `${Math.random() * 100}%`,
-                          top: `${-Math.random() * 40}px`,
-                          fontSize: `${Math.random() * 16 + 16}px`,
-                          color: '#FFD700',
-                          opacity: 0.8 + Math.random() * 0.2,
-                          animationDelay: `${Math.random() * 1.5}s`,
-                        }}
-                      >
-                        ★
-                      </span>
-                    ))}
-                  </div>
-                  <h2 className="text-2xl font-bold mb-4 text-indigo-800 relative z-10">It's official.</h2>
-                  <p className="mb-6 text-lg text-gray-700 font-semibold relative z-10">
-                    You're a {account?.plan ? account.plan.charAt(0).toUpperCase() + account.plan.slice(1) : 'Member'}.<br />
-                    Now let's get some amazing reviews and boost your online presence!
-                  </p>
-                  <button
-                    onClick={() => setShowSuccessModal(false)}
-                    className="bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700 font-semibold mt-2 relative z-10"
-                  >
-                    Let's Go!
+                    Delete
                   </button>
                 </div>
               </div>
-            )}
+            </div>
+          )}
 
-            {/* Delete Confirmation Modal */}
-            {showDeleteModal && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-                <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
-                  <h3 className="text-lg font-bold mb-4 text-red-600">
-                    Delete Prompt Pages
-                  </h3>
-                  <p className="mb-4 text-gray-600">
-                    You are about to delete {selectedPages.length} prompt page{selectedPages.length !== 1 ? 's' : ''}. This action cannot be undone.
-                  </p>
-                  <p className="mb-4 text-gray-600">
-                    Please type DELETE in the box below to continue.
-                  </p>
-                  <input
-                    type="text"
-                    value={deleteConfirmation}
-                    onChange={(e) => setDeleteConfirmation(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md mb-4"
-                    placeholder="Type DELETE to confirm"
-                  />
-                  <div className="flex justify-end gap-4">
+          {/* Prompt Type Selection Modal */}
+          {showTypeModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+              <div className="bg-white rounded-lg shadow-lg p-8 max-w-lg w-full text-center relative">
+                <button
+                  className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl"
+                  onClick={() => setShowTypeModal(false)}
+                  aria-label="Close"
+                >
+                  &times;
+                </button>
+                <h2 className="text-2xl font-bold text-[#1A237E] mb-6">Select prompt page type</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  {promptTypes.map(type => (
                     <button
-                      onClick={() => {
-                        setShowDeleteModal(false);
-                        setDeleteConfirmation('');
-                      }}
-                      className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                      key={type.key}
+                      onClick={() => !type.comingSoon && handlePromptTypeSelect(type.key)}
+                      className={`flex flex-col items-center gap-2 p-6 rounded-lg border border-gray-200 hover:border-indigo-400 shadow-sm hover:shadow-md transition-all bg-gray-50 hover:bg-indigo-50 focus:outline-none ${type.comingSoon ? 'opacity-60 cursor-not-allowed relative' : ''}`}
+                      disabled={!!type.comingSoon}
+                      tabIndex={type.comingSoon ? -1 : 0}
                     >
-                      Cancel
+                      {type.icon}
+                      <span className="font-semibold text-lg text-[#1A237E]">{type.label}</span>
+                      <span className="text-sm text-gray-600 text-center">{type.description}</span>
+                      {type.comingSoon && (
+                        <span className="absolute top-2 right-2 bg-yellow-200 text-yellow-800 text-xs font-semibold px-2 py-0.5 rounded">Coming soon</span>
+                      )}
                     </button>
-                    <button
-                      onClick={handleBatchDelete}
-                      disabled={deleteConfirmation !== 'DELETE'}
-                      className={`px-4 py-2 rounded ${
-                        deleteConfirmation === 'DELETE'
-                          ? 'bg-red-600 text-white hover:bg-red-700'
-                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      }`}
-                    >
-                      Delete
-                    </button>
-                  </div>
+                  ))}
                 </div>
               </div>
-            )}
-
-            {/* Prompt Type Selection Modal */}
-            {showTypeModal && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-                <div className="bg-white rounded-lg shadow-lg p-8 max-w-lg w-full text-center relative">
-                  <button
-                    className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl"
-                    onClick={() => setShowTypeModal(false)}
-                    aria-label="Close"
-                  >
-                    &times;
-                  </button>
-                  <h2 className="text-2xl font-bold text-[#1A237E] mb-6">Select prompt page type</h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    {promptTypes.map(type => (
-                      <button
-                        key={type.key}
-                        onClick={() => !type.comingSoon && handlePromptTypeSelect(type.key)}
-                        className={`flex flex-col items-center gap-2 p-6 rounded-lg border border-gray-200 hover:border-indigo-400 shadow-sm hover:shadow-md transition-all bg-gray-50 hover:bg-indigo-50 focus:outline-none ${type.comingSoon ? 'opacity-60 cursor-not-allowed relative' : ''}`}
-                        disabled={!!type.comingSoon}
-                        tabIndex={type.comingSoon ? -1 : 0}
-                      >
-                        {type.icon}
-                        <span className="font-semibold text-lg text-[#1A237E]">{type.label}</span>
-                        <span className="text-sm text-gray-600 text-center">{type.description}</span>
-                        {type.comingSoon && (
-                          <span className="absolute top-2 right-2 bg-yellow-200 text-yellow-800 text-xs font-semibold px-2 py-0.5 rounded">Coming soon</span>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </>

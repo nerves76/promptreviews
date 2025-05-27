@@ -805,7 +805,7 @@ export default function PromptPage() {
               <div className="bg-gray-50 rounded-2xl shadow p-6 mb-8 flex flex-col items-center max-w-md mx-auto animate-slideup relative mt-32">
                 {/* Business Logo - No drop-down animation */}
                 <div className="absolute left-1/2 -translate-x-1/2 w-44 h-44 aspect-square flex items-center justify-center mb-10" style={{ pointerEvents: 'none', top: '-100px' }}>
-                  <div className="bg-white rounded-full p-3 shadow-lg flex items-center justify-center w-full h-full aspect-square">
+                  <div className="bg-white rounded-full p-1 shadow-lg flex items-center justify-center w-full h-full aspect-square">
                     {businessProfile?.logo_url ? (
                       <img
                         src={businessProfile.logo_url}

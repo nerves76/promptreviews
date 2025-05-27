@@ -5,6 +5,7 @@ import { createBrowserClient } from "@supabase/ssr";
 import { FaChevronDown, FaChevronRight, FaDownload, FaStar, FaTrash, FaGoogle, FaFacebook, FaYelp, FaTripadvisor, FaRegStar, FaRegComment } from "react-icons/fa";
 import { SiHouzz, SiThumbtack, SiHomeadvisor, SiTrustpilot } from "react-icons/si";
 import { IconType } from "react-icons";
+import DashboardCard from '../components/DashboardCard';
 
 interface Review {
   id: string;
@@ -284,257 +285,255 @@ export default function TestimonialsPage() {
   }, [reviews]);
 
   return (
-    <div className="min-h-screen py-12 px-2">
-      <div className="w-full mx-auto bg-white rounded-lg shadow-lg p-8 relative" style={{maxWidth: 1000}}>
-        <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center">
-          <FaStar className="w-9 h-9 text-[#1A237E]" />
+    <DashboardCard>
+      <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center">
+        <FaStar className="w-9 h-9 text-[#1A237E]" />
+      </div>
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col">
+          <h1 className="text-4xl font-bold text-[#1A237E]">Your reviews</h1>
+          {/* Optionally add subcopy here if needed */}
         </div>
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex flex-col">
-            <h1 className="text-4xl font-bold text-[#1A237E]">Your reviews</h1>
-            {/* Optionally add subcopy here if needed */}
-          </div>
-        </div>
+      </div>
 
-        {/* Tabs */}
-        <div className="mb-8 flex gap-4 border-b border-gray-200">
-          {TABS.map(tab => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key as 'reviewer' | 'platform')}
-              className={`px-4 py-2 -mb-px border-b-2 font-medium transition-colors ${
-                activeTab === tab.key
-                  ? 'border-[#1A237E] text-[#1A237E]'
-                  : 'border-transparent text-gray-500 hover:text-[#1A237E]'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Search Section */}
-        <div className="mb-8">
-          <input
-            type="text"
-            placeholder="Search by reviewer, platform, or text..."
-            className="w-full max-w-md rounded-lg border border-gray-200 px-4 py-2 shadow-sm focus:ring-2 focus:ring-[#1A237E] focus:outline-none"
-            disabled
-          />
-        </div>
-
-        {/* Reviews Section */}
-        {loading ? (
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1A237E] mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading reviews...</p>
-          </div>
-        ) : error ? (
-          <div className="text-red-500 p-4 bg-red-50 rounded-lg">{error}</div>
-        ) : (activeTab === 'reviewer' ? (
-          grouped.length === 0 ? (
-            <div className="text-center py-8 text-gray-600">No testimonials found.</div>
-          ) : (
-            <>
-              <div className="space-y-6">
-                {grouped.map((group) => (
-                  <div key={group.reviewerKey} className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-                    <button
-                      className="flex items-center w-full text-left gap-3"
-                      onClick={() => toggleExpand(group.reviewerKey)}
-                    >
-                      {expanded[group.reviewerKey] ? (
-                        <FaChevronDown className="text-[#1A237E]" />
-                      ) : (
-                        <FaChevronRight className="text-[#1A237E]" />
-                      )}
-                      <span className="font-semibold text-lg text-gray-800">
-                        {group.reviewer_name || "[No Name]"}
-                      </span>
-                      {group.reviewer_role && (
-                        <span className="ml-2 text-sm text-gray-500">({group.reviewer_role})</span>
-                      )}
-                      <span className="ml-auto text-sm text-gray-400">
-                        {group.reviews.length} review{group.reviews.length !== 1 ? "s" : ""}
-                      </span>
-                    </button>
-                    {expanded[group.reviewerKey] && (
-                      <div className="mt-4 space-y-4">
-                        {group.reviews.map((review) => {
-                          const { icon: PlatformIcon, label } = getPlatformIcon(review.platform);
-                          return (
-                            <div
-                              key={review.id}
-                              ref={el => (reviewRefs.current[review.id] = el)}
-                              className={`bg-white rounded-lg p-4 border border-gray-200 relative transition-colors duration-700 ${highlightedId === review.id ? 'bg-yellow-100 border-yellow-400' : ''}`}
-                            >
-                              {/* Platform icon in top-left corner */}
-                              <div className="absolute -top-4 -left-4 bg-white rounded-full shadow p-2 flex items-center justify-center" title={label}>
-                                <PlatformIcon className="w-6 h-6 text-[#1A237E]" />
-                              </div>
-                              <div className="flex items-center gap-2 mb-2">
-                                <span className="font-semibold text-[#1A237E]">{review.platform}</span>
-                                <span className="text-xs text-gray-400 ml-2">{new Date(review.created_at).toLocaleDateString()}</span>
-                                <span className={`ml-2 text-xs px-2 py-1 rounded ${
-                                  review.status === 'submitted'
-                                    ? 'bg-green-100 text-green-600'
-                                    : 'bg-yellow-100 text-yellow-600'
-                                }`}>
-                                  {review.status}
-                                </span>
-                                {isNewReview(review.created_at) && (
-                                  <span className="ml-2 text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700 font-semibold">New</span>
-                                )}
-                                <button
-                                  onClick={() => handleDelete(review.id)}
-                                  disabled={isDeleting === review.id}
-                                  className="ml-auto text-red-500 hover:text-red-700 transition-colors disabled:opacity-50"
-                                  title="Delete review"
-                                >
-                                  {isDeleting === review.id ? (
-                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500"></div>
-                                  ) : (
-                                    <FaTrash className="w-4 h-4" />
-                                  )}
-                                </button>
-                              </div>
-                              <div className="text-gray-800">{review.review_content}</div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="mt-8 flex justify-center gap-2">
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1}
-                    className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                  >
-                    Previous
-                  </button>
-                  <span className="px-4 py-2 text-gray-600">
-                    Page {currentPage} of {totalPages}
-                  </span>
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                    disabled={currentPage === totalPages}
-                    className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                  >
-                    Next
-                  </button>
-                </div>
-              )}
-            </>
-          )
-        ) : (
-          platformGrouped.length === 0 ? (
-            <div className="text-center py-8 text-gray-600">No testimonials found.</div>
-          ) : (
-            <>
-              <div className="space-y-6">
-                {platformGrouped.map((group) => (
-                  <div key={group.platform} className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-                    <button
-                      className="flex items-center w-full text-left gap-3"
-                      onClick={() => toggleExpand(group.platform)}
-                    >
-                      {expanded[group.platform] ? (
-                        <FaChevronDown className="text-[#1A237E]" />
-                      ) : (
-                        <FaChevronRight className="text-[#1A237E]" />
-                      )}
-                      <span className="font-semibold text-lg text-gray-800">
-                        {group.platform}
-                      </span>
-                      <span className="ml-auto text-sm text-gray-400">
-                        {group.reviews.length} review{group.reviews.length !== 1 ? "s" : ""}
-                      </span>
-                    </button>
-                    {expanded[group.platform] && (
-                      <div className="mt-4 space-y-4">
-                        {group.reviews.map((review) => {
-                          const { icon: PlatformIcon, label } = getPlatformIcon(review.platform);
-                          return (
-                            <div
-                              key={review.id}
-                              ref={el => (reviewRefs.current[review.id] = el)}
-                              className={`bg-white rounded-lg p-4 border border-gray-200 relative transition-colors duration-700 ${highlightedId === review.id ? 'bg-yellow-100 border-yellow-400' : ''}`}
-                            >
-                              {/* Platform icon in top-left corner */}
-                              <div className="absolute -top-4 -left-4 bg-white rounded-full shadow p-2 flex items-center justify-center" title={label}>
-                                <PlatformIcon className="w-6 h-6 text-[#1A237E]" />
-                              </div>
-                              <div className="flex items-center gap-2 mb-2">
-                                <span className="font-semibold text-[#1A237E]">{review.reviewer_name || "[No Name]"}</span>
-                                {review.reviewer_role && (
-                                  <span className="ml-2 text-sm text-gray-500">({review.reviewer_role})</span>
-                                )}
-                                <span className="text-xs text-gray-400 ml-2">{new Date(review.created_at).toLocaleDateString()}</span>
-                                <span className={`ml-2 text-xs px-2 py-1 rounded ${
-                                  review.status === 'submitted'
-                                    ? 'bg-green-100 text-green-600'
-                                    : 'bg-yellow-100 text-yellow-600'
-                                }`}>
-                                  {review.status}
-                                </span>
-                                {isNewReview(review.created_at) && (
-                                  <span className="ml-2 text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700 font-semibold">New</span>
-                                )}
-                                <button
-                                  onClick={() => handleDelete(review.id)}
-                                  disabled={isDeleting === review.id}
-                                  className="ml-auto text-red-500 hover:text-red-700 transition-colors disabled:opacity-50"
-                                  title="Delete review"
-                                >
-                                  {isDeleting === review.id ? (
-                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500"></div>
-                                  ) : (
-                                    <FaTrash className="w-4 h-4" />
-                                  )}
-                                </button>
-                              </div>
-                              <div className="text-gray-800">{review.review_content}</div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="mt-8 flex justify-center gap-2">
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1}
-                    className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                  >
-                    Previous
-                  </button>
-                  <span className="px-4 py-2 text-gray-600">
-                    Page {currentPage} of {totalPages}
-                  </span>
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                    disabled={currentPage === totalPages}
-                    className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                  >
-                    Next
-                  </button>
-                </div>
-              )}
-            </>
-          )
+      {/* Tabs */}
+      <div className="mb-8 flex gap-4 border-b border-gray-200">
+        {TABS.map(tab => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key as 'reviewer' | 'platform')}
+            className={`px-4 py-2 -mb-px border-b-2 font-medium transition-colors ${
+              activeTab === tab.key
+                ? 'border-[#1A237E] text-[#1A237E]'
+                : 'border-transparent text-gray-500 hover:text-[#1A237E]'
+            }`}
+          >
+            {tab.label}
+          </button>
         ))}
       </div>
-    </div>
+
+      {/* Search Section */}
+      <div className="mb-8">
+        <input
+          type="text"
+          placeholder="Search by reviewer, platform, or text..."
+          className="w-full max-w-md rounded-lg border border-gray-200 px-4 py-2 shadow-sm focus:ring-2 focus:ring-[#1A237E] focus:outline-none"
+          disabled
+        />
+      </div>
+
+      {/* Reviews Section */}
+      {loading ? (
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1A237E] mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading reviews...</p>
+        </div>
+      ) : error ? (
+        <div className="text-red-500 p-4 bg-red-50 rounded-lg">{error}</div>
+      ) : (activeTab === 'reviewer' ? (
+        grouped.length === 0 ? (
+          <div className="text-center py-8 text-gray-600">No testimonials found.</div>
+        ) : (
+          <>
+            <div className="space-y-6">
+              {grouped.map((group) => (
+                <div key={group.reviewerKey} className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                  <button
+                    className="flex items-center w-full text-left gap-3"
+                    onClick={() => toggleExpand(group.reviewerKey)}
+                  >
+                    {expanded[group.reviewerKey] ? (
+                      <FaChevronDown className="text-[#1A237E]" />
+                    ) : (
+                      <FaChevronRight className="text-[#1A237E]" />
+                    )}
+                    <span className="font-semibold text-lg text-gray-800">
+                      {group.reviewer_name || "[No Name]"}
+                    </span>
+                    {group.reviewer_role && (
+                      <span className="ml-2 text-sm text-gray-500">({group.reviewer_role})</span>
+                    )}
+                    <span className="ml-auto text-sm text-gray-400">
+                      {group.reviews.length} review{group.reviews.length !== 1 ? "s" : ""}
+                    </span>
+                  </button>
+                  {expanded[group.reviewerKey] && (
+                    <div className="mt-4 space-y-4">
+                      {group.reviews.map((review) => {
+                        const { icon: PlatformIcon, label } = getPlatformIcon(review.platform);
+                        return (
+                          <div
+                            key={review.id}
+                            ref={el => { reviewRefs.current[review.id] = el; }}
+                            className={`bg-white rounded-lg p-4 border border-gray-200 relative transition-colors duration-700 ${highlightedId === review.id ? 'bg-yellow-100 border-yellow-400' : ''}`}
+                          >
+                            {/* Platform icon in top-left corner */}
+                            <div className="absolute -top-4 -left-4 bg-white rounded-full shadow p-2 flex items-center justify-center" title={label}>
+                              <PlatformIcon className="w-6 h-6 text-[#1A237E]" />
+                            </div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="font-semibold text-[#1A237E]">{review.platform}</span>
+                              <span className="text-xs text-gray-400 ml-2">{new Date(review.created_at).toLocaleDateString()}</span>
+                              <span className={`ml-2 text-xs px-2 py-1 rounded ${
+                                review.status === 'submitted'
+                                  ? 'bg-green-100 text-green-600'
+                                  : 'bg-yellow-100 text-yellow-600'
+                              }`}>
+                                {review.status}
+                              </span>
+                              {isNewReview(review.created_at) && (
+                                <span className="ml-2 text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700 font-semibold">New</span>
+                              )}
+                              <button
+                                onClick={() => handleDelete(review.id)}
+                                disabled={isDeleting === review.id}
+                                className="ml-auto text-red-500 hover:text-red-700 transition-colors disabled:opacity-50"
+                                title="Delete review"
+                              >
+                                {isDeleting === review.id ? (
+                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500"></div>
+                                ) : (
+                                  <FaTrash className="w-4 h-4" />
+                                )}
+                              </button>
+                            </div>
+                            <div className="text-gray-800">{review.review_content}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="mt-8 flex justify-center gap-2">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                >
+                  Previous
+                </button>
+                <span className="px-4 py-2 text-gray-600">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </>
+        )
+      ) : (
+        platformGrouped.length === 0 ? (
+          <div className="text-center py-8 text-gray-600">No testimonials found.</div>
+        ) : (
+          <>
+            <div className="space-y-6">
+              {platformGrouped.map((group) => (
+                <div key={group.platform} className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                  <button
+                    className="flex items-center w-full text-left gap-3"
+                    onClick={() => toggleExpand(group.platform)}
+                  >
+                    {expanded[group.platform] ? (
+                      <FaChevronDown className="text-[#1A237E]" />
+                    ) : (
+                      <FaChevronRight className="text-[#1A237E]" />
+                    )}
+                    <span className="font-semibold text-lg text-gray-800">
+                      {group.platform}
+                    </span>
+                    <span className="ml-auto text-sm text-gray-400">
+                      {group.reviews.length} review{group.reviews.length !== 1 ? "s" : ""}
+                    </span>
+                  </button>
+                  {expanded[group.platform] && (
+                    <div className="mt-4 space-y-4">
+                      {group.reviews.map((review) => {
+                        const { icon: PlatformIcon, label } = getPlatformIcon(review.platform);
+                        return (
+                          <div
+                            key={review.id}
+                            ref={el => { reviewRefs.current[review.id] = el; }}
+                            className={`bg-white rounded-lg p-4 border border-gray-200 relative transition-colors duration-700 ${highlightedId === review.id ? 'bg-yellow-100 border-yellow-400' : ''}`}
+                          >
+                            {/* Platform icon in top-left corner */}
+                            <div className="absolute -top-4 -left-4 bg-white rounded-full shadow p-2 flex items-center justify-center" title={label}>
+                              <PlatformIcon className="w-6 h-6 text-[#1A237E]" />
+                            </div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="font-semibold text-[#1A237E]">{review.reviewer_name || "[No Name]"}</span>
+                              {review.reviewer_role && (
+                                <span className="ml-2 text-sm text-gray-500">({review.reviewer_role})</span>
+                              )}
+                              <span className="text-xs text-gray-400 ml-2">{new Date(review.created_at).toLocaleDateString()}</span>
+                              <span className={`ml-2 text-xs px-2 py-1 rounded ${
+                                review.status === 'submitted'
+                                  ? 'bg-green-100 text-green-600'
+                                  : 'bg-yellow-100 text-yellow-600'
+                              }`}>
+                                {review.status}
+                              </span>
+                              {isNewReview(review.created_at) && (
+                                <span className="ml-2 text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700 font-semibold">New</span>
+                              )}
+                              <button
+                                onClick={() => handleDelete(review.id)}
+                                disabled={isDeleting === review.id}
+                                className="ml-auto text-red-500 hover:text-red-700 transition-colors disabled:opacity-50"
+                                title="Delete review"
+                              >
+                                {isDeleting === review.id ? (
+                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500"></div>
+                                ) : (
+                                  <FaTrash className="w-4 h-4" />
+                                )}
+                              </button>
+                            </div>
+                            <div className="text-gray-800">{review.review_content}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="mt-8 flex justify-center gap-2">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                >
+                  Previous
+                </button>
+                <span className="px-4 py-2 text-gray-600">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </>
+        )
+      ))}
+    </DashboardCard>
   );
 } 

@@ -159,6 +159,29 @@ export default function PlanPage() {
         <div className="w-full max-w-5xl">
           <PricingModal onSelectTier={handleSelectTier} asModal={false} currentPlan={currentPlan} />
         </div>
+        {account?.stripe_customer_id && (
+          <button
+            onClick={async () => {
+              setIsLoading(true);
+              const res = await fetch('/api/create-stripe-portal-session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ customerId: account.stripe_customer_id }),
+              });
+              const data = await res.json();
+              setIsLoading(false);
+              if (data.url) {
+                window.location.href = data.url;
+              } else {
+                alert('Could not open billing portal.');
+              }
+            }}
+            disabled={isLoading}
+            className="mt-8 px-6 py-3 bg-[#2E4A7D] text-white rounded-lg font-semibold shadow hover:bg-[#4666AF] transition-colors"
+          >
+            {isLoading ? 'Loading…' : 'Manage Billing (Invoices & Payment Info)'}
+          </button>
+        )}
       </div>
       {showSuccessModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">

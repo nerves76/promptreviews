@@ -9,6 +9,7 @@ import type { Swiper as SwiperType } from 'swiper';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
+import DashboardCard from '../components/DashboardCard';
 
 // Helper to convert hex to rgba
 function hexToRgba(hex: string, alpha: number) {
@@ -175,7 +176,7 @@ export default function WidgetPage() {
   if (!isClient) return null;
 
   return (
-    <div className="pb-12">
+    <>
       {/* Widget Preview on Gradient */}
       <div className="mx-auto mb-12" style={{ maxWidth: design.showGrid ? 1000 : 800 }}>
         <h2 className="text-2xl font-bold text-white mb-4 text-center">Live widget preview</h2>
@@ -401,7 +402,7 @@ export default function WidgetPage() {
         )}
       </div>
       {/* Main Card Below */}
-      <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-lg p-8 relative" style={{maxWidth: 1000}}>
+      <DashboardCard>
         <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center">
           <FaCode className="w-9 h-9 text-[#1A237E]" />
         </div>
@@ -447,7 +448,7 @@ export default function WidgetPage() {
         <hr className="my-10" />
         {/* JSON-LD for SEO */}
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      </div>
-    </div>
+      </DashboardCard>
+    </>
   );
 }

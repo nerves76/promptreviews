@@ -9,6 +9,7 @@ import { FaHome, FaBuilding } from 'react-icons/fa';
 import { getUserOrMock, getSessionOrMock } from '@/utils/supabase';
 import PricingModal from '../components/PricingModal';
 import FiveStarSpinner from '../components/FiveStarSpinner';
+import DashboardCard from './components/DashboardCard';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -75,7 +76,7 @@ export default function Dashboard() {
         // Fetch account profile
         const { data: accountData, error: accountError } = await supabase
           .from('accounts')
-          .select('id, plan, is_free_account, subscription_status, first_name, last_name, trial_start, trial_end, custom_prompt_page_count, contact_count, created_at, updated_at')
+          .select('id, plan, is_free_account, subscription_status, first_name, last_name, trial_start, trial_end, custom_prompt_page_count, contact_count, created_at')
           .eq('id', session.user.id)
           .single();
         console.log('Fetched accountData:', accountData);
@@ -167,6 +168,8 @@ export default function Dashboard() {
   }, [success, user, supabase]);
 
   useEffect(() => {
+    if (isLoading) return;
+    if (account === null) return;
     const paidPlans = ['grower', 'builder', 'maven'];
     const now = new Date();
     const trialStart = account?.trial_start ? new Date(account.trial_start) : null;
@@ -180,6 +183,13 @@ export default function Dashboard() {
       return;
     }
     if (!account?.plan || planExpired || (isOnPaidPlan && !isActive)) {
+      console.log('[DASHBOARD REDIRECT DEBUG]', {
+        account,
+        plan: account?.plan,
+        isActive,
+        planExpired,
+        isOnPaidPlan
+      });
       router.replace('/dashboard/plan');
       return;
     }
@@ -187,7 +197,7 @@ export default function Dashboard() {
       router.replace('/dashboard/create-business');
       return;
     }
-  }, [user, account, business, router]);
+  }, [user, account, business, router, isLoading]);
 
   useEffect(() => {
     // Debug log for account and pendingAccountUpdate
@@ -282,30 +292,31 @@ export default function Dashboard() {
           </div>
         </div>
       )}
-      <div className="w-full max-w-7xl mx-auto">
-        <div className="container mx-auto p-4">
-          <DashboardContent
-            userName={userName}
-            business={business}
-            customPromptPages={customPromptPages}
-            universalPromptPage={universalPromptPage}
-            createPromptPageRef={createPromptPageRef}
-            handleCreatePromptPageClick={handleCreatePromptPageClick}
-            showQR={showQR}
-            handleCopyLink={handleCopyLink}
-            copySuccess={copySuccess}
-            showProfileModal={showProfileModal}
-            setShowProfileModal={setShowProfileModal}
-            showSuccessModal={showSuccessModal}
-            setShowSuccessModal={setShowSuccessModal}
-            universalUrl={universalUrl}
-            QRCode={QRCodeSVG}
-            setShowQR={setShowQR}
-            account={account}
-            parentLoading={isLoading || pendingAccountUpdate}
-          />
+      <DashboardCard>
+        <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center">
+          <FaHome className="w-9 h-9 text-[#1A237E]" />
         </div>
-      </div>
+        <DashboardContent
+          userName={userName}
+          business={business}
+          customPromptPages={customPromptPages}
+          universalPromptPage={universalPromptPage}
+          createPromptPageRef={createPromptPageRef}
+          handleCreatePromptPageClick={handleCreatePromptPageClick}
+          showQR={showQR}
+          handleCopyLink={handleCopyLink}
+          copySuccess={copySuccess}
+          showProfileModal={showProfileModal}
+          setShowProfileModal={setShowProfileModal}
+          showSuccessModal={showSuccessModal}
+          setShowSuccessModal={setShowSuccessModal}
+          universalUrl={universalUrl}
+          QRCode={QRCodeSVG}
+          setShowQR={setShowQR}
+          account={account}
+          parentLoading={isLoading}
+        />
+      </DashboardCard>
     </div>
   );
 }
