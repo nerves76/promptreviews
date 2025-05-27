@@ -34,8 +34,9 @@ export async function POST(req: NextRequest) {
   ) {
     const subscription = event.data.object as Stripe.Subscription;
     const customerId = subscription.customer as string;
-    // Use the Stripe price nickname as the plan name, fallback to 'builder' if missing
-    const plan = subscription.items.data[0]?.price.nickname?.toLowerCase() || 'builder';
+    // Use the Stripe price lookup_key for plan logic (e.g., 'maven_100' -> 'maven')
+    const lookupKey = subscription.items.data[0]?.price.lookup_key?.toLowerCase() || 'builder_35';
+    const plan = lookupKey.split('_')[0]; // e.g., 'maven_100' -> 'maven'
     const status = subscription.status;
 
     // Debug logging
@@ -49,6 +50,7 @@ export async function POST(req: NextRequest) {
       .from('accounts')
       .update({
         plan,
+        plan_lookup_key: lookupKey,
         stripe_subscription_id: subscription.id,
         subscription_status: status,
         ...(isPaidPlan ? { has_had_paid_plan: true } : {}),
@@ -80,6 +82,7 @@ export async function POST(req: NextRequest) {
           .from('accounts')
           .update({
             plan,
+            plan_lookup_key: lookupKey,
             stripe_subscription_id: subscription.id,
             subscription_status: status,
             stripe_customer_id: customerId, // always set this for future events

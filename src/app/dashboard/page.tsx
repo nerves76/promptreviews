@@ -175,6 +175,10 @@ export default function Dashboard() {
     const isActive = account?.subscription_status === 'active';
     const planExpired =
       account?.plan === 'grower' && trialEnd && now > trialEnd && !isActive;
+    // Prevent redirect if plan success modal is open (flag in localStorage)
+    if (typeof window !== 'undefined' && localStorage.getItem('showPlanSuccess') === '1') {
+      return;
+    }
     if (!account?.plan || planExpired || (isOnPaidPlan && !isActive)) {
       router.replace('/dashboard/plan');
       return;
@@ -260,11 +264,6 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen flex justify-center items-start">
       {/* Dashboard content goes here */}
-      <div style={{ position: 'fixed', top: 100, left: 100, zIndex: 9999, background: 'red', color: 'white', padding: 20 }}>
-        DASHBOARD LOADED
-      </div>
-      {/* Debug: Force show pricing modal */}
-      <PricingModal onSelectTier={handleSelectTier} />
       {/* Debug: Manual refetch account button */}
       <button onClick={forceRefetchAccount} className="fixed bottom-4 right-4 bg-indigo-600 text-white px-4 py-2 rounded shadow-lg z-50">Refetch Account</button>
       {/* Post-save share modal */}

@@ -349,6 +349,12 @@ export default function DashboardContent({
     }
   };
 
+  // Soft lock for Grower plan: only allow access to first 3 prompt pages
+  const isGrower = account?.plan === 'grower';
+  const maxGrowerPages = 3;
+  const accessiblePromptPages = isGrower ? sortedPromptPages.slice(0, maxGrowerPages) : sortedPromptPages;
+  const lockedPromptPages = isGrower ? sortedPromptPages.slice(maxGrowerPages) : [];
+
   if (isLoading && !parentLoading) {
     return (
       <div className="min-h-screen">
@@ -376,17 +382,20 @@ export default function DashboardContent({
               <h1 className="text-4xl font-bold text-[#1A237E]">
                 Dashboard
               </h1>
-              <a
-                href="#"
-                ref={createPromptPageRef}
+              <button
                 onClick={e => {
                   e.preventDefault();
+                  if (isGrower && sortedPromptPages.length >= maxGrowerPages) {
+                    alert('Upgrade your plan to create more than 3 prompt pages.');
+                    return;
+                  }
                   setShowTypeModal(true);
                 }}
-                className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 whitespace-nowrap"
+                className={`inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm whitespace-nowrap ${isGrower && sortedPromptPages.length >= maxGrowerPages ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-indigo-600 text-white hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'}`}
+                disabled={isGrower && sortedPromptPages.length >= maxGrowerPages}
               >
                 Create Prompt Page
-              </a>
+              </button>
             </div>
             <div className="mb-16">
               <h2 className="text-2xl font-bold text-[#1A237E]">
@@ -537,192 +546,207 @@ export default function DashboardContent({
                       <p className="text-gray-500">No prompt pages in this status.</p>
                     </div>
                   ) : (
-                    <div className="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-                      <table className="min-w-full divide-y divide-gray-300">
-                        <thead className="bg-gray-50">
-                          <tr>
-                            <th scope="col" className="relative w-12 px-3 py-3.5">
-                              <input
-                                type="checkbox"
-                                className="absolute left-4 top-1/2 -mt-2 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
-                                checked={selectedPages.length === filteredPromptPages.length}
-                                onChange={(e) => handleSelectAll(e.target.checked)}
-                              />
-                            </th>
-                            <th
-                              scope="col"
-                              className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 cursor-pointer select-none hover:bg-gray-100 group"
-                              onClick={() => handleSort('first_name')}
-                            >
-                              <div className="flex items-center gap-1">
-                                First
-                                <span className="text-gray-400 opacity-50 group-hover:opacity-100">
-                                  {sortField === 'first_name' ? (
-                                    sortDirection === 'asc' ? '↑' : '↓'
-                                  ) : (
-                                    <span className="text-xs">↕</span>
-                                  )}
-                                </span>
-                              </div>
-                            </th>
-                            <th
-                              scope="col"
-                              className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 cursor-pointer select-none hover:bg-gray-100 group"
-                              onClick={() => handleSort('last_name')}
-                            >
-                              <div className="flex items-center gap-1">
-                                Last
-                                <span className="text-gray-400 opacity-50 group-hover:opacity-100">
-                                  {sortField === 'last_name' ? (
-                                    sortDirection === 'asc' ? '↑' : '↓'
-                                  ) : (
-                                    <span className="text-xs">↕</span>
-                                  )}
-                                </span>
-                              </div>
-                            </th>
-                            <th
-                              scope="col"
-                              className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 cursor-pointer select-none hover:bg-gray-100 group"
-                              onClick={() => handleSort('review_type')}
-                            >
-                              <div className="flex items-center gap-1">
-                                Type
-                                <span className="text-gray-400 opacity-50 group-hover:opacity-100">
-                                  {sortField === 'review_type' ? (
-                                    sortDirection === 'asc' ? '↑' : '↓'
-                                  ) : (
-                                    <span className="text-xs">↕</span>
-                                  )}
-                                </span>
-                              </div>
-                            </th>
-                            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                              Edit
-                            </th>
-                            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                              Status
-                            </th>
-                            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                              Created
-                            </th>
-                            <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6 text-sm font-semibold text-gray-900">
-                              Send
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-200">
-                          {sortedPromptPages.map((page, index) => (
-                            <tr key={page.id} className={index % 2 === 0 ? 'bg-white' : 'bg-blue-50'}>
-                              <td className="relative w-12 px-3 py-4">
+                    <>
+                      <div className="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+                        <table className="min-w-full divide-y divide-gray-300">
+                          <thead className="bg-gray-50">
+                            <tr>
+                              <th scope="col" className="relative w-12 px-3 py-3.5">
                                 <input
                                   type="checkbox"
                                   className="absolute left-4 top-1/2 -mt-2 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
-                                  checked={selectedPages.includes(page.id)}
-                                  onChange={(e) => handleSelectPage(page.id, e.target.checked)}
+                                  checked={selectedPages.length === filteredPromptPages.length}
+                                  onChange={(e) => handleSelectAll(e.target.checked)}
                                 />
-                              </td>
-                              <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
-                                {page.first_name || ''}
-                              </td>
-                              <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
-                                {page.last_name || ''}
-                              </td>
-                              <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900 capitalize">
-                                {page.review_type === 'prompt' && 'Prompt'}
-                                {page.review_type === 'photo' && 'Photo'}
-                                {page.review_type === 'video' && 'Video'}
-                                {page.review_type === 'experience' && 'Exp.'}
-                                {!['prompt', 'photo', 'video', 'experience'].includes(page.review_type || '') && (page.review_type ? page.review_type.charAt(0).toUpperCase() + page.review_type.slice(1) : 'Prompt')}
-                              </td>
-                              <td className="whitespace-nowrap px-3 py-4 text-sm flex gap-2 items-center">
-                                <div className="mt-[6px] flex gap-2">
-                                  <Link
-                                    href={`/r/${page.slug}`}
-                                    className="text-indigo-600 underline hover:text-indigo-800 hover:underline"
-                                  >
-                                    View
-                                  </Link>
-                                  {page.slug && (
+                              </th>
+                              <th
+                                scope="col"
+                                className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 cursor-pointer select-none hover:bg-gray-100 group"
+                                onClick={() => handleSort('first_name')}
+                              >
+                                <div className="flex items-center gap-1">
+                                  First
+                                  <span className="text-gray-400 opacity-50 group-hover:opacity-100">
+                                    {sortField === 'first_name' ? (
+                                      sortDirection === 'asc' ? '↑' : '↓'
+                                    ) : (
+                                      <span className="text-xs">↕</span>
+                                    )}
+                                  </span>
+                                </div>
+                              </th>
+                              <th
+                                scope="col"
+                                className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 cursor-pointer select-none hover:bg-gray-100 group"
+                                onClick={() => handleSort('last_name')}
+                              >
+                                <div className="flex items-center gap-1">
+                                  Last
+                                  <span className="text-gray-400 opacity-50 group-hover:opacity-100">
+                                    {sortField === 'last_name' ? (
+                                      sortDirection === 'asc' ? '↑' : '↓'
+                                    ) : (
+                                      <span className="text-xs">↕</span>
+                                    )}
+                                  </span>
+                                </div>
+                              </th>
+                              <th
+                                scope="col"
+                                className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 cursor-pointer select-none hover:bg-gray-100 group"
+                                onClick={() => handleSort('review_type')}
+                              >
+                                <div className="flex items-center gap-1">
+                                  Type
+                                  <span className="text-gray-400 opacity-50 group-hover:opacity-100">
+                                    {sortField === 'review_type' ? (
+                                      sortDirection === 'asc' ? '↑' : '↓'
+                                    ) : (
+                                      <span className="text-xs">↕</span>
+                                    )}
+                                  </span>
+                                </div>
+                              </th>
+                              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                                Edit
+                              </th>
+                              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                                Status
+                              </th>
+                              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                                Created
+                              </th>
+                              <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6 text-sm font-semibold text-gray-900">
+                                Send
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white divide-y divide-gray-200">
+                            {accessiblePromptPages.map((page, index) => (
+                              <tr key={page.id} className={index % 2 === 0 ? 'bg-white' : 'bg-blue-50'}>
+                                <td className="relative w-12 px-3 py-4">
+                                  <input
+                                    type="checkbox"
+                                    className="absolute left-4 top-1/2 -mt-2 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                                    checked={selectedPages.includes(page.id)}
+                                    onChange={(e) => handleSelectPage(page.id, e.target.checked)}
+                                  />
+                                </td>
+                                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
+                                  {page.first_name || ''}
+                                </td>
+                                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
+                                  {page.last_name || ''}
+                                </td>
+                                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900 capitalize">
+                                  {page.review_type === 'prompt' && 'Prompt'}
+                                  {page.review_type === 'photo' && 'Photo'}
+                                  {page.review_type === 'video' && 'Video'}
+                                  {page.review_type === 'experience' && 'Exp.'}
+                                  {!['prompt', 'photo', 'video', 'experience'].includes(page.review_type || '') && (page.review_type ? page.review_type.charAt(0).toUpperCase() + page.review_type.slice(1) : 'Prompt')}
+                                </td>
+                                <td className="whitespace-nowrap px-3 py-4 text-sm flex gap-2 items-center">
+                                  <div className="mt-[6px] flex gap-2">
                                     <Link
-                                      href={`/dashboard/edit-prompt-page/${page.slug}`}
+                                      href={`/r/${page.slug}`}
                                       className="text-indigo-600 underline hover:text-indigo-800 hover:underline"
                                     >
-                                      Edit
+                                      View
                                     </Link>
-                                  )}
-                                </div>
-                              </td>
-                              <td className="whitespace-nowrap px-3 py-4 text-sm">
-                                <select
-                                  value={page.status}
-                                  onChange={(e) => updateStatus(page.id, e.target.value as 'in_queue' | 'in_progress' | 'complete' | 'draft')}
-                                  className={`rounded-full px-2 py-1 text-xs font-medium ${STATUS_COLORS[page.status] || 'bg-gray-100 text-gray-800'}`}
-                                >
-                                  <option value="in_queue">In queue</option>
-                                  <option value="in_progress">In progress</option>
-                                  <option value="complete">Complete</option>
-                                  <option value="draft">Draft</option>
-                                </select>
-                              </td>
-                              <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                {new Date(page.created_at).toLocaleDateString()}
-                              </td>
-                              <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                                <div className="flex flex-row gap-2 items-center justify-end">
-                                  {!page.is_universal && page.phone && (
-                                    <button
-                                      type="button"
-                                      className="inline-flex items-center px-3 py-1.5 bg-green-100 text-green-800 rounded hover:bg-green-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap w-full sm:w-auto"
-                                      onClick={() => {
-                                        const name = page.first_name || '[name]';
-                                        const businessName = business?.name || '[Business]';
-                                        const reviewUrl = `${window.location.origin}/r/${page.slug}`;
-                                        const message = `Hi ${name}, do you have 1-3 minutes to leave a review for ${businessName}? I have a review you can use and everything. Positive reviews really help small business get found online. Thanks so much! ${reviewUrl}`;
-                                        window.location.href = `sms:${page.phone}?&body=${encodeURIComponent(message)}`;
-                                      }}
-                                    >
-                                      Send SMS
-                                    </button>
-                                  )}
-                                  {!page.is_universal && page.email && (
-                                    <a
-                                      href={`mailto:${page.email}?subject=${encodeURIComponent('Quick Review Request')}&body=${encodeURIComponent(`Hi ${page.first_name || '[name]'}, do you have 1-3 minutes to leave a review for ${business?.name || '[Business]'}? I have a review you can use and everything. Positive reviews really help small business get found online. Thanks so much! ${window.location.origin}/r/${page.slug}`)}`}
-                                      className="inline-flex items-center px-3 py-1.5 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap w-full sm:w-auto"
-                                    >
-                                      Send Email
-                                    </a>
-                                  )}
-                                  {!page.is_universal && (
-                                    <button
-                                      type="button"
-                                      className="inline-flex items-center px-2 py-1.5 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap w-full sm:w-auto"
-                                      title="Copy link"
-                                      onClick={async () => {
-                                        await navigator.clipboard.writeText(`${window.location.origin}/r/${page.slug}`);
-                                        setCopyLinkId(page.id);
-                                        setTimeout(() => setCopyLinkId(null), 2000);
-                                      }}
-                                    >
-                                      <FaLink className="w-4 h-4" />
-                                    </button>
-                                  )}
-                                  <button
-                                    type="button"
-                                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-soft-peach text-slate-blue rounded hover:bg-soft-peach/80 text-sm font-medium shadow h-9 align-middle whitespace-nowrap w-full sm:w-auto"
-                                    aria-label="Download QR Code"
-                                    onClick={() => setQrModal({ open: true, url: `${window.location.origin}/r/${page.slug}`, clientName: `${page.first_name || ''} ${page.last_name || ''}`.trim() || business?.name || 'PromptReviews', logoUrl: business?.logo_url })}
+                                    {page.slug && (
+                                      <Link
+                                        href={`/dashboard/edit-prompt-page/${page.slug}`}
+                                        className="text-indigo-600 underline hover:text-indigo-800 hover:underline"
+                                      >
+                                        Edit
+                                      </Link>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="whitespace-nowrap px-3 py-4 text-sm">
+                                  <select
+                                    value={page.status}
+                                    onChange={(e) => updateStatus(page.id, e.target.value as 'in_queue' | 'in_progress' | 'complete' | 'draft')}
+                                    className={`rounded-full px-2 py-1 text-xs font-medium ${STATUS_COLORS[page.status] || 'bg-gray-100 text-gray-800'}`}
                                   >
-                                    <MdDownload className="w-5 h-5" />
-                                    QR code
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                                    <option value="in_queue">In queue</option>
+                                    <option value="in_progress">In progress</option>
+                                    <option value="complete">Complete</option>
+                                    <option value="draft">Draft</option>
+                                  </select>
+                                </td>
+                                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                  {new Date(page.created_at).toLocaleDateString()}
+                                </td>
+                                <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                                  <div className="flex flex-row gap-2 items-center justify-end">
+                                    {!page.is_universal && page.phone && (
+                                      <button
+                                        type="button"
+                                        className="inline-flex items-center px-3 py-1.5 bg-green-100 text-green-800 rounded hover:bg-green-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap w-full sm:w-auto"
+                                        onClick={() => {
+                                          const name = page.first_name || '[name]';
+                                          const businessName = business?.name || '[Business]';
+                                          const reviewUrl = `${window.location.origin}/r/${page.slug}`;
+                                          const message = `Hi ${name}, do you have 1-3 minutes to leave a review for ${businessName}? I have a review you can use and everything. Positive reviews really help small business get found online. Thanks so much! ${reviewUrl}`;
+                                          window.location.href = `sms:${page.phone}?&body=${encodeURIComponent(message)}`;
+                                        }}
+                                      >
+                                        Send SMS
+                                      </button>
+                                    )}
+                                    {!page.is_universal && page.email && (
+                                      <a
+                                        href={`mailto:${page.email}?subject=${encodeURIComponent('Quick Review Request')}&body=${encodeURIComponent(`Hi ${page.first_name || '[name]'}, do you have 1-3 minutes to leave a review for ${business?.name || '[Business]'}? I have a review you can use and everything. Positive reviews really help small business get found online. Thanks so much! ${window.location.origin}/r/${page.slug}`)}`}
+                                        className="inline-flex items-center px-3 py-1.5 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap w-full sm:w-auto"
+                                      >
+                                        Send Email
+                                      </a>
+                                    )}
+                                    {!page.is_universal && (
+                                      <button
+                                        type="button"
+                                        className="inline-flex items-center px-2 py-1.5 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap w-full sm:w-auto"
+                                        title="Copy link"
+                                        onClick={async () => {
+                                          await navigator.clipboard.writeText(`${window.location.origin}/r/${page.slug}`);
+                                          setCopyLinkId(page.id);
+                                          setTimeout(() => setCopyLinkId(null), 2000);
+                                        }}
+                                      >
+                                        <FaLink className="w-4 h-4" />
+                                      </button>
+                                    )}
+                                    <button
+                                      type="button"
+                                      className="inline-flex items-center gap-1 px-3 py-1.5 bg-soft-peach text-slate-blue rounded hover:bg-soft-peach/80 text-sm font-medium shadow h-9 align-middle whitespace-nowrap w-full sm:w-auto"
+                                      aria-label="Download QR Code"
+                                      onClick={() => setQrModal({ open: true, url: `${window.location.origin}/r/${page.slug}`, clientName: `${page.first_name || ''} ${page.last_name || ''}`.trim() || business?.name || 'PromptReviews', logoUrl: business?.logo_url })}
+                                    >
+                                      <MdDownload className="w-5 h-5" />
+                                      QR code
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                            {lockedPromptPages.length > 0 && (
+                              <tr>
+                                <td colSpan={8} className="py-6 text-center bg-yellow-50 text-yellow-800 font-semibold">
+                                  <div className="mb-2">You have more than 3 prompt pages. Upgrade your plan to access the rest.</div>
+                                  {lockedPromptPages.map(page => (
+                                    <div key={page.id} className="flex items-center justify-between px-4 py-2 bg-yellow-100 rounded mb-2">
+                                      <span className="font-medium">Prompt Page: {page.first_name || page.last_name || page.slug}</span>
+                                      <span className="text-xs text-yellow-700">Locked</span>
+                                    </div>
+                                  ))}
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </>
                   )}
                 </div>
               </div>

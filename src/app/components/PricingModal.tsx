@@ -4,7 +4,7 @@ const tiers = [
   {
     key: 'grower',
     name: 'Grower',
-    price: '20 / month',
+    price: '15 / month',
     order: 1,
     bg: 'bg-blue-100', // Replace with your brand color if needed
     text: 'text-purple-700',
@@ -19,7 +19,7 @@ const tiers = [
   {
     key: 'builder',
     name: 'Builder',
-    price: '40 / month',
+    price: '35 / month',
     order: 2,
     bg: 'bg-purple-200', // Replace with your brand color if needed
     text: 'text-purple-700',
@@ -88,7 +88,6 @@ export default function PricingModal({ onSelectTier, asModal = true, currentPlan
   return (
     <div className={wrapperClass}>
       <div className="flex flex-col items-center w-full max-w-7xl mx-auto p-8 px-4">
-        <h2 className="text-3xl md:text-4xl font-bold text-white mb-8 text-center w-full">Choose your plan</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full">
           {tiers.map(tier => {
             const isGrower = tier.key === 'grower';
@@ -97,17 +96,35 @@ export default function PricingModal({ onSelectTier, asModal = true, currentPlan
                 key={tier.key}
                 className={
                   `${tier.bg} rounded-2xl shadow-lg p-8 md:p-10 flex flex-col items-center w-full max-w-xs md:max-w-sm lg:max-w-md xl:max-w-lg relative ` +
-                  (isGrower ? ' border-4 border-slate-blue ring-2 ring-yellow-400' : '')
+                  (tier.key === currentPlan ? ' border border-4 border-solid border-indigo-700' : '') +
+                  (
+                    isGrower && !hasHadPaidPlan && (!currentPlan || currentPlan === 'grower' || currentPlan === 'free' || currentPlan === 'none')
+                      ? ' ring-2 ring-yellow-400'
+                      : ''
+                  )
                 }
-                style={{ minHeight: 420, marginBottom: '2rem' }}
+                style={{
+                  minHeight: 420,
+                  marginBottom: '2rem',
+                  borderColor: tier.key === currentPlan ? '#4338ca' : undefined
+                }}
               >
-                {isGrower && !hasHadPaidPlan && (
+                {/* Show gold banner only if user has NOT had a paid plan and is NOT currently subscribed */}
+                {isGrower && !hasHadPaidPlan && (!currentPlan || currentPlan === 'grower' || currentPlan === 'free' || currentPlan === 'none') && (
                   <span className="absolute -top-5 left-1/2 -translate-x-1/2 bg-yellow-400 text-slate-900 font-bold px-4 py-1 rounded-full text-xs shadow-lg z-10 border border-yellow-300">14-day Free Trial</span>
                 )}
                 <h3 className={`text-3xl font-bold mb-2 ${tier.text}`}>{tier.name}</h3>
                 <div className={`text-2xl font-semibold mb-4 ${tier.text}`}>{tier.price}</div>
                 <ul className="mb-8 text-lg text-gray-800 space-y-2">
                   {tier.features.map(f => {
+                    // Hide the 14-day free trial feature if user is already subscribed or has had a paid plan
+                    if (
+                      isGrower &&
+                      f.includes('14-day free trial') &&
+                      (hasHadPaidPlan || (currentPlan && currentPlan !== 'grower' && currentPlan !== 'free' && currentPlan !== 'none'))
+                    ) {
+                      return null;
+                    }
                     const isBold = f.startsWith('**');
                     const cleanFeature = f.replace('**', '');
                     let tooltipText = featureTooltips[cleanFeature.replace('*', '').trim()];
@@ -158,7 +175,7 @@ export default function PricingModal({ onSelectTier, asModal = true, currentPlan
             {tooltip}
           </div>
         )}
-        <div className="mt-8 text-xs text-gray-300 text-center w-full">
+        <div className="mt-8 text-xs text-black text-center w-full">
           By continuing, you agree to our{' '}
           <a href="/terms" target="_blank" rel="noopener noreferrer" className="underline text-gray-100 hover:text-yellow-200">Terms & Conditions</a>{' '}and{' '}
           <a href="/privacy" target="_blank" rel="noopener noreferrer" className="underline text-gray-100 hover:text-yellow-200">Privacy Policy</a>.
@@ -166,4 +183,6 @@ export default function PricingModal({ onSelectTier, asModal = true, currentPlan
       </div>
     </div>
   );
-} 
+}
+
+export { tiers }; 

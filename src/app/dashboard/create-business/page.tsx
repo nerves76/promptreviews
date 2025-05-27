@@ -12,7 +12,7 @@ import { slugify } from '@/utils/slugify';
 import { FaImage, FaBuilding, FaInfoCircle, FaAddressBook, FaList, FaShareAlt, FaClock, FaMapMarkerAlt, FaGift, FaStore } from 'react-icons/fa';
 import { getUserOrMock } from '@/utils/supabase';
 import BusinessForm from '../components/BusinessForm';
-import PricingModal from '../../components/PricingModal';
+import { useRequirePlan } from '@/utils/useRequirePlan';
 
 interface Platform {
   name: string;
@@ -106,7 +106,6 @@ export default function CreateBusinessPage() {
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [rawLogoFile, setRawLogoFile] = useState<File | null>(null);
   const [account, setAccount] = useState<any>(null);
-  const [showPricingModal, setShowPricingModal] = useState(false);
   const [showTrialConfirmation, setShowTrialConfirmation] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
 
@@ -137,24 +136,6 @@ export default function CreateBusinessPage() {
     };
     fetchUser();
   }, [supabase]);
-
-  useEffect(() => {
-    const paidPlans = ['grower', 'builder', 'maven'];
-    const isOnGrower = account?.plan === 'grower';
-    const isGrowerTrial = isOnGrower && account?.has_had_paid_plan === false && account?.trial_end && new Date(account.trial_end) > new Date();
-    if (
-      account && (
-        !account.plan ||
-        !paidPlans.includes(account.plan) ||
-        ([ 'builder', 'maven' ].includes(account.plan) && account.subscription_status !== 'active') ||
-        (isOnGrower && isGrowerTrial)
-      )
-    ) {
-      setShowPricingModal(true);
-    } else {
-      setShowPricingModal(false);
-    }
-  }, [account]);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && localStorage.getItem('showGrowerSuccess') === '1') {
@@ -422,39 +403,7 @@ export default function CreateBusinessPage() {
     setRawLogoFile(null);
   };
 
-  const handleSelectTier = async (tierKey: string) => {
-    if (!account) return;
-    if (tierKey === 'builder' || tierKey === 'maven') {
-      if (!userEmail) {
-        alert('No valid email address found for checkout.');
-        return;
-      }
-      // Call your API to create a Stripe Checkout session
-      const res = await fetch('/api/create-checkout-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          plan: tierKey,
-          userId: account.id,
-          email: userEmail
-        }),
-      });
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url; // Redirect to Stripe Checkout
-        return;
-      } else {
-        alert('Failed to start checkout: ' + (data.error || 'Unknown error'));
-        return;
-      }
-    }
-    // For grower (trial) or free plans, just update the plan and reload the page
-    await supabase.from('accounts').update({ plan: tierKey }).eq('id', account.id);
-    if (typeof window !== 'undefined' && tierKey === 'grower') {
-      localStorage.setItem('showGrowerSuccess', '1');
-    }
-    window.location.reload();
-  };
+  useRequirePlan(account, ['/dashboard/account', '/dashboard/billing']);
 
   return (
     <>
@@ -466,7 +415,6 @@ export default function CreateBusinessPage() {
           </div>
         </div>
       )}
-      {showPricingModal && <PricingModal onSelectTier={handleSelectTier} hasHadPaidPlan={account?.has_had_paid_plan} />}
       <div className="w-full mx-auto mt-6 relative rounded-lg shadow-lg p-8 bg-white" style={{maxWidth: 1000}}>
         {/* Floating Icon */}
         <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center w-16 h-16">
@@ -498,7 +446,7 @@ export default function CreateBusinessPage() {
                   youtube_url: '',
                   linkedin_url: 'https://www.linkedin.com/in/chris-bolton-a7b146a/',
                   pinterest_url: '',
-                  industry: ['B2B'],
+                  industry: 'B2B',
                   industry_other: 'professional services',
                   industries_served: 'agencies, small business',
                   services_offered: '', // handled by setServices

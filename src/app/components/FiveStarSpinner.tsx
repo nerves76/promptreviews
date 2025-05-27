@@ -6,7 +6,7 @@ export default function FiveStarSpinner() {
   useEffect(() => {
     const interval = setInterval(() => {
       setActiveIndex((prev) => (prev + 1) % 5);
-    }, 650); // slower speed
+    }, 250); // faster speed
     return () => clearInterval(interval);
   }, []);
 
