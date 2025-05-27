@@ -164,6 +164,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     const paidPlans = ['builder', 'maven'];
+    const isFree = account?.plan === 'free' || account?.is_free_account === true;
     if (
       success === '1' &&
       account &&
@@ -178,12 +179,15 @@ export default function Dashboard() {
 
   useEffect(() => {
     const paidPlans = ['builder', 'maven'];
+    const isFree = account?.plan === 'free' || account?.is_free_account === true;
     if (
       !pendingAccountUpdate &&
       account && (
         !account.plan ||
-        !paidPlans.includes(account.plan) ||
-        (paidPlans.includes(account.plan) && account.subscription_status !== 'active')
+        (!isFree && (
+          !paidPlans.includes(account.plan) ||
+          (paidPlans.includes(account.plan) && account.subscription_status !== 'active')
+        ))
       )
     ) {
       setShowPricingModal(true);
