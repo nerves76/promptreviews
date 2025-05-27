@@ -68,10 +68,12 @@ export default function SignIn() {
         if (!accountData) {
           const firstName = data.user.user_metadata?.first_name || '';
           const lastName = data.user.user_metadata?.last_name || '';
+          const email = data.user.email || '';
           const { error: createError } = await supabase
             .from('accounts')
             .insert({
               id: data.user.id,
+              email,
               plan: '',
               trial_start: new Date().toISOString(),
               trial_end: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(),
