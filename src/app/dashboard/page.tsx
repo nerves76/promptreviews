@@ -163,33 +163,24 @@ export default function Dashboard() {
   }, [success, user, supabase]);
 
   useEffect(() => {
-    const paidPlans = ['builder', 'maven'];
-    const isFree = account?.plan === 'free' || account?.is_free_account === true;
-    if (
-      success === '1' &&
-      account &&
-      paidPlans.includes(account.plan) &&
-      account.subscription_status === 'active'
-    ) {
-      setPendingAccountUpdate(false);
-      setShowSuccessModal(true);
-      console.log('Account is paid and active, hiding spinner and showing modal.');
-    }
-  }, [success, account]);
+    const paidPlans = ['grower', 'builder', 'maven'];
+    const now = new Date();
+    const trialStart = account?.trial_start ? new Date(account.trial_start) : null;
+    const trialEnd = account?.trial_end ? new Date(account.trial_end) : null;
+    const isOnPaidPlan = paidPlans.includes(account?.plan);
+    const isActive = account?.subscription_status === 'active';
 
-  useEffect(() => {
-    const paidPlans = ['builder', 'maven'];
-    const isFree = account?.plan === 'free' || account?.is_free_account === true;
-    if (
-      !pendingAccountUpdate &&
-      account && (
-        !account.plan ||
-        (!isFree && (
-          !paidPlans.includes(account.plan) ||
-          (paidPlans.includes(account.plan) && account.subscription_status !== 'active')
-        ))
-      )
-    ) {
+    // Show modal if:
+    // - No plan selected
+    // - On grower, but trial not started
+    // - On grower, trial expired and not paid (not active)
+    // - On any paid plan, but not active
+    const shouldShowPricingModal =
+      !account?.plan ||
+      (account.plan === 'grower' && (!trialStart || !trialEnd || now < trialStart || now > trialEnd) && !isActive) ||
+      (isOnPaidPlan && !isActive);
+
+    if (!pendingAccountUpdate && account && shouldShowPricingModal) {
       setShowPricingModal(true);
     } else {
       setShowPricingModal(false);
