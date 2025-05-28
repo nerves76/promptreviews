@@ -1,32 +1,28 @@
-import formData from 'form-data';
-import Mailgun from 'mailgun.js';
+import { Resend } from 'resend';
 
-const mailgun = new Mailgun(formData);
-const mg = mailgun.client({
-  username: 'api',
-  key: process.env.MAILGUN_API_KEY || '',
-});
-
-const DOMAIN = process.env.MAILGUN_DOMAIN || '';
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const sendWelcomeEmail = async (email: string, name: string) => {
-  const data = {
-    from: `PromptReviews <noreply@${DOMAIN}>`,
-    to: email,
-    subject: 'Welcome to PromptReviews! 🎉',
-    template: 'welcome-email',
-    'h:X-Mailgun-Variables': JSON.stringify({
-      name: name,
-      login_url: `${process.env.NEXT_PUBLIC_APP_URL}/login`,
-      dashboard_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
-    }),
-  };
+  const loginUrl = process.env.NEXT_PUBLIC_APP_URL
+    ? `${process.env.NEXT_PUBLIC_APP_URL}/login`
+    : 'https://promptreviews.com/login';
+  const dashboardUrl = process.env.NEXT_PUBLIC_APP_URL
+    ? `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`
+    : 'https://promptreviews.com/dashboard';
 
   try {
-    await mg.messages.create(DOMAIN, data);
-    return { success: true };
+    const result = await resend.emails.send({
+      from: 'PromptReviews <noreply@updates.promptreviews.app>',
+      to: email,
+      subject: 'Welcome to PromptReviews! 🎉',
+      html: `<p>Hi ${name},</p>
+        <p>Welcome to PromptReviews! We're excited to have you on board.</p>
+        <p>You can <a href="${loginUrl}">log in here</a> or go directly to your <a href="${dashboardUrl}">dashboard</a>.</p>
+        <p>Thanks for joining us!<br/>- The PromptReviews Team</p>`
+    });
+    return { success: true, result };
   } catch (error) {
-    console.error('Error sending welcome email:', error);
+    console.error('Error sending welcome email (Resend):', error);
     return { success: false, error };
   }
 };
@@ -54,18 +50,19 @@ export const sendReviewNotificationEmail = async (
     ? `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`
     : 'https://promptreviews.com/dashboard';
 
-  const data = {
-    from: `PromptReviews <noreply@${DOMAIN}>`,
-    to: email,
-    subject,
-    text: `Hi ${accountName},\n\nYou've got a new Prompt Review.\n\nLog in here to check it out:\n${loginUrl}\n\n:)\n\nChris`,
-  };
+  const text = `Hi ${accountName},\n\nYou've got a new Prompt Review.\n\nLog in here to check it out:\n${loginUrl}\n\n:)
+Chris`;
 
   try {
-    await mg.messages.create(DOMAIN, data);
-    return { success: true };
+    const result = await resend.emails.send({
+      from: 'PromptReviews <noreply@updates.promptreviews.app>',
+      to: email,
+      subject,
+      text,
+    });
+    return { success: true, result };
   } catch (error) {
-    console.error('Error sending review notification email:', error);
+    console.error('Error sending review notification email (Resend):', error);
     return { success: false, error };
   }
 }; 

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2023-08-16' });
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 export async function POST(req: NextRequest) {
   const sig = req.headers.get('stripe-signature');
@@ -61,12 +61,16 @@ export async function POST(req: NextRequest) {
 
     // Fallback: try to update by email if no row was updated
     if (!updateResult.data || updateResult.data.length === 0) {
-      let email = subscription.customer_email || subscription.metadata?.email || null;
+      let email = subscription.metadata?.email || null;
       if (!email) {
         // Fetch customer from Stripe if email is missing
         try {
           const customer = await stripe.customers.retrieve(customerId);
-          if (typeof customer === 'object' && customer.email) {
+          if (
+            typeof customer === 'object' &&
+            'email' in customer &&
+            customer.email
+          ) {
             email = customer.email;
             console.log('Fetched email from Stripe customer:', email);
           } else {

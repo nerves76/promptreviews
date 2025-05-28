@@ -188,7 +188,7 @@ export default function PlanPage() {
             : 'Upgrade, downgrade, or renew your subscription below.'}
         </div>
         <div className="w-full max-w-5xl">
-          <PricingModal onSelectTier={handleSelectTier} asModal={false} currentPlan={currentPlan} hasHadPaidPlan={account?.has_had_paid_plan} />
+          <PricingModal onSelectTier={handleSelectTier} asModal={false} currentPlan={currentPlan || undefined} hasHadPaidPlan={account?.has_had_paid_plan} />
         </div>
         {account?.stripe_customer_id && (
           <button

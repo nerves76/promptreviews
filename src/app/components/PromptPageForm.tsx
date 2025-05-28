@@ -49,21 +49,21 @@ export default function PromptPageForm({
 
   // Handlers for review platforms
   const handleAddPlatform = () => {
-    setFormData(prev => ({
+    setFormData((prev: any) => ({
       ...prev,
       review_platforms: [...prev.review_platforms, { platform: '', url: '' }],
     }));
   };
   const handleRemovePlatform = (index: number) => {
-    setFormData(prev => ({
+    setFormData((prev: any) => ({
       ...prev,
-      review_platforms: prev.review_platforms.filter((_, i) => i !== index),
+      review_platforms: prev.review_platforms.filter((_: any, i: number) => i !== index),
     }));
   };
   const handlePlatformChange = (index: number, field: keyof typeof formData.review_platforms[0], value: any) => {
-    setFormData(prev => ({
+    setFormData((prev: any) => ({
       ...prev,
-      review_platforms: prev.review_platforms.map((platform, i) => 
+      review_platforms: prev.review_platforms.map((platform: any, i: number) => 
         i === index ? { ...platform, [field]: value } : platform
       )
     }));
@@ -89,9 +89,9 @@ export default function PromptPageForm({
         formData.review_platforms[index].wordCount || 200,
         formData.review_platforms[index].customInstructions
       );
-      setFormData(prev => ({
+      setFormData((prev: any) => ({
         ...prev,
-        review_platforms: prev.review_platforms.map((link, i) =>
+        review_platforms: prev.review_platforms.map((link: any, i: number) =>
           i === index ? { ...link, reviewText: review } : link
         ),
       }));
@@ -123,7 +123,7 @@ export default function PromptPageForm({
         formData.friendly_note
       );
       setNoPlatformReviewTemplate(review);
-      setFormData(prev => ({ ...prev, no_platform_review_template: review }));
+      setFormData((prev: any) => ({ ...prev, no_platform_review_template: review }));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to generate testimonial template');
     } finally {
@@ -166,7 +166,7 @@ export default function PromptPageForm({
                   type="text"
                   id="first_name"
                   value={formData.first_name}
-                  onChange={e => setFormData(prev => ({ ...prev, first_name: e.target.value }))}
+                  onChange={e => setFormData((prev: any) => ({ ...prev, first_name: e.target.value }))}
                   className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
                   placeholder="Their first name"
                   required
@@ -178,7 +178,7 @@ export default function PromptPageForm({
                   type="text"
                   id="last_name"
                   value={formData.last_name}
-                  onChange={e => setFormData(prev => ({ ...prev, last_name: e.target.value }))}
+                  onChange={e => setFormData((prev: any) => ({ ...prev, last_name: e.target.value }))}
                   className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
                   placeholder="Their last name"
                   required
@@ -195,7 +195,7 @@ export default function PromptPageForm({
                   type="tel"
                   id="phone"
                   value={formData.phone || ''}
-                  onChange={e => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                  onChange={e => setFormData((prev: any) => ({ ...prev, phone: e.target.value }))}
                   className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
                   placeholder="Their phone number"
                 />
@@ -209,7 +209,7 @@ export default function PromptPageForm({
                   type="email"
                   id="email"
                   value={formData.email || ''}
-                  onChange={e => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                  onChange={e => setFormData((prev: any) => ({ ...prev, email: e.target.value }))}
                   className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
                   placeholder="Their email address"
                 />
@@ -224,7 +224,7 @@ export default function PromptPageForm({
                 type="text"
                 id="role"
                 value={formData.role}
-                onChange={e => setFormData(prev => ({ ...prev, role: e.target.value }))}
+                onChange={e => setFormData((prev: any) => ({ ...prev, role: e.target.value }))}
                 className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
                 placeholder="e.g., store manager, marketing director, student (their role)"
               />
@@ -245,7 +245,7 @@ export default function PromptPageForm({
                       const newServices = [...services];
                       newServices[idx] = e.target.value;
                       setServices(newServices);
-                      setFormData(prev => ({ ...prev, services_offered: newServices }));
+                      setFormData((prev: any) => ({ ...prev, services_offered: newServices }));
                     }}
                     required
                     placeholder="e.g., Web Design"
@@ -254,14 +254,14 @@ export default function PromptPageForm({
                     <button type="button" onClick={() => {
                       const newServices = services.filter((_, i) => i !== idx);
                       setServices(newServices);
-                      setFormData(prev => ({ ...prev, services_offered: newServices }));
+                      setFormData((prev: any) => ({ ...prev, services_offered: newServices }));
                     }} className="text-red-600 font-bold">&times;</button>
                   )}
                 </div>
               ))}
               <button type="button" onClick={() => {
                 setServices([...services, '']);
-                setFormData(prev => ({ ...prev, services_offered: [...services, ''] }));
+                setFormData((prev: any) => ({ ...prev, services_offered: [...services, ''] }));
               }} className="text-blue-600 underline mt-2">+ Add Service</button>
             </div>
             <div>
@@ -273,7 +273,7 @@ export default function PromptPageForm({
               <textarea
                 id="outcomes"
                 value={formData.outcomes}
-                onChange={e => setFormData(prev => ({ ...prev, outcomes: e.target.value }))}
+                onChange={e => setFormData((prev: any) => ({ ...prev, outcomes: e.target.value }))}
                 rows={4}
                 className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
                 placeholder="Describe the outcome for your client"
@@ -289,7 +289,7 @@ export default function PromptPageForm({
                 key={businessProfile?.business_name || 'no-business-name'}
                 id="friendly_note"
                 value={formData.friendly_note}
-                onChange={e => setFormData(prev => ({ ...prev, friendly_note: e.target.value }))}
+                onChange={e => setFormData((prev: any) => ({ ...prev, friendly_note: e.target.value }))}
                 rows={4}
                 className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
                 placeholder={`Hi ${formData.first_name || '[name]'}, thanks so much for doing business with ${businessProfile?.business_name || '[business name]'}. As a small business, getting reviews online is super valuable and extends our reach. Thank you for supporting us!\n\n- ${businessProfile?.business_name || '[Account holder name]'}`}

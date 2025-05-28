@@ -75,7 +75,7 @@ export async function POST(request: Request) {
       columns: (headers) => {
         console.log('Raw headers before mapping:', headers);
         // Normalize header: lowercase, remove spaces/underscores
-        const normalize = (h) => h.toLowerCase().replace(/\s|_/g, '');
+        const normalize = (h: string) => h.toLowerCase().replace(/\s|_/g, '');
         const expected = {
           first_name: ['firstname', 'first name', 'first_name'],
           last_name: ['lastname', 'last name', 'last_name'],
@@ -91,7 +91,7 @@ export async function POST(request: Request) {
           outcomes: ['outcomes']
         };
         // Map normalized header to expected field
-        return headers.map(header => {
+        return headers.map((header: string) => {
           const norm = normalize(header);
           for (const [key, aliases] of Object.entries(expected)) {
             if (aliases.includes(norm)) return key;

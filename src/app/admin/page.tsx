@@ -200,8 +200,8 @@ export default function AdminDashboard() {
 
         const processedAccountsWithMostAI = accountsWithMostAI?.map(page => ({
           id: page.id,
-          businessName: page.businesses?.name,
-          businessEmail: page.businesses?.email,
+          businessName: page.businesses?.[0]?.name,
+          businessEmail: page.businesses?.[0]?.email,
           aiUsage: page.analytics_events?.length || 0
         })).sort((a, b) => b.aiUsage - a.aiUsage) || [];
 
