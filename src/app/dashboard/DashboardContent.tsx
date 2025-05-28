@@ -8,6 +8,7 @@ import { MdDownload, MdEvent, MdVideoLibrary, MdPhotoCamera } from 'react-icons/
 import { getUserOrMock } from '@/utils/supabase';
 import QRCodeGenerator, { QR_FRAME_SIZES } from './components/QRCodeGenerator';
 import { useRouter } from 'next/navigation';
+import FiveStarSpinner from '@/app/components/FiveStarSpinner';
 
 interface DashboardContentProps {
   userName: string;
@@ -360,7 +361,7 @@ export default function DashboardContent({
       <div className="min-h-screen">
         <div className="w-full mx-auto bg-white rounded-lg shadow p-16">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+            <FiveStarSpinner />
             <p className="mt-4 text-gray-600">Loading prompt pages...</p>
           </div>
         </div>
@@ -387,7 +388,7 @@ export default function DashboardContent({
                   }
                   setShowTypeModal(true);
                 }}
-                className={`inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm whitespace-nowrap ${isGrower && sortedPromptPages.length >= maxGrowerPages ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-indigo-600 text-white hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'}`}
+                className={`inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm whitespace-nowrap ${isGrower && sortedPromptPages.length >= maxGrowerPages ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-slate-blue text-white hover:bg-slate-blue/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-blue'}`}
                 disabled={isGrower && sortedPromptPages.length >= maxGrowerPages}
               >
                 Create Prompt Page

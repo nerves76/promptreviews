@@ -328,6 +328,20 @@ export default function BusinessForm({
             rows={4}
           />
         </div>
+        <div className="mb-4">
+          <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
+            AI Dos
+            <Tooltip text="What should the AI always do or say in reviews? (e.g., Always refer to us as 'Prompt Reviews', Always mention our 24/7 support, etc.)" />
+          </label>
+          <textarea name="ai_dos" className="w-full border px-3 py-2 rounded" value={form.ai_dos || ''} onChange={handleChange} placeholder="Always refer to us as 'Prompt Reviews'. Always mention our 24/7 support." />
+        </div>
+        <div className="mb-4">
+          <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
+            AI Don'ts
+            <Tooltip text="What should the AI avoid doing or saying? (e.g., Never call us 'PromptReviewz', Never mention pricing, etc.)" />
+          </label>
+          <textarea name="ai_donts" className="w-full border px-3 py-2 rounded" value={form.ai_donts || ''} onChange={handleChange} placeholder="Never call us 'PromptReviewz'. Never mention pricing." />
+        </div>
       </div>
       {/* Review Platforms Section */}
       <div className="mb-16">
@@ -354,10 +368,13 @@ export default function BusinessForm({
                 <option value="Yelp">Yelp</option>
                 <option value="Facebook">Facebook</option>
                 <option value="TripAdvisor">TripAdvisor</option>
-                <option value="Angi">Angi</option>
-                <option value="Houzz">Houzz</option>
+                <option value="G2">G2</option>
                 <option value="BBB">BBB</option>
                 <option value="Thumbtack">Thumbtack</option>
+                <option value="Clutch">Clutch</option>
+                <option value="Capterra">Capterra</option>
+                <option value="Angi">Angi</option>
+                <option value="Houzz">Houzz</option>
                 <option value="HomeAdvisor">HomeAdvisor</option>
                 <option value="Trustpilot">Trustpilot</option>
                 <option value="Other">Other</option>

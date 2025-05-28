@@ -35,6 +35,21 @@ export async function POST(req: NextRequest) {
       }
       if (account && account.stripe_customer_id) {
         stripeCustomerId = account.stripe_customer_id;
+        // Prevent multiple active subscriptions
+        const subscriptions = await stripe.subscriptions.list({
+          customer: stripeCustomerId,
+          status: 'all',
+          limit: 10,
+        });
+        const hasActive = subscriptions.data.some(sub =>
+          ['active', 'trialing', 'past_due', 'unpaid'].includes(sub.status)
+        );
+        if (hasActive) {
+          return NextResponse.json(
+            { error: 'You already have an active subscription. Please manage your plan in the billing portal.' },
+            { status: 400 }
+          );
+        }
       }
     }
 

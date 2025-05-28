@@ -10,6 +10,7 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import DashboardCard from '../components/DashboardCard';
+import FiveStarSpinner from '@/app/components/FiveStarSpinner';
 
 // Helper to convert hex to rgba
 function hexToRgba(hex: string, alpha: number) {
@@ -200,10 +201,7 @@ export default function WidgetPage() {
         >
           {loading ? (
             <div className="flex flex-col items-center justify-center py-8 text-gray-500">
-              <svg className="animate-spin h-8 w-8 text-indigo-500 mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-              </svg>
+              <FiveStarSpinner />
               Loading reviews…
             </div>
           ) : isClient && design.showGrid ? (

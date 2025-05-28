@@ -5,6 +5,7 @@ import { useAuthGuard } from '@/utils/authGuard';
 import { createBrowserClient } from '@supabase/ssr';
 import { FaDownload, FaUpload, FaInfoCircle, FaQuestionCircle, FaList, FaEye, FaUsers } from 'react-icons/fa';
 import { getSessionOrMock } from '@/utils/supabase';
+import FiveStarSpinner from '@/app/components/FiveStarSpinner';
 
 export default function UploadContactsPage() {
   useAuthGuard();
@@ -217,12 +218,10 @@ export default function UploadContactsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen py-12 px-2">
-        <div className="w-full mx-auto">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading contacts...</p>
-          </div>
+      <div className="min-h-screen flex justify-center items-center">
+        <div className="text-center">
+          <div className="mb-4"><FiveStarSpinner /></div>
+          <p className="mt-4 text-gray-600">Loading contacts...</p>
         </div>
       </div>
     );
@@ -230,8 +229,8 @@ export default function UploadContactsPage() {
 
   return (
     <div className="min-h-screen py-12 px-2">
-      <div className="w-full mx-auto bg-white rounded-lg shadow-lg p-8 relative" style={{maxWidth: 1000}}>
-        <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center">
+      <div className="w-full mx-auto bg-white rounded-lg shadow-lg p-8 relative mt-0 md:mt-[30px]" style={{maxWidth: 1000}}>
+        <div className="absolute left-0 md:left-[-24px] top-0 md:top-[30px] z-10 bg-white rounded-full shadow p-3 flex items-center justify-center">
           <FaUpload className="w-9 h-9 text-slate-blue" />
         </div>
         <div className="flex items-center justify-between mb-8">

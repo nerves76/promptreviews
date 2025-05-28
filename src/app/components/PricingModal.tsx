@@ -6,9 +6,9 @@ const tiers = [
     name: 'Grower',
     price: '15 / month',
     order: 1,
-    bg: 'bg-blue-100', // Replace with your brand color if needed
-    text: 'text-purple-700',
-    button: 'bg-purple-500 hover:bg-purple-600 text-white',
+    bg: 'bg-blue-100',
+    text: 'text-slate-blue',
+    button: 'bg-slate-blue hover:bg-slate-blue/90 text-white',
     features: [
       '**14-day free trial*',
       'Universal prompt page',
@@ -21,9 +21,9 @@ const tiers = [
     name: 'Builder',
     price: '35 / month',
     order: 2,
-    bg: 'bg-purple-200', // Replace with your brand color if needed
-    text: 'text-purple-700',
-    button: 'bg-purple-500 hover:bg-purple-600 text-white',
+    bg: 'bg-purple-200',
+    text: 'text-slate-blue',
+    button: 'bg-slate-blue hover:bg-slate-blue/90 text-white',
     features: [
       'Workflow management',
       'Universal prompt page',
@@ -37,9 +37,9 @@ const tiers = [
     name: 'Maven',
     price: '100 / month',
     order: 3,
-    bg: 'bg-yellow-200', // Replace with your brand color if needed
-    text: 'text-purple-700',
-    button: 'bg-purple-500 hover:bg-purple-600 text-white',
+    bg: 'bg-yellow-200',
+    text: 'text-slate-blue',
+    button: 'bg-slate-blue hover:bg-slate-blue/90 text-white',
     features: [
       'Up to 10 Business Locations',
       'Workflow management',
@@ -160,9 +160,12 @@ export default function PricingModal({ onSelectTier, asModal = true, currentPlan
                 >
                   {getButtonLabel(tier.key, currentPlan)}
                 </button>
-                {tier.key === 'grower' && !hasHadPaidPlan && (
-                  <div className="mt-2 text-xs text-gray-500 text-center w-full">*No credit card necessary</div>
-                )}
+                {/* Always render a div for consistent button row height */}
+                <div className="mt-2 text-xs text-gray-500 text-center w-full" style={{ minHeight: 20 }}>
+                  {tier.key === 'grower' && !hasHadPaidPlan && (
+                    '*No credit card necessary'
+                  )}
+                </div>
               </div>
             );
           })}
@@ -177,8 +180,8 @@ export default function PricingModal({ onSelectTier, asModal = true, currentPlan
         )}
         <div className="mt-8 text-xs text-black text-center w-full">
           By continuing, you agree to our{' '}
-          <a href="/terms" target="_blank" rel="noopener noreferrer" className="underline text-gray-100 hover:text-yellow-200">Terms & Conditions</a>{' '}and{' '}
-          <a href="/privacy" target="_blank" rel="noopener noreferrer" className="underline text-gray-100 hover:text-yellow-200">Privacy Policy</a>.
+          <a href="/terms" target="_blank" rel="noopener noreferrer" className="underline text-indigo-700 hover:text-indigo-900">Terms & Conditions</a>{' '}and{' '}
+          <a href="/privacy" target="_blank" rel="noopener noreferrer" className="underline text-indigo-700 hover:text-indigo-900">Privacy Policy</a>.
         </div>
       </div>
     </div>

@@ -12,6 +12,7 @@ import { IconType } from 'react-icons';
 import ReviewSubmissionForm from '@/components/ReviewSubmissionForm';
 import { useReviewer } from '@/contexts/ReviewerContext';
 import { getUserOrMock } from '@/utils/supabase';
+import FiveStarSpinner from '@/app/components/FiveStarSpinner';
 
 interface StyleSettings {
   name: string;
@@ -262,61 +263,35 @@ export default function PromptPage() {
       setIsSubmitting(null);
       return;
     }
+    // Prevent logged-in users from submitting reviews
+    if (currentUser) {
+      setSubmitError('You are logged in as the business owner. Reviews submitted while logged in are not saved. Please log out to test the public review flow.');
+      setIsSubmitting(null);
+      return;
+    }
     const first_name = reviewerFirstNames[idx];
     const last_name = reviewerLastNames[idx];
     setIsSubmitting(idx);
     try {
-      const reviewGroupId = (localStorage.getItem('reviewGroupId') || (() => { const id = crypto.randomUUID(); localStorage.setItem('reviewGroupId', id); return id; })());
-      const { data: { user } } = await getUserOrMock(supabase);
-      if (!user) {
-        // Check for existing review from this group for this prompt page
-        const { data: existingReviews, error: checkError } = await supabase
-          .from('review_submissions')
-          .select('id')
-          .eq('prompt_page_id', promptPage.id)
-          .eq('review_group_id', reviewGroupId);
-        if (checkError) {
-          setSubmitError('Error checking for existing review. Please try again.');
-          setIsSubmitting(null);
-          return;
-        }
-        if (existingReviews && existingReviews.length > 0) {
-          // Overwrite (update) the existing review
-          const reviewId = existingReviews[0].id;
-          const { error: updateError } = await supabase
-            .from('review_submissions')
-            .update({
-              first_name,
-              last_name,
-              reviewer_name: `${first_name} ${last_name}`,
-              reviewer_role: reviewerRoles[idx] ? reviewerRoles[idx].trim() : null,
-              review_content: platformReviewTexts[idx] || '',
-              emoji_sentiment_selection: sentiment,
-              user_agent: navigator.userAgent,
-              // ...any other fields you want to update
-            })
-            .eq('id', reviewId);
-          if (updateError) throw updateError;
-        } else {
-          // Insert new review
-          const { error: submissionError } = await supabase
-            .from('review_submissions')
-            .insert({
-              prompt_page_id: promptPage.id,
-              platform: promptPage.review_platforms[idx].platform || promptPage.review_platforms[idx].name,
-              status: 'submitted',
-              first_name,
-              last_name,
-              reviewer_name: `${first_name} ${last_name}`,
-              reviewer_role: reviewerRoles[idx] ? reviewerRoles[idx].trim() : null,
-              review_content: platformReviewTexts[idx] || '',
-              emoji_sentiment_selection: sentiment,
-              review_group_id: reviewGroupId,
-              user_agent: navigator.userAgent,
-              ip_address: null
-            });
-          if (submissionError) throw submissionError;
-        }
+      // Always POST to the API endpoint for review tracking and notification
+      const response = await fetch('/api/track-review', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          promptPageId: promptPage.id,
+          platform: promptPage.review_platforms[idx].platform || promptPage.review_platforms[idx].name,
+          status: 'submitted',
+          first_name,
+          last_name,
+          reviewContent: platformReviewTexts[idx] || '',
+          promptPageType: promptPage.is_universal ? 'universal' : 'custom',
+          review_type: 'review',
+        })
+      });
+      if (!response.ok) {
+        setSubmitError('Failed to submit review. Please try again.');
+        setIsSubmitting(null);
+        return;
       }
       // Always proceed to copy and open the review platform, regardless of insert/update
       if (platformReviewTexts[idx]) {
@@ -487,6 +462,12 @@ export default function PromptPage() {
     e.preventDefault();
     setPhotoSubmitting(true);
     setPhotoError(null);
+    // Prevent logged-in users from submitting testimonials
+    if (currentUser) {
+      setPhotoError('You are logged in as the business owner. Testimonials submitted while logged in are not saved. Please log out to test the public review flow.');
+      setPhotoSubmitting(false);
+      return;
+    }
     try {
       if (!photoFile) {
         setPhotoError('Please select or take a photo.');
@@ -528,6 +509,7 @@ export default function PromptPage() {
           user_agent: navigator.userAgent,
           ip_address: null,
           photo_url: photoUrl,
+          review_type: 'testimonial',
         });
       if (submissionError) throw submissionError;
       // Update the prompt page status to 'complete'
@@ -577,8 +559,10 @@ export default function PromptPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: businessProfile?.background_color || '#FFFFFF' }}>
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: businessProfile?.header_color || '#4F46E5' }}></div>
+      <div className="min-h-screen flex items-start justify-center" style={{ minHeight: '100vh' }}>
+        <div className="w-full text-center mt-[150px]">
+          <FiveStarSpinner />
+        </div>
       </div>
     );
   }
@@ -852,20 +836,32 @@ export default function PromptPage() {
                       setFeedbackSubmitting(true);
                       setFeedbackError(null);
                       setFeedbackSuccess(false);
+                      // Prevent logged-in users from submitting feedback
+                      if (currentUser) {
+                        setFeedbackError('You are logged in as the business owner. Feedback submitted while logged in is not saved. Please log out to test the public review flow.');
+                        setFeedbackSubmitting(false);
+                        return;
+                      }
                       try {
-                        const { error } = await supabase.from('review_submissions').insert({
-                          prompt_page_id: promptPage.id,
-                          first_name: feedbackFirstName,
-                          last_name: feedbackLastName,
-                          email: feedbackEmail,
-                          phone: feedbackPhone || null,
-                          review_content: feedback,
-                          emoji_sentiment_selection: sentiment,
-                          status: 'feedback',
-                          user_agent: navigator.userAgent,
-                          ip_address: null
+                        // POST feedback to the API endpoint for review tracking and notification
+                        const response = await fetch('/api/track-review', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            promptPageId: promptPage.id,
+                            platform: 'feedback',
+                            status: 'feedback',
+                            first_name: feedbackFirstName,
+                            last_name: feedbackLastName,
+                            reviewContent: feedback,
+                            promptPageType: 'feedback',
+                            sentiment: sentiment,
+                            email: feedbackEmail,
+                            phone: feedbackPhone || null,
+                            review_type: 'feedback',
+                          })
                         });
-                        if (error) throw error;
+                        if (!response.ok) throw new Error('Failed to submit feedback.');
                         setFeedbackSuccess(true);
                         setFeedbackFirstName('');
                         setFeedbackLastName('');

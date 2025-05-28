@@ -15,6 +15,7 @@ export default function PlanPage() {
   const [showDowngradeModal, setShowDowngradeModal] = useState(false);
   const [downgradeTarget, setDowngradeTarget] = useState<string | null>(null);
   const [downgradeFeatures, setDowngradeFeatures] = useState<string[]>([]);
+  const [lastAction, setLastAction] = useState<'upgrade' | 'downgrade' | 'new' | null>(null);
   const router = useRouter();
   const isNewUser = !account?.plan || account.plan === '' || account.plan === 'none';
   const prevPlanRef = useRef<string | null>(null);
@@ -54,14 +55,32 @@ export default function PlanPage() {
     const isDowngrade = currentTier && targetTier && targetTier.order < currentTier.order;
 
     if (isUpgrade) {
-      // Fetch user email from Supabase Auth
+      setLastAction('upgrade');
+      // If user already has a Stripe customer ID, send to billing portal for upgrades
+      if (account.stripe_customer_id) {
+        setIsLoading(true);
+        const res = await fetch('/api/create-stripe-portal-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ customerId: account.stripe_customer_id }),
+        });
+        const data = await res.json();
+        setIsLoading(false);
+        if (data.url) {
+          window.location.href = data.url;
+          return;
+        } else {
+          alert('Could not open billing portal.');
+          return;
+        }
+      }
+      // Otherwise, proceed with checkout session (for new users)
       const user = await supabase.auth.getUser();
       const email = user.data.user?.email;
       if (!email) {
         alert('No valid email address found for checkout.');
         return;
       }
-      // Call API to create Stripe Checkout session
       const res = await fetch('/api/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -82,8 +101,8 @@ export default function PlanPage() {
         return;
       }
     }
-    // Downgrade: show confirmation modal with features lost
     if (isDowngrade) {
+      setLastAction('downgrade');
       const lostFeatures = (currentTier?.features || []).filter(f => !(targetTier?.features || []).includes(f));
       setDowngradeTarget(tierKey);
       setDowngradeFeatures(lostFeatures);
@@ -94,6 +113,7 @@ export default function PlanPage() {
     await supabase.from('accounts').update({ plan: tierKey }).eq('id', account.id);
     // Show stars and success modal for new user, upgrade, or downgrade
     if (isNewUser || (prevPlan === 'grower' && tierKey !== 'grower')) {
+      setLastAction(isNewUser ? 'new' : 'upgrade');
       setStarAnimation(true);
       setShowSuccessModal(true);
     } else {
@@ -116,8 +136,17 @@ export default function PlanPage() {
   const handleConfirmDowngrade = async () => {
     if (!downgradeTarget) return;
     await supabase.from('accounts').update({ plan: downgradeTarget }).eq('id', account.id);
+    // Refetch account data after downgrade
+    const { data: updatedAccount } = await supabase
+      .from('accounts')
+      .select('*')
+      .eq('id', account.id)
+      .single();
+    setAccount(updatedAccount);
+    setCurrentPlan(updatedAccount?.plan || null);
     setShowDowngradeModal(false);
-    setStarAnimation(true);
+    setLastAction('downgrade');
+    setStarAnimation(false);
     setShowSuccessModal(true);
   };
   const handleCancelDowngrade = () => {
@@ -128,8 +157,10 @@ export default function PlanPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <FiveStarSpinner />
+      <div className="min-h-screen flex items-start justify-center" style={{ minHeight: '100vh' }}>
+        <div className="w-full text-center mt-[150px]">
+          <FiveStarSpinner />
+        </div>
       </div>
     );
   }
@@ -157,7 +188,7 @@ export default function PlanPage() {
             : 'Upgrade, downgrade, or renew your subscription below.'}
         </div>
         <div className="w-full max-w-5xl">
-          <PricingModal onSelectTier={handleSelectTier} asModal={false} currentPlan={currentPlan} />
+          <PricingModal onSelectTier={handleSelectTier} asModal={false} currentPlan={currentPlan} hasHadPaidPlan={account?.has_had_paid_plan} />
         </div>
         {account?.stripe_customer_id && (
           <button
@@ -186,7 +217,7 @@ export default function PlanPage() {
       {showSuccessModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
           {/* Star Falling Animation Overlay */}
-          {starAnimation && (
+          {starAnimation && lastAction !== 'downgrade' && (
             <div className="fixed inset-0 pointer-events-none z-40">
               {[...Array(20)].map((_, i) => (
                 <span
@@ -214,11 +245,14 @@ export default function PlanPage() {
             >
               &times;
             </button>
-            <h2 className="text-2xl font-bold mb-4 text-indigo-800 relative z-10">It's official.</h2>
+            <h2 className="text-2xl font-bold mb-4 text-indigo-800 relative z-10">{lastAction === 'downgrade' ? 'Plan changed.' : "It's official."}</h2>
             <p className="mb-6 text-lg text-gray-700 font-semibold relative z-10">
               {isNewUser ?
                 "You're on your way! Let's set up your business profile next." :
-                "Your plan has been upgraded! Enjoy your new features."}
+                lastAction === 'downgrade' ?
+                  'Your plan has been downgraded. Features have been adjusted.' :
+                  'Your plan has been upgraded! Enjoy your new features.'
+              }
             </p>
             <button
               onClick={() => {

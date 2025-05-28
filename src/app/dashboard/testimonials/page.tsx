@@ -2,10 +2,11 @@
 
 import { useEffect, useState, useRef } from "react";
 import { createBrowserClient } from "@supabase/ssr";
-import { FaChevronDown, FaChevronRight, FaDownload, FaStar, FaTrash, FaGoogle, FaFacebook, FaYelp, FaTripadvisor, FaRegStar, FaRegComment } from "react-icons/fa";
+import { FaChevronDown, FaChevronRight, FaDownload, FaStar, FaTrash, FaGoogle, FaFacebook, FaYelp, FaTripadvisor, FaRegStar, FaRegComment, FaThumbtack, FaRegCopyright } from "react-icons/fa";
 import { SiHouzz, SiThumbtack, SiHomeadvisor, SiTrustpilot } from "react-icons/si";
 import { IconType } from "react-icons";
 import DashboardCard from '../components/DashboardCard';
+import FiveStarSpinner from '@/app/components/FiveStarSpinner';
 
 interface Review {
   id: string;
@@ -33,37 +34,48 @@ interface PlatformGroup {
 const ITEMS_PER_PAGE = 30;
 
 const TABS = [
-  { key: "reviewer", label: "By reviewer" },
   { key: "platform", label: "By platform" },
+  { key: "reviewer", label: "By reviewer" },
 ];
 
 const SAMPLE_REVIEWS = [
+  // Google (2)
   {
-    prompt_page_id: "00000000-0000-0000-0000-000000000000", // Placeholder UUID
+    prompt_page_id: "00000000-0000-0000-0000-000000000000",
     reviewer_name: "John Smith",
     reviewer_role: "Homeowner",
     platform: "Google",
-    review_content: "Absolutely amazing service! The team was professional, efficient, and completed the project ahead of schedule. I couldn't be happier with the results.",
+    review_content: "Absolutely amazing service! The team was professional, efficient, and completed the project ahead of schedule.",
     status: "submitted"
   },
   {
-    prompt_page_id: "00000000-0000-0000-0000-000000000000", // Placeholder UUID
-    reviewer_name: "John Smith",
-    reviewer_role: "Homeowner",
+    prompt_page_id: "00000000-0000-0000-0000-000000000000",
+    reviewer_name: "Emily Davis",
+    reviewer_role: "Interior Designer",
+    platform: "Google",
+    review_content: "I've worked with many contractors, but this team stands out. Their expertise and attention to detail are unmatched.",
+    status: "submitted"
+  },
+  // Yelp (2)
+  {
+    prompt_page_id: "00000000-0000-0000-0000-000000000000",
+    reviewer_name: "Sarah Johnson",
+    reviewer_role: "Business Owner",
     platform: "Yelp",
     review_content: "Great experience from start to finish. The attention to detail was impressive, and the final result exceeded my expectations.",
     status: "submitted"
   },
   {
-    prompt_page_id: "00000000-0000-0000-0000-000000000000", // Placeholder UUID
-    reviewer_name: "Sarah Johnson",
-    reviewer_role: "Business Owner",
-    platform: "Google",
-    review_content: "Outstanding work! The team was knowledgeable and went above and beyond to ensure everything was perfect. Highly recommend!",
+    prompt_page_id: "00000000-0000-0000-0000-000000000000",
+    reviewer_name: "Carlos Martinez",
+    reviewer_role: "Restaurant Owner",
+    platform: "Yelp",
+    review_content: "The food and service were both excellent. Will definitely return!",
     status: "submitted"
   },
+  // Facebook (2)
   {
-    prompt_page_id: "00000000-0000-0000-0000-000000000000", // Placeholder UUID
+    prompt_page_id: "00000000-0000-0000-0000-000000000000",
     reviewer_name: "Michael Brown",
     reviewer_role: "Property Manager",
     platform: "Facebook",
@@ -71,13 +83,64 @@ const SAMPLE_REVIEWS = [
     status: "submitted"
   },
   {
-    prompt_page_id: "00000000-0000-0000-0000-000000000000", // Placeholder UUID
-    reviewer_name: "Emily Davis",
-    reviewer_role: "Interior Designer",
-    platform: "Google",
-    review_content: "I've worked with many contractors, but this team stands out. Their expertise and attention to detail are unmatched.",
+    prompt_page_id: "00000000-0000-0000-0000-000000000000",
+    reviewer_name: "Lisa Chen",
+    reviewer_role: "Marketing Director",
+    platform: "Facebook",
+    review_content: "Very responsive and creative team. Our campaign results improved dramatically.",
     status: "submitted"
-  }
+  },
+  // TripAdvisor (2)
+  {
+    prompt_page_id: "00000000-0000-0000-0000-000000000000",
+    reviewer_name: "Anna Lee",
+    reviewer_role: "Traveler",
+    platform: "TripAdvisor",
+    review_content: "The tour was well organized and the guide was knowledgeable. Highly recommend!",
+    status: "submitted"
+  },
+  {
+    prompt_page_id: "00000000-0000-0000-0000-000000000000",
+    reviewer_name: "David Kim",
+    reviewer_role: "Adventurer",
+    platform: "TripAdvisor",
+    review_content: "A wonderful experience from start to finish. Will book again!",
+    status: "submitted"
+  },
+  // Clutch (2)
+  {
+    prompt_page_id: "00000000-0000-0000-0000-000000000000",
+    reviewer_name: "Priya Patel",
+    reviewer_role: "Startup Founder",
+    platform: "Clutch",
+    review_content: "Their expertise helped us launch on time and on budget. Great partner!",
+    status: "submitted"
+  },
+  {
+    prompt_page_id: "00000000-0000-0000-0000-000000000000",
+    reviewer_name: "Tom Nguyen",
+    reviewer_role: "CTO",
+    platform: "Clutch",
+    review_content: "Excellent communication and technical skills. Highly recommend for any SaaS project.",
+    status: "submitted"
+  },
+  // G2 (2)
+  {
+    prompt_page_id: "00000000-0000-0000-0000-000000000000",
+    reviewer_name: "Samantha Green",
+    reviewer_role: "Product Manager",
+    platform: "G2",
+    review_content: "The software is intuitive and support is always available. Five stars!",
+    status: "submitted"
+  },
+  {
+    prompt_page_id: "00000000-0000-0000-0000-000000000000",
+    reviewer_name: "Alex Rivera",
+    reviewer_role: "IT Director",
+    platform: "G2",
+    review_content: "Robust features and easy integration. Our team productivity increased noticeably.",
+    status: "submitted"
+  },
 ];
 
 // Custom BBB and Angi icons as React components
@@ -95,10 +158,12 @@ function getPlatformIcon(platform: string): { icon: IconType, label: string } {
   if (lower.includes('yelp')) return { icon: FaYelp, label: 'Yelp' };
   if (lower.includes('facebook')) return { icon: FaFacebook, label: 'Facebook' };
   if (lower.includes('tripadvisor')) return { icon: FaTripadvisor, label: 'TripAdvisor' };
+  if (lower.includes('clutch')) return { icon: FaRegCopyright, label: 'Clutch' };
+  if (lower.includes('g2')) return { icon: FaRegStar, label: 'G2' };
   if (lower.includes('angi')) return { icon: AngiIcon, label: 'Angi' };
   if (lower.includes('houzz')) return { icon: SiHouzz, label: 'Houzz' };
   if (lower.includes('bbb')) return { icon: BBBIcon, label: 'BBB' };
-  if (lower.includes('thumbtack')) return { icon: SiThumbtack, label: 'Thumbtack' };
+  if (lower.includes('thumbtack')) return { icon: FaThumbtack, label: 'Thumbtack' };
   if (lower.includes('homeadvisor')) return { icon: SiHomeadvisor, label: 'HomeAdvisor' };
   if (lower.includes('trustpilot')) return { icon: SiTrustpilot, label: 'Trustpilot' };
   return { icon: FaRegStar, label: platform || 'Other' };
@@ -122,7 +187,7 @@ export default function TestimonialsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'reviewer' | 'platform'>('reviewer');
+  const [activeTab, setActiveTab] = useState<'reviewer' | 'platform'>('platform');
 
   // Add a ref map to store review refs
   const reviewRefs = useRef<{ [id: string]: HTMLDivElement | null }>({});
@@ -158,44 +223,13 @@ export default function TestimonialsPage() {
 
         if (fetchError) throw fetchError;
 
-        // If no reviews exist, insert sample reviews
+        // If no reviews exist, show sample reviews in-memory only
         if (!existingReviews || existingReviews.length === 0) {
-          // First, get a valid prompt page ID
-          const { data: promptPages, error: promptError } = await supabase
-            .from("prompt_pages")
-            .select("id")
-            .limit(1);
-
-          if (promptError) throw promptError;
-
-          if (!promptPages || promptPages.length === 0) {
-            throw new Error("No prompt pages found. Please create a prompt page first.");
-          }
-
-          const promptPageId = promptPages[0].id;
-
-          // Insert sample reviews with the valid prompt_page_id
-          const { error: insertError } = await supabase
-            .from("review_submissions")
-            .insert(
-              SAMPLE_REVIEWS.map(review => ({
-                ...review,
-                prompt_page_id: promptPageId,
-                created_at: new Date().toISOString()
-              }))
-            );
-
-          if (insertError) throw insertError;
-
-          // Fetch the newly inserted reviews
-          const { data: newReviews, error: newFetchError } = await supabase
-            .from("review_submissions")
-            .select("id, prompt_page_id, reviewer_name, reviewer_role, platform, review_content, created_at, status")
-            .order("created_at", { ascending: false })
-            .range((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE - 1);
-
-          if (newFetchError) throw newFetchError;
-          setReviews(newReviews || []);
+          setReviews(SAMPLE_REVIEWS.map((r, i) => ({
+            ...r,
+            id: 'sample-' + i,
+            created_at: new Date().toISOString(),
+          })));
         } else {
           setReviews(existingReviews);
         }
@@ -284,6 +318,17 @@ export default function TestimonialsPage() {
     }
   }, [reviews]);
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex justify-center items-center">
+        <div className="text-center">
+          <div className="mb-4"><FiveStarSpinner /></div>
+          <p className="mt-4 text-gray-600">Loading testimonials...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <DashboardCard>
       <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center">
@@ -319,17 +364,11 @@ export default function TestimonialsPage() {
           type="text"
           placeholder="Search by reviewer, platform, or text..."
           className="w-full max-w-md rounded-lg border border-gray-200 px-4 py-2 shadow-sm focus:ring-2 focus:ring-[#1A237E] focus:outline-none"
-          disabled
         />
       </div>
 
       {/* Reviews Section */}
-      {loading ? (
-        <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1A237E] mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading reviews...</p>
-        </div>
-      ) : error ? (
+      {error ? (
         <div className="text-red-500 p-4 bg-red-50 rounded-lg">{error}</div>
       ) : (activeTab === 'reviewer' ? (
         grouped.length === 0 ? (

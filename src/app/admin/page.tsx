@@ -7,6 +7,7 @@ import { FaChartLine, FaUsers, FaFileAlt, FaHistory, FaRobot, FaUpload, FaDollar
 import Header from '@/app/components/Header';
 import { Switch } from '@headlessui/react';
 import { getUserOrMock } from '@/utils/supabase';
+import FiveStarSpinner from '@/app/components/FiveStarSpinner';
 
 interface AdminStats {
   totalAccounts: number;
@@ -303,7 +304,7 @@ export default function AdminDashboard() {
         <div className="py-12 px-2">
           <div className="max-w-7xl mx-auto">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+              <FiveStarSpinner />
               <p className="mt-4 text-gray-600">Loading admin dashboard...</p>
             </div>
           </div>

@@ -19,7 +19,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.className} min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 overscroll-x-auto`}>
         <ClientRoot>
-          {children}
+          <main>
+            {children}
+          </main>
         </ClientRoot>
       </body>
     </html>

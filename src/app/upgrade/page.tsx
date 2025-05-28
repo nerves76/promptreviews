@@ -6,6 +6,7 @@ import { createBrowserClient } from '@supabase/ssr';
 import { FaCheck, FaRocket, FaUsers, FaCrown, FaStar } from 'react-icons/fa';
 import { useAuthGuard } from '@/utils/authGuard';
 import { getUserOrMock } from '@/utils/supabase';
+import FiveStarSpinner from '@/app/components/FiveStarSpinner';
 
 interface PricingTier {
   name: string;
@@ -119,7 +120,7 @@ export default function UpgradePage() {
       <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+            <FiveStarSpinner />
             <p className="mt-4 text-gray-600">Loading plans...</p>
           </div>
         </div>

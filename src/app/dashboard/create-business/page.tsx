@@ -86,6 +86,8 @@ export default function CreateBusinessPage() {
     business_email: "",
     industry: "",
     industry_other: "",
+    ai_dos: "",
+    ai_donts: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -235,6 +237,8 @@ export default function CreateBusinessPage() {
         business_website: form.business_website,
         business_email: form.business_email,
         signup_email: user.email,
+        ai_dos: form.ai_dos,
+        ai_donts: form.ai_donts,
       })
       .select()
       .single();
@@ -415,9 +419,9 @@ export default function CreateBusinessPage() {
           </div>
         </div>
       )}
-      <div className="w-full mx-auto mt-6 relative rounded-lg shadow-lg p-8 bg-white" style={{maxWidth: 1000}}>
+      <div className="w-full mx-auto mt-0 md:mt-[30px] relative rounded-lg shadow-lg p-8 bg-white" style={{maxWidth: 1000}}>
         {/* Floating Icon */}
-        <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center w-16 h-16">
+        <div className="absolute left-0 md:left-[-24px] top-0 md:top-[30px] z-10 bg-white rounded-full shadow p-3 flex items-center justify-center w-16 h-16">
           <FaStore className="w-9 h-9 text-slate-blue" />
         </div>
         <div className="flex items-center justify-between mb-8">
@@ -462,6 +466,8 @@ export default function CreateBusinessPage() {
                   default_offer_title: 'Special Offer',
                   default_offer_body: '',
                   default_offer_url: '',
+                  ai_dos: '',
+                  ai_donts: '',
                 });
                 setServices(['SEO', 'Marketing Consulting', 'SEO Audit']);
                 setPlatforms([

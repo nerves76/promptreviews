@@ -10,6 +10,8 @@ interface BusinessProfile {
   keywords: string;
   industry?: string[];
   industry_other?: string;
+  ai_dos?: string;
+  ai_donts?: string;
 }
 
 interface PromptPageData {
@@ -26,6 +28,8 @@ export function generateReviewPrompt(
   wordCountLimit: number,
   customInstructions?: string,
   reviewerType?: 'customer' | 'client' | 'customer or client',
+  additional_ai_dos?: string,
+  additional_ai_donts?: string,
 ): string {
   // Compose industry info
   let industryInfo = '';
@@ -50,6 +54,10 @@ export function generateReviewPrompt(
   const safePlatform = platform || '';
   const safeCustomInstructions = customInstructions || '';
   const safeReviewerType = reviewerType || 'customer or client';
+  const aiDos = businessProfile.ai_dos || '';
+  const aiDonts = businessProfile.ai_donts || '';
+  const additionalDos = additional_ai_dos || '';
+  const additionalDonts = additional_ai_donts || '';
 
   let customerName = '';
   if (promptPageData.first_name && promptPageData.last_name) {
@@ -80,6 +88,10 @@ ${customerName}- Service Received: ${projectType}
 Platform: ${safePlatform}
 Word Count Limit: ${wordCountLimit} words
 ${safeCustomInstructions ? `\nCustom Instructions: ${safeCustomInstructions}` : ''}
+${aiDos ? `\nDos: ${aiDos}` : ''}
+${additionalDos ? `\nAdditional Dos: ${additionalDos}` : ''}
+${aiDonts ? `\nDon'ts: ${aiDonts}` : ''}
+${additionalDonts ? `\nAdditional Don'ts: ${additionalDonts}` : ''}
 
 Important: The reviewer is a ${safeReviewerType}. If unsure, avoid using either term or use "customer or client".
 
@@ -102,6 +114,8 @@ export async function generateAIReview(
   wordCountLimit: number,
   customInstructions?: string,
   reviewerType?: 'customer' | 'client' | 'customer or client',
+  additional_ai_dos?: string,
+  additional_ai_donts?: string,
 ): Promise<string> {
   try {
     const prompt = generateReviewPrompt(
@@ -110,7 +124,9 @@ export async function generateAIReview(
       platform,
       wordCountLimit,
       customInstructions,
-      reviewerType
+      reviewerType,
+      additional_ai_dos,
+      additional_ai_donts
     );
 
     const response = await fetch('/api/generate-review', {

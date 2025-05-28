@@ -7,6 +7,7 @@ import { HexColorPicker } from 'react-colorful';
 import { FaPalette, FaSwatchbook } from 'react-icons/fa';
 import { getUserOrMock } from '@/utils/supabase';
 import DashboardCard from '../components/DashboardCard';
+import FiveStarSpinner from '@/app/components/FiveStarSpinner';
 
 interface StyleSettings {
   primary_font: string;
@@ -174,12 +175,10 @@ export default function StylePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen py-12">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading style settings...</p>
-          </div>
+      <div className="min-h-screen flex justify-center items-center">
+        <div className="text-center">
+          <div className="mb-4"><FiveStarSpinner /></div>
+          <p className="mt-4 text-gray-600">Loading style settings...</p>
         </div>
       </div>
     );

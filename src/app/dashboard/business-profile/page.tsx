@@ -10,6 +10,7 @@ import { FaRegStar, FaPhone, FaMapMarkerAlt, FaImage, FaListAlt, FaInfoCircle, F
 import { getUserOrMock } from '@/utils/supabase';
 import BusinessForm from '../components/BusinessForm';
 import DashboardCard from '../components/DashboardCard';
+import FiveStarSpinner from '@/app/components/FiveStarSpinner';
 
 function Tooltip({ text }: { text: string }) {
   const [show, setShow] = useState(false);
@@ -83,6 +84,8 @@ export default function BusinessProfilePage() {
     business_website: "",
     offer_learn_more_url: "",
     business_email: "",
+    ai_dos: "",
+    ai_donts: "",
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -199,12 +202,16 @@ export default function BusinessProfilePage() {
         address_country: data.address_country || "",
         default_offer_url: data.default_offer_url || "",
         business_email: data.business_email || "",
+        ai_dos: data.ai_dos || '',
+        ai_donts: data.ai_donts || '',
       });
       setServices(
         Array.isArray(data.services_offered)
           ? data.services_offered
           : (typeof data.services_offered === 'string' && data.services_offered.length > 0)
-            ? data.services_offered.split('\n')
+            ? (data.services_offered.trim().startsWith('[') && data.services_offered.trim().endsWith(']')
+                ? (() => { try { return JSON.parse(data.services_offered); } catch { return [data.services_offered]; } })()
+                : data.services_offered.split('\n'))
             : [""]
       );
       // Initialize platforms from JSON or fallback
@@ -381,6 +388,8 @@ export default function BusinessProfilePage() {
         business_website: form.business_website,
         offer_learn_more_url: form.offer_learn_more_url,
         business_email: form.business_email,
+        ai_dos: form.ai_dos,
+        ai_donts: form.ai_donts,
       })
       .eq("account_id", user.id);
     if (updateError) {
@@ -395,9 +404,9 @@ export default function BusinessProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex justify-center items-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+      <div className="min-h-screen flex justify-center items-start" style={{ minHeight: '100vh' }}>
+        <div className="text-center w-full mt-[150px]">
+          <FiveStarSpinner />
           <p className="mt-4 text-gray-600">Loading your business...</p>
         </div>
       </div>
@@ -417,7 +426,7 @@ export default function BusinessProfilePage() {
   }
 
   return (
-    <DashboardCard>
+    <DashboardCard className="mt-0 md:mt-[30px]">
       {/* Floating Icon */}
       <div className="absolute -top-6 -left-6 z-10 rounded-full shadow p-3 flex items-center justify-center bg-white">
         <FaStore className="w-9 h-9 text-slate-blue" />
@@ -428,21 +437,15 @@ export default function BusinessProfilePage() {
           <p className="text-gray-600 text-base max-w-md mt-2 mb-0">
             Fill out your business profile thoroughly and consistently. This is rule #1 in local search engine optimization.
           </p>
-          {services.filter(s => s && s.trim()).length > 0 && (
-            <div className="mt-4">
-              <span className="font-semibold text-gray-700">Services:&nbsp;</span>
-              <span className="text-gray-900">{services.filter(s => s && s.trim()).join(', ')}</span>
-            </div>
-          )}
         </div>
         <button
           type="submit"
           form="business-profile-form"
           disabled={loading}
-          className="py-2 px-6 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo hover:bg-indigo/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo disabled:opacity-50 disabled:cursor-not-allowed"
+          className="py-2 px-6 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-slate-blue hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue disabled:opacity-50 disabled:cursor-not-allowed"
           style={{ marginTop: '0.25rem' }}
         >
-          {loading ? 'Saving...' : 'Save Changes'}
+          {loading ? 'Saving...' : 'Save'}
         </button>
       </div>
       <BusinessForm
@@ -488,6 +491,17 @@ export default function BusinessProfilePage() {
         handleCropCancel={handleCropCancel}
         formId="business-profile-form"
       />
+      {/* Bottom Save Button */}
+      <div className="flex justify-end mt-8">
+        <button
+          type="submit"
+          form="business-profile-form"
+          disabled={loading}
+          className="py-2 px-6 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-slate-blue hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {loading ? 'Saving...' : 'Save'}
+        </button>
+      </div>
     </DashboardCard>
   );
 } 

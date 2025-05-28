@@ -8,6 +8,7 @@ import { FaUser, FaIdCard, FaSignOutAlt, FaChartLine, FaEnvelope } from 'react-i
 import Link from 'next/link';
 import { getUserOrMock } from '@/utils/supabase';
 import DashboardCard from '../dashboard/components/DashboardCard';
+import FiveStarSpinner from '@/app/components/FiveStarSpinner';
 
 export default function AccountPage() {
   const router = useRouter();
@@ -49,14 +50,27 @@ export default function AccountPage() {
     router.push('/auth/sign-in');
   };
 
+  // Handle review notification toggle
+  const [notifSaving, setNotifSaving] = useState(false);
+  const handleNotifToggle = async () => {
+    if (!account) return;
+    setNotifSaving(true);
+    const { error } = await supabase
+      .from('accounts')
+      .update({ review_notifications_enabled: !account.review_notifications_enabled })
+      .eq('id', account.id);
+    if (!error) {
+      setAccount((prev: any) => ({ ...prev, review_notifications_enabled: !prev.review_notifications_enabled }));
+    }
+    setNotifSaving(false);
+  };
+
   if (isLoading) {
     return (
-      <div className="min-h-screen py-12 px-2">
-        <div className="w-full mx-auto">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading account settings...</p>
-          </div>
+      <div className="min-h-screen flex justify-center items-start" style={{ minHeight: '100vh' }}>
+        <div className="text-center w-full mt-[150px]">
+          <FiveStarSpinner />
+          <p className="mt-4 text-white">Loading your account...</p>
         </div>
       </div>
     );
@@ -67,7 +81,7 @@ export default function AccountPage() {
   }
 
   return (
-    <div className="bg-gradient-to-b from-slate-blue to-[#FFDAB9] min-h-screen w-full">
+    <div className="min-h-screen w-full">
       <Header />
       <div className="min-h-screen flex items-center justify-center pt-24 pb-12 px-2">
         <DashboardCard>
@@ -153,6 +167,20 @@ export default function AccountPage() {
                   </button>
                 </div>
               )}
+              {/* Review Notification Toggle */}
+              <div className="mb-8">
+                <label className="flex items-center gap-3 text-base font-semibold text-[#1A237E] mb-2">
+                  <input
+                    type="checkbox"
+                    checked={!!account?.review_notifications_enabled}
+                    onChange={handleNotifToggle}
+                    disabled={notifSaving}
+                    className="w-5 h-5 accent-indigo-600"
+                  />
+                  Email me when a new review is submitted
+                </label>
+                <p className="text-gray-500 text-sm ml-8">You'll get an email notification every time a new review is submitted to your account.</p>
+              </div>
             </div>
 
             {user.email === 'chris@diviner.agency' && (

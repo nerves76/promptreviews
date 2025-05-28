@@ -29,8 +29,11 @@ html {
 }
 
 body {
-  @apply min-h-screen bg-no-repeat bg-fixed;
+  @apply min-h-screen;
   box-sizing: border-box;
+  background: linear-gradient(to bottom, rgb(82, 125, 231) 0%, rgb(120, 100, 200) 50%, rgb(145, 74, 174) 100%) !important;
+  background-size: 100% 5000px !important;
+  background-repeat: no-repeat !important;
 }
 
 .animate-slideup {

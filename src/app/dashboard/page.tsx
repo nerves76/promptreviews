@@ -252,10 +252,10 @@ export default function Dashboard() {
   }
 
   const userName =
-    (account?.first_name && account.first_name.trim()) ||
-    (business?.first_name && business.first_name.trim()) ||
-    (business?.name && business.name.trim()) ||
-    (user?.user_metadata?.full_name && user.user_metadata.full_name.trim()) ||
+    (account?.first_name && account.first_name.trim().split(' ')[0]) ||
+    (business?.first_name && business.first_name.trim().split(' ')[0]) ||
+    (business?.name && business.name.trim().split(' ')[0]) ||
+    (user?.user_metadata?.full_name && user.user_metadata.full_name.trim().split(' ')[0]) ||
     (user?.email?.split('@')[0]) ||
     'there';
 

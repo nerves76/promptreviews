@@ -83,7 +83,7 @@ export default function DashboardLayout({
   if (loading) return null;
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-b from-slate-blue to-[#FFDAB9]">
+    <div className="min-h-screen w-full">
       {showTrialBanner && trialDaysLeft !== null && (
         <div className="w-full bg-yellow-200 text-yellow-900 px-4 py-3 flex items-center justify-center z-50 fixed top-0 left-0" style={{ minHeight: 56, position: 'relative' }}>
           <div className="flex items-center gap-4 justify-center w-full">
