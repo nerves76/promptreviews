@@ -105,6 +105,11 @@ export default function SignUpPage() {
             </Link>
           </p>
         </div>
+        <div className="w-full max-w-md mb-4">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded text-center font-bold">
+            DEPLOYMENT TEST: This is the latest code.
+          </div>
+        </div>
         <form onSubmit={handleSubmit} className="mt-8 p-8 rounded shadow w-full max-w-md space-y-6 bg-white">
           <div>
             <label className="block font-medium mb-1">First Name</label>
