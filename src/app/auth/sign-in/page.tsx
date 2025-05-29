@@ -124,11 +124,9 @@ export default function SignIn() {
   return (
     <>
       <SimpleMarketingNav />
-      <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-slate-blue to-[#FFDAB9]">
+      <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-indigo-400 via-indigo-300 to-purple-300">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
-            Sign in to your account
-          </h2>
+          <h1 className="mt-6 text-center text-3xl font-extrabold text-white">Sign in to your account</h1>
           <p className="mt-2 text-center text-sm text-white">
             Or{' '}
             <Link href="/auth/sign-up" className="font-medium text-white hover:text-gray-100 underline">

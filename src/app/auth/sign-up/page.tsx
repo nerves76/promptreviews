@@ -95,7 +95,7 @@ export default function SignUpPage() {
   return (
     <>
       <SimpleMarketingNav />
-      <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-slate-blue to-[#FFDAB9]">
+      <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-indigo-400 via-indigo-300 to-purple-300">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <h1 className="mt-6 text-center text-3xl font-extrabold text-white">Create your account</h1>
           <p className="mt-2 text-center text-sm text-white">
@@ -104,11 +104,6 @@ export default function SignUpPage() {
               sign in to your account
             </Link>
           </p>
-        </div>
-        <div className="w-full max-w-md mb-4">
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded text-center font-bold">
-            DEPLOYMENT TEST: This is the latest code.
-          </div>
         </div>
         <form onSubmit={handleSubmit} className="mt-8 p-8 rounded shadow w-full max-w-md space-y-6 bg-white">
           <div>
