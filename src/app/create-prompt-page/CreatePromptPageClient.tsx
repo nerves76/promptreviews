@@ -308,6 +308,7 @@ export default function CreatePromptPageClient() {
       insertData.emoji_sentiment_enabled = emojiSentimentEnabled;
       insertData.emoji_sentiment_question = emojiSentimentQuestion;
       insertData.emoji_feedback_message = emojiFeedbackMessage;
+      insertData.emoji_thank_you_message = formData.emojiThankYouMessage || '';
       const { data, error } = await supabase
         .from('prompt_pages')
         .insert([insertData])

@@ -464,28 +464,28 @@ export default function AdminDashboard() {
             <PageCard icon={<FaHistory className="w-9 h-9 text-slate-blue" />}>
               <div className="flex items-center">
                 <div className="ml-4">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Recent Logins</h2>
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead>
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Sign In</th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {stats?.recentLogins.map((login) => (
-                          <tr key={login.email}>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{login.email}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {new Date(login.created_at).toLocaleString()}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Recent Logins</h2>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead>
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Sign In</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {stats?.recentLogins.map((login) => (
+                      <tr key={login.email}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{login.email}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {new Date(login.created_at).toLocaleString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
               </div>
             </PageCard>
 
@@ -493,28 +493,28 @@ export default function AdminDashboard() {
             <PageCard icon={<FaUsers className="w-9 h-9 text-slate-blue" />}>
               <div className="flex items-center">
                 <div className="ml-4">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Most Active Accounts</h2>
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead>
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Business Name</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Activity</th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {stats?.mostActiveAccounts.map((account) => (
-                          <tr key={account.id}>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{account.name}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{account.email}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{account.activity} events</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Most Active Accounts</h2>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead>
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Business Name</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Activity</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {stats?.mostActiveAccounts.map((account) => (
+                      <tr key={account.id}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{account.name}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{account.email}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{account.activity} events</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
               </div>
             </PageCard>
 
@@ -522,28 +522,28 @@ export default function AdminDashboard() {
             <PageCard icon={<FaRobot className="w-9 h-9 text-slate-blue" />}>
               <div className="flex items-center">
                 <div className="ml-4">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Accounts with Most AI Usage</h2>
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead>
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Business Name</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">AI Generations</th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {stats?.accountsWithMostAI.map((account) => (
-                          <tr key={account.id}>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{account.businessName}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{account.businessEmail}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{account.aiUsage}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Accounts with Most AI Usage</h2>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead>
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Business Name</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">AI Generations</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {stats?.accountsWithMostAI.map((account) => (
+                      <tr key={account.id}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{account.businessName}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{account.businessEmail}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{account.aiUsage}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
               </div>
             </PageCard>
           </div>
@@ -572,28 +572,28 @@ export default function AdminDashboard() {
           <PageCard icon={<FaChartBar className="w-9 h-9 text-slate-blue" />}>
             <div className="flex items-center">
               <div className="ml-4">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">AI Usage by Day</h2>
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead>
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tokens</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cost (USD)</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {aiUsageByDay.map((row) => (
-                        <tr key={row.date}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.date}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.total_tokens.toLocaleString()}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${row.total_cost.toFixed(4)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">AI Usage by Day</h2>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead>
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tokens</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cost (USD)</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {aiUsageByDay.map((row) => (
+                    <tr key={row.date}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.date}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.total_tokens.toLocaleString()}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${row.total_cost.toFixed(4)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
             </div>
           </PageCard>
 
@@ -601,30 +601,30 @@ export default function AdminDashboard() {
           <PageCard icon={<FaUsers className="w-9 h-9 text-slate-blue" />}>
             <div className="flex items-center">
               <div className="ml-4">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">AI Usage by User</h2>
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead>
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User ID</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tokens</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cost (USD)</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Generations</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {aiUsageByUser.map((row) => (
-                        <tr key={row.user_id}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.user_id}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.total_tokens.toLocaleString()}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${row.total_cost.toFixed(4)}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.usage_count}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">AI Usage by User</h2>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead>
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User ID</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tokens</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cost (USD)</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Generations</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {aiUsageByUser.map((row) => (
+                    <tr key={row.user_id}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.user_id}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.total_tokens.toLocaleString()}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${row.total_cost.toFixed(4)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.usage_count}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
             </div>
           </PageCard>
 
@@ -632,59 +632,59 @@ export default function AdminDashboard() {
           <PageCard icon={<FaUsers className="w-9 h-9 text-slate-blue" />}>
             <div className="flex items-center">
               <div className="ml-4">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Accounts: Mark as Free</h2>
-                {accountsError && <div className="text-red-600 mb-2">{accountsError}</div>}
-                {toggleMessage && <div className="text-green-600 mb-2">{toggleMessage}</div>}
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead>
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Account ID</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Plan</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trial End</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Is Free</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {accounts.map((account) => (
-                        <tr key={account.id}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{account.id}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{account.plan}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{account.trial_end ? new Date(account.trial_end).toLocaleDateString() : '-'}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            <Switch
-                              checked={!!account.is_free}
-                              onChange={async (checked) => {
-                                setToggleLoading(account.id);
-                                setToggleMessage(null);
-                                try {
-                                  const { error } = await supabase
-                                    .from('accounts')
-                                    .update({ is_free: checked })
-                                    .eq('id', account.id);
-                                  if (error) throw error;
-                                  setToggleMessage(`Account ${account.id} marked as ${checked ? 'free' : 'paid'}.`);
-                                } catch (err) {
-                                  setAccountsError(err instanceof Error ? err.message : 'Failed to update account');
-                                } finally {
-                                  setToggleLoading(null);
-                                }
-                              }}
-                              className={`${account.is_free ? 'bg-green-600' : 'bg-gray-200'} relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none`}
-                              disabled={toggleLoading === account.id}
-                            >
-                              <span
-                                className={`${account.is_free ? 'translate-x-6' : 'translate-x-1'} inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
-                              />
-                            </Switch>
-                            {toggleLoading === account.id && <span className="ml-2 text-xs text-gray-400">Updating...</span>}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Accounts: Mark as Free</h2>
+            {accountsError && <div className="text-red-600 mb-2">{accountsError}</div>}
+            {toggleMessage && <div className="text-green-600 mb-2">{toggleMessage}</div>}
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead>
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Account ID</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Plan</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trial End</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Is Free</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {accounts.map((account) => (
+                    <tr key={account.id}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{account.id}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{account.plan}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{account.trial_end ? new Date(account.trial_end).toLocaleDateString() : '-'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <Switch
+                          checked={!!account.is_free}
+                          onChange={async (checked) => {
+                            setToggleLoading(account.id);
+                            setToggleMessage(null);
+                            try {
+                              const { error } = await supabase
+                                .from('accounts')
+                                .update({ is_free: checked })
+                                .eq('id', account.id);
+                              if (error) throw error;
+                              setToggleMessage(`Account ${account.id} marked as ${checked ? 'free' : 'paid'}.`);
+                            } catch (err) {
+                              setAccountsError(err instanceof Error ? err.message : 'Failed to update account');
+                            } finally {
+                              setToggleLoading(null);
+                            }
+                          }}
+                          className={`${account.is_free ? 'bg-green-600' : 'bg-gray-200'} relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none`}
+                          disabled={toggleLoading === account.id}
+                        >
+                          <span
+                            className={`${account.is_free ? 'translate-x-6' : 'translate-x-1'} inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                          />
+                        </Switch>
+                        {toggleLoading === account.id && <span className="ml-2 text-xs text-gray-400">Updating...</span>}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
             </div>
           </PageCard>
         </div>

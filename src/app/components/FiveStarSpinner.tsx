@@ -5,9 +5,16 @@ interface FiveStarSpinnerProps {
   color1?: string; // unfilled
   color2?: string; // filled
   style?: React.CSSProperties;
+  className?: string; // NEW: for custom styling
 }
 
-export default function FiveStarSpinner({ size = 24, color1 = '#D1D5DB', color2 = '#FFD700', style }: FiveStarSpinnerProps) {
+export default function FiveStarSpinner({
+  size = 24,
+  color1 = '#D1D5DB',
+  color2 = '#FFD700',
+  style,
+  className = '', // NEW
+}: FiveStarSpinnerProps) {
   // 0-3: filling stars, 4: half, 5: full, 6: reset
   const [state, setState] = useState(0);
   const [filled, setFilled] = useState([false, false, false, false, false]);
@@ -35,7 +42,10 @@ export default function FiveStarSpinner({ size = 24, color1 = '#D1D5DB', color2 
   }, [state]);
 
   return (
-    <div className="flex items-center justify-center gap-2" style={{ fontSize: size, minHeight: size + 6, marginTop: -7, ...style }}>
+    <div
+      className={`flex items-center justify-center gap-2 text-white ${className}`}
+      style={{ fontSize: size, minHeight: size + 6, ...style }}
+    >
       {[0, 1, 2, 3].map((i) => (
         <span
           key={i}

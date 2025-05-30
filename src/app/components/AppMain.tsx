@@ -16,7 +16,7 @@ export default function AppMain({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
       <main>
         <Header />
-        {children}
+          {children}
       </main>
     </div>
   );

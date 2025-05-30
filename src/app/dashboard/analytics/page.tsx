@@ -183,7 +183,7 @@ export default function AnalyticsPage() {
       <div className="min-h-screen flex justify-center items-start" style={{ minHeight: '100vh' }}>
         <div className="text-center w-full mt-[150px]">
           <FiveStarSpinner />
-          <p className="mt-4 text-gray-600">Loading analytics...</p>
+          <p className="mt-4 text-white">Loading analytics...</p>
         </div>
       </div>
     );
@@ -205,9 +205,9 @@ export default function AnalyticsPage() {
 
   return (
     <PageCard icon={<FaChartLine className="w-9 h-9 text-slate-blue" />}>
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex flex-col">
-          <h1 className="text-4xl font-bold text-slate-blue">Analytics</h1>
+      <div className="flex items-center justify-between mt-2 mb-8">
+        <div className="flex flex-col mt-0 md:mt-[-2px]">
+          <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">Analytics</h1>
         </div>
       </div>
           

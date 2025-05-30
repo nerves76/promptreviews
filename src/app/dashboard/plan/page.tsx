@@ -157,9 +157,10 @@ export default function PlanPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-start justify-center" style={{ minHeight: '100vh' }}>
-        <div className="w-full text-center mt-[150px]">
+      <div className="min-h-screen flex justify-center items-start" style={{ minHeight: '100vh' }}>
+        <div className="text-center w-full mt-[150px]">
           <FiveStarSpinner />
+          <p className="mt-4 text-white">Loading plans...</p>
         </div>
       </div>
     );

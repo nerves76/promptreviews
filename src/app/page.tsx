@@ -30,6 +30,7 @@ export default function Home() {
       <div className="text-center text-white mt-[150px] w-full">
         <h1 className="text-2xl font-bold mb-4">Redirecting...</h1>
         <FiveStarSpinner />
+        <p className="mt-4 text-white">Loading...</p>
       </div>
     </div>
   )

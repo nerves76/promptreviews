@@ -2,7 +2,7 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
 import { generateAIReview } from '@/utils/ai';
-import { FaFileAlt, FaInfoCircle, FaStar, FaGift, FaVideo, FaImage, FaQuoteRight, FaCamera, FaHeart, FaGoogle, FaYelp, FaFacebook, FaTripadvisor, FaRegStar, FaSmile, FaGlobe } from 'react-icons/fa';
+import { FaRobot, FaInfoCircle, FaStar, FaGift, FaVideo, FaImage, FaQuoteRight, FaCamera, FaHeart, FaGoogle, FaYelp, FaFacebook, FaTripadvisor, FaRegStar, FaSmile, FaGlobe } from 'react-icons/fa';
 import dynamic from 'next/dynamic';
 import { slugify } from '@/utils/slugify';
 import { useRouter } from 'next/navigation';
@@ -11,6 +11,16 @@ import { useRouter } from 'next/navigation';
 // Accept props for mode (create/edit), initial data, onSave/onPublish handlers, and page title.
 // Render the full prompt page form, including all steps, emoji sentiment flow, falling stars, review platforms, etc.
 // This will be used by both create and edit flows for perfect consistency.
+
+function getPlatformIcon(url: string, platform: string): { icon: any, label: string } {
+  const lowerUrl = url?.toLowerCase?.() || '';
+  const lowerPlatform = (platform || '').toLowerCase();
+  if (lowerUrl.includes('google') || lowerPlatform.includes('google')) return { icon: FaGoogle, label: 'Google' };
+  if (lowerUrl.includes('facebook') || lowerPlatform.includes('facebook')) return { icon: FaFacebook, label: 'Facebook' };
+  if (lowerUrl.includes('yelp') || lowerPlatform.includes('yelp')) return { icon: FaYelp, label: 'Yelp' };
+  if (lowerUrl.includes('tripadvisor') || lowerPlatform.includes('tripadvisor')) return { icon: FaTripadvisor, label: 'TripAdvisor' };
+  return { icon: FaRegStar, label: 'Other' };
+}
 
 export default function PromptPageForm({
   mode,
@@ -34,7 +44,18 @@ export default function PromptPageForm({
   [key: string]: any;
 }) {
   const router = useRouter();
-  const [formData, setFormData] = useState(initialData);
+  const [formData, setFormData] = useState({
+    ...initialData,
+    emojiThankYouMessage: initialData.emoji_thank_you_message || initialData.emojiThankYouMessage || '',
+  });
+
+  useEffect(() => {
+    setFormData({
+      ...initialData,
+      emojiThankYouMessage: initialData.emoji_thank_you_message || initialData.emojiThankYouMessage || '',
+    });
+  }, [initialData]);
+
   const [step, setStep] = useState(1);
   const [formError, setFormError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -178,23 +199,39 @@ export default function PromptPageForm({
     // Render a single-page form for universal prompt pages
     return (
       <form onSubmit={e => { e.preventDefault(); onSave(formData); }}>
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-[#1A237E]">{pageTitle}</h1>
-        </div>
-        <div>
-          <div className="flex items-center mb-4 px-4 py-2">
-            <FaStar className="w-6 h-6 mr-2 text-slate-blue" />
-            <h2 className="text-xl font-semibold text-slate-blue">Review Platforms</h2>
+        <p className="text-base text-gray-600 mb-4 max-w-[60ch]">
+          The Universal Prompt Page are for general reviews. Use this page to collect reviews from anyone, not just specific customers or clients. Frame the QR code and display it prominantly in your business location or share it on social media or in an email newsletter.
+        </p>
+        <div className="flex flex-col mb-8 mt-8 px-0 py-2">
+          <div className="flex items-center gap-3 mb-2">
+            <FaStar className="w-7 h-7 text-[#1A237E]" />
+            <h2 className="text-xl font-semibold text-[#1A237E]">Review Platforms</h2>
           </div>
-          <p className="text-sm text-gray-500 mt-1 mb-2">Your business profile platforms have been pre-loaded. You can add more if needed.</p>
-          <div className="mt-1 space-y-4">
+          <p className="text-sm text-gray-500 mt-1 mb-8 max-w-[85ch]">Your business profile platforms have been pre-loaded. You can add more if needed.</p>
+          <div className="mt-1 space-y-8">
             {formData.review_platforms && formData.review_platforms.map((link: any, index: number) => (
-              <div key={index} className="relative mb-6 mt-6 p-6 border border-indigo-200 rounded-2xl bg-indigo-50">
+              <div key={index} className="relative mb-8 mt-0 p-6 border border-indigo-200 rounded-2xl bg-indigo-50">
+                {/* Platform icon in top left */}
+                {link.url && (
+                  <div className="absolute -top-4 -left-4 bg-white rounded-full shadow p-2 flex items-center justify-center" title={getPlatformIcon(link.url, link.platform).label}>
+                    {(() => {
+                      const { icon: Icon } = getPlatformIcon(link.url, link.platform);
+                      return <Icon className="w-6 h-6" />;
+                    })()}
+                  </div>
+                )}
+                {/* Remove button in top right */}
+                <button
+                  type="button"
+                  onClick={() => handleRemovePlatform(index)}
+                  className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center rounded-full bg-red-100 hover:bg-red-200 text-red-600 text-xl font-bold shadow focus:outline-none focus:ring-2 focus:ring-red-400"
+                  aria-label="Remove platform"
+                >
+                  ×
+                </button>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="mb-4">
-                    <label htmlFor={`platform-${index}`} className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
-                      Platform name
-                    </label>
+                    <label htmlFor={`platform-${index}`} className="block text-sm font-semibold text-[#1A237E] mb-2 flex items-center">Platform name</label>
                     <select
                       id={`platform-${index}`}
                       value={link.platform}
@@ -272,108 +309,125 @@ export default function PromptPageForm({
             <button
               type="button"
               onClick={handleAddPlatform}
-              className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mt-2"
             >
               Add Platform
             </button>
           </div>
         </div>
-        {/* AI Review Generation Toggle */}
-        <div className="flex items-center justify-between mb-2 mt-8 px-4 py-2">
-          <div className="flex items-center gap-3">
-            <FaFileAlt className="w-7 h-7 text-[#1A237E]" />
-            <span className="text-2xl font-bold text-[#1A237E]">AI Review Generation</span>
+        {/* AI Generation Button Section */}
+        <div className="flex flex-col mb-8 mt-8 px-0 py-2">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-3">
+              <FaRobot className="w-7 h-7 text-[#1A237E]" />
+              <h2 className="text-xl font-semibold text-[#1A237E]">AI Generation Button</h2>
+            </div>
+            <button
+              type="button"
+              onClick={() => setAiReviewEnabled(v => !v)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${aiReviewEnabled ? 'bg-slate-blue' : 'bg-gray-200'}`}
+              aria-pressed={!!aiReviewEnabled}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${aiReviewEnabled ? 'translate-x-5' : 'translate-x-1'}`}
+              />
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => setAiReviewEnabled(v => !v)}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${aiReviewEnabled ? 'bg-slate-blue' : 'bg-gray-200'}`}
-            aria-pressed={!!aiReviewEnabled}
-          >
-            <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${aiReviewEnabled ? 'translate-x-5' : 'translate-x-1'}`}
-            />
-          </button>
+          <p className="text-xs text-gray-600 mt-2 ml-2 max-w-[85ch]">
+            If you would rather not let your customers/clients use AI to generate a review you can turn this off. This can be useful in cases where you have written a custom review that you want your customer to use or if you want to ensure users write the review themselves.
+          </p>
         </div>
         {/* Emoji Sentiment Flow Section */}
-        <div className="flex items-center justify-between mb-2 mt-8 px-4 py-2">
-          <div className="flex items-center gap-3">
-            <FaSmile className="w-7 h-7 text-[#1A237E]" />
-            <span className="text-2xl font-bold text-[#1A237E]">Emoji Sentiment Flow</span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setEmojiSentimentEnabled(v => !v)}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${emojiSentimentEnabled ? 'bg-slate-blue' : 'bg-gray-200'}`}
-            aria-pressed={!!emojiSentimentEnabled}
-          >
-            <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${emojiSentimentEnabled ? 'translate-x-5' : 'translate-x-1'}`}
-            />
-          </button>
-        </div>
-        <div className="rounded-lg p-6 bg-blue-50 border border-blue-200 flex flex-col gap-4 shadow relative">
-          <div className="text-xs text-gray-500 mt-1 mb-2">
-            Enabling this routes users to a feedback form if they are less than pleased with their experience. This keeps negative reviews off the web and allows you to respond directly while gathering valuable feedback. Users who select "Delighted" or "Satisfied" are sent to your public prompt page, while those who select "Neutral" or "Unsatisfied" are shown a private feedback form that is saved to your account but not shared publicly.
-          </div>
-          <div className="text-xs text-blue-700 bg-blue-100 border border-blue-200 rounded px-3 py-2 mb-2">
-            Note: If you have Falling stars feature enabled, it will only run when a user selects "Delighted" or "Satisfied."
-          </div>
-          <div className="mb-2">
-            <label className="block text-xs font-medium text-gray-700 mb-1">Popup question (shown above the emojis):</label>
-            <input
-              type="text"
-              className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-2 px-3"
-              value={emojiSentimentQuestion}
-              onChange={e => setEmojiSentimentQuestion(e.target.value)}
-              placeholder="How was your experience?"
-              maxLength={80}
-              disabled={!emojiSentimentEnabled}
-            />
-          </div>
-          {emojiSentimentEnabled && (
-            <>
-              <div className="flex justify-center gap-3 my-3 select-none">
-                <div className="flex flex-col items-center">
-                  <img src="/emojis/delighted.svg" width="40" height="40" alt="Delighted" title="Delighted" />
-                  <span className="text-xs mt-1 text-gray-700">Delighted</span>
-                </div>
-                <div className="flex flex-col items-center">
-                  <img src="/emojis/satisfied.svg" width="40" height="40" alt="Satisfied" title="Satisfied" />
-                  <span className="text-xs mt-1 text-gray-700">Satisfied</span>
-                </div>
-                <div className="flex flex-col items-center">
-                  <img src="/emojis/neutral.svg" width="40" height="40" alt="Neutral" title="Neutral" />
-                  <span className="text-xs mt-1 text-gray-700">Neutral</span>
-                </div>
-                <div className="flex flex-col items-center">
-                  <img src="/emojis/unsatisfied.svg" width="40" height="40" alt="Unsatisfied" title="Unsatisfied" />
-                  <span className="text-xs mt-1 text-gray-700">Unsatisfied</span>
-                </div>
-                <div className="flex flex-col items-center">
-                  <img src="/emojis/angry.svg" width="40" height="40" alt="Angry" title="Angry" />
-                  <span className="text-xs mt-1 text-gray-700">Angry</span>
-                </div>
+        <div className="flex flex-col mb-8 mt-8">
+          <div className="rounded-lg bg-blue-50 border border-blue-200 p-6">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-3">
+                <FaSmile className="w-7 h-7 text-[#1A237E]" />
+                <h2 className="text-xl font-semibold text-[#1A237E]">Emoji Sentiment Flow</h2>
               </div>
-              <div className="mt-2">
-                <label className="block text-xs font-medium text-gray-700 mb-1">Feedback message (shown to customers who select an indifferent or negative emoji):</label>
-                <textarea
-                  className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-2 px-3"
-                  value={emojiFeedbackMessage}
-                  onChange={e => setEmojiFeedbackMessage(e.target.value)}
-                  rows={2}
+              <button
+                type="button"
+                onClick={() => setEmojiSentimentEnabled(v => !v)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${emojiSentimentEnabled ? 'bg-slate-blue' : 'bg-gray-200'}`}
+                aria-pressed={!!emojiSentimentEnabled}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${emojiSentimentEnabled ? 'translate-x-5' : 'translate-x-1'}`}
                 />
+              </button>
+            </div>
+            <div className="text-xs text-gray-500 mt-1 mb-2 max-w-[85ch]">
+              Enabling this routes users to a feedback form if they are less than pleased with their experience. This keeps negative reviews off the web and allows you to respond directly while gathering valuable feedback. Users who select "Delighted" or "Satisfied" are sent to your public prompt page, while those who select "Neutral" or "Unsatisfied" are shown a private feedback form that is saved to your account but not shared publicly.
+            </div>
+            <div className="text-xs text-blue-700 bg-blue-100 border border-blue-200 rounded px-3 py-2 mb-2 max-w-[85ch]">
+              Note: If you have Falling stars feature enabled, it will only run when a user selects "Delighted" or "Satisfied."
+            </div>
+            <div className="mb-2">
+              <label className="block text-xs font-medium text-gray-700 mb-1">Popup question (shown above the emojis):</label>
+              <input
+                type="text"
+                className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-2 px-3"
+                value={emojiSentimentQuestion}
+                onChange={e => setEmojiSentimentQuestion(e.target.value)}
+                placeholder="How was your experience?"
+                maxLength={80}
+                disabled={!emojiSentimentEnabled}
+              />
+            </div>
+            {/* Always show emojis with labels */}
+            <div className="flex justify-center gap-3 my-3 select-none">
+              <div className="flex flex-col items-center">
+                <img src="/emojis/delighted.svg" width="40" height="40" alt="Delighted" title="Delighted" />
+                <span className="text-xs mt-1 text-gray-700">Delighted</span>
               </div>
-            </>
-          )}
+              <div className="flex flex-col items-center">
+                <img src="/emojis/satisfied.svg" width="40" height="40" alt="Satisfied" title="Satisfied" />
+                <span className="text-xs mt-1 text-gray-700">Satisfied</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <img src="/emojis/neutral.svg" width="40" height="40" alt="Neutral" title="Neutral" />
+                <span className="text-xs mt-1 text-gray-700">Neutral</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <img src="/emojis/unsatisfied.svg" width="40" height="40" alt="Unsatisfied" title="Unsatisfied" />
+                <span className="text-xs mt-1 text-gray-700">Unsatisfied</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <img src="/emojis/angry.svg" width="40" height="40" alt="Angry" title="Angry" />
+                <span className="text-xs mt-1 text-gray-700">Angry</span>
+              </div>
+            </div>
+            {/* Feedback message for indifferent/negative emoji */}
+            <div className="mt-2">
+              <label className="block text-xs font-medium text-gray-700 mb-1">Feedback message (shown to customers who select an indifferent or negative emoji):</label>
+              <textarea
+                className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-2 px-3"
+                value={emojiFeedbackMessage}
+                onChange={e => setEmojiFeedbackMessage(e.target.value)}
+                rows={2}
+              />
+            </div>
+            {/* New: Submission thank you message */}
+            <div className="mt-2">
+              <label className="block text-xs font-medium text-gray-700 mb-1">Submission thank you message (shown after feedback is submitted):</label>
+              <input
+                type="text"
+                className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-2 px-3"
+                value={formData.emojiThankYouMessage || ''}
+                onChange={e => setFormData((prev: any) => ({ ...prev, emojiThankYouMessage: e.target.value }))}
+                placeholder="Thank you for your feedback!"
+                maxLength={120}
+              />
+            </div>
+          </div>
         </div>
         {/* Falling Stars Section */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-2 px-4 py-2">
-            <label className="block text-lg font-semibold text-slate-blue flex items-center">
+        <div className="mb-8 mt-8">
+          <div className="flex items-center justify-between mb-2 px-0 py-2">
+            <h2 className="block text-xl font-semibold text-[#1A237E] flex items-center">
               <FaStar className="w-6 h-6 mr-2 text-slate-blue" />
               Falling star animation
-            </label>
+            </h2>
             <button
               type="button"
               onClick={handleToggleFalling}
@@ -386,7 +440,7 @@ export default function PromptPageForm({
               />
             </button>
           </div>
-          <div className="text-sm text-gray-700 mb-3 max-w-xl">
+          <div className="text-sm text-gray-700 mb-3 max-w-[85ch]">
             Enable a fun animation where stars (or other icons) rain down when the prompt page loads. You can choose the icon below.
           </div>
           <div className={`rounded-2xl border border-indigo-200 bg-indigo-50 p-4 ${!fallingEnabled ? 'opacity-60' : ''}`}>  
@@ -410,12 +464,12 @@ export default function PromptPageForm({
           </div>
         </div>
         {/* Special Offer Section */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-2 px-4 py-2">
-            <label className="block text-lg font-semibold text-slate-blue flex items-center">
+        <div className="mb-8 mt-8">
+          <div className="flex items-center justify-between mb-2 px-0 py-2">
+            <h2 className="block text-xl font-semibold text-[#1A237E] flex items-center">
               <FaGift className="w-6 h-6 mr-2 text-slate-blue" />
               Special offer
-            </label>
+            </h2>
             <button
               type="button"
               onClick={() => setOfferEnabled((prev: boolean) => !prev)}
@@ -453,7 +507,7 @@ export default function PromptPageForm({
               disabled={!offerEnabled}
             />
           </div>
-          <div className="text-xs text-gray-500 mt-2">
+          <div className="text-xs text-gray-500 mt-2 max-w-[85ch]">
             Note: Services like Google and Yelp have policies against providing rewards in exchange for reviews, so it's best not to promise a reward for "x" number of reviews, etc.
           </div>
         </div>
@@ -478,6 +532,7 @@ export default function PromptPageForm({
             {formError && (
               <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded">{formError}</div>
             )}
+            {/* Only show customer/client fields if not universal */}
             {!isUniversal && (
               <>
                 <div className="mb-6 flex items-center gap-2">
@@ -541,7 +596,7 @@ export default function PromptPageForm({
                   </div>
                 </div>
                 <div>
-                  <label htmlFor="role" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center">
+                  <label htmlFor="role" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center max-w-[85ch]">
                     Their role/position
                     <Tooltip text="The role or position of the reviewer helps AI generate more relevant and personalized reviews. For example, a Store Manager might focus on different aspects than a Customer." />
                   </label>
@@ -594,7 +649,7 @@ export default function PromptPageForm({
                     Outcome for them
                     <Tooltip text="Describe the results and benefits the client received. This information helps AI generate more specific and impactful reviews that highlight the value provided." />
                   </label>
-                  <p className="text-xs text-gray-500 mt-1 mb-5">Describe the service you provided and how it benefited this individual.</p>
+                  <p className="text-xs text-gray-500 mt-1 mb-5 max-w-[85ch]">Describe the service you provided and how it benefited this individual.</p>
                   <textarea
                     id="outcomes"
                     value={formData.outcomes}
@@ -619,7 +674,7 @@ export default function PromptPageForm({
                     className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
                     placeholder={`Hi ${formData.first_name || '[name]'}, thanks so much for doing business with ${businessProfile?.business_name || '[business name]'}. As a small business, getting reviews online is super valuable and extends our reach. Thank you for supporting us!\n\n- ${businessProfile?.business_name || '[Account holder name]'}`}
                   />
-                  <p className="text-xs text-gray-500 mt-1 mb-5">This note will appear at the top of the review page for your customer/client. Make it personal!</p>
+                  <p className="text-xs text-gray-500 mt-1 mb-5 max-w-[85ch]">This note will appear at the top of the review page for your customer/client. Make it personal!</p>
                 </div>
               </>
             )}

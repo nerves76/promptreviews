@@ -156,6 +156,10 @@ export default function PromptPage() {
   const [feedbackSuccess, setFeedbackSuccess] = useState(false);
   const [feedbackError, setFeedbackError] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [copySuccess, setCopySuccess] = useState<string | null>(null);
+  const [showFallbackModal, setShowFallbackModal] = useState(false);
+  const [fallbackModalText, setFallbackModalText] = useState('');
+  const [fallbackModalUrl, setFallbackModalUrl] = useState('');
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -263,7 +267,16 @@ export default function PromptPage() {
       setIsSubmitting(null);
       return;
     }
-    // Prevent logged-in users from submitting reviews
+    if (!platformReviewTexts[idx]) {
+      setSubmitError('Please write your review before submitting.');
+      setIsSubmitting(null);
+      return;
+    }
+    if (!url) {
+      setSubmitError('No review site URL found for this platform.');
+      setIsSubmitting(null);
+      return;
+    }
     if (currentUser) {
       setSubmitError('For logged in users, submits are not saved to account.');
       setIsSubmitting(null);
@@ -273,7 +286,6 @@ export default function PromptPage() {
     const last_name = reviewerLastNames[idx];
     setIsSubmitting(idx);
     try {
-      // Always POST to the API endpoint for review tracking and notification
       const response = await fetch('/api/track-review', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -293,18 +305,27 @@ export default function PromptPage() {
         setIsSubmitting(null);
         return;
       }
-      // Always proceed to copy and open the review platform, regardless of insert/update
+      // Try to copy
+      let copied = false;
       if (platformReviewTexts[idx]) {
         try {
           await navigator.clipboard.writeText(platformReviewTexts[idx]);
+          setCopySuccess('Copied to clipboard! Now paste it on the review site.');
+          copied = true;
+          if (url) {
+            window.open(url, '_blank', 'noopener,noreferrer');
+          }
         } catch (err) {
-          window.prompt('Copy this review and paste it on the next page:', platformReviewTexts[idx]);
+          // Show custom fallback modal
+          setFallbackModalText(platformReviewTexts[idx]);
+          setFallbackModalUrl(url);
+          setShowFallbackModal(true);
+          setCopySuccess(null);
+          copied = false;
+          setIsSubmitting(null);
+          return;
         }
       }
-      if (url) {
-        window.open(url, '_blank', 'noopener,noreferrer');
-      }
-      // Track copy_submit event (exclude logged-in users)
       if (!currentUser && promptPage?.id && promptPage.review_platforms?.[idx]) {
         sendAnalyticsEvent({
           promptPageId: promptPage.id,
@@ -316,6 +337,7 @@ export default function PromptPage() {
       setSubmitError('Failed to submit review. Please try again.');
     } finally {
       setIsSubmitting(null);
+      setTimeout(() => setCopySuccess(null), 4000);
     }
   };
 
@@ -390,32 +412,6 @@ export default function PromptPage() {
         // Create calendar event
         const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=Review ${encodeURIComponent(businessProfile?.business_name || '')}&details=Review page: ${encodeURIComponent(window.location.href)}`;
         window.open(calendarUrl);
-        break;
-      case 'reminder':
-        // Request notification permission and set reminder
-        if ('Notification' in window) {
-          Notification.requestPermission().then(permission => {
-            if (permission === 'granted') {
-              // Set reminder for 1 hour from now
-              const reminderTime = new Date(Date.now() + 60 * 60 * 1000);
-              const reminder = new Notification('Review Reminder', {
-                body: `Time to leave a review for ${businessProfile?.business_name}`,
-                icon: '/favicon.ico'
-              });
-              // Store reminder in localStorage
-              const reminders = JSON.parse(localStorage.getItem('reviewReminders') || '[]');
-              reminders.push({
-                businessName: businessProfile?.business_name,
-                url: window.location.href,
-                time: reminderTime.toISOString()
-              });
-              localStorage.setItem('reviewReminders', JSON.stringify(reminders));
-              alert('Reminder set for 1 hour from now!');
-            }
-          });
-        } else {
-          alert('Your browser does not support notifications');
-        }
         break;
       case 'copy-link':
         // Copy link to clipboard
@@ -668,16 +664,6 @@ export default function PromptPage() {
                 <FaCalendarAlt className="w-4 h-4" />
                 Add to Calendar
               </button>
-              {availableFeatures.notifications && (
-                <button
-                  onClick={() => handleSaveOption('reminder')}
-                  className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
-                  style={{ color: businessProfile?.header_color || '#4F46E5' }}
-                >
-                  <FaBell className="w-4 h-4" />
-                  Set Reminder
-                </button>
-              )}
               <button
                 onClick={() => handleSaveOption('email')}
                 className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
@@ -917,7 +903,11 @@ export default function PromptPage() {
                       <button type="submit" className="px-6 py-2 bg-slate-blue text-white rounded-lg font-semibold shadow hover:bg-indigo-900 transition" disabled={feedbackSubmitting}>
                         Submit Feedback
                       </button>
-                      {feedbackSuccess && <div className="text-green-600 mt-4">Thank you for your feedback!</div>}
+                      {feedbackSuccess && (
+                        <div className="text-green-600 mt-4">
+                          {promptPage.emoji_thank_you_message || 'Thank you for your feedback!'}
+                        </div>
+                      )}
                       {feedbackError && <div className="text-red-600 mt-4">{feedbackError}</div>}
                     </form>
                   </div>
@@ -1023,6 +1013,7 @@ export default function PromptPage() {
                               className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg hover:bg-gray-50 transition-colors"
                               style={{ color: businessProfile?.header_color || '#4F46E5' }}
                               disabled={photoSubmitting}
+                              title="Copies your review and takes you to review site"
                             >
                               {photoSubmitting ? (
                                 <span className="flex items-center justify-center">
@@ -1141,7 +1132,7 @@ export default function PromptPage() {
                                     id={`reviewerLastName-${idx}`}
                                     value={reviewerLastNames[idx]}
                                     onChange={e => handleLastNameChange(idx, e.target.value)}
-                                    placeholder="Cohen"
+                                    placeholder="Scout"
                                     className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
                                     required
                                   />
@@ -1173,6 +1164,7 @@ export default function PromptPage() {
                                   onClick={() => handleRewriteWithAI(idx)}
                                   disabled={aiLoading === idx}
                                   className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg hover:bg-gray-50 transition-colors"
+                                  type="button"
                                 >
                                   <FaPenFancy style={{ color: businessProfile?.header_color || '#4F46E5' }} />
                                   <span style={{ color: businessProfile?.header_color || '#4F46E5' }}>{aiLoading === idx ? 'Generating...' : 'Generate with AI'}</span>
@@ -1182,6 +1174,8 @@ export default function PromptPage() {
                                   className="px-4 py-2 text-white rounded hover:opacity-90 transition-colors"
                                   style={{ backgroundColor: businessProfile?.secondary_color || '#4F46E5' }}
                                   disabled={isSubmitting === idx}
+                                  type="button"
+                                  title="Copies your review and takes you to review site"
                                 >
                                   {isSubmitting === idx ? (
                                     <span className="flex items-center justify-center">
@@ -1312,6 +1306,62 @@ export default function PromptPage() {
           </div>
         </div>
       </div>
+      {copySuccess && (
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fadein">
+          {copySuccess}
+        </div>
+      )}
+      {showFallbackModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-xl w-full relative animate-fadein border-2 border-indigo-500">
+            <button
+              className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-2xl font-bold focus:outline-none"
+              onClick={() => setShowFallbackModal(false)}
+              aria-label="Close"
+            >
+              ×
+            </button>
+            <h2 className="text-2xl font-bold mb-3 text-indigo-700 text-center">Copy Your Review</h2>
+            <p className="text-gray-700 mb-4 text-center">Copy the review below, then click <span className="font-semibold">Go to Review Site</span> to paste it.</p>
+            <textarea
+              className="w-full rounded-lg border border-gray-300 p-3 mb-4 text-base bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+              value={fallbackModalText}
+              readOnly
+              rows={5}
+              onFocus={e => e.target.select()}
+            />
+            <div className="flex flex-col sm:flex-row gap-3 justify-end mt-2">
+              <button
+                className="flex-1 px-6 py-3 rounded-lg font-bold text-lg shadow-lg hover:opacity-90 focus:outline-none transition border-2"
+                style={{
+                  backgroundColor: businessProfile?.secondary_color || '#4F46E5',
+                  color: '#fff',
+                  borderColor: businessProfile?.secondary_color || '#4F46E5',
+                  letterSpacing: '0.03em',
+                }}
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(fallbackModalText);
+                    setCopySuccess('Copied to clipboard!');
+                  } catch {}
+                }}
+              >
+                Copy
+              </button>
+              <button
+                className="flex-1 px-4 py-2 bg-slate-blue text-white rounded-lg font-semibold shadow hover:bg-indigo-900 focus:outline-none transition"
+                onClick={() => {
+                  if (fallbackModalUrl) {
+                    window.open(fallbackModalUrl, '_blank', 'noopener,noreferrer');
+                  }
+                  setShowFallbackModal(false);
+                }}
+              >Go to Review Site</button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
+

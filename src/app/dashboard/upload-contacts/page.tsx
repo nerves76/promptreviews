@@ -258,10 +258,10 @@ export default function UploadContactsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex justify-center items-center">
-        <div className="text-center">
-          <div className="mb-4"><FiveStarSpinner /></div>
-          <p className="mt-4 text-gray-600">Loading contacts upload...</p>
+      <div className="min-h-screen flex justify-center items-start" style={{ minHeight: '100vh' }}>
+        <div className="text-center w-full mt-[150px]">
+          <FiveStarSpinner />
+          <p className="mt-4 text-white">Loading contacts upload...</p>
         </div>
       </div>
     );
