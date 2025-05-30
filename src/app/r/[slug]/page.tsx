@@ -265,7 +265,7 @@ export default function PromptPage() {
     }
     // Prevent logged-in users from submitting reviews
     if (currentUser) {
-      setSubmitError('You are logged in as the business owner. Reviews submitted while logged in are not saved. Please log out to test the public review flow.');
+      setSubmitError('For logged in users, submits are not saved to account.');
       setIsSubmitting(null);
       return;
     }
@@ -295,7 +295,11 @@ export default function PromptPage() {
       }
       // Always proceed to copy and open the review platform, regardless of insert/update
       if (platformReviewTexts[idx]) {
-        navigator.clipboard.writeText(platformReviewTexts[idx]);
+        try {
+          await navigator.clipboard.writeText(platformReviewTexts[idx]);
+        } catch (err) {
+          window.prompt('Copy this review and paste it on the next page:', platformReviewTexts[idx]);
+        }
       }
       if (url) {
         window.open(url, '_blank', 'noopener,noreferrer');
@@ -1020,7 +1024,11 @@ export default function PromptPage() {
                               style={{ color: businessProfile?.header_color || '#4F46E5' }}
                               disabled={photoSubmitting}
                             >
-                              {photoSubmitting ? 'Submitting...' : 'Submit'}
+                              {photoSubmitting ? (
+                                <span className="flex items-center justify-center">
+                                  <FiveStarSpinner size={18} color1="#a5b4fc" color2="#6366f1" />
+                                </span>
+                              ) : 'Submit'}
                             </button>
                           </div>
                           {photoError && <div className="text-red-500 text-sm">{photoError}</div>}
@@ -1175,7 +1183,11 @@ export default function PromptPage() {
                                   style={{ backgroundColor: businessProfile?.secondary_color || '#4F46E5' }}
                                   disabled={isSubmitting === idx}
                                 >
-                                  {isSubmitting === idx ? 'Submitting...' : 'Copy & Submit'}
+                                  {isSubmitting === idx ? (
+                                    <span className="flex items-center justify-center">
+                                      <FiveStarSpinner size={18} color1="#a5b4fc" color2="#6366f1" />
+                                    </span>
+                                  ) : 'Copy & Submit'}
                                 </button>
                               </div>
                             </div>

@@ -5,7 +5,7 @@ import { createBrowserClient } from '@supabase/ssr';
 import { useAuthGuard } from '@/utils/authGuard';
 import { FaChartLine, FaGlobe, FaList } from 'react-icons/fa';
 import { getUserOrMock } from '@/utils/supabase';
-import DashboardCard from '../components/DashboardCard';
+import PageCard from '@/app/components/PageCard';
 import FiveStarSpinner from '@/app/components/FiveStarSpinner';
 
 interface PromptPage {
@@ -204,10 +204,7 @@ export default function AnalyticsPage() {
   const selectedPage = promptPages.find(p => p.id === selectedPageId);
 
   return (
-    <DashboardCard>
-      <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center">
-        <FaChartLine className="w-9 h-9 text-slate-blue" />
-      </div>
+    <PageCard icon={<FaChartLine className="w-9 h-9 text-slate-blue" />}>
       <div className="flex items-center justify-between mb-8">
         <div className="flex flex-col">
           <h1 className="text-4xl font-bold text-slate-blue">Analytics</h1>
@@ -361,6 +358,6 @@ export default function AnalyticsPage() {
           </table>
         </div>
       )}
-    </DashboardCard>
+    </PageCard>
   );
 } 

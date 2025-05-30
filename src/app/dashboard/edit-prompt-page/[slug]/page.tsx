@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { getUserOrMock, getSessionOrMock } from '@/utils/supabase';
 import IndustrySelector from '@/app/components/IndustrySelector';
 import PromptPageForm from '@/app/components/PromptPageForm';
+import PageCard from '@/app/components/PageCard';
 
 interface ReviewPlatformLink {
   platform: string;
@@ -1167,15 +1168,7 @@ export default function EditPromptPage() {
 
   console.log('step:', step, 'isUniversal:', isUniversal);
   return (
-    <div className="relative w-full max-w-[1000px] mx-auto rounded-lg p-8 bg-white mt-10">
-      {/* Floating Icon */}
-      <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center w-16 h-16">
-        {isUniversal ? (
-          <FaStore className="w-9 h-9 text-slate-blue" />
-        ) : (
-          <FaStar className="w-9 h-9 text-slate-blue" />
-        )}
-      </div>
+    <PageCard icon={isUniversal ? <FaStore className="w-9 h-9 text-slate-blue" /> : <FaStar className="w-9 h-9 text-slate-blue" /> }>
       {/* Top right buttons */}
       <div className="absolute top-8 right-8 flex gap-4 z-20">
         {isUniversal ? (
@@ -1252,6 +1245,6 @@ export default function EditPromptPage() {
           </div>
         </div>
       )}
-    </div>
+    </PageCard>
   );
 } 

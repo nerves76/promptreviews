@@ -11,6 +11,7 @@ import { getUserOrMock } from '@/utils/supabase';
 import BusinessForm from '../components/BusinessForm';
 import DashboardCard from '../components/DashboardCard';
 import FiveStarSpinner from '@/app/components/FiveStarSpinner';
+import PageCard from '@/app/components/PageCard';
 
 function Tooltip({ text }: { text: string }) {
   const [show, setShow] = useState(false);
@@ -426,27 +427,25 @@ export default function BusinessProfilePage() {
   }
 
   return (
-    <DashboardCard className="mt-0 md:mt-[30px]">
-      {/* Floating Icon */}
-      <div className="absolute -top-6 -left-6 z-10 rounded-full shadow p-3 flex items-center justify-center bg-white">
-        <FaStore className="w-9 h-9 text-slate-blue" />
-      </div>
-      <div className="flex items-start justify-between mb-8">
-        <div className="flex flex-col">
-          <h1 className="text-4xl font-bold text-slate-blue">Your business</h1>
-          <p className="text-gray-600 text-base max-w-md mt-2 mb-0">
+    <PageCard icon={<FaStore className="w-9 h-9 text-slate-blue" />}>
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex flex-col mt-0 md:mt-[-15px]">
+          <h1 className="text-4xl font-bold text-slate-blue mt-0 md:mt-[-15px] mb-2">Your business</h1>
+          <p className="text-gray-600 text-base max-w-md mt-0 mb-10">
             Fill out your business profile thoroughly and consistently. This is rule #1 in local search engine optimization.
           </p>
         </div>
-        <button
-          type="submit"
-          form="business-profile-form"
-          disabled={loading}
-          className="py-2 px-6 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-slate-blue hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue disabled:opacity-50 disabled:cursor-not-allowed"
-          style={{ marginTop: '0.25rem' }}
-        >
-          {loading ? 'Saving...' : 'Save'}
-        </button>
+        <div className="flex items-start">
+          <button
+            type="submit"
+            form="business-profile-form"
+            disabled={loading}
+            className="py-2 px-6 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-slate-blue hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ marginTop: '0.25rem' }}
+          >
+            {loading ? 'Saving...' : 'Save'}
+          </button>
+        </div>
       </div>
       <BusinessForm
         form={form}
@@ -491,17 +490,6 @@ export default function BusinessProfilePage() {
         handleCropCancel={handleCropCancel}
         formId="business-profile-form"
       />
-      {/* Bottom Save Button */}
-      <div className="flex justify-end mt-8">
-        <button
-          type="submit"
-          form="business-profile-form"
-          disabled={loading}
-          className="py-2 px-6 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-slate-blue hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {loading ? 'Saving...' : 'Save'}
-        </button>
-      </div>
-    </DashboardCard>
+    </PageCard>
   );
 } 

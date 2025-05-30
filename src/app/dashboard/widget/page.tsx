@@ -9,7 +9,7 @@ import type { Swiper as SwiperType } from 'swiper';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
-import DashboardCard from '../components/DashboardCard';
+import PageCard from '@/app/components/PageCard';
 import FiveStarSpinner from '@/app/components/FiveStarSpinner';
 
 // Helper to convert hex to rgba
@@ -146,8 +146,12 @@ export default function WidgetPage() {
 
   const embedCode = `<div id="promptreviews-widget" data-client="YOUR_CLIENT_ID"></div>\n<script src="https://yourdomain.com/widget.js" async></script>`;
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(embedCode);
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(embedCode);
+    } catch (err) {
+      alert('Could not copy to clipboard. Please copy manually.');
+    }
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   };
@@ -179,7 +183,7 @@ export default function WidgetPage() {
   return (
     <>
       {/* Widget Preview on Gradient */}
-      <div className="mx-auto mb-12" style={{ maxWidth: design.showGrid ? 1000 : 800 }}>
+      <div className="mx-auto mb-12 mt-10" style={{ maxWidth: design.showGrid ? 1000 : 800 }}>
         <h2 className="text-2xl font-bold text-white mb-4 text-center">Live widget preview</h2>
         <section
           className={`flex flex-col justify-center relative${design.showGrid ? ' bg-transparent shadow-none border-none p-0' : ''}`}
@@ -400,10 +404,7 @@ export default function WidgetPage() {
         )}
       </div>
       {/* Main Card Below */}
-      <DashboardCard>
-        <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center">
-          <FaCode className="w-9 h-9 text-[#1A237E]" />
-        </div>
+      <PageCard icon={<FaCode className="w-9 h-9 text-[#1A237E]" />}>
         <div className="flex justify-between items-center mb-2">
           <h1 className="text-4xl font-bold text-[#1A237E]">Your widgets</h1>
           <button
@@ -446,7 +447,7 @@ export default function WidgetPage() {
         <hr className="my-10" />
         {/* JSON-LD for SEO */}
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      </DashboardCard>
+      </PageCard>
     </>
   );
 }

@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY);
 
 // Map your plan keys to Stripe price IDs (only paid plans)
 const PRICE_IDS: Record<string, string> = {
-  builder: process.env.STRIPE_PRICE_ID_BUILDER!,
-  maven: process.env.STRIPE_PRICE_ID_MAVEN!,
+  builder: process.env.STRIPE_PRICE_ID_BUILDER || process.env.STRIPE_PRICE_ID_BUILDER,
+  maven: process.env.STRIPE_PRICE_ID_MAVEN || process.env.STRIPE_PRICE_ID_MAVEN,
 };
 
 export async function POST(req: NextRequest) {
