@@ -4,7 +4,6 @@ import { Suspense, useEffect, useState, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { createBrowserClient } from '@supabase/ssr';
 import Link from 'next/link';
-import Header from '@/app/components/Header';
 import { Dialog } from '@headlessui/react';
 import { isAccountBlocked } from '@/utils/accountLimits';
 import { getUserOrMock } from '@/utils/supabase';
@@ -83,7 +82,8 @@ export default function DashboardLayout({
   if (loading) return null;
 
   return (
-    <div className="min-h-screen w-full">
+    <div className="min-h-screen w-full bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
+      {children}
       {showTrialBanner && trialDaysLeft !== null && (
         <div className="w-full bg-yellow-200 text-yellow-900 px-4 py-3 flex items-center justify-center z-50 fixed top-0 left-0" style={{ minHeight: 56, position: 'relative' }}>
           <div className="flex items-center gap-4 justify-center w-full">
@@ -94,14 +94,6 @@ export default function DashboardLayout({
           <button onClick={handleDismissBanner} className="absolute top-2 right-4 text-yellow-900 hover:text-yellow-700 text-xl font-bold" aria-label="Dismiss">&times;</button>
         </div>
       )}
-      <Header />
-      <main className="flex min-h-[calc(100vh-64px)] items-center justify-center">
-        <div className="w-full px-4 mt-16 mb-12">
-          <Suspense fallback={null}>
-            {children}
-          </Suspense>
-        </div>
-      </main>
       <Dialog open={blocked} onClose={() => {}} className="fixed z-50 inset-0 overflow-y-auto">
         <div className="flex items-center justify-center min-h-screen px-4">
           <div className="fixed inset-0 bg-black opacity-30" aria-hidden="true" />

@@ -3,11 +3,10 @@
 import { useEffect, useState } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { useRouter } from 'next/navigation';
-import Header from '../components/Header';
 import { FaUser, FaIdCard, FaSignOutAlt, FaChartLine, FaEnvelope } from 'react-icons/fa';
 import Link from 'next/link';
 import { getUserOrMock } from '@/utils/supabase';
-import DashboardCard from '../dashboard/components/DashboardCard';
+import PageCard from '@/app/components/PageCard';
 import FiveStarSpinner from '@/app/components/FiveStarSpinner';
 
 export default function AccountPage() {
@@ -82,12 +81,8 @@ export default function AccountPage() {
 
   return (
     <div className="min-h-screen w-full">
-      <Header />
-      <div className="min-h-screen flex items-center justify-center pt-24 pb-12 px-2">
-        <DashboardCard>
-          <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center">
-            <FaUser className="w-9 h-9 text-[#1A237E]" />
-          </div>
+      <div className="min-h-screen flex items-center justify-center pb-12 px-2">
+        <PageCard icon={<FaUser className="w-9 h-9 text-[#1A237E]" />}>
           <div className="flex items-center justify-between mb-16">
             <h1 className="text-3xl font-bold" style={{ color: '#1A237E' }}>
               Account Settings
@@ -202,7 +197,7 @@ export default function AccountPage() {
               </div>
             )}
           </div>
-        </DashboardCard>
+        </PageCard>
       </div>
     </div>
   );

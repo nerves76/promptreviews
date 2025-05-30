@@ -1,6 +1,13 @@
 import React, { useEffect, useState } from 'react';
 
-export default function FiveStarSpinner() {
+interface FiveStarSpinnerProps {
+  size?: number;
+  color1?: string; // unfilled
+  color2?: string; // filled
+  style?: React.CSSProperties;
+}
+
+export default function FiveStarSpinner({ size = 24, color1 = '#D1D5DB', color2 = '#FFD700', style }: FiveStarSpinnerProps) {
   // 0-3: filling stars, 4: half, 5: full, 6: reset
   const [state, setState] = useState(0);
   const [filled, setFilled] = useState([false, false, false, false, false]);
@@ -28,21 +35,36 @@ export default function FiveStarSpinner() {
   }, [state]);
 
   return (
-    <div className="flex items-center justify-center gap-2" style={{ fontSize: 24, minHeight: 30 }}>
+    <div className="flex items-center justify-center gap-2" style={{ fontSize: size, minHeight: size + 6, marginTop: -7, ...style }}>
       {[0, 1, 2, 3].map((i) => (
         <span
           key={i}
           style={{
-            color: filled[i] ? '#FFD700' : '#D1D5DB',
-            filter: filled[i] ? 'drop-shadow(0 0 6px #FFD700)' : 'none',
-            transition: 'color 0.2s, filter 0.2s',
+            position: 'relative',
+            display: 'inline-block',
+            width: size,
+            height: size,
+            verticalAlign: 'middle',
           }}
         >
-          ★
+          <span
+            style={{
+              color: filled[i] ? color2 : color1,
+              filter: filled[i] ? `drop-shadow(0 0 6px ${color2})` : 'none',
+              transition: 'color 0.2s, filter 0.2s',
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              width: '100%',
+              height: '100%',
+            }}
+          >
+            ★
+          </span>
         </span>
       ))}
       {/* Last star: half or full */}
-      <span style={{ position: 'relative', display: 'inline-block', width: 24, height: 24 }}>
+      <span style={{ position: 'relative', display: 'inline-block', width: size, height: size, verticalAlign: 'middle' }}>
         {/* Half overlay */}
         <span
           style={{
@@ -52,8 +74,8 @@ export default function FiveStarSpinner() {
             width: '50%',
             height: '100%',
             overflow: 'hidden',
-            color: state === 4 ? '#FFD700' : 'transparent',
-            filter: state === 4 ? 'drop-shadow(0 0 6px #FFD700)' : 'none',
+            color: state === 4 ? color2 : 'transparent',
+            filter: state === 4 ? `drop-shadow(0 0 6px ${color2})` : 'none',
             transition: 'color 0.2s, filter 0.2s',
             pointerEvents: 'none',
             zIndex: 1,
@@ -64,8 +86,8 @@ export default function FiveStarSpinner() {
         {/* Full star (gray or gold) */}
         <span
           style={{
-            color: state === 5 || filled[4] ? '#FFD700' : '#D1D5DB',
-            filter: state === 5 || filled[4] ? 'drop-shadow(0 0 6px #FFD700)' : 'none',
+            color: state === 5 || filled[4] ? color2 : color1,
+            filter: state === 5 || filled[4] ? `drop-shadow(0 0 6px ${color2})` : 'none',
             transition: 'color 0.2s, filter 0.2s',
             position: 'absolute',
             left: 0,

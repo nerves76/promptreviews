@@ -701,9 +701,13 @@ export default function DashboardContent({
                                         className="inline-flex items-center px-2 py-1.5 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap w-full sm:w-auto"
                                         title="Copy link"
                                         onClick={async () => {
-                                          await navigator.clipboard.writeText(`${window.location.origin}/r/${page.slug}`);
-                                          setCopyLinkId(page.id);
-                                          setTimeout(() => setCopyLinkId(null), 2000);
+                                          try {
+                                            await navigator.clipboard.writeText(`${window.location.origin}/r/${page.slug}`);
+                                            setCopyLinkId(page.id);
+                                            setTimeout(() => setCopyLinkId(null), 2000);
+                                          } catch (err) {
+                                            alert('Could not copy to clipboard. Please copy manually.');
+                                          }
                                         }}
                                       >
                                         <FaLink className="w-4 h-4" />

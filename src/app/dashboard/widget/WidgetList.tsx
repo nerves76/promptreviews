@@ -378,9 +378,13 @@ export default function WidgetList({ onSelectWidget, selectedWidgetId, onDesignC
     };
   }, [editDragging]);
 
-  const handleCopyEmbed = (widgetId: string) => {
+  const handleCopyEmbed = async (widgetId: string) => {
     const code = `<div id="promptreviews-widget" data-widget="${widgetId}"></div>\n<script src="https://yourdomain.com/widget.js" async></script>`;
-    navigator.clipboard.writeText(code);
+    try {
+      await navigator.clipboard.writeText(code);
+    } catch (err) {
+      alert('Could not copy to clipboard. Please copy manually.');
+    }
     setCopiedWidgetId(widgetId);
     setTimeout(() => setCopiedWidgetId(null), 1500);
   };

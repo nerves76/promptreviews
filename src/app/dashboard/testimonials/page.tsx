@@ -5,7 +5,7 @@ import { createBrowserClient } from "@supabase/ssr";
 import { FaChevronDown, FaChevronRight, FaDownload, FaStar, FaTrash, FaGoogle, FaFacebook, FaYelp, FaTripadvisor, FaRegStar, FaRegComment, FaThumbtack, FaRegCopyright } from "react-icons/fa";
 import { SiHouzz, SiThumbtack, SiHomeadvisor, SiTrustpilot } from "react-icons/si";
 import { IconType } from "react-icons";
-import DashboardCard from '../components/DashboardCard';
+import PageCard from '@/app/components/PageCard';
 import FiveStarSpinner from '@/app/components/FiveStarSpinner';
 
 interface Review {
@@ -330,10 +330,7 @@ export default function TestimonialsPage() {
   }
 
   return (
-    <DashboardCard>
-      <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center">
-        <FaStar className="w-9 h-9 text-[#1A237E]" />
-      </div>
+    <PageCard icon={<FaStar className="w-9 h-9 text-slate-blue" />}>
       <div className="flex items-center justify-between mb-8">
         <div className="flex flex-col">
           <h1 className="text-4xl font-bold text-[#1A237E]">Your reviews</h1>
@@ -573,6 +570,6 @@ export default function TestimonialsPage() {
           </>
         )
       ))}
-    </DashboardCard>
+    </PageCard>
   );
 } 

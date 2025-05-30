@@ -6,7 +6,7 @@ import { useAuthGuard } from '@/utils/authGuard';
 import { HexColorPicker } from 'react-colorful';
 import { FaPalette, FaSwatchbook } from 'react-icons/fa';
 import { getUserOrMock } from '@/utils/supabase';
-import DashboardCard from '../components/DashboardCard';
+import PageCard from '@/app/components/PageCard';
 import FiveStarSpinner from '@/app/components/FiveStarSpinner';
 
 interface StyleSettings {
@@ -185,10 +185,7 @@ export default function StylePage() {
   }
 
   return (
-    <DashboardCard>
-      <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center">
-        <FaPalette className="w-9 h-9 text-[#1A237E]" />
-      </div>
+    <PageCard icon={<FaPalette className="w-9 h-9 text-slate-blue" />}>
       <div className="flex items-center justify-between mb-8">
         <div className="flex flex-col">
           <h1 className="text-4xl font-bold text-[#1A237E]">Style settings</h1>
@@ -570,6 +567,6 @@ export default function StylePage() {
           </div>
         </div>
       </div>
-    </DashboardCard>
+    </PageCard>
   );
 } 

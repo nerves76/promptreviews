@@ -9,7 +9,7 @@ import { FaHome, FaBuilding } from 'react-icons/fa';
 import { getUserOrMock, getSessionOrMock } from '@/utils/supabase';
 import PricingModal from '../components/PricingModal';
 import FiveStarSpinner from '../components/FiveStarSpinner';
-import DashboardCard from './components/DashboardCard';
+import PageCard from '../components/PageCard';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -211,11 +211,14 @@ export default function Dashboard() {
     }
   };
 
-  const handleCopyLink = () => {
+  const handleCopyLink = async () => {
     if (universalUrl) {
-      navigator.clipboard.writeText(universalUrl);
-      setCopySuccess('Link copied!');
-      setTimeout(() => setCopySuccess(''), 2000);
+      try {
+        await navigator.clipboard.writeText(universalUrl);
+        alert('Copied!');
+      } catch (err) {
+        window.prompt('Copy this link:', universalUrl);
+      }
     }
   };
 
@@ -272,7 +275,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen flex justify-center items-start">
+    <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
       {/* Dashboard content goes here */}
       {/* Debug: Manual refetch account button */}
       <button onClick={forceRefetchAccount} className="fixed bottom-4 right-4 bg-indigo-600 text-white px-4 py-2 rounded shadow-lg z-50">Refetch Account</button>
@@ -286,16 +289,22 @@ export default function Dashboard() {
             <div className="flex flex-col gap-3">
               <a href={`sms:?body=${encodeURIComponent('Please leave a review: ' + window.location.origin + (savedPromptPageUrl || ''))}`} className="w-full inline-flex items-center justify-center px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition" target="_blank" rel="noopener noreferrer">Send via SMS</a>
               <a href={`mailto:?subject=Please leave a review&body=${encodeURIComponent('Please leave a review: ' + window.location.origin + (savedPromptPageUrl || ''))}`} className="w-full inline-flex items-center justify-center px-4 py-2 bg-indigo-50 text-indigo-800 rounded-lg font-medium border border-indigo-200 hover:bg-indigo-100 transition" target="_blank" rel="noopener noreferrer">Send via Email</a>
-              <button onClick={() => {navigator.clipboard.writeText(window.location.origin + (savedPromptPageUrl || '')); setShowPostSaveModal(false);}} className="w-full inline-flex items-center justify-center px-4 py-2 bg-gray-100 text-gray-800 rounded-lg font-medium border border-gray-300 hover:bg-gray-200 transition">Copy Link</button>
+              <button onClick={async () => {
+                const link = window.location.origin + (savedPromptPageUrl || '');
+                try {
+                  await navigator.clipboard.writeText(link);
+                  alert('Copied!');
+                } catch (err) {
+                  window.prompt('Copy this link:', link);
+                }
+                setShowPostSaveModal(false);
+              }} className="w-full inline-flex items-center justify-center px-4 py-2 bg-gray-100 text-gray-800 rounded-lg font-medium border border-gray-300 hover:bg-gray-200 transition">Copy Link</button>
               <a href={savedPromptPageUrl || '#'} target="_blank" rel="noopener noreferrer" className="w-full inline-flex items-center justify-center px-4 py-2 bg-white text-indigo-700 rounded-lg font-medium border border-indigo-200 hover:bg-indigo-50 transition">View Page</a>
             </div>
           </div>
         </div>
       )}
-      <DashboardCard>
-        <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center">
-          <FaHome className="w-9 h-9 text-[#1A237E]" />
-        </div>
+      <PageCard icon={<FaHome className="w-9 h-9 text-[#1A237E]" />}>
         <DashboardContent
           userName={userName}
           business={business}
@@ -316,7 +325,7 @@ export default function Dashboard() {
           account={account}
           parentLoading={isLoading}
         />
-      </DashboardCard>
+      </PageCard>
     </div>
   );
 }

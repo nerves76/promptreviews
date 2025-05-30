@@ -134,11 +134,11 @@ export default function BusinessForm({
     <form onSubmit={onSubmit} className="w-full mx-auto relative" id={formId}>
       {/* Logo Upload Section */}
       <div className="mb-16">
-        <h2 className="mt-20 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
+        <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
           <FaImage className="w-7 h-7 text-slate-blue" />
           Logo
         </h2>
-        <div className="mb-10 flex flex-col md:flex-row items-center gap-6">
+        <div className="mb-10 flex flex-col md:flex-row items-center gap-10">
           {logoUrl && (
             <img src={logoUrl} alt="Business Logo" className="rounded-full max-h-32 max-w-32 object-contain border shadow" />
           )}
@@ -194,7 +194,7 @@ export default function BusinessForm({
       </div>
       {/* Business Info Section */}
       <div className="mb-8">
-        <h2 className="mt-32 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
+        <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
           <FaInfoCircle className="w-7 h-7 text-slate-blue" />
           Business info
         </h2>
@@ -259,7 +259,7 @@ export default function BusinessForm({
       </div>
       {/* Services Section */}
       <div className="mb-8">
-        <h2 className="mt-32 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
+        <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
           <FaList className="w-7 h-7 text-slate-blue" />
           Services
           <Tooltip text="Prompt AI uses your services list to make reviews specific and relevant to what you offer." />
@@ -285,7 +285,7 @@ export default function BusinessForm({
       </div>
       {/* What Makes Your Business Unique Section */}
       <div className="mb-8">
-        <h2 className="mt-32 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
+        <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
           <FaStar className="w-7 h-7 text-slate-blue" />
           What makes your business unique?
         </h2>
@@ -345,7 +345,7 @@ export default function BusinessForm({
       </div>
       {/* Review Platforms Section */}
       <div className="mb-16">
-        <h2 className="mt-32 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
+        <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
           <FaStar className="w-7 h-7 text-slate-blue" />
           Review platforms
         </h2>
@@ -420,7 +420,7 @@ export default function BusinessForm({
       </div>
       {/* Special Offer Section */}
       <div className="mb-16">
-        <h2 className="mt-32 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
+        <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
           <FaGift className="w-7 h-7 text-slate-blue" />
           Special offer
         </h2>
@@ -440,7 +440,7 @@ export default function BusinessForm({
               />
             </button>
           </div>
-          <div className={`rounded-lg border border-indigo-200 bg-white p-4 ${!form.default_offer_enabled ? 'opacity-60' : ''}`}>
+          <div className={`border border-indigo-200 p-4 ${!form.default_offer_enabled ? 'opacity-60' : ''}`}>
             <input
               type="text"
               name="default_offer_title"
@@ -476,7 +476,7 @@ export default function BusinessForm({
       </div>
       {/* Social Media Section */}
       <div className="mb-16">
-        <h2 className="mt-32 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
+        <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
           <FaShareAlt className="w-7 h-7 text-slate-blue" />
           Social media
         </h2>
