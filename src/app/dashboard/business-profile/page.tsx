@@ -408,7 +408,7 @@ export default function BusinessProfilePage() {
       <div className="min-h-screen flex justify-center items-start" style={{ minHeight: '100vh' }}>
         <div className="text-center w-full mt-[150px]">
           <FiveStarSpinner />
-          <p className="mt-4 text-gray-600">Loading your business...</p>
+          <p className="mt-4 text-white">Loading your business...</p>
         </div>
       </div>
     );
@@ -428,9 +428,9 @@ export default function BusinessProfilePage() {
 
   return (
     <PageCard icon={<FaStore className="w-9 h-9 text-slate-blue" />}>
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex flex-col mt-0 md:mt-[-15px]">
-          <h1 className="text-4xl font-bold text-slate-blue mt-0 md:mt-[-15px] mb-2">Your business</h1>
+      <div className="flex items-start justify-between mt-2 mb-4">
+        <div className="flex flex-col mt-0 md:mt-[3px]">
+          <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">Your business</h1>
           <p className="text-gray-600 text-base max-w-md mt-0 mb-10">
             Fill out your business profile thoroughly and consistently. This is rule #1 in local search engine optimization.
           </p>
@@ -462,8 +462,7 @@ export default function BusinessProfilePage() {
         setLogoFile={setLogoFile}
         logoError={logoError}
         setLogoError={setLogoError}
-        // @ts-expect-error: React.RefObject<HTMLInputElement> can be initialized with null
-        fileInputRef={fileInputRef}
+        fileInputRef={fileInputRef as React.RefObject<HTMLInputElement>}
         showCropper={showCropper}
         setShowCropper={setShowCropper}
         crop={crop}

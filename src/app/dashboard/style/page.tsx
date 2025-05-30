@@ -186,9 +186,9 @@ export default function StylePage() {
 
   return (
     <PageCard icon={<FaPalette className="w-9 h-9 text-slate-blue" />}>
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex flex-col">
-          <h1 className="text-4xl font-bold text-[#1A237E]">Style settings</h1>
+      <div className="flex items-center justify-between mt-2 mb-8">
+        <div className="flex flex-col mt-0 md:mt-[-2px]">
+          <h1 className="text-4xl font-bold text-[#1A237E] mt-0 mb-2">Style settings</h1>
           {/* Optionally add subcopy here if needed */}
         </div>
       </div>

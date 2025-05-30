@@ -3,7 +3,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { generateAIReview } from '@/utils/ai';
-import { FaGoogle, FaFacebook, FaYelp, FaTripadvisor, FaRegStar, FaGift, FaStar, FaHeart, FaThumbsUp, FaStore, FaSmile } from 'react-icons/fa';
+import { FaGoogle, FaFacebook, FaYelp, FaTripadvisor, FaRegStar, FaGift, FaStar, FaHeart, FaThumbsUp, FaStore, FaSmile, FaGlobe } from 'react-icons/fa';
 import { IconType } from 'react-icons';
 import Link from 'next/link';
 import { getUserOrMock, getSessionOrMock } from '@/utils/supabase';
@@ -98,6 +98,7 @@ export default function EditPromptPage() {
     industry_other: '',
     review_type: 'prompt',
     photo_url: '',
+    emojiThankYouMessage: '',
   });
   const [businessProfile, setBusinessProfile] = useState<BusinessProfile | null>(null);
   const [generatingReview, setGeneratingReview] = useState<number | null>(null);
@@ -149,13 +150,41 @@ export default function EditPromptPage() {
         console.log('Loaded promptData:', promptData);
 
         // Set form data from the prompt page, ensuring all string values have defaults
+        let reviewPlatforms = Array.isArray(promptData.review_platforms) ? promptData.review_platforms : [];
+        // Always map name to platform for each platform object
+        reviewPlatforms = reviewPlatforms.map((p: any) => ({
+          platform: p.platform || p.name || '',
+          url: p.url || '',
+          wordCount: p.wordCount || 200,
+          customInstructions: p.customInstructions || '',
+          reviewText: p.reviewText || '',
+        }));
+        console.log('Loaded reviewPlatforms:', reviewPlatforms);
+        // If universal and no review platforms, use business profile's
+        if ((promptData.is_universal || isUniversal) && reviewPlatforms.length === 0) {
+          // Fetch business profile review platforms
+          const { data: businessData } = await supabase
+            .from('businesses')
+            .select('review_platforms')
+            .eq('account_id', user.id)
+            .single();
+          if (businessData && Array.isArray(businessData.review_platforms) && businessData.review_platforms.length > 0) {
+            reviewPlatforms = businessData.review_platforms.map((p: any) => ({
+              platform: p.name || p.platform || '',
+              url: p.url || '',
+              wordCount: p.wordCount || 200,
+              customInstructions: p.customInstructions || '',
+              reviewText: '',
+            }));
+          }
+        }
         setFormData({
           first_name: promptData.first_name || '',
           last_name: promptData.last_name || '',
           email: promptData.email || '',
           phone: promptData.phone || '',
           outcomes: promptData.outcomes || '',
-          review_platforms: promptData.review_platforms || [],
+          review_platforms: reviewPlatforms,
           services_offered: Array.isArray(promptData.services_offered)
             ? promptData.services_offered
             : typeof promptData.services_offered === 'string' && promptData.services_offered.length > 0
@@ -168,9 +197,10 @@ export default function EditPromptPage() {
           industry_other: promptData.industry_other || '',
           review_type: promptData.review_type || 'prompt',
           photo_url: promptData.photo_url || '',
+          emojiThankYouMessage: promptData.emoji_thank_you_message || '',
         });
         setPhotoUrl(promptData.photo_url || null);
-        setIsUniversal(!!promptData.is_universal);
+        setIsUniversal(!!promptData.is_universal || isUniversal);
         setOfferEnabled(!!promptData.offer_enabled);
         setOfferTitle(promptData.offer_title || 'Special Offer');
         setOfferBody(promptData.offer_body || '');
@@ -408,6 +438,7 @@ export default function EditPromptPage() {
           industry: formData.industry || [],
           industry_other: formData.industry_other || '',
           review_type: formData.review_type || 'prompt',
+          emoji_thank_you_message: formData.emojiThankYouMessage || '',
         };
 
         // Handle review_platforms
@@ -1167,8 +1198,9 @@ export default function EditPromptPage() {
   }
 
   console.log('step:', step, 'isUniversal:', isUniversal);
+  console.log('Rendering platforms:', formData.review_platforms);
   return (
-    <PageCard icon={isUniversal ? <FaStore className="w-9 h-9 text-slate-blue" /> : <FaStar className="w-9 h-9 text-slate-blue" /> }>
+    <PageCard icon={isUniversal ? <FaGlobe className="w-9 h-9 text-slate-blue" /> : <FaStore className="w-9 h-9 text-slate-blue" /> }>
       {/* Top right buttons */}
       <div className="absolute top-8 right-8 flex gap-4 z-20">
         {isUniversal ? (
@@ -1216,20 +1248,43 @@ export default function EditPromptPage() {
           </a>
         </div>
       )}
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex flex-col">
-          <h1 className="text-4xl font-bold text-[#1A237E]">{isUniversal ? 'Edit Universal Prompt Page' : 'Edit Prompt Page'}</h1>
-        </div>
-      </div>
-      <PromptPageForm
-        mode="edit"
-        initialData={formData}
-        onSave={handleFormSave}
-        onPublish={handleFormPublish}
-        pageTitle={isUniversal ? 'Edit Universal Prompt Page' : 'Edit Prompt Page'}
-        supabase={supabase}
-        businessProfile={businessProfile}
-      />
+      {isUniversal ? (
+        <>
+          <div className="flex items-center justify-between mb-2 mt-2">
+            <div className="flex flex-col">
+              <h1 className="text-4xl font-bold text-[#1A237E] mb-0">Edit Universal Prompt Page</h1>
+            </div>
+          </div>
+          <PromptPageForm
+            mode="edit"
+            initialData={formData}
+            onSave={handleFormSave}
+            onPublish={handleFormPublish}
+            pageTitle={''}
+            supabase={supabase}
+            businessProfile={businessProfile}
+            isUniversal={isUniversal}
+          />
+        </>
+      ) : (
+        <>
+          <div className="flex items-center justify-between mb-8 mt-2">
+            <div className="flex flex-col">
+              <h1 className="text-4xl font-bold text-[#1A237E] mb-0">Edit Prompt Page</h1>
+            </div>
+          </div>
+          <PromptPageForm
+            mode="edit"
+            initialData={formData}
+            onSave={handleFormSave}
+            onPublish={handleFormPublish}
+            pageTitle={''}
+            supabase={supabase}
+            businessProfile={businessProfile}
+            isUniversal={isUniversal}
+          />
+        </>
+      )}
       {showShareModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40" onClick={() => setShowShareModal(false)}>
           <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full relative" onClick={e => e.stopPropagation()}>

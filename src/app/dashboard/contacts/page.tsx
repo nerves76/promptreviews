@@ -231,205 +231,205 @@ export default function UploadContactsPage() {
   return (
     <PageCard icon={<FaUsers className="w-9 h-9 text-[#1A237E]" />}>
       <div className="w-full mx-auto relative" style={{maxWidth: 1000}}>
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex flex-col">
-            <h1 className="text-4xl font-bold text-slate-blue">Contacts</h1>
-            {/* Optionally add subcopy here if needed */}
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex flex-col">
+              <h1 className="text-4xl font-bold text-slate-blue">Contacts</h1>
+              {/* Optionally add subcopy here if needed */}
+            </div>
           </div>
-        </div>
 
-        {/* Upload Instructions Section */}
-        <div className="mb-16">
-          <h2 className="mt-20 text-2xl font-bold text-slate-blue flex items-center gap-3 mb-12">
-            <FaInfoCircle className="w-7 h-7 text-slate-blue" />
-            How to upload contacts
-          </h2>
-          <ol className="list-decimal list-inside space-y-2 text-indigo-800">
-            <li>Download the CSV template using the button below</li>
-            <li>Fill in your contacts' information</li>
-            <li>Required columns: <strong>first_name (required), and at least one of email or phone</strong></li>
-            <li>Optional Columns: Learn more below</li>
-            <li>
-              If you are adding Google Business Review URLs to the spreadsheet: 
+          {/* Upload Instructions Section */}
+          <div className="mb-16">
+            <h2 className="mt-20 text-2xl font-bold text-slate-blue flex items-center gap-3 mb-12">
+              <FaInfoCircle className="w-7 h-7 text-slate-blue" />
+              How to upload contacts
+            </h2>
+            <ol className="list-decimal list-inside space-y-2 text-indigo-800">
+              <li>Download the CSV template using the button below</li>
+              <li>Fill in your contacts' information</li>
+              <li>Required columns: <strong>first_name (required), and at least one of email or phone</strong></li>
+              <li>Optional Columns: Learn more below</li>
+              <li>
+                If you are adding Google Business Review URLs to the spreadsheet: 
+                <button
+                  onClick={() => setShowGoogleUrlHelp(!showGoogleUrlHelp)}
+                  className="text-indigo-600 hover:text-indigo-800 underline"
+                >
+                  See Instructions
+                </button>
+                {showGoogleUrlHelp && (
+                  <div className="absolute mt-6 p-4 bg-white border border-gray-200 rounded-lg shadow-lg z-10 max-w-md">
+                    <h4 className="font-semibold text-gray-900 mb-2">How to get your Google review URL:</h4>
+                    <ol className="list-decimal list-inside space-y-2 text-sm">
+                      <li>Make sure you're logged into your Google Business Profile account</li>
+                      <li>Go to your Google Business Profile</li>
+                      <li>Click on "Reviews" in the left menu</li>
+                      <li>Click the "Get more reviews" button</li>
+                      <li>Copy the URL from the popup that appears</li>
+                      <li>The URL should look like: <code className="bg-gray-100 px-1 rounded">https://g.page/r/your-business-name/review</code></li>
+                    </ol>
+                    <p className="mt-2 text-sm text-gray-600">
+                      Note: Incorrect Google Business URLs may be rejected by CSV uploader.
+                    </p>
+                    <button
+                      onClick={() => setShowGoogleUrlHelp(false)}
+                      className="mt-3 text-sm text-indigo-600 hover:text-indigo-800"
+                    >
+                      Close
+                    </button>
+                  </div>
+                )}
+              </li>
+              <li>Upload your CSV and your contacts will be added to your prompt pages table in the drafts tab.</li>
+            </ol>
+          </div>
+
+          {/* Upload Section with Preview */}
+          <div className="mb-16 bg-blue-50 rounded-lg p-6 border border-blue-100">
+            <h2 className="text-2xl font-bold text-slate-blue flex items-center gap-3 mb-12">
+              <FaUsers className="w-7 h-7 text-slate-blue" />
+              Add Your Contacts
+            </h2>
+
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-4">
+                <label className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                  <FaUpload className="text-slate-blue" />
+                  <span className="text-blue-700">Choose CSV file</span>
+                  <input
+                    type="file"
+                    accept=".csv"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+                </label>
+
+                {selectedFile && (
+                  <div className="text-sm text-blue-600 max-w-[200px] truncate">
+                    Selected: {selectedFile.name}
+                  </div>
+                )}
+              </div>
+
               <button
-                onClick={() => setShowGoogleUrlHelp(!showGoogleUrlHelp)}
-                className="text-indigo-600 hover:text-indigo-800 underline"
+                onClick={handleDownloadTemplate}
+                className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                See Instructions
+                <FaDownload className="text-slate-blue" />
+                Download CSV Template
               </button>
-              {showGoogleUrlHelp && (
-                <div className="absolute mt-6 p-4 bg-white border border-gray-200 rounded-lg shadow-lg z-10 max-w-md">
-                  <h4 className="font-semibold text-gray-900 mb-2">How to get your Google review URL:</h4>
-                  <ol className="list-decimal list-inside space-y-2 text-sm">
-                    <li>Make sure you're logged into your Google Business Profile account</li>
-                    <li>Go to your Google Business Profile</li>
-                    <li>Click on "Reviews" in the left menu</li>
-                    <li>Click the "Get more reviews" button</li>
-                    <li>Copy the URL from the popup that appears</li>
-                    <li>The URL should look like: <code className="bg-gray-100 px-1 rounded">https://g.page/r/your-business-name/review</code></li>
-                  </ol>
-                  <p className="mt-2 text-sm text-gray-600">
-                    Note: Incorrect Google Business URLs may be rejected by CSV uploader.
-                  </p>
-                  <button
-                    onClick={() => setShowGoogleUrlHelp(false)}
-                    className="mt-3 text-sm text-indigo-600 hover:text-indigo-800"
-                  >
-                    Close
-                  </button>
-                </div>
-              )}
-            </li>
-            <li>Upload your CSV and your contacts will be added to your prompt pages table in the drafts tab.</li>
-          </ol>
-        </div>
-
-        {/* Upload Section with Preview */}
-        <div className="mb-16 bg-blue-50 rounded-lg p-6 border border-blue-100">
-          <h2 className="text-2xl font-bold text-slate-blue flex items-center gap-3 mb-12">
-            <FaUsers className="w-7 h-7 text-slate-blue" />
-            Add Your Contacts
-          </h2>
-
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-4">
-              <label className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                <FaUpload className="text-slate-blue" />
-                <span className="text-blue-700">Choose CSV file</span>
-                <input
-                  type="file"
-                  accept=".csv"
-                  onChange={handleFileSelect}
-                  className="hidden"
-                />
-              </label>
-
-              {selectedFile && (
-                <div className="text-sm text-blue-600 max-w-[200px] truncate">
-                  Selected: {selectedFile.name}
-                </div>
-              )}
             </div>
 
-            <button
-              onClick={handleDownloadTemplate}
-              className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <FaDownload className="text-slate-blue" />
-              Download CSV Template
-            </button>
-          </div>
+            {/* Error/Success Messages */}
+            {error && (
+              <div className="mt-4 p-4 bg-red-50 text-red-700 rounded-lg">
+                {error}
+              </div>
+            )}
+            {success && (
+              <div className="mt-4 p-4 bg-green-50 text-green-700 rounded-lg">
+                {success}
+              </div>
+            )}
 
-          {/* Error/Success Messages */}
-          {error && (
-            <div className="mt-4 p-4 bg-red-50 text-red-700 rounded-lg">
-              {error}
-            </div>
-          )}
-          {success && (
-            <div className="mt-4 p-4 bg-green-50 text-green-700 rounded-lg">
-              {success}
-            </div>
-          )}
-
-          {/* Preview Section */}
-          {preview.length > 0 && (
-            <div className="mt-8">
-              <h2 className="text-2xl font-bold text-slate-blue flex items-center gap-3 mb-12">
-                <FaEye className="w-7 h-7 text-slate-blue" />
-                Preview
-              </h2>
-              <div className="overflow-x-auto rounded-lg border border-blue-200 bg-white">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      {preview[0].map((header: string, index: number) => (
-                        <th
-                          key={index}
-                          className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                        >
-                          {header}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {preview.slice(1).map((row: string[], rowIndex: number) => (
-                      <tr key={rowIndex}>
-                        {row.map((cell: string, cellIndex: number) => (
-                          <td
-                            key={cellIndex}
-                            className="px-3 py-2 text-sm text-gray-500"
+            {/* Preview Section */}
+            {preview.length > 0 && (
+              <div className="mt-8">
+                <h2 className="text-2xl font-bold text-slate-blue flex items-center gap-3 mb-12">
+                  <FaEye className="w-7 h-7 text-slate-blue" />
+                  Preview
+                </h2>
+                <div className="overflow-x-auto rounded-lg border border-blue-200 bg-white">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        {preview[0].map((header: string, index: number) => (
+                          <th
+                            key={index}
+                            className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                           >
-                            {cell}
-                          </td>
+                            {header}
+                          </th>
                         ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {preview.slice(1).map((row: string[], rowIndex: number) => (
+                        <tr key={rowIndex}>
+                          {row.map((cell: string, cellIndex: number) => (
+                            <td
+                              key={cellIndex}
+                              className="px-3 py-2 text-sm text-gray-500"
+                            >
+                              {cell}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Save Button - Only show when file is selected */}
-          {selectedFile && (
-            <div className="mt-8 flex justify-end">
-              <button
-                type="submit"
-                onClick={handleUpload}
-                className="px-6 py-2 bg-indigo text-white rounded-lg hover:bg-indigo/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo transition-colors"
-              >
-                Upload Contacts
-              </button>
-            </div>
-          )}
-        </div>
+            {/* Save Button - Only show when file is selected */}
+            {selectedFile && (
+              <div className="mt-8 flex justify-end">
+                <button
+                  type="submit"
+                  onClick={handleUpload}
+                  className="px-6 py-2 bg-indigo text-white rounded-lg hover:bg-indigo/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo transition-colors"
+                >
+                  Upload Contacts
+                </button>
+              </div>
+            )}
+          </div>
 
-        {/* CSV Column Descriptions Section */}
-        <div className="mb-16">
-          <h2 className="text-2xl font-bold text-slate-blue flex items-center gap-3 mb-12">
-            <FaList className="w-7 h-7 text-slate-blue" />
-            CSV column descriptions
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-8">
-              <div>
-                <h3 className="font-semibold text-gray-500">Required fields</h3>
-                <ul className="mt-2 space-y-2 text-sm text-gray-600">
-                  <li><span className="font-bold">first_name</span> - Contact's first name</li>
-                  <li><span className="font-bold">email</span> - Contact's email address (required if phone not provided)</li>
-                  <li><span className="font-bold">phone</span> - Contact's phone number (required if email not provided)</li>
-                </ul>
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-500">Basic information</h3>
-                <ul className="mt-2 space-y-2 text-sm text-gray-600">
-                  <li><span className="font-bold">last_name</span> - Contact's last name</li>
-                  <li><span className="font-bold">category</span> - Contact category (e.g., VIP, Regular)</li>
-                </ul>
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-500">Prompt Page Type</h3>
-                <ul className="mt-2 space-y-2 text-sm text-gray-600">
-                  <li><span className="font-bold">review_type</span> - Type of prompt page. <span className="italic">Valid values: <span className='text-gray-700'>prompt</span> or <span className='text-gray-700'>photo</span></span></li>
-                </ul>
-                <p className="mt-2 text-xs text-gray-500">
-                  <span className="font-bold text-gray-700">prompt</span>: A standard review request page.<br />
-                  <span className="font-bold text-gray-700">photo</span>: A page for collecting photo testimonials.
-                </p>
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-500">Reward Information</h3>
-                <ul className="mt-2 space-y-2 text-sm text-gray-600">
-                  <li><span className="font-bold">review_rewards</span> - Description of the reward for leaving a review</li>
-                  <li><span className="font-bold">offer_url</span> - URL where customers can claim their reward</li>
-                </ul>
+          {/* CSV Column Descriptions Section */}
+          <div className="mb-16">
+            <h2 className="text-2xl font-bold text-slate-blue flex items-center gap-3 mb-12">
+              <FaList className="w-7 h-7 text-slate-blue" />
+              CSV column descriptions
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-8">
+                <div>
+                  <h3 className="font-semibold text-gray-500">Required fields</h3>
+                  <ul className="mt-2 space-y-2 text-sm text-gray-600">
+                    <li><span className="font-bold">first_name</span> - Contact's first name</li>
+                    <li><span className="font-bold">email</span> - Contact's email address (required if phone not provided)</li>
+                    <li><span className="font-bold">phone</span> - Contact's phone number (required if email not provided)</li>
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-500">Basic information</h3>
+                  <ul className="mt-2 space-y-2 text-sm text-gray-600">
+                    <li><span className="font-bold">last_name</span> - Contact's last name</li>
+                    <li><span className="font-bold">category</span> - Contact category (e.g., VIP, Regular)</li>
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-500">Prompt Page Type</h3>
+                  <ul className="mt-2 space-y-2 text-sm text-gray-600">
+                    <li><span className="font-bold">review_type</span> - Type of prompt page. <span className="italic">Valid values: <span className='text-gray-700'>prompt</span> or <span className='text-gray-700'>photo</span></span></li>
+                  </ul>
+                  <p className="mt-2 text-xs text-gray-500">
+                    <span className="font-bold text-gray-700">prompt</span>: A standard review request page.<br />
+                    <span className="font-bold text-gray-700">photo</span>: A page for collecting photo testimonials.
+                  </p>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-500">Reward Information</h3>
+                  <ul className="mt-2 space-y-2 text-sm text-gray-600">
+                    <li><span className="font-bold">review_rewards</span> - Description of the reward for leaving a review</li>
+                    <li><span className="font-bold">offer_url</span> - URL where customers can claim their reward</li>
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
     </PageCard>
   );
 } 

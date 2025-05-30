@@ -320,10 +320,10 @@ export default function TestimonialsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex justify-center items-center">
-        <div className="text-center">
-          <div className="mb-4"><FiveStarSpinner /></div>
-          <p className="mt-4 text-gray-600">Loading testimonials...</p>
+      <div className="min-h-screen flex justify-center items-start" style={{ minHeight: '100vh' }}>
+        <div className="text-center w-full mt-[150px]">
+          <FiveStarSpinner />
+          <p className="mt-4 text-white">Loading testimonials...</p>
         </div>
       </div>
     );
@@ -331,9 +331,9 @@ export default function TestimonialsPage() {
 
   return (
     <PageCard icon={<FaStar className="w-9 h-9 text-slate-blue" />}>
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex flex-col">
-          <h1 className="text-4xl font-bold text-[#1A237E]">Your reviews</h1>
+      <div className="flex items-center justify-between mt-2 mb-8">
+        <div className="flex flex-col mt-0 md:mt-[-2px]">
+          <h1 className="text-4xl font-bold text-[#1A237E] mt-0 mb-2">Your reviews</h1>
           {/* Optionally add subcopy here if needed */}
         </div>
       </div>

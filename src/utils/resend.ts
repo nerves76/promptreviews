@@ -22,9 +22,9 @@ export async function sendResendEmail({
       subject,
       text,
     });
-    return { success: true, data };
+    return data;
   } catch (error) {
     console.error('Error sending email with Resend:', error);
-    return { success: false, error };
+    throw error;
   }
 } 
