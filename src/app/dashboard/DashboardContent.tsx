@@ -376,7 +376,7 @@ export default function DashboardContent({
           {/* Main dashboard content, remove pt-12 so title is at the top */}
           <div>
             <div className="flex items-center justify-between mb-8">
-              <h1 className="text-4xl font-bold text-[#1A237E]">
+              <h1 className="text-4xl font-bold text-slate-blue">
                 Dashboard
               </h1>
               <button
@@ -395,7 +395,7 @@ export default function DashboardContent({
               </button>
             </div>
             <div className="mb-16">
-              <h2 className="text-2xl font-bold text-[#1A237E]">
+              <h2 className="text-2xl font-bold text-slate-blue">
                 Welcome, {userName}!
               </h2>
               <p className="mt-2 text-sm text-gray-600 max-w-[650px]">
@@ -409,8 +409,8 @@ export default function DashboardContent({
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2">
-                        <h2 className="text-2xl font-bold text-[#1A237E] flex items-center gap-3">
-                          <FaGlobe className="w-7 h-7 text-[#1A237E]" />
+                        <h2 className="text-2xl font-bold text-slate-blue flex items-center gap-3">
+                          <FaGlobe className="w-7 h-7 text-slate-blue" />
                           Universal Prompt Page
                         </h2>
                       </div>
@@ -451,11 +451,11 @@ export default function DashboardContent({
                 </div>
               )}
               <div className="mb-6">
-                <h2 className="text-3xl font-bold text-[#1A237E] mb-2 flex items-center gap-3">
-                  <span className="text-3xl font-bold align-middle" style={{fontFamily: 'Inter, sans-serif', color: '#1A237E'}}>[P]</span>
+                <h2 className="text-3xl font-bold text-slate-blue mb-2 flex items-center gap-3">
+                  <span className="text-3xl font-bold align-middle text-slate-blue" style={{fontFamily: 'Inter, sans-serif'}}>[P]</span>
                   Your custom prompt pages
                 </h2>
-                <p className="text-gray-600 text-base max-w-2xl mb-4">Create and manage your prompt pages and outreach efforts.</p>
+                <p className="text-gray-600 text-base max-w-2xl mb-10">Create and manage your prompt pages and outreach efforts.</p>
               </div>
               <div className="flex items-center gap-4 mb-4">
                 <label htmlFor="type-filter" className="text-sm font-medium text-gray-700">Filter by type:</label>
@@ -922,7 +922,7 @@ export default function DashboardContent({
                 >
                   &times;
                 </button>
-                <h2 className="text-2xl font-bold text-[#1A237E] mb-6">Select prompt page type</h2>
+                <h2 className="text-2xl font-bold text-slate-blue mb-6">Select prompt page type</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   {promptTypes.map(type => (
                     <button
@@ -933,7 +933,7 @@ export default function DashboardContent({
                       tabIndex={type.comingSoon ? -1 : 0}
                     >
                       {type.icon}
-                      <span className="font-semibold text-lg text-[#1A237E]">{type.label}</span>
+                      <span className="font-semibold text-lg text-slate-blue">{type.label}</span>
                       <span className="text-sm text-gray-600 text-center">{type.description}</span>
                       {type.comingSoon && (
                         <span className="absolute top-2 right-2 bg-yellow-200 text-yellow-800 text-xs font-semibold px-2 py-0.5 rounded">Coming soon</span>

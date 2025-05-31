@@ -183,7 +183,7 @@ export default function WidgetPage() {
   return (
     <>
       {/* Widget Preview on Gradient */}
-      <div className="mx-auto mb-12 mt-10" style={{ maxWidth: design.showGrid ? 1000 : 800 }}>
+      <div className="w-full mx-auto mb-12 mt-10 px-2 sm:px-4 md:px-8" style={{ maxWidth: design.showGrid ? 1000 : 800 }}>
         <h2 className="text-2xl font-bold text-white mb-4 text-center">Live widget preview</h2>
         <section
           className={`flex flex-col justify-center relative${design.showGrid ? ' bg-transparent shadow-none border-none p-0' : ''}`}

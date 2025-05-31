@@ -188,8 +188,19 @@ export default function StylePage() {
     <PageCard icon={<FaPalette className="w-9 h-9 text-slate-blue" />}>
       <div className="flex items-center justify-between mt-2 mb-8">
         <div className="flex flex-col mt-0 md:mt-[-2px]">
-          <h1 className="text-4xl font-bold text-[#1A237E] mt-0 mb-2">Style settings</h1>
-          {/* Optionally add subcopy here if needed */}
+          <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">Prompt Page Style</h1>
+          <p className="text-gray-500 text-base mb-8 max-w-xl">Use these setting to make your prompt pages match your brand.</p>
+        </div>
+        {/* Top right Save button group */}
+        <div className="flex items-center pr-2 md:pr-6" style={{ alignSelf: 'flex-start' }}>
+          <button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="py-2 px-6 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-slate-blue hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ marginTop: '0.25rem' }}
+          >
+            {isSaving ? 'Saving...' : 'Save'}
+          </button>
         </div>
       </div>
 
@@ -253,7 +264,7 @@ export default function StylePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Header color
+                Accent color
               </label>
               <div className="flex items-center space-x-2">
                 <input
@@ -369,16 +380,6 @@ export default function StylePage() {
                 Background type
               </label>
               <div className="flex gap-4">
-                <label className="inline-flex items-center">
-                  <input
-                    type="radio"
-                    value="none"
-                    checked={settings.background_type === 'none'}
-                    onChange={(e) => setSettings({ ...settings, background_type: 'none' })}
-                    className="form-radio h-4 w-4 text-indigo-600"
-                  />
-                  <span className="ml-2 text-sm">No Background</span>
-                </label>
                 <label className="inline-flex items-center">
                   <input
                     type="radio"
@@ -555,14 +556,14 @@ export default function StylePage() {
             </div>
           </div>
 
-          {/* Save Button */}
-          <div className="mt-8">
+          {/* Save Button at bottom right */}
+          <div className="w-full flex justify-end pr-2 pb-4 md:pr-6 md:pb-6 mt-8">
             <button
               onClick={handleSave}
               disabled={isSaving}
-              className="w-full md:w-auto px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+              className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSaving ? 'Saving...' : 'Save Changes'}
+              {isSaving ? 'Saving...' : 'Save'}
             </button>
           </div>
         </div>

@@ -56,6 +56,24 @@ export default function PromptPageForm({
     });
   }, [initialData]);
 
+  // Ensure slug is set for the View button
+  useEffect(() => {
+    if (!formData.slug) {
+      // Try to get slug from initialData or from the URL
+      let slug = initialData.slug;
+      if (!slug && typeof window !== 'undefined') {
+        // Try to extract slug from the pathname (e.g. /dashboard/edit-prompt-page/universal-foo)
+        const match = window.location.pathname.match(/edit-prompt-page\/(.+)$/);
+        if (match && match[1]) {
+          slug = match[1];
+        }
+      }
+      if (slug) {
+        setFormData((prev: any) => ({ ...prev, slug }));
+      }
+    }
+  }, [formData.slug, initialData.slug]);
+
   const [step, setStep] = useState(1);
   const [formError, setFormError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -70,7 +88,9 @@ export default function PromptPageForm({
   const [noPlatformReviewTemplate, setNoPlatformReviewTemplate] = useState(formData.no_platform_review_template || '');
   const [aiLoadingPhoto, setAiLoadingPhoto] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [aiReviewEnabled, setAiReviewEnabled] = useState(false);
+  const [aiReviewEnabled, setAiReviewEnabled] = useState(
+    initialData.aiReviewEnabled !== undefined ? initialData.aiReviewEnabled : true
+  );
   const [fallingEnabled, setFallingEnabled] = useState(true);
   const [iconUpdating, setIconUpdating] = useState(false);
   const [fallingIcon, setFallingIcon] = useState('star'); // default icon key
@@ -82,9 +102,11 @@ export default function PromptPageForm({
   const [offerUrl, setOfferUrl] = useState(initialData.offerUrl ?? '');
 
   const iconOptions = [
-    { key: 'star', label: 'Star', icon: <FaStar className="w-6 h-6 text-yellow-400" /> },
-    { key: 'heart', label: 'Heart', icon: <FaHeart className="w-6 h-6 text-pink-500" /> },
-    { key: 'smile', label: 'Smile', icon: <FaSmile className="w-6 h-6 text-yellow-500" /> },
+    { key: 'star', label: 'Stars', icon: <FaStar className="w-6 h-6 text-yellow-400" /> },
+    { key: 'heart', label: 'Hearts', icon: <FaHeart className="w-6 h-6 text-red-500" /> },
+    { key: 'rainbow', label: 'Rainbows', icon: <span className="w-6 h-6 text-2xl">🌈</span> },
+    { key: 'thumb', label: 'Thumbs Up', icon: <span className="w-6 h-6 text-2xl">👍</span> },
+    { key: 'flex', label: 'Flex', icon: <span className="w-6 h-6 text-2xl">💪</span> },
   ];
 
   const handleIconChange = (key: string) => {
@@ -194,14 +216,73 @@ export default function PromptPageForm({
     setFallingEnabled((prev) => !prev);
   };
 
+  // Sync special offer and emoji sentiment state into formData for universal pages
+  useEffect(() => {
+    if (isUniversal) {
+      setFormData((prev: any) => ({
+        ...prev,
+        offer_enabled: offerEnabled,
+        offer_title: offerTitle,
+        offer_body: offerBody,
+        offer_url: offerUrl,
+        emoji_sentiment_enabled: emojiSentimentEnabled,
+      }));
+    }
+  }, [offerEnabled, offerTitle, offerBody, offerUrl, emojiSentimentEnabled, isUniversal]);
+
   // Render logic
   if (isUniversal) {
-    // Render a single-page form for universal prompt pages
+    // Render a single-page form for universal prompt pages and return immediately
     return (
-      <form onSubmit={e => { e.preventDefault(); onSave(formData); }}>
-        <p className="text-base text-gray-600 mb-4 max-w-[60ch]">
-          The Universal Prompt Page are for general reviews. Use this page to collect reviews from anyone, not just specific customers or clients. Frame the QR code and display it prominantly in your business location or share it on social media or in an email newsletter.
-        </p>
+      <form onSubmit={e => { 
+        e.preventDefault();
+        console.log('Universal form submitted!');
+        onSave({
+          ...formData,
+          offer_enabled: offerEnabled,
+          offer_title: offerTitle,
+          offer_body: offerBody,
+          offer_url: offerUrl,
+          emoji_sentiment_enabled: emojiSentimentEnabled,
+        });
+      }}>
+        <div className="flex justify-between items-start w-full">
+          <div>
+            <h1 className="text-4xl font-bold text-[#1A237E] mb-0">Edit Universal Prompt Page</h1>
+            <p className="text-base text-gray-600 mb-4 max-w-[60ch] mt-3">
+              The Universal Prompt Page are for general reviews. Use this page to collect reviews from anyone, not just specific customers or clients. Frame the QR code and display it prominantly in your business location or share it on social media or in an email newsletter.
+            </p>
+          </div>
+          {/* Top right button group */}
+          <div className="flex gap-2 pt-4 pr-4 md:pt-6 md:pr-6">
+            {formData.slug ? (
+              <a
+                href={`/r/${formData.slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              >
+                View
+              </a>
+            ) : (
+              <button
+                type="button"
+                className="inline-flex justify-center rounded-md border border-gray-300 bg-gray-100 py-2 px-4 text-sm font-medium text-gray-400 shadow-sm cursor-not-allowed"
+                disabled
+              >
+                View
+              </button>
+            )}
+            <button
+              type="submit"
+              className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+              disabled={isSaving}
+            >
+              Save
+            </button>
+          </div>
+        </div>
+        {/* Review Platforms Section */}
         <div className="flex flex-col mb-8 mt-8 px-0 py-2">
           <div className="flex items-center gap-3 mb-2">
             <FaStar className="w-7 h-7 text-[#1A237E]" />
@@ -314,28 +395,6 @@ export default function PromptPageForm({
               Add Platform
             </button>
           </div>
-        </div>
-        {/* AI Generation Button Section */}
-        <div className="flex flex-col mb-8 mt-8 px-0 py-2">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-3">
-              <FaRobot className="w-7 h-7 text-[#1A237E]" />
-              <h2 className="text-xl font-semibold text-[#1A237E]">AI Generation Button</h2>
-            </div>
-            <button
-              type="button"
-              onClick={() => setAiReviewEnabled(v => !v)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${aiReviewEnabled ? 'bg-slate-blue' : 'bg-gray-200'}`}
-              aria-pressed={!!aiReviewEnabled}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${aiReviewEnabled ? 'translate-x-5' : 'translate-x-1'}`}
-              />
-            </button>
-          </div>
-          <p className="text-xs text-gray-600 mt-2 ml-2 max-w-[85ch]">
-            If you would rather not let your customers/clients use AI to generate a review you can turn this off. This can be useful in cases where you have written a custom review that you want your customer to use or if you want to ensure users write the review themselves.
-          </p>
         </div>
         {/* Emoji Sentiment Flow Section */}
         <div className="flex flex-col mb-8 mt-8">
@@ -511,20 +570,67 @@ export default function PromptPageForm({
             Note: Services like Google and Yelp have policies against providing rewards in exchange for reviews, so it's best not to promise a reward for "x" number of reviews, etc.
           </div>
         </div>
-        <div className="flex justify-end gap-4 mt-12">
+        {/* AI Generation Button Section (moved to last) */}
+        <div className="flex flex-col mb-8 mt-8 px-0 py-2">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-3">
+              <FaRobot className="w-7 h-7 text-[#1A237E]" />
+              <h2 className="text-xl font-semibold text-[#1A237E]">AI Generation Button</h2>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setAiReviewEnabled((v: boolean) => {
+                  const newValue = !v;
+                  setFormData((prev: any) => ({ ...prev, aiReviewEnabled: newValue }));
+                  return newValue;
+                });
+              }}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${aiReviewEnabled ? 'bg-slate-blue' : 'bg-gray-200'}`}
+              aria-pressed={!!aiReviewEnabled}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${aiReviewEnabled ? 'translate-x-5' : 'translate-x-1'}`}
+              />
+            </button>
+          </div>
+          <p className="text-xs text-gray-600 mt-2 ml-2 max-w-[85ch]">
+            If you would rather not let your customers/clients use AI to generate a review you can turn this off. This can be useful in cases where you have written a custom review that you want your customer to use or if you want to ensure users write the review themselves.
+          </p>
+        </div>
+        {/* Bottom right button group */}
+        <div className="w-full flex justify-end gap-2 mt-2 sm:gap-4 z-10 pt-4 pr-4 md:pt-6 md:pr-6">
+          {formData.slug ? (
+            <a
+              href={`/r/${formData.slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            >
+              View
+            </a>
+          ) : (
+            <button
+              type="button"
+              className="inline-flex justify-center rounded-md border border-gray-300 bg-gray-100 py-2 px-4 text-sm font-medium text-gray-400 shadow-sm cursor-not-allowed"
+              disabled
+            >
+              View
+            </button>
+          )}
           <button
             type="submit"
             className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
             disabled={isSaving}
           >
-            {isSaving ? 'Publishing...' : 'Save & publish'}
+            Save
           </button>
         </div>
       </form>
     );
   }
   return (
-    <form onSubmit={e => { e.preventDefault(); onSave(formData); }}>
+    <form onSubmit={e => { e.preventDefault(); onSave({ ...formData, aiReviewEnabled }); }}>
       <h1 className="text-4xl font-bold text-[#1A237E] mb-8">{pageTitle}</h1>
       <div>
         {step === 1 ? (
@@ -536,8 +642,8 @@ export default function PromptPageForm({
             {!isUniversal && (
               <>
                 <div className="mb-6 flex items-center gap-2">
-                  <FaInfoCircle className="w-5 h-5 text-[#1A237E]" style={{ color: '#1A237E' }} />
-                  <h2 className="text-xl font-semibold" style={{ color: '#1A237E' }}>Customer/client details</h2>
+                  <FaInfoCircle className="w-5 h-5 text-slate-blue" />
+                  <h2 className="text-xl font-semibold text-slate-blue">Customer/client details</h2>
                 </div>
                 <div className="flex gap-4">
                   <div className="flex-1">
@@ -612,7 +718,7 @@ export default function PromptPageForm({
                 {/* Services Section */}
                 <div className="mt-20 mb-2 flex items-center gap-2">
                   <FaStar className="w-5 h-5 text-[#1A237E]" />
-                  <h2 className="text-xl font-semibold" style={{ color: '#1A237E' }}>Services you provided</h2>
+                  <h2 className="text-xl font-semibold text-slate-blue">Services you provided</h2>
                 </div>
                 <div className="space-y-2">
                   {services.map((service, idx) => (
@@ -706,6 +812,35 @@ export default function PromptPageForm({
           </div>
         )}
       </div>
+      {!isSaving && (
+        <div className="w-full flex justify-end pr-2 pb-4 md:pr-6 md:pb-6 mt-8">
+          {formData.slug ? (
+            <a
+              href={`/r/${formData.slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 mr-2"
+            >
+              View
+            </a>
+          ) : (
+            <button
+              type="button"
+              className="inline-flex justify-center rounded-md border border-gray-300 bg-gray-100 py-2 px-4 text-sm font-medium text-gray-400 shadow-sm cursor-not-allowed"
+              disabled
+            >
+              View
+            </button>
+          )}
+          <button
+            type="submit"
+            className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+            disabled={isSaving}
+          >
+            Save
+          </button>
+        </div>
+      )}
     </form>
   );
 }

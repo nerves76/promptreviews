@@ -284,7 +284,7 @@ export default function Dashboard() {
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-40" onClick={() => setShowPostSaveModal(false)}>
           <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full relative" onClick={e => e.stopPropagation()}>
             <button className="absolute top-2 right-2 text-gray-400 hover:text-gray-600" onClick={() => setShowPostSaveModal(false)} aria-label="Close">&times;</button>
-            <h2 className="text-2xl font-bold text-indigo-800 mb-2">Prompt Page Saved!</h2>
+            <h2 className="text-2xl font-bold text-slate-blue mb-2">Prompt Page Saved!</h2>
             <p className="mb-6 text-gray-700">Share your prompt page with your customer:</p>
             <div className="flex flex-col gap-3">
               <a href={`sms:?body=${encodeURIComponent('Please leave a review: ' + window.location.origin + (savedPromptPageUrl || ''))}`} className="w-full inline-flex items-center justify-center px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition" target="_blank" rel="noopener noreferrer">Send via SMS</a>
@@ -305,26 +305,28 @@ export default function Dashboard() {
         </div>
       )}
       <PageCard icon={<FaHome className="w-9 h-9 text-[#1A237E]" />}>
-        <DashboardContent
-          userName={userName}
-          business={business}
-          customPromptPages={customPromptPages}
-          universalPromptPage={universalPromptPage}
-          createPromptPageRef={createPromptPageRef}
-          handleCreatePromptPageClick={handleCreatePromptPageClick}
-          showQR={showQR}
-          handleCopyLink={handleCopyLink}
-          copySuccess={copySuccess}
-          showProfileModal={showProfileModal}
-          setShowProfileModal={setShowProfileModal}
-          showSuccessModal={showSuccessModal}
-          setShowSuccessModal={setShowSuccessModal}
-          universalUrl={universalUrl}
-          QRCode={QRCodeSVG}
-          setShowQR={setShowQR}
-          account={account}
-          parentLoading={isLoading}
-        />
+        <div className="mt-2">
+          <DashboardContent
+            userName={userName}
+            business={business}
+            customPromptPages={customPromptPages}
+            universalPromptPage={universalPromptPage}
+            createPromptPageRef={createPromptPageRef}
+            handleCreatePromptPageClick={handleCreatePromptPageClick}
+            showQR={showQR}
+            handleCopyLink={handleCopyLink}
+            copySuccess={copySuccess}
+            showProfileModal={showProfileModal}
+            setShowProfileModal={setShowProfileModal}
+            showSuccessModal={showSuccessModal}
+            setShowSuccessModal={setShowSuccessModal}
+            universalUrl={universalUrl}
+            QRCode={QRCodeSVG}
+            setShowQR={setShowQR}
+            account={account}
+            parentLoading={isLoading}
+          />
+        </div>
       </PageCard>
     </div>
   );

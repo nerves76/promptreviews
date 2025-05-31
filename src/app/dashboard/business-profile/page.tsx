@@ -427,7 +427,7 @@ export default function BusinessProfilePage() {
   }
 
   return (
-    <PageCard icon={<FaStore className="w-9 h-9 text-slate-blue" />}>
+    <PageCard icon={<FaStore className="w-7 h-7 text-slate-blue" />}>
       <div className="flex items-start justify-between mt-2 mb-4">
         <div className="flex flex-col mt-0 md:mt-[3px]">
           <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">Your business</h1>
@@ -435,7 +435,7 @@ export default function BusinessProfilePage() {
             Fill out your business profile thoroughly and consistently. This is rule #1 in local search engine optimization.
           </p>
         </div>
-        <div className="flex items-start">
+        <div className="flex items-start pr-4 md:pr-6" style={{ alignSelf: 'flex-start' }}>
           <button
             type="submit"
             form="business-profile-form"
@@ -489,6 +489,17 @@ export default function BusinessProfilePage() {
         handleCropCancel={handleCropCancel}
         formId="business-profile-form"
       />
+      {/* Bottom right Save button */}
+      <div className="flex justify-end mt-8 pr-4 md:pr-6">
+        <button
+          type="submit"
+          form="business-profile-form"
+          disabled={loading}
+          className="py-2 px-6 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-slate-blue hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {loading ? 'Saving...' : 'Save'}
+        </button>
+      </div>
     </PageCard>
   );
 } 

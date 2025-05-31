@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { useRouter } from 'next/navigation';
-import { FaUser, FaIdCard, FaSignOutAlt, FaChartLine, FaEnvelope } from 'react-icons/fa';
+import { FaUser, FaIdCard, FaSignOutAlt, FaChartLine, FaEnvelope, FaBell, FaUniversity } from 'react-icons/fa';
 import Link from 'next/link';
 import { getUserOrMock } from '@/utils/supabase';
 import PageCard from '@/app/components/PageCard';
@@ -49,7 +49,7 @@ export default function AccountPage() {
     router.push('/auth/sign-in');
   };
 
-  // Handle review notification toggle
+  // Handle notifications toggle (smaller, matches other edit pages)
   const [notifSaving, setNotifSaving] = useState(false);
   const handleNotifToggle = async () => {
     if (!account) return;
@@ -84,15 +84,15 @@ export default function AccountPage() {
       <div className="min-h-screen flex items-center justify-center pb-12 px-2">
         <PageCard icon={<FaUser className="w-9 h-9 text-[#1A237E]" />}>
           <div className="flex items-center justify-between mb-16">
-            <h1 className="text-3xl font-bold" style={{ color: '#1A237E' }}>
+            <h1 className="text-3xl font-bold text-slate-blue">
               Account Settings
             </h1>
           </div>
           
-          <div className="space-y-16">
+          <div className="space-y-16 pb-12">
             <div>
-              <h2 className="text-2xl font-bold flex items-center gap-3 mb-12" style={{ color: '#1A237E' }}>
-                <FaIdCard className="w-7 h-7" style={{ color: '#1A237E' }} />
+              <h2 className="text-2xl font-bold flex items-center gap-3 mb-12 text-slate-blue">
+                <FaIdCard className="w-7 h-7 text-slate-blue" />
                 Profile Information
               </h2>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -109,8 +109,8 @@ export default function AccountPage() {
                   <div className="mt-1 text-sm text-gray-900">{user.id}</div>
                 </div>
               </div>
-              <h3 className="text-xl font-bold flex items-center gap-2 mb-6 mt-8" style={{ color: '#1A237E' }}>
-                <FaEnvelope className="w-6 h-6" style={{ color: '#1A237E' }} />
+              <h3 className="text-xl font-bold flex items-center gap-2 mb-6 mt-8 text-slate-blue">
+                <FaEnvelope className="w-6 h-6 text-slate-blue" />
                 Email & Password
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
@@ -133,10 +133,33 @@ export default function AccountPage() {
                   </div>
                 </div>
               </div>
+              {/* Notifications Section */}
+              <div className="mb-8 mt-12">
+                <h3 className="text-xl font-bold flex items-center gap-2 mb-6 text-slate-blue">
+                  <FaBell className="w-6 h-6 text-slate-blue" />
+                  Notifications
+                </h3>
+                <div className="flex items-center gap-4">
+                  <span className="text-base font-semibold text-slate-blue">Enable notifications</span>
+                  <button
+                    type="button"
+                    onClick={handleNotifToggle}
+                    disabled={notifSaving}
+                    className={`relative inline-flex h-5 w-10 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 ${account?.review_notifications_enabled ? 'bg-slate-blue' : 'bg-gray-300'} ${notifSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    aria-pressed={!!account?.review_notifications_enabled}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${account?.review_notifications_enabled ? 'translate-x-5' : 'translate-x-1'}`}
+                    />
+                  </button>
+                </div>
+                <p className="text-gray-500 text-sm ml-1 mt-2">Get notified when you get a new review.</p>
+              </div>
               {/* Billing Section */}
               {account?.stripe_customer_id && (
                 <div className="mt-12">
-                  <h3 className="text-xl font-bold flex items-center gap-2 mb-6" style={{ color: '#1A237E' }}>
+                  <h3 className="text-xl font-bold flex items-center gap-2 mb-6 text-slate-blue">
+                    <FaUniversity className="w-6 h-6 text-slate-blue" />
                     Billing
                   </h3>
                   <button
@@ -162,26 +185,12 @@ export default function AccountPage() {
                   </button>
                 </div>
               )}
-              {/* Review Notification Toggle */}
-              <div className="mb-8">
-                <label className="flex items-center gap-3 text-base font-semibold text-[#1A237E] mb-2">
-                  <input
-                    type="checkbox"
-                    checked={!!account?.review_notifications_enabled}
-                    onChange={handleNotifToggle}
-                    disabled={notifSaving}
-                    className="w-5 h-5 accent-indigo-600"
-                  />
-                  Email me when a new review is submitted
-                </label>
-                <p className="text-gray-500 text-sm ml-8">You'll get an email notification every time a new review is submitted to your account.</p>
-              </div>
             </div>
 
             {user.email === 'chris@diviner.agency' && (
               <div>
-                <h2 className="text-2xl font-bold flex items-center gap-3 mb-12" style={{ color: '#1A237E' }}>
-                  <FaChartLine className="w-7 h-7" style={{ color: '#1A237E' }} />
+                <h2 className="text-2xl font-bold flex items-center gap-3 mb-12 text-slate-blue">
+                  <FaChartLine className="w-7 h-7 text-slate-blue" />
                   Admin Access
                 </h2>
                 <div className="bg-purple-50 rounded-lg p-6 border border-purple-100">

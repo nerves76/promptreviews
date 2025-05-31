@@ -7,7 +7,7 @@ import SocialMediaIcons from '@/app/components/SocialMediaIcons';
 import { Button } from '@/app/components/ui/button';
 import { Textarea } from '@/app/components/ui/textarea';
 import { Card } from '@/app/components/ui/card';
-import { FaStar, FaGoogle, FaFacebook, FaYelp, FaTripadvisor, FaRegStar, FaQuestionCircle, FaPenFancy, FaHeart, FaBookmark, FaHome, FaEnvelope, FaStar as FaFavorites, FaCalendarAlt, FaBell, FaThumbsUp, FaLink, FaImage, FaCamera } from 'react-icons/fa';
+import { FaStar, FaGoogle, FaFacebook, FaYelp, FaTripadvisor, FaRegStar, FaQuestionCircle, FaPenFancy, FaHeart, FaBookmark, FaHome, FaEnvelope, FaStar as FaFavorites, FaCalendarAlt, FaBell, FaThumbsUp, FaLink, FaImage, FaCamera, FaSmile, FaMeh, FaFrown, FaAngry, FaGrinHearts } from 'react-icons/fa';
 import { IconType } from 'react-icons';
 import ReviewSubmissionForm from '@/components/ReviewSubmissionForm';
 import { useReviewer } from '@/contexts/ReviewerContext';
@@ -102,6 +102,14 @@ async function sendAnalyticsEvent(event: Record<string, any>) {
     // Optionally log error
   }
 }
+
+const sentimentOptions = [
+  { value: 'love', icon: <FaGrinHearts className="text-pink-400" />, label: 'Excellent' },
+  { value: 'satisfied', icon: <FaSmile className="text-green-500" />, label: 'Satisfied' },
+  { value: 'neutral', icon: <FaMeh className="text-gray-400" />, label: 'Neutral' },
+  { value: 'unsatisfied', icon: <FaFrown className="text-orange-400" />, label: 'Unsatisfied' },
+  { value: 'angry', icon: <FaAngry className="text-red-500" />, label: 'Angry' },
+];
 
 export default function PromptPage() {
   const router = useRouter();
@@ -554,7 +562,10 @@ export default function PromptPage() {
   useEffect(() => {
     console.log('PromptPage.emoji_sentiment_enabled:', promptPage?.emoji_sentiment_enabled, 'PromptPage.emoji_sentiment_question:', promptPage?.emoji_sentiment_question);
     debugger;
-    if (promptPage?.emoji_sentiment_enabled) setShowSentimentModal(true);
+    if (promptPage?.emoji_sentiment_enabled) {
+      setShowSentimentModal(true);
+      setSentiment('love');
+    }
   }, [promptPage]);
 
   if (loading) {
@@ -606,32 +617,29 @@ export default function PromptPage() {
     <>
       <div className="min-h-screen" style={backgroundStyle}>
         {/* Falling Animation */}
-        {promptPage?.falling_icon && showStarRain && (
-          (!promptPage?.emoji_sentiment_enabled && sentiment === null) ||
-          (sentimentComplete && ['delighted','satisfied'].includes(sentiment||''))
-        ) && (
+        {promptPage?.falling_icon && showStarRain && (!promptPage.emoji_sentiment_enabled || (sentimentComplete && (sentiment === 'love' || sentiment === 'satisfied'))) && (
           <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden">
             {[...Array(36)].map((_, i) => {
               const left = Math.random() * 100;
               const duration = 2 + Math.random() * 1.5;
               const delay = Math.random() * 0.5;
-              const size = 18 + Math.random() * 18;
+              const size = 32 + Math.random() * 8;
               let IconComp;
-              if (promptPage.falling_icon === 'star') IconComp = <FaStar className="absolute" style={{ color: '#facc15' }} />;
-              else if (promptPage.falling_icon === 'heart') IconComp = <FaHeart className="absolute" style={{ color: '#ef4444' }} />;
-              else if (promptPage.falling_icon === 'rainbow') IconComp = <span className="absolute text-2xl" role="img" aria-label="rainbow">🌈</span>;
-              else if (promptPage.falling_icon === 'thumb') IconComp = <FaThumbsUp className="absolute" style={{ color: '#3b82f6' }} />;
-              else IconComp = <FaStar className="absolute" style={{ color: '#facc15' }} />;
+              if (promptPage.falling_icon === 'star') IconComp = <FaStar className="absolute" style={{ color: '#facc15', fontSize: size }} />;
+              else if (promptPage.falling_icon === 'heart') IconComp = <FaHeart className="absolute" style={{ color: '#ef4444', fontSize: size }} />;
+              else if (promptPage.falling_icon === 'rainbow') IconComp = <span className="absolute" style={{ fontSize: size }}>🌈</span>;
+              else if (promptPage.falling_icon === 'thumb') IconComp = <span className="absolute" style={{ fontSize: size }}>👍</span>;
+              else if (promptPage.falling_icon === 'flex') IconComp = <span className="absolute" style={{ fontSize: size }}>💪</span>;
               return (
                 <span
                   key={i}
-                  className="absolute drop-shadow-lg animate-star-fall"
                   style={{
+                    position: 'absolute',
                     left: `${left}%`,
                     top: '-40px',
-                    fontSize: `${size}px`,
-                    animationDuration: `${duration}s`,
-                    animationDelay: `${delay}s`,
+                    animation: `fall ${duration}s linear ${delay}s 1`,
+                    pointerEvents: 'none',
+                    zIndex: 50,
                   }}
                 >
                   {IconComp}
@@ -781,6 +789,51 @@ export default function PromptPage() {
             >
               ×
             </button>
+          </div>
+        )}
+        {showSentimentModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-95 animate-fadein">
+            <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full relative animate-slideup border-2 border-indigo-500">
+              <h2 className="text-2xl font-bold text-slate-blue mb-4 text-center">
+                {promptPage.emoji_sentiment_question || 'How did you feel about your experience?'}
+              </h2>
+              <div className="mb-8"></div>
+              <div className="flex justify-center gap-6 mb-6">
+                {sentimentOptions.map(opt => (
+                  <div key={opt.value} className="flex flex-col items-center my-2">
+                    <button
+                      className={`transition-all duration-150 flex flex-col items-center gap-2
+                        ${sentiment === opt.value ? '' : ''}
+                        hover:text-slate-blue cursor-pointer`}
+                      style={{ border: 'none', background: 'none', outline: 'none' }}
+                      onClick={() => setSentiment(opt.value)}
+                      aria-label={opt.label}
+                      type="button"
+                    >
+                      <span className="flex items-center justify-center" style={{ height: '2.5rem', width: '2.5rem', fontSize: '2.2rem' }}>{opt.icon}</span>
+                      <span className={`font-medium transition-all duration-150 ${sentiment === opt.value ? 'text-sm text-slate-blue font-semibold' : 'text-xs text-gray-400'}`}>{opt.label}</span>
+                      {sentiment === opt.value && (
+                        <span className="block w-full border-b-2 border-slate-blue mt-1" style={{ minWidth: '2.5rem' }}></span>
+                      )}
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <button
+                className="w-full px-6 py-3 bg-slate-blue text-white rounded-lg font-semibold shadow hover:bg-indigo-900 focus:outline-none transition text-lg"
+                disabled={!sentiment}
+                onClick={() => {
+                  setShowSentimentModal(false);
+                  setSentimentComplete(true);
+                  if (sentiment === 'love' || sentiment === 'Excellent' || sentiment === 'satisfied') {
+                    setShowStarRain(true);
+                    setTimeout(() => setShowStarRain(false), 2000);
+                  }
+                }}
+              >
+                Continue
+              </button>
+            </div>
           </div>
         )}
         <div className="min-h-screen flex justify-center items-start">
@@ -1306,11 +1359,6 @@ export default function PromptPage() {
           </div>
         </div>
       </div>
-      {copySuccess && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fadein">
-          {copySuccess}
-        </div>
-      )}
       {showFallbackModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-xl w-full relative animate-fadein border-2 border-indigo-500">
@@ -1330,9 +1378,14 @@ export default function PromptPage() {
               rows={5}
               onFocus={e => e.target.select()}
             />
-            <div className="flex flex-col sm:flex-row gap-3 justify-end mt-2">
+            {copySuccess && (
+              <div className="mb-2 w-full text-center">
+                <span className="inline-block bg-green-600 text-white px-4 py-2 rounded-lg shadow animate-fadein text-base font-semibold">{copySuccess}</span>
+              </div>
+            )}
+            <div className="flex flex-col gap-3 justify-end mt-2">
               <button
-                className="flex-1 px-6 py-3 rounded-lg font-bold text-lg shadow-lg hover:opacity-90 focus:outline-none transition border-2"
+                className="w-full px-6 py-3 rounded-lg font-bold text-lg shadow-lg hover:opacity-90 focus:outline-none transition border-2"
                 style={{
                   backgroundColor: businessProfile?.secondary_color || '#4F46E5',
                   color: '#fff',
@@ -1346,10 +1399,13 @@ export default function PromptPage() {
                   } catch {}
                 }}
               >
-                Copy
+                Copy Review
               </button>
+              <div className="flex items-center justify-center my-1">
+                <span className="text-gray-500 text-base font-medium px-2">and then</span>
+              </div>
               <button
-                className="flex-1 px-4 py-2 bg-slate-blue text-white rounded-lg font-semibold shadow hover:bg-indigo-900 focus:outline-none transition"
+                className="w-full px-6 py-3 bg-slate-blue text-white rounded-lg font-semibold shadow hover:bg-indigo-900 focus:outline-none transition"
                 onClick={() => {
                   if (fallbackModalUrl) {
                     window.open(fallbackModalUrl, '_blank', 'noopener,noreferrer');

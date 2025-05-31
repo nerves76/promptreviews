@@ -11,8 +11,9 @@ import FiveStarSpinner from '@/app/components/FiveStarSpinner';
 interface Review {
   id: string;
   prompt_page_id: string;
-  reviewer_name: string;
-  reviewer_role: string;
+  first_name: string;
+  last_name: string;
+  reviewer_role?: string;
   platform: string;
   review_content: string;
   created_at: string;
@@ -21,8 +22,8 @@ interface Review {
 
 interface ReviewerGroup {
   reviewerKey: string;
-  reviewer_name: string;
-  reviewer_role: string;
+  first_name: string;
+  last_name: string;
   reviews: Review[];
 }
 
@@ -42,16 +43,16 @@ const SAMPLE_REVIEWS = [
   // Google (2)
   {
     prompt_page_id: "00000000-0000-0000-0000-000000000000",
-    reviewer_name: "John Smith",
-    reviewer_role: "Homeowner",
+    first_name: "John",
+    last_name: "Smith",
     platform: "Google",
     review_content: "Absolutely amazing service! The team was professional, efficient, and completed the project ahead of schedule.",
     status: "submitted"
   },
   {
     prompt_page_id: "00000000-0000-0000-0000-000000000000",
-    reviewer_name: "Emily Davis",
-    reviewer_role: "Interior Designer",
+    first_name: "Emily",
+    last_name: "Davis",
     platform: "Google",
     review_content: "I've worked with many contractors, but this team stands out. Their expertise and attention to detail are unmatched.",
     status: "submitted"
@@ -59,16 +60,16 @@ const SAMPLE_REVIEWS = [
   // Yelp (2)
   {
     prompt_page_id: "00000000-0000-0000-0000-000000000000",
-    reviewer_name: "Sarah Johnson",
-    reviewer_role: "Business Owner",
+    first_name: "Sarah",
+    last_name: "Johnson",
     platform: "Yelp",
     review_content: "Great experience from start to finish. The attention to detail was impressive, and the final result exceeded my expectations.",
     status: "submitted"
   },
   {
     prompt_page_id: "00000000-0000-0000-0000-000000000000",
-    reviewer_name: "Carlos Martinez",
-    reviewer_role: "Restaurant Owner",
+    first_name: "Carlos",
+    last_name: "Martinez",
     platform: "Yelp",
     review_content: "The food and service were both excellent. Will definitely return!",
     status: "submitted"
@@ -76,16 +77,16 @@ const SAMPLE_REVIEWS = [
   // Facebook (2)
   {
     prompt_page_id: "00000000-0000-0000-0000-000000000000",
-    reviewer_name: "Michael Brown",
-    reviewer_role: "Property Manager",
+    first_name: "Michael",
+    last_name: "Brown",
     platform: "Facebook",
     review_content: "Professional service and excellent communication throughout the project. The quality of work is top-notch.",
     status: "submitted"
   },
   {
     prompt_page_id: "00000000-0000-0000-0000-000000000000",
-    reviewer_name: "Lisa Chen",
-    reviewer_role: "Marketing Director",
+    first_name: "Lisa",
+    last_name: "Chen",
     platform: "Facebook",
     review_content: "Very responsive and creative team. Our campaign results improved dramatically.",
     status: "submitted"
@@ -93,16 +94,16 @@ const SAMPLE_REVIEWS = [
   // TripAdvisor (2)
   {
     prompt_page_id: "00000000-0000-0000-0000-000000000000",
-    reviewer_name: "Anna Lee",
-    reviewer_role: "Traveler",
+    first_name: "Anna",
+    last_name: "Lee",
     platform: "TripAdvisor",
     review_content: "The tour was well organized and the guide was knowledgeable. Highly recommend!",
     status: "submitted"
   },
   {
     prompt_page_id: "00000000-0000-0000-0000-000000000000",
-    reviewer_name: "David Kim",
-    reviewer_role: "Adventurer",
+    first_name: "David",
+    last_name: "Kim",
     platform: "TripAdvisor",
     review_content: "A wonderful experience from start to finish. Will book again!",
     status: "submitted"
@@ -110,16 +111,16 @@ const SAMPLE_REVIEWS = [
   // Clutch (2)
   {
     prompt_page_id: "00000000-0000-0000-0000-000000000000",
-    reviewer_name: "Priya Patel",
-    reviewer_role: "Startup Founder",
+    first_name: "Priya",
+    last_name: "Patel",
     platform: "Clutch",
     review_content: "Their expertise helped us launch on time and on budget. Great partner!",
     status: "submitted"
   },
   {
     prompt_page_id: "00000000-0000-0000-0000-000000000000",
-    reviewer_name: "Tom Nguyen",
-    reviewer_role: "CTO",
+    first_name: "Tom",
+    last_name: "Nguyen",
     platform: "Clutch",
     review_content: "Excellent communication and technical skills. Highly recommend for any SaaS project.",
     status: "submitted"
@@ -127,16 +128,16 @@ const SAMPLE_REVIEWS = [
   // G2 (2)
   {
     prompt_page_id: "00000000-0000-0000-0000-000000000000",
-    reviewer_name: "Samantha Green",
-    reviewer_role: "Product Manager",
+    first_name: "Samantha",
+    last_name: "Green",
     platform: "G2",
     review_content: "The software is intuitive and support is always available. Five stars!",
     status: "submitted"
   },
   {
     prompt_page_id: "00000000-0000-0000-0000-000000000000",
-    reviewer_name: "Alex Rivera",
-    reviewer_role: "IT Director",
+    first_name: "Alex",
+    last_name: "Rivera",
     platform: "G2",
     review_content: "Robust features and easy integration. Our team productivity increased noticeably.",
     status: "submitted"
@@ -217,7 +218,7 @@ export default function TestimonialsPage() {
         // Fetch paginated reviews
         const { data: existingReviews, error: fetchError } = await supabase
           .from("review_submissions")
-          .select("id, prompt_page_id, reviewer_name, reviewer_role, platform, review_content, created_at, status")
+          .select("id, prompt_page_id, first_name, last_name, reviewer_role, platform, review_content, created_at, status")
           .order("created_at", { ascending: false })
           .range((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE - 1);
 
@@ -247,12 +248,12 @@ export default function TestimonialsPage() {
     // Group reviews by reviewer (name+role)
     const groups: { [key: string]: ReviewerGroup } = {};
     for (const review of reviews) {
-      const reviewerKey = `${review.reviewer_name}||${review.reviewer_role}`;
+      const reviewerKey = `${review.first_name}||${review.last_name}`;
       if (!groups[reviewerKey]) {
         groups[reviewerKey] = {
           reviewerKey,
-          reviewer_name: review.reviewer_name,
-          reviewer_role: review.reviewer_role,
+          first_name: review.first_name,
+          last_name: review.last_name,
           reviews: [],
         };
       }
@@ -385,11 +386,11 @@ export default function TestimonialsPage() {
                       <FaChevronRight className="text-[#1A237E]" />
                     )}
                     <span className="font-semibold text-lg text-gray-800">
-                      {group.reviewer_name || "[No Name]"}
+                      {group.first_name || "[No Name]"} {group.last_name ? group.last_name : ''}
+                      {group.reviews[0]?.reviewer_role ? (
+                        <span className="text-gray-500 font-normal text-base ml-2">({group.reviews[0].reviewer_role})</span>
+                      ) : null}
                     </span>
-                    {group.reviewer_role && (
-                      <span className="ml-2 text-sm text-gray-500">({group.reviewer_role})</span>
-                    )}
                     <span className="ml-auto text-sm text-gray-400">
                       {group.reviews.length} review{group.reviews.length !== 1 ? "s" : ""}
                     </span>
@@ -418,6 +419,9 @@ export default function TestimonialsPage() {
                               }`}>
                                 {review.status}
                               </span>
+                              {review.reviewer_role && (
+                                <span className="ml-2 text-xs text-gray-500">({review.reviewer_role})</span>
+                              )}
                               {isNewReview(review.created_at) && (
                                 <span className="ml-2 text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700 font-semibold">New</span>
                               )}
@@ -507,9 +511,9 @@ export default function TestimonialsPage() {
                               <PlatformIcon className="w-6 h-6 text-[#1A237E]" />
                             </div>
                             <div className="flex items-center gap-2 mb-2">
-                              <span className="font-semibold text-[#1A237E]">{review.reviewer_name || "[No Name]"}</span>
+                              <span className="font-semibold text-[#1A237E]">{review.first_name || "[No Name]"} {review.last_name ? review.last_name : ''}</span>
                               {review.reviewer_role && (
-                                <span className="ml-2 text-sm text-gray-500">({review.reviewer_role})</span>
+                                <span className="ml-2 text-xs text-gray-500">({review.reviewer_role})</span>
                               )}
                               <span className="text-xs text-gray-400 ml-2">{new Date(review.created_at).toLocaleDateString()}</span>
                               <span className={`ml-2 text-xs px-2 py-1 rounded ${
@@ -570,6 +574,8 @@ export default function TestimonialsPage() {
           </>
         )
       ))}
+      {/* Add responsive bottom padding to the card */}
+      <div className="pb-8 md:pb-12 lg:pb-16" />
     </PageCard>
   );
 } 
