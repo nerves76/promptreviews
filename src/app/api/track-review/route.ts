@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/utils/supabase';
 import { sendResendEmail } from '@/utils/resend';
+import { createClient } from '@supabase/supabase-js';
 
 export async function POST(request: Request) {
   try {
@@ -44,6 +45,27 @@ export async function POST(request: Request) {
       throw error;
     }
 
+    // Log review submission to analytics_events
+    const { error: analyticsError } = await supabase
+      .from('analytics_events')
+      .insert({
+        prompt_page_id: promptPageId,
+        event_type: 'review_submitted',
+        platform,
+        created_at: new Date().toISOString(),
+        user_agent: userAgent,
+        ip_address: ipAddress,
+        metadata: {
+          review_type: review_type || (status === 'feedback' ? 'feedback' : 'review'),
+          sentiment,
+          reviewer: [first_name, last_name].filter(Boolean).join(' '),
+        },
+      });
+    if (analyticsError) {
+      console.error('Error inserting analytics event:', analyticsError);
+      return NextResponse.json({ error: 'Failed to log analytics event', details: analyticsError.message }, { status: 500 });
+    }
+
     const { data: promptPage } = await supabase
       .from('prompt_pages')
       .select('account_id')
@@ -51,11 +73,22 @@ export async function POST(request: Request) {
       .single();
 
     if (promptPage && promptPage.account_id) {
-      const { data: account } = await supabase
+      console.log('[track-review] promptPageId:', promptPageId, 'promptPage.account_id:', promptPage?.account_id);
+      const supabaseAdmin = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+      );
+      const { data: account } = await supabaseAdmin
         .from('accounts')
         .select('email, review_notifications_enabled, first_name')
         .eq('id', promptPage.account_id)
         .single();
+
+      console.log('[track-review] Account fetched:', account);
+      console.log('[track-review] Checking notification eligibility:', {
+        review_notifications_enabled: account?.review_notifications_enabled,
+        email: account?.email
+      });
 
       if (account?.review_notifications_enabled && account?.email) {
         const reviewerFullName = [first_name, last_name].filter(Boolean).join(' ') || 'A reviewer';
@@ -68,15 +101,34 @@ export async function POST(request: Request) {
         } else {
           subject = `You've got praise! ${reviewerFirst} submitted a review on ${platform}`;
         }
+        console.log('[track-review] Sending review notification email', {
+          to: account.email,
+          review_notifications_enabled: account.review_notifications_enabled,
+          account_first_name: account.first_name,
+          reviewerFullName,
+          review_type,
+          platform,
+          subjectPreview: (() => {
+            if (review_type === 'feedback') return `You've got feedback: ${reviewerFirst} submitted feedback`;
+            if (review_type === 'testimonial' || review_type === 'photo') return `You've got praise! ${reviewerFirst} submitted a testimonial & photo`;
+            return `You've got praise! ${reviewerFirst} submitted a review on ${platform}`;
+          })(),
+        });
+        // Use the correct production URL as fallback
         const loginUrl = process.env.NEXT_PUBLIC_APP_URL
           ? `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`
-          : 'https://promptreviews.com/dashboard';
+          : 'https://app.promptreviews.app/dashboard';
         const text = `Hi ${account.first_name || 'there'},\n\nYou've got a new Prompt Review.\n\nLog in here to check it out:\n${loginUrl}\n\n:)\n\nChris`;
-        await sendResendEmail({
-          to: account.email,
-          subject,
-          text,
-        });
+        try {
+          await sendResendEmail({
+            to: account.email,
+            subject,
+            text,
+          });
+          console.log('[track-review] Email sent successfully to', account.email);
+        } catch (emailError) {
+          console.error('[track-review] Error sending email:', emailError);
+        }
       }
     }
 

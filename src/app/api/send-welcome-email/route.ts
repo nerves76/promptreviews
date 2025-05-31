@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { sendWelcomeEmail } from '@/utils/mailgun';
+import { sendWelcomeEmail } from '@/utils/resend-welcome';
 
 export async function POST(req: Request) {
   try {

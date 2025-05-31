@@ -376,7 +376,7 @@ export default function EditPromptPage() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent, action: 'save' | 'publish') => {
+  const handleSubmit = async (e: React.FormEvent, action: 'save' | 'publish', data?: any) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
@@ -400,26 +400,24 @@ export default function EditPromptPage() {
       // Build update object
       let updateData: any;
       if (isUniversal) {
+        // Use the data object received from handleFormSave for the most up-to-date values
         updateData = {
-          offer_enabled: offerEnabled,
-          offer_title: offerTitle,
-          offer_body: offerBody,
-          offer_url: offerUrl || null,
+          ...(data || formData),
           status: 'draft' as const,
         };
-        if (formData.review_platforms && formData.review_platforms.length > 0) {
-          const validPlatforms = formData.review_platforms
-            .map(link => ({
+        // Optionally, ensure review_platforms is always an array or null
+        if ((data || formData).review_platforms && (data || formData).review_platforms.length > 0) {
+          updateData.review_platforms = (data || formData).review_platforms
+            .map((link: any) => ({
               platform: link.platform,
               url: link.url,
               wordCount: Math.max(200, Number(link.wordCount) || 200),
               customInstructions: link.customInstructions || '',
               reviewText: link.reviewText || ''
             }))
-            .filter(link => link.platform && link.url);
-          if (validPlatforms.length > 0) {
-            updateData.review_platforms = validPlatforms;
-          }
+            .filter((link: any) => link.platform && link.url);
+        } else {
+          updateData.review_platforms = null;
         }
       } else {
         updateData = {
@@ -475,13 +473,16 @@ export default function EditPromptPage() {
       // Debug log
       console.log('Saving prompt page with data:', updateData, 'PromptPage ID:', promptPage.id);
 
-      const { error: updateError } = await supabase
+      const { data: updateDataResult, error: updateError } = await supabase
         .from('prompt_pages')
         .update({
           ...updateData,
           role: formData.role || null,
         })
         .eq('id', promptPage.id);
+
+      // Log the full response for debugging
+      console.log('Supabase update response:', { updateDataResult, updateError });
 
       if (updateError) {
         console.error('Update error:', updateError);
@@ -511,7 +512,8 @@ export default function EditPromptPage() {
   };
 
   const handleFormSave = (data: any) => {
-    handleSubmit({ preventDefault: () => {} } as React.FormEvent, 'save');
+    console.log('handleFormSave received data:', data);
+    handleSubmit({ preventDefault: () => {} } as React.FormEvent, 'save', data);
   };
   const handleFormPublish = (data: any) => {
     handleSubmit({ preventDefault: () => {} } as React.FormEvent, 'publish');
@@ -522,6 +524,7 @@ export default function EditPromptPage() {
     { key: 'heart', label: 'Hearts', icon: <FaHeart className="w-6 h-6 text-red-500" /> },
     { key: 'rainbow', label: 'Rainbows', icon: <span className="w-6 h-6 text-2xl">🌈</span> },
     { key: 'thumb', label: 'Thumbs Up', icon: <span className="w-6 h-6 text-2xl">👍</span> },
+    { key: 'flex', label: 'Flex', icon: <span className="w-6 h-6 text-2xl">💪</span> },
   ];
 
   const handleToggleFalling = async () => {
@@ -1201,15 +1204,66 @@ export default function EditPromptPage() {
   console.log('Rendering platforms:', formData.review_platforms);
   return (
     <PageCard icon={isUniversal ? <FaGlobe className="w-9 h-9 text-slate-blue" /> : <FaStore className="w-9 h-9 text-slate-blue" /> }>
-      {/* Top right buttons */}
-      <div className="absolute top-8 right-8 flex gap-4 z-20">
-        {isUniversal ? (
-          <>
+      {/* Top right Save button group */}
+      {!isUniversal && (
+        <div className="w-full flex flex-col sm:flex-row sm:justify-end gap-2 sm:gap-4 pt-4 pr-4 md:pt-6 md:pr-6">
+          <button
+            type="button"
+            onClick={handleSaveAndContinue}
+            className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+            disabled={isLoading}
+          >
+            Save & Continue
+          </button>
+        </div>
+      )}
+      {isUniversal ? (
+        <PromptPageForm
+          mode="edit"
+          initialData={formData}
+          onSave={handleFormSave}
+          pageTitle="Edit Universal Prompt Page"
+          supabase={supabase}
+          businessProfile={businessProfile}
+          isUniversal={true}
+        />
+      ) : (
+        <>
+          <div className="flex flex-col mb-8 mt-2">
+            <h1 className="text-4xl font-bold text-[#1A237E] mb-0">Edit Prompt Page</h1>
+          </div>
+          {/* Button group: always below title/subcopy, right-aligned on desktop, stacked on mobile */}
+          <div className="w-full flex flex-col gap-2 mt-2 sm:flex-row sm:justify-end sm:gap-4">
+            <button
+              type="button"
+              onClick={handleSaveAndContinue}
+              className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+              disabled={isLoading}
+            >
+              Save & Continue
+            </button>
+          </div>
+          <PromptPageForm
+            mode="edit"
+            initialData={formData}
+            onSave={handleFormSave}
+            onPublish={handleFormPublish}
+            pageTitle={''}
+            supabase={supabase}
+            businessProfile={businessProfile}
+            isUniversal={isUniversal}
+          />
+        </>
+      )}
+      {/* Bottom right Save button group for consistency */}
+      {!isUniversal && step === 2 && (
+        <div className="w-full flex justify-end pr-2 pb-4 md:pr-6 md:pb-6 mt-8">
+          <div className="flex gap-4">
             <a
               href={`/r/${params.slug}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 mr-2"
             >
               View
             </a>
@@ -1221,69 +1275,8 @@ export default function EditPromptPage() {
             >
               Save
             </button>
-          </>
-        ) : (
-          <button
-            type="button"
-            onClick={handleSaveAndContinue}
-            className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-            disabled={isLoading}
-          >
-            Save & Continue
-          </button>
-        )}
-      </div>
-      {/* Photo display area */}
-      {photoUrl && (
-        <div className="flex flex-col items-center mb-8">
-          <div className="w-[200px] h-[200px] rounded-lg overflow-hidden border-2 border-gray-200 flex items-center justify-center bg-gray-50">
-            <img src={photoUrl} alt="Testimonial Photo" className="object-cover w-full h-full" />
           </div>
-          <a
-            href={photoUrl}
-            download
-            className="mt-2 inline-block px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm font-medium"
-          >
-            Download Photo
-          </a>
         </div>
-      )}
-      {isUniversal ? (
-        <>
-          <div className="flex items-center justify-between mb-2 mt-2">
-            <div className="flex flex-col">
-              <h1 className="text-4xl font-bold text-[#1A237E] mb-0">Edit Universal Prompt Page</h1>
-            </div>
-          </div>
-          <PromptPageForm
-            mode="edit"
-            initialData={formData}
-            onSave={handleFormSave}
-            onPublish={handleFormPublish}
-            pageTitle={''}
-            supabase={supabase}
-            businessProfile={businessProfile}
-            isUniversal={isUniversal}
-          />
-        </>
-      ) : (
-        <>
-          <div className="flex items-center justify-between mb-8 mt-2">
-            <div className="flex flex-col">
-              <h1 className="text-4xl font-bold text-[#1A237E] mb-0">Edit Prompt Page</h1>
-            </div>
-          </div>
-          <PromptPageForm
-            mode="edit"
-            initialData={formData}
-            onSave={handleFormSave}
-            onPublish={handleFormPublish}
-            pageTitle={''}
-            supabase={supabase}
-            businessProfile={businessProfile}
-            isUniversal={isUniversal}
-          />
-        </>
       )}
       {showShareModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40" onClick={() => setShowShareModal(false)}>

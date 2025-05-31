@@ -7,11 +7,12 @@ STRIPE_WEBHOOK_FILE="src/app/api/stripe-webhook/route.ts"
 STRIPE_CHECKOUT_FILE="src/app/api/create-checkout-session/route.ts"
 HARDCODED_URL="\"https://ltneloufqjktdplodvao.supabase.co\""
 HARDCODED_KEY="\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0bmVsb3VmcWprdGRwbG9kdmFvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgwNDE1NzgsImV4cCI6MjA2MzYxNzU3OH0.ypbH1mu5m6a4jHFtpJfZPWeQVndtzZcmVELfNdqvgLw\""
-HARDCODED_RESEND_KEY="\"re_test_hardcoded_resend_key\""
+HARDCODED_RESEND_KEY="re_i6QEZ7Vr_NyUmkjJBT8k1yZZLu2cxb376"
 HARDCODED_STRIPE_SECRET="\"sk_test_hardcoded_key\""
 HARDCODED_STRIPE_WEBHOOK="\"whsec_hardcoded_secret\""
 HARDCODED_STRIPE_BUILDER="\"price_123\""
 HARDCODED_STRIPE_MAVEN="\"price_456\""
+SUPABASE_SERVICE_ROLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0bmVsb3VmcWprdGRwbG9kdmFvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0ODA0MTU3OCwiZXhwIjoyMDYzNjE3NTc4fQ.IkGh1VhXoqUSGPudm3NH9BqrUP2GMb1OxfmzJxpwOL4"
 
 if grep -q 'process.env.NEXT_PUBLIC_SUPABASE_URL' "$SUPABASE_FILE"; then
   # Swap to hard-coded

@@ -30,6 +30,27 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
+    // Only track important events, not page views
+    const importantEvents = [
+      'review_submitted',
+      'website_click',
+      'social_click',
+      'ai_generate',
+      'copy_submit',
+      'emoji_sentiment',
+      'constructive_feedback',
+      'login',
+      'prompt_page_created',
+      'contacts_uploaded',
+      'save_for_later',
+      'unsave_for_later',
+      'feature_used',
+    ];
+    if (!importantEvents.includes(eventType)) {
+      // Ignore non-important events (like 'view')
+      return NextResponse.json({}, { status: 204 });
+    }
+
     // Get user agent and IP address
     const userAgent = req.headers.get('user-agent') || null;
     const ip = req.headers.get('x-forwarded-for') || null;

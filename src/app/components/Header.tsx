@@ -37,18 +37,21 @@ export default function Header() {
       const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
       const { data, error } = await supabase
         .from('review_submissions')
-        .select('id, reviewer_name, platform, review_content, created_at')
+        .select('id, first_name, last_name, platform, review_content, created_at')
         .gte('created_at', since)
         .order('created_at', { ascending: false })
         .limit(7);
       if (!error && data) {
-        setNotifications(data.map((r: any) => ({
-          id: r.id,
-          message: `New review from ${r.reviewer_name || 'Anonymous'} on ${r.platform}`,
-          preview: r.review_content?.slice(0, 60) || '',
-          created_at: r.created_at,
-          read: false,
-        })));
+        setNotifications(data.map((r: any) => {
+          const name = r.first_name ? (r.last_name ? `${r.first_name} ${r.last_name}` : r.first_name) : 'Anonymous';
+          return {
+            id: r.id,
+            message: `New review from ${name} on ${r.platform}`,
+            preview: r.review_content?.slice(0, 60) || '',
+            created_at: r.created_at,
+            read: false,
+          };
+        }));
       }
     };
     fetchNotifications();
@@ -104,11 +107,11 @@ export default function Header() {
           <div className="flex items-center">
             <div className="flex-shrink-0 flex items-center mr-6">
               <Link href="/dashboard" className="flex items-center">
-                <span className="h-16 w-auto flex items-center" aria-label="PromptReviews Logo">
+                <span className="h-14 w-auto flex items-center p-1" aria-label="PromptReviews Logo">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    width="150"
-                    height="64"
+                    width="130"
+                    height="52"
                     viewBox="0 0 375 150"
                     style={{ display: 'block', overflow: 'visible' }}
                   >

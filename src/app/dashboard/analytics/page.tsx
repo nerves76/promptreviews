@@ -3,16 +3,15 @@
 import { useState, useEffect } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { useAuthGuard } from '@/utils/authGuard';
-import { FaChartLine, FaGlobe, FaList } from 'react-icons/fa';
+import { FaChartLine, FaList, FaSmile, FaMeh, FaFrown, FaAngry, FaGrinStars } from 'react-icons/fa';
 import { getUserOrMock } from '@/utils/supabase';
 import PageCard from '@/app/components/PageCard';
 import FiveStarSpinner from '@/app/components/FiveStarSpinner';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { format } from 'date-fns';
 
 interface PromptPage {
   id: string;
-  slug: string;
-  is_universal: boolean;
-  first_name: string;
 }
 
 interface AnalyticsData {
@@ -28,12 +27,25 @@ interface AnalyticsData {
   socialClicks: Record<string, number>;
   aiEvents: { date: string; promptPageId: string; platform: string }[];
   copySubmitEvents: { date: string; promptPageId: string; platform: string }[];
+  reviewSubmitsAll: number;
+  reviewSubmitsWeek: number;
+  reviewSubmitsMonth: number;
+  reviewSubmitsYear: number;
 }
+
+// Map sentiment keys to FontAwesome icons and labels
+const emojiSentimentMap = [
+  { key: 'excellent', icon: <FaGrinStars className="w-8 h-8 text-yellow-400" />, label: 'Excellent' },
+  { key: 'satisfied', icon: <FaSmile className="w-8 h-8 text-green-400" />, label: 'Satisfied' },
+  { key: 'neutral', icon: <FaMeh className="w-8 h-8 text-gray-400" />, label: 'Neutral' },
+  { key: 'dissatisfied', icon: <FaFrown className="w-8 h-8 text-orange-400" />, label: 'Dissatisfied' },
+  { key: 'angry', icon: <FaAngry className="w-8 h-8 text-red-400" />, label: 'Angry' },
+];
 
 export default function AnalyticsPage() {
   useAuthGuard();
   const [promptPages, setPromptPages] = useState<PromptPage[]>([]);
-  const [selectedPageId, setSelectedPageId] = useState<string>('');
+  const [timeRange, setTimeRange] = useState<'all'|'lastYear'|'thisYear'|'last6Months'|'last3Months'|'lastMonth'|'thisMonth'>('all');
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,52 +59,77 @@ export default function AnalyticsPage() {
     const fetchPromptPages = async () => {
       try {
         const { data: { user } } = await getUserOrMock(supabase);
-        console.log("User:", user);
         if (!user) return;
-
         const { data, error } = await supabase
           .from('prompt_pages')
-          .select('id, first_name, slug, is_universal')
-          .eq('account_id', user.id)
-          .order('created_at', { ascending: false });
-
-        console.log("Prompt pages data:", data, "Error:", error);
-
+          .select('id')
+          .eq('account_id', user.id);
         if (error) throw error;
         setPromptPages(data || []);
-        
-        // Find and select the Universal Prompt Page
-        const universalPage = data?.find(page => page.is_universal);
-        if (universalPage) {
-          setSelectedPageId(universalPage.id);
-        } else if (data && data.length > 0) {
-          setSelectedPageId(data[0].id);
-        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load prompt pages');
       }
     };
-
     fetchPromptPages();
   }, [supabase]);
 
   useEffect(() => {
     const fetchAnalytics = async () => {
-      if (!selectedPageId) return;
-      
       try {
         setIsLoading(true);
+        const { data: { user } } = await getUserOrMock(supabase);
+        if (!user) return;
+        // Get all prompt page IDs for this account
+        const { data: pages } = await supabase
+          .from('prompt_pages')
+          .select('id')
+          .eq('account_id', user.id);
+        const pageIds = (pages || []).map((p: any) => p.id);
+        if (!pageIds.length) {
+          setAnalytics(null);
+          setIsLoading(false);
+          return;
+        }
+        // Fetch all analytics events for these prompt pages
         const { data: events, error: eventsError } = await supabase
           .from('analytics_events')
           .select('*')
-          .eq('prompt_page_id', selectedPageId);
-
-        console.log("Prompt page events:", events, "Error:", eventsError);
-
+          .in('prompt_page_id', pageIds);
         if (eventsError) throw eventsError;
 
+        // Filter by time range
+        const now = new Date();
+        let startDate: Date | null = null;
+        const thisYear = now.getFullYear();
+        const thisMonth = now.getMonth();
+        switch (timeRange) {
+          case 'lastYear':
+            startDate = new Date(thisYear - 1, now.getMonth(), now.getDate());
+            break;
+          case 'thisYear':
+            startDate = new Date(thisYear, 0, 1);
+            break;
+          case 'last6Months':
+            startDate = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+            break;
+          case 'last3Months':
+            startDate = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+            break;
+          case 'lastMonth':
+            startDate = new Date(thisYear, thisMonth - 1, 1);
+            break;
+          case 'thisMonth':
+            startDate = new Date(thisYear, thisMonth, 1);
+            break;
+          default:
+            startDate = null;
+        }
+        const filteredEvents = startDate
+          ? events.filter((e: any) => new Date(e.created_at) >= startDate)
+          : events;
+
         const analyticsData: AnalyticsData = {
-          totalClicks: events.length,
+          totalClicks: filteredEvents.length,
           clicksByPlatform: {},
           clicksByDate: {},
           aiGenerations: 0,
@@ -104,19 +141,33 @@ export default function AnalyticsPage() {
           socialClicks: {},
           aiEvents: [],
           copySubmitEvents: [],
+          reviewSubmitsAll: 0,
+          reviewSubmitsWeek: 0,
+          reviewSubmitsMonth: 0,
+          reviewSubmitsYear: 0,
         };
 
-        events.forEach((event: any) => {
+        // Timeline data for chart
+        const timelineMap: Record<string, number> = {};
+
+        filteredEvents.forEach((event: any) => {
           // Count by platform
           if (event.platform) {
             analyticsData.clicksByPlatform[event.platform] = 
               (analyticsData.clicksByPlatform[event.platform] || 0) + 1;
           }
 
-          // Count by date
+          // Count by date (for table)
           const date = new Date(event.created_at).toLocaleDateString();
           analyticsData.clicksByDate[date] = 
             (analyticsData.clicksByDate[date] || 0) + 1;
+
+          // Timeline for review_submitted
+          if (event.event_type === 'review_submitted') {
+            const d = new Date(event.created_at);
+            const key = `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}`;
+            timelineMap[key] = (timelineMap[key] || 0) + 1;
+          }
 
           // Count event types
           switch (event.event_type) {
@@ -166,6 +217,19 @@ export default function AnalyticsPage() {
           }
         });
 
+        // Attach review submission stats to analyticsData
+        analyticsData.reviewSubmitsAll = filteredEvents.filter((e: any) => e.event_type === 'review_submitted').length;
+        analyticsData.reviewSubmitsWeek = filteredEvents.filter((e: any) => e.event_type === 'review_submitted' && (now.getTime() - new Date(e.created_at).getTime()) / (1000*60*60*24) <= 7).length;
+        analyticsData.reviewSubmitsMonth = filteredEvents.filter((e: any) => e.event_type === 'review_submitted' && (now.getTime() - new Date(e.created_at).getTime()) / (1000*60*60*24) <= 30).length;
+        analyticsData.reviewSubmitsYear = filteredEvents.filter((e: any) => e.event_type === 'review_submitted' && (now.getTime() - new Date(e.created_at).getTime()) / (1000*60*60*24) <= 365).length;
+
+        // Prepare timeline data for chart (sorted by month)
+        const timelineData = Object.entries(timelineMap)
+          .sort(([a], [b]) => a.localeCompare(b))
+          .map(([month, count]) => ({ month, count }));
+
+        (analyticsData as any).timelineData = timelineData;
+
         setAnalytics(analyticsData);
       } catch (err) {
         console.error('Supabase analytics error:', err);
@@ -174,9 +238,8 @@ export default function AnalyticsPage() {
         setIsLoading(false);
       }
     };
-
     fetchAnalytics();
-  }, [selectedPageId, supabase]);
+  }, [promptPages, timeRange, supabase]);
 
   if (isLoading) {
     return (
@@ -201,8 +264,6 @@ export default function AnalyticsPage() {
     );
   }
 
-  const selectedPage = promptPages.find(p => p.id === selectedPageId);
-
   return (
     <PageCard icon={<FaChartLine className="w-9 h-9 text-slate-blue" />}>
       <div className="flex items-center justify-between mt-2 mb-8">
@@ -210,43 +271,78 @@ export default function AnalyticsPage() {
           <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">Analytics</h1>
         </div>
       </div>
-          
-      <div className="mb-16">
-        <h3 className="text-base font-bold text-gray-900 mb-2">
-          Select prompt page
-        </h3>
+
+      <div className="mb-8 flex flex-col md:flex-row md:items-center gap-4">
+        <label className="text-base font-semibold text-gray-700">Time Range:</label>
         <select
-          id="page-select"
-          value={selectedPageId}
-          onChange={(e) => setSelectedPageId(e.target.value)}
-          className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          value={timeRange}
+          onChange={e => setTimeRange(e.target.value as any)}
+          className="rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
         >
-          {promptPages.map((page) => (
-            <option key={page.id} value={page.id}>
-              {page.is_universal ? 'Universal Prompt Page' : page.first_name}
-            </option>
-          ))}
+          <option value="all">All Time</option>
+          <option value="lastYear">Last Year</option>
+          <option value="thisYear">This Year</option>
+          <option value="last6Months">Last 6 Months</option>
+          <option value="last3Months">Last 3 Months</option>
+          <option value="lastMonth">Last Month</option>
+          <option value="thisMonth">This Month</option>
         </select>
       </div>
 
-      {selectedPage && (
-        <div className="mb-16">
-          <h2 className="mt-20 text-2xl font-bold text-slate-blue flex items-center gap-3 mb-12">
-            {selectedPage.is_universal ? (
-              <FaGlobe className="w-7 h-7 text-slate-blue" />
-            ) : null}
-            {selectedPage.is_universal ? 'Universal Prompt Page' : selectedPage.first_name}
-          </h2>
+      {analytics && (analytics as any).timelineData && (
+        <div className="mb-12 bg-white rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold mb-4">Reviews Over Time</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={(analytics as any).timelineData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis 
+                dataKey="month" 
+                tickFormatter={month => {
+                  const [year, m] = month.split('-');
+                  return format(new Date(Number(year), Number(m) - 1, 1), 'MMM yyyy');
+                }}
+                label={{ value: 'Month', position: 'insideBottom', offset: -5 }}
+              />
+              <YAxis 
+                allowDecimals={false} 
+                label={{ value: 'Reviews', angle: -90, position: 'insideLeft', offset: 10 }}
+              />
+              <Tooltip />
+              <Line type="monotone" dataKey="count" stroke="#6366f1" strokeWidth={3} dot={{ r: 4 }} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* Emoji Sentiment Row */}
+      {analytics && (
+        <div className="mb-12 bg-white rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold mb-4">Emoji Sentiment</h3>
+          <div className="flex flex-row items-end justify-center gap-8">
+            {emojiSentimentMap.map(({ key, icon, label }) => (
+              <div key={key} className="flex flex-col items-center">
+                <div title={label}>{icon}</div>
+                <span className="mt-2 text-xl font-bold text-slate-blue">{analytics.emojiSentiments[key] || 0}</span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
       {analytics && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div className="bg-indigo-50 rounded-lg p-4">
-            <p className="text-sm font-medium text-indigo-600">Total Interactions</p>
-            <p className="mt-2 text-3xl font-semibold text-indigo-900">
-              {analytics.totalClicks}
-            </p>
+            <p className="text-sm font-medium text-indigo-600">Total Reviews (All Time)</p>
+            <p className="mt-2 text-3xl font-semibold text-indigo-900">{analytics.reviewSubmitsAll}</p>
+            <div className="mt-2 text-xs text-gray-500">Last 7d: <span className="font-bold text-indigo-700">{analytics.reviewSubmitsWeek}</span> &nbsp;|&nbsp; Last 30d: <span className="font-bold text-indigo-700">{analytics.reviewSubmitsMonth}</span> &nbsp;|&nbsp; Last 365d: <span className="font-bold text-indigo-700">{analytics.reviewSubmitsYear}</span></div>
+          </div>
+          <div className="bg-indigo-50 rounded-lg p-4">
+            <p className="text-sm font-medium text-indigo-600">Website Clicks</p>
+            <p className="mt-2 text-3xl font-semibold text-indigo-900">{analytics.websiteClicks}</p>
+          </div>
+          <div className="bg-indigo-50 rounded-lg p-4">
+            <p className="text-sm font-medium text-indigo-600">Social Clicks</p>
+            <p className="mt-2 text-3xl font-semibold text-indigo-900">{Object.values(analytics.socialClicks).reduce((a, b) => a + b, 0)}</p>
           </div>
 
           <div className="bg-indigo-50 rounded-lg p-4">
@@ -261,6 +357,11 @@ export default function AnalyticsPage() {
             <p className="mt-2 text-3xl font-semibold text-indigo-900">
               {analytics.copySubmits}
             </p>
+          </div>
+
+          <div className="bg-indigo-50 rounded-lg p-4">
+            <p className="text-sm font-medium text-indigo-600">Page Views</p>
+            <p className="mt-2 text-3xl font-semibold text-indigo-900">{analytics.views}</p>
           </div>
 
           <div className="bg-indigo-50 rounded-lg p-4 md:col-span-2 lg:col-span-3">
