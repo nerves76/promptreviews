@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { RefObject, useState, useEffect } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { useAuthGuard } from '@/utils/authGuard';
-import { FaGlobe, FaHome, FaBuilding, FaHistory, FaBolt, FaRegComment, FaLink } from 'react-icons/fa';
+import { FaGlobe, FaHome, FaBuilding, FaHistory, FaBolt, FaRegComment, FaLink, FaHandsHelping } from 'react-icons/fa';
 import { MdDownload, MdEvent, MdVideoLibrary, MdPhotoCamera } from 'react-icons/md';
 import { getUserOrMock } from '@/utils/supabase';
 import QRCodeGenerator, { QR_FRAME_SIZES } from './components/QRCodeGenerator';
@@ -105,9 +105,9 @@ export default function DashboardContent({
 
   const promptTypes = [
     {
-      key: 'prompt',
-      label: 'Prompt review',
-      icon: <span className="text-2xl font-bold" style={{fontFamily: 'Inter, sans-serif', color: '#1A237E'}}>[P]</span>,
+      key: 'service',
+      label: 'Service review',
+      icon: <FaHandsHelping className="w-7 h-7 text-slate-blue" />,
       description: 'Send to an individual and encourage them to edit/copy review and then post on any platform (Google, Yelp, BBB, etc.).'
     },
     {
@@ -419,7 +419,10 @@ export default function DashboardContent({
                           View
                         </Link>
                         {universalPromptPage?.slug && (
-                          <Link href={`/dashboard/edit-prompt-page/${universalPromptPage.slug}`} className="text-indigo-600 underline hover:text-indigo-800 hover:underline">
+                          <Link
+                            href={universalPromptPage.slug === 'universal-diviner' ? '/dashboard/edit-prompt-page/universal' : `/dashboard/edit-prompt-page/${universalPromptPage.slug}`}
+                            className="text-indigo-600 underline hover:text-indigo-800 hover:underline"
+                          >
                             Edit
                           </Link>
                         )}
@@ -466,7 +469,7 @@ export default function DashboardContent({
                   className="rounded-md border border-gray-300 px-2 py-1 text-sm"
                 >
                   <option value="">All types</option>
-                  <option value="prompt">Prompt review</option>
+                  <option value="service">Service review</option>
                   <option value="experience">Experiences & spaces</option>
                   <option value="video">Video testimonial</option>
                   <option value="photo">Photo + testimonial</option>
@@ -631,11 +634,11 @@ export default function DashboardContent({
                                   {page.last_name || ''}
                                 </td>
                                 <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900 capitalize">
-                                  {page.review_type === 'prompt' && 'Prompt'}
+                                  {page.review_type === 'service' && 'Service'}
                                   {page.review_type === 'photo' && 'Photo'}
                                   {page.review_type === 'video' && 'Video'}
                                   {page.review_type === 'experience' && 'Exp.'}
-                                  {!['prompt', 'photo', 'video', 'experience'].includes(page.review_type || '') && (page.review_type ? page.review_type.charAt(0).toUpperCase() + page.review_type.slice(1) : 'Prompt')}
+                                  {!['service', 'photo', 'video', 'experience'].includes(page.review_type || '') && (page.review_type ? page.review_type.charAt(0).toUpperCase() + page.review_type.slice(1) : 'Service')}
                                 </td>
                                 <td className="whitespace-nowrap px-3 py-4 text-sm flex gap-2 items-center">
                                   <div className="mt-[6px] flex gap-2">
@@ -647,7 +650,7 @@ export default function DashboardContent({
                                     </Link>
                                     {page.slug && (
                                       <Link
-                                        href={`/dashboard/edit-prompt-page/${page.slug}`}
+                                        href={page.slug === 'universal-diviner' ? '/dashboard/edit-prompt-page/universal' : `/dashboard/edit-prompt-page/${page.slug}`}
                                         className="text-indigo-600 underline hover:text-indigo-800 hover:underline"
                                       >
                                         Edit

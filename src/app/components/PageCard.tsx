@@ -4,10 +4,14 @@ export default function PageCard({
   icon,
   children,
   className = '',
+  topRightAction,
+  bottomRightAction,
 }: {
   icon?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
+  topRightAction?: React.ReactNode;
+  bottomRightAction?: React.ReactNode;
 }) {
   return (
     <div className="w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-12 mt-12 md:mt-16 lg:mt-20 mb-16 flex justify-center items-start">
@@ -17,9 +21,22 @@ export default function PageCard({
             {React.cloneElement(icon, { className: 'w-6 h-6 sm:w-9 sm:h-9 text-slate-blue' })}
           </div>
         )}
+        {/* Top-right action button */}
+        {topRightAction && (
+          <div className="absolute top-4 right-4 z-20 mr-4">{topRightAction}</div>
+        )}
         <div className={`content w-full px-1 pt-2 sm:pt-0${icon ? ' pl-2 sm:pl-0' : ''}`}>
           {children}
         </div>
+        {/* Bottom-right action button */}
+        {bottomRightAction && (
+          <>
+            <div className="flex justify-end mt-8 mb-2">
+              {bottomRightAction}
+            </div>
+            <div className="h-16" />
+          </>
+        )}
       </div>
     </div>
   );

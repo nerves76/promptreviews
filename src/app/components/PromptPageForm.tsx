@@ -54,6 +54,13 @@ export default function PromptPageForm({
       ...initialData,
       emojiThankYouMessage: initialData.emoji_thank_you_message || initialData.emojiThankYouMessage || '',
     });
+    setOfferEnabled(initialData.offer_enabled ?? initialData.offerEnabled ?? false);
+    setOfferTitle(initialData.offer_title ?? initialData.offerTitle ?? '');
+    setOfferBody(initialData.offer_body ?? initialData.offerBody ?? '');
+    setOfferUrl(initialData.offer_url ?? initialData.offerUrl ?? '');
+    setEmojiSentimentEnabled(initialData.emoji_sentiment_enabled ?? initialData.emojiSentimentEnabled ?? false);
+    setEmojiSentimentQuestion(initialData.emoji_sentiment_question ?? initialData.emojiSentimentQuestion ?? 'How was your experience?');
+    setEmojiFeedbackMessage(initialData.emoji_feedback_message ?? initialData.emojiFeedbackMessage ?? 'We value your feedback! Let us know how we can do better.');
   }, [initialData]);
 
   // Ensure slug is set for the View button
@@ -96,10 +103,18 @@ export default function PromptPageForm({
   const [fallingIcon, setFallingIcon] = useState('star'); // default icon key
 
   // Special Offer state
-  const [offerEnabled, setOfferEnabled] = useState(initialData.offerEnabled ?? false);
-  const [offerTitle, setOfferTitle] = useState(initialData.offerTitle ?? '');
-  const [offerBody, setOfferBody] = useState(initialData.offerBody ?? '');
-  const [offerUrl, setOfferUrl] = useState(initialData.offerUrl ?? '');
+  const [offerEnabled, setOfferEnabled] = useState(
+    initialData.offer_enabled ?? initialData.offerEnabled ?? false
+  );
+  const [offerTitle, setOfferTitle] = useState(
+    initialData.offer_title ?? initialData.offerTitle ?? ''
+  );
+  const [offerBody, setOfferBody] = useState(
+    initialData.offer_body ?? initialData.offerBody ?? ''
+  );
+  const [offerUrl, setOfferUrl] = useState(
+    initialData.offer_url ?? initialData.offerUrl ?? ''
+  );
 
   const iconOptions = [
     { key: 'star', label: 'Stars', icon: <FaStar className="w-6 h-6 text-yellow-400" /> },
@@ -531,7 +546,13 @@ export default function PromptPageForm({
             </h2>
             <button
               type="button"
-              onClick={() => setOfferEnabled((prev: boolean) => !prev)}
+              onClick={() => {
+                setOfferEnabled((prev: boolean) => {
+                  const newValue = !prev;
+                  console.log('[DEBUG] Universal offerEnabled toggled:', newValue);
+                  return newValue;
+                });
+              }}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${offerEnabled ? 'bg-indigo-500' : 'bg-gray-300'}`}
               aria-pressed={!!offerEnabled}
             >

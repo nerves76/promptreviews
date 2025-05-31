@@ -7,12 +7,15 @@ import SocialMediaIcons from '@/app/components/SocialMediaIcons';
 import { Button } from '@/app/components/ui/button';
 import { Textarea } from '@/app/components/ui/textarea';
 import { Card } from '@/app/components/ui/card';
-import { FaStar, FaGoogle, FaFacebook, FaYelp, FaTripadvisor, FaRegStar, FaQuestionCircle, FaPenFancy, FaHeart, FaBookmark, FaHome, FaEnvelope, FaStar as FaFavorites, FaCalendarAlt, FaBell, FaThumbsUp, FaLink, FaImage, FaCamera, FaSmile, FaMeh, FaFrown, FaAngry, FaGrinHearts } from 'react-icons/fa';
+import { FaStar, FaGoogle, FaFacebook, FaYelp, FaTripadvisor, FaRegStar, FaQuestionCircle, FaPenFancy, FaHeart, FaBookmark, FaHome, FaEnvelope, FaStar as FaFavorites, FaCalendarAlt, FaBell, FaThumbsUp, FaLink, FaImage, FaCamera, FaSmile, FaMeh, FaFrown, FaAngry, FaGrinHearts, FaBolt, FaCoffee, FaWrench, FaRainbow, FaGlassCheers, FaDumbbell, FaPagelines, FaPeace } from 'react-icons/fa';
 import { IconType } from 'react-icons';
 import ReviewSubmissionForm from '@/components/ReviewSubmissionForm';
 import { useReviewer } from '@/contexts/ReviewerContext';
 import { getUserOrMock } from '@/utils/supabase';
 import FiveStarSpinner from '@/app/components/FiveStarSpinner';
+import OfferCard from '../../components/OfferCard';
+import offerConfig from '@/app/components/prompt-modules/offerConfig';
+import EmojiSentimentModal from '@/app/components/EmojiSentimentModal';
 
 interface StyleSettings {
   name: string;
@@ -168,6 +171,7 @@ export default function PromptPage() {
   const [showFallbackModal, setShowFallbackModal] = useState(false);
   const [fallbackModalText, setFallbackModalText] = useState('');
   const [fallbackModalUrl, setFallbackModalUrl] = useState('');
+  const aiButtonEnabled = promptPage?.ai_button_enabled !== false;
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -568,6 +572,57 @@ export default function PromptPage() {
     }
   }, [promptPage]);
 
+  // Merge logic: use promptPage value if set, otherwise businessProfile default
+  const mergedOfferEnabled = promptPage?.offer_enabled ?? businessProfile?.default_offer_enabled;
+  const mergedOfferTitle = promptPage?.offer_title || businessProfile?.default_offer_title || 'Review Rewards';
+  const mergedOfferBody = promptPage?.offer_body || businessProfile?.default_offer_body || '';
+  const mergedOfferUrl = promptPage?.default_offer_url || businessProfile?.default_offer_url || '';
+  const mergedReviewPlatforms = (promptPage?.review_platforms && promptPage.review_platforms.length)
+    ? promptPage.review_platforms
+    : (businessProfile?.review_platforms || []);
+  const mergedEmojiSentimentEnabled = promptPage?.emoji_sentiment_enabled ?? false;
+  const mergedEmojiSentimentQuestion = promptPage?.emoji_sentiment_question || '';
+  const mergedEmojiFeedbackMessage = promptPage?.emoji_feedback_message || '';
+  const mergedEmojiThankYouMessage = promptPage?.emoji_thank_you_message || '';
+  const mergedEmojiLabels = promptPage?.emoji_labels || ['Excellent', 'Satisfied', 'Neutral', 'Unsatisfied', 'Frustrated'];
+  const mergedFallingEnabled = typeof promptPage?.falling_enabled === 'boolean'
+    ? promptPage.falling_enabled
+    : !!promptPage?.falling_icon;
+  const mergedFallingIcon = promptPage?.falling_icon || 'star';
+
+  // Only compute these after promptPage and businessProfile are loaded
+  const showOffer = mergedOfferEnabled;
+  const offerTitle = mergedOfferTitle;
+  const offerBody = mergedOfferBody;
+  const offerLearnMoreUrl = mergedOfferUrl;
+
+  // Review Rewards Banner logic
+  const showBanner = showRewardsBanner && mergedOfferEnabled && mergedOfferTitle && mergedOfferBody;
+
+  // Compute background style
+  const backgroundStyle = businessProfile?.background_type === 'gradient'
+    ? {
+        background: `linear-gradient(to bottom right, ${businessProfile.gradient_start}, ${businessProfile.gradient_middle}, ${businessProfile.gradient_end})`,
+        color: businessProfile?.text_color || '#1F2937',
+      }
+    : {
+        backgroundColor: businessProfile?.background_color || '#FFFFFF',
+        color: businessProfile?.text_color || '#1F2937',
+      };
+
+  // Trigger falling animation after sentiment modal is completed with a positive sentiment
+  useEffect(() => {
+    if (
+      promptPage?.falling_icon &&
+      mergedFallingEnabled &&
+      sentimentComplete &&
+      (sentiment === 'excellent' || sentiment === 'satisfied')
+    ) {
+      setShowStarRain(false);
+      setTimeout(() => setShowStarRain(true), 50);
+    }
+  }, [promptPage, mergedFallingEnabled, sentimentComplete, sentiment]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-start justify-center" style={{ minHeight: '100vh' }}>
@@ -594,50 +649,58 @@ export default function PromptPage() {
     );
   }
 
-  // Only compute these after promptPage and businessProfile are loaded
-  const showOffer = promptPage?.offer_enabled ?? businessProfile?.default_offer_enabled;
-  const offerTitle = promptPage?.offer_title || businessProfile?.default_offer_title || 'Review Rewards';
-  const offerBody = promptPage?.offer_body || businessProfile?.default_offer_body || '';
-  const offerLearnMoreUrl = promptPage?.default_offer_url || businessProfile?.default_offer_url || '';
-
-  // Review Rewards Banner logic
-  const showBanner = showRewardsBanner && promptPage.offer_enabled && promptPage.offer_title && promptPage.offer_body;
-
-  // Compute background style
-  const backgroundStyle = businessProfile?.background_type === 'gradient'
-    ? {
-        background: `linear-gradient(to bottom right, ${businessProfile.gradient_start}, ${businessProfile.gradient_middle}, ${businessProfile.gradient_end})`,
-        color: businessProfile?.text_color || '#1F2937',
-      }
-    : {
-        backgroundColor: businessProfile?.background_color || '#FFFFFF',
-        color: businessProfile?.text_color || '#1F2937',
-      };
   return (
     <>
+      {/* Special Offer Banner - very top, thin, dismissible */}
+      {showBanner && (
+        <div className="w-full flex items-center justify-center relative px-2 py-1 bg-yellow-50 border-b border-yellow-300 shadow-sm z-50" style={{ minHeight: 0, fontSize: '1rem' }}>
+          <OfferCard
+            title={offerTitle}
+            message={offerBody}
+            buttonText={offerLearnMoreUrl ? 'Learn More' : undefined}
+            learnMoreUrl={offerLearnMoreUrl || undefined}
+            iconColor="#facc15"
+          />
+          <button
+            className="absolute right-4 text-black text-lg font-bold hover:text-yellow-600 focus:outline-none"
+            aria-label="Dismiss"
+            onClick={() => setShowRewardsBanner(false)}
+            style={{ lineHeight: 1 }}
+          >
+            ×
+          </button>
+        </div>
+      )}
       <div className="min-h-screen" style={backgroundStyle}>
         {/* Falling Animation */}
-        {promptPage?.falling_icon && showStarRain && (!promptPage.emoji_sentiment_enabled || (sentimentComplete && (sentiment === 'love' || sentiment === 'satisfied'))) && (
+        {promptPage?.falling_icon && showStarRain && (!promptPage.emoji_sentiment_enabled || (sentimentComplete && (sentiment === 'excellent' || sentiment === 'satisfied'))) && (
           <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden">
-            {[...Array(36)].map((_, i) => {
-              const left = Math.random() * 100;
-              const duration = 2 + Math.random() * 1.5;
+            {[...Array(60)].map((_, i) => {
+              const left = Math.random() * 98 + Math.random() * 2;
+              const duration = 3 + Math.random() * 1.5;
               const delay = Math.random() * 0.5;
               const size = 32 + Math.random() * 8;
               let IconComp;
-              if (promptPage.falling_icon === 'star') IconComp = <FaStar className="absolute" style={{ color: '#facc15', fontSize: size }} />;
-              else if (promptPage.falling_icon === 'heart') IconComp = <FaHeart className="absolute" style={{ color: '#ef4444', fontSize: size }} />;
-              else if (promptPage.falling_icon === 'rainbow') IconComp = <span className="absolute" style={{ fontSize: size }}>🌈</span>;
-              else if (promptPage.falling_icon === 'thumb') IconComp = <span className="absolute" style={{ fontSize: size }}>👍</span>;
-              else if (promptPage.falling_icon === 'flex') IconComp = <span className="absolute" style={{ fontSize: size }}>💪</span>;
+              if (promptPage.falling_icon === 'star') IconComp = <FaStar className="absolute animate-fall" style={{ color: '#facc15', fontSize: size, left: 0, top: 0, animationDuration: `${duration}s`, animationDelay: `${delay}s` }} />;
+              else if (promptPage.falling_icon === 'heart') IconComp = <FaHeart className="absolute animate-fall" style={{ color: '#ef4444', fontSize: size, left: 0, top: 0, animationDuration: `${duration}s`, animationDelay: `${delay}s` }} />;
+              else if (promptPage.falling_icon === 'smile') IconComp = <FaSmile className="absolute animate-fall" style={{ color: '#facc15', fontSize: size, left: 0, top: 0, animationDuration: `${duration}s`, animationDelay: `${delay}s` }} />;
+              else if (promptPage.falling_icon === 'thumb') IconComp = <FaThumbsUp className="absolute animate-fall" style={{ color: '#3b82f6', fontSize: size, left: 0, top: 0, animationDuration: `${duration}s`, animationDelay: `${delay}s` }} />;
+              else if (promptPage.falling_icon === 'bolt') IconComp = <FaBolt className="absolute animate-fall" style={{ color: '#fbbf24', fontSize: size, left: 0, top: 0, animationDuration: `${duration}s`, animationDelay: `${delay}s` }} />;
+              else if (promptPage.falling_icon === 'rainbow') IconComp = <FaRainbow className="absolute animate-fall" style={{ color: '#d946ef', fontSize: size, left: 0, top: 0, animationDuration: `${duration}s`, animationDelay: `${delay}s` }} />;
+              else if (promptPage.falling_icon === 'coffee') IconComp = <FaCoffee className="absolute animate-fall" style={{ color: '#92400e', fontSize: size, left: 0, top: 0, animationDuration: `${duration}s`, animationDelay: `${delay}s` }} />;
+              else if (promptPage.falling_icon === 'wrench') IconComp = <FaWrench className="absolute animate-fall" style={{ color: '#6b7280', fontSize: size, left: 0, top: 0, animationDuration: `${duration}s`, animationDelay: `${delay}s` }} />;
+              else if (promptPage.falling_icon === 'confetti') IconComp = <FaGlassCheers className="absolute animate-fall" style={{ color: '#ec4899', fontSize: size, left: 0, top: 0, animationDuration: `${duration}s`, animationDelay: `${delay}s` }} />;
+              else if (promptPage.falling_icon === 'barbell') IconComp = <FaDumbbell className="absolute animate-fall" style={{ color: '#4b5563', fontSize: size, left: 0, top: 0, animationDuration: `${duration}s`, animationDelay: `${delay}s` }} />;
+              else if (promptPage.falling_icon === 'flower') IconComp = <FaPagelines className="absolute animate-fall" style={{ color: '#22c55e', fontSize: size, left: 0, top: 0, animationDuration: `${duration}s`, animationDelay: `${delay}s` }} />;
+              else if (promptPage.falling_icon === 'peace') IconComp = <FaPeace className="absolute animate-fall" style={{ color: '#a21caf', fontSize: size, left: 0, top: 0, animationDuration: `${duration}s`, animationDelay: `${delay}s` }} />;
+              const top = -40 - Math.random() * 360; // increase vertical spread: -40px to -400px
               return (
                 <span
                   key={i}
                   style={{
                     position: 'absolute',
                     left: `${left}%`,
-                    top: '-40px',
-                    animation: `fall ${duration}s linear ${delay}s 1`,
+                    top: `${top}px`,
                     pointerEvents: 'none',
                     zIndex: 50,
                   }}
@@ -741,101 +804,6 @@ export default function PromptPage() {
             </div>
           )}
         </div>
-
-        {/* Review Rewards Banner */}
-        {showBanner && (
-          <div className="w-full flex items-center justify-center relative px-4 py-2 bg-yellow-50 border-b border-yellow-300 text-black text-sm font-medium shadow-sm" style={{ minHeight: 0, fontSize: '0.97rem' }}>
-            <span className="flex items-center gap-2 mx-auto">
-              {/* Yellow SVG Gift Icon with lighter lid, darker ribbon and bow */}
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className="flex-shrink-0"
-                style={{ display: 'inline', verticalAlign: 'middle' }}
-              >
-                {/* Box */}
-                <rect x="3" y="8" width="18" height="13" rx="2" fill="#fde68a" />
-                {/* Lid (lighter yellow) */}
-                <rect x="2" y="6" width="20" height="4" rx="1.5" fill="#facc15" />
-                {/* Bow left */}
-                <path d="M12 6C10.5 2.5 6 3.5 7.5 6C9 8.5 12 6 12 6Z" fill="#ca8a04" />
-                {/* Bow right */}
-                <path d="M12 6C13.5 2.5 18 3.5 16.5 6C15 8.5 12 6 12 6Z" fill="#ca8a04" />
-                {/* Ribbon */}
-                <rect x="11" y="8" width="2" height="13" fill="#ca8a04" />
-              </svg>
-              <span className="font-semibold">{promptPage.offer_title}:</span>
-              <span className="ml-1">{promptPage.offer_body}</span>
-              {offerLearnMoreUrl && (
-                <a
-                  href={offerLearnMoreUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="ml-2 underline"
-                  style={{ marginLeft: 8, color: businessProfile?.header_color || '#4F46E5' }}
-                >
-                  Learn More
-                </a>
-              )}
-            </span>
-            <button
-              className="absolute right-4 text-black text-lg font-bold hover:text-yellow-600 focus:outline-none"
-              aria-label="Dismiss"
-              onClick={() => setShowRewardsBanner(false)}
-              style={{ lineHeight: 1 }}
-            >
-              ×
-            </button>
-          </div>
-        )}
-        {showSentimentModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-95 animate-fadein">
-            <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full relative animate-slideup border-2 border-indigo-500">
-              <h2 className="text-2xl font-bold text-slate-blue mb-4 text-center">
-                {promptPage.emoji_sentiment_question || 'How did you feel about your experience?'}
-              </h2>
-              <div className="mb-8"></div>
-              <div className="flex justify-center gap-6 mb-6">
-                {sentimentOptions.map(opt => (
-                  <div key={opt.value} className="flex flex-col items-center my-2">
-                    <button
-                      className={`transition-all duration-150 flex flex-col items-center gap-2
-                        ${sentiment === opt.value ? '' : ''}
-                        hover:text-slate-blue cursor-pointer`}
-                      style={{ border: 'none', background: 'none', outline: 'none' }}
-                      onClick={() => setSentiment(opt.value)}
-                      aria-label={opt.label}
-                      type="button"
-                    >
-                      <span className="flex items-center justify-center" style={{ height: '2.5rem', width: '2.5rem', fontSize: '2.2rem' }}>{opt.icon}</span>
-                      <span className={`font-medium transition-all duration-150 ${sentiment === opt.value ? 'text-sm text-slate-blue font-semibold' : 'text-xs text-gray-400'}`}>{opt.label}</span>
-                      {sentiment === opt.value && (
-                        <span className="block w-full border-b-2 border-slate-blue mt-1" style={{ minWidth: '2.5rem' }}></span>
-                      )}
-                    </button>
-                  </div>
-                ))}
-              </div>
-              <button
-                className="w-full px-6 py-3 bg-slate-blue text-white rounded-lg font-semibold shadow hover:bg-indigo-900 focus:outline-none transition text-lg"
-                disabled={!sentiment}
-                onClick={() => {
-                  setShowSentimentModal(false);
-                  setSentimentComplete(true);
-                  if (sentiment === 'love' || sentiment === 'Excellent' || sentiment === 'satisfied') {
-                    setShowStarRain(true);
-                    setTimeout(() => setShowStarRain(false), 2000);
-                  }
-                }}
-              >
-                Continue
-              </button>
-            </div>
-          </div>
-        )}
         <div className="min-h-screen flex justify-center items-start">
           <div className="relative w-full">
             <div className="max-w-[1000px] w-full mx-auto px-4">
@@ -1213,15 +1181,17 @@ export default function PromptPage() {
                               />
                               {submitError && <div className="text-red-500 text-sm mb-2">{submitError}</div>}
                               <div className="flex justify-between w-full">
-                                <button
-                                  onClick={() => handleRewriteWithAI(idx)}
-                                  disabled={aiLoading === idx}
-                                  className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg hover:bg-gray-50 transition-colors"
-                                  type="button"
-                                >
-                                  <FaPenFancy style={{ color: businessProfile?.header_color || '#4F46E5' }} />
-                                  <span style={{ color: businessProfile?.header_color || '#4F46E5' }}>{aiLoading === idx ? 'Generating...' : 'Generate with AI'}</span>
-                                </button>
+                                {aiButtonEnabled && (
+                                  <button
+                                    onClick={() => handleRewriteWithAI(idx)}
+                                    disabled={aiLoading === idx}
+                                    className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg hover:bg-gray-50 transition-colors"
+                                    type="button"
+                                  >
+                                    <FaPenFancy style={{ color: businessProfile?.header_color || '#4F46E5' }} />
+                                    <span style={{ color: businessProfile?.header_color || '#4F46E5' }}>{aiLoading === idx ? 'Generating...' : 'Generate with AI'}</span>
+                                  </button>
+                                )}
                                 <button
                                   onClick={() => handleCopyAndSubmit(idx, platform.url)}
                                   className="px-4 py-2 text-white rounded hover:opacity-90 transition-colors"
@@ -1416,6 +1386,22 @@ export default function PromptPage() {
             </div>
           </div>
         </div>
+      )}
+      {showSentimentModal && (
+        <EmojiSentimentModal
+          open={showSentimentModal}
+          onClose={() => setShowSentimentModal(false)}
+          question={mergedEmojiSentimentQuestion}
+          feedbackMessage={mergedEmojiFeedbackMessage}
+          thankYouMessage={mergedEmojiThankYouMessage}
+          onPositive={(sentimentValue) => {
+            if (mergedFallingEnabled) {
+              setShowSentimentModal(false);
+              setSentiment(sentimentValue);
+              setSentimentComplete(true);
+            }
+          }}
+        />
       )}
     </>
   );

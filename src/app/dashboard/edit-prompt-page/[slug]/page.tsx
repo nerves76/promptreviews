@@ -3,13 +3,17 @@ import { useRouter, useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { generateAIReview } from '@/utils/ai';
-import { FaGoogle, FaFacebook, FaYelp, FaTripadvisor, FaRegStar, FaGift, FaStar, FaHeart, FaThumbsUp, FaStore, FaSmile, FaGlobe } from 'react-icons/fa';
+import { FaGoogle, FaFacebook, FaYelp, FaTripadvisor, FaRegStar, FaGift, FaStar, FaHeart, FaThumbsUp, FaStore, FaSmile, FaGlobe, FaHandsHelping } from 'react-icons/fa';
 import { IconType } from 'react-icons';
 import Link from 'next/link';
 import { getUserOrMock, getSessionOrMock } from '@/utils/supabase';
 import IndustrySelector from '@/app/components/IndustrySelector';
 import PromptPageForm from '@/app/components/PromptPageForm';
 import PageCard from '@/app/components/PageCard';
+import EmojiSentimentSection from '../components/EmojiSentimentSection';
+import FallingStarsSection from '@/app/components/FallingStarsSection';
+import DisableAIGenerationSection from '@/app/components/DisableAIGenerationSection';
+import ReviewWriteSection from '../components/ReviewWriteSection';
 
 interface ReviewPlatformLink {
   platform: string;
@@ -99,6 +103,7 @@ export default function EditPromptPage() {
     review_type: 'prompt',
     photo_url: '',
     emojiThankYouMessage: '',
+    falling_icon: '',
   });
   const [businessProfile, setBusinessProfile] = useState<BusinessProfile | null>(null);
   const [generatingReview, setGeneratingReview] = useState<number | null>(null);
@@ -112,8 +117,8 @@ export default function EditPromptPage() {
   const [analyticsLoading, setAnalyticsLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState<'in_queue' | 'in_progress' | 'complete' | 'draft'>('in_queue');
   const [fallingIcon, setFallingIcon] = useState('star');
-  const [iconUpdating, setIconUpdating] = useState(false);
   const [fallingEnabled, setFallingEnabled] = useState(true);
+  const [aiButtonEnabled, setAiButtonEnabled] = useState(true);
   const [lastIcon, setLastIcon] = useState('star');
   const [industryType, setIndustryType] = useState<'B2B' | 'B2C' | 'Both'>('Both');
   const [services, setServices] = useState<string[]>([]);
@@ -198,6 +203,7 @@ export default function EditPromptPage() {
           review_type: promptData.review_type || 'prompt',
           photo_url: promptData.photo_url || '',
           emojiThankYouMessage: promptData.emoji_thank_you_message || '',
+          falling_icon: promptData.falling_icon || '',
         });
         setPhotoUrl(promptData.photo_url || null);
         setIsUniversal(!!promptData.is_universal || isUniversal);
@@ -310,6 +316,18 @@ export default function EditPromptPage() {
     fetchAnalytics();
   }, [params.slug, supabase]);
 
+  useEffect(() => {
+    const logCurrentUserUid = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session && session.user) {
+        console.log('[DEBUG] Current user UID:', session.user.id);
+      } else {
+        console.log('[DEBUG] No user session found');
+      }
+    };
+    logCurrentUserUid();
+  }, [supabase]);
+
   const handleAddPlatform = () => {
     setFormData(prev => ({
       ...prev,
@@ -398,27 +416,39 @@ export default function EditPromptPage() {
       if (!promptPage) throw new Error('Prompt page not found');
 
       // Build update object
-      let updateData: any;
+      let updateData: any = {};
       if (isUniversal) {
-        // Use the data object received from handleFormSave for the most up-to-date values
+        // Explicitly map only valid DB columns using snake_case from the data argument
         updateData = {
-          ...(data || formData),
-          status: 'draft' as const,
+          first_name: data.first_name,
+          last_name: data.last_name,
+          email: data.email,
+          phone: data.phone,
+          outcomes: data.outcomes,
+          review_platforms: data.review_platforms && data.review_platforms.length > 0
+            ? data.review_platforms.map((link: any) => ({
+                platform: link.platform,
+                url: link.url,
+                wordCount: Math.max(200, Number(link.wordCount) || 200),
+                customInstructions: link.customInstructions || '',
+                reviewText: link.reviewText || ''
+              })).filter((link: any) => link.platform && link.url)
+            : null,
+          services_offered: data.services_offered && data.services_offered.length > 0 ? data.services_offered : null,
+          friendly_note: data.friendly_note,
+          status: 'draft',
+          role: data.role,
+          review_type: data.review_type,
+          offer_enabled: data.offer_enabled,
+          offer_title: data.offer_title,
+          offer_body: data.offer_body,
+          offer_url: data.offer_url,
+          emoji_sentiment_enabled: data.emoji_sentiment_enabled,
+          emoji_feedback_message: data.emoji_feedback_message,
+          emoji_sentiment_question: data.emoji_sentiment_question,
+          emoji_thank_you_message: data.emojiThankYouMessage,
+          falling_icon: data.falling_icon,
         };
-        // Optionally, ensure review_platforms is always an array or null
-        if ((data || formData).review_platforms && (data || formData).review_platforms.length > 0) {
-          updateData.review_platforms = (data || formData).review_platforms
-            .map((link: any) => ({
-              platform: link.platform,
-              url: link.url,
-              wordCount: Math.max(200, Number(link.wordCount) || 200),
-              customInstructions: link.customInstructions || '',
-              reviewText: link.reviewText || ''
-            }))
-            .filter((link: any) => link.platform && link.url);
-        } else {
-          updateData.review_platforms = null;
-        }
       } else {
         updateData = {
           offer_enabled: offerEnabled,
@@ -437,6 +467,7 @@ export default function EditPromptPage() {
           industry_other: formData.industry_other || '',
           review_type: formData.review_type || 'prompt',
           emoji_thank_you_message: formData.emojiThankYouMessage || '',
+          falling_icon: formData.falling_icon,
         };
 
         // Handle review_platforms
@@ -466,27 +497,30 @@ export default function EditPromptPage() {
         }
       }
 
+      // Always include emoji sentiment fields
       updateData.emoji_sentiment_enabled = emojiSentimentEnabled;
       updateData.emoji_feedback_message = emojiFeedbackMessage;
       updateData.emoji_sentiment_question = emojiSentimentQuestion;
 
       // Debug log
-      console.log('Saving prompt page with data:', updateData, 'PromptPage ID:', promptPage.id);
+      console.log('[DEBUG] emojiSentimentEnabled:', emojiSentimentEnabled);
+      console.log('[DEBUG] updateData being sent to Supabase:', updateData);
+      console.log('[DEBUG] PromptPage ID:', promptPage.id);
+      const payload = {
+        ...updateData,
+        role: formData.role || null,
+      };
+      console.log('[DEBUG] Payload sent to Supabase:', payload);
 
       const { data: updateDataResult, error: updateError } = await supabase
         .from('prompt_pages')
-        .update({
-          ...updateData,
-          role: formData.role || null,
-        })
+        .update(payload)
         .eq('id', promptPage.id);
 
       // Log the full response for debugging
-      console.log('Supabase update response:', { updateDataResult, updateError });
-
+      console.log('[DEBUG] Supabase update response:', { updateDataResult, updateError });
       if (updateError) {
-        console.error('Update error:', updateError);
-        throw updateError;
+        console.error('[DEBUG] Update error object:', updateError);
       }
       
       setShowShareModal(true);
@@ -528,8 +562,8 @@ export default function EditPromptPage() {
   ];
 
   const handleToggleFalling = async () => {
-    if (iconUpdating) return;
-    setIconUpdating(true);
+    if (aiButtonEnabled) return;
+    setAiButtonEnabled(true);
     try {
       const { data: promptPage, error: fetchError } = await supabase
         .from('prompt_pages')
@@ -549,13 +583,13 @@ export default function EditPromptPage() {
         setFallingEnabled(true);
       }
     } finally {
-      setIconUpdating(false);
+      setAiButtonEnabled(false);
     }
   };
 
   const handleIconChange = async (iconKey: string) => {
-    if (iconUpdating) return;
-    setIconUpdating(true);
+    if (aiButtonEnabled) return;
+    setAiButtonEnabled(true);
     setFallingIcon(iconKey);
     setLastIcon(iconKey);
     try {
@@ -573,38 +607,22 @@ export default function EditPromptPage() {
         setFallingIcon('star');
       }
     } finally {
-      setIconUpdating(false);
+      setAiButtonEnabled(false);
     }
+  };
+
+  // Add this handler for toggling offerEnabled with debug logging
+  const handleToggleOffer = () => {
+    setOfferEnabled(v => {
+      const newValue = !v;
+      console.log('[DEBUG] Toggling offerEnabled:', newValue);
+      return newValue;
+    });
   };
 
   const renderStep1 = () => (
     <div className="space-y-6">
-      <div className="flex gap-4">
-        <div className="flex-1">
-          <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mt-4 mb-2">Phone Number</label>
-          <input
-            type="tel"
-            id="phone"
-            value={formData.phone || ''}
-            onChange={e => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-            className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
-            placeholder="Phone number"
-          />
-        </div>
-        <div className="flex-1">
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mt-4 mb-2">Email</label>
-          <input
-            type="email"
-            id="email"
-            value={formData.email || ''}
-            onChange={e => setFormData(prev => ({ ...prev, email: e.target.value }))}
-            className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
-            placeholder="Email address"
-          />
-        </div>
-      </div>
       <h3 className="text-lg font-semibold text-slate-blue mt-16 mb-2">Customer/Client Details</h3>
-
       <div className="flex gap-4">
         <div className="flex-1">
           <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 mt-4 mb-2">First name</label>
@@ -628,6 +646,30 @@ export default function EditPromptPage() {
             className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
             placeholder="Last Name"
             required
+          />
+        </div>
+      </div>
+      <div className="flex gap-4">
+        <div className="flex-1">
+          <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mt-4 mb-2">Phone Number</label>
+          <input
+            type="tel"
+            id="phone"
+            value={formData.phone || ''}
+            onChange={e => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+            className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+            placeholder="Phone number"
+          />
+        </div>
+        <div className="flex-1">
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mt-4 mb-2">Email</label>
+          <input
+            type="email"
+            id="email"
+            value={formData.email || ''}
+            onChange={e => setFormData(prev => ({ ...prev, email: e.target.value }))}
+            className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+            placeholder="Email address"
           />
         </div>
       </div>
@@ -661,22 +703,6 @@ export default function EditPromptPage() {
           className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
           placeholder="Describe the outcome for your client"
           required
-        />
-      </div>
-
-      <div>
-        <label htmlFor="industry" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center">
-          Industry
-          <Tooltip text="The industry the business operates in. This helps AI generate more relevant and personalized reviews." />
-        </label>
-        <IndustrySelector
-          value={formData.industry || []}
-          onChange={(industries, otherValue) => setFormData(f => ({ ...f, industry: industries, industry_other: otherValue ?? f.industry_other }))}
-          otherValue={formData.industry_other || ''}
-          onOtherChange={val => setFormData(f => ({ ...f, industry_other: val }))}
-          required
-          industryType={industryType}
-          setIndustryType={setIndustryType}
         />
       </div>
 
@@ -732,81 +758,6 @@ export default function EditPromptPage() {
         <p className="text-xs text-gray-500 mt-1 mb-2">This note will appear at the top of the review page for your customer. Make it personal!</p>
       </div>
 
-      {(formData.review_type === 'prompt' || isUniversal) && (
-        <div className="flex items-center justify-between mb-2 mt-8 px-4 py-2">
-          <div className="flex items-center gap-3">
-            <FaSmile className="w-7 h-7 text-[#1A237E]" />
-            <span className="text-2xl font-bold text-[#1A237E]">Emoji Sentiment Flow</span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setEmojiSentimentEnabled(v => !v)}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${emojiSentimentEnabled ? 'bg-slate-blue' : 'bg-gray-200'}`}
-            aria-pressed={!!emojiSentimentEnabled}
-          >
-            <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${emojiSentimentEnabled ? 'translate-x-5' : 'translate-x-1'}`}
-            />
-          </button>
-        </div>
-      )}
-
-      <div className="rounded-lg p-6 bg-blue-50 border border-blue-200 flex flex-col gap-4 shadow relative">
-        <div className="text-xs text-gray-500 mt-1 mb-2">
-          Enabling this routes users to a feedback form if they are less than pleased with their experience. This keeps negative reviews off the web and allows you to respond directly while gathering valuable feedback. Users who select "Delighted" or "Satisfied" are sent to your public prompt page, while those who select "Neutral" or "Unsatisfied" are shown a private feedback form that is saved to your account but not shared publicly.
-        </div>
-        <div className="text-xs text-blue-700 bg-blue-100 border border-blue-200 rounded px-3 py-2 mb-2">
-          Note: If you have Falling stars feature enabled, it will only run when a user selects "Delighted" or "Satisfied."
-        </div>
-        <div className="mb-2">
-          <label className="block text-xs font-medium text-gray-700 mb-1">Popup question (shown above the emojis):</label>
-          <input
-            type="text"
-            className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-2 px-3"
-            value={emojiSentimentQuestion}
-            onChange={e => setEmojiSentimentQuestion(e.target.value)}
-            placeholder="How was your experience?"
-            maxLength={80}
-            disabled={!emojiSentimentEnabled}
-          />
-        </div>
-        {emojiSentimentEnabled && (
-          <>
-            <div className="flex justify-center gap-3 my-3 select-none">
-              <div className="flex flex-col items-center">
-                <img src="/emojis/delighted.svg" width="40" height="40" alt="Delighted" title="Delighted" />
-                <span className="text-xs mt-1 text-gray-700">Delighted</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <img src="/emojis/satisfied.svg" width="40" height="40" alt="Satisfied" title="Satisfied" />
-                <span className="text-xs mt-1 text-gray-700">Satisfied</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <img src="/emojis/neutral.svg" width="40" height="40" alt="Neutral" title="Neutral" />
-                <span className="text-xs mt-1 text-gray-700">Neutral</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <img src="/emojis/unsatisfied.svg" width="40" height="40" alt="Unsatisfied" title="Unsatisfied" />
-                <span className="text-xs mt-1 text-gray-700">Unsatisfied</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <img src="/emojis/angry.svg" width="40" height="40" alt="Angry" title="Angry" />
-                <span className="text-xs mt-1 text-gray-700">Angry</span>
-              </div>
-            </div>
-            <div className="mt-2">
-              <label className="block text-xs font-medium text-gray-700 mb-1">Feedback message (shown to customers who select an indifferent or negative emoji):</label>
-              <textarea
-                className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-2 px-3"
-                value={emojiFeedbackMessage}
-                onChange={e => setEmojiFeedbackMessage(e.target.value)}
-                rows={2}
-              />
-            </div>
-          </>
-        )}
-      </div>
-
       <div className="flex justify-end items-center mt-8 pt-6 border-t">
         <button
           type="button"
@@ -822,477 +773,69 @@ export default function EditPromptPage() {
 
   const renderStep2 = () => (
     <div className="space-y-6">
-      {/* Review Platforms Section - moved to top with header */}
-      <div>
-        <div className="flex items-center mb-4 px-4 py-2">
-          <FaStar className="w-6 h-6 mr-2 text-slate-blue" />
-          <h2 className="text-xl font-semibold text-slate-blue">Review Platforms</h2>
-        </div>
-        <p className="text-sm text-gray-500 mt-1 mb-2">Your business profile platforms have been pre-loaded. You can add more if needed.</p>
-        {/* Universal Prompt Page note */}
-        {isUniversal && (
-          <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded text-yellow-900 text-sm">
-            Note: you cannot pre-write reviews on your Universal Prompt Page because you would get the same review over and over.
-          </div>
-        )}
-        <div className="mt-1 space-y-4">
-          {formData.review_platforms.map((link, index) => (
-            <div key={index} className="relative mb-6 mt-6 p-6 border border-indigo-200 rounded-2xl bg-indigo-50">
-              {/* Platform icon in top left */}
-              {link.url && (
-                <div className="absolute -top-4 -left-4 bg-white rounded-full shadow p-2 flex items-center justify-center" title={getPlatformIcon(link.url, link.platform).label}>
-                  {(() => {
-                    const { icon: Icon } = getPlatformIcon(link.url, link.platform);
-                    return <Icon className="w-6 h-6" />;
-                  })()}
-                </div>
-              )}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="mb-4">
-                  <label htmlFor={`platform-${index}`} className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
-                    Platform name
-                    <Tooltip text="The name of the review platform (e.g., Google Business Profile, Yelp, Trustpilot)." />
-                  </label>
-                  <select
-                    id={`platform-${index}`}
-                    value={link.platform}
-                    onChange={e => handlePlatformChange(index, 'platform', e.target.value)}
-                    className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
-                    required
-                  >
-                    <option value="">Select a platform</option>
-                    <option value="Google Business Profile">Google Business Profile</option>
-                    <option value="Yelp">Yelp</option>
-                    <option value="Facebook">Facebook</option>
-                    <option value="TripAdvisor">TripAdvisor</option>
-                    <option value="Angi">Angi</option>
-                    <option value="Houzz">Houzz</option>
-                    <option value="BBB">BBB</option>
-                    <option value="Thumbtack">Thumbtack</option>
-                    <option value="HomeAdvisor">HomeAdvisor</option>
-                    <option value="Trustpilot">Trustpilot</option>
-                    <option value="Other">Other</option>
-                  </select>
-                  {link.platform === 'Other' && (
-                    <input
-                      type="text"
-                      className="mt-2 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
-                      placeholder="Enter platform name"
-                      value={link.customPlatform || ''}
-                      onChange={e => handlePlatformChange(index, 'customPlatform', e.target.value)}
-                      required
-                    />
-                  )}
-                </div>
-                <div className="mb-4">
-                  <label htmlFor={`url-${index}`} className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
-                    Review URL
-                    <Tooltip text="Paste the direct link to your business's review page on this platform." />
-                  </label>
-                  <input
-                    type="url"
-                    id={`url-${index}`}
-                    value={link.url}
-                    onChange={e => handlePlatformChange(index, 'url', e.target.value)}
-                    placeholder="https://..."
-                    className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
-                  />
-                </div>
-                <div className="mb-4">
-                  <label htmlFor={`wordCount-${index}`} className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
-                    Word count limit
-                    <Tooltip text="Set a maximum word count for the review. Most platforms have a limit; 200 is a good default." />
-                  </label>
-                  <input
-                    type="number"
-                    id={`wordCount-${index}`}
-                    value={link.wordCount ?? 200}
-                    onChange={e => handlePlatformChange(index, 'wordCount', Math.max(200, parseInt(e.target.value) || 200))}
-                    className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
-                    placeholder="Word count limit"
-                    min="200"
-                  />
-                </div>
-                <div className="mb-4">
-                  <label htmlFor={`customInstructions-${index}`} className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
-                    Custom instructions
-                    <Tooltip text="These instructions will appear as a pop-up when the question mark is clicked on the public prompt page." />
-                  </label>
-                  <input
-                    type="text"
-                    id={`customInstructions-${index}`}
-                    value={link.customInstructions || ''}
-                    onChange={e => handlePlatformChange(index, 'customInstructions', e.target.value)}
-                    placeholder="Add custom instructions for this platform"
-                    className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4 min-h-[48px]"
-                  />
-                </div>
-              </div>
-              {/* Only show review text/AI controls if not universal */}
-              {!isUniversal && (
-                <div className="md:col-span-2 mt-2">
-                  <label htmlFor={`reviewText-${index}`} className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
-                    Review Text
-                    <Tooltip text="Write or generate the review text that will be suggested to the customer. You can edit or personalize it as needed." />
-                  </label>
-                  <textarea
-                    id={`reviewText-${index}`}
-                    value={link.reviewText || ''}
-                    onChange={e => handlePlatformChange(index, 'reviewText', e.target.value)}
-                    placeholder="Write or generate a review for this platform"
-                    className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4 mb-1"
-                    rows={5}
-                  />
-                  <div className="flex justify-end mt-2">
-                    {link.reviewText && (
-                      <span className="text-xs text-gray-400 whitespace-nowrap">
-                        {link.reviewText.split(/\s+/).length} words
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex justify-between items-center mt-4">
-                    <button
-                      type="button"
-                      onClick={() => handleGenerateAIReview(index)}
-                      disabled={generatingReview === index}
-                      className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm font-medium shadow disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {generatingReview === index ? (
-                        <>
-                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          Generating...
-                        </>
-                      ) : (
-                        'Generate with AI'
-                      )}
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
-          <button
-            type="button"
-            onClick={handleAddPlatform}
-            className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            Add Platform
-          </button>
-        </div>
-      </div>
-      {/* Emoji Sentiment Flow Section */}
-      <div className="flex items-center justify-between mb-2 mt-8 px-4 py-2">
-        <div className="flex items-center gap-3">
-          <FaSmile className="w-7 h-7 text-[#1A237E]" />
-          <span className="text-2xl font-bold text-[#1A237E]">Emoji Sentiment Flow</span>
-        </div>
+      {/* Review Platforms Section - replaced with new ReviewWriteSection */}
+      <ReviewWriteSection
+        value={formData.review_platforms.map(p => ({
+          name: p.platform || '',
+          url: p.url || '',
+          wordCount: p.wordCount || 200,
+          customPlatform: p.customPlatform || '',
+          customInstructions: p.customInstructions || '',
+          reviewText: p.reviewText || '',
+        }))}
+        onChange={platforms => setFormData(prev => ({
+          ...prev,
+          review_platforms: platforms.map(p => ({
+            platform: p.name,
+            url: p.url,
+            wordCount: p.wordCount,
+            customPlatform: p.customPlatform,
+            customInstructions: p.customInstructions,
+            reviewText: p.reviewText,
+          }))
+        }))}
+        onGenerateReview={handleGenerateAIReview}
+      />
+      <EmojiSentimentSection
+        enabled={emojiSentimentEnabled}
+        onToggle={() => setEmojiSentimentEnabled(v => !v)}
+        question={emojiSentimentQuestion}
+        onQuestionChange={setEmojiSentimentQuestion}
+        feedbackMessage={emojiFeedbackMessage}
+        onFeedbackMessageChange={setEmojiFeedbackMessage}
+        thankYouMessage={formData.emojiThankYouMessage}
+        onThankYouMessageChange={(val: string) => setFormData(prev => ({ ...prev, emojiThankYouMessage: val }))}
+        emojiLabels={undefined}
+        onEmojiLabelChange={undefined}
+      />
+      <DisableAIGenerationSection
+        enabled={aiButtonEnabled}
+        onToggle={() => setAiButtonEnabled(v => !v)}
+      />
+      <FallingStarsSection
+        enabled={fallingEnabled}
+        onToggle={() => setFallingEnabled(v => !v)}
+        icon={fallingIcon}
+        onIconChange={setFallingIcon}
+      />
+      <div className="flex justify-end items-center mt-8 pt-6 border-t">
         <button
           type="button"
-          onClick={() => setEmojiSentimentEnabled(v => !v)}
-          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${emojiSentimentEnabled ? 'bg-slate-blue' : 'bg-gray-200'}`}
-          aria-pressed={!!emojiSentimentEnabled}
+          onClick={handleSaveAndContinue}
+          className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+          disabled={isLoading}
         >
-          <span
-            className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${emojiSentimentEnabled ? 'translate-x-5' : 'translate-x-1'}`}
-          />
+          Save & Continue
         </button>
       </div>
-      <div className="rounded-lg p-6 bg-blue-50 border border-blue-200 flex flex-col gap-4 shadow relative">
-        <div className="text-xs text-gray-500 mt-1 mb-2">
-          Enabling this routes users to a feedback form if they are less than pleased with their experience. This keeps negative reviews off the web and allows you to respond directly while gathering valuable feedback. Users who select "Delighted" or "Satisfied" are sent to your public prompt page, while those who select "Neutral" or "Unsatisfied" are shown a private feedback form that is saved to your account but not shared publicly.
-        </div>
-        <div className="text-xs text-blue-700 bg-blue-100 border border-blue-200 rounded px-3 py-2 mb-2">
-          Note: If you have Falling stars feature enabled, it will only run when a user selects "Delighted" or "Satisfied."
-        </div>
-        <div className="mb-2">
-          <label className="block text-xs font-medium text-gray-700 mb-1">Popup question (shown above the emojis):</label>
-          <input
-            type="text"
-            className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-2 px-3"
-            value={emojiSentimentQuestion}
-            onChange={e => setEmojiSentimentQuestion(e.target.value)}
-            placeholder="How was your experience?"
-            maxLength={80}
-            disabled={!emojiSentimentEnabled}
-          />
-        </div>
-        {emojiSentimentEnabled && (
-          <>
-            <div className="flex justify-center gap-3 my-3 select-none">
-              <div className="flex flex-col items-center">
-                <img src="/emojis/delighted.svg" width="40" height="40" alt="Delighted" title="Delighted" />
-                <span className="text-xs mt-1 text-gray-700">Delighted</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <img src="/emojis/satisfied.svg" width="40" height="40" alt="Satisfied" title="Satisfied" />
-                <span className="text-xs mt-1 text-gray-700">Satisfied</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <img src="/emojis/neutral.svg" width="40" height="40" alt="Neutral" title="Neutral" />
-                <span className="text-xs mt-1 text-gray-700">Neutral</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <img src="/emojis/unsatisfied.svg" width="40" height="40" alt="Unsatisfied" title="Unsatisfied" />
-                <span className="text-xs mt-1 text-gray-700">Unsatisfied</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <img src="/emojis/angry.svg" width="40" height="40" alt="Angry" title="Angry" />
-                <span className="text-xs mt-1 text-gray-700">Angry</span>
-              </div>
-            </div>
-            <div className="mt-2">
-              <label className="block text-xs font-medium text-gray-700 mb-1">Feedback message (shown to customers who select an indifferent or negative emoji):</label>
-              <textarea
-                className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-2 px-3"
-                value={emojiFeedbackMessage}
-                onChange={e => setEmojiFeedbackMessage(e.target.value)}
-                rows={2}
-              />
-            </div>
-          </>
-        )}
-      </div>
-      {/* Falling Stars Section */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-2 px-4 py-2">
-          <label className="block text-lg font-semibold text-slate-blue flex items-center">
-            <FaStar className="w-6 h-6 mr-2 text-slate-blue" />
-            Falling star animation
-          </label>
-          <button
-            type="button"
-            onClick={handleToggleFalling}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${fallingEnabled ? 'bg-slate-blue' : 'bg-gray-200'}`}
-            aria-pressed={!!fallingEnabled}
-            disabled={iconUpdating}
-          >
-            <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${fallingEnabled ? 'translate-x-5' : 'translate-x-1'}`}
-            />
-          </button>
-        </div>
-        <div className="text-sm text-gray-700 mb-3 max-w-xl">
-          Enable a fun animation where stars (or other icons) rain down when the prompt page loads. You can choose the icon below.
-        </div>
-        <div className={`rounded-2xl border border-indigo-200 bg-indigo-50 p-4 ${!fallingEnabled ? 'opacity-60' : ''}`}>  
-          <div className="flex gap-2 bg-white rounded-full px-3 py-1 border border-gray-200 shadow w-max">
-            {iconOptions.map(opt => (
-              <button
-                key={opt.key}
-                className={`p-1 rounded-full focus:outline-none transition-all ${fallingIcon === opt.key ? 'ring-2 ring-indigo-400 bg-indigo-50' : ''}`}
-                onClick={() => handleIconChange(opt.key)}
-                aria-label={opt.label}
-                type="button"
-                disabled={iconUpdating || !fallingEnabled}
-              >
-                {opt.icon}
-                {iconUpdating && fallingIcon === opt.key && (
-                  <span className="ml-1 animate-spin w-3 h-3 border-2 border-indigo-400 border-t-transparent rounded-full inline-block align-middle"></span>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-        {formData.review_type === 'photo' || formData.review_type === 'photo_testimonial' ? (
-          <div className="text-xs text-gray-500 mt-2">This animation will play after a photo is uploaded.</div>
-        ) : null}
-      </div>
-      {/* Special Offer Section */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-2 px-4 py-2">
-          <label className="block text-lg font-semibold text-slate-blue flex items-center">
-            <FaGift className="w-6 h-6 mr-2 text-slate-blue" />
-            Special offer
-            <Tooltip text="Offer a discount or special offer and a link for users to redeem or learn about the steps they need to take." />
-          </label>
-          <button
-            type="button"
-            onClick={() => setOfferEnabled(v => !v)}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${offerEnabled ? 'bg-indigo-500' : 'bg-gray-300'}`}
-            aria-pressed={!!offerEnabled}
-          >
-            <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${offerEnabled ? 'translate-x-5' : 'translate-x-1'}`}
-            />
-          </button>
-        </div>
-        <div className={`rounded-2xl border border-indigo-200 bg-indigo-50 p-4 ${!offerEnabled ? 'opacity-60' : ''}`}>
-          <input
-            type="text"
-            value={offerTitle ?? 'Special Offer'}
-            onChange={e => setOfferTitle(e.target.value)}
-            placeholder="Offer Title (e.g., Special Offer)"
-            className="block w-full rounded-md border border-indigo-200 bg-indigo-50 focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-2 px-3 mb-2 font-semibold"
-            disabled={!offerEnabled}
-          />
-          <textarea
-            value={offerBody || ''}
-            onChange={e => setOfferBody(e.target.value)}
-            placeholder="Get 10% off your next visit"
-            className="block w-full rounded-md border border-indigo-200 bg-indigo-50 focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-3 px-4"
-            rows={2}
-            disabled={!offerEnabled}
-          />
-          <input
-            type="url"
-            value={offerUrl || ''}
-            onChange={e => setOfferUrl(e.target.value)}
-            placeholder="Offer URL (e.g., https://yourbusiness.com/claim-reward)"
-            className="block w-full rounded-md border border-indigo-200 bg-indigo-50 focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-2 px-3 mt-2"
-            disabled={!offerEnabled}
-          />
-        </div>
-        <div className="text-xs text-gray-500 mt-2">
-          Note: Services like Google and Yelp have policies against providing rewards in exchange for reviews, so it's best not to promise a reward for "x" number of reviews, etc.
-        </div>
-      </div>
-      <div className="flex justify-between items-center mt-8 pt-6 border-t">
-        <button
-          type="button"
-          onClick={() => setStep(1)}
-          className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-        >
-          Back
-        </button>
-        <div className="flex gap-4">
-          <a
-            href={`/r/${params.slug}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-          >
-            View
-          </a>
-          <button
-            type="submit"
-            onClick={e => handleSubmit(e, 'save')}
-            className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-            disabled={isLoading}
-          >
-            Save
-          </button>
-        </div>
-      </div>
-
-      {previewUrl && (
-        <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-2xl">
-          <p className="text-sm text-green-700">
-            Preview page updated!{' '}
-            <a
-              href={previewUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-medium underline hover:text-green-800"
-            >
-              Click here to view
-            </a>
-          </p>
-        </div>
-      )}
     </div>
   );
 
-  // Add a loading guard before rendering the form
-  if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center"><div>Loading...</div></div>;
-  }
-
-  console.log('step:', step, 'isUniversal:', isUniversal);
-  console.log('Rendering platforms:', formData.review_platforms);
+  // Main return for EditPromptPage
   return (
-    <PageCard icon={isUniversal ? <FaGlobe className="w-9 h-9 text-slate-blue" /> : <FaStore className="w-9 h-9 text-slate-blue" /> }>
-      {/* Top right Save button group */}
-      {!isUniversal && (
-        <div className="w-full flex flex-col sm:flex-row sm:justify-end gap-2 sm:gap-4 pt-4 pr-4 md:pt-6 md:pr-6">
-          <button
-            type="button"
-            onClick={handleSaveAndContinue}
-            className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-            disabled={isLoading}
-          >
-            Save & Continue
-          </button>
-        </div>
-      )}
-      {isUniversal ? (
-        <PromptPageForm
-          mode="edit"
-          initialData={formData}
-          onSave={handleFormSave}
-          pageTitle="Edit Universal Prompt Page"
-          supabase={supabase}
-          businessProfile={businessProfile}
-          isUniversal={true}
-        />
-      ) : (
-        <>
-          <div className="flex flex-col mb-8 mt-2">
-            <h1 className="text-4xl font-bold text-[#1A237E] mb-0">Edit Prompt Page</h1>
-          </div>
-          {/* Button group: always below title/subcopy, right-aligned on desktop, stacked on mobile */}
-          <div className="w-full flex flex-col gap-2 mt-2 sm:flex-row sm:justify-end sm:gap-4">
-            <button
-              type="button"
-              onClick={handleSaveAndContinue}
-              className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-              disabled={isLoading}
-            >
-              Save & Continue
-            </button>
-          </div>
-          <PromptPageForm
-            mode="edit"
-            initialData={formData}
-            onSave={handleFormSave}
-            onPublish={handleFormPublish}
-            pageTitle={''}
-            supabase={supabase}
-            businessProfile={businessProfile}
-            isUniversal={isUniversal}
-          />
-        </>
-      )}
-      {/* Bottom right Save button group for consistency */}
-      {!isUniversal && step === 2 && (
-        <div className="w-full flex justify-end pr-2 pb-4 md:pr-6 md:pb-6 mt-8">
-          <div className="flex gap-4">
-            <a
-              href={`/r/${params.slug}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 mr-2"
-            >
-              View
-            </a>
-            <button
-              type="submit"
-              onClick={e => handleSubmit(e, 'save')}
-              className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-              disabled={isLoading}
-            >
-              Save
-            </button>
-          </div>
-        </div>
-      )}
-      {showShareModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40" onClick={() => setShowShareModal(false)}>
-          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full relative" onClick={e => e.stopPropagation()}>
-            <button className="absolute top-2 right-2 text-gray-400 hover:text-gray-600" onClick={() => setShowShareModal(false)} aria-label="Close">&times;</button>
-            <h2 className="text-2xl font-bold text-indigo-800 mb-2">Prompt Page Saved!</h2>
-            <p className="mb-6 text-gray-700">Share your prompt page with your customer:</p>
-            <div className="flex flex-col gap-3">
-              <a href={`sms:?body=${encodeURIComponent('Please leave a review: ' + window.location.origin + '/r/' + params.slug)}`} className="w-full inline-flex items-center justify-center px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition" target="_blank" rel="noopener noreferrer">Send via SMS</a>
-              <a href={`mailto:?subject=Please leave a review&body=${encodeURIComponent('Please leave a review: ' + window.location.origin + '/r/' + params.slug)}`} className="w-full inline-flex items-center justify-center px-4 py-2 bg-indigo-50 text-indigo-800 rounded-lg font-medium border border-indigo-200 hover:bg-indigo-100 transition" target="_blank" rel="noopener noreferrer">Send via Email</a>
-              <button onClick={() => {navigator.clipboard.writeText(window.location.origin + '/r/' + params.slug); setShowShareModal(false);}} className="w-full inline-flex items-center justify-center px-4 py-2 bg-gray-100 text-gray-800 rounded-lg font-medium border border-gray-300 hover:bg-gray-200 transition">Copy Link</button>
-              <a href={`/r/${params.slug}`} target="_blank" rel="noopener noreferrer" className="w-full inline-flex items-center justify-center px-4 py-2 bg-white text-indigo-700 rounded-lg font-medium border border-indigo-200 hover:bg-indigo-50 transition">View Page</a>
-            </div>
-          </div>
-        </div>
-      )}
+    <PageCard icon={<FaHandsHelping />}>
+      <h1 className="text-3xl font-bold text-slate-blue mb-8 mt-2">Service Prompt Page</h1>
+      {step === 1 ? renderStep1() : renderStep2()}
     </PageCard>
   );
-} 
+}

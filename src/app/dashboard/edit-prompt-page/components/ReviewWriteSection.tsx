@@ -1,0 +1,167 @@
+import React from 'react';
+import { FaStar, FaMagic } from 'react-icons/fa';
+
+export interface ReviewWritePlatform {
+  name: string;
+  url: string;
+  wordCount: number;
+  customPlatform?: string;
+  customInstructions?: string;
+  reviewText?: string;
+}
+
+interface ReviewWriteSectionProps {
+  value: ReviewWritePlatform[];
+  onChange: (platforms: ReviewWritePlatform[]) => void;
+  onGenerateReview: (idx: number) => void;
+  errors?: string[];
+}
+
+const platformOptions = [
+  '',
+  'Google Business Profile',
+  'Yelp',
+  'Facebook',
+  'TripAdvisor',
+  'G2',
+  'BBB',
+  'Thumbtack',
+  'Clutch',
+  'Capterra',
+  'Angi',
+  'Houzz',
+  'HomeAdvisor',
+  'Trustpilot',
+  'Other',
+];
+
+const REVIEW_CHAR_LIMIT = 600;
+
+const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
+  value,
+  onChange,
+  onGenerateReview,
+  errors = [],
+}) => {
+  const handlePlatformChange = (idx: number, field: keyof ReviewWritePlatform, val: string | number) => {
+    const newPlatforms = value.map((p, i) =>
+      i === idx ? { ...p, [field]: val } : p
+    );
+    onChange(newPlatforms);
+  };
+  const addPlatform = () => onChange([...value, { name: '', url: '', wordCount: 200, reviewText: '' }]);
+  const removePlatform = (idx: number) => onChange(value.filter((_, i) => i !== idx));
+
+  return (
+    <div className="mb-16">
+      <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
+        <FaStar className="w-7 h-7 text-slate-blue" />
+        Review platforms & reviews
+      </h2>
+      <div className="space-y-4">
+        <div className="flex gap-2 items-center mb-2">
+          <span className="w-1/4 text-xs font-semibold text-gray-500">Platform Name</span>
+          <span className="flex-1 text-xs font-semibold text-gray-500">Platform URL</span>
+          <span className="w-1/6 text-xs font-semibold text-gray-500 text-right" style={{ marginLeft: '-35px' }}>Word Count</span>
+        </div>
+        {value.map((platform, idx) => (
+          <div key={idx} className="relative flex flex-col gap-1 mb-4 p-3 border border-blue-100 rounded-2xl bg-blue-50 shadow-sm">
+            {value.length > 1 && (
+              <button
+                type="button"
+                onClick={() => removePlatform(idx)}
+                className="absolute top-2 right-2 text-red-600 font-bold text-xl z-10"
+                title="Remove platform"
+              >
+                &times;
+              </button>
+            )}
+            <div className="flex gap-2 items-center">
+              <div className="flex flex-col w-1/4">
+                <select
+                  className="border px-3 py-2 rounded-lg bg-white"
+                  value={platform.name}
+                  onChange={e => handlePlatformChange(idx, 'name', e.target.value)}
+                  required
+                >
+                  {platformOptions.map(opt => (
+                    <option key={opt} value={opt}>{opt || 'Select a platform'}</option>
+                  ))}
+                </select>
+                {platform.name === 'Other' && (
+                  <input
+                    type="text"
+                    className="border px-3 py-2 rounded-lg bg-white mt-2"
+                    placeholder="Enter platform name"
+                    value={platform.customPlatform || ''}
+                    onChange={e => handlePlatformChange(idx, 'customPlatform', e.target.value)}
+                    required
+                  />
+                )}
+              </div>
+              <div className="flex flex-col flex-1">
+                <input
+                  type="url"
+                  className="border px-3 py-2 rounded-lg bg-white"
+                  placeholder="Review URL"
+                  value={platform.url}
+                  onChange={e => handlePlatformChange(idx, 'url', e.target.value)}
+                  required
+                />
+              </div>
+              <div className="flex flex-col w-1/6 ml-2">
+                <input
+                  type="number"
+                  className="border px-3 py-2 rounded-lg bg-white"
+                  placeholder="200"
+                  value={platform.wordCount}
+                  min={20}
+                  max={1000}
+                  onChange={e => handlePlatformChange(idx, 'wordCount', Number(e.target.value))}
+                  required
+                />
+              </div>
+            </div>
+            {/* Platform Instructions */}
+            <textarea
+              className="w-full border px-3 py-2 rounded-lg bg-gray-50 mt-2 text-sm"
+              placeholder="Platform instructions (e.g., Log in with Google before leaving a review)"
+              value={platform.customInstructions || ''}
+              onChange={e => handlePlatformChange(idx, 'customInstructions', e.target.value.slice(0, 160))}
+              rows={2}
+              maxLength={160}
+            />
+            <div className="text-xs text-gray-400 text-right">{(platform.customInstructions?.length || 0)}/160</div>
+            {/* Review Text + AI Button */}
+            <div className="flex flex-col gap-2 mt-2">
+              <label className="block text-xs font-medium text-gray-700 mb-1">Review</label>
+              <textarea
+                className="w-full border px-3 py-2 rounded-lg bg-gray-50 text-sm"
+                placeholder="Write or generate a review for this platform"
+                value={platform.reviewText || ''}
+                onChange={e => handlePlatformChange(idx, 'reviewText', e.target.value.slice(0, REVIEW_CHAR_LIMIT))}
+                rows={3}
+                maxLength={REVIEW_CHAR_LIMIT}
+              />
+              <div>
+                <button
+                  type="button"
+                  className="flex items-center gap-1 px-3 py-2 bg-indigo-100 text-indigo-700 rounded-lg font-semibold shadow hover:bg-indigo-200 transition text-sm whitespace-nowrap mt-2"
+                  onClick={() => onGenerateReview(idx)}
+                  title="Generate with AI"
+                >
+                  <FaMagic className="w-4 h-4" />
+                  Generate with AI
+                </button>
+              </div>
+              <div className="text-xs text-gray-400 text-right">{(platform.reviewText?.length || 0)}/{REVIEW_CHAR_LIMIT}</div>
+            </div>
+          </div>
+        ))}
+        <button type="button" onClick={addPlatform} className="text-blue-600 underline mt-2">+ Add Platform</button>
+      </div>
+    </div>
+  );
+};
+
+export default ReviewWriteSection; 
