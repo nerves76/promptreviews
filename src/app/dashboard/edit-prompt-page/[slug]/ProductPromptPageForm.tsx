@@ -1,4 +1,4 @@
-import React, { useState, useEffect, forwardRef } from 'react';
+import React, { useState, forwardRef } from 'react';
 import OfferToggle from '../components/OfferToggle';
 import EmojiSentimentSection from '../components/EmojiSentimentSection';
 import ReviewWriteSection, { ReviewWritePlatform } from '../components/ReviewWriteSection';
@@ -21,8 +21,8 @@ export interface ProductPromptFormState {
   fallingEnabled: boolean;
   fallingIcon: string;
   aiButtonEnabled: boolean;
-  productDescription: string;
-  featuresOrBenefits: string[];
+  product_description: string;
+  features_or_benefits: string[];
 }
 
 interface ProductPromptPageFormProps {
@@ -55,8 +55,8 @@ const ProductPromptPageForm = forwardRef<any, ProductPromptPageFormProps>(
     const [fallingEnabled, setFallingEnabled] = useState(initialData?.fallingEnabled ?? false);
     const [fallingIcon, setFallingIcon] = useState(initialData?.fallingIcon ?? 'star');
     const [aiButtonEnabled, setAiButtonEnabled] = useState(initialData?.aiButtonEnabled ?? true);
-    const [productDescription, setProductDescription] = useState(initialData?.productDescription ?? '');
-    const [featuresOrBenefits, setFeaturesOrBenefits] = useState<string[]>(initialData?.featuresOrBenefits ?? ['']);
+    const [product_description, setProductDescription] = useState(initialData?.product_description ?? '');
+    const [features_or_benefits, setFeaturesOrBenefits] = useState<string[]>(initialData?.features_or_benefits ?? ['']);
 
     const handleEmojiLabelChange = (index: number, val: string) => {
       setEmojiLabels(labels => labels.map((l, i) => (i === index ? val : l)));
@@ -79,11 +79,11 @@ const ProductPromptPageForm = forwardRef<any, ProductPromptPageFormProps>(
           fallingEnabled,
           fallingIcon,
           aiButtonEnabled,
-          productDescription,
-          featuresOrBenefits,
+          product_description,
+          features_or_benefits,
         });
       }
-    }), [offerEnabled, offerTitle, offerBody, offerUrl, emojiSentimentEnabled, emojiSentimentQuestion, emojiFeedbackMessage, emojiThankYouMessage, emojiLabels, reviewPlatforms, fallingEnabled, fallingIcon, aiButtonEnabled, productDescription, featuresOrBenefits, onSave]);
+    }), [offerEnabled, offerTitle, offerBody, offerUrl, emojiSentimentEnabled, emojiSentimentQuestion, emojiFeedbackMessage, emojiThankYouMessage, emojiLabels, reviewPlatforms, fallingEnabled, fallingIcon, aiButtonEnabled, product_description, features_or_benefits, onSave]);
 
     return (
       <form className="space-y-8" onSubmit={e => {
@@ -111,19 +111,19 @@ const ProductPromptPageForm = forwardRef<any, ProductPromptPageFormProps>(
           fallingEnabled,
           fallingIcon,
           aiButtonEnabled,
-          productDescription,
-          featuresOrBenefits,
+          product_description,
+          features_or_benefits,
         });
       }}>
         {/* Product Description Section (replaces service-specific fields) */}
         <div>
-          <label htmlFor="productDescription" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center">
+          <label htmlFor="product_description" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center">
             Product Description
           </label>
           <p className="text-xs text-gray-500 mt-1 mb-5 max-w-[85ch]">Describe the product being reviewed. This helps AI generate more specific and relevant reviews.</p>
           <textarea
-            id="productDescription"
-            value={productDescription}
+            id="product_description"
+            value={product_description}
             onChange={e => setProductDescription(e.target.value)}
             rows={4}
             className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
@@ -137,30 +137,30 @@ const ProductPromptPageForm = forwardRef<any, ProductPromptPageFormProps>(
             Features or Benefits
           </label>
           <div className="space-y-2">
-            {featuresOrBenefits.map((feature, idx) => (
+            {features_or_benefits.map((feature, idx) => (
               <div key={idx} className="flex items-center gap-2">
                 <input
                   type="text"
                   className="w-full border px-3 py-2 rounded"
                   value={feature}
                   onChange={e => {
-                    const newFeatures = [...featuresOrBenefits];
+                    const newFeatures = [...features_or_benefits];
                     newFeatures[idx] = e.target.value;
                     setFeaturesOrBenefits(newFeatures);
                   }}
                   required
                   placeholder="e.g., Long battery life"
                 />
-                {featuresOrBenefits.length > 1 && (
+                {features_or_benefits.length > 1 && (
                   <button type="button" onClick={() => {
-                    const newFeatures = featuresOrBenefits.filter((_, i) => i !== idx);
+                    const newFeatures = features_or_benefits.filter((_, i) => i !== idx);
                     setFeaturesOrBenefits(newFeatures);
                   }} className="text-red-600 font-bold">&times;</button>
                 )}
               </div>
             ))}
             <button type="button" onClick={() => {
-              setFeaturesOrBenefits([...featuresOrBenefits, '']);
+              setFeaturesOrBenefits([...features_or_benefits, '']);
             }} className="text-blue-600 underline mt-2">+ Add Feature/Benefit</button>
           </div>
         </div>

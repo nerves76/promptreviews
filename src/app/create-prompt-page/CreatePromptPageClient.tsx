@@ -14,6 +14,7 @@ import PromptPageForm from '../components/PromptPageForm';
 import PageCard from '../components/PageCard';
 import ServicePromptPageForm from '../dashboard/edit-prompt-page/[slug]/ServicePromptPageForm';
 import ProductPromptPageForm, { ProductPromptFormState } from '../dashboard/edit-prompt-page/[slug]/ProductPromptPageForm';
+import FiveStarSpinner from '../components/FiveStarSpinner';
 
 interface ReviewPlatformLink {
   platform: string;
@@ -124,6 +125,7 @@ export default function CreatePromptPageClient() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState(1);
+  const [createdSlug, setCreatedSlug] = useState<string | null>(null);
   const [formData, setFormData] = useState(initialFormData);
   const [businessProfile, setBusinessProfile] = useState<BusinessProfile | null>(null);
   const [generatingReview, setGeneratingReview] = useState<number | null>(null);
@@ -319,7 +321,7 @@ export default function CreatePromptPageClient() {
     }
   };
 
-  const handleSubmit = async (formData: any) => {
+  const handleStep1Submit = async (formData: any) => {
     setSaveError(null);
     setSaveSuccess(null);
     setIsSaving(true);
@@ -374,9 +376,7 @@ export default function CreatePromptPageClient() {
         delete insertData.video_tips;
         delete insertData.video_recipient;
       }
-      // Map and filter to DB columns
       insertData = mapToDbColumns(insertData);
-      console.log('InsertData to Supabase:', insertData);
       const { data, error } = await supabase
         .from('prompt_pages')
         .insert([insertData])
@@ -384,14 +384,54 @@ export default function CreatePromptPageClient() {
         .single();
       if (error) throw error;
       if (data && data.slug) {
-        setSavedPromptPageUrl(`/r/${data.slug}`);
-        localStorage.setItem('showPostSaveModal', JSON.stringify({ url: `/r/${data.slug}` }));
-        router.push(`/dashboard/edit-prompt-page/${data.slug}`);
+        setCreatedSlug(data.slug);
+        setStep(2);
+        localStorage.setItem('showPostSaveModal', JSON.stringify({
+          url: `/r/${data.slug}`,
+          phone: formData.phone,
+          email: formData.email,
+          first_name: formData.first_name
+        }));
+        router.push('/dashboard');
         return;
       }
-      setSaveSuccess('Changes saved and published successfully!');
+      setSaveSuccess('Step 1 saved! Continue to next step.');
     } catch (error) {
       setSaveError(error instanceof Error ? error.message : 'Failed to save. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleStep2Submit = async (formData: any) => {
+    setSaveError(null);
+    setSaveSuccess(null);
+    setIsSaving(true);
+    try {
+      if (!createdSlug) throw new Error('No prompt page slug found.');
+      const { data: { user } } = await getUserOrMock(supabase);
+      if (!user) throw new Error('No user found');
+      let updateData = mapToDbColumns({ ...formData, account_id: user.id });
+      console.log('[DEBUG] handleStep2Submit updateData:', updateData);
+      const { data, error } = await supabase
+        .from('prompt_pages')
+        .update(updateData)
+        .eq('slug', createdSlug)
+        .select()
+        .single();
+      console.log('[DEBUG] handleStep2Submit Supabase response:', { data, error });
+      if (error) throw error;
+      if (data && data.slug) {
+        setSavedPromptPageUrl(`/r/${data.slug}`);
+        localStorage.setItem('showPostSaveModal', JSON.stringify({ url: `/r/${data.slug}` }));
+        console.log('[DEBUG] handleStep2Submit redirecting to /dashboard');
+        router.push('/dashboard');
+        return;
+      }
+      setSaveSuccess('Prompt page updated successfully!');
+    } catch (error) {
+      console.error('[DEBUG] handleStep2Submit error:', error);
+      setSaveError(error instanceof Error ? error.message : 'Failed to update. Please try again.');
     } finally {
       setIsSaving(false);
     }
@@ -424,8 +464,8 @@ export default function CreatePromptPageClient() {
           (businessProfile?.business_name || 'business') + '-' + formData.first_name + '-' + formData.last_name,
           Date.now() + '-' + Math.random().toString(36).substring(2, 8)
         ),
-        product_description: state.productDescription || '',
-        features_or_benefits: state.featuresOrBenefits || [],
+        product_description: state.product_description || '',
+        features_or_benefits: state.features_or_benefits || [],
         offer_enabled: state.offerEnabled,
         offer_title: state.offerTitle,
         offer_body: state.offerBody,
@@ -446,7 +486,7 @@ export default function CreatePromptPageClient() {
       if (data && data.slug) {
         setSavedPromptPageUrl(`/r/${data.slug}`);
         localStorage.setItem('showPostSaveModal', JSON.stringify({ url: `/r/${data.slug}` }));
-        router.push(`/dashboard/edit-prompt-page/${data.slug}`);
+        router.push('/dashboard');
         return;
       }
       setSaveSuccess('Changes saved and published successfully!');
@@ -458,7 +498,7 @@ export default function CreatePromptPageClient() {
   };
 
   if (!businessProfile) {
-    return <div>Loading...</div>;
+    return <div className="w-full flex flex-col items-center justify-center min-h-[300px] py-16"><FiveStarSpinner /><div className="mt-4 text-slate-blue font-semibold text-lg">Loading...</div></div>;
   }
   if (formData.review_type === 'service') {
     // Ensure all required fields for service are present
@@ -489,8 +529,8 @@ export default function CreatePromptPageClient() {
           <PromptPageForm
             mode="create"
             initialData={serviceInitialData}
-            onSave={handleSubmit}
-            onPublish={handleSubmit}
+            onSave={handleStep1Submit}
+            onPublish={handleStep2Submit}
             pageTitle="Create service prompt page"
             supabase={supabase}
             businessProfile={businessProfile}
@@ -524,8 +564,8 @@ export default function CreatePromptPageClient() {
             key={formData.review_type}
             mode="create"
             initialData={formData}
-            onSave={handleSubmit}
-            onPublish={handleSubmit}
+            onSave={handleStep1Submit}
+            onPublish={handleStep2Submit}
             pageTitle="Create Your Prompt Page"
             supabase={supabase}
             businessProfile={businessProfile}
