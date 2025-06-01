@@ -1,5 +1,18 @@
 import React from 'react';
 
+/*
+ * USAGE INSTRUCTION:
+ *
+ * For consistent page layout and margin below the card, always wrap <PageCard> in a parent div with:
+ *   className="min-h-screen flex justify-center items-start px-4 sm:px-0"
+ * This matches the Dashboard and ensures proper spacing on all new pages.
+ *
+ * Example:
+ *   <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
+ *     <PageCard icon={<FaStar />}> ... </PageCard>
+ *   </div>
+ */
+
 export default function PageCard({
   icon,
   children,
@@ -18,7 +31,14 @@ export default function PageCard({
       <div className={`page relative w-full max-w-[1000px] rounded-2xl bg-white shadow-lg pt-4 px-8 md:px-12 ${className}`}>
         {icon && (
           <div className="icon absolute -top-2 -left-2 sm:-top-[21px] sm:-left-[21px] z-10 bg-white rounded-full shadow p-2 sm:p-3 flex items-center justify-center w-10 h-10 sm:w-16 sm:h-16">
-            {React.cloneElement(icon, { className: 'w-6 h-6 sm:w-9 sm:h-9 text-slate-blue' })}
+            {React.isValidElement(icon) && typeof icon.type === 'string'
+              ? React.cloneElement(icon as React.ReactElement<any>, {
+                  className: [
+                    (icon.props as any).className || '',
+                    'w-6 h-6 sm:w-9 sm:h-9 text-slate-blue'
+                  ].filter(Boolean).join(' ')
+                })
+              : icon}
           </div>
         )}
         {/* Top-right action button */}

@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { RefObject, useState, useEffect } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { useAuthGuard } from '@/utils/authGuard';
-import { FaGlobe, FaHome, FaBuilding, FaHistory, FaBolt, FaRegComment, FaLink, FaHandsHelping } from 'react-icons/fa';
+import { FaGlobe, FaHome, FaBuilding, FaHistory, FaBolt, FaRegComment, FaLink, FaHandsHelping, FaBoxOpen } from 'react-icons/fa';
 import { MdDownload, MdEvent, MdVideoLibrary, MdPhotoCamera } from 'react-icons/md';
 import { getUserOrMock } from '@/utils/supabase';
 import QRCodeGenerator, { QR_FRAME_SIZES } from './components/QRCodeGenerator';
@@ -129,6 +129,12 @@ export default function DashboardContent({
       icon: <MdEvent className="w-7 h-7 text-[#1A237E]" />,
       description: 'For events, rentals, tours, and more.',
       comingSoon: true
+    },
+    {
+      key: 'product',
+      label: 'Product review',
+      icon: <FaBoxOpen className="w-7 h-7 text-slate-blue" />,
+      description: 'Collect reviews for a specific product, including product description and features/benefits.'
     },
   ];
 
@@ -470,6 +476,7 @@ export default function DashboardContent({
                 >
                   <option value="">All types</option>
                   <option value="service">Service review</option>
+                  <option value="product">Product review</option>
                   <option value="experience">Experiences & spaces</option>
                   <option value="video">Video testimonial</option>
                   <option value="photo">Photo + testimonial</option>
@@ -638,7 +645,8 @@ export default function DashboardContent({
                                   {page.review_type === 'photo' && 'Photo'}
                                   {page.review_type === 'video' && 'Video'}
                                   {page.review_type === 'experience' && 'Exp.'}
-                                  {!['service', 'photo', 'video', 'experience'].includes(page.review_type || '') && (page.review_type ? page.review_type.charAt(0).toUpperCase() + page.review_type.slice(1) : 'Service')}
+                                  {page.review_type === 'product' && 'Product'}
+                                  {!['service', 'photo', 'video', 'experience', 'product'].includes(page.review_type || '') && (page.review_type ? page.review_type.charAt(0).toUpperCase() + page.review_type.slice(1) : 'Service')}
                                 </td>
                                 <td className="whitespace-nowrap px-3 py-4 text-sm flex gap-2 items-center">
                                   <div className="mt-[6px] flex gap-2">

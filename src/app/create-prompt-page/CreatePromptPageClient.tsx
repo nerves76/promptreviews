@@ -1,9 +1,9 @@
 'use client';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { generateAIReview } from '@/utils/ai';
-import { FaFileAlt, FaInfoCircle, FaStar, FaGift, FaVideo, FaImage, FaQuoteRight, FaCamera, FaHeart, FaGoogle, FaYelp, FaFacebook, FaTripadvisor, FaRegStar, FaSmile } from 'react-icons/fa';
+import { FaFileAlt, FaInfoCircle, FaStar, FaGift, FaVideo, FaImage, FaQuoteRight, FaCamera, FaHeart, FaGoogle, FaYelp, FaFacebook, FaTripadvisor, FaRegStar, FaSmile, FaHandsHelping } from 'react-icons/fa';
 import { checkAccountLimits } from '@/utils/accountLimits';
 import { Dialog } from '@headlessui/react';
 import { getUserOrMock } from '@/utils/supabase';
@@ -11,6 +11,9 @@ import dynamic from 'next/dynamic';
 import Header from '../components/Header';
 import { slugify } from '@/utils/slugify';
 import PromptPageForm from '../components/PromptPageForm';
+import PageCard from '../components/PageCard';
+import ServicePromptPageForm from '../dashboard/edit-prompt-page/[slug]/ServicePromptPageForm';
+import ProductPromptPageForm, { ProductPromptFormState } from '../dashboard/edit-prompt-page/[slug]/ProductPromptPageForm';
 
 interface ReviewPlatformLink {
   platform: string;
@@ -51,6 +54,8 @@ const initialFormData = {
   outcomes: '',
   review_platforms: [] as ReviewPlatformLink[],
   services_offered: [],
+  product_description: '',
+  features_or_benefits: [],
   friendly_note: '',
   status: 'draft',
   role: '',
@@ -68,7 +73,50 @@ const initialFormData = {
   video_quality: '720p',
   falling_icon: 'star',
   no_platform_review_template: '',
+  emojiThankYouMessage: "Thank you for your feedback. It's important to us.",
+  emojiSentimentEnabled: false,
+  emojiSentimentQuestion: 'How was your experience?',
+  emojiFeedbackMessage: 'We value your feedback! Let us know how we can do better.',
+  emojiLabels: [
+    'Excellent', 'Satisfied', 'Neutral', 'Unsatisfied', 'Frustrated'
+  ],
+  fallingEnabled: false,
+  aiButtonEnabled: true,
 };
+
+// Utility function to map camelCase form data to snake_case DB columns and filter allowed columns
+function mapToDbColumns(formData: any): any {
+  const insertData: any = { ...formData };
+  insertData['emoji_sentiment_enabled'] = formData.emojiSentimentEnabled;
+  insertData['emoji_sentiment_question'] = formData.emojiSentimentQuestion;
+  insertData['emoji_feedback_message'] = formData.emojiFeedbackMessage;
+  insertData['emoji_thank_you_message'] = formData.emojiThankYouMessage || '';
+  insertData['ai_button_enabled'] = formData.aiButtonEnabled ?? true;
+  insertData['falling_icon'] = formData.fallingIcon;
+  // Remove camelCase keys
+  delete insertData.emojiSentimentEnabled;
+  delete insertData.emojiSentimentQuestion;
+  delete insertData.emojiFeedbackMessage;
+  delete insertData.emojiThankYouMessage;
+  delete insertData.aiButtonEnabled;
+  delete insertData.fallingEnabled;
+  delete insertData.fallingIcon;
+  delete insertData.emojiLabels;
+  // Remove type-specific fields if not relevant
+  if (formData.review_type === 'service') {
+    delete insertData.features_or_benefits;
+    delete insertData.product_description;
+  }
+  if (formData.review_type === 'product') {
+    delete insertData.services_offered;
+    delete insertData.outcomes;
+  }
+  // Filter to only allowed DB columns (from your schema)
+  const allowedColumns = [
+    'id','account_id','slug','client_name','location','project_type','services_offered','outcomes','date_completed','assigned_team_members','review_platforms','qr_code_url','created_at','is_universal','team_member','first_name','last_name','phone','email','offer_enabled','offer_title','offer_body','category','friendly_note','offer_url','status','role','falling_icon','review_type','no_platform_review_template','video_max_length','video_quality','video_preset','video_questions','video_note','video_tips','video_recipient','emoji_sentiment_enabled','emoji_sentiment_question','emoji_feedback_message','emoji_thank_you_message','ai_button_enabled','product_description','features_or_benefits'
+  ];
+  return Object.fromEntries(Object.entries(insertData).filter(([k]) => allowedColumns.includes(k)));
+}
 
 export default function CreatePromptPageClient() {
   const router = useRouter();
@@ -95,6 +143,8 @@ export default function CreatePromptPageClient() {
   const [emojiSentimentEnabled, setEmojiSentimentEnabled] = useState(false);
   const [emojiSentimentQuestion, setEmojiSentimentQuestion] = useState('How was your experience?');
   const [emojiFeedbackMessage, setEmojiFeedbackMessage] = useState('We value your feedback! Let us know how we can do better.');
+  const [emojiThankYouMessage, setEmojiThankYouMessage] = useState(initialFormData.emojiThankYouMessage);
+  const didSetType = useRef(false);
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -141,7 +191,7 @@ export default function CreatePromptPageClient() {
             setFormData(prev => ({
               ...prev,
               review_platforms: platforms.map((p: any) => ({
-                platform: p.name || p.platform || '',
+                name: p.name || p.platform || '',
                 url: p.url || '',
                 wordCount: p.wordCount || 200,
                 customInstructions: p.customInstructions || '',
@@ -166,6 +216,16 @@ export default function CreatePromptPageClient() {
     };
     loadBusinessProfile();
   }, [supabase]);
+
+  // Set review_type from ?type=... query param on mount
+  useEffect(() => {
+    if (didSetType.current) return;
+    const type = searchParams.get('type');
+    if (type) {
+      setFormData(prev => ({ ...prev, review_type: type }));
+      didSetType.current = true;
+    }
+  }, [searchParams]);
 
   // Add platform handlers
   const handleAddPlatform = () => {
@@ -259,8 +319,7 @@ export default function CreatePromptPageClient() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (formData: any) => {
     setSaveError(null);
     setSaveSuccess(null);
     setIsSaving(true);
@@ -280,14 +339,31 @@ export default function CreatePromptPageClient() {
         .single();
       if (!businessData) throw new Error('No business found');
       let insertData: any = { ...formData, account_id: user.id, status: 'draft' };
-      insertData.slug = slugify(formData.first_name + '-' + formData.last_name, String(Date.now()));
+      insertData.slug = slugify(
+        (businessProfile?.business_name || 'business') + '-' + formData.first_name + '-' + formData.last_name,
+        Date.now() + '-' + Math.random().toString(36).substring(2, 8)
+      );
       if (formData.review_type === 'photo') {
         insertData.review_platforms = undefined;
       } else {
-        insertData.review_platforms = formData.review_platforms.map(link => ({
+        insertData.review_platforms = formData.review_platforms.map((link: any) => ({
           ...link,
           wordCount: link.wordCount ? Math.max(200, Number(link.wordCount)) : 200
         }));
+      }
+      if (formData.review_type === 'product') {
+        insertData.product_description = formData.product_description || '';
+        insertData.features_or_benefits = formData.features_or_benefits || [];
+        insertData.services_offered = undefined;
+        insertData.outcomes = undefined;
+      } else {
+        if (typeof insertData.services_offered === 'string') {
+          const arr = insertData.services_offered
+            .split(/\r?\n/)
+            .map((s: string) => s.trim())
+            .filter(Boolean);
+          insertData.services_offered = arr.length > 0 ? arr : null;
+        }
       }
       if (formData.review_type !== 'video') {
         delete insertData.video_max_length;
@@ -298,17 +374,9 @@ export default function CreatePromptPageClient() {
         delete insertData.video_tips;
         delete insertData.video_recipient;
       }
-      if (typeof insertData.services_offered === 'string') {
-        const arr = insertData.services_offered
-          .split(/\r?\n/)
-          .map((s: string) => s.trim())
-          .filter(Boolean);
-        insertData.services_offered = arr.length > 0 ? arr : null;
-      }
-      insertData.emoji_sentiment_enabled = emojiSentimentEnabled;
-      insertData.emoji_sentiment_question = emojiSentimentQuestion;
-      insertData.emoji_feedback_message = emojiFeedbackMessage;
-      insertData.emoji_thank_you_message = formData.emojiThankYouMessage || '';
+      // Map and filter to DB columns
+      insertData = mapToDbColumns(insertData);
+      console.log('InsertData to Supabase:', insertData);
       const { data, error } = await supabase
         .from('prompt_pages')
         .insert([insertData])
@@ -318,7 +386,67 @@ export default function CreatePromptPageClient() {
       if (data && data.slug) {
         setSavedPromptPageUrl(`/r/${data.slug}`);
         localStorage.setItem('showPostSaveModal', JSON.stringify({ url: `/r/${data.slug}` }));
-        router.push('/dashboard');
+        router.push(`/dashboard/edit-prompt-page/${data.slug}`);
+        return;
+      }
+      setSaveSuccess('Changes saved and published successfully!');
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : 'Failed to save. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleProductSave = async (state: ProductPromptFormState) => {
+    setIsSaving(true);
+    setSaveError(null);
+    setSaveSuccess(null);
+    try {
+      const { data: { user } } = await getUserOrMock(supabase);
+      if (!user) throw new Error('No user found');
+      const { allowed, reason } = await checkAccountLimits(supabase, user.id, 'prompt_page');
+      if (!allowed) {
+        setUpgradeModalMessage(reason || 'You have reached your plan limit. Please upgrade to create more prompt pages.');
+        setShowUpgradeModal(true);
+        return;
+      }
+      const { data: businessData } = await supabase
+        .from('businesses')
+        .select('*')
+        .eq('account_id', user.id)
+        .single();
+      if (!businessData) throw new Error('No business found');
+      let insertData = {
+        ...state,
+        account_id: user.id,
+        status: 'draft',
+        slug: slugify(
+          (businessProfile?.business_name || 'business') + '-' + formData.first_name + '-' + formData.last_name,
+          Date.now() + '-' + Math.random().toString(36).substring(2, 8)
+        ),
+        product_description: state.productDescription || '',
+        features_or_benefits: state.featuresOrBenefits || [],
+        offer_enabled: state.offerEnabled,
+        offer_title: state.offerTitle,
+        offer_body: state.offerBody,
+        offer_url: state.offerUrl,
+        review_platforms: state.reviewPlatforms,
+        services_offered: undefined,
+        outcomes: undefined,
+      };
+      // Map and filter to DB columns
+      insertData = mapToDbColumns(insertData);
+      console.log('InsertData to Supabase:', insertData);
+      const { data, error } = await supabase
+        .from('prompt_pages')
+        .insert([insertData])
+        .select()
+        .single();
+      if (error) throw error;
+      if (data && data.slug) {
+        setSavedPromptPageUrl(`/r/${data.slug}`);
+        localStorage.setItem('showPostSaveModal', JSON.stringify({ url: `/r/${data.slug}` }));
+        router.push(`/dashboard/edit-prompt-page/${data.slug}`);
         return;
       }
       setSaveSuccess('Changes saved and published successfully!');
@@ -332,12 +460,68 @@ export default function CreatePromptPageClient() {
   if (!businessProfile) {
     return <div>Loading...</div>;
   }
+  if (formData.review_type === 'service') {
+    // Ensure all required fields for service are present
+    const serviceInitialData = {
+      ...initialFormData,
+      ...formData,
+      review_type: 'service',
+      // Ensure all required fields for PromptPageForm are present
+      offer_enabled: formData.offer_enabled ?? false,
+      offer_title: formData.offer_title ?? '',
+      offer_body: formData.offer_body ?? '',
+      offer_url: formData.offer_url ?? '',
+      emojiSentimentEnabled: formData.emojiSentimentEnabled ?? false,
+      emojiSentimentQuestion: formData.emojiSentimentQuestion ?? 'How was your experience?',
+      emojiFeedbackMessage: formData.emojiFeedbackMessage ?? 'We value your feedback! Let us know how we can do better.',
+      emojiThankYouMessage: formData.emojiThankYouMessage ?? initialFormData.emojiThankYouMessage,
+      emojiLabels: formData.emojiLabels ?? [
+        'Excellent', 'Satisfied', 'Neutral', 'Unsatisfied', 'Frustrated'
+      ],
+      review_platforms: formData.review_platforms ?? [],
+      fallingEnabled: formData.fallingEnabled ?? false,
+      fallingIcon: formData.falling_icon ?? 'star',
+      aiButtonEnabled: formData.aiButtonEnabled ?? true,
+    };
+    return (
+      <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
+        <PageCard icon={<FaHandsHelping className="w-9 h-9 text-slate-blue" />}>
+          <PromptPageForm
+            mode="create"
+            initialData={serviceInitialData}
+            onSave={handleSubmit}
+            onPublish={handleSubmit}
+            pageTitle="Create service prompt page"
+            supabase={supabase}
+            businessProfile={businessProfile}
+          />
+        </PageCard>
+      </div>
+    );
+  }
+  if (formData.review_type === 'product') {
+    return (
+      <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
+        <PageCard icon={<FaStar />}>
+          <ProductPromptPageForm
+            onSave={handleProductSave}
+            isLoading={isSaving}
+            initialData={formData}
+            showResetButton={false}
+            businessReviewPlatforms={[]}
+            onGenerateReview={handleGenerateAIReview}
+          />
+        </PageCard>
+      </div>
+    );
+  }
   return (
     <>
       <Header />
       <div className="min-h-screen py-10 px-4 sm:px-8 md:px-16 lg:px-32">
         <div className="max-w-3xl mx-auto rounded-xl shadow-lg p-8 mt-0 md:mt-[30px]">
           <PromptPageForm
+            key={formData.review_type}
             mode="create"
             initialData={formData}
             onSave={handleSubmit}

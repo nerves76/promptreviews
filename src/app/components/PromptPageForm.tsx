@@ -2,10 +2,14 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
 import { generateAIReview } from '@/utils/ai';
-import { FaRobot, FaInfoCircle, FaStar, FaGift, FaVideo, FaImage, FaQuoteRight, FaCamera, FaHeart, FaGoogle, FaYelp, FaFacebook, FaTripadvisor, FaRegStar, FaSmile, FaGlobe } from 'react-icons/fa';
+import { FaRobot, FaInfoCircle, FaStar, FaGift, FaVideo, FaImage, FaQuoteRight, FaCamera, FaHeart, FaGoogle, FaYelp, FaFacebook, FaTripadvisor, FaRegStar, FaSmile, FaGlobe, FaBoxOpen, FaThumbsUp, FaBolt, FaRainbow, FaCoffee, FaWrench, FaGlassCheers, FaDumbbell, FaPagelines, FaPeace } from 'react-icons/fa';
 import dynamic from 'next/dynamic';
 import { slugify } from '@/utils/slugify';
 import { useRouter } from 'next/navigation';
+import ReviewWriteSection from '../dashboard/edit-prompt-page/components/ReviewWriteSection';
+import OfferSection from '../dashboard/edit-prompt-page/components/OfferSection';
+import EmojiSentimentSection from '../dashboard/edit-prompt-page/components/EmojiSentimentSection';
+import DisableAIGenerationSection from './DisableAIGenerationSection';
 
 // TODO: Move all form state, handlers, and UI from create-prompt-page/page.tsx and dashboard/edit-prompt-page/[slug]/page.tsx into this component.
 // Accept props for mode (create/edit), initial data, onSave/onPublish handlers, and page title.
@@ -31,6 +35,7 @@ export default function PromptPageForm({
   supabase,
   businessProfile,
   isUniversal = false,
+  onPublishSuccess,
   ...rest
 }: {
   mode: 'create' | 'edit';
@@ -41,6 +46,7 @@ export default function PromptPageForm({
   supabase: any;
   businessProfile: any;
   isUniversal?: boolean;
+  onPublishSuccess?: (slug: string) => void;
   [key: string]: any;
 }) {
   const router = useRouter();
@@ -621,38 +627,66 @@ export default function PromptPageForm({
         </div>
         {/* Bottom right button group */}
         <div className="w-full flex justify-end gap-2 mt-2 sm:gap-4 z-10 pt-4 pr-4 md:pt-6 md:pr-6">
-          {formData.slug ? (
-            <a
-              href={`/r/${formData.slug}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-            >
-              View
-            </a>
-          ) : (
+          {mode === 'create' && step === 1 ? (
             <button
               type="button"
-              className="inline-flex justify-center rounded-md border border-gray-300 bg-gray-100 py-2 px-4 text-sm font-medium text-gray-400 shadow-sm cursor-not-allowed"
-              disabled
+              className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+              onClick={handleStep1Continue}
+              disabled={isSaving}
             >
-              View
+              Continue
             </button>
+          ) : (
+            <>
+              {formData.slug ? (
+                <a
+                  href={`/r/${formData.slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                >
+                  View
+                </a>
+              ) : (
+                <button
+                  type="button"
+                  className="inline-flex justify-center rounded-md border border-gray-300 bg-gray-100 py-2 px-4 text-sm font-medium text-gray-400 shadow-sm cursor-not-allowed"
+                  disabled
+                >
+                  View
+                </button>
+              )}
+              <button
+                type="submit"
+                className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+                disabled={isSaving}
+              >
+                Save
+              </button>
+            </>
           )}
-          <button
-            type="submit"
-            className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-            disabled={isSaving}
-          >
-            Save
-          </button>
         </div>
       </form>
     );
   }
   return (
-    <form onSubmit={e => { e.preventDefault(); onSave({ ...formData, aiReviewEnabled }); }}>
-      <h1 className="text-4xl font-bold text-[#1A237E] mb-8">{pageTitle}</h1>
+    <form onSubmit={e => { e.preventDefault(); onSave({ ...formData, ai_button_enabled: aiReviewEnabled }); }}>
+      <h1 className="text-4xl font-bold mb-8 flex items-center gap-3 text-slate-blue">
+        {pageTitle}
+      </h1>
+      {/* Top right button group for step 1 create flow */}
+      {mode === 'create' && step === 1 && (
+        <div className="absolute top-4 right-4 z-20 flex gap-2">
+          <button
+            type="button"
+            className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+            onClick={handleStep1Continue}
+            disabled={isSaving}
+          >
+            Continue
+          </button>
+        </div>
+      )}
       <div>
         {step === 1 ? (
           <div className="custom-space-y">
@@ -736,57 +770,109 @@ export default function PromptPageForm({
                     placeholder="e.g., store manager, marketing director, student (their role)"
                   />
                 </div>
-                {/* Services Section */}
-                <div className="mt-20 mb-2 flex items-center gap-2">
-                  <FaStar className="w-5 h-5 text-[#1A237E]" />
-                  <h2 className="text-xl font-semibold text-slate-blue">Services you provided</h2>
-                </div>
-                <div className="space-y-2">
-                  {services.map((service, idx) => (
-                    <div key={idx} className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        className="w-full border px-3 py-2 rounded"
-                        value={service}
-                        onChange={e => {
-                          const newServices = [...services];
-                          newServices[idx] = e.target.value;
-                          setServices(newServices);
-                          setFormData((prev: any) => ({ ...prev, services_offered: newServices }));
-                        }}
-                        required
-                        placeholder="e.g., Web Design"
-                      />
-                      {services.length > 1 && (
-                        <button type="button" onClick={() => {
-                          const newServices = services.filter((_, i) => i !== idx);
-                          setServices(newServices);
-                          setFormData((prev: any) => ({ ...prev, services_offered: newServices }));
-                        }} className="text-red-600 font-bold">&times;</button>
-                      )}
+                {/* Product type fields */}
+                {formData.review_type === 'product' ? (
+                  <>
+                    <div className="mt-20 mb-2 flex items-center gap-2">
+                      <FaBoxOpen className="w-5 h-5 text-[#1A237E]" />
+                      <h2 className="text-xl font-semibold text-slate-blue">Product Description</h2>
                     </div>
-                  ))}
-                  <button type="button" onClick={() => {
-                    setServices([...services, '']);
-                    setFormData((prev: any) => ({ ...prev, services_offered: [...services, ''] }));
-                  }} className="text-blue-600 underline mt-2">+ Add Service</button>
-                </div>
-                <div>
-                  <label htmlFor="outcomes" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center">
-                    Outcome for them
-                    <Tooltip text="Describe the results and benefits the client received. This information helps AI generate more specific and impactful reviews that highlight the value provided." />
-                  </label>
-                  <p className="text-xs text-gray-500 mt-1 mb-5 max-w-[85ch]">Describe the service you provided and how it benefited this individual.</p>
-                  <textarea
-                    id="outcomes"
-                    value={formData.outcomes}
-                    onChange={e => setFormData((prev: any) => ({ ...prev, outcomes: e.target.value }))}
-                    rows={4}
-                    className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
-                    placeholder="Describe the outcome for your client"
-                    required
-                  />
-                </div>
+                    <textarea
+                      id="product_description"
+                      value={formData.product_description || ''}
+                      onChange={e => setFormData((prev: any) => ({ ...prev, product_description: e.target.value }))}
+                      rows={4}
+                      className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                      placeholder="Describe the product being reviewed"
+                      required
+                    />
+                    <div className="mt-8 mb-2 flex items-center gap-2">
+                      <FaStar className="w-5 h-5 text-[#1A237E]" />
+                      <h2 className="text-xl font-semibold text-slate-blue">Features or Benefits</h2>
+                    </div>
+                    <div className="space-y-2">
+                      {(formData.features_or_benefits || ['']).map((feature: string, idx: number) => (
+                        <div key={idx} className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            className="w-full border px-3 py-2 rounded"
+                            value={feature}
+                            onChange={e => {
+                              const newFeatures = [...(formData.features_or_benefits || [])];
+                              newFeatures[idx] = e.target.value;
+                              setFormData((prev: any) => ({ ...prev, features_or_benefits: newFeatures }));
+                            }}
+                            required
+                            placeholder="e.g., Long battery life"
+                          />
+                          {(formData.features_or_benefits?.length > 1) && (
+                            <button type="button" onClick={() => {
+                              const newFeatures = (formData.features_or_benefits || []).filter((_: any, i: number) => i !== idx);
+                              setFormData((prev: any) => ({ ...prev, features_or_benefits: newFeatures }));
+                            }} className="text-red-600 font-bold">&times;</button>
+                          )}
+                        </div>
+                      ))}
+                      <button type="button" onClick={() => {
+                        setFormData((prev: any) => ({ ...prev, features_or_benefits: [...(formData.features_or_benefits || []), ''] }));
+                      }} className="text-blue-600 underline mt-2">+ Add Feature/Benefit</button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {/* Services Section (service type) */}
+                    <div className="mt-20 mb-2 flex items-center gap-2">
+                      <FaStar className="w-5 h-5 text-[#1A237E]" />
+                      <h2 className="text-xl font-semibold text-slate-blue">Services you provided</h2>
+                    </div>
+                    <div className="space-y-2">
+                      {services.map((service, idx) => (
+                        <div key={idx} className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            className="w-full border px-3 py-2 rounded"
+                            value={service}
+                            onChange={e => {
+                              const newServices = [...services];
+                              newServices[idx] = e.target.value;
+                              setServices(newServices);
+                              setFormData((prev: any) => ({ ...prev, services_offered: newServices }));
+                            }}
+                            required
+                            placeholder="e.g., Web Design"
+                          />
+                          {services.length > 1 && (
+                            <button type="button" onClick={() => {
+                              const newServices = services.filter((_, i) => i !== idx);
+                              setServices(newServices);
+                              setFormData((prev: any) => ({ ...prev, services_offered: newServices }));
+                            }} className="text-red-600 font-bold">&times;</button>
+                          )}
+                        </div>
+                      ))}
+                      <button type="button" onClick={() => {
+                        setServices([...services, '']);
+                        setFormData((prev: any) => ({ ...prev, services_offered: [...services, ''] }));
+                      }} className="text-blue-600 underline mt-2">+ Add Service</button>
+                    </div>
+                    <div>
+                      <label htmlFor="outcomes" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center">
+                        Outcome for them
+                        <Tooltip text="Describe the results and benefits the client received. This information helps AI generate more specific and impactful reviews that highlight the value provided." />
+                      </label>
+                      <p className="text-xs text-gray-500 mt-1 mb-5 max-w-[85ch]">Describe the service you provided and how it benefited this individual.</p>
+                      <textarea
+                        id="outcomes"
+                        value={formData.outcomes}
+                        onChange={e => setFormData((prev: any) => ({ ...prev, outcomes: e.target.value }))}
+                        rows={4}
+                        className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                        placeholder="Describe the outcome for your client"
+                        required
+                      />
+                    </div>
+                  </>
+                )}
                 <div>
                   <label htmlFor="friendly_note" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center">
                     Personalized note to them
@@ -799,68 +885,140 @@ export default function PromptPageForm({
                     onChange={e => setFormData((prev: any) => ({ ...prev, friendly_note: e.target.value }))}
                     rows={4}
                     className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
-                    placeholder={`Hi ${formData.first_name || '[name]'}, thanks so much for doing business with ${businessProfile?.business_name || '[business name]'}. As a small business, getting reviews online is super valuable and extends our reach. Thank you for supporting us!\n\n- ${businessProfile?.business_name || '[Account holder name]'}`}
+                    placeholder="Add a personal note for this customer/client"
                   />
-                  <p className="text-xs text-gray-500 mt-1 mb-5 max-w-[85ch]">This note will appear at the top of the review page for your customer/client. Make it personal!</p>
                 </div>
               </>
             )}
-            {/* Add universal prompt page fields here if needed */}
-            <div className="flex justify-end">
+            <div className="w-full flex justify-end gap-2 mt-8">
               <button
                 type="button"
-                onClick={handleStep1Continue}
                 className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+                onClick={handleStep1Continue}
               >
-                Save & continue
+                Continue
               </button>
             </div>
           </div>
         ) : (
-          <div className="custom-space-y">
-            {/* Step 2: Review platforms, dos/donts, AI toggle, emoji flow, etc. */}
-            {/* ... migrate all step 2 UI here, similar to above ... */}
-            {/* For brevity, not all code is shown here, but you would continue migrating all fields and handlers from the original step 2. */}
-            <div className="flex justify-end gap-4 mt-12">
-              <button
-                type="submit"
-                className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-                disabled={isSaving}
-              >
-                {isSaving ? 'Publishing...' : 'Save & publish'}
-              </button>
+          <div className="space-y-12">
+            {/* --- NEW MODULAR STEP 2 UI (2024) --- */}
+            {/* Review Platforms Section (modular) */}
+            <ReviewWriteSection
+              value={formData.review_platforms}
+              onChange={val => setFormData((prev: any) => ({ ...prev, review_platforms: val }))}
+              onGenerateReview={handleGenerateAIReview}
+            />
+            {/* Special Offer Section (modular) */}
+            <OfferSection
+              enabled={offerEnabled}
+              onToggle={() => setOfferEnabled((v: boolean) => !v)}
+              title={offerTitle}
+              onTitleChange={setOfferTitle}
+              description={offerBody}
+              onDescriptionChange={setOfferBody}
+              url={offerUrl}
+              onUrlChange={setOfferUrl}
+            />
+            {/* Emoji Sentiment Section (modular) */}
+            <EmojiSentimentSection
+              enabled={emojiSentimentEnabled}
+              onToggle={() => setEmojiSentimentEnabled((v: boolean) => !v)}
+              question={emojiSentimentQuestion}
+              onQuestionChange={setEmojiSentimentQuestion}
+              feedbackMessage={emojiFeedbackMessage}
+              onFeedbackMessageChange={setEmojiFeedbackMessage}
+              thankYouMessage={formData.emojiThankYouMessage}
+              onThankYouMessageChange={(val: string) => setFormData((prev: any) => ({ ...prev, emojiThankYouMessage: val }))}
+              emojiLabels={formData.emojiLabels}
+              onEmojiLabelChange={(idx: number, val: string) => setFormData((prev: any) => {
+                const newLabels = [...(prev.emojiLabels || [])];
+                newLabels[idx] = val;
+                return { ...prev, emojiLabels: newLabels };
+              })}
+            />
+            {/* AI Generation Toggle (modular) */}
+            <DisableAIGenerationSection
+              enabled={aiReviewEnabled}
+              onToggle={() => setAiReviewEnabled((v: boolean) => !v)}
+            />
+            {/* Falling Stars Section (modular, inline for now) */}
+            <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-2 shadow relative mb-8">
+              <div className="flex items-center justify-between mb-2 px-2 py-2">
+                <div className="flex items-center gap-3">
+                  <FaStar className="w-7 h-7 text-slate-blue" />
+                  <span className="text-2xl font-bold text-[#1A237E]">Falling star animation</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleToggleFalling}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${fallingEnabled ? 'bg-slate-blue' : 'bg-gray-200'}`}
+                  aria-pressed={!!fallingEnabled}
+                  disabled={iconUpdating}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${fallingEnabled ? 'translate-x-5' : 'translate-x-1'}`}
+                  />
+                </button>
+              </div>
+              <div className="text-sm text-gray-700 mb-3 max-w-[85ch] px-2">
+                Enable a fun animation where stars (or other icons) rain down when the prompt page loads. You can choose the icon below.
+              </div>
+              {/* Icon picker (enabled) */}
+              <div className="flex gap-4 px-2 flex-wrap">
+                {[
+                  { key: 'star', label: 'Stars', icon: <FaStar className="w-6 h-6 text-yellow-400" /> },
+                  { key: 'heart', label: 'Hearts', icon: <FaHeart className="w-6 h-6 text-red-500" /> },
+                  { key: 'smile', label: 'Smiles', icon: <FaSmile className="w-6 h-6 text-yellow-400" /> },
+                  { key: 'thumb', label: 'Thumbs Up', icon: <FaThumbsUp className="w-6 h-6 text-blue-500" /> },
+                  { key: 'bolt', label: 'Bolts', icon: <FaBolt className="w-6 h-6 text-amber-400" /> },
+                  { key: 'rainbow', label: 'Rainbows', icon: <FaRainbow className="w-6 h-6 text-fuchsia-400" /> },
+                  { key: 'coffee', label: 'Coffee Cups', icon: <FaCoffee className="w-6 h-6 text-amber-800" /> },
+                  { key: 'wrench', label: 'Wrenches', icon: <FaWrench className="w-6 h-6 text-gray-500" /> },
+                  { key: 'confetti', label: 'Wine Glass', icon: <FaGlassCheers className="w-6 h-6 text-pink-400" /> },
+                  { key: 'barbell', label: 'Barbell', icon: <FaDumbbell className="w-6 h-6 text-gray-600" /> },
+                  { key: 'flower', label: 'Flower', icon: <FaPagelines className="w-6 h-6 text-green-500" /> },
+                  { key: 'peace', label: 'Peace', icon: <FaPeace className="w-6 h-6 text-purple-500" /> },
+                ].map(opt => (
+                  <button
+                    key={opt.key}
+                    type="button"
+                    className={`p-2 rounded-full border transition bg-white flex items-center justify-center ${fallingIcon === opt.key ? 'border-slate-blue ring-2 ring-slate-blue' : 'border-gray-300'}`}
+                    onClick={() => setFallingIcon(opt.key)}
+                    aria-label={opt.label}
+                  >
+                    {opt.icon}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         )}
       </div>
-      {!isSaving && (
-        <div className="w-full flex justify-end pr-2 pb-4 md:pr-6 md:pb-6 mt-8">
-          {formData.slug ? (
-            <a
-              href={`/r/${formData.slug}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 mr-2"
-            >
-              View
-            </a>
-          ) : (
+      {(mode !== 'create' || step === 2) && (
+        <>
+          {/* Top right Save & publish button for step 2 create flow (inside form) */}
+          {mode === 'create' && step === 2 && (
             <button
-              type="button"
-              className="inline-flex justify-center rounded-md border border-gray-300 bg-gray-100 py-2 px-4 text-sm font-medium text-gray-400 shadow-sm cursor-not-allowed"
-              disabled
+              type="submit"
+              className="absolute top-4 right-4 z-20 inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+              disabled={isSaving}
+              style={{ minWidth: 140 }}
             >
-              View
+              {isSaving ? 'Publishing...' : 'Save & publish'}
             </button>
           )}
-          <button
-            type="submit"
-            className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-            disabled={isSaving}
-          >
-            Save
-          </button>
-        </div>
+          {/* Bottom right Save & publish/Save button */}
+          <div className="w-full flex justify-end pr-2 pb-4 md:pr-6 md:pb-6 mt-8">
+            <button
+              type="submit"
+              className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+              disabled={isSaving}
+            >
+              {mode === 'create' ? (isSaving ? 'Publishing...' : 'Save & publish') : (isSaving ? 'Saving...' : 'Save')}
+            </button>
+          </div>
+        </>
       )}
     </form>
   );
