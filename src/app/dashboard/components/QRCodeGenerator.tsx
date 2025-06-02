@@ -56,11 +56,43 @@ export default function QRCodeGenerator({ url, clientName, logoUrl, frameSize = 
       ctx.fillStyle = '#000000';
       ctx.textAlign = 'center';
       ctx.fillText('Leave us a review!', frameSize.width / 2, headerHeight);
-      // Draw 5 gold stars below the header
-      const stars = '★★★★★';
+      // Draw scattered gold stars (5-7)
+      const numStars = 5 + Math.floor(Math.random() * 3); // 5-7 stars
+      const stars = [];
+      const minStarSize = Math.floor(frameSize.height * 0.04); // ~40px
+      const maxStarSize = Math.floor(frameSize.height * 0.08); // ~80px
+      const qrTop = startY;
+      const qrBottom = startY + qrSize;
+      for (let i = 0; i < numStars; i++) {
+        let x, y, size, rotation, attempts = 0;
+        do {
+          size = minStarSize + Math.random() * (maxStarSize - minStarSize);
+          x = size/2 + Math.random() * (frameSize.width - size);
+          y = headerHeight + size/2 + Math.random() * (qrTop - headerHeight - size);
+          rotation = Math.random() * 360;
+          attempts++;
+        } while (
+          // Avoid overlapping the QR code area (with a margin)
+          y + size/2 > qrTop - 10 && y - size/2 < qrBottom + 10 &&
+          x + size/2 > (frameSize.width - qrSize) / 2 - 10 &&
+          x - size/2 < (frameSize.width + qrSize) / 2 + 10 &&
+          attempts < 10
+        );
+        stars.push({ x, y, size, rotation });
+      }
+      ctx.save();
       ctx.font = `${Math.floor(frameSize.height * 0.07)}px serif`;
       ctx.fillStyle = '#FFD700';
-      ctx.fillText(stars, frameSize.width / 2, starsY);
+      ctx.textAlign = 'center';
+      stars.forEach(star => {
+        ctx.save();
+        ctx.translate(star.x, star.y);
+        ctx.rotate((star.rotation * Math.PI) / 180);
+        ctx.font = `${star.size}px serif`;
+        ctx.fillText('★', 0, 0);
+        ctx.restore();
+      });
+      ctx.restore();
       // Draw QR code
       const qrDataUrl = await QRCode.toDataURL(url, {
         width: qrSize,
