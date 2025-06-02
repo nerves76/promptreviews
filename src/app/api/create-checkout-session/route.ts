@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY);
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+if (!stripeSecretKey) {
+  throw new Error('STRIPE_SECRET_KEY is not set');
+}
+const stripe = new Stripe(stripeSecretKey, { apiVersion: '2022-11-15' });
 
 // Map your plan keys to Stripe price IDs (only paid plans)
 const PRICE_IDS: Record<string, string> = {
