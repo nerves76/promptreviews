@@ -560,6 +560,9 @@ export default function ReviewsPage() {
                   <span className="font-semibold text-base text-gray-800">{review.first_name} {review.last_name}</span>
                   {review.emoji_sentiment_selection && getSentimentIcon(review.emoji_sentiment_selection)}
                   <span className="text-xs text-gray-500 ml-2">{new Date(review.created_at).toLocaleDateString()}</span>
+                  {isNewReview(review.created_at) && (
+                    <span className="ml-2 inline-block px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded">New</span>
+                  )}
                   {review.verified ? (
                     <span className="ml-2 inline-block px-2 py-1 text-xs bg-green-100 text-green-700 rounded">Verified</span>
                   ) : (
