@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import QRCode from 'qrcode';
 
 export const QR_FRAME_SIZES = [
@@ -168,6 +168,13 @@ export default function QRCodeGenerator({ url, clientName, logoUrl, frameSize = 
       }
     }, 'image/png');
   };
+
+  useEffect(() => {
+    if (previewUrl) {
+      generateDesign();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [frameSize]);
 
   return (
     <div className="text-center">
