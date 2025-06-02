@@ -6,7 +6,7 @@ const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 if (!stripeSecretKey) {
   throw new Error('STRIPE_SECRET_KEY is not set');
 }
-const stripe = new Stripe(stripeSecretKey, { apiVersion: '2022-11-15' });
+const stripe = new Stripe(stripeSecretKey, { apiVersion: '2025-04-30.basil' });
 
 // Map your plan keys to Stripe price IDs (only paid plans)
 const PRICE_IDS: Record<string, string> = {
