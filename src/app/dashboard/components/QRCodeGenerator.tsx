@@ -56,39 +56,55 @@ export default function QRCodeGenerator({ url, clientName, logoUrl, frameSize = 
       ctx.fillStyle = '#000000';
       ctx.textAlign = 'center';
       ctx.fillText('Leave us a review!', frameSize.width / 2, headerHeight);
-      // Draw scattered gold stars (5-7), much larger and more evenly distributed
-      const numStars = 5 + Math.floor(Math.random() * 3); // 5-7 stars
-      const minStarSize = Math.floor(frameSize.height * 0.04); // ~40px
-      const maxStarSize = Math.floor(frameSize.height * 0.2); // up to ~400px for large frames
-      const qrTop = startY;
-      const qrBottom = startY + qrSize;
-      const upperAreaHeight = qrTop - headerHeight - minStarSize;
-      const zoneWidth = frameSize.width / numStars;
+      // Draw many scattered gold stars (10-14), with wide size variance, no overlaps, and some on sides/bottom
+      const numStars = 10 + Math.floor(Math.random() * 5); // 10-14 stars
+      const minStarSize = Math.floor(frameSize.height * 0.03); // ~30px
+      const maxStarSize = Math.floor(frameSize.height * 0.22); // up to ~440px for large frames
+      const qrMargin = 20;
+      const logoHeight = Math.floor(frameSize.height * 0.09);
+      const labelHeight = Math.floor(frameSize.height * 0.035) + 10;
+      const logoY = frameSize.height - logoHeight - labelHeight - 10; // 10px margin above label
+      const logoAreaTop = logoY - 10;
+      const logoAreaBottom = frameSize.height;
+      const qrTop = startY - qrMargin;
+      const qrBottom = startY + qrSize + qrMargin;
+      const qrLeft = (frameSize.width - qrSize) / 2 - qrMargin;
+      const qrRight = (frameSize.width + qrSize) / 2 + qrMargin;
       const stars = [];
-      for (let i = 0; i < numStars; i++) {
-        let x, y, size, rotation, attempts = 0;
-        // Make at least one or two stars very large
-        if (i < 2) {
-          size = maxStarSize * (0.7 + 0.3 * Math.random());
-        } else {
-          size = minStarSize + Math.random() * (maxStarSize - minStarSize);
-        }
+      let attempts = 0;
+      for (let i = 0; i < numStars && attempts < numStars * 20; i++) {
+        let size = minStarSize + Math.random() * (maxStarSize - minStarSize);
+        // Make a few stars very large
+        if (i < 3) size = maxStarSize * (0.7 + 0.3 * Math.random());
+        let x, y, rotation, tries = 0, overlaps;
         do {
-          // Spread stars horizontally by zone
-          const zoneStart = i * zoneWidth;
-          const zoneEnd = (i + 1) * zoneWidth;
-          x = zoneStart + size/2 + Math.random() * (zoneWidth - size);
-          y = headerHeight + size/2 + Math.random() * (upperAreaHeight - size);
+          x = size/2 + Math.random() * (frameSize.width - size);
+          y = size/2 + Math.random() * (frameSize.height - size - labelHeight - 10);
           rotation = Math.random() * 360;
-          attempts++;
-        } while (
-          // Avoid overlapping the QR code area (with a margin)
-          y + size/2 > qrTop - 10 && y - size/2 < qrBottom + 10 &&
-          x + size/2 > (frameSize.width - qrSize) / 2 - 10 &&
-          x - size/2 < (frameSize.width + qrSize) / 2 + 10 &&
-          attempts < 10
-        );
-        stars.push({ x, y, size, rotation });
+          overlaps = false;
+          // Avoid QR code area
+          if (
+            x + size/2 > qrLeft && x - size/2 < qrRight &&
+            y + size/2 > qrTop && y - size/2 < qrBottom
+          ) overlaps = true;
+          // Avoid logo area at bottom
+          if (
+            y + size/2 > logoAreaTop && y - size/2 < logoAreaBottom
+          ) overlaps = true;
+          // Avoid other stars
+          for (const s of stars) {
+            const dist = Math.hypot(x - s.x, y - s.y);
+            if (dist < (size + s.size) / 2 + 12) { // 12px margin
+              overlaps = true;
+              break;
+            }
+          }
+          tries++;
+        } while (overlaps && tries < 20);
+        if (!overlaps) {
+          stars.push({ x, y, size, rotation });
+        }
+        attempts++;
       }
       ctx.save();
       ctx.font = `${Math.floor(frameSize.height * 0.07)}px serif`;
