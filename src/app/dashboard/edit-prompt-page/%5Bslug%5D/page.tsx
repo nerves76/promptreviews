@@ -1,6 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 export default function EditPromptPage() {
+  const [initialData, setInitialData] = useState<any>(null);
+
+  const handleFormSave = async (formState: any) => {
+    // Implementation of handleFormSave
+  };
+
   return (
     <div>
       <h1>Edit Prompt Page</h1>
