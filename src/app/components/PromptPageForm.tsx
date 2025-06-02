@@ -12,6 +12,7 @@ import EmojiSentimentSection from '../dashboard/edit-prompt-page/components/Emoj
 import DisableAIGenerationSection from './DisableAIGenerationSection';
 import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
+import { FALLING_STARS_ICONS } from '@/app/components/prompt-modules/fallingStarsConfig';
 
 // TODO: Move all form state, handlers, and UI from create-prompt-page/page.tsx and dashboard/edit-prompt-page/[slug]/page.tsx into this component.
 // Accept props for mode (create/edit), initial data, onSave/onPublish handlers, and page title.
@@ -123,14 +124,6 @@ export default function PromptPageForm({
   const [offerUrl, setOfferUrl] = useState(
     initialData.offer_url ?? initialData.offerUrl ?? ''
   );
-
-  const iconOptions = [
-    { key: 'star', label: 'Stars', icon: <FaStar className="w-6 h-6 text-yellow-400" /> },
-    { key: 'heart', label: 'Hearts', icon: <FaHeart className="w-6 h-6 text-red-500" /> },
-    { key: 'rainbow', label: 'Rainbows', icon: <span className="w-6 h-6 text-2xl">🌈</span> },
-    { key: 'thumb', label: 'Thumbs Up', icon: <span className="w-6 h-6 text-2xl">👍</span> },
-    { key: 'flex', label: 'Flex', icon: <span className="w-6 h-6 text-2xl">💪</span> },
-  ];
 
   const handleIconChange = (key: string) => {
     setFallingIcon(key);
@@ -527,21 +520,38 @@ export default function PromptPageForm({
           </div>
           <div className={`rounded-2xl border border-indigo-200 bg-indigo-50 p-4 ${!fallingEnabled ? 'opacity-60' : ''}`}>  
             <div className="flex gap-2 bg-white rounded-full px-3 py-1 border border-gray-200 shadow w-max">
-              {iconOptions.map(opt => (
-                <button
-                  key={opt.key}
-                  className={`p-1 rounded-full focus:outline-none transition-all ${fallingIcon === opt.key ? 'ring-2 ring-indigo-400 bg-indigo-50' : ''}`}
-                  onClick={() => handleIconChange(opt.key)}
-                  aria-label={opt.label}
-                  type="button"
-                  disabled={iconUpdating || !fallingEnabled}
-                >
-                  {opt.icon}
-                  {iconUpdating && fallingIcon === opt.key && (
-                    <span className="ml-1 animate-spin w-3 h-3 border-2 border-indigo-400 border-t-transparent rounded-full inline-block align-middle"></span>
-                  )}
-                </button>
-              ))}
+              {FALLING_STARS_ICONS.map(opt => {
+                const Icon = opt.icon;
+                return (
+                  <button
+                    key={opt.key}
+                    className={`p-1 rounded-full focus:outline-none transition-all ${fallingIcon === opt.key ? 'ring-2 ring-indigo-400 bg-indigo-50' : ''}`}
+                    onClick={() => handleIconChange(opt.key)}
+                    aria-label={opt.label}
+                    type="button"
+                    disabled={iconUpdating || !fallingEnabled}
+                  >
+                    <Icon className={
+                      opt.key === 'star' ? 'w-6 h-6 text-yellow-400' :
+                      opt.key === 'heart' ? 'w-6 h-6 text-red-500' :
+                      opt.key === 'smile' ? 'w-6 h-6 text-yellow-400' :
+                      opt.key === 'thumb' ? 'w-6 h-6 text-blue-500' :
+                      opt.key === 'bolt' ? 'w-6 h-6 text-amber-400' :
+                      opt.key === 'rainbow' ? 'w-6 h-6 text-fuchsia-400' :
+                      opt.key === 'coffee' ? 'w-6 h-6 text-amber-800' :
+                      opt.key === 'wrench' ? 'w-6 h-6 text-gray-500' :
+                      opt.key === 'confetti' ? 'w-6 h-6 text-pink-400' :
+                      opt.key === 'barbell' ? 'w-6 h-6 text-gray-600' :
+                      opt.key === 'flower' ? 'w-6 h-6 text-green-500' :
+                      opt.key === 'peace' ? 'w-6 h-6 text-purple-500' :
+                      'w-6 h-6'
+                    } />
+                    {iconUpdating && fallingIcon === opt.key && (
+                      <span className="ml-1 animate-spin w-3 h-3 border-2 border-indigo-400 border-t-transparent rounded-full inline-block align-middle"></span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -968,30 +978,37 @@ export default function PromptPageForm({
               </div>
               {/* Icon picker (enabled) */}
               <div className="flex gap-4 px-2 flex-wrap">
-                {[
-                  { key: 'star', label: 'Stars', icon: <FaStar className="w-6 h-6 text-yellow-400" /> },
-                  { key: 'heart', label: 'Hearts', icon: <FaHeart className="w-6 h-6 text-red-500" /> },
-                  { key: 'smile', label: 'Smiles', icon: <FaSmile className="w-6 h-6 text-yellow-400" /> },
-                  { key: 'thumb', label: 'Thumbs Up', icon: <FaThumbsUp className="w-6 h-6 text-blue-500" /> },
-                  { key: 'bolt', label: 'Bolts', icon: <FaBolt className="w-6 h-6 text-amber-400" /> },
-                  { key: 'rainbow', label: 'Rainbows', icon: <FaRainbow className="w-6 h-6 text-fuchsia-400" /> },
-                  { key: 'coffee', label: 'Coffee Cups', icon: <FaCoffee className="w-6 h-6 text-amber-800" /> },
-                  { key: 'wrench', label: 'Wrenches', icon: <FaWrench className="w-6 h-6 text-gray-500" /> },
-                  { key: 'confetti', label: 'Wine Glass', icon: <FaGlassCheers className="w-6 h-6 text-pink-400" /> },
-                  { key: 'barbell', label: 'Barbell', icon: <FaDumbbell className="w-6 h-6 text-gray-600" /> },
-                  { key: 'flower', label: 'Flower', icon: <FaPagelines className="w-6 h-6 text-green-500" /> },
-                  { key: 'peace', label: 'Peace', icon: <FaPeace className="w-6 h-6 text-purple-500" /> },
-                ].map(opt => (
-                  <button
-                    key={opt.key}
-                    type="button"
-                    className={`p-2 rounded-full border transition bg-white flex items-center justify-center ${fallingIcon === opt.key ? 'border-slate-blue ring-2 ring-slate-blue' : 'border-gray-300'}`}
-                    onClick={() => setFallingIcon(opt.key)}
-                    aria-label={opt.label}
-                  >
-                    {opt.icon}
-                  </button>
-                ))}
+                {FALLING_STARS_ICONS.map(opt => {
+                  const Icon = opt.icon;
+                  return (
+                    <button
+                      key={opt.key}
+                      type="button"
+                      className={`p-2 rounded-full border transition bg-white flex items-center justify-center ${fallingIcon === opt.key ? 'border-slate-blue ring-2 ring-slate-blue' : 'border-gray-300'}`}
+                      onClick={() => setFallingIcon(opt.key)}
+                      aria-label={opt.label}
+                    >
+                      <Icon className={
+                        opt.key === 'star' ? 'w-6 h-6 text-yellow-400' :
+                        opt.key === 'heart' ? 'w-6 h-6 text-red-500' :
+                        opt.key === 'smile' ? 'w-6 h-6 text-yellow-400' :
+                        opt.key === 'thumb' ? 'w-6 h-6 text-blue-500' :
+                        opt.key === 'bolt' ? 'w-6 h-6 text-amber-400' :
+                        opt.key === 'rainbow' ? 'w-6 h-6 text-fuchsia-400' :
+                        opt.key === 'coffee' ? 'w-6 h-6 text-amber-800' :
+                        opt.key === 'wrench' ? 'w-6 h-6 text-gray-500' :
+                        opt.key === 'confetti' ? 'w-6 h-6 text-pink-400' :
+                        opt.key === 'barbell' ? 'w-6 h-6 text-gray-600' :
+                        opt.key === 'flower' ? 'w-6 h-6 text-green-500' :
+                        opt.key === 'peace' ? 'w-6 h-6 text-purple-500' :
+                        'w-6 h-6'
+                      } />
+                      {iconUpdating && fallingIcon === opt.key && (
+                        <span className="ml-1 animate-spin w-3 h-3 border-2 border-indigo-400 border-t-transparent rounded-full inline-block align-middle"></span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>

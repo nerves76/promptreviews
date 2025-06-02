@@ -4,7 +4,6 @@ import { createBrowserClient } from '@supabase/ssr';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import Link from 'next/link';
-import SimpleMarketingNav from '@/app/components/SimpleMarketingNav';
 
 export default function SignIn() {
   const router = useRouter();
@@ -123,7 +122,6 @@ export default function SignIn() {
 
   return (
     <>
-      <SimpleMarketingNav />
       <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-indigo-400 via-indigo-300 to-purple-300">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <h1 className="mt-6 text-center text-3xl font-extrabold text-white">Sign in to your account</h1>
