@@ -8,10 +8,14 @@ if (!stripeSecretKey) {
 }
 const stripe = new Stripe(stripeSecretKey, { apiVersion: '2025-04-30.basil' });
 
-// Map your plan keys to Stripe price IDs (only paid plans)
+const builderPriceId = process.env.STRIPE_PRICE_ID_BUILDER;
+const mavenPriceId = process.env.STRIPE_PRICE_ID_MAVEN;
+if (!builderPriceId || !mavenPriceId) {
+  throw new Error('Stripe price IDs are not set');
+}
 const PRICE_IDS: Record<string, string> = {
-  builder: process.env.STRIPE_PRICE_ID_BUILDER || process.env.STRIPE_PRICE_ID_BUILDER,
-  maven: process.env.STRIPE_PRICE_ID_MAVEN || process.env.STRIPE_PRICE_ID_MAVEN,
+  builder: builderPriceId,
+  maven: mavenPriceId,
 };
 
 export async function POST(req: NextRequest) {
