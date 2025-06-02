@@ -229,6 +229,7 @@ export default function ReviewsPage() {
   const [openReviewPopoverId, setOpenReviewPopoverId] = useState<string | null>(null);
   const [emojiFilter, setEmojiFilter] = useState<string>('');
   const [showEmojiDropdown, setShowEmojiDropdown] = useState(false);
+  const [sampleNotice, setSampleNotice] = useState<string | null>(null);
 
   // Add a ref map to store review refs
   const reviewRefs = useRef<{ [id: string]: HTMLDivElement | null }>({});
@@ -410,6 +411,12 @@ export default function ReviewsPage() {
     }
   }, [showEmojiDropdown]);
 
+  // Show sample notice for sample reviews
+  const handleSampleNotice = () => {
+    setSampleNotice('This is a sample review and is just for display. As soon as you get your first real review, these samples will go away.');
+    setTimeout(() => setSampleNotice(null), 4000);
+  };
+
   if (loading) {
     return (
       <div style={{ position: 'fixed', top: -190, left: 0, width: '100%', zIndex: 9999 }}>
@@ -545,6 +552,11 @@ export default function ReviewsPage() {
 
       {/* Card List */}
       <div className="space-y-4 mt-6">
+        {sampleNotice && (
+          <div className="mb-4 px-4 py-2 bg-yellow-100 text-yellow-800 rounded text-center text-sm font-medium">
+            {sampleNotice}
+          </div>
+        )}
         {filteredReviews.length === 0 ? (
           <div className="text-center py-8 text-gray-400">No reviews found.</div>
         ) : filteredReviews.map((review) => {
@@ -590,18 +602,43 @@ export default function ReviewsPage() {
                       {review.platform_url && (
                         <a href={review.platform_url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-700 underline">Check if Published</a>
                       )}
-                      <a href={`/dashboard/prompt-pages/${review.prompt_page_id}`} className="text-xs text-indigo-700 underline">View prompt page</a>
+                      <a
+                        href={review.id.startsWith('sample-') ? undefined : `/dashboard/prompt-pages/${review.prompt_page_id}`}
+                        className={`text-xs text-indigo-700 underline ${review.id.startsWith('sample-') ? 'cursor-not-allowed opacity-60' : ''}`}
+                        onClick={e => {
+                          if (review.id.startsWith('sample-')) {
+                            e.preventDefault();
+                            handleSampleNotice();
+                          }
+                        }}
+                      >
+                        View prompt page
+                      </a>
                       <button
                         className={`text-xs rounded px-3 py-1 ${review.verified ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-indigo-100 text-indigo-800 hover:bg-indigo-200'}`}
                         disabled={review.verified}
-                        onClick={() => handleMarkVerified(review.id)}
+                        onClick={e => {
+                          if (review.id.startsWith('sample-')) {
+                            e.preventDefault();
+                            handleSampleNotice();
+                          } else {
+                            handleMarkVerified(review.id);
+                          }
+                        }}
                       >
                         {review.verified ? 'Verified' : 'Mark as Verified'}
                       </button>
                     </div>
                     <button
                       className="text-xs text-red-600 hover:underline"
-                      onClick={() => handleDelete(review.id)}
+                      onClick={e => {
+                        if (review.id.startsWith('sample-')) {
+                          e.preventDefault();
+                          handleSampleNotice();
+                        } else {
+                          handleDelete(review.id);
+                        }
+                      }}
                       disabled={isDeleting === review.id}
                     >
                       {isDeleting === review.id ? 'Deleting…' : 'Delete'}
