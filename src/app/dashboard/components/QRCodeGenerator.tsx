@@ -52,12 +52,11 @@ export default function QRCodeGenerator({ url, clientName, logoUrl, frameSize = 
       // Fill background
       ctx.fillStyle = '#fff';
       ctx.fillRect(0, 0, frameSize.width, frameSize.height);
-      // Distribute stars more evenly using a grid
-      const numCols = 3;
-      const numRows = 4;
-      const numStars = numCols * numRows;
+      // Distribute stars more evenly using a larger grid and guarantee corners
+      const numCols = 4;
+      const numRows = 5;
       const minStarSize = Math.floor(frameSize.height * 0.03); // ~30px
-      const maxStarSize = Math.floor(frameSize.height * 0.22); // up to ~440px for large frames
+      const maxStarSize = Math.floor(frameSize.height * 0.18); // up to ~360px for large frames
       const qrMargin = 20;
       const logoY = frameSize.height - logoHeight - labelHeight - 10; // 10px margin above label
       const logoAreaTop = logoY - 10;
@@ -69,10 +68,32 @@ export default function QRCodeGenerator({ url, clientName, logoUrl, frameSize = 
       const cellWidth = frameSize.width / numCols;
       const cellHeight = (frameSize.height - labelHeight - 10) / numRows;
       const stars = [];
+      // Place a star in each corner
+      const corners = [
+        { col: 0, row: 0 }, // top-left
+        { col: numCols - 1, row: 0 }, // top-right
+        { col: 0, row: numRows - 1 }, // bottom-left
+        { col: numCols - 1, row: numRows - 1 }, // bottom-right
+      ];
+      corners.forEach(({ col, row }) => {
+        let size = minStarSize + Math.random() * (maxStarSize - minStarSize);
+        let x = col === 0
+          ? size / 2 + Math.random() * (cellWidth / 2 - size / 2)
+          : frameSize.width - size / 2 - Math.random() * (cellWidth / 2 - size / 2);
+        let y = row === 0
+          ? size / 2 + Math.random() * (cellHeight / 2 - size / 2)
+          : frameSize.height - labelHeight - 10 - size / 2 - Math.random() * (cellHeight / 2 - size / 2);
+        let rotation = Math.random() * 360;
+        stars.push({ x, y, size, rotation });
+      });
+      // Fill the rest of the grid, skipping corners
       for (let row = 0; row < numRows; row++) {
         for (let col = 0; col < numCols; col++) {
+          // Skip corners
+          if ((row === 0 && col === 0) || (row === 0 && col === numCols - 1) || (row === numRows - 1 && col === 0) || (row === numRows - 1 && col === numCols - 1)) {
+            continue;
+          }
           let size = minStarSize + Math.random() * (maxStarSize - minStarSize);
-          if (row === 0 && col === 0) size = maxStarSize * (0.7 + 0.3 * Math.random()); // at least one big star
           let x, y, rotation, tries = 0, overlaps;
           do {
             x = col * cellWidth + size/2 + Math.random() * (cellWidth - size);
