@@ -37,9 +37,10 @@ export default function QRCodeGenerator({ url, clientName, logoUrl, frameSize = 
       const qrSize = Math.floor(frameSize.width * 0.45);
       const spacing = Math.floor(frameSize.height * 0.04);
       const labelHeight = Math.floor(frameSize.height * 0.035) + 10;
+      // Vertically center QR code and content between stars/header and logo/label
       const contentHeight = qrSize + spacing + logoHeight;
-      const availableHeight = frameSize.height - starsY - labelHeight;
-      let startY = starsY + Math.floor((availableHeight - contentHeight) / 2);
+      const availableHeight = frameSize.height - headerHeight - labelHeight - logoHeight - spacing;
+      let startY = headerHeight + Math.floor((availableHeight - qrSize) / 2);
       const extraOffset = Math.floor(frameSize.height * 0.04);
       startY += extraOffset;
       // Create canvas
@@ -61,7 +62,6 @@ export default function QRCodeGenerator({ url, clientName, logoUrl, frameSize = 
       const minStarSize = Math.floor(frameSize.height * 0.03); // ~30px
       const maxStarSize = Math.floor(frameSize.height * 0.22); // up to ~440px for large frames
       const qrMargin = 20;
-      const labelHeight = Math.floor(frameSize.height * 0.035) + 10;
       const logoY = frameSize.height - logoHeight - labelHeight - 10; // 10px margin above label
       const logoAreaTop = logoY - 10;
       const logoAreaBottom = frameSize.height;
