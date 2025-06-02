@@ -52,8 +52,10 @@ export default function QRCodeGenerator({ url, clientName, logoUrl, frameSize = 
       // Fill background
       ctx.fillStyle = '#fff';
       ctx.fillRect(0, 0, frameSize.width, frameSize.height);
-      // Draw many scattered gold stars (10-14), with wide size variance, no overlaps, and some on sides/bottom
-      const numStars = 10 + Math.floor(Math.random() * 5); // 10-14 stars
+      // Distribute stars more evenly using a grid
+      const numCols = 3;
+      const numRows = 4;
+      const numStars = numCols * numRows;
       const minStarSize = Math.floor(frameSize.height * 0.03); // ~30px
       const maxStarSize = Math.floor(frameSize.height * 0.22); // up to ~440px for large frames
       const qrMargin = 20;
@@ -64,41 +66,42 @@ export default function QRCodeGenerator({ url, clientName, logoUrl, frameSize = 
       const qrBottom = startY + qrSize + qrMargin;
       const qrLeft = (frameSize.width - qrSize) / 2 - qrMargin;
       const qrRight = (frameSize.width + qrSize) / 2 + qrMargin;
+      const cellWidth = frameSize.width / numCols;
+      const cellHeight = (frameSize.height - labelHeight - 10) / numRows;
       const stars = [];
-      let attempts = 0;
-      for (let i = 0; i < numStars && attempts < numStars * 20; i++) {
-        let size = minStarSize + Math.random() * (maxStarSize - minStarSize);
-        // Make a few stars very large
-        if (i < 3) size = maxStarSize * (0.7 + 0.3 * Math.random());
-        let x, y, rotation, tries = 0, overlaps;
-        do {
-          x = size/2 + Math.random() * (frameSize.width - size);
-          y = size/2 + Math.random() * (frameSize.height - size - labelHeight - 10);
-          rotation = Math.random() * 360;
-          overlaps = false;
-          // Avoid QR code area
-          if (
-            x + size/2 > qrLeft && x - size/2 < qrRight &&
-            y + size/2 > qrTop && y - size/2 < qrBottom
-          ) overlaps = true;
-          // Avoid logo area at bottom
-          if (
-            y + size/2 > logoAreaTop && y - size/2 < logoAreaBottom
-          ) overlaps = true;
-          // Avoid other stars
-          for (const s of stars) {
-            const dist = Math.hypot(x - s.x, y - s.y);
-            if (dist < (size + s.size) / 2 + 12) { // 12px margin
-              overlaps = true;
-              break;
+      for (let row = 0; row < numRows; row++) {
+        for (let col = 0; col < numCols; col++) {
+          let size = minStarSize + Math.random() * (maxStarSize - minStarSize);
+          if (row === 0 && col === 0) size = maxStarSize * (0.7 + 0.3 * Math.random()); // at least one big star
+          let x, y, rotation, tries = 0, overlaps;
+          do {
+            x = col * cellWidth + size/2 + Math.random() * (cellWidth - size);
+            y = row * cellHeight + size/2 + Math.random() * (cellHeight - size);
+            rotation = Math.random() * 360;
+            overlaps = false;
+            // Avoid QR code area
+            if (
+              x + size/2 > qrLeft && x - size/2 < qrRight &&
+              y + size/2 > qrTop && y - size/2 < qrBottom
+            ) overlaps = true;
+            // Avoid logo area at bottom
+            if (
+              y + size/2 > logoAreaTop && y - size/2 < logoAreaBottom
+            ) overlaps = true;
+            // Avoid other stars
+            for (const s of stars) {
+              const dist = Math.hypot(x - s.x, y - s.y);
+              if (dist < (size + s.size) / 2 + 12) {
+                overlaps = true;
+                break;
+              }
             }
+            tries++;
+          } while (overlaps && tries < 20);
+          if (!overlaps) {
+            stars.push({ x, y, size, rotation });
           }
-          tries++;
-        } while (overlaps && tries < 20);
-        if (!overlaps) {
-          stars.push({ x, y, size, rotation });
         }
-        attempts++;
       }
       ctx.save();
       ctx.font = `${Math.floor(frameSize.height * 0.07)}px serif`;
