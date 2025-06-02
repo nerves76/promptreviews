@@ -56,19 +56,29 @@ export default function QRCodeGenerator({ url, clientName, logoUrl, frameSize = 
       ctx.fillStyle = '#000000';
       ctx.textAlign = 'center';
       ctx.fillText('Leave us a review!', frameSize.width / 2, headerHeight);
-      // Draw scattered gold stars (5-7)
+      // Draw scattered gold stars (5-7), much larger and more evenly distributed
       const numStars = 5 + Math.floor(Math.random() * 3); // 5-7 stars
-      const stars = [];
       const minStarSize = Math.floor(frameSize.height * 0.04); // ~40px
-      const maxStarSize = Math.floor(frameSize.height * 0.08); // ~80px
+      const maxStarSize = Math.floor(frameSize.height * 0.2); // up to ~400px for large frames
       const qrTop = startY;
       const qrBottom = startY + qrSize;
+      const upperAreaHeight = qrTop - headerHeight - minStarSize;
+      const zoneWidth = frameSize.width / numStars;
+      const stars = [];
       for (let i = 0; i < numStars; i++) {
         let x, y, size, rotation, attempts = 0;
-        do {
+        // Make at least one or two stars very large
+        if (i < 2) {
+          size = maxStarSize * (0.7 + 0.3 * Math.random());
+        } else {
           size = minStarSize + Math.random() * (maxStarSize - minStarSize);
-          x = size/2 + Math.random() * (frameSize.width - size);
-          y = headerHeight + size/2 + Math.random() * (qrTop - headerHeight - size);
+        }
+        do {
+          // Spread stars horizontally by zone
+          const zoneStart = i * zoneWidth;
+          const zoneEnd = (i + 1) * zoneWidth;
+          x = zoneStart + size/2 + Math.random() * (zoneWidth - size);
+          y = headerHeight + size/2 + Math.random() * (upperAreaHeight - size);
           rotation = Math.random() * 360;
           attempts++;
         } while (
