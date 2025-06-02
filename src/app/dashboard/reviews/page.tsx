@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { createBrowserClient } from "@supabase/ssr";
-import { FaChevronDown, FaChevronLeft, FaDownload, FaStar, FaTrash, FaGoogle, FaFacebook, FaYelp, FaTripadvisor, FaRegStar, FaRegComment, FaThumbtack, FaRegCopyright, FaSearch } from "react-icons/fa";
+import { FaChevronDown, FaChevronLeft, FaDownload, FaStar, FaTrash, FaGoogle, FaFacebook, FaYelp, FaTripadvisor, FaRegStar, FaRegComment, FaThumbtack, FaRegCopyright, FaSearch, FaSmile } from "react-icons/fa";
 import { SiHouzz, SiThumbtack, SiHomeadvisor, SiTrustpilot } from "react-icons/si";
 import { IconType } from "react-icons";
 import PageCard from '@/app/components/PageCard';
@@ -228,6 +228,7 @@ export default function ReviewsPage() {
   const [expandedRows, setExpandedRows] = useState<{ [id: string]: boolean }>({});
   const [openReviewPopoverId, setOpenReviewPopoverId] = useState<string | null>(null);
   const [emojiFilter, setEmojiFilter] = useState<string>('');
+  const [showEmojiDropdown, setShowEmojiDropdown] = useState(false);
 
   // Add a ref map to store review refs
   const reviewRefs = useRef<{ [id: string]: HTMLDivElement | null }>({});
@@ -396,6 +397,19 @@ export default function ReviewsPage() {
     }
   };
 
+  // Add click outside handler for dropdown
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (!(e.target as HTMLElement).closest('.relative')) {
+        setShowEmojiDropdown(false);
+      }
+    }
+    if (showEmojiDropdown) {
+      document.addEventListener('mousedown', handleClick);
+      return () => document.removeEventListener('mousedown', handleClick);
+    }
+  }, [showEmojiDropdown]);
+
   if (loading) {
     return (
       <div style={{ position: 'fixed', top: -190, left: 0, width: '100%', zIndex: 9999 }}>
@@ -451,26 +465,73 @@ export default function ReviewsPage() {
             </select>
           </div>
           {/* Emoji Filter */}
-          <div className="flex items-end gap-2">
-            <div className="flex gap-1">
-              {EMOJI_SENTIMENT_LABELS.map((label, i) => {
-                const { icon: Icon, color } = EMOJI_SENTIMENT_ICONS[i];
-                return (
-                  <button
-                    key={label}
-                    className={`flex flex-col items-center px-1 rounded border transition-colors ${emojiFilter === label ? 'border-indigo-500 bg-indigo-50' : 'border-transparent hover:border-gray-300'}`}
-                    onClick={() => setEmojiFilter(emojiFilter === label ? '' : label)}
-                    aria-label={`Filter by ${label}`}
-                    type="button"
-                  >
-                    <Icon className={`w-7 h-7 ${color}`} />
-                    <span className="text-xs block text-gray-700 mt-1">{label}</span>
-                  </button>
-                );
-              })}
-              {emojiFilter && (
-                <button className="ml-2 text-xs text-gray-500 underline" onClick={() => setEmojiFilter('')}>Clear</button>
-              )}
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 mb-1">Sentiment</label>
+            <div className="flex items-end gap-2">
+              <div className="relative">
+                <button
+                  type="button"
+                  className="flex items-center gap-2 border rounded px-2 py-1 bg-white shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  onClick={() => setShowEmojiDropdown((v: boolean) => !v)}
+                  aria-haspopup="listbox"
+                  aria-expanded={showEmojiDropdown ? 'true' : 'false'}
+                >
+                  {emojiFilter ? (
+                    <>
+                      {(() => {
+                        const idx = EMOJI_SENTIMENT_LABELS.findIndex(l => l === emojiFilter);
+                        if (idx !== -1) {
+                          const { icon: Icon, color } = EMOJI_SENTIMENT_ICONS[idx];
+                          return <Icon className={`w-6 h-6 ${color}`} />;
+                        }
+                        return null;
+                      })()}
+                      <span>{emojiFilter}</span>
+                    </>
+                  ) : (
+                    <>
+                      <FaSmile className="w-6 h-6 text-slate-blue" />
+                      <span>All</span>
+                    </>
+                  )}
+                  <FaChevronDown className="w-4 h-4 text-gray-400 ml-1" />
+                </button>
+                {showEmojiDropdown && (
+                  <div className="absolute z-20 mt-1 w-48 bg-white border border-gray-200 rounded shadow-lg max-h-60 overflow-auto" role="listbox">
+                    {EMOJI_SENTIMENT_LABELS.map((label, i) => {
+                      const { icon: Icon, color } = EMOJI_SENTIMENT_ICONS[i];
+                      return (
+                        <button
+                          key={label}
+                          className={`flex items-center gap-2 w-full px-3 py-2 text-left text-sm hover:bg-indigo-50 ${emojiFilter === label ? 'bg-indigo-100' : ''}`}
+                          onClick={() => {
+                            setEmojiFilter(label);
+                            setShowEmojiDropdown(false);
+                          }}
+                          role="option"
+                          aria-selected={emojiFilter === label}
+                          type="button"
+                        >
+                          <Icon className={`w-6 h-6 ${color}`} />
+                          <span>{label}</span>
+                        </button>
+                      );
+                    })}
+                    {emojiFilter && (
+                      <button
+                        className="w-full px-3 py-2 text-left text-xs text-gray-500 hover:bg-gray-100 border-t border-gray-100"
+                        onClick={() => {
+                          setEmojiFilter('');
+                          setShowEmojiDropdown(false);
+                        }}
+                        type="button"
+                      >
+                        Clear filter
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
