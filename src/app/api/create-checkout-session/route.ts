@@ -8,8 +8,8 @@ if (!stripeSecretKey) {
 }
 const stripe = new Stripe(stripeSecretKey, { apiVersion: '2025-04-30.basil' });
 
-const builderPriceId = process.env.STRIPE_PRICE_ID_BUILDER;
-const mavenPriceId = process.env.STRIPE_PRICE_ID_MAVEN;
+const builderPriceId = process.env.STRIPE_PRICE_ID_BUILDER || '';
+const mavenPriceId = process.env.STRIPE_PRICE_ID_MAVEN || '';
 if (!builderPriceId || !mavenPriceId) {
   throw new Error('Stripe price IDs are not set');
 }
