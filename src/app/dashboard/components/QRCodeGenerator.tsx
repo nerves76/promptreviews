@@ -25,6 +25,7 @@ export default function QRCodeGenerator({ url, clientName, logoUrl, frameSize = 
 
   // Default logo fallback
   const defaultLogo = 'https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompt-reviews-get-more-reviews-logo.png';
+  const logoHeight = Math.floor(frameSize.height * 0.09);
 
   const generateDesign = async () => {
     setIsGenerating(true);
@@ -34,7 +35,6 @@ export default function QRCodeGenerator({ url, clientName, logoUrl, frameSize = 
       const headerToStarsGap = Math.floor(frameSize.height * 0.06);
       const starsY = headerHeight + headerToStarsGap + Math.floor(frameSize.height * 0.06);
       const qrSize = Math.floor(frameSize.width * 0.45);
-      const logoHeight = Math.floor(frameSize.height * 0.09);
       const spacing = Math.floor(frameSize.height * 0.04);
       const labelHeight = Math.floor(frameSize.height * 0.035) + 10;
       const contentHeight = qrSize + spacing + logoHeight;
@@ -61,7 +61,6 @@ export default function QRCodeGenerator({ url, clientName, logoUrl, frameSize = 
       const minStarSize = Math.floor(frameSize.height * 0.03); // ~30px
       const maxStarSize = Math.floor(frameSize.height * 0.22); // up to ~440px for large frames
       const qrMargin = 20;
-      const logoHeight = Math.floor(frameSize.height * 0.09);
       const labelHeight = Math.floor(frameSize.height * 0.035) + 10;
       const logoY = frameSize.height - logoHeight - labelHeight - 10; // 10px margin above label
       const logoAreaTop = logoY - 10;
@@ -139,7 +138,6 @@ export default function QRCodeGenerator({ url, clientName, logoUrl, frameSize = 
       logoImg.src = logoUrl || defaultLogo;
       await new Promise(resolve => { logoImg.onload = resolve; });
       const logoWidth = Math.floor(logoImg.width * (logoHeight / logoImg.height));
-      const logoY = frameSize.height - logoHeight - labelHeight - 10; // 10px margin above label
       ctx.drawImage(logoImg, (frameSize.width - logoWidth) / 2, logoY, logoWidth, logoHeight);
       // Set preview
       setPreviewUrl(canvas.toDataURL('image/png'));
