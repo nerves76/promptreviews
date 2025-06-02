@@ -126,7 +126,7 @@ export default function QRCodeGenerator({ url, clientName, logoUrl, frameSize = 
       }
       ctx.save();
       ctx.font = `${Math.floor(frameSize.height * 0.07)}px serif`;
-      ctx.fillStyle = '#FFB300';
+      ctx.fillStyle = '#FFD066';
       ctx.textAlign = 'center';
       stars.forEach(star => {
         ctx.save();
