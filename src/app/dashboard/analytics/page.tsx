@@ -12,6 +12,9 @@ import { format } from 'date-fns';
 
 interface PromptPage {
   id: string;
+  slug?: string;
+  first_name?: string;
+  is_universal?: boolean;
 }
 
 interface AnalyticsData {
@@ -62,7 +65,7 @@ export default function AnalyticsPage() {
         if (!user) return;
         const { data, error } = await supabase
           .from('prompt_pages')
-          .select('id')
+          .select('id, slug, first_name, is_universal')
           .eq('account_id', user.id);
         if (error) throw error;
         setPromptPages(data || []);
@@ -82,7 +85,7 @@ export default function AnalyticsPage() {
         // Get all prompt page IDs for this account
         const { data: pages } = await supabase
           .from('prompt_pages')
-          .select('id')
+          .select('id, slug, first_name, is_universal')
           .eq('account_id', user.id);
         const pageIds = (pages || []).map((p: any) => p.id);
         if (!pageIds.length) {
