@@ -173,7 +173,7 @@ export default function UniversalEditPromptPage() {
 
   return (
     <PageCard
-      icon={<FaGlobe />}
+      icon={<FaGlobe className="w-9 h-9 text-slate-blue" />}
       topRightAction={actionButtons}
       bottomRightAction={actionButtons}
     >
