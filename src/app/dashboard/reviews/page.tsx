@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { createBrowserClient } from "@supabase/ssr";
-import { FaChevronDown, FaChevronLeft, FaDownload, FaStar, FaTrash, FaGoogle, FaFacebook, FaYelp, FaTripadvisor, FaRegStar, FaRegComment, FaThumbtack, FaRegCopyright, FaSearch, FaSmile } from "react-icons/fa";
+import { FaChevronDown, FaChevronLeft, FaDownload, FaStar, FaTrash, FaGoogle, FaFacebook, FaYelp, FaTripadvisor, FaRegStar, FaRegComment, FaThumbtack, FaRegCopyright, FaSearch, FaSmile, FaQuestionCircle } from "react-icons/fa";
 import { SiHouzz, SiThumbtack, SiHomeadvisor, SiTrustpilot } from "react-icons/si";
 import { IconType } from "react-icons";
 import PageCard from '@/app/components/PageCard';
@@ -466,7 +466,10 @@ export default function ReviewsPage() {
           </div>
           {/* Emoji Filter */}
           <div>
-            <label className="block text-xs font-semibold text-gray-500 mb-1">Sentiment</label>
+            <label className="block text-xs font-semibold text-gray-500 mb-1 flex items-center gap-1">
+              Sentiment
+              <FaQuestionCircle className="w-3.5 h-3.5 text-gray-400 cursor-pointer" title="You must be using the sentiment gating feature to collect reviews tagged with sentiment." />
+            </label>
             <div className="flex items-end gap-2">
               <div className="relative">
                 <button
