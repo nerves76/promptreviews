@@ -1,6 +1,6 @@
 interface BusinessProfile {
   business_name: string;
-  services_offered: string[];
+  features_or_benefits: string[];
   company_values: string;
   differentiators: string;
   years_in_business: number;
@@ -12,13 +12,17 @@ interface BusinessProfile {
   industry_other?: string;
   ai_dos?: string;
   ai_donts?: string;
+  address_city?: string;
+  address_state?: string;
+  address_zip?: string;
 }
 
 interface PromptPageData {
   first_name: string;
-  last_name: string;
+  last_name?: string;
+  role?: string;
   project_type: string;
-  outcomes: string;
+  product_description: string;
 }
 
 export function generateReviewPrompt(
@@ -43,14 +47,14 @@ export function generateReviewPrompt(
   // Defensive: ensure all fields are strings and never undefined/null
   const businessName = businessProfile.business_name || '';
   const yearsInBusiness = businessProfile.years_in_business || '';
-  const services = businessProfile.services_offered || '';
+  const services = businessProfile.features_or_benefits || '';
   const companyValues = businessProfile.company_values || '';
   const differentiators = businessProfile.differentiators || '';
   const industriesServed = businessProfile.industries_served || '';
   const teamFounderInfo = businessProfile.team_founder_info || '';
   const keywords = businessProfile.keywords || '';
   const projectType = promptPageData.project_type || '';
-  const outcomes = promptPageData.outcomes || '';
+  const productDescription = promptPageData.product_description || '';
   const safePlatform = platform || '';
   const safeCustomInstructions = customInstructions || '';
   const safeReviewerType = reviewerType || 'customer or client';
@@ -58,6 +62,9 @@ export function generateReviewPrompt(
   const aiDonts = businessProfile.ai_donts || '';
   const additionalDos = additional_ai_dos || '';
   const additionalDonts = additional_ai_donts || '';
+  const city = businessProfile.address_city || '';
+  const state = businessProfile.address_state || '';
+  const zip = businessProfile.address_zip || '';
 
   let customerName = '';
   if (promptPageData.first_name && promptPageData.last_name) {
@@ -68,12 +75,17 @@ export function generateReviewPrompt(
     customerName = `- Customer Name: ${promptPageData.last_name}\n`;
   }
 
+  let reviewerRole = '';
+  if (promptPageData.role) {
+    reviewerRole = `- Reviewer Role/Position: ${promptPageData.role}\n`;
+  }
+
   return `You are a satisfied ${safeReviewerType} writing a review for ${businessName}.
 Please write a genuine, detailed, and positive review based on the following information:
 
 Business Information:
 - Business Name: ${businessName}
-- Years in Business: ${yearsInBusiness}
+${city ? `- City: ${city}\n` : ''}${state ? `- State: ${state}\n` : ''}${zip ? `- ZIP: ${zip}\n` : ''}- Years in Business: ${yearsInBusiness}
 - Services: ${services}
 - Company Values: ${companyValues}
 - What Makes Them Different: ${differentiators}
@@ -82,8 +94,8 @@ ${industryInfo ? industryInfo + '\n' : ''}- Team/Founder Info: ${teamFounderInfo
 - Keywords to Include: ${keywords}
 
 Customer Experience:
-${customerName}- Service Received: ${projectType}
-- Outcome/Results: ${outcomes}
+${customerName}${reviewerRole}- Service Received: ${projectType}
+- Outcome/Results: ${productDescription}
 
 Platform: ${safePlatform}
 Word Count Limit: ${wordCountLimit} words
@@ -93,7 +105,7 @@ ${additionalDos ? `\nAdditional Dos: ${additionalDos}` : ''}
 ${aiDonts ? `\nDon'ts: ${aiDonts}` : ''}
 ${additionalDonts ? `\nAdditional Don'ts: ${additionalDonts}` : ''}
 
-Important: The reviewer is a ${safeReviewerType}. If unsure, avoid using either term or use "customer or client".
+Important: The reviewer is a ${safeReviewerType}
 
 Please write a review that:
 1. Sounds authentic and personal

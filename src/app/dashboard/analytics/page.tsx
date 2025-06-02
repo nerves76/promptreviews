@@ -6,7 +6,7 @@ import { useAuthGuard } from '@/utils/authGuard';
 import { FaChartLine, FaList, FaSmile, FaMeh, FaFrown, FaAngry, FaGrinStars } from 'react-icons/fa';
 import { getUserOrMock } from '@/utils/supabase';
 import PageCard from '@/app/components/PageCard';
-import FiveStarSpinner from '@/app/components/FiveStarSpinner';
+import AppLoader from '@/app/components/AppLoader';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { format } from 'date-fns';
 
@@ -243,11 +243,8 @@ export default function AnalyticsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex justify-center items-start" style={{ minHeight: '100vh' }}>
-        <div className="text-center w-full mt-[150px]">
-          <FiveStarSpinner />
-          <p className="mt-4 text-white">Loading analytics...</p>
-        </div>
+      <div className="flex flex-col items-center justify-center mt-20">
+        <AppLoader />
       </div>
     );
   }

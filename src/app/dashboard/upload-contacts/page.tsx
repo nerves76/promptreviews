@@ -7,7 +7,7 @@ import { FaDownload, FaUpload, FaInfoCircle, FaQuestionCircle, FaList, FaEye, Fa
 import { Dialog } from '@headlessui/react';
 import { useRouter } from 'next/navigation';
 import { getUserOrMock, getSessionOrMock } from '@/utils/supabase';
-import FiveStarSpinner from '@/app/components/FiveStarSpinner';
+import AppLoader from '@/app/components/AppLoader';
 
 export default function UploadContactsPage() {
   useAuthGuard();
@@ -136,8 +136,8 @@ export default function UploadContactsPage() {
       'role',
       'review_type',
       'friendly_note',
-      'services_offered',
-      'outcomes'
+      'features_or_benefits',
+      'product_description'
     ];
     const sampleData = [
       'John',
@@ -258,11 +258,8 @@ export default function UploadContactsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex justify-center items-start" style={{ minHeight: '100vh' }}>
-        <div className="text-center w-full mt-[150px]">
-          <FiveStarSpinner />
-          <p className="mt-4 text-white">Loading contacts upload...</p>
-        </div>
+      <div style={{ position: 'fixed', top: -190, left: 0, width: '100%', zIndex: 9999 }}>
+        <AppLoader />
       </div>
     );
   }
@@ -473,8 +470,8 @@ export default function UploadContactsPage() {
                 <h3 className="font-semibold text-gray-900">Prompt Page Content</h3>
                 <ul className="mt-2 space-y-2 text-sm text-gray-600">
                   <li><span className="font-bold">friendly_note</span> - A personal note to the contact (displayed on the prompt page)</li>
-                  <li><span className="font-bold">services_offered</span> - Services you provided to this contact (comma-separated or single value)</li>
-                  <li><span className="font-bold">outcomes</span> - Outcomes or results achieved for this contact</li>
+                  <li><span className="font-bold">features_or_benefits</span> - Features or benefits you provided to this contact (comma-separated or single value)</li>
+                  <li><span className="font-bold">product_description</span> - Description or details of the product or service</li>
                 </ul>
               </div>
             </div>

@@ -12,10 +12,11 @@ import { IconType } from 'react-icons';
 import ReviewSubmissionForm from '@/components/ReviewSubmissionForm';
 import { useReviewer } from '@/contexts/ReviewerContext';
 import { getUserOrMock } from '@/utils/supabase';
-import FiveStarSpinner from '@/app/components/FiveStarSpinner';
+import AppLoader from '@/app/components/AppLoader';
 import OfferCard from '../../components/OfferCard';
 import offerConfig from '@/app/components/prompt-modules/offerConfig';
 import EmojiSentimentModal from '@/app/components/EmojiSentimentModal';
+import FiveStarSpinner from '@/app/components/FiveStarSpinner';
 
 interface StyleSettings {
   name: string;
@@ -73,6 +74,8 @@ interface BusinessProfile {
   default_offer_body?: string;
   business_website?: string;
   default_offer_url?: string;
+  address_city?: string;
+  address_state?: string;
 }
 
 // Helper to get platform icon based on URL or platform name
@@ -625,10 +628,8 @@ export default function PromptPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-start justify-center" style={{ minHeight: '100vh' }}>
-        <div className="w-full text-center mt-[150px]">
-          <FiveStarSpinner />
-        </div>
+      <div className="flex flex-col items-center justify-center mt-20">
+        <AppLoader />
       </div>
     );
   }
@@ -808,7 +809,7 @@ export default function PromptPage() {
           <div className="relative w-full">
             <div className="max-w-[1000px] w-full mx-auto px-4">
               {/* Business Info Card (always visible) */}
-              <div className="bg-gray-50 rounded-2xl shadow p-6 mb-8 flex flex-col items-center max-w-md mx-auto animate-slideup relative mt-32">
+              <div className="bg-gray-50 rounded-2xl shadow p-6 mb-8 flex flex-col items-center max-w-xl mx-auto animate-slideup relative mt-32">
                 {/* Business Logo - No drop-down animation */}
                 <div className="absolute left-1/2 -translate-x-1/2 w-52 h-52 aspect-square flex items-center justify-center mb-10" style={{ pointerEvents: 'none', top: '-100px' }}>
                   <div className="bg-white rounded-full p-1 shadow-lg flex items-center justify-center w-full h-full aspect-square">
@@ -832,11 +833,44 @@ export default function PromptPage() {
                   className={`text-3xl font-bold text-center mb-1 mt-24 ${businessProfile?.primary_font || 'font-inter'}`}
                   style={{ color: businessProfile?.header_color || '#4F46E5' }}
                 >
-                  {businessProfile?.business_name ? `Give ${businessProfile.business_name} a Review` : 'Give Us a Review'}
+                  {businessProfile?.business_name || 'Business Name'}
                 </h1>
-                {/* Estimated time note */}
-                <div className="text-center text-sm text-gray-500">Estimated time to complete: 2-5 minutes</div>
+                {/* City/State under business name */}
+                {(businessProfile?.address_city || businessProfile?.address_state) && (
+                  <div className="text-center text-base text-gray-600 font-medium">
+                    {[businessProfile.address_city, businessProfile.address_state].filter(Boolean).join(', ')}
+                  </div>
+                )}
               </div>
+              {/* Product Module for Product Pages */}
+              {promptPage?.review_type === 'product' && promptPage.product_name && (
+                <div className="bg-white rounded-2xl shadow p-8 mb-8 flex flex-col items-center max-w-xl mx-auto animate-slideup relative">
+                  {promptPage.product_photo && (
+                    <img
+                      src={promptPage.product_photo}
+                      alt={promptPage.product_name}
+                      className="rounded-2xl w-[300px] h-[300px] object-cover border mb-4"
+                    />
+                  )}
+                  <h2 className="text-2xl font-bold text-slate-blue mb-2 text-center">{promptPage.product_name}</h2>
+                  {/* Only show details if not neutral/frustrated sentiment */}
+                  {(!sentiment || (sentiment !== 'neutral' && sentiment !== 'frustrated')) && (
+                    <>
+                      {promptPage.product_description && (
+                        <div className="text-lg text-gray-700 mb-3 text-center">{promptPage.product_description}</div>
+                      )}
+                      {promptPage.features_or_benefits?.length > 0 && (
+                        <ul className="mb-3 text-gray-700 text-base list-disc list-inside">
+                          {promptPage.features_or_benefits.map((f: string, i: number) => f && (
+                            <li key={i}>{f}</li>
+                          ))}
+                        </ul>
+                      )}
+                      <div className="text-sm text-gray-500 text-center">Share your experience with this product below!</div>
+                    </>
+                  )}
+                </div>
+              )}
               {/* Feedback Form Section (if negative sentiment) */}
               {sentimentComplete && ['neutral','unsatisfied','angry'].includes(sentiment||'') && (
                 <div className="w-full flex justify-center my-8">
@@ -1066,16 +1100,19 @@ export default function PromptPage() {
                     </div>
                   )}
                   {/* Review Platforms Section */}
-                  {Array.isArray(promptPage?.review_platforms) && promptPage.review_platforms.length > 0 && (
+                  {promptPage?.review_type !== 'product' && Array.isArray(promptPage?.review_platforms) && promptPage.review_platforms.length > 0 && (
                     <div className="mb-8">
                       <div className="bg-gray-50 rounded-2xl shadow pt-6 pb-8 px-8 mb-8">
                         <h2
                           className={`text-xl font-bold mb-2 mt-0 ${businessProfile?.primary_font || 'font-inter'}`}
                           style={{ color: businessProfile?.header_color || '#4F46E5' }}
                         >
-                          Support Small Business
+                          {`Give ${businessProfile?.business_name || 'this business'} a review`}
                         </h2>
-                        <p className="text-gray-700 text-base">
+                        <p className="text-gray-700 text-base font-semibold mt-1 mb-1">
+                          Estimated time to complete: 1-5 minutes
+                        </p>
+                        <p className="text-gray-700 text-base mt-2">
                           Reviews help us grow. Write something custom, or use AI for a headstart. When you're ready, click "Copy & Submit." You will be taken to the review site where you can login and paste your review.
                         </p>
                       </div>

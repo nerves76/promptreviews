@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Input } from "@/app/components/ui/input";
 
 interface ReviewPlatformLink {
   platform: string;
@@ -48,7 +49,7 @@ export default function ReviewPlatformLinks({ links, onChange }: ReviewPlatformL
             id="platform"
             value={newPlatform}
             onChange={(e) => setNewPlatform(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
           >
             <option value="">Select a platform</option>
             {PLATFORM_OPTIONS.map((option) => (
@@ -62,12 +63,11 @@ export default function ReviewPlatformLinks({ links, onChange }: ReviewPlatformL
           <label htmlFor="url" className="block text-sm font-medium text-gray-700">
             Review URL
           </label>
-          <input
+          <Input
             type="url"
             id="url"
             value={newUrl}
             onChange={(e) => setNewUrl(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
             placeholder="https://..."
           />
         </div>

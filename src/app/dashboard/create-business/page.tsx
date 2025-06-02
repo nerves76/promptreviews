@@ -56,7 +56,7 @@ export default function CreateBusinessPage() {
   useAuthGuard({ requireBusinessProfile: false });
   const [form, setForm] = useState({
     name: "",
-    services_offered: "",
+    features_or_benefits: "",
     company_values: "",
     differentiators: "",
     years_in_business: "",
@@ -200,7 +200,7 @@ export default function CreateBusinessPage() {
         id: user.id,
         account_id: user.id,
         name: form.name,
-        services_offered: Array.isArray(services)
+        features_or_benefits: Array.isArray(services)
           ? services.filter((s: string) => s && s.trim())
           : typeof services === 'string'
             ? [services].filter((s: string) => s && s.trim())
@@ -256,12 +256,12 @@ export default function CreateBusinessPage() {
       location: '',
       tone_of_voice: '',
       project_type: '',
-      services_offered: typeof services === 'string'
+      features_or_benefits: typeof services === 'string'
         ? [services].filter((s: string) => s && s.trim())
         : Array.isArray(services)
           ? (services as string[]).filter((s: string) => s && s.trim())
           : [],
-      outcomes: '',
+      product_description: '',
       date_completed: '',
       team_member: null,
       review_platforms: platformsWithWordCount,
@@ -269,7 +269,7 @@ export default function CreateBusinessPage() {
       is_universal: true
     });
     // Log for debugging
-    console.log('UNIVERSAL PROMPT PAGE services_offered:', promptPageData.services_offered, Array.isArray(promptPageData.services_offered));
+    console.log('UNIVERSAL PROMPT PAGE features_or_benefits:', promptPageData.features_or_benefits, Array.isArray(promptPageData.features_or_benefits));
     // Force remove date_completed if falsy
     if (!promptPageData.date_completed) {
       delete promptPageData.date_completed;
@@ -452,7 +452,7 @@ export default function CreateBusinessPage() {
                 industry: 'B2B',
                 industry_other: 'professional services',
                 industries_served: 'agencies, small business',
-                services_offered: '', // handled by setServices
+                features_or_benefits: '', // handled by setServices
                 company_values: 'radical candor, authenticity, partnership',
                 differentiators: 'support for navigating how ai is changing marketing',
                 years_in_business: '1',

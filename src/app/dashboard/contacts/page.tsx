@@ -5,8 +5,9 @@ import { useAuthGuard } from '@/utils/authGuard';
 import { createBrowserClient } from '@supabase/ssr';
 import { FaDownload, FaUpload, FaInfoCircle, FaQuestionCircle, FaList, FaEye, FaUsers } from 'react-icons/fa';
 import { getSessionOrMock } from '@/utils/supabase';
-import FiveStarSpinner from '@/app/components/FiveStarSpinner';
+import AppLoader from '@/app/components/AppLoader';
 import PageCard from '@/app/components/PageCard';
+import TopLoaderOverlay from '@/app/components/TopLoaderOverlay';
 
 export default function UploadContactsPage() {
   useAuthGuard();
@@ -111,8 +112,8 @@ export default function UploadContactsPage() {
       'offer_title',
       'offer_body',
       'friendly_note',
-      'services_offered',
-      'outcomes'
+      'features_or_benefits',
+      'product_description'
     ];
     const sampleData = [
       'John',
@@ -219,11 +220,8 @@ export default function UploadContactsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex justify-center items-center">
-        <div className="text-center">
-          <div className="mb-4"><FiveStarSpinner /></div>
-          <p className="mt-4 text-gray-600">Loading contacts...</p>
-        </div>
+      <div style={{ position: 'fixed', top: -190, left: 0, width: '100%', zIndex: 9999 }}>
+        <AppLoader />
       </div>
     );
   }

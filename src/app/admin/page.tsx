@@ -7,7 +7,7 @@ import { FaChartLine, FaUsers, FaFileAlt, FaHistory, FaRobot, FaUpload, FaDollar
 import Header from '@/app/components/Header';
 import { Switch } from '@headlessui/react';
 import { getUserOrMock } from '@/utils/supabase';
-import FiveStarSpinner from '@/app/components/FiveStarSpinner';
+import AppLoader from '@/app/components/AppLoader';
 import PageCard from '@/app/components/PageCard';
 
 interface AdminStats {
@@ -300,16 +300,8 @@ export default function AdminDashboard() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen">
-        <Header />
-        <div className="py-12 px-2">
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center">
-              <FiveStarSpinner />
-              <p className="mt-4 text-gray-600">Loading admin dashboard...</p>
-            </div>
-          </div>
-        </div>
+      <div className="flex flex-col items-center justify-center mt-20">
+        <AppLoader />
       </div>
     );
   }

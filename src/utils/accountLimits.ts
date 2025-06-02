@@ -18,7 +18,7 @@ export async function checkAccountLimits(supabase: SupabaseClient, userId: strin
   const inTrial = account.trial_end && new Date(account.trial_end) > now;
   let limit = 0;
   if (account.plan === 'grower') {
-    limit = type === 'prompt_page' ? 3 : Infinity; // Only limit custom prompt pages
+    limit = type === 'prompt_page' ? 4 : Infinity; // Only limit custom prompt pages
     if (!inTrial && !account.is_free_account_account_account) {
       return { allowed: false, reason: 'Trial ended. Please upgrade.' };
     }

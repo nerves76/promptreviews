@@ -28,7 +28,7 @@ export default function PageCard({
 }) {
   return (
     <div className="w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-12 mt-12 md:mt-16 lg:mt-20 mb-16 flex justify-center items-start">
-      <div className={`page relative w-full max-w-[1000px] rounded-2xl bg-white shadow-lg pt-4 px-8 md:px-12 ${className}`}>
+      <div className={`page relative w-full max-w-[1000px] rounded-2xl bg-white shadow-lg pt-4 px-8 md:px-12 pb-8 ${className}`}>
         {icon && (
           <div className="icon absolute -top-2 -left-2 sm:-top-[21px] sm:-left-[21px] z-10 bg-white rounded-full shadow p-2 sm:p-3 flex items-center justify-center w-10 h-10 sm:w-16 sm:h-16">
             {React.isValidElement(icon) && typeof icon.type === 'string'

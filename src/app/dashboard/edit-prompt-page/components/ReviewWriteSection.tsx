@@ -1,5 +1,7 @@
 import React from 'react';
 import { FaStar, FaMagic, FaGoogle, FaYelp, FaFacebook, FaTripadvisor, FaRegStar } from 'react-icons/fa';
+import { Input } from "@/app/components/ui/input";
+import { Textarea } from "@/app/components/ui/textarea";
 
 export interface ReviewWritePlatform {
   name: string;
@@ -8,6 +10,8 @@ export interface ReviewWritePlatform {
   customPlatform?: string;
   customInstructions?: string;
   reviewText?: string;
+  verified: boolean;
+  verified_at: string;
 }
 
 interface ReviewWriteSectionProps {
@@ -59,7 +63,7 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
     );
     onChange(newPlatforms);
   };
-  const addPlatform = () => onChange([...value, { name: '', url: '', wordCount: 200, reviewText: '' }]);
+  const addPlatform = () => onChange([...value, { name: '', url: '', wordCount: 200, reviewText: '', verified: false, verified_at: '' }]);
   const removePlatform = (idx: number) => onChange(value.filter((_, i) => i !== idx));
 
   return (
@@ -97,7 +101,7 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
               <div className="flex gap-2 items-center">
                 <div className="flex flex-col w-1/4">
                   <select
-                    className="border px-3 py-2 rounded-lg bg-white"
+                    className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
                     value={platform.name}
                     onChange={e => handlePlatformChange(idx, 'name', e.target.value)}
                     required
@@ -107,9 +111,9 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
                     ))}
                   </select>
                   {platform.name === 'Other' && (
-                    <input
+                    <Input
                       type="text"
-                      className="border px-3 py-2 rounded-lg bg-white mt-2"
+                      className="mt-2"
                       placeholder="Enter platform name"
                       value={platform.customPlatform || ''}
                       onChange={e => handlePlatformChange(idx, 'customPlatform', e.target.value)}
@@ -118,19 +122,47 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
                   )}
                 </div>
                 <div className="flex flex-col flex-1">
-                  <input
+                  <Input
                     type="url"
-                    className="border px-3 py-2 rounded-lg bg-white"
                     placeholder="Review URL"
                     value={platform.url}
                     onChange={e => handlePlatformChange(idx, 'url', e.target.value)}
                     required
                   />
+                  {platform.url && (
+                    <a
+                      href={platform.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 underline text-xs mt-1"
+                    >
+                      Check if Published
+                    </a>
+                  )}
+                  <div className="flex items-center gap-2 mt-2">
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        await fetch('/api/review-submissions/verify', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ id: platform.id }),
+                        });
+                        // Optionally, trigger a refresh or callback here
+                      }}
+                      disabled={platform.verified}
+                      className={`px-2 py-1 rounded text-xs ${platform.verified ? 'bg-green-200 text-green-700' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+                    >
+                      {platform.verified ? 'Verified' : 'Mark as Verified'}
+                    </button>
+                    {platform.verified && platform.verified_at && (
+                      <span className="text-xs text-green-700">({new Date(platform.verified_at).toLocaleDateString()})</span>
+                    )}
+                  </div>
                 </div>
                 <div className="flex flex-col w-1/6 ml-2">
-                  <input
+                  <Input
                     type="number"
-                    className="border px-3 py-2 rounded-lg bg-white"
                     placeholder="200"
                     value={platform.wordCount}
                     min={20}
@@ -141,8 +173,8 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
                 </div>
               </div>
               {/* Platform Instructions */}
-              <textarea
-                className="w-full border px-3 py-2 rounded-lg bg-gray-50 mt-2 text-sm"
+              <Textarea
+                className="w-full mt-2 text-sm"
                 placeholder="Platform instructions (e.g., Log in with Google before leaving a review)"
                 value={platform.customInstructions || ''}
                 onChange={e => handlePlatformChange(idx, 'customInstructions', e.target.value.slice(0, 160))}
@@ -153,8 +185,8 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
               {/* Review Text + AI Button */}
               <div className="flex flex-col gap-2 mt-2">
                 <label className="block text-xs font-medium text-gray-700 mb-1">Review</label>
-                <textarea
-                  className="w-full border px-3 py-2 rounded-lg bg-gray-50 text-sm"
+                <Textarea
+                  className="w-full text-sm"
                   placeholder="Write or generate a review for this platform"
                   value={platform.reviewText || ''}
                   onChange={e => handlePlatformChange(idx, 'reviewText', e.target.value.slice(0, REVIEW_CHAR_LIMIT))}

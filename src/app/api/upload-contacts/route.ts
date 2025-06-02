@@ -87,8 +87,8 @@ export async function POST(request: Request) {
           role: ['role'],
           review_type: ['reviewtype', 'review type'],
           friendly_note: ['friendlynote', 'friendly note'],
-          services_offered: ['servicesoffered', 'services offered'],
-          outcomes: ['outcomes']
+          features_or_benefits: ['featuresorbenefits', 'features or benefits'],
+          product_description: ['productdescription', 'product description']
         };
         // Map normalized header to expected field
         return headers.map((header: string) => {
@@ -161,8 +161,8 @@ export async function POST(request: Request) {
       role: record.role?.trim() || null,
       review_type: record.review_type?.trim() || null,
       friendly_note: record.friendly_note?.trim() || null,
-      services_offered: record.services_offered?.trim() || null,
-      outcomes: record.outcomes?.trim() || null,
+      features_or_benefits: record.features_or_benefits?.trim() || null,
+      product_description: record.product_description?.trim() || null,
       status: 'in_queue'
     }));
 
@@ -277,8 +277,8 @@ export async function POST(request: Request) {
           offer_url: contact.offer_url,
           status: 'draft',
           slug: slug,
-          services_offered: contact.services_offered,
-          outcomes: contact.outcomes,
+          features_or_benefits: contact.features_or_benefits,
+          product_description: contact.product_description,
           project_type: null,
           is_universal: false,
           team_member: null,

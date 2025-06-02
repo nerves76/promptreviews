@@ -82,7 +82,7 @@ export default function DashboardLayout({
   if (loading) return null;
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 pb-16 md:pb-24 lg:pb-32">
+    <div className="w-full bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 pb-16 md:pb-24 lg:pb-32">
       {children}
       {showTrialBanner && trialDaysLeft !== null && (
         <div className="w-full bg-yellow-200 text-yellow-900 px-4 py-3 flex items-center justify-center z-50 fixed top-0 left-0" style={{ minHeight: 56, position: 'relative' }}>

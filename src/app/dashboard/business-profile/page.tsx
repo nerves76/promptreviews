@@ -10,7 +10,7 @@ import { FaRegStar, FaPhone, FaMapMarkerAlt, FaImage, FaListAlt, FaInfoCircle, F
 import { getUserOrMock } from '@/utils/supabase';
 import BusinessForm from '../components/BusinessForm';
 import DashboardCard from '../components/DashboardCard';
-import FiveStarSpinner from '@/app/components/FiveStarSpinner';
+import AppLoader from '@/app/components/AppLoader';
 import PageCard from '@/app/components/PageCard';
 
 function Tooltip({ text }: { text: string }) {
@@ -55,7 +55,7 @@ export default function BusinessProfilePage() {
   useAuthGuard();
   const [form, setForm] = useState({
     name: "",
-    services_offered: "",
+    features_or_benefits: "",
     company_values: "",
     differentiators: "",
     years_in_business: "",
@@ -207,12 +207,12 @@ export default function BusinessProfilePage() {
         ai_donts: data.ai_donts || '',
       });
       setServices(
-        Array.isArray(data.services_offered)
-          ? data.services_offered
-          : (typeof data.services_offered === 'string' && data.services_offered.length > 0)
-            ? (data.services_offered.trim().startsWith('[') && data.services_offered.trim().endsWith(']')
-                ? (() => { try { return JSON.parse(data.services_offered); } catch { return [data.services_offered]; } })()
-                : data.services_offered.split('\n'))
+        Array.isArray(data.features_or_benefits)
+          ? data.features_or_benefits
+          : (typeof data.features_or_benefits === 'string' && data.features_or_benefits.length > 0)
+            ? (data.features_or_benefits.trim().startsWith('[') && data.features_or_benefits.trim().endsWith(']')
+                ? (() => { try { return JSON.parse(data.features_or_benefits); } catch { return [data.features_or_benefits]; } })()
+                : data.features_or_benefits.split('\n'))
             : [""]
       );
       // Initialize platforms from JSON or fallback
@@ -354,7 +354,7 @@ export default function BusinessProfilePage() {
       .from("businesses")
       .update({
         name: form.name,
-        services_offered: Array.isArray(services)
+        features_or_benefits: Array.isArray(services)
           ? services.filter((s: string) => s && s.trim())
           : typeof services === 'string'
             ? [services].filter((s: string) => s && s.trim())
@@ -405,11 +405,8 @@ export default function BusinessProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex justify-center items-start" style={{ minHeight: '100vh' }}>
-        <div className="text-center w-full mt-[150px]">
-          <FiveStarSpinner />
-          <p className="mt-4 text-white">Loading your business...</p>
-        </div>
+      <div style={{ position: 'fixed', top: -190, left: 0, width: '100%', zIndex: 9999 }}>
+        <AppLoader />
       </div>
     );
   }

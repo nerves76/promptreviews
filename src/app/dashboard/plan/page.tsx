@@ -2,9 +2,10 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import PricingModal from '../../components/PricingModal';
-import FiveStarSpinner from '../../components/FiveStarSpinner';
+import AppLoader from '@/app/components/AppLoader';
 import { useRouter } from 'next/navigation';
 import { tiers } from '../../components/PricingModal';
+import TopLoaderOverlay from '@/app/components/TopLoaderOverlay';
 
 export default function PlanPage() {
   const [account, setAccount] = useState<any>(null);
@@ -157,11 +158,8 @@ export default function PlanPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex justify-center items-start" style={{ minHeight: '100vh' }}>
-        <div className="text-center w-full mt-[150px]">
-          <FiveStarSpinner />
-          <p className="mt-4 text-white">Loading plans...</p>
-        </div>
+      <div style={{ position: 'fixed', top: -190, left: 0, width: '100%', zIndex: 9999 }}>
+        <AppLoader />
       </div>
     );
   }

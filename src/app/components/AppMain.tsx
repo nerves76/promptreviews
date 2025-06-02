@@ -2,7 +2,7 @@
 import { usePathname } from 'next/navigation';
 import Header from './Header';
 
-export default function AppMain({ children }: { children: React.ReactNode }) {
+export default function AppMain({ children, loader }: { children: React.ReactNode, loader?: React.ReactNode }) {
   const pathname = usePathname();
   const isPublic = pathname.startsWith('/r/') || pathname.startsWith('/prompt-pages/');
   if (isPublic) {
@@ -16,7 +16,8 @@ export default function AppMain({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
       <main>
         <Header />
-          {children}
+        {loader}
+        {children}
       </main>
     </div>
   );

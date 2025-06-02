@@ -10,7 +10,8 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import PageCard from '@/app/components/PageCard';
-import FiveStarSpinner from '@/app/components/FiveStarSpinner';
+import AppLoader from '@/app/components/AppLoader';
+import TopLoaderOverlay from '@/app/components/TopLoaderOverlay';
 
 // Helper to convert hex to rgba
 function hexToRgba(hex: string, alpha: number) {
@@ -178,6 +179,10 @@ export default function WidgetPage() {
     reviewGroups.push(reviews.slice(i, i + 3));
   }
 
+  if (loading) {
+    return <TopLoaderOverlay />;
+  }
+
   if (!isClient) return null;
 
   return (
@@ -204,9 +209,8 @@ export default function WidgetPage() {
           }
         >
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-8 text-gray-500">
-              <FiveStarSpinner />
-              Loading reviews…
+            <div style={{ position: 'fixed', top: -190, left: 0, width: '100%', zIndex: 9999 }}>
+              <AppLoader />
             </div>
           ) : isClient && design.showGrid ? (
             <div className="relative w-full" style={{ minHeight: 220, padding: 0, overflow: 'hidden' }}>

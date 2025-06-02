@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { RefObject, useState, useEffect } from 'react';
+import { RefObject, useState, useEffect, useMemo } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { useAuthGuard } from '@/utils/authGuard';
 import { FaGlobe, FaHome, FaBuilding, FaHistory, FaBolt, FaRegComment, FaLink, FaHandsHelping, FaBoxOpen } from 'react-icons/fa';
@@ -8,7 +8,7 @@ import { MdDownload, MdEvent, MdVideoLibrary, MdPhotoCamera } from 'react-icons/
 import { getUserOrMock } from '@/utils/supabase';
 import QRCodeGenerator, { QR_FRAME_SIZES } from './components/QRCodeGenerator';
 import { useRouter } from 'next/navigation';
-import FiveStarSpinner from '@/app/components/FiveStarSpinner';
+import AppLoader from '@/app/components/AppLoader';
 
 interface DashboardContentProps {
   userName: string;
@@ -96,6 +96,10 @@ export default function DashboardContent({
   const [showTypeModal, setShowTypeModal] = useState(false);
   const [selectedType, setSelectedType] = useState('');
   const [copyLinkId, setCopyLinkId] = useState<string | null>(null);
+  const [showLimitModal, setShowLimitModal] = useState(false);
+  const [showPostSaveModal, setShowPostSaveModal] = useState(false);
+  const [postSaveData, setPostSaveData] = useState<{ url: string, phone?: string, email?: string, first_name?: string } | null>(null);
+  const [showStars, setShowStars] = useState(false);
   const router = useRouter();
 
   const supabase = createBrowserClient(
@@ -108,13 +112,19 @@ export default function DashboardContent({
       key: 'service',
       label: 'Service review',
       icon: <FaHandsHelping className="w-7 h-7 text-slate-blue" />,
-      description: 'Send to an individual and encourage them to edit/copy review and then post on any platform (Google, Yelp, BBB, etc.).'
+      description: 'Capture a review from a customer or client who loves what you do'
     },
     {
       key: 'photo',
       label: 'Photo + testimonial',
       icon: <MdPhotoCamera className="w-7 h-7 text-[#1A237E]" />,
-      description: 'Collect a photo and a written testimonial.'
+      description: 'Capture a headshot and testimonial to display on your website or in marketing materials.'
+    },
+    {
+      key: 'product',
+      label: 'Product review',
+      icon: <FaBoxOpen className="w-7 h-7 text-slate-blue" />,
+      description: 'Get a review from a customer who fancies your products'
     },
     {
       key: 'video',
@@ -130,15 +140,13 @@ export default function DashboardContent({
       description: 'For events, rentals, tours, and more.',
       comingSoon: true
     },
-    {
-      key: 'product',
-      label: 'Product review',
-      icon: <FaBoxOpen className="w-7 h-7 text-slate-blue" />,
-      description: 'Collect reviews for a specific product, including product description and features/benefits.'
-    },
   ];
 
   function handlePromptTypeSelect(typeKey: string) {
+    if ((isGrower && account && account.custom_prompt_page_count >= maxGrowerPages) || (isBuilder && account && account.custom_prompt_page_count >= maxBuilderPages)) {
+      setShowLimitModal(true);
+      return;
+    }
     setShowTypeModal(false);
     router.push(`/create-prompt-page?type=${typeKey}`);
   }
@@ -223,6 +231,38 @@ export default function DashboardContent({
 
     fetchPromptPages();
   }, [supabase]);
+
+  useEffect(() => {
+    const flag = localStorage.getItem('showPostSaveModal');
+    if (flag) {
+      try {
+        const data = JSON.parse(flag);
+        setPostSaveData(data);
+        setShowPostSaveModal(true);
+        localStorage.removeItem('showPostSaveModal');
+      } catch {}
+    }
+  }, []);
+
+  const starProps = useMemo(() => {
+    if (!showPostSaveModal) return [];
+    return Array.from({ length: 60 }).map(() => {
+      const left = Math.random() * 98 + Math.random() * 2;
+      const top = -40 - Math.random() * 360;
+      const fontSize = 32 + Math.random() * 8;
+      const animationDuration = 4 + Math.random() * 2;
+      const animationDelay = Math.random() * 0.5;
+      return {
+        left: `${left}%`,
+        top: `${top}px`,
+        fontSize: `${fontSize}px`,
+        color: '#FFD700',
+        opacity: 1,
+        animationDuration: `${animationDuration}s`,
+        animationDelay: `${animationDelay}s`,
+      };
+    });
+  }, [showPostSaveModal]);
 
   const updateStatus = async (pageId: string, newStatus: 'in_queue' | 'in_progress' | 'complete' | 'draft') => {
     try {
@@ -356,23 +396,16 @@ export default function DashboardContent({
     }
   };
 
-  // Soft lock for Grower plan: only allow access to first 3 prompt pages
+  // Soft lock for Grower plan: only allow access to first 4 prompt pages
   const isGrower = account?.plan === 'grower';
-  const maxGrowerPages = 3;
-  const accessiblePromptPages = isGrower ? sortedPromptPages.slice(0, maxGrowerPages) : sortedPromptPages;
-  const lockedPromptPages = isGrower ? sortedPromptPages.slice(maxGrowerPages) : [];
+  const isBuilder = account?.plan === 'builder';
+  const maxGrowerPages = 4;
+  const maxBuilderPages = 100;
+  const accessiblePromptPages = isGrower ? sortedPromptPages.slice(0, maxGrowerPages) : isBuilder ? sortedPromptPages.slice(0, maxBuilderPages) : sortedPromptPages;
+  const lockedPromptPages = isGrower ? sortedPromptPages.slice(maxGrowerPages) : isBuilder ? sortedPromptPages.slice(maxBuilderPages) : [];
 
   if (isLoading && !parentLoading) {
-    return (
-      <div className="min-h-screen">
-        <div className="w-full mx-auto bg-white rounded-lg shadow p-16">
-          <div className="text-center">
-            <FiveStarSpinner />
-            <p className="mt-4 text-gray-600">Loading prompt pages...</p>
-          </div>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return (
@@ -388,14 +421,13 @@ export default function DashboardContent({
               <button
                 onClick={e => {
                   e.preventDefault();
-                  if (isGrower && sortedPromptPages.length >= maxGrowerPages) {
-                    alert('Upgrade your plan to create more than 3 prompt pages.');
+                  if ((isGrower && sortedPromptPages.length >= maxGrowerPages) || (isBuilder && sortedPromptPages.length >= maxBuilderPages)) {
+                    setShowLimitModal(true);
                     return;
                   }
                   setShowTypeModal(true);
                 }}
-                className={`inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm whitespace-nowrap ${isGrower && sortedPromptPages.length >= maxGrowerPages ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-slate-blue text-white hover:bg-slate-blue/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-blue'}`}
-                disabled={isGrower && sortedPromptPages.length >= maxGrowerPages}
+                className={`inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm whitespace-nowrap ${(isGrower && sortedPromptPages.length >= maxGrowerPages) || (isBuilder && sortedPromptPages.length >= maxBuilderPages) ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-slate-blue text-white hover:bg-slate-blue/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-blue'}`}
               >
                 Create Prompt Page
               </button>
@@ -421,13 +453,13 @@ export default function DashboardContent({
                         </h2>
                       </div>
                       <div className="flex gap-4 items-center">
-                        <Link href={`/r/${universalPromptPage.slug}`} className="text-indigo-600 underline hover:text-indigo-800 hover:underline">
+                        <Link href={`/r/${universalPromptPage.slug}`} className="text-slate-blue underline hover:text-slate-blue/80 hover:underline">
                           View
                         </Link>
                         {universalPromptPage?.slug && (
                           <Link
                             href={universalPromptPage.slug === 'universal-diviner' ? '/dashboard/edit-prompt-page/universal' : `/dashboard/edit-prompt-page/${universalPromptPage.slug}`}
-                            className="text-indigo-600 underline hover:text-indigo-800 hover:underline"
+                            className="text-slate-blue underline hover:text-slate-blue/80 hover:underline"
                           >
                             Edit
                           </Link>
@@ -652,14 +684,14 @@ export default function DashboardContent({
                                   <div className="mt-[6px] flex gap-2">
                                     <Link
                                       href={`/r/${page.slug}`}
-                                      className="text-indigo-600 underline hover:text-indigo-800 hover:underline"
+                                      className="text-slate-blue underline hover:text-slate-blue/80 hover:underline"
                                     >
                                       View
                                     </Link>
                                     {page.slug && (
                                       <Link
                                         href={page.slug === 'universal-diviner' ? '/dashboard/edit-prompt-page/universal' : `/dashboard/edit-prompt-page/${page.slug}`}
-                                        className="text-indigo-600 underline hover:text-indigo-800 hover:underline"
+                                        className="text-slate-blue underline hover:text-slate-blue/80 hover:underline"
                                       >
                                         Edit
                                       </Link>
@@ -709,7 +741,7 @@ export default function DashboardContent({
                                     {!page.is_universal && (
                                       <button
                                         type="button"
-                                        className="inline-flex items-center px-2 py-1.5 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap w-full sm:w-auto"
+                                        className="inline-flex items-center px-2 py-1.5 bg-slate-blue text-white rounded hover:bg-slate-blue/80 text-sm font-medium shadow h-9 align-middle whitespace-nowrap w-full sm:w-auto"
                                         title="Copy link"
                                         onClick={async () => {
                                           try {
@@ -740,7 +772,7 @@ export default function DashboardContent({
                             {lockedPromptPages.length > 0 && (
                               <tr>
                                 <td colSpan={8} className="py-6 text-center bg-yellow-50 text-yellow-800 font-semibold">
-                                  <div className="mb-2">You have more than 3 prompt pages. Upgrade your plan to access the rest.</div>
+                                  <div className="mb-2">You have more than {isGrower ? maxGrowerPages : maxBuilderPages} prompt pages. Upgrade your plan to access the rest.</div>
                                   {lockedPromptPages.map(page => (
                                     <div key={page.id} className="flex items-center justify-between px-4 py-2 bg-yellow-100 rounded mb-2">
                                       <span className="font-medium">Prompt Page: {page.first_name || page.last_name || page.slug}</span>
@@ -842,25 +874,6 @@ export default function DashboardContent({
                 >
                   &times;
                 </button>
-                {/* Star Falling Animation */}
-                <div className="absolute inset-0 pointer-events-none z-0">
-                  {[...Array(20)].map((_, i) => (
-                    <span
-                      key={i}
-                      className="absolute animate-fall-star"
-                      style={{
-                        left: `${Math.random() * 100}%`,
-                        top: `${-Math.random() * 40}px`,
-                        fontSize: `${Math.random() * 16 + 16}px`,
-                        color: '#FFD700',
-                        opacity: 0.8 + Math.random() * 0.2,
-                        animationDelay: `${Math.random() * 1.5}s`,
-                      }}
-                    >
-                      ★
-                    </span>
-                  ))}
-                </div>
                 <h2 className="text-2xl font-bold mb-4 text-indigo-800 relative z-10">It's official.</h2>
                 <p className="mb-6 text-lg text-gray-700 font-semibold relative z-10">
                   You're a {account?.plan ? account.plan.charAt(0).toUpperCase() + account.plan.slice(1) : 'Member'}.<br />
@@ -925,7 +938,7 @@ export default function DashboardContent({
           {/* Prompt Type Selection Modal */}
           {showTypeModal && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-              <div className="bg-white rounded-lg shadow-lg p-8 max-w-lg w-full text-center relative">
+              <div className="bg-white rounded-lg shadow-lg p-8 max-w-3xl w-full text-center relative">
                 <button
                   className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl"
                   onClick={() => setShowTypeModal(false)}
@@ -934,7 +947,7 @@ export default function DashboardContent({
                   &times;
                 </button>
                 <h2 className="text-2xl font-bold text-slate-blue mb-6">Select prompt page type</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                   {promptTypes.map(type => (
                     <button
                       key={type.key}
@@ -953,6 +966,119 @@ export default function DashboardContent({
                   ))}
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* Prompt page limit exceeded modal */}
+          {showLimitModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+              <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full relative">
+                <button className="absolute top-2 right-2 text-gray-400 hover:text-gray-600" onClick={() => setShowLimitModal(false)} aria-label="Close">&times;</button>
+                <h2 className="text-2xl font-bold text-slate-blue mb-2">Prompt page limit exceeded</h2>
+                <p className="mb-6 text-gray-700">You have reached the maximum number of prompt pages for your plan. Upgrade to create more.</p>
+                <a href="/dashboard/plan" className="inline-block px-4 py-2 bg-slate-blue text-white rounded-lg font-medium hover:bg-slate-blue/90 transition">Upgrade Plan</a>
+              </div>
+            </div>
+          )}
+
+          {/* Post-save share modal with star fall animation */}
+          {showPostSaveModal && postSaveData && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+              {/* Star Falling Animation - behind modal, only after button click */}
+              {showStars && (
+                <div className="absolute inset-0 pointer-events-none z-0">
+                  {starProps.map((props, i) => (
+                    <span
+                      key={i}
+                      style={{
+                        position: 'absolute',
+                        left: props.left,
+                        top: props.top,
+                        pointerEvents: 'none',
+                        zIndex: 50,
+                      }}
+                    >
+                      <span
+                        className="absolute animate-fall"
+                        style={{
+                          color: props.color,
+                          fontSize: props.fontSize,
+                          left: 0,
+                          top: 0,
+                          animationDuration: props.animationDuration,
+                          animationDelay: props.animationDelay,
+                        }}
+                      >
+                        ★
+                      </span>
+                    </span>
+                  ))}
+                </div>
+              )}
+              {/* Modal content above animation */}
+              {!showStars && (
+                <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center relative z-10 overflow-hidden">
+                  <button
+                    className="absolute top-2 right-2 w-9 h-9 flex items-center justify-center rounded-full bg-white text-red-500 border border-red-200 shadow hover:bg-red-500 hover:text-white transition-colors text-xl z-20"
+                    onClick={() => {
+                      setShowStars(true);
+                      setTimeout(() => {
+                        setShowPostSaveModal(false);
+                        setShowStars(false);
+                      }, 6000);
+                    }}
+                    aria-label="Close"
+                  >
+                    &times;
+                  </button>
+                  <h2 className="text-2xl font-bold mb-4 text-indigo-800 relative z-10">Prompt Page Created!</h2>
+                  <p className="mb-4 text-gray-700 relative z-10">Share your new prompt page with your customer:</p>
+                  <div className="flex flex-col gap-3 mb-6 relative z-10">
+                    <a
+                      href={postSaveData.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block px-4 py-2 bg-slate-blue text-white rounded-lg font-medium hover:bg-slate-blue/90 transition"
+                    >
+                      View Prompt Page
+                    </a>
+                    {postSaveData.phone && (
+                      <button
+                        className="inline-block px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition"
+                        onClick={() => {
+                          const name = postSaveData.first_name || '[name]';
+                          const businessName = business?.name || '[Business]';
+                          const reviewUrl = `${window.location.origin}${postSaveData.url}`;
+                          const message = `Hi ${name}, do you have 1-3 minutes to leave a review for ${businessName}? I have a review you can use and everything. Positive reviews really help small business get found online. Thanks so much! ${reviewUrl}`;
+                          window.location.href = `sms:${postSaveData.phone}?&body=${encodeURIComponent(message)}`;
+                        }}
+                      >
+                        Send SMS
+                      </button>
+                    )}
+                    {postSaveData.email && (
+                      <a
+                        href={`mailto:${postSaveData.email}?subject=${encodeURIComponent('Quick Review Request')}&body=${encodeURIComponent(`Hi ${postSaveData.first_name || '[name]'}, do you have 1-3 minutes to leave a review for ${business?.name || '[Business]'}? I have a review you can use and everything. Positive reviews really help small business get found online. Thanks so much! ${window.location.origin}${postSaveData.url}`)}`}
+                        className="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition"
+                      >
+                        Send Email
+                      </a>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => {
+                      setShowStars(true);
+                      setTimeout(() => {
+                        setShowPostSaveModal(false);
+                        setShowStars(false);
+                      }, 6000);
+                    }}
+                    className="bg-gray-200 text-gray-700 px-6 py-2 rounded hover:bg-gray-300 font-semibold mt-2 relative z-10"
+                  >
+                    Close
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>

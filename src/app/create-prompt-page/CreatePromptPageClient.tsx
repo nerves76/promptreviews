@@ -13,8 +13,9 @@ import { slugify } from '@/utils/slugify';
 import PromptPageForm from '../components/PromptPageForm';
 import PageCard from '../components/PageCard';
 import ServicePromptPageForm from '../dashboard/edit-prompt-page/[slug]/ServicePromptPageForm';
-import ProductPromptPageForm, { ProductPromptFormState } from '../dashboard/edit-prompt-page/[slug]/ProductPromptPageForm';
+import ProductPromptPageForm from '../components/ProductPromptPageForm';
 import FiveStarSpinner from '../components/FiveStarSpinner';
+import AppLoader from '../components/AppLoader';
 
 interface ReviewPlatformLink {
   platform: string;
@@ -28,6 +29,7 @@ interface ReviewPlatformLink {
 interface BusinessProfile {
   business_name: string;
   services_offered: string[];
+  features_or_benefits: string[];
   company_values: string;
   differentiators: string;
   years_in_business: number;
@@ -52,10 +54,9 @@ const initialFormData = {
   last_name: '',
   email: '',
   phone: '',
-  outcomes: '',
+  product_description: '',
   review_platforms: [] as ReviewPlatformLink[],
   services_offered: [],
-  product_description: '',
   features_or_benefits: [],
   friendly_note: '',
   status: 'draft',
@@ -110,7 +111,7 @@ function mapToDbColumns(formData: any): any {
   }
   if (formData.review_type === 'product') {
     delete insertData.services_offered;
-    delete insertData.outcomes;
+    delete insertData.product_description;
   }
   // Filter to only allowed DB columns (from your schema)
   const allowedColumns = [
@@ -174,6 +175,11 @@ export default function CreatePromptPageClient() {
               ? businessData.services_offered
               : typeof businessData.services_offered === 'string'
                 ? [businessData.services_offered]
+                : [],
+            features_or_benefits: Array.isArray(businessData.features_or_benefits)
+              ? businessData.features_or_benefits
+              : typeof businessData.features_or_benefits === 'string'
+                ? [businessData.features_or_benefits]
                 : [],
           });
           if (businessData.default_offer_enabled) {
@@ -266,7 +272,7 @@ export default function CreatePromptPageClient() {
           first_name: formData.first_name,
           last_name: formData.last_name,
           project_type: formData.services_offered.join(', '),
-          outcomes: formData.outcomes,
+          product_description: formData.product_description,
         },
         formData.review_platforms[index].platform,
         formData.review_platforms[index].wordCount || 200,
@@ -306,7 +312,7 @@ export default function CreatePromptPageClient() {
           first_name: formData.first_name,
           last_name: formData.last_name,
           project_type: formData.services_offered.join(', '),
-          outcomes: formData.outcomes,
+          product_description: formData.product_description,
         },
         'Photo Testimonial',
         120,
@@ -357,7 +363,6 @@ export default function CreatePromptPageClient() {
         insertData.product_description = formData.product_description || '';
         insertData.features_or_benefits = formData.features_or_benefits || [];
         insertData.services_offered = undefined;
-        insertData.outcomes = undefined;
       } else {
         if (typeof insertData.services_offered === 'string') {
           const arr = insertData.services_offered
@@ -437,68 +442,8 @@ export default function CreatePromptPageClient() {
     }
   };
 
-  const handleProductSave = async (state: ProductPromptFormState) => {
-    setIsSaving(true);
-    setSaveError(null);
-    setSaveSuccess(null);
-    try {
-      const { data: { user } } = await getUserOrMock(supabase);
-      if (!user) throw new Error('No user found');
-      const { allowed, reason } = await checkAccountLimits(supabase, user.id, 'prompt_page');
-      if (!allowed) {
-        setUpgradeModalMessage(reason || 'You have reached your plan limit. Please upgrade to create more prompt pages.');
-        setShowUpgradeModal(true);
-        return;
-      }
-      const { data: businessData } = await supabase
-        .from('businesses')
-        .select('*')
-        .eq('account_id', user.id)
-        .single();
-      if (!businessData) throw new Error('No business found');
-      let insertData = {
-        ...state,
-        account_id: user.id,
-        status: 'draft',
-        slug: slugify(
-          (businessProfile?.business_name || 'business') + '-' + formData.first_name + '-' + formData.last_name,
-          Date.now() + '-' + Math.random().toString(36).substring(2, 8)
-        ),
-        product_description: state.product_description || '',
-        features_or_benefits: state.features_or_benefits || [],
-        offer_enabled: state.offerEnabled,
-        offer_title: state.offerTitle,
-        offer_body: state.offerBody,
-        offer_url: state.offerUrl,
-        review_platforms: state.reviewPlatforms,
-        services_offered: undefined,
-        outcomes: undefined,
-      };
-      // Map and filter to DB columns
-      insertData = mapToDbColumns(insertData);
-      console.log('InsertData to Supabase:', insertData);
-      const { data, error } = await supabase
-        .from('prompt_pages')
-        .insert([insertData])
-        .select()
-        .single();
-      if (error) throw error;
-      if (data && data.slug) {
-        setSavedPromptPageUrl(`/r/${data.slug}`);
-        localStorage.setItem('showPostSaveModal', JSON.stringify({ url: `/r/${data.slug}` }));
-        router.push('/dashboard');
-        return;
-      }
-      setSaveSuccess('Changes saved and published successfully!');
-    } catch (error) {
-      setSaveError(error instanceof Error ? error.message : 'Failed to save. Please try again.');
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
   if (!businessProfile) {
-    return <div className="w-full flex flex-col items-center justify-center min-h-[300px] py-16"><FiveStarSpinner /><div className="mt-4 text-slate-blue font-semibold text-lg">Loading...</div></div>;
+    return <AppLoader />;
   }
   if (formData.review_type === 'service') {
     // Ensure all required fields for service are present
@@ -544,12 +489,13 @@ export default function CreatePromptPageClient() {
       <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
         <PageCard icon={<FaStar />}>
           <ProductPromptPageForm
-            onSave={handleProductSave}
-            isLoading={isSaving}
-            initialData={formData}
-            showResetButton={false}
-            businessReviewPlatforms={[]}
-            onGenerateReview={handleGenerateAIReview}
+            mode="create"
+            initialData={{ ...formData, review_type: 'product' }}
+            onSave={handleStep1Submit}
+            onPublish={handleStep2Submit}
+            pageTitle="Create product prompt page"
+            supabase={supabase}
+            businessProfile={businessProfile}
           />
         </PageCard>
       </div>

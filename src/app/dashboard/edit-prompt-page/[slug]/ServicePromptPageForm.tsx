@@ -3,6 +3,7 @@ import OfferToggle from '../components/OfferToggle';
 import EmojiSentimentSection from '../components/EmojiSentimentSection';
 import ReviewWriteSection, { ReviewWritePlatform } from '../components/ReviewWriteSection';
 import { Input } from '@/app/components/ui/input';
+import { Textarea } from "@/app/components/ui/textarea";
 import { FaStar, FaHeart, FaSmile, FaThumbsUp, FaBolt, FaCoffee, FaWrench, FaRainbow, FaGlassCheers, FaDumbbell, FaPagelines, FaPeace } from 'react-icons/fa';
 import OfferSection from '../components/OfferSection';
 import DisableAIGenerationSection from '@/app/components/DisableAIGenerationSection';

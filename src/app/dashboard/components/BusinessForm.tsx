@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Cropper from 'react-easy-crop';
 import type { Area } from 'react-easy-crop';
-import { FaImage, FaShareAlt, FaGift, FaStar, FaList, FaMapMarkerAlt, FaClock, FaBuilding, FaInfoCircle } from 'react-icons/fa';
+import { FaImage, FaShareAlt, FaGift, FaStar, FaList, FaMapMarkerAlt, FaClock, FaBuilding, FaInfoCircle, FaRobot } from 'react-icons/fa';
 import IndustrySelector from '@/app/components/IndustrySelector';
 
 interface Platform {
@@ -76,6 +76,30 @@ function Tooltip({ text }: { text: string }) {
         >
           ?
         </span>
+      </button>
+      {show && (
+        <div className="absolute z-20 left-1/2 -translate-x-1/2 mt-2 w-56 p-2 bg-white border border-gray-200 rounded shadow text-xs text-gray-700">
+          {text}
+        </div>
+      )}
+    </span>
+  );
+}
+
+function RobotTooltip({ text }: { text: string }) {
+  const [show, setShow] = useState(false);
+  return (
+    <span className="relative inline-block align-middle ml-2">
+      <button
+        type="button"
+        tabIndex={0}
+        aria-label="Show AI info"
+        className="text-slate-blue hover:text-indigo-600 focus:outline-none"
+        onClick={() => setShow(v => !v)}
+        onBlur={() => setShow(false)}
+        style={{ lineHeight: 1 }}
+      >
+        <FaRobot className="inline-block w-4 h-4 align-middle cursor-pointer" title={text} />
       </button>
       {show && (
         <div className="absolute z-20 left-1/2 -translate-x-1/2 mt-2 w-56 p-2 bg-white border border-gray-200 rounded shadow text-xs text-gray-700">
@@ -199,8 +223,9 @@ export default function BusinessForm({
           Business info
         </h2>
         <div className="mb-4">
-          <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
+          <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center gap-1">
             Business name *
+            <RobotTooltip text="Made available for AI prompt generation." />
             <Tooltip text="The official name of your business as you want it to appear to customers." />
           </label>
           <input type="text" name="name" className="w-full border px-3 py-2 rounded" value={form.name} onChange={handleChange} required />
@@ -227,14 +252,31 @@ export default function BusinessForm({
           </div>
         </div>
         <div className="mb-4">
-          <label className="block font-semibold text-sm text-gray-500 mb-1">Business address *</label>
-          <input type="text" name="address_street" className="w-full border px-3 py-2 rounded mb-2" value={form.address_street} onChange={handleChange} required placeholder="Street Address" />
+          <label className="block font-semibold text-sm text-gray-500 mb-1">Business address</label>
+          <label className="block text-xs font-medium text-gray-500 mb-1" htmlFor="address_street">Street address</label>
+          <input type="text" id="address_street" name="address_street" className="w-full border px-3 py-2 rounded mb-4" value={form.address_street} onChange={handleChange} required placeholder="Street address" />
           <div className="flex gap-2 mb-2">
-            <input type="text" name="address_city" className="flex-1 border px-3 py-2 rounded" value={form.address_city} onChange={handleChange} required placeholder="City" />
-            <input type="text" name="address_state" className="w-24 border px-3 py-2 rounded" value={form.address_state} onChange={handleChange} required placeholder="State" />
-            <input type="text" name="address_zip" className="w-32 border px-3 py-2 rounded" value={form.address_zip} onChange={handleChange} required placeholder="ZIP" />
+            <div className="flex flex-col w-32">
+              <label className="block text-xs font-medium text-gray-500 mb-1 flex items-center gap-1" htmlFor="address_city">
+                City <RobotTooltip text="Made available for AI prompt generation." />
+              </label>
+              <input type="text" id="address_city" name="address_city" className="w-full border px-3 py-2 rounded mb-4" value={form.address_city} onChange={handleChange} required placeholder="City" />
+            </div>
+            <div className="flex flex-col w-20">
+              <label className="block text-xs font-medium text-gray-500 mb-1 flex items-center gap-1" htmlFor="address_state">
+                State <RobotTooltip text="Made available for AI prompt generation." />
+              </label>
+              <input type="text" id="address_state" name="address_state" className="w-full border px-3 py-2 rounded mb-4" value={form.address_state} onChange={handleChange} required placeholder="State" />
+            </div>
+            <div className="flex flex-col w-24">
+              <label className="block text-xs font-medium text-gray-500 mb-1 flex items-center gap-1" htmlFor="address_zip">
+                ZIP <RobotTooltip text="Made available for AI prompt generation." />
+              </label>
+              <input type="text" id="address_zip" name="address_zip" className="w-full border px-3 py-2 rounded mb-4" value={form.address_zip} onChange={handleChange} required placeholder="ZIP" />
+            </div>
           </div>
-          <input type="text" name="address_country" className="w-full border px-3 py-2 rounded" value={form.address_country} onChange={handleChange} required placeholder="Country" />
+          <label className="block text-xs font-medium text-gray-500 mb-1" htmlFor="address_country">Country</label>
+          <input type="text" id="address_country" name="address_country" className="w-full border px-3 py-2 rounded" value={form.address_country} onChange={handleChange} required placeholder="Country" />
         </div>
         {/* Industry Selector Integration */}
         <IndustrySelector
@@ -242,18 +284,17 @@ export default function BusinessForm({
           onChange={(industries, otherValue) => setForm((f: any) => ({ ...f, industry: industries, industry_other: otherValue ?? f.industry_other }))}
           otherValue={form.industry_other || ''}
           onOtherChange={val => setForm((f: any) => ({ ...f, industry_other: val }))}
-          required
           industryType={industryType}
           setIndustryType={setIndustryType}
-          label="Your Industry"
+          label={<span className="flex items-center gap-1">Your industry <RobotTooltip text="Made available for AI prompt generation." /></span>}
         />
         {(industryType === 'B2B' || industryType === 'Both') && (
           <div className="mb-4">
             <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
-              Industries you serve (If applicable) *
+              Industries you serve (if applicable)
               <Tooltip text="This helps Prompt AI understand your target audience and tailor reviews for your typical clients or customers." />
             </label>
-            <textarea name="industries_served" className="w-full border px-3 py-2 rounded" value={typeof form.industries_served === 'string' ? form.industries_served : Array.isArray(form.industries_served) ? form.industries_served.join(', ') : ''} onChange={handleChange} required />
+            <textarea name="industries_served" className="w-full border px-3 py-2 rounded" value={typeof form.industries_served === 'string' ? form.industries_served : Array.isArray(form.industries_served) ? form.industries_served.join(', ') : ''} onChange={handleChange} />
           </div>
         )}
       </div>
@@ -262,7 +303,7 @@ export default function BusinessForm({
         <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
           <FaList className="w-7 h-7 text-slate-blue" />
           Services
-          <Tooltip text="Prompt AI uses your services list to make reviews specific and relevant to what you offer." />
+          <RobotTooltip text="Made available for AI prompt generation." />
         </h2>
         <div className="space-y-2">
           {services.map((service, idx) => (
@@ -272,7 +313,6 @@ export default function BusinessForm({
                 className="w-full border px-3 py-2 rounded"
                 value={service}
                 onChange={e => handleServiceChange(idx, e.target.value)}
-                required
                 placeholder="e.g., Web Design"
               />
               {services.length > 1 && (
@@ -292,14 +332,14 @@ export default function BusinessForm({
         <div className="mb-4">
           <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
             Company values
-            <Tooltip text="Prompt AI uses your company values to generate reviews that reflect what matters most to your business." />
+            <RobotTooltip text="Made available for AI prompt generation." />
           </label>
           <textarea name="company_values" className="w-full border px-3 py-2 rounded" value={form.company_values} onChange={handleChange} />
         </div>
         <div className="mb-4">
           <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
             Differentiators / unique selling points
-            <Tooltip text="Prompt AI will highlight what makes your business unique in the generated reviews." />
+            <RobotTooltip text="Made available for AI prompt generation." />
           </label>
           <textarea name="differentiators" className="w-full border px-3 py-2 rounded" value={form.differentiators} onChange={handleChange} />
         </div>
@@ -310,14 +350,14 @@ export default function BusinessForm({
         <div className="mb-4">
           <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
             Taglines
-            <Tooltip text="Prompt AI can naturally include your taglines in reviews to boost your brand and recognition." />
+            <RobotTooltip text="Made available for AI prompt generation." />
           </label>
           <textarea name="taglines" className="w-full border px-3 py-2 rounded" value={form.taglines} onChange={handleChange} />
         </div>
         <div className="mb-4">
           <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
             Keywords (comma separated)
-            <Tooltip text="Prompt AI can include these keywords in reviews to help with SEO and brand visibility." />
+            <RobotTooltip text="Made available for AI prompt generation." />
           </label>
           <textarea
             name="keywords"
@@ -331,14 +371,14 @@ export default function BusinessForm({
         <div className="mb-4">
           <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
             AI Dos
-            <Tooltip text="What should the AI always do or say in reviews? (e.g., Always refer to us as 'Prompt Reviews', Always mention our 24/7 support, etc.)" />
+            <RobotTooltip text="Made available for AI prompt generation." />
           </label>
           <textarea name="ai_dos" className="w-full border px-3 py-2 rounded" value={form.ai_dos || ''} onChange={handleChange} placeholder="Always refer to us as 'Prompt Reviews'. Always mention our 24/7 support." />
         </div>
         <div className="mb-4">
           <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
             AI Don'ts
-            <Tooltip text="What should the AI avoid doing or saying? (e.g., Never call us 'PromptReviewz', Never mention pricing, etc.)" />
+            <RobotTooltip text="Made available for AI prompt generation." />
           </label>
           <textarea name="ai_donts" className="w-full border px-3 py-2 rounded" value={form.ai_donts || ''} onChange={handleChange} placeholder="Never call us 'PromptReviewz'. Never mention pricing." />
         </div>
@@ -420,10 +460,13 @@ export default function BusinessForm({
       </div>
       {/* Special Offer Section */}
       <div className="mb-16">
-        <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
+        <h2 className="mt-4 mb-2 text-2xl font-bold text-slate-blue flex items-center gap-3">
           <FaGift className="w-7 h-7 text-slate-blue" />
           Special offer
         </h2>
+        <div className="text-sm text-gray-600 mt-0 mb-4">
+          This is a global setting for a special offer. You can also set this at the prompt page level.
+        </div>
         <div className="mb-4">
           <div className="flex items-center justify-between mb-2">
             <label className="block text-lg font-semibold text-indigo-800 flex items-center">

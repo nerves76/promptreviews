@@ -3,7 +3,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { generateAIReview } from '@/utils/ai';
-import { FaGoogle, FaFacebook, FaYelp, FaTripadvisor, FaRegStar, FaGift, FaStar, FaHeart, FaThumbsUp, FaStore, FaSmile, FaGlobe, FaHandsHelping } from 'react-icons/fa';
+import { FaGoogle, FaFacebook, FaYelp, FaTripadvisor, FaRegStar, FaGift, FaStar, FaHeart, FaThumbsUp, FaStore, FaSmile, FaGlobe, FaHandsHelping, FaUser, FaWrench, FaBoxOpen } from 'react-icons/fa';
 import { IconType } from 'react-icons';
 import Link from 'next/link';
 import { getUserOrMock, getSessionOrMock } from '@/utils/supabase';
@@ -15,8 +15,9 @@ import FallingStarsSection from '@/app/components/FallingStarsSection';
 import DisableAIGenerationSection from '@/app/components/DisableAIGenerationSection';
 import ReviewWriteSection from '../components/ReviewWriteSection';
 import ServicePromptPageForm, { ServicePromptFormState } from './ServicePromptPageForm';
-import ProductPromptPageForm from './ProductPromptPageForm';
+import ProductPromptPageForm from '@/app/components/ProductPromptPageForm';
 import React from 'react';
+import AppLoader from '@/app/components/AppLoader';
 
 interface ReviewPlatformLink {
   name: string;
@@ -40,6 +41,7 @@ interface BusinessProfile {
   keywords: string;
   industry: string[];
   industry_other: string;
+  features_or_benefits: string[];
 }
 
 function Tooltip({ text }: { text: string }) {
@@ -96,7 +98,9 @@ export default function EditPromptPage() {
     last_name: '',
     email: '',
     phone: '',
-    outcomes: '',
+    product_name: '',
+    product_description: '',
+    features_or_benefits: [''],
     review_platforms: [] as ReviewPlatformLink[],
     services_offered: [] as string[],
     friendly_note: '',
@@ -105,7 +109,7 @@ export default function EditPromptPage() {
     industry: [] as string[],
     industry_other: '',
     review_type: 'prompt',
-    photo_url: '',
+    product_photo: '',
     emojiThankYouMessage: '',
     falling_icon: '',
   });
@@ -137,6 +141,7 @@ export default function EditPromptPage() {
   const [initialData, setInitialData] = useState<Partial<ServicePromptFormState> | null>(null);
   const [showResetButton, setShowResetButton] = useState(false);
   const [businessReviewPlatforms, setBusinessReviewPlatforms] = useState<ReviewPlatformLink[]>([]);
+  const [accountId, setAccountId] = useState('');
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -158,6 +163,8 @@ export default function EditPromptPage() {
         .eq('slug', params.slug)
         .single();
       if (promptError) throw promptError;
+
+      setAccountId(promptData.account_id || '');
 
       // Debug log
       console.log('Loaded promptData:', promptData);
@@ -196,7 +203,9 @@ export default function EditPromptPage() {
         last_name: promptData.last_name || '',
         email: promptData.email || '',
         phone: promptData.phone || '',
-        outcomes: promptData.outcomes || '',
+        product_name: promptData.product_name || '',
+        product_description: promptData.product_description || '',
+        features_or_benefits: promptData.features_or_benefits || [''],
         review_platforms: reviewPlatforms,
         services_offered: Array.isArray(promptData.services_offered)
           ? promptData.services_offered
@@ -208,12 +217,12 @@ export default function EditPromptPage() {
         role: promptData.role || '',
         industry: promptData.industry || [],
         industry_other: promptData.industry_other || '',
-        review_type: promptData.review_type || 'prompt',
-        photo_url: promptData.photo_url || '',
+        review_type: (promptData.review_type || '').toLowerCase().trim() === 'product' ? 'product' : 'service',
+        product_photo: promptData.product_photo || '',
         emojiThankYouMessage: promptData.emoji_thank_you_message || '',
         falling_icon: promptData.falling_icon || '',
       });
-      setPhotoUrl(promptData.photo_url || null);
+      setPhotoUrl(promptData.product_photo || null);
       setIsUniversal(!!promptData.is_universal || isUniversal);
       setOfferEnabled(!!promptData.offer_enabled);
       setOfferTitle(promptData.offer_title || 'Special Offer');
@@ -270,6 +279,7 @@ export default function EditPromptPage() {
             : typeof businessData.services_offered === 'string'
               ? [businessData.services_offered]
               : [],
+          features_or_benefits: businessData.features_or_benefits || [],
         });
         setFormData(prev => ({
           ...prev,
@@ -426,7 +436,7 @@ export default function EditPromptPage() {
           first_name: formData.first_name,
           last_name: formData.last_name,
           project_type: Array.isArray(formData.services_offered) ? formData.services_offered.join(', ') : formData.services_offered,
-          outcomes: formData.outcomes,
+          product_description: formData.product_description,
         },
         formData.review_platforms[index].name,
         formData.review_platforms[index].wordCount || 200,
@@ -475,7 +485,9 @@ export default function EditPromptPage() {
           last_name: data.last_name,
           email: data.email,
           phone: data.phone,
-          outcomes: data.outcomes,
+          product_name: data.product_name,
+          product_description: data.product_description,
+          product_photo: data.product_photo,
           review_platforms: data.review_platforms && data.review_platforms.length > 0
             ? data.review_platforms.map((link: any) => ({
                 name: link.name,
@@ -511,7 +523,9 @@ export default function EditPromptPage() {
           last_name: formData.last_name || null,
           phone: formData.phone || null,
           email: formData.email || null,
-          outcomes: formData.outcomes || null,
+          product_name: formData.product_name || null,
+          product_description: formData.product_description || null,
+          product_photo: formData.product_photo || null,
           friendly_note: formData.friendly_note || null,
           role: formData.role || null,
           review_type: formData.review_type || 'prompt',
@@ -551,7 +565,7 @@ export default function EditPromptPage() {
 
       // Only include valid columns in the payload
       const validColumns = [
-        'first_name', 'last_name', 'email', 'phone', 'outcomes', 'review_platforms', 'services_offered',
+        'first_name', 'last_name', 'email', 'phone', 'product_name', 'product_description', 'product_photo', 'review_platforms', 'services_offered',
         'friendly_note', 'status', 'role', 'review_type', 'offer_enabled', 'offer_title', 'offer_body',
         'offer_url', 'emoji_sentiment_enabled', 'emoji_sentiment_question', 'emoji_feedback_message',
         'emoji_thank_you_message', 'falling_icon', 'is_universal', 'slug', 'account_id', 'category',
@@ -596,7 +610,7 @@ export default function EditPromptPage() {
     }
   };
 
-  const handleFormSave = async (formState: ServicePromptFormState) => {
+  const handleFormSave = async (formState: ServicePromptFormState | any) => {
     setIsLoading(true);
     setError(null);
     setSuccessMessage(null);
@@ -613,35 +627,43 @@ export default function EditPromptPage() {
         .single();
       if (fetchError) throw fetchError;
       if (!promptPage) throw new Error('Prompt page not found');
-      // Merge step 1 (formData) and step 2 (formState) for full update
-      const updateData: any = {
-        // Step 1 fields
-        first_name: formData.first_name,
-        last_name: formData.last_name,
-        email: formData.email,
-        phone: formData.phone,
-        outcomes: formData.outcomes,
-        services_offered: formData.services_offered,
-        friendly_note: formData.friendly_note,
-        status: formData.status,
-        role: formData.role,
-        review_type: formData.review_type,
-        // Step 2 fields
-        offer_enabled: formState.offerEnabled,
-        offer_title: formState.offerTitle,
-        offer_body: formState.offerBody,
-        offer_url: formState.offerUrl,
-        emoji_sentiment_enabled: formState.emojiSentimentEnabled,
-        emoji_sentiment_question: formState.emojiSentimentQuestion,
-        emoji_feedback_message: formState.emojiFeedbackMessage,
-        emoji_thank_you_message: formState.emojiThankYouMessage,
-        review_platforms: formState.reviewPlatforms,
-        falling_icon: formState.fallingEnabled ? formState.fallingIcon : null,
-        ai_button_enabled: formState.aiButtonEnabled,
-      };
+      let updateData: any;
+      if (formData.review_type === 'product') {
+        // For product pages, formState is a flat object with all fields
+        updateData = { ...formData, ...formState };
+      } else {
+        // For service pages, formState is ServicePromptFormState
+        updateData = {
+          // Step 1 fields
+          first_name: formData.first_name,
+          last_name: formData.last_name,
+          email: formData.email,
+          phone: formData.phone,
+          product_name: formData.product_name,
+          product_description: formData.product_description,
+          product_photo: formData.product_photo,
+          services_offered: formData.services_offered,
+          friendly_note: formData.friendly_note,
+          status: formData.status,
+          role: formData.role,
+          review_type: formData.review_type,
+          // Step 2 fields
+          offer_enabled: formState.offerEnabled,
+          offer_title: formState.offerTitle,
+          offer_body: formState.offerBody,
+          offer_url: formState.offerUrl,
+          emoji_sentiment_enabled: formState.emojiSentimentEnabled,
+          emoji_sentiment_question: formState.emojiSentimentQuestion,
+          emoji_feedback_message: formState.emojiFeedbackMessage,
+          emoji_thank_you_message: formState.emojiThankYouMessage,
+          review_platforms: formState.reviewPlatforms,
+          falling_icon: formState.fallingEnabled ? formState.fallingIcon : null,
+          ai_button_enabled: formState.aiButtonEnabled,
+        };
+      }
       // Only include valid columns in the payload
       const validColumns = [
-        'first_name', 'last_name', 'email', 'phone', 'outcomes', 'services_offered', 'friendly_note', 'status', 'role', 'review_type',
+        'first_name', 'last_name', 'email', 'phone', 'product_name', 'product_description', 'product_photo', 'services_offered', 'friendly_note', 'status', 'role', 'review_type',
         'offer_enabled', 'offer_title', 'offer_body', 'offer_url',
         'emoji_sentiment_enabled', 'emoji_sentiment_question', 'emoji_feedback_message',
         'emoji_thank_you_message', 'review_platforms', 'falling_icon', 'ai_button_enabled'
@@ -745,256 +767,44 @@ export default function EditPromptPage() {
     });
   };
 
-  const renderStep1 = () => (
-    <div className="space-y-6">
-      <h3 className="text-lg font-semibold text-slate-blue mt-16 mb-2">Customer/Client Details</h3>
-      <div className="flex gap-4">
-        <div className="flex-1">
-          <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 mt-4 mb-2">First name</label>
-          <input
-            type="text"
-            id="first_name"
-            value={formData.first_name}
-            onChange={e => setFormData(prev => ({ ...prev, first_name: e.target.value }))}
-            className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
-            placeholder="First Name"
-            required
-          />
-        </div>
-        <div className="flex-1">
-          <label htmlFor="last_name" className="block text-sm font-medium text-gray-700 mt-4 mb-2">Last name</label>
-          <input
-            type="text"
-            id="last_name"
-            value={formData.last_name}
-            onChange={e => setFormData(prev => ({ ...prev, last_name: e.target.value }))}
-            className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
-            placeholder="Last Name"
-            required
-          />
-        </div>
-      </div>
-      <div className="flex gap-4">
-        <div className="flex-1">
-          <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mt-4 mb-2">Phone Number</label>
-          <input
-            type="tel"
-            id="phone"
-            value={formData.phone || ''}
-            onChange={e => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-            className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
-            placeholder="Phone number"
-          />
-        </div>
-        <div className="flex-1">
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mt-4 mb-2">Email</label>
-          <input
-            type="email"
-            id="email"
-            value={formData.email || ''}
-            onChange={e => setFormData(prev => ({ ...prev, email: e.target.value }))}
-            className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
-            placeholder="Email address"
-          />
-        </div>
-      </div>
-
-      <div>
-        <label htmlFor="role" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center">
-          Role/position
-          <Tooltip text="The role or position of the reviewer helps AI generate more relevant and personalized reviews. For example, a Store Manager might focus on different aspects than a Customer." />
-        </label>
-        <input
-          type="text"
-          id="role"
-          value={formData.role}
-          onChange={e => setFormData(prev => ({ ...prev, role: e.target.value }))}
-          className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
-          placeholder="e.g., Store Manager, Marketing Director, Student"
-        />
-      </div>
-
-      <div>
-        <label htmlFor="outcomes" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center">
-          Outcome
-          <Tooltip text="Describe the results and benefits the client received. This information helps AI generate more specific and impactful reviews that highlight the value provided." />
-        </label>
-        <p className="text-xs text-gray-500 mt-1 mb-2">Describe the service you provided and how it benefited the individual.</p>
-        <textarea
-          id="outcomes"
-          value={formData.outcomes}
-          onChange={e => setFormData(prev => ({ ...prev, outcomes: e.target.value }))}
-          rows={4}
-          className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
-          placeholder="Describe the outcome for your client"
-          required
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mt-4 mb-2">
-          Services provided
-        </label>
-        <div className="space-y-2">
-          {services.map((service, idx) => (
-            <div key={idx} className="flex items-center gap-2">
-              <input
-                type="text"
-                className="w-full border px-3 py-2 rounded"
-                value={service}
-                onChange={e => {
-                  const newServices = [...services];
-                  newServices[idx] = e.target.value;
-                  setServices(newServices);
-                  setFormData(prev => ({ ...prev, services_offered: newServices }));
-                }}
-                required
-                placeholder="e.g., Web Design"
-              />
-              {services.length > 1 && (
-                <button type="button" onClick={() => {
-                  const newServices = services.filter((_, i) => i !== idx);
-                  setServices(newServices);
-                  setFormData(prev => ({ ...prev, services_offered: newServices }));
-                }} className="text-red-600 font-bold">&times;</button>
-              )}
-            </div>
-          ))}
-          <button type="button" onClick={() => {
-            setServices([...services, '']);
-            setFormData(prev => ({ ...prev, services_offered: [...services, ''] }));
-          }} className="text-blue-600 underline mt-2">+ Add Service</button>
-        </div>
-      </div>
-
-      <div>
-        <label htmlFor="friendly_note" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center">
-          Personalized note to customer
-          <Tooltip text="This note appears at the top of the review page. It helps set the context and tone for the review. The AI will use this information to generate more personalized and relevant reviews." />
-        </label>
-        <textarea
-          id="friendly_note"
-          value={formData.friendly_note}
-          onChange={e => setFormData(prev => ({ ...prev, friendly_note: e.target.value }))}
-          rows={4}
-          className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
-          placeholder={`Hi ${formData.first_name || '[name]'}, thanks so much for doing business with ${businessProfile?.business_name || '[business name]'}. As a small business, getting reviews online is super valuable and extends our reach. Thank you for supporting us!\n\n- ${businessProfile?.business_name || '[Account holder name]'}`}
-        />
-        <p className="text-xs text-gray-500 mt-1 mb-2">This note will appear at the top of the review page for your customer. Make it personal!</p>
-      </div>
-
-      <div className="flex justify-end items-center mt-8 pt-6 border-t pb-8">
-        <button
-          type="button"
-          onClick={handleSaveAndContinue}
-          className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-          disabled={isLoading}
-        >
-          Save & Continue
-        </button>
-      </div>
-    </div>
-  );
-
-  const renderStep2 = () => {
-    const safeBusinessReviewPlatforms = businessReviewPlatforms.map(p => ({ ...p, wordCount: typeof p.wordCount === 'number' ? p.wordCount : 200 }));
-    const safeInitialData = initialData
-      ? { ...initialData, reviewPlatforms: initialData.reviewPlatforms?.map(p => ({ ...p, wordCount: typeof p.wordCount === 'number' ? p.wordCount : 200 })) }
-      : initialData;
-    if (formData.review_type === 'product') {
-      return (
-        <div className="space-y-6">
-          {safeInitialData && (
-            <ProductPromptPageForm
-              ref={formRef}
-              onSave={handleFormSave}
-              isLoading={isLoading}
-              initialData={safeInitialData}
-              showResetButton={showResetButton}
-              businessReviewPlatforms={safeBusinessReviewPlatforms}
-              onGenerateReview={handleGenerateAIReview}
-            />
-          )}
-          <div className="flex justify-between items-center mt-8 pt-6 border-t pb-8">
-            <button
-              type="button"
-              onClick={() => setStep(1)}
-              className="rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
-            >
-              Back
-            </button>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => formRef.current && formRef.current.submit && formRef.current.submit()}
-                className="rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90"
-                disabled={isLoading}
-              >
-                Save
-              </button>
-              <a
-                href={params.slug ? `/r/${params.slug}` : '#'}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`px-4 py-2 rounded-md font-medium shadow border border-slate-blue text-slate-blue bg-white hover:bg-slate-50 transition ${!params.slug ? 'opacity-50 pointer-events-none' : ''}`}
-                tabIndex={params.slug ? 0 : -1}
-              >
-                View
-              </a>
-            </div>
-          </div>
-        </div>
-      );
-    }
+  if (isLoading) {
     return (
-      <div className="space-y-6">
-        {safeInitialData && (
-          <ServicePromptPageForm
-            ref={formRef}
-            onSave={handleFormSave}
-            isLoading={isLoading}
-            initialData={safeInitialData}
-            showResetButton={showResetButton}
-            businessReviewPlatforms={safeBusinessReviewPlatforms}
-            onGenerateReview={handleGenerateAIReview}
-          />
-        )}
-        <div className="flex justify-between items-center mt-8 pt-6 border-t pb-8">
-          <button
-            type="button"
-            onClick={() => setStep(1)}
-            className="rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
-          >
-            Back
-          </button>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => formRef.current && formRef.current.submit && formRef.current.submit()}
-              className="rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90"
-              disabled={isLoading}
-            >
-              Save
-            </button>
-            <a
-              href={params.slug ? `/r/${params.slug}` : '#'}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`px-4 py-2 rounded-md font-medium shadow border border-slate-blue text-slate-blue bg-white hover:bg-slate-50 transition ${!params.slug ? 'opacity-50 pointer-events-none' : ''}`}
-              tabIndex={params.slug ? 0 : -1}
-            >
-              View
-            </a>
-          </div>
-        </div>
+      <div style={{ position: 'fixed', top: -190, left: 0, width: '100%', zIndex: 9999 }}>
+        <AppLoader />
       </div>
     );
+  }
+
+  if (!businessProfile) {
+    return null;
+  }
+
+  // Ensure all required fields are present and not undefined
+  const safeBusinessProfile = {
+    ...businessProfile,
+    features_or_benefits: businessProfile.features_or_benefits || [],
+    business_name: businessProfile.business_name || '',
   };
 
-  // Main return for EditPromptPage
+  // In the main render, for product pages, render only the unified ProductPromptPageForm and return immediately
+  if (formData.review_type === 'product') {
+    return (
+      <PageCard icon={<FaBoxOpen className="w-9 h-9 text-slate-blue" />}>
+        <ProductPromptPageForm
+          mode="edit"
+          initialData={formData}
+          onSave={handleFormSave}
+          pageTitle="Edit Product Prompt Page"
+          supabase={supabase}
+          businessProfile={businessProfile}
+        />
+      </PageCard>
+    );
+  }
+
   return (
     <PageCard
-      icon={<FaHandsHelping />}
+      icon={<FaHandsHelping className="w-9 h-9 text-slate-blue" />}
       topRightAction={step === 2 ? (
         <div className="flex gap-2">
           <button
@@ -1029,7 +839,311 @@ export default function EditPromptPage() {
       ) : undefined}
     >
       <h1 className="text-3xl font-bold text-slate-blue mb-8 mt-2">Service Prompt Page</h1>
-      {step === 1 ? renderStep1() : renderStep2()}
+      {step === 1 ? (
+        <div className="space-y-6">
+          <h3 className="text-lg font-semibold text-slate-blue mt-16 mb-2 flex items-center gap-2">
+            <FaUser className="w-6 h-6 text-slate-blue" />
+            Customer/Client Details
+          </h3>
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 mt-4 mb-2">First name</label>
+              <input
+                type="text"
+                id="first_name"
+                value={formData.first_name}
+                onChange={e => setFormData(prev => ({ ...prev, first_name: e.target.value }))}
+                className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+                placeholder="First Name"
+                required
+              />
+            </div>
+            <div className="flex-1">
+              <label htmlFor="last_name" className="block text-sm font-medium text-gray-700 mt-4 mb-2">Last name</label>
+              <input
+                type="text"
+                id="last_name"
+                value={formData.last_name}
+                onChange={e => setFormData(prev => ({ ...prev, last_name: e.target.value }))}
+                className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+                placeholder="Last Name"
+                required
+              />
+            </div>
+          </div>
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mt-4 mb-2">Phone Number</label>
+              <input
+                type="tel"
+                id="phone"
+                value={formData.phone || ''}
+                onChange={e => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+                placeholder="Phone number"
+              />
+            </div>
+            <div className="flex-1">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mt-4 mb-2">Email</label>
+              <input
+                type="email"
+                id="email"
+                value={formData.email || ''}
+                onChange={e => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+                placeholder="Email address"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="role" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center">
+              Role/position
+              <Tooltip text="This will appear on the prompt page and your customer/client can edit it. So, you don't need to add it if you are unsure." />
+            </label>
+            <input
+              type="text"
+              id="role"
+              value={formData.role}
+              onChange={e => setFormData(prev => ({ ...prev, role: e.target.value }))}
+              className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+              placeholder="e.g., Store Manager, Marketing Director, Student"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="product_description" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center">
+              Outcome
+              <Tooltip text="Describe the results and benefits the client received. This information helps AI generate more specific and impactful reviews that highlight the value provided." />
+            </label>
+            <p className="text-xs text-gray-500 mt-1 mb-2">Describe the service you provided and how it benefited the individual.</p>
+            <textarea
+              id="product_description"
+              value={formData.product_description}
+              onChange={e => setFormData(prev => ({ ...prev, product_description: e.target.value }))}
+              rows={4}
+              className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+              placeholder="Describe the outcome for your client"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mt-4 mb-2">
+              Services provided
+            </label>
+            <div className="space-y-2">
+              {services.map((service, idx) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    className="w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+                    value={service}
+                    onChange={e => {
+                      const newServices = [...services];
+                      newServices[idx] = e.target.value;
+                      setServices(newServices);
+                      setFormData(prev => ({ ...prev, services_offered: newServices }));
+                    }}
+                    required
+                    placeholder="e.g., Web Design"
+                  />
+                  {services.length > 1 && (
+                    <button type="button" onClick={() => {
+                      const newServices = services.filter((_, i) => i !== idx);
+                      setServices(newServices);
+                      setFormData(prev => ({ ...prev, services_offered: newServices }));
+                    }} className="text-red-600 font-bold">&times;</button>
+                  )}
+                </div>
+              ))}
+              <button type="button" onClick={() => {
+                setServices([...services, '']);
+                setFormData(prev => ({ ...prev, services_offered: [...services, ''] }));
+              }} className="text-blue-600 underline mt-2">+ Add Service</button>
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="friendly_note" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center">
+              Personalized note to customer
+              <Tooltip text="This note appears at the top of the review page. It helps set the context and tone for the review. The AI will use this information to generate more personalized and relevant reviews." />
+            </label>
+            <textarea
+              id="friendly_note"
+              value={formData.friendly_note}
+              onChange={e => setFormData(prev => ({ ...prev, friendly_note: e.target.value }))}
+              rows={4}
+              className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+              placeholder={`Hi ${formData.first_name || '[name]'}, thanks so much for doing business with ${businessProfile.business_name || '[business name]'}. As a small business, getting reviews online is super valuable and extends our reach. Thank you for supporting us!\n\n- ${businessProfile.business_name || '[Account holder name]'}`}
+            />
+            <p className="text-xs text-gray-500 mt-1 mb-2">This note will appear at the top of the review page for your customer. Make it personal!</p>
+          </div>
+
+          <div className="flex justify-end items-center mt-8 pt-6 border-t pb-8">
+            <button
+              type="button"
+              onClick={handleSaveAndContinue}
+              className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+              disabled={isLoading}
+            >
+              Save & Continue
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          <h3 className="text-lg font-semibold text-slate-blue mt-16 mb-2 flex items-center gap-2">
+            <FaUser className="w-6 h-6 text-slate-blue" />
+            Customer/Client Details
+          </h3>
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 mt-4 mb-2">First name</label>
+              <input
+                type="text"
+                id="first_name"
+                value={formData.first_name}
+                onChange={e => setFormData(prev => ({ ...prev, first_name: e.target.value }))}
+                className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+                placeholder="First Name"
+                required
+              />
+            </div>
+            <div className="flex-1">
+              <label htmlFor="last_name" className="block text-sm font-medium text-gray-700 mt-4 mb-2">Last name</label>
+              <input
+                type="text"
+                id="last_name"
+                value={formData.last_name}
+                onChange={e => setFormData(prev => ({ ...prev, last_name: e.target.value }))}
+                className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+                placeholder="Last Name"
+                required
+              />
+            </div>
+          </div>
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mt-4 mb-2">Phone Number</label>
+              <input
+                type="tel"
+                id="phone"
+                value={formData.phone || ''}
+                onChange={e => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+                placeholder="Phone number"
+              />
+            </div>
+            <div className="flex-1">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mt-4 mb-2">Email</label>
+              <input
+                type="email"
+                id="email"
+                value={formData.email || ''}
+                onChange={e => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+                placeholder="Email address"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="role" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center">
+              Role/position
+              <Tooltip text="This will appear on the prompt page and your customer/client can edit it. So, you don't need to add it if you are unsure." />
+            </label>
+            <input
+              type="text"
+              id="role"
+              value={formData.role}
+              onChange={e => setFormData(prev => ({ ...prev, role: e.target.value }))}
+              className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+              placeholder="e.g., Store Manager, Marketing Director, Student"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="product_description" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center">
+              Outcome
+              <Tooltip text="Describe the results and benefits the client received. This information helps AI generate more specific and impactful reviews that highlight the value provided." />
+            </label>
+            <p className="text-xs text-gray-500 mt-1 mb-2">Describe the service you provided and how it benefited the individual.</p>
+            <textarea
+              id="product_description"
+              value={formData.product_description}
+              onChange={e => setFormData(prev => ({ ...prev, product_description: e.target.value }))}
+              rows={4}
+              className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+              placeholder="Describe the outcome for your client"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mt-4 mb-2">
+              Services provided
+            </label>
+            <div className="space-y-2">
+              {services.map((service, idx) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    className="w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+                    value={service}
+                    onChange={e => {
+                      const newServices = [...services];
+                      newServices[idx] = e.target.value;
+                      setServices(newServices);
+                      setFormData(prev => ({ ...prev, services_offered: newServices }));
+                    }}
+                    required
+                    placeholder="e.g., Web Design"
+                  />
+                  {services.length > 1 && (
+                    <button type="button" onClick={() => {
+                      const newServices = services.filter((_, i) => i !== idx);
+                      setServices(newServices);
+                      setFormData(prev => ({ ...prev, services_offered: newServices }));
+                    }} className="text-red-600 font-bold">&times;</button>
+                  )}
+                </div>
+              ))}
+              <button type="button" onClick={() => {
+                setServices([...services, '']);
+                setFormData(prev => ({ ...prev, services_offered: [...services, ''] }));
+              }} className="text-blue-600 underline mt-2">+ Add Service</button>
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="friendly_note" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center">
+              Personalized note to customer
+              <Tooltip text="This note appears at the top of the review page. It helps set the context and tone for the review. The AI will use this information to generate more personalized and relevant reviews." />
+            </label>
+            <textarea
+              id="friendly_note"
+              value={formData.friendly_note}
+              onChange={e => setFormData(prev => ({ ...prev, friendly_note: e.target.value }))}
+              rows={4}
+              className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+              placeholder={`Hi ${formData.first_name || '[name]'}, thanks so much for doing business with ${businessProfile.business_name || '[business name]'}. As a small business, getting reviews online is super valuable and extends our reach. Thank you for supporting us!\n\n- ${businessProfile.business_name || '[Account holder name]'}`}
+            />
+            <p className="text-xs text-gray-500 mt-1 mb-2">This note will appear at the top of the review page for your customer. Make it personal!</p>
+          </div>
+
+          <div className="flex justify-end items-center mt-8 pt-6 border-t pb-8">
+            <button
+              type="button"
+              onClick={handleSaveAndContinue}
+              className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+              disabled={isLoading}
+            >
+              Save & Continue
+            </button>
+          </div>
+        </div>
+      )}
     </PageCard>
   );
 }

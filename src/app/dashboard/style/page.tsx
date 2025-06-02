@@ -7,7 +7,8 @@ import { HexColorPicker } from 'react-colorful';
 import { FaPalette, FaSwatchbook } from 'react-icons/fa';
 import { getUserOrMock } from '@/utils/supabase';
 import PageCard from '@/app/components/PageCard';
-import FiveStarSpinner from '@/app/components/FiveStarSpinner';
+import AppLoader from '@/app/components/AppLoader';
+import TopLoaderOverlay from '@/app/components/TopLoaderOverlay';
 
 interface StyleSettings {
   primary_font: string;
@@ -175,11 +176,8 @@ export default function StylePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex justify-center items-center">
-        <div className="text-center">
-          <div className="mb-4"><FiveStarSpinner /></div>
-          <p className="mt-4 text-gray-600">Loading style settings...</p>
-        </div>
+      <div style={{ position: 'fixed', top: -190, left: 0, width: '100%', zIndex: 9999 }}>
+        <AppLoader />
       </div>
     );
   }

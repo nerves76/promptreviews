@@ -293,3 +293,29 @@ const mergedReviewPlatforms = universalPage.reviewPlatforms?.length
 ```
 
 ---
+
+## Global Loading Spinner and AppLoader
+
+To ensure a consistent loading experience across the app, use the `AppLoader` component for all loading states. This component displays a centered animated five-star spinner (default size 48) and the text "Loading…" in white, making it suitable for both light and dark backgrounds.
+
+### Usage
+
+Import and use `AppLoader` wherever you need a loading state:
+
+```tsx
+import AppLoader from '@/app/components/AppLoader';
+
+// ...
+if (isLoading) {
+  return <AppLoader />;
+}
+```
+
+### Details
+- The spinner is implemented by `FiveStarSpinner` with a default size of 48.
+- The loading text is always white and centered below the spinner.
+- This ensures all loading states look and feel the same throughout the app.
+
+If you need a custom loading message or style, consider extending `AppLoader` or passing props as needed.
+
+---

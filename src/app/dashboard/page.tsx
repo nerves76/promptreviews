@@ -10,6 +10,8 @@ import { getUserOrMock, getSessionOrMock } from '@/utils/supabase';
 import PricingModal from '../components/PricingModal';
 import FiveStarSpinner from '../components/FiveStarSpinner';
 import PageCard from '../components/PageCard';
+import AppLoader from '../components/AppLoader';
+import TopLoaderOverlay from '../components/TopLoaderOverlay';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -233,14 +235,19 @@ export default function Dashboard() {
 
   const isDashboardReady = !!user && !!account && !isLoading && !pendingAccountUpdate;
 
-  // Remove gating logic for debugging
-  // if (!isDashboardReady) {
-  //   return (
-  //     <div className="min-h-screen flex items-center justify-center">
-  //       <FiveStarSpinner />
-  //     </div>
-  //   );
-  // }
+  if (!isDashboardReady) {
+    return (
+      <div style={{
+        position: 'fixed',
+        top: -190,
+        left: 0,
+        width: '100%',
+        zIndex: 9999
+      }}>
+        <AppLoader />
+      </div>
+    );
+  }
 
   if (error) {
     return (
@@ -262,23 +269,8 @@ export default function Dashboard() {
     (user?.email?.split('@')[0]) ||
     'there';
 
-  // Add a function to force refetch account data
-  const forceRefetchAccount = async () => {
-    if (!user) return;
-    const { data: accountData } = await supabase
-      .from('accounts')
-      .select('*')
-      .eq('id', user.id)
-      .single();
-    setAccount(accountData);
-    console.log('Force refetched account:', accountData);
-  };
-
   return (
-    <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
-      {/* Dashboard content goes here */}
-      {/* Debug: Manual refetch account button */}
-      <button onClick={forceRefetchAccount} className="fixed bottom-4 right-4 bg-indigo-600 text-white px-4 py-2 rounded shadow-lg z-50">Refetch Account</button>
+    <div className="min-h-screen flex items-start px-4 sm:px-0">
       {/* Post-save share modal */}
       {showPostSaveModal && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-40" onClick={() => setShowPostSaveModal(false)}>

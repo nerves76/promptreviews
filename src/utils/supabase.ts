@@ -17,8 +17,8 @@ export type PromptPage = {
   location: string;
   tone_of_voice: string;
   project_type: string;
-  services_offered: string;
-  outcomes: string;
+  features_or_benefits: string;
+  product_description: string;
   date_completed: string;
   team_member: string | null;
   review_platforms: {

@@ -10,6 +10,8 @@ import ReviewWriteSection from '../dashboard/edit-prompt-page/components/ReviewW
 import OfferSection from '../dashboard/edit-prompt-page/components/OfferSection';
 import EmojiSentimentSection from '../dashboard/edit-prompt-page/components/EmojiSentimentSection';
 import DisableAIGenerationSection from './DisableAIGenerationSection';
+import { Input } from "@/app/components/ui/input";
+import { Textarea } from "@/app/components/ui/textarea";
 
 // TODO: Move all form state, handlers, and UI from create-prompt-page/page.tsx and dashboard/edit-prompt-page/[slug]/page.tsx into this component.
 // Accept props for mode (create/edit), initial data, onSave/onPublish handlers, and page title.
@@ -92,7 +94,7 @@ export default function PromptPageForm({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [services, setServices] = useState<string[]>(initialData.services_offered || []);
+  const [services, setServices] = useState<string[]>(initialData.features_or_benefits || []);
   const [emojiSentimentEnabled, setEmojiSentimentEnabled] = useState(false);
   const [emojiSentimentQuestion, setEmojiSentimentQuestion] = useState('How was your experience?');
   const [emojiFeedbackMessage, setEmojiFeedbackMessage] = useState('We value your feedback! Let us know how we can do better.');
@@ -170,8 +172,8 @@ export default function PromptPageForm({
         {
           first_name: formData.first_name,
           last_name: formData.last_name,
-          project_type: formData.services_offered.join(', '),
-          outcomes: formData.outcomes,
+          project_type: formData.features_or_benefits.join(', '),
+          outcomes: formData.product_description,
         },
         formData.review_platforms[index].platform,
         formData.review_platforms[index].wordCount || 200,
@@ -203,8 +205,8 @@ export default function PromptPageForm({
         {
           first_name: formData.first_name,
           last_name: formData.last_name,
-          project_type: formData.services_offered.join(', '),
-          outcomes: formData.outcomes,
+          project_type: formData.features_or_benefits.join(', '),
+          outcomes: formData.product_description,
         },
         'Photo Testimonial',
         120,
@@ -338,7 +340,7 @@ export default function PromptPageForm({
                       id={`platform-${index}`}
                       value={link.platform}
                       onChange={e => handlePlatformChange(index, 'platform', e.target.value)}
-                      className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                      className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
                       required
                     >
                       <option value="">Select a platform</option>
@@ -357,7 +359,7 @@ export default function PromptPageForm({
                     {link.platform === 'Other' && (
                       <input
                         type="text"
-                        className="mt-2 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                        className="mt-2 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
                         placeholder="Enter platform name"
                         value={link.customPlatform || ''}
                         onChange={e => handlePlatformChange(index, 'customPlatform', e.target.value)}
@@ -375,7 +377,7 @@ export default function PromptPageForm({
                       value={link.url}
                       onChange={e => handlePlatformChange(index, 'url', e.target.value)}
                       placeholder="https://..."
-                      className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                      className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
                     />
                   </div>
                   <div className="mb-4">
@@ -387,7 +389,7 @@ export default function PromptPageForm({
                       id={`wordCount-${index}`}
                       value={link.wordCount ?? 200}
                       onChange={e => handlePlatformChange(index, 'wordCount', Math.max(200, parseInt(e.target.value) || 200))}
-                      className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                      className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
                       placeholder="Word count limit"
                       min="200"
                     />
@@ -402,7 +404,7 @@ export default function PromptPageForm({
                       value={link.customInstructions || ''}
                       onChange={e => handlePlatformChange(index, 'customInstructions', e.target.value)}
                       placeholder="Add custom instructions for this platform"
-                      className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4 min-h-[48px]"
+                      className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
                     />
                   </div>
                 </div>
@@ -446,7 +448,7 @@ export default function PromptPageForm({
               <label className="block text-xs font-medium text-gray-700 mb-1">Popup question (shown above the emojis):</label>
               <input
                 type="text"
-                className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-2 px-3"
+                className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
                 value={emojiSentimentQuestion}
                 onChange={e => setEmojiSentimentQuestion(e.target.value)}
                 placeholder="How was your experience?"
@@ -481,7 +483,7 @@ export default function PromptPageForm({
             <div className="mt-2">
               <label className="block text-xs font-medium text-gray-700 mb-1">Feedback message (shown to customers who select an indifferent or negative emoji):</label>
               <textarea
-                className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-2 px-3"
+                className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
                 value={emojiFeedbackMessage}
                 onChange={e => setEmojiFeedbackMessage(e.target.value)}
                 rows={2}
@@ -492,7 +494,7 @@ export default function PromptPageForm({
               <label className="block text-xs font-medium text-gray-700 mb-1">Submission thank you message (shown after feedback is submitted):</label>
               <input
                 type="text"
-                className="block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-2 px-3"
+                className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
                 value={formData.emojiThankYouMessage || ''}
                 onChange={e => setFormData((prev: any) => ({ ...prev, emojiThankYouMessage: e.target.value }))}
                 placeholder="Thank you for your feedback!"
@@ -573,14 +575,14 @@ export default function PromptPageForm({
               value={offerTitle ?? 'Special Offer'}
               onChange={e => setOfferTitle(e.target.value)}
               placeholder="Offer Title (e.g., Special Offer)"
-              className="block w-full rounded-md border border-indigo-200 bg-indigo-50 focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-2 px-3 mb-2 font-semibold"
+              className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner mb-2 font-semibold"
               disabled={!offerEnabled}
             />
             <textarea
               value={offerBody || ''}
               onChange={e => setOfferBody(e.target.value)}
               placeholder="Get 10% off your next visit"
-              className="block w-full rounded-md border border-indigo-200 bg-indigo-50 focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-3 px-4"
+              className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner py-3"
               rows={2}
               disabled={!offerEnabled}
             />
@@ -589,7 +591,7 @@ export default function PromptPageForm({
               value={offerUrl || ''}
               onChange={e => setOfferUrl(e.target.value)}
               placeholder="Offer URL (e.g., https://yourbusiness.com/claim-reward)"
-              className="block w-full rounded-md border border-indigo-200 bg-indigo-50 focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-2 px-3 mt-2"
+              className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner py-2"
               disabled={!offerEnabled}
             />
           </div>
@@ -708,7 +710,7 @@ export default function PromptPageForm({
                       id="first_name"
                       value={formData.first_name}
                       onChange={e => setFormData((prev: any) => ({ ...prev, first_name: e.target.value }))}
-                      className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                      className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
                       placeholder="Their first name"
                       required
                     />
@@ -720,7 +722,7 @@ export default function PromptPageForm({
                       id="last_name"
                       value={formData.last_name}
                       onChange={e => setFormData((prev: any) => ({ ...prev, last_name: e.target.value }))}
-                      className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                      className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
                       placeholder="Their last name"
                       required
                     />
@@ -737,7 +739,7 @@ export default function PromptPageForm({
                       id="phone"
                       value={formData.phone || ''}
                       onChange={e => setFormData((prev: any) => ({ ...prev, phone: e.target.value }))}
-                      className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                      className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
                       placeholder="Their phone number"
                     />
                   </div>
@@ -751,7 +753,7 @@ export default function PromptPageForm({
                       id="email"
                       value={formData.email || ''}
                       onChange={e => setFormData((prev: any) => ({ ...prev, email: e.target.value }))}
-                      className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                      className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
                       placeholder="Their email address"
                     />
                   </div>
@@ -766,7 +768,7 @@ export default function PromptPageForm({
                     id="role"
                     value={formData.role}
                     onChange={e => setFormData((prev: any) => ({ ...prev, role: e.target.value }))}
-                    className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                    className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
                     placeholder="e.g., store manager, marketing director, student (their role)"
                   />
                 </div>
@@ -782,7 +784,7 @@ export default function PromptPageForm({
                       value={formData.product_description || ''}
                       onChange={e => setFormData((prev: any) => ({ ...prev, product_description: e.target.value }))}
                       rows={4}
-                      className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                      className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
                       placeholder="Describe the product being reviewed"
                       required
                     />
@@ -836,7 +838,7 @@ export default function PromptPageForm({
                               const newServices = [...services];
                               newServices[idx] = e.target.value;
                               setServices(newServices);
-                              setFormData((prev: any) => ({ ...prev, services_offered: newServices }));
+                              setFormData((prev: any) => ({ ...prev, features_or_benefits: newServices }));
                             }}
                             required
                             placeholder="e.g., Web Design"
@@ -845,28 +847,28 @@ export default function PromptPageForm({
                             <button type="button" onClick={() => {
                               const newServices = services.filter((_, i) => i !== idx);
                               setServices(newServices);
-                              setFormData((prev: any) => ({ ...prev, services_offered: newServices }));
+                              setFormData((prev: any) => ({ ...prev, features_or_benefits: newServices }));
                             }} className="text-red-600 font-bold">&times;</button>
                           )}
                         </div>
                       ))}
                       <button type="button" onClick={() => {
                         setServices([...services, '']);
-                        setFormData((prev: any) => ({ ...prev, services_offered: [...services, ''] }));
+                        setFormData((prev: any) => ({ ...prev, features_or_benefits: [...services, ''] }));
                       }} className="text-blue-600 underline mt-2">+ Add Service</button>
                     </div>
                     <div>
-                      <label htmlFor="outcomes" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center">
+                      <label htmlFor="product_description" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center">
                         Outcome for them
                         <Tooltip text="Describe the results and benefits the client received. This information helps AI generate more specific and impactful reviews that highlight the value provided." />
                       </label>
                       <p className="text-xs text-gray-500 mt-1 mb-5 max-w-[85ch]">Describe the service you provided and how it benefited this individual.</p>
                       <textarea
-                        id="outcomes"
-                        value={formData.outcomes}
-                        onChange={e => setFormData((prev: any) => ({ ...prev, outcomes: e.target.value }))}
+                        id="product_description"
+                        value={formData.product_description}
+                        onChange={e => setFormData((prev: any) => ({ ...prev, product_description: e.target.value }))}
                         rows={4}
-                        className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                        className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
                         placeholder="Describe the outcome for your client"
                         required
                       />
@@ -884,7 +886,7 @@ export default function PromptPageForm({
                     value={formData.friendly_note}
                     onChange={e => setFormData((prev: any) => ({ ...prev, friendly_note: e.target.value }))}
                     rows={4}
-                    className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                    className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
                     placeholder="Add a personal note for this customer/client"
                   />
                 </div>

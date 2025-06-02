@@ -149,9 +149,9 @@ export default function Header() {
                 Your business
               </Link>
               <Link
-                href="/dashboard/testimonials"
+                href="/dashboard/reviews"
                 className={`${
-                  isActive('/dashboard/testimonials')
+                  isActive('/dashboard/reviews')
                     ? 'border-[#1A237E] text-[#1A237E]'
                     : 'border-transparent text-[#1A237E] hover:border-[#1A237E]/30 hover:text-[#1A237E]'
                 } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16`}
@@ -200,7 +200,7 @@ export default function Header() {
                       ) : notifications.map(n => (
                         <a
                           key={n.id}
-                          href={`/dashboard/testimonials#${n.id}`}
+                          href={`/dashboard/reviews#${n.id}`}
                           className="px-4 py-3 border-b last:border-b-0 flex flex-col gap-1 hover:bg-gray-50 transition-colors cursor-pointer no-underline"
                           onClick={() => setShowNotif(false)}
                         >
@@ -211,7 +211,7 @@ export default function Header() {
                       ))}
                     </div>
                     <div className="border-t border-gray-100 px-4 py-2 text-center">
-                      <span className="text-xs text-indigo-700 font-semibold cursor-pointer">View all</span>
+                      <Link href="/dashboard/reviews" className="text-xs text-indigo-700 font-semibold hover:underline">View all</Link>
                     </div>
                   </div>
                 )}
@@ -311,9 +311,9 @@ export default function Header() {
                 Your business
               </Link>
               <Link
-                href="/dashboard/testimonials"
+                href="/dashboard/reviews"
                 className={`${
-                  isActive('/dashboard/testimonials')
+                  isActive('/dashboard/reviews')
                     ? 'bg-[#1A237E]/10 text-[#1A237E]'
                     : 'text-[#1A237E] hover:bg-[#1A237E]/10'
                 } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
@@ -355,6 +355,17 @@ export default function Header() {
                     onClick={() => setMenuOpen(false)}
                   >
                     Account
+                  </Link>
+                  <Link
+                    href="/dashboard/analytics"
+                    className={`${
+                      isActive('/dashboard/analytics')
+                        ? 'bg-[#1A237E]/10 text-[#1A237E]'
+                        : 'text-[#1A237E] hover:bg-[#1A237E]/10'
+                    } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Analytics
                   </Link>
                   <Link
                     href="/dashboard/plan"

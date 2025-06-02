@@ -7,7 +7,7 @@ import { FaUser, FaIdCard, FaSignOutAlt, FaChartLine, FaEnvelope, FaBell, FaUniv
 import Link from 'next/link';
 import { getUserOrMock } from '@/utils/supabase';
 import PageCard from '@/app/components/PageCard';
-import FiveStarSpinner from '@/app/components/FiveStarSpinner';
+import AppLoader from '@/app/components/AppLoader';
 
 export default function AccountPage() {
   const router = useRouter();
@@ -66,11 +66,8 @@ export default function AccountPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex justify-center items-start" style={{ minHeight: '100vh' }}>
-        <div className="text-center w-full mt-[150px]">
-          <FiveStarSpinner />
-          <p className="mt-4 text-white">Loading your account...</p>
-        </div>
+      <div style={{ position: 'fixed', top: -190, left: 0, width: '100%', zIndex: 9999 }}>
+        <AppLoader />
       </div>
     );
   }

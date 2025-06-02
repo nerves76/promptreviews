@@ -116,7 +116,7 @@ interface IndustrySelectorProps {
   onChange: (industries: string[], otherValue?: string) => void;
   otherValue?: string;
   onOtherChange?: (val: string) => void;
-  label?: string;
+  label?: React.ReactNode;
   required?: boolean;
   industryType: IndustryType;
   setIndustryType: (type: IndustryType) => void;

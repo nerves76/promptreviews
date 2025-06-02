@@ -4,7 +4,7 @@ import { createBrowserClient } from '@supabase/ssr'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { getUserOrMock } from '@/utils/supabase'
-import FiveStarSpinner from '@/app/components/FiveStarSpinner'
+import AppLoader from '@/app/components/AppLoader'
 
 export default function Home() {
   const router = useRouter()
@@ -26,12 +26,8 @@ export default function Home() {
   }, [supabase.auth, router])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-400 via-indigo-300 to-purple-300 flex items-center justify-center" style={{ minHeight: '100vh', alignItems: 'flex-start' }}>
-      <div className="text-center text-white mt-[150px] w-full">
-        <h1 className="text-2xl font-bold mb-4">Redirecting...</h1>
-        <FiveStarSpinner />
-        <p className="mt-4 text-white">Loading...</p>
-      </div>
+    <div style={{ position: 'fixed', top: -190, left: 0, width: '100%', zIndex: 9999 }}>
+      <AppLoader />
     </div>
   )
 }

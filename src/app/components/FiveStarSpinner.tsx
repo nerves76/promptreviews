@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useEffect, useState } from 'react';
 
 interface FiveStarSpinnerProps {
@@ -9,7 +11,7 @@ interface FiveStarSpinnerProps {
 }
 
 export default function FiveStarSpinner({
-  size = 24,
+  size = 48,
   color1 = '#D1D5DB',
   color2 = '#FFD700',
   style,
