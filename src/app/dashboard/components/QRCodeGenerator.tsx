@@ -52,11 +52,6 @@ export default function QRCodeGenerator({ url, clientName, logoUrl, frameSize = 
       // Fill background
       ctx.fillStyle = '#fff';
       ctx.fillRect(0, 0, frameSize.width, frameSize.height);
-      // Draw header text
-      ctx.font = `bold ${Math.floor(frameSize.height * 0.06)}px Inter, Arial, sans-serif`;
-      ctx.fillStyle = '#000000';
-      ctx.textAlign = 'center';
-      ctx.fillText('Leave us a review!', frameSize.width / 2, headerHeight);
       // Draw many scattered gold stars (10-14), with wide size variance, no overlaps, and some on sides/bottom
       const numStars = 10 + Math.floor(Math.random() * 5); // 10-14 stars
       const minStarSize = Math.floor(frameSize.height * 0.03); // ~30px
@@ -118,6 +113,11 @@ export default function QRCodeGenerator({ url, clientName, logoUrl, frameSize = 
         ctx.restore();
       });
       ctx.restore();
+      // Draw header text on top of stars
+      ctx.font = `bold ${Math.floor(frameSize.height * 0.06)}px Inter, Arial, sans-serif`;
+      ctx.fillStyle = '#000000';
+      ctx.textAlign = 'center';
+      ctx.fillText('Leave us a review!', frameSize.width / 2, headerHeight);
       // Draw QR code
       const qrDataUrl = await QRCode.toDataURL(url, {
         width: qrSize,
