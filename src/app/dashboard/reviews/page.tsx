@@ -414,7 +414,7 @@ export default function ReviewsPage() {
   // Show sample notice for sample reviews
   const handleSampleNotice = () => {
     setSampleNotice('This is a sample review and is just for display. As soon as you get your first real review, these samples will go away.');
-    setTimeout(() => setSampleNotice(null), 4000);
+    setTimeout(() => setSampleNotice(null), 7000);
   };
 
   if (loading) {
