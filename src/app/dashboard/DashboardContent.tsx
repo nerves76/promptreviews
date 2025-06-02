@@ -479,7 +479,7 @@ export default function DashboardContent({
                         </button>
                         <button
                           type="button"
-                          onClick={() => setQrModal({ open: true, url: universalUrl, clientName: business?.name || 'PromptReviews', logoUrl: business?.logo_url })}
+                          onClick={() => setQrModal({ open: true, url: universalUrl, clientName: business?.name || 'PromptReviews' })}
                           className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-blue text-white rounded hover:bg-slate-blue/90 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
                         >
                           <MdDownload className="w-5 h-5" />
@@ -760,7 +760,7 @@ export default function DashboardContent({
                                       type="button"
                                       className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-blue text-white rounded hover:bg-slate-blue/90 text-sm font-medium shadow h-9 align-middle whitespace-nowrap w-full sm:w-auto"
                                       aria-label="Download QR Code"
-                                      onClick={() => setQrModal({ open: true, url: `${window.location.origin}/r/${page.slug}`, clientName: `${page.first_name || ''} ${page.last_name || ''}`.trim() || business?.name || 'PromptReviews', logoUrl: business?.logo_url })}
+                                      onClick={() => setQrModal({ open: true, url: `${window.location.origin}/r/${page.slug}`, clientName: `${page.first_name || ''} ${page.last_name || ''}`.trim() || business?.name || 'PromptReviews' })}
                                     >
                                       <MdDownload className="w-5 h-5" />
                                       QR code
@@ -820,7 +820,6 @@ export default function DashboardContent({
                 <QRCodeGenerator
                   url={qrModal.url}
                   clientName={qrModal.clientName}
-                  logoUrl={qrModal.logoUrl}
                   frameSize={selectedFrameSize}
                 />
                 <div className="mt-6 flex flex-col gap-2">
