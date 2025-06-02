@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
 
   let event: Stripe.Event;
   try {
-    event = stripe.webhooks.constructEvent(rawBody, sig!, webhookSecret);
+    event = stripe.webhooks.constructEvent(rawBody, sig!, webhookSecret!);
     console.log('Received Stripe event:', event.type);
   } catch (err: any) {
     console.error('Stripe webhook error:', err);
