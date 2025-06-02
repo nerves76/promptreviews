@@ -24,7 +24,7 @@ export default function QRCodeGenerator({ url, clientName, logoUrl, frameSize = 
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // Default logo fallback
-  const defaultLogo = 'https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompt-reviews-get-reviews-online.png';
+  const defaultLogo = 'https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompt-reviews-get-more-reviews-logo.png';
 
   const generateDesign = async () => {
     setIsGenerating(true);
