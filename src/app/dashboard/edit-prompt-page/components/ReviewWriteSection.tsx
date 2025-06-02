@@ -1,5 +1,5 @@
-import React from 'react';
-import { FaStar, FaMagic, FaGoogle, FaYelp, FaFacebook, FaTripadvisor, FaRegStar } from 'react-icons/fa';
+import React, { useState } from 'react';
+import { FaStar, FaMagic, FaGoogle, FaYelp, FaFacebook, FaTripadvisor, FaRegStar, FaQuestionCircle } from 'react-icons/fa';
 import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
 
@@ -88,6 +88,39 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
                   return <Icon className={`w-6 h-6 ${color}`} />;
                 })()}
               </div>
+              {/* Top right: Check if Published, Mark as Verified, Tooltip */}
+              <div className="absolute top-2 right-4 flex items-center gap-2 z-10">
+                {platform.url && (
+                  <a
+                    href={platform.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-blue-700 underline"
+                  >
+                    Check if Published
+                  </a>
+                )}
+                <button
+                  type="button"
+                  onClick={async () => {
+                    // Simulate verification (replace with API call as needed)
+                    const newPlatforms = value.map((p, i) =>
+                      i === idx ? { ...p, verified: true, verified_at: new Date().toISOString() } : p
+                    );
+                    onChange(newPlatforms);
+                  }}
+                  disabled={platform.verified}
+                  className={`px-2 py-1 rounded text-xs ${platform.verified ? 'bg-green-200 text-green-700' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+                >
+                  {platform.verified ? 'Verified' : 'Mark as Verified'}
+                </button>
+                {platform.verified && platform.verified_at && (
+                  <span className="text-xs text-green-700">({new Date(platform.verified_at).toLocaleDateString()})</span>
+                )}
+                <HoverTooltip text="Check if the review was published and mark as 'verified' if it is.">
+                  <FaQuestionCircle className="w-4 h-4 text-gray-400 cursor-pointer" />
+                </HoverTooltip>
+              </div>
               {value.length > 1 && (
                 <button
                   type="button"
@@ -129,36 +162,6 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
                     onChange={e => handlePlatformChange(idx, 'url', e.target.value)}
                     required
                   />
-                  {platform.url && (
-                    <a
-                      href={platform.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 underline text-xs mt-1"
-                    >
-                      Check if Published
-                    </a>
-                  )}
-                  <div className="flex items-center gap-2 mt-2">
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        await fetch('/api/review-submissions/verify', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ id: platform.id }),
-                        });
-                        // Optionally, trigger a refresh or callback here
-                      }}
-                      disabled={platform.verified}
-                      className={`px-2 py-1 rounded text-xs ${platform.verified ? 'bg-green-200 text-green-700' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
-                    >
-                      {platform.verified ? 'Verified' : 'Mark as Verified'}
-                    </button>
-                    {platform.verified && platform.verified_at && (
-                      <span className="text-xs text-green-700">({new Date(platform.verified_at).toLocaleDateString()})</span>
-                    )}
-                  </div>
                 </div>
                 <div className="flex flex-col w-1/6 ml-2">
                   <Input
@@ -214,5 +217,25 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
     </div>
   );
 };
+
+function HoverTooltip({ text, children }: { text: string, children: React.ReactNode }) {
+  const [show, setShow] = useState(false);
+  return (
+    <span className="relative inline-block align-middle ml-1"
+      onMouseEnter={() => setShow(true)}
+      onMouseLeave={() => setShow(false)}
+      onFocus={() => setShow(true)}
+      onBlur={() => setShow(false)}
+      tabIndex={0}
+    >
+      {children}
+      {show && (
+        <div className="absolute z-20 left-1/2 -translate-x-1/2 mt-2 w-56 p-2 bg-white border border-gray-200 rounded shadow text-xs text-gray-700">
+          {text}
+        </div>
+      )}
+    </span>
+  );
+}
 
 export default ReviewWriteSection; 

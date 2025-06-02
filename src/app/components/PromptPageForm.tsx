@@ -2,7 +2,7 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
 import { generateAIReview } from '@/utils/ai';
-import { FaRobot, FaInfoCircle, FaStar, FaGift, FaVideo, FaImage, FaQuoteRight, FaCamera, FaHeart, FaGoogle, FaYelp, FaFacebook, FaTripadvisor, FaRegStar, FaSmile, FaGlobe, FaBoxOpen, FaThumbsUp, FaBolt, FaRainbow, FaCoffee, FaWrench, FaGlassCheers, FaDumbbell, FaPagelines, FaPeace } from 'react-icons/fa';
+import { FaRobot, FaInfoCircle, FaStar, FaGift, FaVideo, FaImage, FaQuoteRight, FaCamera, FaHeart, FaGoogle, FaYelp, FaFacebook, FaTripadvisor, FaRegStar, FaSmile, FaGlobe, FaBoxOpen, FaThumbsUp, FaBolt, FaRainbow, FaCoffee, FaWrench, FaGlassCheers, FaDumbbell, FaPagelines, FaPeace, FaQuestionCircle } from 'react-icons/fa';
 import dynamic from 'next/dynamic';
 import { slugify } from '@/utils/slugify';
 import { useRouter } from 'next/navigation';
@@ -326,6 +326,43 @@ export default function PromptPageForm({
                 >
                   ×
                 </button>
+                {/* Check if Published & Mark as Verified actions (service/product only) */}
+                {(formData.review_type === 'service' || formData.review_type === 'product') && (
+                  <div className="absolute top-2 right-14 flex items-center gap-2 z-10">
+                    {link.url && (
+                      <a
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-blue-700 underline"
+                      >
+                        Check if Published
+                      </a>
+                    )}
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        // Simulate verification (replace with API call as needed)
+                        setFormData((prev: any) => ({
+                          ...prev,
+                          review_platforms: prev.review_platforms.map((p: any, i: number) =>
+                            i === index ? { ...p, verified: true, verified_at: new Date().toISOString() } : p
+                          )
+                        }));
+                      }}
+                      disabled={!!link.verified}
+                      className={`px-2 py-1 rounded text-xs ${link.verified ? 'bg-green-200 text-green-700' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+                    >
+                      {link.verified ? 'Verified' : 'Mark as Verified'}
+                    </button>
+                    {link.verified && link.verified_at && (
+                      <span className="text-xs text-green-700">({new Date(link.verified_at).toLocaleDateString()})</span>
+                    )}
+                    <span className="ml-1">
+                      <FaQuestionCircle className="w-4 h-4 text-gray-400 cursor-pointer" title="Check if the review was published and mark as 'verified' if it is." />
+                    </span>
+                  </div>
+                )}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="mb-4">
                     <label htmlFor={`platform-${index}`} className="block text-sm font-semibold text-[#1A237E] mb-2 flex items-center">Platform name</label>

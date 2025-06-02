@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect, useCallback } from 'react';
 import { generateAIReview } from '@/utils/ai';
-import { FaRobot, FaInfoCircle, FaStar, FaGift, FaBoxOpen, FaHeart, FaGoogle, FaYelp, FaFacebook, FaTripadvisor, FaRegStar, FaSmile, FaThumbsUp, FaBolt, FaRainbow, FaCoffee, FaWrench, FaGlassCheers, FaDumbbell, FaPagelines, FaPeace, FaImage } from 'react-icons/fa';
+import { FaRobot, FaInfoCircle, FaStar, FaGift, FaBoxOpen, FaHeart, FaGoogle, FaYelp, FaFacebook, FaTripadvisor, FaRegStar, FaSmile, FaThumbsUp, FaBolt, FaRainbow, FaCoffee, FaWrench, FaGlassCheers, FaDumbbell, FaPagelines, FaPeace, FaImage, FaQuestionCircle } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
 import ReviewWriteSection from '../dashboard/edit-prompt-page/components/ReviewWriteSection';
 import OfferSection from '../dashboard/edit-prompt-page/components/OfferSection';
