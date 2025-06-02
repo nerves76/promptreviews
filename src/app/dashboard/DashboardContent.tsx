@@ -458,7 +458,7 @@ export default function DashboardContent({
                         </Link>
                         {universalPromptPage?.slug && (
                           <Link
-                            href={universalPromptPage.slug === 'universal-diviner' ? '/dashboard/edit-prompt-page/universal' : `/dashboard/edit-prompt-page/${universalPromptPage.slug}`}
+                            href={'/dashboard/edit-prompt-page/universal'}
                             className="text-slate-blue underline hover:text-slate-blue/80 hover:underline"
                           >
                             Edit
@@ -690,7 +690,7 @@ export default function DashboardContent({
                                     </Link>
                                     {page.slug && (
                                       <Link
-                                        href={page.slug === 'universal-diviner' ? '/dashboard/edit-prompt-page/universal' : `/dashboard/edit-prompt-page/${page.slug}`}
+                                        href={'/dashboard/edit-prompt-page/universal'}
                                         className="text-slate-blue underline hover:text-slate-blue/80 hover:underline"
                                       >
                                         Edit
