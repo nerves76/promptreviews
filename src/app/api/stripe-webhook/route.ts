@@ -10,7 +10,10 @@ const stripe = new Stripe(stripeSecretKey);
 
 export async function POST(req: NextRequest) {
   const sig = req.headers.get('stripe-signature');
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || process.env.STRIPE_WEBHOOK_SECRET;
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  if (!webhookSecret) {
+    throw new Error('STRIPE_WEBHOOK_SECRET is not set');
+  }
 
   // Stripe requires the raw body for signature verification
   const rawBody = await req.text();
