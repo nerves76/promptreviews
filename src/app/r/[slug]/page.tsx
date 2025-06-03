@@ -1086,7 +1086,7 @@ export default function PromptPage() {
                   </div>
                 )}
                 {/* Personalized Note */}
-                {promptPage?.friendly_note && !promptPage?.is_universal && showPersonalNote && canShowPersonalNote && (
+                {promptPage?.show_friendly_note && promptPage?.friendly_note && !promptPage?.is_universal && showPersonalNote && canShowPersonalNote && (
                   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fadein">
                     <div className="bg-white rounded-lg p-6 max-w-lg mx-4 relative animate-slideup">
                       <button
@@ -1250,23 +1250,6 @@ export default function PromptPage() {
                           </div>
                         );
                       })}
-                    </div>
-                  </div>
-                )}
-                {/* Personalized Note */}
-                {promptPage?.friendly_note && !promptPage?.is_universal && showPersonalNote && canShowPersonalNote && (
-                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fadein">
-                    <div className="bg-white rounded-lg p-6 max-w-lg mx-4 relative animate-slideup">
-                      <button
-                        className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 focus:outline-none"
-                        onClick={() => setShowPersonalNote(false)}
-                        aria-label="Close note"
-                      >
-                        ×
-                      </button>
-                      <div className="text-gray-900 text-base">
-                        {promptPage.friendly_note}
-                      </div>
                     </div>
                   </div>
                 )}
