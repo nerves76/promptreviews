@@ -1,14 +1,30 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { createBrowserClient } from '@supabase/ssr';
-import { useAuthGuard } from '@/utils/authGuard';
-import { FaChartLine, FaList, FaSmile, FaMeh, FaFrown, FaAngry, FaGrinStars } from 'react-icons/fa';
-import { getUserOrMock } from '@/utils/supabase';
-import PageCard from '@/app/components/PageCard';
-import AppLoader from '@/app/components/AppLoader';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { format } from 'date-fns';
+import { useState, useEffect } from "react";
+import { createBrowserClient } from "@supabase/ssr";
+import { useAuthGuard } from "@/utils/authGuard";
+import {
+  FaChartLine,
+  FaList,
+  FaSmile,
+  FaMeh,
+  FaFrown,
+  FaAngry,
+  FaGrinStars,
+} from "react-icons/fa";
+import { getUserOrMock } from "@/utils/supabase";
+import PageCard from "@/app/components/PageCard";
+import AppLoader from "@/app/components/AppLoader";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+} from "recharts";
+import { format } from "date-fns";
 
 interface PromptPage {
   id: string;
@@ -38,39 +54,71 @@ interface AnalyticsData {
 
 // Map sentiment keys to FontAwesome icons and labels
 const emojiSentimentMap = [
-  { key: 'excellent', icon: <FaGrinStars className="w-8 h-8 text-yellow-400" />, label: 'Excellent' },
-  { key: 'satisfied', icon: <FaSmile className="w-8 h-8 text-green-400" />, label: 'Satisfied' },
-  { key: 'neutral', icon: <FaMeh className="w-8 h-8 text-gray-400" />, label: 'Neutral' },
-  { key: 'dissatisfied', icon: <FaFrown className="w-8 h-8 text-orange-400" />, label: 'Dissatisfied' },
-  { key: 'angry', icon: <FaAngry className="w-8 h-8 text-red-400" />, label: 'Angry' },
+  {
+    key: "excellent",
+    icon: <FaGrinStars className="w-8 h-8 text-yellow-400" />,
+    label: "Excellent",
+  },
+  {
+    key: "satisfied",
+    icon: <FaSmile className="w-8 h-8 text-green-400" />,
+    label: "Satisfied",
+  },
+  {
+    key: "neutral",
+    icon: <FaMeh className="w-8 h-8 text-gray-400" />,
+    label: "Neutral",
+  },
+  {
+    key: "dissatisfied",
+    icon: <FaFrown className="w-8 h-8 text-orange-400" />,
+    label: "Dissatisfied",
+  },
+  {
+    key: "angry",
+    icon: <FaAngry className="w-8 h-8 text-red-400" />,
+    label: "Angry",
+  },
 ];
 
 export default function AnalyticsPage() {
   useAuthGuard();
   const [promptPages, setPromptPages] = useState<PromptPage[]>([]);
-  const [timeRange, setTimeRange] = useState<'all'|'lastYear'|'thisYear'|'last6Months'|'last3Months'|'lastMonth'|'thisMonth'>('all');
+  const [timeRange, setTimeRange] = useState<
+    | "all"
+    | "lastYear"
+    | "thisYear"
+    | "last6Months"
+    | "last3Months"
+    | "lastMonth"
+    | "thisMonth"
+  >("all");
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   );
 
   useEffect(() => {
     const fetchPromptPages = async () => {
       try {
-        const { data: { user } } = await getUserOrMock(supabase);
+        const {
+          data: { user },
+        } = await getUserOrMock(supabase);
         if (!user) return;
         const { data, error } = await supabase
-          .from('prompt_pages')
-          .select('id, slug, first_name, is_universal')
-          .eq('account_id', user.id);
+          .from("prompt_pages")
+          .select("id, slug, first_name, is_universal")
+          .eq("account_id", user.id);
         if (error) throw error;
         setPromptPages(data || []);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load prompt pages');
+        setError(
+          err instanceof Error ? err.message : "Failed to load prompt pages",
+        );
       }
     };
     fetchPromptPages();
@@ -80,13 +128,15 @@ export default function AnalyticsPage() {
     const fetchAnalytics = async () => {
       try {
         setIsLoading(true);
-        const { data: { user } } = await getUserOrMock(supabase);
+        const {
+          data: { user },
+        } = await getUserOrMock(supabase);
         if (!user) return;
         // Get all prompt page IDs for this account
         const { data: pages } = await supabase
-          .from('prompt_pages')
-          .select('id, slug, first_name, is_universal')
-          .eq('account_id', user.id);
+          .from("prompt_pages")
+          .select("id, slug, first_name, is_universal")
+          .eq("account_id", user.id);
         const pageIds = (pages || []).map((p: any) => p.id);
         if (!pageIds.length) {
           setAnalytics(null);
@@ -95,9 +145,9 @@ export default function AnalyticsPage() {
         }
         // Fetch all analytics events for these prompt pages
         const { data: events, error: eventsError } = await supabase
-          .from('analytics_events')
-          .select('*')
-          .in('prompt_page_id', pageIds);
+          .from("analytics_events")
+          .select("*")
+          .in("prompt_page_id", pageIds);
         if (eventsError) throw eventsError;
 
         // Filter by time range
@@ -106,22 +156,22 @@ export default function AnalyticsPage() {
         const thisYear = now.getFullYear();
         const thisMonth = now.getMonth();
         switch (timeRange) {
-          case 'lastYear':
+          case "lastYear":
             startDate = new Date(thisYear - 1, now.getMonth(), now.getDate());
             break;
-          case 'thisYear':
+          case "thisYear":
             startDate = new Date(thisYear, 0, 1);
             break;
-          case 'last6Months':
+          case "last6Months":
             startDate = new Date(now.getFullYear(), now.getMonth() - 5, 1);
             break;
-          case 'last3Months':
+          case "last3Months":
             startDate = new Date(now.getFullYear(), now.getMonth() - 2, 1);
             break;
-          case 'lastMonth':
+          case "lastMonth":
             startDate = new Date(thisYear, thisMonth - 1, 1);
             break;
-          case 'thisMonth':
+          case "thisMonth":
             startDate = new Date(thisYear, thisMonth, 1);
             break;
           default:
@@ -156,62 +206,63 @@ export default function AnalyticsPage() {
         filteredEvents.forEach((event: any) => {
           // Count by platform
           if (event.platform) {
-            analyticsData.clicksByPlatform[event.platform] = 
+            analyticsData.clicksByPlatform[event.platform] =
               (analyticsData.clicksByPlatform[event.platform] || 0) + 1;
           }
 
           // Count by date (for table)
           const date = new Date(event.created_at).toLocaleDateString();
-          analyticsData.clicksByDate[date] = 
+          analyticsData.clicksByDate[date] =
             (analyticsData.clicksByDate[date] || 0) + 1;
 
           // Timeline for review_submitted
-          if (event.event_type === 'review_submitted') {
+          if (event.event_type === "review_submitted") {
             const d = new Date(event.created_at);
-            const key = `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}`;
+            const key = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, "0")}`;
             timelineMap[key] = (timelineMap[key] || 0) + 1;
           }
 
           // Count event types
           switch (event.event_type) {
-            case 'view':
+            case "view":
               analyticsData.views++;
               break;
-            case 'generate_with_ai':
+            case "generate_with_ai":
               analyticsData.aiGenerations++;
               analyticsData.aiEvents.push({
                 date: event.created_at,
                 promptPageId: event.prompt_page_id,
-                platform: event.platform || '',
+                platform: event.platform || "",
               });
               break;
-            case 'copy_submit':
+            case "copy_submit":
               analyticsData.copySubmits++;
               analyticsData.copySubmitEvents.push({
                 date: event.created_at,
                 promptPageId: event.prompt_page_id,
-                platform: event.platform || '',
+                platform: event.platform || "",
               });
               break;
-            case 'emoji_sentiment':
+            case "emoji_sentiment":
               if (event.emoji_sentiment) {
-                analyticsData.emojiSentiments[event.emoji_sentiment] = 
-                  (analyticsData.emojiSentiments[event.emoji_sentiment] || 0) + 1;
+                analyticsData.emojiSentiments[event.emoji_sentiment] =
+                  (analyticsData.emojiSentiments[event.emoji_sentiment] || 0) +
+                  1;
               }
               break;
-            case 'constructive_feedback':
+            case "constructive_feedback":
               analyticsData.feedbacks.push({
-                sentiment: event.emoji_sentiment || event.sentiment || '',
-                feedback: event.feedback || (event.metadata?.feedback ?? ''),
+                sentiment: event.emoji_sentiment || event.sentiment || "",
+                feedback: event.feedback || (event.metadata?.feedback ?? ""),
                 date: event.created_at,
               });
               break;
-            case 'website_click':
+            case "website_click":
               analyticsData.websiteClicks++;
               break;
-            case 'social_click':
+            case "social_click":
               if (event.platform) {
-                analyticsData.socialClicks[event.platform] = 
+                analyticsData.socialClicks[event.platform] =
                   (analyticsData.socialClicks[event.platform] || 0) + 1;
               }
               break;
@@ -221,10 +272,30 @@ export default function AnalyticsPage() {
         });
 
         // Attach review submission stats to analyticsData
-        analyticsData.reviewSubmitsAll = filteredEvents.filter((e: any) => e.event_type === 'review_submitted').length;
-        analyticsData.reviewSubmitsWeek = filteredEvents.filter((e: any) => e.event_type === 'review_submitted' && (now.getTime() - new Date(e.created_at).getTime()) / (1000*60*60*24) <= 7).length;
-        analyticsData.reviewSubmitsMonth = filteredEvents.filter((e: any) => e.event_type === 'review_submitted' && (now.getTime() - new Date(e.created_at).getTime()) / (1000*60*60*24) <= 30).length;
-        analyticsData.reviewSubmitsYear = filteredEvents.filter((e: any) => e.event_type === 'review_submitted' && (now.getTime() - new Date(e.created_at).getTime()) / (1000*60*60*24) <= 365).length;
+        analyticsData.reviewSubmitsAll = filteredEvents.filter(
+          (e: any) => e.event_type === "review_submitted",
+        ).length;
+        analyticsData.reviewSubmitsWeek = filteredEvents.filter(
+          (e: any) =>
+            e.event_type === "review_submitted" &&
+            (now.getTime() - new Date(e.created_at).getTime()) /
+              (1000 * 60 * 60 * 24) <=
+              7,
+        ).length;
+        analyticsData.reviewSubmitsMonth = filteredEvents.filter(
+          (e: any) =>
+            e.event_type === "review_submitted" &&
+            (now.getTime() - new Date(e.created_at).getTime()) /
+              (1000 * 60 * 60 * 24) <=
+              30,
+        ).length;
+        analyticsData.reviewSubmitsYear = filteredEvents.filter(
+          (e: any) =>
+            e.event_type === "review_submitted" &&
+            (now.getTime() - new Date(e.created_at).getTime()) /
+              (1000 * 60 * 60 * 24) <=
+              365,
+        ).length;
 
         // Prepare timeline data for chart (sorted by month)
         const timelineData = Object.entries(timelineMap)
@@ -235,8 +306,10 @@ export default function AnalyticsPage() {
 
         setAnalytics(analyticsData);
       } catch (err) {
-        console.error('Supabase analytics error:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load analytics');
+        console.error("Supabase analytics error:", err);
+        setError(
+          err instanceof Error ? err.message : "Failed to load analytics",
+        );
       } finally {
         setIsLoading(false);
       }
@@ -268,15 +341,19 @@ export default function AnalyticsPage() {
     <PageCard icon={<FaChartLine className="w-9 h-9 text-slate-blue" />}>
       <div className="flex items-center justify-between mt-2 mb-8">
         <div className="flex flex-col mt-0 md:mt-[-2px]">
-          <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">Analytics</h1>
+          <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
+            Analytics
+          </h1>
         </div>
       </div>
 
       <div className="mb-8 flex flex-col md:flex-row md:items-center gap-4">
-        <label className="text-base font-semibold text-gray-700">Time Range:</label>
+        <label className="text-base font-semibold text-gray-700">
+          Time Range:
+        </label>
         <select
           value={timeRange}
-          onChange={e => setTimeRange(e.target.value as any)}
+          onChange={(e) => setTimeRange(e.target.value as any)}
           className="rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
         >
           <option value="all">All Time</option>
@@ -293,22 +370,39 @@ export default function AnalyticsPage() {
         <div className="mb-12 bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold mb-4">Reviews Over Time</h3>
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={(analytics as any).timelineData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+            <LineChart
+              data={(analytics as any).timelineData}
+              margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+            >
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="month" 
-                tickFormatter={month => {
-                  const [year, m] = month.split('-');
-                  return format(new Date(Number(year), Number(m) - 1, 1), 'MMM yyyy');
+              <XAxis
+                dataKey="month"
+                tickFormatter={(month) => {
+                  const [year, m] = month.split("-");
+                  return format(
+                    new Date(Number(year), Number(m) - 1, 1),
+                    "MMM yyyy",
+                  );
                 }}
-                label={{ value: 'Month', position: 'insideBottom', offset: -5 }}
+                label={{ value: "Month", position: "insideBottom", offset: -5 }}
               />
-              <YAxis 
-                allowDecimals={false} 
-                label={{ value: 'Reviews', angle: -90, position: 'insideLeft', offset: 10 }}
+              <YAxis
+                allowDecimals={false}
+                label={{
+                  value: "Reviews",
+                  angle: -90,
+                  position: "insideLeft",
+                  offset: 10,
+                }}
               />
               <Tooltip />
-              <Line type="monotone" dataKey="count" stroke="#6366f1" strokeWidth={3} dot={{ r: 4 }} />
+              <Line
+                type="monotone"
+                dataKey="count"
+                stroke="#6366f1"
+                strokeWidth={3}
+                dot={{ r: 4 }}
+              />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -322,7 +416,9 @@ export default function AnalyticsPage() {
             {emojiSentimentMap.map(({ key, icon, label }) => (
               <div key={key} className="flex flex-col items-center">
                 <div title={label}>{icon}</div>
-                <span className="mt-2 text-xl font-bold text-slate-blue">{analytics.emojiSentiments[key] || 0}</span>
+                <span className="mt-2 text-xl font-bold text-slate-blue">
+                  {analytics.emojiSentiments[key] || 0}
+                </span>
               </div>
             ))}
           </div>
@@ -332,28 +428,55 @@ export default function AnalyticsPage() {
       {analytics && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div className="bg-indigo-50 rounded-lg p-4">
-            <p className="text-sm font-medium text-indigo-600">Total Reviews (All Time)</p>
-            <p className="mt-2 text-3xl font-semibold text-indigo-900">{analytics.reviewSubmitsAll}</p>
-            <div className="mt-2 text-xs text-gray-500">Last 7d: <span className="font-bold text-indigo-700">{analytics.reviewSubmitsWeek}</span> &nbsp;|&nbsp; Last 30d: <span className="font-bold text-indigo-700">{analytics.reviewSubmitsMonth}</span> &nbsp;|&nbsp; Last 365d: <span className="font-bold text-indigo-700">{analytics.reviewSubmitsYear}</span></div>
+            <p className="text-sm font-medium text-indigo-600">
+              Total Reviews (All Time)
+            </p>
+            <p className="mt-2 text-3xl font-semibold text-indigo-900">
+              {analytics.reviewSubmitsAll}
+            </p>
+            <div className="mt-2 text-xs text-gray-500">
+              Last 7d:{" "}
+              <span className="font-bold text-indigo-700">
+                {analytics.reviewSubmitsWeek}
+              </span>{" "}
+              &nbsp;|&nbsp; Last 30d:{" "}
+              <span className="font-bold text-indigo-700">
+                {analytics.reviewSubmitsMonth}
+              </span>{" "}
+              &nbsp;|&nbsp; Last 365d:{" "}
+              <span className="font-bold text-indigo-700">
+                {analytics.reviewSubmitsYear}
+              </span>
+            </div>
           </div>
           <div className="bg-indigo-50 rounded-lg p-4">
-            <p className="text-sm font-medium text-indigo-600">Website Clicks</p>
-            <p className="mt-2 text-3xl font-semibold text-indigo-900">{analytics.websiteClicks}</p>
+            <p className="text-sm font-medium text-indigo-600">
+              Website Clicks
+            </p>
+            <p className="mt-2 text-3xl font-semibold text-indigo-900">
+              {analytics.websiteClicks}
+            </p>
           </div>
           <div className="bg-indigo-50 rounded-lg p-4">
             <p className="text-sm font-medium text-indigo-600">Social Clicks</p>
-            <p className="mt-2 text-3xl font-semibold text-indigo-900">{Object.values(analytics.socialClicks).reduce((a, b) => a + b, 0)}</p>
+            <p className="mt-2 text-3xl font-semibold text-indigo-900">
+              {Object.values(analytics.socialClicks).reduce((a, b) => a + b, 0)}
+            </p>
           </div>
 
           <div className="bg-indigo-50 rounded-lg p-4">
-            <p className="text-sm font-medium text-indigo-600">AI Generations</p>
+            <p className="text-sm font-medium text-indigo-600">
+              AI Generations
+            </p>
             <p className="mt-2 text-3xl font-semibold text-indigo-900">
               {analytics.aiGenerations}
             </p>
           </div>
 
           <div className="bg-indigo-50 rounded-lg p-4">
-            <p className="text-sm font-medium text-indigo-600">Copy & Submits</p>
+            <p className="text-sm font-medium text-indigo-600">
+              Copy & Submits
+            </p>
             <p className="mt-2 text-3xl font-semibold text-indigo-900">
               {analytics.copySubmits}
             </p>
@@ -361,39 +484,63 @@ export default function AnalyticsPage() {
 
           <div className="bg-indigo-50 rounded-lg p-4">
             <p className="text-sm font-medium text-indigo-600">Page Views</p>
-            <p className="mt-2 text-3xl font-semibold text-indigo-900">{analytics.views}</p>
+            <p className="mt-2 text-3xl font-semibold text-indigo-900">
+              {analytics.views}
+            </p>
           </div>
 
           <div className="bg-indigo-50 rounded-lg p-4 md:col-span-2 lg:col-span-3">
-            <p className="text-sm font-medium text-indigo-600 mb-4">Platform Distribution</p>
+            <p className="text-sm font-medium text-indigo-600 mb-4">
+              Platform Distribution
+            </p>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {Object.entries(analytics.clicksByPlatform).map(([platform, count]) => (
-                <div key={platform} className="bg-white rounded p-3 shadow-sm">
-                  <p className="text-sm text-gray-500">{platform}</p>
-                  <p className="text-lg font-semibold text-indigo-900">{count}</p>
-                </div>
-              ))}
+              {Object.entries(analytics.clicksByPlatform).map(
+                ([platform, count]) => (
+                  <div
+                    key={platform}
+                    className="bg-white rounded p-3 shadow-sm"
+                  >
+                    <p className="text-sm text-gray-500">{platform}</p>
+                    <p className="text-lg font-semibold text-indigo-900">
+                      {count}
+                    </p>
+                  </div>
+                ),
+              )}
             </div>
           </div>
 
           <div className="bg-indigo-50 rounded-lg p-4 md:col-span-2 lg:col-span-3">
-            <p className="text-sm font-medium text-indigo-600 mb-4">Recent Activity</p>
+            <p className="text-sm font-medium text-indigo-600 mb-4">
+              Recent Activity
+            </p>
             <div className="bg-white rounded-lg shadow-sm overflow-hidden">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interactions</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Date
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Interactions
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {Object.entries(analytics.clicksByDate)
-                    .sort((a, b) => new Date(b[0]).getTime() - new Date(a[0]).getTime())
+                    .sort(
+                      (a, b) =>
+                        new Date(b[0]).getTime() - new Date(a[0]).getTime(),
+                    )
                     .slice(0, 7)
                     .map(([date, count]) => (
                       <tr key={date}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{date}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{count}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {date}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {count}
+                        </td>
                       </tr>
                     ))}
                 </tbody>
@@ -416,13 +563,13 @@ export default function AnalyticsPage() {
               </tr>
             </thead>
             <tbody>
-              {analytics.aiEvents.map(ev => {
-                const page = promptPages.find(p => p.id === ev.promptPageId);
+              {analytics.aiEvents.map((ev) => {
+                const page = promptPages.find((p) => p.id === ev.promptPageId);
                 return (
                   <tr key={ev.date + ev.promptPageId + ev.platform}>
                     <td>{new Date(ev.date).toLocaleString()}</td>
                     <td>{page?.slug || page?.first_name || ev.promptPageId}</td>
-                    <td>{page?.is_universal ? 'Universal' : 'Custom'}</td>
+                    <td>{page?.is_universal ? "Universal" : "Custom"}</td>
                     <td>{ev.platform}</td>
                   </tr>
                 );
@@ -444,13 +591,13 @@ export default function AnalyticsPage() {
               </tr>
             </thead>
             <tbody>
-              {analytics.copySubmitEvents.map(ev => {
-                const page = promptPages.find(p => p.id === ev.promptPageId);
+              {analytics.copySubmitEvents.map((ev) => {
+                const page = promptPages.find((p) => p.id === ev.promptPageId);
                 return (
                   <tr key={ev.date + ev.promptPageId + ev.platform}>
                     <td>{new Date(ev.date).toLocaleString()}</td>
                     <td>{page?.slug || page?.first_name || ev.promptPageId}</td>
-                    <td>{page?.is_universal ? 'Universal' : 'Custom'}</td>
+                    <td>{page?.is_universal ? "Universal" : "Custom"}</td>
                     <td>{ev.platform}</td>
                   </tr>
                 );
@@ -461,4 +608,4 @@ export default function AnalyticsPage() {
       )}
     </PageCard>
   );
-} 
+}

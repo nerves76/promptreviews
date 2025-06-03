@@ -13,6 +13,7 @@ It's important to know that due to a previous issue we use a togglt to embed har
 Keys include supabase, Stripe, Resend
 
 ## **Project Overview**
+
 - **Stack:** Next.js (App Router), React, TypeScript, Supabase (DB, Auth, Storage), Tailwind CSS.
 - **Purpose:** Business onboarding, authentication, and review management platform with custom prompt pages, AI-generated reviews, and media uploads.
 
@@ -21,44 +22,49 @@ Keys include supabase, Stripe, Resend
 ## **Key Technologies & Patterns**
 
 ### **1. Supabase**
+
 - **Auth, DB, Storage:** All handled via Supabase.
-- **Client Usage:**  
+- **Client Usage:**
   - **Use `@supabase/ssr` everywhere** for both client and server (API) code.
     - `createBrowserClient` for client-side (React components/pages).
     - `createServerClient` for server-side (API routes, middleware).
   - **Do NOT mix with `@supabase/auth-helpers-nextjs`** (legacy, only a few old usages remain).
 
 ### **2. Authentication**
-- **Sign-in/Sign-up:**  
+
+- **Sign-in/Sign-up:**
   - Use `createBrowserClient` from `@supabase/ssr`.
   - Handles both email/password and OAuth (Google).
-- **Session Handling:**  
+- **Session Handling:**
   - All session checks and user fetching use the same Supabase client.
   - If session is missing, user is redirected to `/auth/sign-in`.
 
 ### **3. Project Structure**
-- **Pages:**  
+
+- **Pages:**
   - `src/app/` — Next.js App Router pages.
   - `src/app/dashboard/` — Main dashboard and business management.
   - `src/app/r/[slug]/page.tsx` — Public prompt/review pages.
   - `src/app/auth/` — Auth flows.
   - `src/app/api/` — API routes (server actions).
-- **Components:**  
+- **Components:**
   - `src/app/components/` — Shared UI components.
-- **Utils:**  
+- **Utils:**
   - `src/utils/` — Supabase helpers, guards, etc.
 
 ### **4. Review & Prompt Pages**
-- **Prompt Pages:**  
+
+- **Prompt Pages:**
   - Can be for platforms (Google, Yelp, etc.), video, photo+testimonial, or universal.
   - AI-generated review/testimonial support.
   - Media upload (photo/video) via Supabase Storage.
 
 ### **5. Business Logic**
-- **Business Profiles:**  
+
+- **Business Profiles:**
   - Each user can create/manage a business profile.
   - Business data is stored in the `businesses` table.
-- **Review Submissions:**  
+- **Review Submissions:**
   - Stored in `review_submissions` table.
   - Includes text, media URLs, reviewer info, etc.
 
@@ -69,11 +75,11 @@ Keys include supabase, Stripe, Resend
 - **Always use the same Supabase client (`@supabase/ssr`) everywhere.**
 - **Check for null/undefined user/session before accessing properties.**
 - **If you see `AuthSessionMissingError`, the session is missing or expired.**
-- **Environment variables:**  
+- **Environment variables:**
   - `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` must be set and correct.
   - Restart the dev server after changing env vars.
 - **Do not use or reintroduce `@supabase/auth-helpers-nextjs` unless refactoring the whole app.**
-- **For new features:**  
+- **For new features:**
   - Follow the pattern of using `createBrowserClient` for all Supabase operations in client components.
   - Use `createServerClient` for API routes.
 
@@ -81,14 +87,14 @@ Keys include supabase, Stripe, Resend
 
 ## **Debugging Tips**
 
-- **If login/auth breaks:**  
+- **If login/auth breaks:**
   - Check for mixed Supabase client usage.
   - Clear cookies/localStorage and try again.
   - Check for errors in the browser console and network tab.
-- **If you see session errors:**  
+- **If you see session errors:**
   - Make sure you're not running the app on multiple ports/domains.
   - Make sure you're not in incognito/private mode (unless testing).
-- **If uploads fail:**  
+- **If uploads fail:**
   - Check Supabase Storage bucket permissions and policy.
   - Check file size/type limits.
 
@@ -106,17 +112,17 @@ Keys include supabase, Stripe, Resend
 
 ## **Where to Look for…**
 
-- **Supabase client setup:**  
+- **Supabase client setup:**
   - `src/utils/supabase.ts` (for types and helpers)
   - Directly in each page/component via `createBrowserClient`
-- **Auth/session logic:**  
+- **Auth/session logic:**
   - `src/app/auth/sign-in/page.tsx`, `src/app/auth/sign-up/page.tsx`
   - `src/utils/authGuard.ts`
-- **Business/profile logic:**  
+- **Business/profile logic:**
   - `src/app/dashboard/`
-- **Prompt/review logic:**  
+- **Prompt/review logic:**
   - `src/app/r/[slug]/page.tsx`
-- **API routes:**  
+- **API routes:**
   - `src/app/api/`
 
 ---
@@ -133,7 +139,6 @@ Keys include supabase, Stripe, Resend
 ---
 
 **If you follow these patterns and keep Supabase client usage consistent, you'll avoid most session/auth headaches and be productive quickly!**
-
 
 ## Getting Started
 
@@ -171,6 +176,7 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/deploym
 ## Prompt Page UI Component Library
 
 ### Location
+
 All modular, reusable UI components for prompt page modules (such as Special Offer, Emoji Sentiment, Review Platforms, etc.) are stored in:
 
 ```
@@ -178,6 +184,7 @@ src/app/dashboard/edit-prompt-page/components/
 ```
 
 ### What is stored here
+
 - **Section modules** for the Universal Prompt Page and other prompt page editors, including:
   - `OfferSection.tsx`: Special Offer input module
   - `EmojiSentimentSection.tsx`: Emoji sentiment input module
@@ -189,15 +196,17 @@ src/app/dashboard/edit-prompt-page/components/
 - **Any future prompt page modules** (e.g., testimonials, feedback, etc.)
 
 ### How to use
+
 - **Import the component** you need into your page or form:
   ```tsx
-  import OfferSection from 'src/app/dashboard/edit-prompt-page/components/OfferSection';
-  import DisableAIGenerationSection from 'src/app/components/DisableAIGenerationSection';
+  import OfferSection from "src/app/dashboard/edit-prompt-page/components/OfferSection";
+  import DisableAIGenerationSection from "src/app/components/DisableAIGenerationSection";
   ```
 - **Pass in the required props** (see each component's interface for details).
 - **Extend or create new modules** by following the same pattern: section header, icon, consistent styling, and modular props.
 
 ### Why this structure?
+
 - Keeps all prompt page modules consistent, discoverable, and easy to maintain.
 - Makes it easy to reuse modules across Universal, custom, and business profile pages.
 - Encourages modular, scalable UI development.
@@ -207,21 +216,26 @@ If you want to move these to a more global shared directory (e.g., `src/app/comp
 ## Universal Prompt Page: Business Defaults Fallback Logic
 
 ### How it works
+
 - When editing or rendering a Universal Prompt Page, the app fetches both the Universal Prompt Page record and the associated Business Profile.
 - For each field (e.g., Special Offer, Review Platforms):
   - If the Universal Prompt Page has a value (not null/empty), use it.
   - Otherwise, use the value from the Business Profile.
 
 **Example:**
+
 ```ts
-const mergedOfferEnabled = universalPage.offerEnabled ?? businessProfile.default_offer_enabled;
-const mergedOfferTitle = universalPage.offerTitle || businessProfile.default_offer_title;
+const mergedOfferEnabled =
+  universalPage.offerEnabled ?? businessProfile.default_offer_enabled;
+const mergedOfferTitle =
+  universalPage.offerTitle || businessProfile.default_offer_title;
 const mergedReviewPlatforms = universalPage.reviewPlatforms?.length
   ? universalPage.reviewPlatforms
   : businessProfile.review_platforms;
 ```
 
 ### Editing & Saving
+
 - The Universal Prompt Page editor pre-fills fields with merged values (universal override if present, otherwise business default).
 - When a user changes a field, it is saved as an override in the Universal Prompt Page record.
 - If a field is cleared, you can either:
@@ -229,18 +243,22 @@ const mergedReviewPlatforms = universalPage.reviewPlatforms?.length
   - Save as null/empty to explicitly override.
 
 ### Public Prompt Page Rendering
+
 - The public prompt page uses the same merge logic: show the universal value if set, otherwise show the business default.
 
 ### Benefits
+
 - **Consistency:** New universal pages are pre-filled with business defaults, reducing setup friction.
 - **Flexibility:** Users can override any field for a specific universal page.
 - **Maintainability:** If the business profile changes, universal pages that haven't overridden a field will automatically reflect the new default.
 
 ### Implementation Notes
+
 - This pattern can be used for any field: offer, review platforms, emoji sentiment, etc.
 - You may want to visually indicate in the editor which fields are using business defaults vs. overridden.
 
 ### Public Prompt Page Fallback Logic
+
 - The public prompt page (`/r/[slug]`) uses the same fallback logic as the editor:
   - For each field (Special Offer, Review Platforms, Emoji Sentiment, etc.), it uses the value from the prompt page if set, otherwise falls back to the business profile default.
 - This ensures that:
@@ -252,6 +270,7 @@ const mergedReviewPlatforms = universalPage.reviewPlatforms?.length
 ## Falling Star Animation & Offer Banner Functionality
 
 ### Falling Star Animation
+
 - **Purpose:** Adds a celebratory animation (stars, hearts, rainbows, etc.) that falls from the top of the public prompt page.
 - **How to Enable:**
   - In the Universal Prompt Page editor, toggle the "Falling star animation" section ON and select an icon.
@@ -265,6 +284,7 @@ const mergedReviewPlatforms = universalPage.reviewPlatforms?.length
 - **Persistence:** The toggle and icon selection are synced with the presence of `falling_icon` in the database. If you turn the toggle off, the icon is cleared and the animation is disabled.
 
 ### Offer Banner (Special Offer)
+
 - **Purpose:** Displays a slim, dismissible banner at the top of the public prompt page to promote a special offer, code, or link.
 - **How to Enable:**
   - In the Universal Prompt Page editor, toggle the "Special Offer" section ON and fill in the title, message, and (optionally) a Learn More URL.
@@ -280,16 +300,22 @@ const mergedReviewPlatforms = universalPage.reviewPlatforms?.length
 #### DisableAIGenerationSection
 
 **Props:**
+
 - `enabled: boolean` — Whether the AI button is enabled (shown to customers)
 - `onToggle: () => void` — Callback to toggle the enabled state
 
 **Purpose:**
+
 - Shows a styled toggle switch and description for enabling/disabling the "Generate with AI" button on the public prompt page.
 - Used in both Universal and custom prompt page editors.
 
 **Example:**
+
 ```tsx
-<DisableAIGenerationSection enabled={aiButtonEnabled} onToggle={() => setAiButtonEnabled(v => !v)} />
+<DisableAIGenerationSection
+  enabled={aiButtonEnabled}
+  onToggle={() => setAiButtonEnabled((v) => !v)}
+/>
 ```
 
 ---
@@ -303,7 +329,7 @@ To ensure a consistent loading experience across the app, use the `AppLoader` co
 Import and use `AppLoader` wherever you need a loading state:
 
 ```tsx
-import AppLoader from '@/app/components/AppLoader';
+import AppLoader from "@/app/components/AppLoader";
 
 // ...
 if (isLoading) {
@@ -312,6 +338,7 @@ if (isLoading) {
 ```
 
 ### Details
+
 - The spinner is implemented by `FiveStarSpinner` with a default size of 48.
 - The loading text is always white and centered below the spinner.
 - This ensures all loading states look and feel the same throughout the app.
@@ -323,12 +350,14 @@ If you need a custom loading message or style, consider extending `AppLoader` or
 # UI/UX Styles & Component Conventions
 
 ## Where to Find Key UI Modules
+
 - **SectionHeader:** `src/app/components/SectionHeader.tsx` — For all section headers with icon, title, and subcopy. Use this for consistent section/module headers.
 - **PageCard:** `src/app/components/PageCard.tsx` — For main page/card layout, floating top-left icon, and card-level actions. Always use for dashboard and prompt page forms.
 - **ReviewWriteSection:** `src/app/dashboard/edit-prompt-page/components/ReviewWriteSection.tsx` — For review platform cards, AI button, and review template fields.
 - **PromptPageForm:** `src/app/components/PromptPageForm.tsx` — Main form for all prompt page types. Shows how to compose all modules and use conventions.
 
 ## Visual & Code Conventions
+
 - **Section headers:**
   - Use `<SectionHeader icon={...} title="..." subCopy="..." />` for all major sections.
   - Title: `text-2xl font-bold text-[#1A237E]` (or override with `titleClassName` for page titles).
@@ -347,7 +376,9 @@ If you need a custom loading message or style, consider extending `AppLoader` or
   - Main page titles: `text-4xl font-bold text-slate-blue` (pass as `titleClassName` to SectionHeader).
 
 ## For Visual Rules & Examples
+
 See `DESIGN_GUIDELINES.md` for:
+
 - Color palette
 - Icon usage
 - Card and section header patterns
@@ -355,6 +386,7 @@ See `DESIGN_GUIDELINES.md` for:
 - Example code snippets
 
 ## Quickstart for New Devs
+
 - All shared UI modules are in `src/app/components/` or `src/app/dashboard/edit-prompt-page/components/`.
 - Always use SectionHeader and PageCard for new modules/pages.
 - For new AI buttons, copy the style from ReviewWriteSection or PromptPageForm.

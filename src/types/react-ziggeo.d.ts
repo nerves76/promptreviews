@@ -1,1 +1,1 @@
-declare module 'react-ziggeo'; 
+declare module "react-ziggeo";

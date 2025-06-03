@@ -24,4 +24,4 @@ export interface BusinessProfile {
   address_state?: string;
   address_zip?: string;
   address_country?: string;
-} 
+}

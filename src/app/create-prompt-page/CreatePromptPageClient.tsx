@@ -1,19 +1,37 @@
-'use client';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useState, useEffect, useRef, Suspense } from 'react';
-import { createBrowserClient } from '@supabase/ssr';
-import { generateAIReview } from '@/utils/ai';
-import { FaFileAlt, FaInfoCircle, FaStar, FaGift, FaVideo, FaImage, FaQuoteRight, FaCamera, FaHeart, FaGoogle, FaYelp, FaFacebook, FaTripadvisor, FaRegStar, FaSmile, FaHandsHelping, FaBoxOpen } from 'react-icons/fa';
-import { checkAccountLimits } from '@/utils/accountLimits';
-import { Dialog } from '@headlessui/react';
-import { getUserOrMock } from '@/utils/supabase';
-import dynamic from 'next/dynamic';
-import { slugify } from '@/utils/slugify';
-import PromptPageForm from '../components/PromptPageForm';
-import PageCard from '../components/PageCard';
-import ProductPromptPageForm from '../components/ProductPromptPageForm';
-import FiveStarSpinner from '../components/FiveStarSpinner';
-import AppLoader from '../components/AppLoader';
+"use client";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect, useRef, Suspense } from "react";
+import { createBrowserClient } from "@supabase/ssr";
+import { generateAIReview } from "@/utils/ai";
+import {
+  FaFileAlt,
+  FaInfoCircle,
+  FaStar,
+  FaGift,
+  FaVideo,
+  FaImage,
+  FaQuoteRight,
+  FaCamera,
+  FaHeart,
+  FaGoogle,
+  FaYelp,
+  FaFacebook,
+  FaTripadvisor,
+  FaRegStar,
+  FaSmile,
+  FaHandsHelping,
+  FaBoxOpen,
+} from "react-icons/fa";
+import { checkAccountLimits } from "@/utils/accountLimits";
+import { Dialog } from "@headlessui/react";
+import { getUserOrMock } from "@/utils/supabase";
+import dynamic from "next/dynamic";
+import { slugify } from "@/utils/slugify";
+import PromptPageForm from "../components/PromptPageForm";
+import PageCard from "../components/PageCard";
+import ProductPromptPageForm from "../components/ProductPromptPageForm";
+import FiveStarSpinner from "../components/FiveStarSpinner";
+import AppLoader from "../components/AppLoader";
 
 interface ReviewPlatformLink {
   platform: string;
@@ -48,53 +66,58 @@ interface BusinessProfile {
 }
 
 const initialFormData = {
-  first_name: '',
-  last_name: '',
-  email: '',
-  phone: '',
-  product_description: '',
+  first_name: "",
+  last_name: "",
+  email: "",
+  phone: "",
+  product_description: "",
   review_platforms: [] as ReviewPlatformLink[],
   services_offered: [],
   features_or_benefits: [],
-  friendly_note: '',
-  status: 'draft',
-  role: '',
+  friendly_note: "",
+  status: "draft",
+  role: "",
   offer_enabled: false,
-  offer_title: 'Special Offer',
+  offer_title: "Special Offer",
   offer_body: 'Use this code "1234" to get a discount on your next purchase.',
-  offer_url: '',
-  review_type: 'custom',
-  video_recipient: '',
-  video_note: '',
-  video_tips: '',
-  video_questions: [''],
-  video_preset: 'quick',
+  offer_url: "",
+  review_type: "custom",
+  video_recipient: "",
+  video_note: "",
+  video_tips: "",
+  video_questions: [""],
+  video_preset: "quick",
   video_max_length: 30,
-  video_quality: '720p',
-  falling_icon: 'star',
-  no_platform_review_template: '',
+  video_quality: "720p",
+  falling_icon: "star",
+  no_platform_review_template: "",
   emojiThankYouMessage: "Thank you for your feedback. It's important to us.",
   emojiSentimentEnabled: false,
-  emojiSentimentQuestion: 'How was your experience?',
-  emojiFeedbackMessage: 'We value your feedback! Let us know how we can do better.',
+  emojiSentimentQuestion: "How was your experience?",
+  emojiFeedbackMessage:
+    "We value your feedback! Let us know how we can do better.",
   emojiLabels: [
-    'Excellent', 'Satisfied', 'Neutral', 'Unsatisfied', 'Frustrated'
+    "Excellent",
+    "Satisfied",
+    "Neutral",
+    "Unsatisfied",
+    "Frustrated",
   ],
   fallingEnabled: false,
   aiButtonEnabled: true,
-  business_name: '',
-  contact_id: '',
+  business_name: "",
+  contact_id: "",
 };
 
 // Utility function to map camelCase form data to snake_case DB columns and filter allowed columns
 function mapToDbColumns(formData: any): any {
   const insertData: any = { ...formData };
-  insertData['emoji_sentiment_enabled'] = formData.emojiSentimentEnabled;
-  insertData['emoji_sentiment_question'] = formData.emojiSentimentQuestion;
-  insertData['emoji_feedback_message'] = formData.emojiFeedbackMessage;
-  insertData['emoji_thank_you_message'] = formData.emojiThankYouMessage || '';
-  insertData['ai_button_enabled'] = formData.aiButtonEnabled ?? true;
-  insertData['falling_icon'] = formData.fallingIcon;
+  insertData["emoji_sentiment_enabled"] = formData.emojiSentimentEnabled;
+  insertData["emoji_sentiment_question"] = formData.emojiSentimentQuestion;
+  insertData["emoji_feedback_message"] = formData.emojiFeedbackMessage;
+  insertData["emoji_thank_you_message"] = formData.emojiThankYouMessage || "";
+  insertData["ai_button_enabled"] = formData.aiButtonEnabled ?? true;
+  insertData["falling_icon"] = formData.fallingIcon;
   // Remove camelCase keys
   delete insertData.emojiSentimentEnabled;
   delete insertData.emojiSentimentQuestion;
@@ -105,19 +128,64 @@ function mapToDbColumns(formData: any): any {
   delete insertData.fallingIcon;
   delete insertData.emojiLabels;
   // Remove type-specific fields if not relevant
-  if (formData.review_type === 'service') {
+  if (formData.review_type === "service") {
     delete insertData.features_or_benefits;
     delete insertData.product_description;
   }
-  if (formData.review_type === 'product') {
+  if (formData.review_type === "product") {
     delete insertData.services_offered;
     delete insertData.product_description;
   }
   // Filter to only allowed DB columns (from your schema)
   const allowedColumns = [
-    'id','account_id','slug','client_name','location','project_type','services_offered','outcomes','date_completed','assigned_team_members','review_platforms','qr_code_url','created_at','is_universal','team_member','first_name','last_name','phone','email','offer_enabled','offer_title','offer_body','category','friendly_note','offer_url','status','role','falling_icon','review_type','no_platform_review_template','video_max_length','video_quality','video_preset','video_questions','video_note','video_tips','video_recipient','emoji_sentiment_enabled','emoji_sentiment_question','emoji_feedback_message','emoji_thank_you_message','ai_button_enabled','product_description','features_or_benefits'
+    "id",
+    "account_id",
+    "slug",
+    "client_name",
+    "location",
+    "project_type",
+    "services_offered",
+    "outcomes",
+    "date_completed",
+    "assigned_team_members",
+    "review_platforms",
+    "qr_code_url",
+    "created_at",
+    "is_universal",
+    "team_member",
+    "first_name",
+    "last_name",
+    "phone",
+    "email",
+    "offer_enabled",
+    "offer_title",
+    "offer_body",
+    "category",
+    "friendly_note",
+    "offer_url",
+    "status",
+    "role",
+    "falling_icon",
+    "review_type",
+    "no_platform_review_template",
+    "video_max_length",
+    "video_quality",
+    "video_preset",
+    "video_questions",
+    "video_note",
+    "video_tips",
+    "video_recipient",
+    "emoji_sentiment_enabled",
+    "emoji_sentiment_question",
+    "emoji_feedback_message",
+    "emoji_thank_you_message",
+    "ai_button_enabled",
+    "product_description",
+    "features_or_benefits",
   ];
-  return Object.fromEntries(Object.entries(insertData).filter(([k]) => allowedColumns.includes(k)));
+  return Object.fromEntries(
+    Object.entries(insertData).filter(([k]) => allowedColumns.includes(k)),
+  );
 }
 
 export default function CreatePromptPageClient() {
@@ -128,44 +196,57 @@ export default function CreatePromptPageClient() {
   const [step, setStep] = useState(1);
   const [createdSlug, setCreatedSlug] = useState<string | null>(null);
   const [formData, setFormData] = useState(initialFormData);
-  const [businessProfile, setBusinessProfile] = useState<BusinessProfile | null>(null);
+  const [businessProfile, setBusinessProfile] =
+    useState<BusinessProfile | null>(null);
   const [generatingReview, setGeneratingReview] = useState<number | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const [upgradeModalMessage, setUpgradeModalMessage] = useState<string | null>(null);
-  const [noPlatformReviewTemplate, setNoPlatformReviewTemplate] = useState('');
+  const [upgradeModalMessage, setUpgradeModalMessage] = useState<string | null>(
+    null,
+  );
+  const [noPlatformReviewTemplate, setNoPlatformReviewTemplate] = useState("");
   const [aiLoadingPhoto, setAiLoadingPhoto] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [showPostSaveModal, setShowPostSaveModal] = useState(false);
-  const [savedPromptPageUrl, setSavedPromptPageUrl] = useState<string | null>(null);
+  const [savedPromptPageUrl, setSavedPromptPageUrl] = useState<string | null>(
+    null,
+  );
   const [services, setServices] = useState<string[]>([]);
-  const [pageOrigin, setPageOrigin] = useState('');
+  const [pageOrigin, setPageOrigin] = useState("");
   const [emojiSentimentEnabled, setEmojiSentimentEnabled] = useState(false);
-  const [emojiSentimentQuestion, setEmojiSentimentQuestion] = useState('How was your experience?');
-  const [emojiFeedbackMessage, setEmojiFeedbackMessage] = useState('We value your feedback! Let us know how we can do better.');
-  const [emojiThankYouMessage, setEmojiThankYouMessage] = useState(initialFormData.emojiThankYouMessage);
+  const [emojiSentimentQuestion, setEmojiSentimentQuestion] = useState(
+    "How was your experience?",
+  );
+  const [emojiFeedbackMessage, setEmojiFeedbackMessage] = useState(
+    "We value your feedback! Let us know how we can do better.",
+  );
+  const [emojiThankYouMessage, setEmojiThankYouMessage] = useState(
+    initialFormData.emojiThankYouMessage,
+  );
   const didSetType = useRef(false);
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   );
 
   useEffect(() => {
     const loadBusinessProfile = async () => {
       try {
-        const { data: { user } } = await getUserOrMock(supabase);
+        const {
+          data: { user },
+        } = await getUserOrMock(supabase);
         if (!user) {
-          console.log('No user found');
+          console.log("No user found");
           return;
         }
         const { data: businessData } = await supabase
-          .from('businesses')
-          .select('*')
-          .eq('account_id', user.id)
+          .from("businesses")
+          .select("*")
+          .eq("account_id", user.id)
           .single();
         if (businessData) {
           setBusinessProfile({
@@ -173,53 +254,72 @@ export default function CreatePromptPageClient() {
             business_name: businessData.name || businessData.business_name,
             services_offered: Array.isArray(businessData.services_offered)
               ? businessData.services_offered
-              : typeof businessData.services_offered === 'string'
+              : typeof businessData.services_offered === "string"
                 ? [businessData.services_offered]
                 : [],
-            features_or_benefits: Array.isArray(businessData.features_or_benefits)
+            features_or_benefits: Array.isArray(
+              businessData.features_or_benefits,
+            )
               ? businessData.features_or_benefits
-              : typeof businessData.features_or_benefits === 'string'
+              : typeof businessData.features_or_benefits === "string"
                 ? [businessData.features_or_benefits]
                 : [],
           });
           if (businessData.default_offer_enabled) {
-            setFormData(prev => ({
+            setFormData((prev) => ({
               ...prev,
               offer_enabled: true,
-              offer_title: businessData.default_offer_title || 'Special Offer',
-              offer_body: businessData.default_offer_body || 'Use this code "1234" to get a discount on your next purchase.'
+              offer_title: businessData.default_offer_title || "Special Offer",
+              offer_body:
+                businessData.default_offer_body ||
+                'Use this code "1234" to get a discount on your next purchase.',
             }));
           }
-          if ((!formData.review_platforms || formData.review_platforms.length === 0) && businessData.review_platforms) {
+          if (
+            (!formData.review_platforms ||
+              formData.review_platforms.length === 0) &&
+            businessData.review_platforms
+          ) {
             let platforms = businessData.review_platforms;
-            if (typeof platforms === 'string') {
-              try { platforms = JSON.parse(platforms); } catch { platforms = []; }
+            if (typeof platforms === "string") {
+              try {
+                platforms = JSON.parse(platforms);
+              } catch {
+                platforms = [];
+              }
             }
             if (!Array.isArray(platforms)) platforms = [];
-            setFormData(prev => ({
+            setFormData((prev) => ({
               ...prev,
               review_platforms: platforms.map((p: any) => ({
-                name: p.name || p.platform || '',
-                url: p.url || '',
+                name: p.name || p.platform || "",
+                url: p.url || "",
                 wordCount: p.wordCount || 200,
-                customInstructions: p.customInstructions || '',
-                reviewText: p.reviewText || '',
-                customPlatform: p.customPlatform || ''
-              }))
+                customInstructions: p.customInstructions || "",
+                reviewText: p.reviewText || "",
+                customPlatform: p.customPlatform || "",
+              })),
             }));
           }
           if (businessData.services_offered) {
             let arr = businessData.services_offered;
-            if (typeof arr === 'string') {
-              try { arr = JSON.parse(arr); } catch { arr = arr.split(/\r?\n/); }
+            if (typeof arr === "string") {
+              try {
+                arr = JSON.parse(arr);
+              } catch {
+                arr = arr.split(/\r?\n/);
+              }
             }
             if (!Array.isArray(arr)) arr = [];
             setServices(arr.filter(Boolean));
-            setFormData(prev => ({ ...prev, services_offered: arr.filter(Boolean) }));
+            setFormData((prev) => ({
+              ...prev,
+              services_offered: arr.filter(Boolean),
+            }));
           }
         }
       } catch (err) {
-        console.error('Error loading business profile:', err);
+        console.error("Error loading business profile:", err);
       }
     };
     loadBusinessProfile();
@@ -228,22 +328,22 @@ export default function CreatePromptPageClient() {
   // Set review_type from ?type=... query param on mount
   useEffect(() => {
     if (didSetType.current) return;
-    const type = searchParams.get('type');
+    const type = searchParams.get("type");
     if (type) {
-      setFormData(prev => ({ ...prev, review_type: type }));
+      setFormData((prev) => ({ ...prev, review_type: type }));
       didSetType.current = true;
     }
   }, [searchParams]);
 
   // Prefill contact info from query params
   useEffect(() => {
-    const first_name = searchParams.get('first_name');
-    const last_name = searchParams.get('last_name');
-    const email = searchParams.get('email');
-    const phone = searchParams.get('phone');
-    const business_name = searchParams.get('business_name');
-    const contact_id = searchParams.get('contact_id');
-    setFormData(prev => ({
+    const first_name = searchParams.get("first_name");
+    const last_name = searchParams.get("last_name");
+    const email = searchParams.get("email");
+    const phone = searchParams.get("phone");
+    const business_name = searchParams.get("business_name");
+    const contact_id = searchParams.get("contact_id");
+    setFormData((prev) => ({
       ...prev,
       first_name: first_name ?? prev.first_name,
       last_name: last_name ?? prev.last_name,
@@ -256,31 +356,35 @@ export default function CreatePromptPageClient() {
 
   // Add platform handlers
   const handleAddPlatform = () => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      review_platforms: [...prev.review_platforms, { platform: '', url: '' }],
+      review_platforms: [...prev.review_platforms, { platform: "", url: "" }],
     }));
   };
 
   const handleRemovePlatform = (index: number) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       review_platforms: prev.review_platforms.filter((_, i) => i !== index),
     }));
   };
 
-  const handlePlatformChange = (index: number, field: keyof typeof formData.review_platforms[0], value: any) => {
-    setFormData(prev => ({
+  const handlePlatformChange = (
+    index: number,
+    field: keyof (typeof formData.review_platforms)[0],
+    value: any,
+  ) => {
+    setFormData((prev) => ({
       ...prev,
-      review_platforms: prev.review_platforms.map((platform, i) => 
-        i === index ? { ...platform, [field]: value } : platform
-      )
+      review_platforms: prev.review_platforms.map((platform, i) =>
+        i === index ? { ...platform, [field]: value } : platform,
+      ),
     }));
   };
 
   const handleGenerateAIReview = async (index: number) => {
     if (!businessProfile) {
-      setError('Business profile not loaded. Please try again.');
+      setError("Business profile not loaded. Please try again.");
       return;
     }
     setGeneratingReview(index);
@@ -290,21 +394,23 @@ export default function CreatePromptPageClient() {
         {
           first_name: formData.first_name,
           last_name: formData.last_name,
-          project_type: formData.services_offered.join(', '),
+          project_type: formData.services_offered.join(", "),
           product_description: formData.product_description,
         },
         formData.review_platforms[index].platform,
         formData.review_platforms[index].wordCount || 200,
-        formData.review_platforms[index].customInstructions
+        formData.review_platforms[index].customInstructions,
       );
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         review_platforms: prev.review_platforms.map((link, i) =>
-          i === index ? { ...link, reviewText: review } : link
+          i === index ? { ...link, reviewText: review } : link,
         ),
       }));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to generate review');
+      setError(
+        err instanceof Error ? err.message : "Failed to generate review",
+      );
     } finally {
       setGeneratingReview(null);
     }
@@ -312,15 +418,19 @@ export default function CreatePromptPageClient() {
 
   const handleOfferFieldsChange = (offerBody: string) => {
     if (offerBody) {
-      setFormData(prev => ({ ...prev, offer_body: offerBody }));
+      setFormData((prev) => ({ ...prev, offer_body: offerBody }));
     } else {
-      setFormData(prev => ({ ...prev, offer_body: 'Use this code "1234" to get a discount on your next purchase.' }));
+      setFormData((prev) => ({
+        ...prev,
+        offer_body:
+          'Use this code "1234" to get a discount on your next purchase.',
+      }));
     }
   };
 
   const handleGeneratePhotoTemplate = async () => {
     if (!businessProfile) {
-      setError('Business profile not loaded. Please try again.');
+      setError("Business profile not loaded. Please try again.");
       return;
     }
     setAiLoadingPhoto(true);
@@ -330,17 +440,21 @@ export default function CreatePromptPageClient() {
         {
           first_name: formData.first_name,
           last_name: formData.last_name,
-          project_type: formData.services_offered.join(', '),
+          project_type: formData.services_offered.join(", "),
           product_description: formData.product_description,
         },
-        'Photo Testimonial',
+        "Photo Testimonial",
         120,
-        formData.friendly_note
+        formData.friendly_note,
       );
       setNoPlatformReviewTemplate(review);
-      setFormData(prev => ({ ...prev, no_platform_review_template: review }));
+      setFormData((prev) => ({ ...prev, no_platform_review_template: review }));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to generate testimonial template');
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to generate testimonial template",
+      );
     } finally {
       setAiLoadingPhoto(false);
     }
@@ -351,39 +465,60 @@ export default function CreatePromptPageClient() {
     setSaveSuccess(null);
     setIsSaving(true);
     try {
-      const { data: { user } } = await getUserOrMock(supabase);
-      if (!user) throw new Error('No user found');
-      const { allowed, reason } = await checkAccountLimits(supabase, user.id, 'prompt_page');
+      const {
+        data: { user },
+      } = await getUserOrMock(supabase);
+      if (!user) throw new Error("No user found");
+      const { allowed, reason } = await checkAccountLimits(
+        supabase,
+        user.id,
+        "prompt_page",
+      );
       if (!allowed) {
-        setUpgradeModalMessage(reason || 'You have reached your plan limit. Please upgrade to create more prompt pages.');
+        setUpgradeModalMessage(
+          reason ||
+            "You have reached your plan limit. Please upgrade to create more prompt pages.",
+        );
         setShowUpgradeModal(true);
         return;
       }
       const { data: businessData } = await supabase
-        .from('businesses')
-        .select('*')
-        .eq('account_id', user.id)
+        .from("businesses")
+        .select("*")
+        .eq("account_id", user.id)
         .single();
-      if (!businessData) throw new Error('No business found');
-      let insertData: any = { ...formData, account_id: user.id, status: 'draft' };
+      if (!businessData) throw new Error("No business found");
+      let insertData: any = {
+        ...formData,
+        account_id: user.id,
+        status: "draft",
+      };
       insertData.slug = slugify(
-        (businessProfile?.business_name || 'business') + '-' + formData.first_name + '-' + formData.last_name,
-        Date.now() + '-' + Math.random().toString(36).substring(2, 8)
+        (businessProfile?.business_name || "business") +
+          "-" +
+          formData.first_name +
+          "-" +
+          formData.last_name,
+        Date.now() + "-" + Math.random().toString(36).substring(2, 8),
       );
-      if (formData.review_type === 'photo') {
+      if (formData.review_type === "photo") {
         insertData.review_platforms = undefined;
       } else {
-        insertData.review_platforms = formData.review_platforms.map((link: any) => ({
-          ...link,
-          wordCount: link.wordCount ? Math.max(200, Number(link.wordCount)) : 200
-        }));
+        insertData.review_platforms = formData.review_platforms.map(
+          (link: any) => ({
+            ...link,
+            wordCount: link.wordCount
+              ? Math.max(200, Number(link.wordCount))
+              : 200,
+          }),
+        );
       }
-      if (formData.review_type === 'product') {
-        insertData.product_description = formData.product_description || '';
+      if (formData.review_type === "product") {
+        insertData.product_description = formData.product_description || "";
         insertData.features_or_benefits = formData.features_or_benefits || [];
         insertData.services_offered = undefined;
       } else {
-        if (typeof insertData.services_offered === 'string') {
+        if (typeof insertData.services_offered === "string") {
           const arr = insertData.services_offered
             .split(/\r?\n/)
             .map((s: string) => s.trim())
@@ -391,7 +526,7 @@ export default function CreatePromptPageClient() {
           insertData.services_offered = arr.length > 0 ? arr : null;
         }
       }
-      if (formData.review_type !== 'video') {
+      if (formData.review_type !== "video") {
         delete insertData.video_max_length;
         delete insertData.video_quality;
         delete insertData.video_preset;
@@ -402,7 +537,7 @@ export default function CreatePromptPageClient() {
       }
       insertData = mapToDbColumns(insertData);
       const { data, error } = await supabase
-        .from('prompt_pages')
+        .from("prompt_pages")
         .insert([insertData])
         .select()
         .single();
@@ -410,18 +545,25 @@ export default function CreatePromptPageClient() {
       if (data && data.slug) {
         setCreatedSlug(data.slug);
         setStep(2);
-        localStorage.setItem('showPostSaveModal', JSON.stringify({
-          url: `/r/${data.slug}`,
-          phone: formData.phone,
-          email: formData.email,
-          first_name: formData.first_name
-        }));
-        router.push('/dashboard');
+        localStorage.setItem(
+          "showPostSaveModal",
+          JSON.stringify({
+            url: `/r/${data.slug}`,
+            phone: formData.phone,
+            email: formData.email,
+            first_name: formData.first_name,
+          }),
+        );
+        router.push("/dashboard");
         return;
       }
-      setSaveSuccess('Step 1 saved! Continue to next step.');
+      setSaveSuccess("Step 1 saved! Continue to next step.");
     } catch (error) {
-      setSaveError(error instanceof Error ? error.message : 'Failed to save. Please try again.');
+      setSaveError(
+        error instanceof Error
+          ? error.message
+          : "Failed to save. Please try again.",
+      );
     } finally {
       setIsSaving(false);
     }
@@ -432,30 +574,42 @@ export default function CreatePromptPageClient() {
     setSaveSuccess(null);
     setIsSaving(true);
     try {
-      if (!createdSlug) throw new Error('No prompt page slug found.');
-      const { data: { user } } = await getUserOrMock(supabase);
-      if (!user) throw new Error('No user found');
+      if (!createdSlug) throw new Error("No prompt page slug found.");
+      const {
+        data: { user },
+      } = await getUserOrMock(supabase);
+      if (!user) throw new Error("No user found");
       let updateData = mapToDbColumns({ ...formData, account_id: user.id });
-      console.log('[DEBUG] handleStep2Submit updateData:', updateData);
+      console.log("[DEBUG] handleStep2Submit updateData:", updateData);
       const { data, error } = await supabase
-        .from('prompt_pages')
+        .from("prompt_pages")
         .update(updateData)
-        .eq('slug', createdSlug)
+        .eq("slug", createdSlug)
         .select()
         .single();
-      console.log('[DEBUG] handleStep2Submit Supabase response:', { data, error });
+      console.log("[DEBUG] handleStep2Submit Supabase response:", {
+        data,
+        error,
+      });
       if (error) throw error;
       if (data && data.slug) {
         setSavedPromptPageUrl(`/r/${data.slug}`);
-        localStorage.setItem('showPostSaveModal', JSON.stringify({ url: `/r/${data.slug}` }));
-        console.log('[DEBUG] handleStep2Submit redirecting to /dashboard');
-        router.push('/dashboard');
+        localStorage.setItem(
+          "showPostSaveModal",
+          JSON.stringify({ url: `/r/${data.slug}` }),
+        );
+        console.log("[DEBUG] handleStep2Submit redirecting to /dashboard");
+        router.push("/dashboard");
         return;
       }
-      setSaveSuccess('Prompt page updated successfully!');
+      setSaveSuccess("Prompt page updated successfully!");
     } catch (error) {
-      console.error('[DEBUG] handleStep2Submit error:', error);
-      setSaveError(error instanceof Error ? error.message : 'Failed to update. Please try again.');
+      console.error("[DEBUG] handleStep2Submit error:", error);
+      setSaveError(
+        error instanceof Error
+          ? error.message
+          : "Failed to update. Please try again.",
+      );
     } finally {
       setIsSaving(false);
     }
@@ -468,27 +622,35 @@ export default function CreatePromptPageClient() {
       </div>
     );
   }
-  if (formData.review_type === 'service') {
+  if (formData.review_type === "service") {
     // Ensure all required fields for service are present
     const serviceInitialData = {
       ...initialFormData,
       ...formData,
-      review_type: 'service',
+      review_type: "service",
       // Ensure all required fields for PromptPageForm are present
       offer_enabled: formData.offer_enabled ?? false,
-      offer_title: formData.offer_title ?? '',
-      offer_body: formData.offer_body ?? '',
-      offer_url: formData.offer_url ?? '',
+      offer_title: formData.offer_title ?? "",
+      offer_body: formData.offer_body ?? "",
+      offer_url: formData.offer_url ?? "",
       emojiSentimentEnabled: formData.emojiSentimentEnabled ?? false,
-      emojiSentimentQuestion: formData.emojiSentimentQuestion ?? 'How was your experience?',
-      emojiFeedbackMessage: formData.emojiFeedbackMessage ?? 'We value your feedback! Let us know how we can do better.',
-      emojiThankYouMessage: formData.emojiThankYouMessage ?? initialFormData.emojiThankYouMessage,
+      emojiSentimentQuestion:
+        formData.emojiSentimentQuestion ?? "How was your experience?",
+      emojiFeedbackMessage:
+        formData.emojiFeedbackMessage ??
+        "We value your feedback! Let us know how we can do better.",
+      emojiThankYouMessage:
+        formData.emojiThankYouMessage ?? initialFormData.emojiThankYouMessage,
       emojiLabels: formData.emojiLabels ?? [
-        'Excellent', 'Satisfied', 'Neutral', 'Unsatisfied', 'Frustrated'
+        "Excellent",
+        "Satisfied",
+        "Neutral",
+        "Unsatisfied",
+        "Frustrated",
       ],
       review_platforms: formData.review_platforms ?? [],
       fallingEnabled: formData.fallingEnabled ?? false,
-      fallingIcon: formData.falling_icon ?? 'star',
+      fallingIcon: formData.falling_icon ?? "star",
       aiButtonEnabled: formData.aiButtonEnabled ?? true,
     };
     return (
@@ -507,13 +669,13 @@ export default function CreatePromptPageClient() {
       </div>
     );
   }
-  if (formData.review_type === 'product') {
+  if (formData.review_type === "product") {
     return (
       <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
         <PageCard icon={<FaBoxOpen className="w-16 h-16 text-slate-blue" />}>
           <ProductPromptPageForm
             mode="create"
-            initialData={{ ...formData, review_type: 'product' }}
+            initialData={{ ...formData, review_type: "product" }}
             onSave={handleStep1Submit}
             onPublish={handleStep2Submit}
             pageTitle="Create product prompt page"
@@ -524,10 +686,10 @@ export default function CreatePromptPageClient() {
       </div>
     );
   }
-  if (formData.review_type === 'photo') {
+  if (formData.review_type === "photo") {
     return (
       <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
-        <PageCard icon={<FaCamera className="w-9 h-9 text-slate-blue" />}> 
+        <PageCard icon={<FaCamera className="w-9 h-9 text-slate-blue" />}>
           <PromptPageForm
             mode="create"
             initialData={formData}
@@ -556,4 +718,4 @@ export default function CreatePromptPageClient() {
       </PageCard>
     </div>
   );
-} 
+}

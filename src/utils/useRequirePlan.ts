@@ -6,7 +6,7 @@ export function useRequirePlan(account: any, exemptPaths: string[] = []) {
 
   useEffect(() => {
     if (!account) return;
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
     const currentPath = window.location.pathname;
     if (
       account.plan == null &&
@@ -15,4 +15,4 @@ export function useRequirePlan(account: any, exemptPaths: string[] = []) {
       router.replace("/dashboard/plan");
     }
   }, [account, router, exemptPaths]);
-} 
+}

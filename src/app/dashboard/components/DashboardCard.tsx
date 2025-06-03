@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 interface DashboardCardProps {
   children: React.ReactNode;
@@ -7,4 +7,4 @@ interface DashboardCardProps {
 
 export default function DashboardCard({ children }: DashboardCardProps) {
   return children;
-} 
+}

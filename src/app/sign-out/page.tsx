@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { createBrowserClient } from '@supabase/ssr';
+import { useEffect } from "react";
+import { createBrowserClient } from "@supabase/ssr";
 
 export default function SignOut() {
   useEffect(() => {
     const signOut = async () => {
       const supabase = createBrowserClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       );
       await supabase.auth.signOut();
-      window.location.href = '/auth/sign-in';
+      window.location.href = "/auth/sign-in";
     };
     signOut();
   }, []);
@@ -23,4 +23,4 @@ export default function SignOut() {
       </div>
     </div>
   );
-} 
+}

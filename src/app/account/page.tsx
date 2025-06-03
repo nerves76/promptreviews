@@ -1,13 +1,21 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { createBrowserClient } from '@supabase/ssr';
-import { useRouter } from 'next/navigation';
-import { FaUser, FaIdCard, FaSignOutAlt, FaChartLine, FaEnvelope, FaBell, FaUniversity } from 'react-icons/fa';
-import Link from 'next/link';
-import { getUserOrMock } from '@/utils/supabase';
-import PageCard from '@/app/components/PageCard';
-import AppLoader from '@/app/components/AppLoader';
+import { useEffect, useState } from "react";
+import { createBrowserClient } from "@supabase/ssr";
+import { useRouter } from "next/navigation";
+import {
+  FaUser,
+  FaIdCard,
+  FaSignOutAlt,
+  FaChartLine,
+  FaEnvelope,
+  FaBell,
+  FaUniversity,
+} from "react-icons/fa";
+import Link from "next/link";
+import { getUserOrMock } from "@/utils/supabase";
+import PageCard from "@/app/components/PageCard";
+import AppLoader from "@/app/components/AppLoader";
 
 export default function AccountPage() {
   const router = useRouter();
@@ -16,27 +24,29 @@ export default function AccountPage() {
   const [isLoading, setIsLoading] = useState(true);
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   );
 
   useEffect(() => {
     const getUserAndAccount = async () => {
       try {
-        const { data: { user } } = await getUserOrMock(supabase);
+        const {
+          data: { user },
+        } = await getUserOrMock(supabase);
         if (!user) {
-          router.push('/auth/sign-in');
+          router.push("/auth/sign-in");
           return;
         }
         setUser(user);
         // Fetch account from accounts table
         const { data: accountData } = await supabase
-          .from('accounts')
-          .select('*')
-          .eq('id', user.id)
+          .from("accounts")
+          .select("*")
+          .eq("id", user.id)
           .single();
         setAccount(accountData);
       } catch (error) {
-        console.error('Error loading user/account:', error);
+        console.error("Error loading user/account:", error);
       } finally {
         setIsLoading(false);
       }
@@ -46,7 +56,7 @@ export default function AccountPage() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    router.push('/auth/sign-in');
+    router.push("/auth/sign-in");
   };
 
   // Handle notifications toggle (smaller, matches other edit pages)
@@ -55,18 +65,31 @@ export default function AccountPage() {
     if (!account) return;
     setNotifSaving(true);
     const { error } = await supabase
-      .from('accounts')
-      .update({ review_notifications_enabled: !account.review_notifications_enabled })
-      .eq('id', account.id);
+      .from("accounts")
+      .update({
+        review_notifications_enabled: !account.review_notifications_enabled,
+      })
+      .eq("id", account.id);
     if (!error) {
-      setAccount((prev: any) => ({ ...prev, review_notifications_enabled: !prev.review_notifications_enabled }));
+      setAccount((prev: any) => ({
+        ...prev,
+        review_notifications_enabled: !prev.review_notifications_enabled,
+      }));
     }
     setNotifSaving(false);
   };
 
   if (isLoading) {
     return (
-      <div style={{ position: 'fixed', top: -190, left: 0, width: '100%', zIndex: 9999 }}>
+      <div
+        style={{
+          position: "fixed",
+          top: -190,
+          left: 0,
+          width: "100%",
+          zIndex: 9999,
+        }}
+      >
         <AppLoader />
       </div>
     );
@@ -85,7 +108,7 @@ export default function AccountPage() {
               Account Settings
             </h1>
           </div>
-          
+
           <div className="space-y-16 pb-12">
             <div>
               <h2 className="text-2xl font-bold flex items-center gap-3 mb-12 text-slate-blue">
@@ -94,15 +117,25 @@ export default function AccountPage() {
               </h2>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="block text-sm font-bold text-gray-700">First Name</label>
-                  <div className="mt-1 text-sm text-gray-900">{user.user_metadata?.first_name || ''}</div>
+                  <label className="block text-sm font-bold text-gray-700">
+                    First Name
+                  </label>
+                  <div className="mt-1 text-sm text-gray-900">
+                    {user.user_metadata?.first_name || ""}
+                  </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-gray-700">Last Name</label>
-                  <div className="mt-1 text-sm text-gray-900">{user.user_metadata?.last_name || ''}</div>
+                  <label className="block text-sm font-bold text-gray-700">
+                    Last Name
+                  </label>
+                  <div className="mt-1 text-sm text-gray-900">
+                    {user.user_metadata?.last_name || ""}
+                  </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">User ID</label>
+                  <label className="block text-sm font-medium text-gray-700">
+                    User ID
+                  </label>
                   <div className="mt-1 text-sm text-gray-900">{user.id}</div>
                 </div>
               </div>
@@ -112,16 +145,23 @@ export default function AccountPage() {
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Email</label>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    Email
+                  </label>
                   <div className="mt-1 text-sm text-gray-900 flex items-center gap-2">
                     {user.email}
                   </div>
                   <div className="mt-4">
-                    <ChangeEmail supabase={supabase} currentEmail={user.email} />
+                    <ChangeEmail
+                      supabase={supabase}
+                      currentEmail={user.email}
+                    />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Password</label>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    Password
+                  </label>
                   <div className="mt-1 text-sm text-gray-900 flex items-center gap-2">
                     ********
                   </div>
@@ -137,20 +177,24 @@ export default function AccountPage() {
                   Notifications
                 </h3>
                 <div className="flex items-center gap-4">
-                  <span className="text-base font-semibold text-slate-blue">Enable notifications</span>
+                  <span className="text-base font-semibold text-slate-blue">
+                    Enable notifications
+                  </span>
                   <button
                     type="button"
                     onClick={handleNotifToggle}
                     disabled={notifSaving}
-                    className={`relative inline-flex h-5 w-10 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 ${account?.review_notifications_enabled ? 'bg-slate-blue' : 'bg-gray-300'} ${notifSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`relative inline-flex h-5 w-10 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 ${account?.review_notifications_enabled ? "bg-slate-blue" : "bg-gray-300"} ${notifSaving ? "opacity-50 cursor-not-allowed" : ""}`}
                     aria-pressed={!!account?.review_notifications_enabled}
                   >
                     <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${account?.review_notifications_enabled ? 'translate-x-5' : 'translate-x-1'}`}
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${account?.review_notifications_enabled ? "translate-x-5" : "translate-x-1"}`}
                     />
                   </button>
                 </div>
-                <p className="text-gray-500 text-sm ml-1 mt-2">Get notified when you get a new review.</p>
+                <p className="text-gray-500 text-sm ml-1 mt-2">
+                  Get notified when you get a new review.
+                </p>
               </div>
               {/* Billing Section */}
               {account?.stripe_customer_id && (
@@ -162,36 +206,46 @@ export default function AccountPage() {
                   <button
                     onClick={async () => {
                       setIsLoading(true);
-                      const res = await fetch('/api/create-stripe-portal-session', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ customerId: account.stripe_customer_id }),
-                      });
+                      const res = await fetch(
+                        "/api/create-stripe-portal-session",
+                        {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            customerId: account.stripe_customer_id,
+                          }),
+                        },
+                      );
                       const data = await res.json();
                       setIsLoading(false);
                       if (data.url) {
                         window.location.href = data.url;
                       } else {
-                        alert('Could not open billing portal.');
+                        alert("Could not open billing portal.");
                       }
                     }}
                     disabled={isLoading}
                     className="px-4 py-2 bg-[#2E4A7D] text-white rounded font-semibold shadow hover:bg-[#4666AF] transition-colors"
                   >
-                    {isLoading ? 'Loading…' : 'Manage Billing (Invoices & Payment Info)'}
+                    {isLoading
+                      ? "Loading…"
+                      : "Manage Billing (Invoices & Payment Info)"}
                   </button>
                 </div>
               )}
             </div>
 
-            {user.email === 'chris@diviner.agency' && (
+            {user.email === "chris@diviner.agency" && (
               <div>
                 <h2 className="text-2xl font-bold flex items-center gap-3 mb-12 text-slate-blue">
                   <FaChartLine className="w-7 h-7 text-slate-blue" />
                   Admin Access
                 </h2>
                 <div className="bg-purple-50 rounded-lg p-6 border border-purple-100">
-                  <p className="text-purple-800 mb-4">Access comprehensive analytics and management tools for all accounts.</p>
+                  <p className="text-purple-800 mb-4">
+                    Access comprehensive analytics and management tools for all
+                    accounts.
+                  </p>
                   <Link
                     href="/admin"
                     className="inline-flex items-center gap-2 px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
@@ -211,8 +265,8 @@ export default function AccountPage() {
 
 function ChangePassword({ supabase }: { supabase: any }) {
   const [showForm, setShowForm] = useState(false);
-  const [password, setPassword] = useState('');
-  const [confirm, setConfirm] = useState('');
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -222,11 +276,11 @@ function ChangePassword({ supabase }: { supabase: any }) {
     setError(null);
     setSuccess(null);
     if (!password || password.length < 8) {
-      setError('Password must be at least 8 characters.');
+      setError("Password must be at least 8 characters.");
       return;
     }
     if (password !== confirm) {
-      setError('Passwords do not match.');
+      setError("Passwords do not match.");
       return;
     }
     setLoading(true);
@@ -235,62 +289,69 @@ function ChangePassword({ supabase }: { supabase: any }) {
     if (error) {
       setError(error.message);
     } else {
-      setSuccess('Password changed successfully!');
-      setPassword('');
-      setConfirm('');
+      setSuccess("Password changed successfully!");
+      setPassword("");
+      setConfirm("");
       setShowForm(false);
     }
   };
 
   // Use app's UI conventions for input styling
-  const inputClass = "block w-full rounded-2xl border border-indigo-200 bg-white focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-3 px-4 mb-4 font-semibold";
+  const inputClass =
+    "block w-full rounded-2xl border border-indigo-200 bg-white focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-3 px-4 mb-4 font-semibold";
 
   return (
     <div className="mt-4">
       <button
         type="button"
         className="inline-flex items-center px-4 py-2 border-2 border-[#1A237E] text-[#1A237E] bg-white rounded-md font-semibold text-sm transition-colors duration-150 hover:bg-[#1A237E] hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1A237E]"
-        onClick={() => setShowForm(v => !v)}
+        onClick={() => setShowForm((v) => !v)}
       >
-        {showForm ? 'Cancel' : 'Change Password'}
+        {showForm ? "Cancel" : "Change Password"}
       </button>
       {showForm && (
         <form onSubmit={handleSubmit} className="mt-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">New Password</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              New Password
+            </label>
             <input
               type="password"
               className={inputClass}
               value={password}
-              onChange={e => setPassword(e.target.value)}
+              onChange={(e) => setPassword(e.target.value)}
               minLength={8}
               required
               placeholder="Enter new password"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Confirm Password
+            </label>
             <input
               type="password"
               className={inputClass}
               value={confirm}
-              onChange={e => setConfirm(e.target.value)}
+              onChange={(e) => setConfirm(e.target.value)}
               minLength={8}
               required
               placeholder="Confirm new password"
             />
           </div>
           {error && <div className="text-red-600 text-sm mb-2">{error}</div>}
-          {success && <div className="text-green-600 text-sm mb-2">{success}</div>}
+          {success && (
+            <div className="text-green-600 text-sm mb-2">{success}</div>
+          )}
           <button
             type="submit"
             className="w-full px-4 py-3 rounded-2xl font-semibold mt-2 text-white"
-            style={{ background: '#1A237E' }}
-            onMouseOver={e => (e.currentTarget.style.background = '#3949ab')}
-            onMouseOut={e => (e.currentTarget.style.background = '#1A237E')}
+            style={{ background: "#1A237E" }}
+            onMouseOver={(e) => (e.currentTarget.style.background = "#3949ab")}
+            onMouseOut={(e) => (e.currentTarget.style.background = "#1A237E")}
             disabled={loading}
           >
-            {loading ? 'Changing...' : 'Change Password'}
+            {loading ? "Changing..." : "Change Password"}
           </button>
         </form>
       )}
@@ -298,7 +359,13 @@ function ChangePassword({ supabase }: { supabase: any }) {
   );
 }
 
-function ChangeEmail({ supabase, currentEmail }: { supabase: any, currentEmail: string }) {
+function ChangeEmail({
+  supabase,
+  currentEmail,
+}: {
+  supabase: any;
+  currentEmail: string;
+}) {
   const [showForm, setShowForm] = useState(false);
   const [email, setEmail] = useState(currentEmail);
   const [loading, setLoading] = useState(false);
@@ -309,8 +376,8 @@ function ChangeEmail({ supabase, currentEmail }: { supabase: any, currentEmail: 
     e.preventDefault();
     setError(null);
     setSuccess(null);
-    if (!email || !email.includes('@')) {
-      setError('Please enter a valid email address.');
+    if (!email || !email.includes("@")) {
+      setError("Please enter a valid email address.");
       return;
     }
     setLoading(true);
@@ -319,7 +386,9 @@ function ChangeEmail({ supabase, currentEmail }: { supabase: any, currentEmail: 
     if (error) {
       setError(error.message);
     } else {
-      setSuccess('Email change requested! Please check your new email to confirm.');
+      setSuccess(
+        "Email change requested! Please check your new email to confirm.",
+      );
       setShowForm(false);
     }
   };
@@ -329,9 +398,9 @@ function ChangeEmail({ supabase, currentEmail }: { supabase: any, currentEmail: 
       <button
         type="button"
         className="inline-flex items-center px-4 py-2 border-2 border-[#1A237E] text-[#1A237E] bg-white rounded-md font-semibold text-sm transition-colors duration-150 hover:bg-[#1A237E] hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1A237E]"
-        onClick={() => setShowForm(v => !v)}
+        onClick={() => setShowForm((v) => !v)}
       >
-        {showForm ? 'Cancel' : 'Change Email'}
+        {showForm ? "Cancel" : "Change Email"}
       </button>
       {showForm && (
         <form onSubmit={handleSubmit} className="mt-2">
@@ -339,24 +408,26 @@ function ChangeEmail({ supabase, currentEmail }: { supabase: any, currentEmail: 
             type="email"
             className="block w-full rounded-2xl border border-indigo-200 bg-white focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-3 px-4 mb-2 font-semibold"
             value={email}
-            onChange={e => setEmail(e.target.value)}
+            onChange={(e) => setEmail(e.target.value)}
             required
             placeholder="Enter new email"
           />
           {error && <div className="text-red-600 text-sm mb-1">{error}</div>}
-          {success && <div className="text-green-600 text-sm mb-1">{success}</div>}
+          {success && (
+            <div className="text-green-600 text-sm mb-1">{success}</div>
+          )}
           <button
             type="submit"
             className="w-full px-4 py-2 rounded-2xl font-semibold mt-1 text-sm text-white"
-            style={{ background: '#1A237E' }}
-            onMouseOver={e => (e.currentTarget.style.background = '#3949ab')}
-            onMouseOut={e => (e.currentTarget.style.background = '#1A237E')}
+            style={{ background: "#1A237E" }}
+            onMouseOver={(e) => (e.currentTarget.style.background = "#3949ab")}
+            onMouseOut={(e) => (e.currentTarget.style.background = "#1A237E")}
             disabled={loading}
           >
-            {loading ? 'Changing...' : 'Change Email'}
+            {loading ? "Changing..." : "Change Email"}
           </button>
         </form>
       )}
     </div>
   );
-} 
+}

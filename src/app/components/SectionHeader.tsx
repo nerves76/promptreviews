@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 /**
  * SectionHeader component
@@ -21,16 +21,29 @@ interface SectionHeaderProps {
   titleClassName?: string;
 }
 
-const SectionHeader: React.FC<SectionHeaderProps> = ({ icon, title, subCopy, className = '', subCopyLeftOffset = '', titleClassName }) => (
+const SectionHeader: React.FC<SectionHeaderProps> = ({
+  icon,
+  title,
+  subCopy,
+  className = "",
+  subCopyLeftOffset = "",
+  titleClassName,
+}) => (
   <div className={`w-full ${className}`}>
     <div className="flex items-center gap-3">
       {icon}
-      <span className={titleClassName || "text-2xl font-bold text-[#1A237E]"}>{title}</span>
+      <span className={titleClassName || "text-2xl font-bold text-[#1A237E]"}>
+        {title}
+      </span>
     </div>
     {subCopy && (
-      <div className={`text-sm text-gray-700 mt-[3px] px-0 ${subCopyLeftOffset}`}>{subCopy}</div>
+      <div
+        className={`text-sm text-gray-700 mt-[3px] px-0 ${subCopyLeftOffset}`}
+      >
+        {subCopy}
+      </div>
     )}
   </div>
 );
 
-export default SectionHeader; 
+export default SectionHeader;

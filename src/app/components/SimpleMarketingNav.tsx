@@ -1,6 +1,6 @@
-import React from 'react';
-import Link from 'next/link';
-import { FaArrowLeft } from 'react-icons/fa';
+import React from "react";
+import Link from "next/link";
+import { FaArrowLeft } from "react-icons/fa";
 
 export default function SimpleMarketingNav() {
   return (
@@ -11,7 +11,7 @@ export default function SimpleMarketingNav() {
             src="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompt-reviews-get-more-reviews-logo.png"
             alt="Prompt Reviews Logo"
             className="h-10 w-auto max-w-full object-contain"
-            style={{ maxWidth: '200px' }}
+            style={{ maxWidth: "200px" }}
           />
         </Link>
         {/* Main nav content */}
@@ -29,4 +29,4 @@ export default function SimpleMarketingNav() {
       </div>
     </nav>
   );
-} 
+}

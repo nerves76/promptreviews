@@ -31,42 +31,42 @@ export function generateReviewPrompt(
   platform: string,
   wordCountLimit: number,
   customInstructions?: string,
-  reviewerType?: 'customer' | 'client' | 'customer or client',
+  reviewerType?: "customer" | "client" | "customer or client",
   additional_ai_dos?: string,
   additional_ai_donts?: string,
 ): string {
   // Compose industry info
-  let industryInfo = '';
+  let industryInfo = "";
   if (businessProfile.industry && businessProfile.industry.length > 0) {
-    industryInfo += `- Industry: ${businessProfile.industry.join(', ')}`;
+    industryInfo += `- Industry: ${businessProfile.industry.join(", ")}`;
   }
   if (businessProfile.industry_other && businessProfile.industry_other.trim()) {
     industryInfo += `\n- Other Industry: ${businessProfile.industry_other}`;
   }
 
   // Defensive: ensure all fields are strings and never undefined/null
-  const businessName = businessProfile.business_name || '';
-  const yearsInBusiness = businessProfile.years_in_business || '';
-  const services = businessProfile.features_or_benefits || '';
-  const companyValues = businessProfile.company_values || '';
-  const differentiators = businessProfile.differentiators || '';
-  const industriesServed = businessProfile.industries_served || '';
-  const teamFounderInfo = businessProfile.team_founder_info || '';
-  const keywords = businessProfile.keywords || '';
-  const projectType = promptPageData.project_type || '';
-  const productDescription = promptPageData.product_description || '';
-  const safePlatform = platform || '';
-  const safeCustomInstructions = customInstructions || '';
-  const safeReviewerType = reviewerType || 'customer or client';
-  const aiDos = businessProfile.ai_dos || '';
-  const aiDonts = businessProfile.ai_donts || '';
-  const additionalDos = additional_ai_dos || '';
-  const additionalDonts = additional_ai_donts || '';
-  const city = businessProfile.address_city || '';
-  const state = businessProfile.address_state || '';
-  const zip = businessProfile.address_zip || '';
+  const businessName = businessProfile.business_name || "";
+  const yearsInBusiness = businessProfile.years_in_business || "";
+  const services = businessProfile.features_or_benefits || "";
+  const companyValues = businessProfile.company_values || "";
+  const differentiators = businessProfile.differentiators || "";
+  const industriesServed = businessProfile.industries_served || "";
+  const teamFounderInfo = businessProfile.team_founder_info || "";
+  const keywords = businessProfile.keywords || "";
+  const projectType = promptPageData.project_type || "";
+  const productDescription = promptPageData.product_description || "";
+  const safePlatform = platform || "";
+  const safeCustomInstructions = customInstructions || "";
+  const safeReviewerType = reviewerType || "customer or client";
+  const aiDos = businessProfile.ai_dos || "";
+  const aiDonts = businessProfile.ai_donts || "";
+  const additionalDos = additional_ai_dos || "";
+  const additionalDonts = additional_ai_donts || "";
+  const city = businessProfile.address_city || "";
+  const state = businessProfile.address_state || "";
+  const zip = businessProfile.address_zip || "";
 
-  let customerName = '';
+  let customerName = "";
   if (promptPageData.first_name && promptPageData.last_name) {
     customerName = `- Customer Name: ${promptPageData.first_name} ${promptPageData.last_name}\n`;
   } else if (promptPageData.first_name) {
@@ -75,7 +75,7 @@ export function generateReviewPrompt(
     customerName = `- Customer Name: ${promptPageData.last_name}\n`;
   }
 
-  let reviewerRole = '';
+  let reviewerRole = "";
   if (promptPageData.role) {
     reviewerRole = `- Reviewer Role/Position: ${promptPageData.role}\n`;
   }
@@ -85,12 +85,12 @@ Please write a genuine, detailed, and positive review based on the following inf
 
 Business Information:
 - Business Name: ${businessName}
-${city ? `- City: ${city}\n` : ''}${state ? `- State: ${state}\n` : ''}${zip ? `- ZIP: ${zip}\n` : ''}- Years in Business: ${yearsInBusiness}
+${city ? `- City: ${city}\n` : ""}${state ? `- State: ${state}\n` : ""}${zip ? `- ZIP: ${zip}\n` : ""}- Years in Business: ${yearsInBusiness}
 - Services: ${services}
 - Company Values: ${companyValues}
 - What Makes Them Different: ${differentiators}
 - Industries Served: ${industriesServed}
-${industryInfo ? industryInfo + '\n' : ''}- Team/Founder Info: ${teamFounderInfo}
+${industryInfo ? industryInfo + "\n" : ""}- Team/Founder Info: ${teamFounderInfo}
 - Keywords to Include: ${keywords}
 
 Customer Experience:
@@ -99,11 +99,11 @@ ${customerName}${reviewerRole}- Service Received: ${projectType}
 
 Platform: ${safePlatform}
 Word Count Limit: ${wordCountLimit} words
-${safeCustomInstructions ? `\nCustom Instructions: ${safeCustomInstructions}` : ''}
-${aiDos ? `\nDos: ${aiDos}` : ''}
-${additionalDos ? `\nAdditional Dos: ${additionalDos}` : ''}
-${aiDonts ? `\nDon'ts: ${aiDonts}` : ''}
-${additionalDonts ? `\nAdditional Don'ts: ${additionalDonts}` : ''}
+${safeCustomInstructions ? `\nCustom Instructions: ${safeCustomInstructions}` : ""}
+${aiDos ? `\nDos: ${aiDos}` : ""}
+${additionalDos ? `\nAdditional Dos: ${additionalDos}` : ""}
+${aiDonts ? `\nDon'ts: ${aiDonts}` : ""}
+${additionalDonts ? `\nAdditional Don'ts: ${additionalDonts}` : ""}
 
 Important: The reviewer is a ${safeReviewerType}
 
@@ -125,7 +125,7 @@ export async function generateAIReview(
   platform: string,
   wordCountLimit: number,
   customInstructions?: string,
-  reviewerType?: 'customer' | 'client' | 'customer or client',
+  reviewerType?: "customer" | "client" | "customer or client",
   additional_ai_dos?: string,
   additional_ai_donts?: string,
 ): Promise<string> {
@@ -138,28 +138,32 @@ export async function generateAIReview(
       customInstructions,
       reviewerType,
       additional_ai_dos,
-      additional_ai_donts
+      additional_ai_donts,
     );
 
-    const response = await fetch('/api/generate-review', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const response = await fetch("/api/generate-review", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ prompt, wordCountLimit }),
     });
     const data = await response.json();
     if (!response.ok || !data.text) {
-      throw new Error(data.error || 'Failed to generate review');
+      throw new Error(data.error || "Failed to generate review");
     }
 
     // Ensure the review is within the word count limit
     const words = data.text.split(/\s+/);
     if (words.length > wordCountLimit) {
-      return words.slice(0, wordCountLimit).join(' ') + '...';
+      return words.slice(0, wordCountLimit).join(" ") + "...";
     }
 
     return data.text;
   } catch (error) {
-    console.error('Error generating AI review:', error);
-    throw new Error(error instanceof Error ? error.message : 'Failed to generate review. Please try again.');
+    console.error("Error generating AI review:", error);
+    throw new Error(
+      error instanceof Error
+        ? error.message
+        : "Failed to generate review. Please try again.",
+    );
   }
 }

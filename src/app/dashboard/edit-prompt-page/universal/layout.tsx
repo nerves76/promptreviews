@@ -1,5 +1,9 @@
-import DashboardLayout from '../../layout';
+import DashboardLayout from "../../layout";
 
-export default function UniversalPromptLayout({ children }: { children: React.ReactNode }) {
+export default function UniversalPromptLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return <DashboardLayout>{children}</DashboardLayout>;
-} 
+}

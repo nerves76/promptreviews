@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 interface PromptReviewsLogoProps {
   color?: string;
@@ -6,7 +6,11 @@ interface PromptReviewsLogoProps {
   className?: string;
 }
 
-export default function PromptReviewsLogo({ color = 'currentColor', size = 64, className = '' }: PromptReviewsLogoProps) {
+export default function PromptReviewsLogo({
+  color = "currentColor",
+  size = 64,
+  className = "",
+}: PromptReviewsLogoProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -26,4 +30,4 @@ export default function PromptReviewsLogo({ color = 'currentColor', size = 64, c
       </g>
     </svg>
   );
-} 
+}

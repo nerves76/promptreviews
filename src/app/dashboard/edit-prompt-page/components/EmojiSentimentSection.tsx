@@ -1,14 +1,14 @@
-import React from 'react';
+import React from "react";
 import {
   EMOJI_SENTIMENT_LABELS,
   EMOJI_SENTIMENT_ICONS,
   EMOJI_SENTIMENT_TITLE,
   EMOJI_SENTIMENT_SUBTEXT,
   EMOJI_SENTIMENT_NOTE,
-} from '@/app/components/prompt-modules/emojiSentimentConfig';
-import { Input } from '@/app/components/ui/input';
-import { Textarea } from '@/app/components/ui/textarea';
-import { FaSmile } from 'react-icons/fa';
+} from "@/app/components/prompt-modules/emojiSentimentConfig";
+import { Input } from "@/app/components/ui/input";
+import { Textarea } from "@/app/components/ui/textarea";
+import { FaSmile } from "react-icons/fa";
 
 interface EmojiSentimentSectionProps {
   enabled: boolean;
@@ -42,21 +42,27 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
       <div className="flex flex-col">
         <div className="flex items-center gap-3">
           <FaSmile className="w-7 h-7 text-slate-blue" />
-          <span className="text-2xl font-bold text-[#1A237E]">{EMOJI_SENTIMENT_TITLE}</span>
+          <span className="text-2xl font-bold text-[#1A237E]">
+            {EMOJI_SENTIMENT_TITLE}
+          </span>
         </div>
-        <div className="text-sm text-gray-700 mt-[3px] ml-9">{EMOJI_SENTIMENT_SUBTEXT}</div>
+        <div className="text-sm text-gray-700 mt-[3px] ml-9">
+          {EMOJI_SENTIMENT_SUBTEXT}
+        </div>
       </div>
       <div className="flex flex-col justify-start pt-1">
         <button
           type="button"
           onClick={onToggle}
-          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${enabled ? 'bg-slate-blue' : 'bg-gray-200'}`}
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${enabled ? "bg-slate-blue" : "bg-gray-200"}`}
           aria-pressed={!!enabled}
           disabled={disabled}
-          title={disabled ? 'Disable the other popup feature to enable this.' : ''}
+          title={
+            disabled ? "Disable the other popup feature to enable this." : ""
+          }
         >
           <span
-            className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${enabled ? 'translate-x-5' : 'translate-x-1'}`}
+            className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${enabled ? "translate-x-5" : "translate-x-1"}`}
           />
         </button>
       </div>
@@ -70,7 +76,7 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
       {emojiLabels.map((label, i) => {
         const iconDef = EMOJI_SENTIMENT_ICONS[i];
         const Icon = iconDef?.icon || EMOJI_SENTIMENT_ICONS[1].icon;
-        const color = iconDef?.color || 'text-gray-400';
+        const color = iconDef?.color || "text-gray-400";
         return (
           <div className="flex flex-col items-center" key={i}>
             <Icon className={`w-10 h-10 ${color}`} />
@@ -82,30 +88,37 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
     {enabled && (
       <div className="space-y-3">
         <div className="mb-2">
-          <label className="block text-xs font-medium text-gray-700 mb-1">Popup question (shown above the emojis):</label>
+          <label className="block text-xs font-medium text-gray-700 mb-1">
+            Popup question (shown above the emojis):
+          </label>
           <Input
             type="text"
             value={question}
-            onChange={e => onQuestionChange(e.target.value)}
+            onChange={(e) => onQuestionChange(e.target.value)}
             placeholder="How was your experience?"
             maxLength={80}
             disabled={!enabled}
           />
         </div>
         <div className="mt-2">
-          <label className="block text-xs font-medium text-gray-700 mb-1">Feedback message (shown to customers who select an indifferent or negative emoji):</label>
+          <label className="block text-xs font-medium text-gray-700 mb-1">
+            Feedback message (shown to customers who select an indifferent or
+            negative emoji):
+          </label>
           <Textarea
             value={feedbackMessage}
-            onChange={e => onFeedbackMessageChange(e.target.value)}
+            onChange={(e) => onFeedbackMessageChange(e.target.value)}
             rows={2}
             maxLength={160}
           />
         </div>
         <div className="mt-2">
-          <label className="block text-xs font-medium text-gray-700 mb-1">Thank you message (shown after positive feedback):</label>
+          <label className="block text-xs font-medium text-gray-700 mb-1">
+            Thank you message (shown after positive feedback):
+          </label>
           <Textarea
             value={thankYouMessage}
-            onChange={e => onThankYouMessageChange(e.target.value)}
+            onChange={(e) => onThankYouMessageChange(e.target.value)}
             rows={2}
             maxLength={160}
           />
@@ -115,4 +128,4 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
   </div>
 );
 
-export default EmojiSentimentSection; 
+export default EmojiSentimentSection;

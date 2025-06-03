@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
 export default function EditPromptPage() {
   const [initialData, setInitialData] = useState<any>(null);
@@ -11,7 +11,9 @@ export default function EditPromptPage() {
   return (
     <div>
       <h1>Edit Prompt Page</h1>
-      <p>This is a placeholder. Please implement the edit prompt page logic here.</p>
+      <p>
+        This is a placeholder. Please implement the edit prompt page logic here.
+      </p>
     </div>
   );
-} 
+}

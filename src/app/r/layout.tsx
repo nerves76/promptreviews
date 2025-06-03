@@ -1,12 +1,12 @@
-import '../globals.css';
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import "../globals.css";
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'PromptReviews - Public Prompt Page',
-  description: 'Public review request page',
+  title: "PromptReviews - Public Prompt Page",
+  description: "Public review request page",
 };
 
 export default function PublicPromptLayout({
@@ -19,4 +19,4 @@ export default function PublicPromptLayout({
       {children}
     </div>
   );
-} 
+}

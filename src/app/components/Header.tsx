@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef } from 'react';
-import Link from 'next/link';
-import { useRouter, usePathname } from 'next/navigation';
-import { createBrowserClient } from '@supabase/ssr';
-import { FiMenu, FiX } from 'react-icons/fi';
-import { FaUserCircle, FaBell } from 'react-icons/fa';
-import { Menu } from '@headlessui/react';
-import { getUserOrMock } from '@/utils/supabase';
+import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
+import { createBrowserClient } from "@supabase/ssr";
+import { FiMenu, FiX } from "react-icons/fi";
+import { FaUserCircle, FaBell } from "react-icons/fa";
+import { Menu } from "@headlessui/react";
+import { getUserOrMock } from "@/utils/supabase";
 
 export default function Header() {
   const router = useRouter();
@@ -15,7 +15,7 @@ export default function Header() {
   const [user, setUser] = useState<any>(null);
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   );
   const [menuOpen, setMenuOpen] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
@@ -24,7 +24,9 @@ export default function Header() {
 
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await getUserOrMock(supabase);
+      const {
+        data: { user },
+      } = await getUserOrMock(supabase);
       setUser(user);
     };
 
@@ -34,24 +36,34 @@ export default function Header() {
   // Fetch recent reviews as notifications
   useEffect(() => {
     const fetchNotifications = async () => {
-      const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      const since = new Date(
+        Date.now() - 7 * 24 * 60 * 60 * 1000,
+      ).toISOString();
       const { data, error } = await supabase
-        .from('review_submissions')
-        .select('id, first_name, last_name, platform, review_content, created_at')
-        .gte('created_at', since)
-        .order('created_at', { ascending: false })
+        .from("review_submissions")
+        .select(
+          "id, first_name, last_name, platform, review_content, created_at",
+        )
+        .gte("created_at", since)
+        .order("created_at", { ascending: false })
         .limit(7);
       if (!error && data) {
-        setNotifications(data.map((r: any) => {
-          const name = r.first_name ? (r.last_name ? `${r.first_name} ${r.last_name}` : r.first_name) : 'Anonymous';
-          return {
-            id: r.id,
-            message: `New review from ${name} on ${r.platform}`,
-            preview: r.review_content?.slice(0, 60) || '',
-            created_at: r.created_at,
-            read: false,
-          };
-        }));
+        setNotifications(
+          data.map((r: any) => {
+            const name = r.first_name
+              ? r.last_name
+                ? `${r.first_name} ${r.last_name}`
+                : r.first_name
+              : "Anonymous";
+            return {
+              id: r.id,
+              message: `New review from ${name} on ${r.platform}`,
+              preview: r.review_content?.slice(0, 60) || "",
+              created_at: r.created_at,
+              read: false,
+            };
+          }),
+        );
       }
     };
     fetchNotifications();
@@ -59,8 +71,8 @@ export default function Header() {
   }, []);
 
   const isActive = (path: string) => {
-    if (path === '/dashboard' && pathname === '/dashboard') return true;
-    if (path !== '/dashboard' && pathname.startsWith(path)) return true;
+    if (path === "/dashboard" && pathname === "/dashboard") return true;
+    if (path !== "/dashboard" && pathname.startsWith(path)) return true;
     return false;
   };
 
@@ -73,18 +85,23 @@ export default function Header() {
 
   // Filter and sort notifications for the bell
   const recentNotifications = notifications
-    .filter(n => isRecentNotification(n.created_at))
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .filter((n) => isRecentNotification(n.created_at))
+    .sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+    )
     .slice(0, 7);
-  const unreadCount = recentNotifications.filter(n => !n.read).length;
+  const unreadCount = recentNotifications.filter((n) => !n.read).length;
 
   // Mark notifications as read when dropdown is opened
   useEffect(() => {
-    if (showNotif && notifications.some(n => !n.read)) {
-      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    if (showNotif && notifications.some((n) => !n.read)) {
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
     }
     // Remove notifications older than 7 days
-    setNotifications(prev => prev.filter(n => isRecentNotification(n.created_at)));
+    setNotifications((prev) =>
+      prev.filter((n) => isRecentNotification(n.created_at)),
+    );
     // eslint-disable-next-line
   }, [showNotif]);
 
@@ -92,12 +109,15 @@ export default function Header() {
   useEffect(() => {
     if (!showNotif) return;
     function handleClickOutside(event: MouseEvent) {
-      if (notifDropdownRef.current && !notifDropdownRef.current.contains(event.target as Node)) {
+      if (
+        notifDropdownRef.current &&
+        !notifDropdownRef.current.contains(event.target as Node)
+      ) {
         setShowNotif(false);
       }
     }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showNotif]);
 
   return (
@@ -107,13 +127,16 @@ export default function Header() {
           <div className="flex items-center">
             <div className="flex-shrink-0 flex items-center mr-6">
               <Link href="/dashboard" className="flex items-center">
-                <span className="h-14 w-auto flex items-center p-1" aria-label="PromptReviews Logo">
+                <span
+                  className="h-14 w-auto flex items-center p-1"
+                  aria-label="PromptReviews Logo"
+                >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="130"
                     height="52"
                     viewBox="0 0 375 150"
-                    style={{ display: 'block', overflow: 'visible' }}
+                    style={{ display: "block", overflow: "visible" }}
                   >
                     <g>
                       <path
@@ -131,9 +154,9 @@ export default function Header() {
               <Link
                 href="/dashboard"
                 className={`${
-                  isActive('/dashboard')
-                    ? 'border-[#1A237E] text-[#1A237E]'
-                    : 'border-transparent text-[#1A237E] hover:border-[#1A237E]/30 hover:text-[#1A237E]'
+                  isActive("/dashboard")
+                    ? "border-[#1A237E] text-[#1A237E]"
+                    : "border-transparent text-[#1A237E] hover:border-[#1A237E]/30 hover:text-[#1A237E]"
                 } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16`}
               >
                 Dashboard
@@ -141,9 +164,9 @@ export default function Header() {
               <Link
                 href="/dashboard/business-profile"
                 className={`${
-                  isActive('/dashboard/business-profile')
-                    ? 'border-[#1A237E] text-[#1A237E]'
-                    : 'border-transparent text-[#1A237E] hover:border-[#1A237E]/30 hover:text-[#1A237E]'
+                  isActive("/dashboard/business-profile")
+                    ? "border-[#1A237E] text-[#1A237E]"
+                    : "border-transparent text-[#1A237E] hover:border-[#1A237E]/30 hover:text-[#1A237E]"
                 } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16`}
               >
                 Your business
@@ -151,9 +174,9 @@ export default function Header() {
               <Link
                 href="/dashboard/reviews"
                 className={`${
-                  isActive('/dashboard/reviews')
-                    ? 'border-[#1A237E] text-[#1A237E]'
-                    : 'border-transparent text-[#1A237E] hover:border-[#1A237E]/30 hover:text-[#1A237E]'
+                  isActive("/dashboard/reviews")
+                    ? "border-[#1A237E] text-[#1A237E]"
+                    : "border-transparent text-[#1A237E] hover:border-[#1A237E]/30 hover:text-[#1A237E]"
                 } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16`}
               >
                 Your reviews
@@ -161,9 +184,9 @@ export default function Header() {
               <Link
                 href="/dashboard/style"
                 className={`${
-                  isActive('/dashboard/style')
-                    ? 'border-[#1A237E] text-[#1A237E]'
-                    : 'border-transparent text-[#1A237E] hover:border-[#1A237E]/30 hover:text-[#1A237E]'
+                  isActive("/dashboard/style")
+                    ? "border-[#1A237E] text-[#1A237E]"
+                    : "border-transparent text-[#1A237E] hover:border-[#1A237E]/30 hover:text-[#1A237E]"
                 } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16`}
               >
                 Style
@@ -171,9 +194,9 @@ export default function Header() {
               <Link
                 href="/dashboard/widget"
                 className={`${
-                  isActive('/dashboard/widget')
-                    ? 'border-[#1A237E] text-[#1A237E]'
-                    : 'border-transparent text-[#1A237E] hover:border-[#1A237E]/30 hover:text-[#1A237E]'
+                  isActive("/dashboard/widget")
+                    ? "border-[#1A237E] text-[#1A237E]"
+                    : "border-transparent text-[#1A237E] hover:border-[#1A237E]/30 hover:text-[#1A237E]"
                 } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16`}
               >
                 Widget
@@ -184,34 +207,57 @@ export default function Header() {
               <div className="relative top-1">
                 <button
                   className="relative focus:outline-none"
-                  onClick={() => setShowNotif(v => !v)}
+                  onClick={() => setShowNotif((v) => !v)}
                   aria-label="Show notifications"
                 >
                   <FaBell className="w-6 h-6 text-[#1A237E] hover:text-[#1A237E]/80 transition-colors" />
-                  {notifications.filter(n => !n.read).length > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-pink-300 text-[#1A237E] text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold border border-white">{notifications.filter(n => !n.read).length}</span>
+                  {notifications.filter((n) => !n.read).length > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-pink-300 text-[#1A237E] text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold border border-white">
+                      {notifications.filter((n) => !n.read).length}
+                    </span>
                   )}
                 </button>
                 {showNotif && (
-                  <div ref={notifDropdownRef} className="absolute right-0 mt-2 w-80 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
+                  <div
+                    ref={notifDropdownRef}
+                    className="absolute right-0 mt-2 w-80 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50"
+                  >
                     <div className="py-2 max-h-80 overflow-y-auto">
                       {notifications.length === 0 ? (
-                        <div className="px-4 py-6 text-center text-gray-400">No notifications</div>
-                      ) : notifications.map(n => (
-                        <a
-                          key={n.id}
-                          href={`/dashboard/reviews#${n.id}`}
-                          className="px-4 py-3 border-b last:border-b-0 flex flex-col gap-1 hover:bg-gray-50 transition-colors cursor-pointer no-underline"
-                          onClick={() => setShowNotif(false)}
-                        >
-                          <span className="text-sm text-gray-800">{n.message}</span>
-                          {n.preview && <span className="text-xs text-gray-500 italic">{n.preview}{n.preview.length === 60 ? '…' : ''}</span>}
-                          <span className="text-xs text-gray-400">{new Date(n.created_at).toLocaleString()}</span>
-                        </a>
-                      ))}
+                        <div className="px-4 py-6 text-center text-gray-400">
+                          No notifications
+                        </div>
+                      ) : (
+                        notifications.map((n) => (
+                          <a
+                            key={n.id}
+                            href={`/dashboard/reviews#${n.id}`}
+                            className="px-4 py-3 border-b last:border-b-0 flex flex-col gap-1 hover:bg-gray-50 transition-colors cursor-pointer no-underline"
+                            onClick={() => setShowNotif(false)}
+                          >
+                            <span className="text-sm text-gray-800">
+                              {n.message}
+                            </span>
+                            {n.preview && (
+                              <span className="text-xs text-gray-500 italic">
+                                {n.preview}
+                                {n.preview.length === 60 ? "…" : ""}
+                              </span>
+                            )}
+                            <span className="text-xs text-gray-400">
+                              {new Date(n.created_at).toLocaleString()}
+                            </span>
+                          </a>
+                        ))
+                      )}
                     </div>
                     <div className="border-t border-gray-100 px-4 py-2 text-center">
-                      <Link href="/dashboard/reviews" className="text-xs text-indigo-700 font-semibold hover:underline">View all</Link>
+                      <Link
+                        href="/dashboard/reviews"
+                        className="text-xs text-indigo-700 font-semibold hover:underline"
+                      >
+                        View all
+                      </Link>
                     </div>
                   </div>
                 )}
@@ -229,22 +275,42 @@ export default function Header() {
                   <div className="py-1">
                     <Menu.Item>
                       {({ active }) => (
-                        <Link href="/account" className={`${active ? 'bg-[#1A237E]/10 text-[#1A237E]' : 'text-gray-700'} block px-4 py-2 text-sm`}>Account details</Link>
+                        <Link
+                          href="/account"
+                          className={`${active ? "bg-[#1A237E]/10 text-[#1A237E]" : "text-gray-700"} block px-4 py-2 text-sm`}
+                        >
+                          Account details
+                        </Link>
                       )}
                     </Menu.Item>
                     <Menu.Item>
                       {({ active }) => (
-                        <Link href="/dashboard/analytics" className={`${active ? 'bg-[#1A237E]/10 text-[#1A237E]' : 'text-gray-700'} block px-4 py-2 text-sm`}>Analytics</Link>
+                        <Link
+                          href="/dashboard/analytics"
+                          className={`${active ? "bg-[#1A237E]/10 text-[#1A237E]" : "text-gray-700"} block px-4 py-2 text-sm`}
+                        >
+                          Analytics
+                        </Link>
                       )}
                     </Menu.Item>
                     <Menu.Item>
                       {({ active }) => (
-                        <Link href="/dashboard/plan" className={`${active ? 'bg-[#1A237E]/10 text-[#1A237E]' : 'text-gray-700'} block px-4 py-2 text-sm`}>Plan</Link>
+                        <Link
+                          href="/dashboard/plan"
+                          className={`${active ? "bg-[#1A237E]/10 text-[#1A237E]" : "text-gray-700"} block px-4 py-2 text-sm`}
+                        >
+                          Plan
+                        </Link>
                       )}
                     </Menu.Item>
                     <Menu.Item>
                       {({ active }) => (
-                        <Link href="/dashboard/contacts" className={`${active ? 'bg-[#1A237E]/10 text-[#1A237E]' : 'text-gray-700'} block px-4 py-2 text-sm`}>Contacts</Link>
+                        <Link
+                          href="/dashboard/contacts"
+                          className={`${active ? "bg-[#1A237E]/10 text-[#1A237E]" : "text-gray-700"} block px-4 py-2 text-sm`}
+                        >
+                          Contacts
+                        </Link>
                       )}
                     </Menu.Item>
                     <div className="border-t border-gray-100 my-1" />
@@ -253,9 +319,9 @@ export default function Header() {
                         <button
                           onClick={async () => {
                             await supabase.auth.signOut();
-                            router.push('/auth/sign-in');
+                            router.push("/auth/sign-in");
                           }}
-                          className={`${active ? 'bg-red-50 text-red-700' : 'text-red-600'} block w-full text-left px-4 py-2 text-sm`}
+                          className={`${active ? "bg-red-50 text-red-700" : "text-red-600"} block w-full text-left px-4 py-2 text-sm`}
                         >
                           Sign out
                         </button>
@@ -280,7 +346,11 @@ export default function Header() {
               className="inline-flex items-center justify-center p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
               aria-label="Open main menu"
             >
-              {menuOpen ? <FiX className="h-6 w-6" /> : <FiMenu className="h-6 w-6" />}
+              {menuOpen ? (
+                <FiX className="h-6 w-6" />
+              ) : (
+                <FiMenu className="h-6 w-6" />
+              )}
             </button>
           </div>
         </div>
@@ -291,9 +361,9 @@ export default function Header() {
               <Link
                 href="/dashboard"
                 className={`${
-                  isActive('/dashboard')
-                    ? 'bg-[#1A237E]/10 text-[#1A237E]'
-                    : 'text-[#1A237E] hover:bg-[#1A237E]/10'
+                  isActive("/dashboard")
+                    ? "bg-[#1A237E]/10 text-[#1A237E]"
+                    : "text-[#1A237E] hover:bg-[#1A237E]/10"
                 } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                 onClick={() => setMenuOpen(false)}
               >
@@ -302,9 +372,9 @@ export default function Header() {
               <Link
                 href="/dashboard/business-profile"
                 className={`${
-                  isActive('/dashboard/business-profile')
-                    ? 'bg-[#1A237E]/10 text-[#1A237E]'
-                    : 'text-[#1A237E] hover:bg-[#1A237E]/10'
+                  isActive("/dashboard/business-profile")
+                    ? "bg-[#1A237E]/10 text-[#1A237E]"
+                    : "text-[#1A237E] hover:bg-[#1A237E]/10"
                 } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                 onClick={() => setMenuOpen(false)}
               >
@@ -313,9 +383,9 @@ export default function Header() {
               <Link
                 href="/dashboard/reviews"
                 className={`${
-                  isActive('/dashboard/reviews')
-                    ? 'bg-[#1A237E]/10 text-[#1A237E]'
-                    : 'text-[#1A237E] hover:bg-[#1A237E]/10'
+                  isActive("/dashboard/reviews")
+                    ? "bg-[#1A237E]/10 text-[#1A237E]"
+                    : "text-[#1A237E] hover:bg-[#1A237E]/10"
                 } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                 onClick={() => setMenuOpen(false)}
               >
@@ -324,9 +394,9 @@ export default function Header() {
               <Link
                 href="/dashboard/style"
                 className={`${
-                  isActive('/dashboard/style')
-                    ? 'bg-[#1A237E]/10 text-[#1A237E]'
-                    : 'text-[#1A237E] hover:bg-[#1A237E]/10'
+                  isActive("/dashboard/style")
+                    ? "bg-[#1A237E]/10 text-[#1A237E]"
+                    : "text-[#1A237E] hover:bg-[#1A237E]/10"
                 } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                 onClick={() => setMenuOpen(false)}
               >
@@ -335,9 +405,9 @@ export default function Header() {
               <Link
                 href="/dashboard/widget"
                 className={`${
-                  isActive('/dashboard/widget')
-                    ? 'bg-[#1A237E]/10 text-[#1A237E]'
-                    : 'text-[#1A237E] hover:bg-[#1A237E]/10'
+                  isActive("/dashboard/widget")
+                    ? "bg-[#1A237E]/10 text-[#1A237E]"
+                    : "text-[#1A237E] hover:bg-[#1A237E]/10"
                 } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                 onClick={() => setMenuOpen(false)}
               >
@@ -348,9 +418,9 @@ export default function Header() {
                   <Link
                     href="/account"
                     className={`${
-                      isActive('/account')
-                        ? 'bg-[#1A237E]/10 text-[#1A237E]'
-                        : 'text-[#1A237E] hover:bg-[#1A237E]/10'
+                      isActive("/account")
+                        ? "bg-[#1A237E]/10 text-[#1A237E]"
+                        : "text-[#1A237E] hover:bg-[#1A237E]/10"
                     } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                     onClick={() => setMenuOpen(false)}
                   >
@@ -359,9 +429,9 @@ export default function Header() {
                   <Link
                     href="/dashboard/analytics"
                     className={`${
-                      isActive('/dashboard/analytics')
-                        ? 'bg-[#1A237E]/10 text-[#1A237E]'
-                        : 'text-[#1A237E] hover:bg-[#1A237E]/10'
+                      isActive("/dashboard/analytics")
+                        ? "bg-[#1A237E]/10 text-[#1A237E]"
+                        : "text-[#1A237E] hover:bg-[#1A237E]/10"
                     } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                     onClick={() => setMenuOpen(false)}
                   >
@@ -370,9 +440,9 @@ export default function Header() {
                   <Link
                     href="/dashboard/plan"
                     className={`${
-                      isActive('/dashboard/plan')
-                        ? 'bg-[#1A237E]/10 text-[#1A237E]'
-                        : 'text-[#1A237E] hover:bg-[#1A237E]/10'
+                      isActive("/dashboard/plan")
+                        ? "bg-[#1A237E]/10 text-[#1A237E]"
+                        : "text-[#1A237E] hover:bg-[#1A237E]/10"
                     } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                     onClick={() => setMenuOpen(false)}
                   >
@@ -381,9 +451,9 @@ export default function Header() {
                   <Link
                     href="/dashboard/contacts"
                     className={`${
-                      isActive('/dashboard/contacts')
-                        ? 'bg-[#1A237E]/10 text-[#1A237E]'
-                        : 'text-[#1A237E] hover:bg-[#1A237E]/10'
+                      isActive("/dashboard/contacts")
+                        ? "bg-[#1A237E]/10 text-[#1A237E]"
+                        : "text-[#1A237E] hover:bg-[#1A237E]/10"
                     } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                     onClick={() => setMenuOpen(false)}
                   >
@@ -405,4 +475,4 @@ export default function Header() {
       </nav>
     </header>
   );
-} 
+}

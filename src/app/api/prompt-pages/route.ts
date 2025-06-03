@@ -1,9 +1,9 @@
-import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { nanoid } from 'nanoid';
-import { createServerClient } from '@supabase/ssr';
-import { sanitizePromptPageInsert } from '@/utils/sanitizePromptPageInsert';
-import { slugify } from '@/utils/slugify';
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { nanoid } from "nanoid";
+import { createServerClient } from "@supabase/ssr";
+import { sanitizePromptPageInsert } from "@/utils/sanitizePromptPageInsert";
+import { slugify } from "@/utils/slugify";
 
 export async function POST(request: Request) {
   try {
@@ -22,7 +22,7 @@ export async function POST(request: Request) {
             // Not needed for this handler
           },
         },
-      }
+      },
     );
 
     // Generate a unique slug from client_name or title
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     } else {
       slug = nanoid(8);
     }
-    
+
     // Create the prompt page in Supabase
     const insertData = sanitizePromptPageInsert({
       slug,
@@ -42,7 +42,11 @@ export async function POST(request: Request) {
       location: body.location,
       tone_of_voice: body.tone_of_voice,
       project_type: body.project_type,
-      features_or_benefits: Array.isArray(body.services_offered) ? body.services_offered : (typeof body.services_offered === 'string' ? [body.services_offered] : []),
+      features_or_benefits: Array.isArray(body.services_offered)
+        ? body.services_offered
+        : typeof body.services_offered === "string"
+          ? [body.services_offered]
+          : [],
       product_description: body.outcomes,
       date_completed: body.date_completed,
       team_member: body.team_member,
@@ -56,25 +60,25 @@ export async function POST(request: Request) {
       friendly_note: body.friendly_note,
     });
     const { data, error } = await supabase
-      .from('prompt_pages')
+      .from("prompt_pages")
       .insert([insertData])
       .select()
       .single();
 
     if (error) {
-      console.error('Error creating prompt page:', error);
+      console.error("Error creating prompt page:", error);
       return NextResponse.json(
-        { error: 'Failed to create prompt page' },
-        { status: 500 }
+        { error: "Failed to create prompt page" },
+        { status: 500 },
       );
     }
 
     return NextResponse.json({ data });
   } catch (error) {
-    console.error('Error in POST /api/prompt-pages:', error);
+    console.error("Error in POST /api/prompt-pages:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+      { error: "Internal server error" },
+      { status: 500 },
     );
   }
-} 
+}
