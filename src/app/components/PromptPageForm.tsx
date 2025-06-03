@@ -142,6 +142,9 @@ export default function PromptPageForm({
 
   const [submitted, setSubmitted] = useState(false);
 
+  // Add state for warning modal
+  const [showPopupConflictModal, setShowPopupConflictModal] = useState<null | 'emoji' | 'note'>(null);
+
   const handleIconChange = (key: string) => {
     setFallingIcon(key);
     setFormData((prev: any) => ({ ...prev, falling_icon: key }));
@@ -245,7 +248,7 @@ export default function PromptPageForm({
   };
 
   const handleToggleFalling = () => {
-    setFallingEnabled((prev) => !prev);
+    setFallingEnabled((prev: boolean) => !prev);
   };
 
   // Sync special offer and emoji sentiment state into formData for universal pages
@@ -730,9 +733,16 @@ export default function PromptPageForm({
                       </div>
                       <button
                         type="button"
-                        onClick={() => setNotePopupEnabled(v => !v)}
+                        onClick={() => {
+                          if (emojiSentimentEnabled) {
+                            setShowPopupConflictModal('note');
+                            return;
+                          }
+                          setNotePopupEnabled((v: boolean) => !v);
+                        }}
                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${notePopupEnabled ? 'bg-slate-blue' : 'bg-gray-200'}`}
                         aria-pressed={!!notePopupEnabled}
+                        disabled={emojiSentimentEnabled}
                       >
                         <span
                           className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${notePopupEnabled ? 'translate-x-5' : 'translate-x-1'}`}
@@ -779,7 +789,13 @@ export default function PromptPageForm({
               {/* Emoji Sentiment Section (modular) */}
               <EmojiSentimentSection
                 enabled={emojiSentimentEnabled}
-                onToggle={() => setEmojiSentimentEnabled((v: boolean) => !v)}
+                onToggle={() => {
+                  if (notePopupEnabled) {
+                    setShowPopupConflictModal('emoji');
+                    return;
+                  }
+                  setEmojiSentimentEnabled((v: boolean) => !v);
+                }}
                 question={emojiSentimentQuestion}
                 onQuestionChange={setEmojiSentimentQuestion}
                 feedbackMessage={emojiFeedbackMessage}
@@ -792,6 +808,7 @@ export default function PromptPageForm({
                   newLabels[idx] = val;
                   return { ...prev, emojiLabels: newLabels };
                 })}
+                disabled={!!notePopupEnabled}
               />
               {/* AI Generation Toggle (modular) */}
               <DisableAIGenerationSection
@@ -1081,9 +1098,16 @@ export default function PromptPageForm({
                     </div>
                     <button
                       type="button"
-                      onClick={() => setNotePopupEnabled(v => !v)}
+                      onClick={() => {
+                        if (emojiSentimentEnabled) {
+                          setShowPopupConflictModal('note');
+                          return;
+                        }
+                        setNotePopupEnabled((v: boolean) => !v);
+                      }}
                       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${notePopupEnabled ? 'bg-slate-blue' : 'bg-gray-200'}`}
                       aria-pressed={!!notePopupEnabled}
+                      disabled={emojiSentimentEnabled}
                     >
                       <span
                         className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${notePopupEnabled ? 'translate-x-5' : 'translate-x-1'}`}
@@ -1093,16 +1117,6 @@ export default function PromptPageForm({
                   <div className="text-sm text-gray-700 px-2">
                     This note appears as a pop-up at the top of the review page. Use it to set the context and tone for your customer.
                   </div>
-                  {notePopupEnabled && (
-                    <textarea
-                      id="friendly_note"
-                      value={formData.friendly_note}
-                      onChange={e => setFormData((prev: any) => ({ ...prev, friendly_note: e.target.value }))}
-                      rows={4}
-                      className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring shadow-inner"
-                      placeholder="Ty! It was so great having you in yesterday. You left your scarf! I can drop it by tomorrow on my way in. Thanks for leaving us a review, we need all the positivity we can get.  :)"
-                    />
-                  )}
                 </div>
               </>
             )}
@@ -1140,7 +1154,13 @@ export default function PromptPageForm({
             {/* Emoji Sentiment Section (modular) */}
             <EmojiSentimentSection
               enabled={emojiSentimentEnabled}
-              onToggle={() => setEmojiSentimentEnabled((v: boolean) => !v)}
+              onToggle={() => {
+                if (notePopupEnabled) {
+                  setShowPopupConflictModal('emoji');
+                  return;
+                }
+                setEmojiSentimentEnabled((v: boolean) => !v);
+              }}
               question={emojiSentimentQuestion}
               onQuestionChange={setEmojiSentimentQuestion}
               feedbackMessage={emojiFeedbackMessage}
@@ -1153,6 +1173,7 @@ export default function PromptPageForm({
                 newLabels[idx] = val;
                 return { ...prev, emojiLabels: newLabels };
               })}
+              disabled={!!notePopupEnabled}
             />
             {/* AI Generation Toggle (modular) */}
             <DisableAIGenerationSection
@@ -1234,6 +1255,33 @@ export default function PromptPageForm({
             </button>
           </div>
         </>
+      )}
+      {/* Popup conflict modal */}
+      {showPopupConflictModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center relative">
+            <button
+              className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl"
+              onClick={() => setShowPopupConflictModal(null)}
+              aria-label="Close"
+            >
+              &times;
+            </button>
+            <h2 className="text-2xl font-bold text-red-700 mb-4">Popup Feature Conflict</h2>
+            <p className="mb-6 text-gray-700">
+              Two popup features can't be enabled at the same time.<br />
+              {showPopupConflictModal === 'emoji'
+                ? 'If you disable the Friendly Note, you can turn on Emoji Sentiment.'
+                : 'If you disable Emoji Sentiment, you can turn on the Popup Note.'}
+            </p>
+            <button
+              onClick={() => setShowPopupConflictModal(null)}
+              className="bg-slate-blue text-white px-6 py-2 rounded hover:bg-slate-blue/90 font-semibold mt-2"
+            >
+              OK
+            </button>
+          </div>
+        </div>
       )}
     </form>
   );

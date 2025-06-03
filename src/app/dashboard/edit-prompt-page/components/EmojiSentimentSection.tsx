@@ -21,6 +21,7 @@ interface EmojiSentimentSectionProps {
   onThankYouMessageChange: (val: string) => void;
   emojiLabels?: string[];
   onEmojiLabelChange?: (index: number, val: string) => void;
+  disabled?: boolean;
 }
 
 const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
@@ -34,6 +35,7 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
   onThankYouMessageChange,
   emojiLabels = EMOJI_SENTIMENT_LABELS,
   onEmojiLabelChange,
+  disabled = false,
 }) => (
   <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-2 shadow relative">
     <div className="flex flex-row justify-between items-start px-2 py-2">
@@ -50,6 +52,8 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
           onClick={onToggle}
           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${enabled ? 'bg-slate-blue' : 'bg-gray-200'}`}
           aria-pressed={!!enabled}
+          disabled={disabled}
+          title={disabled ? 'Disable the other popup feature to enable this.' : ''}
         >
           <span
             className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${enabled ? 'translate-x-5' : 'translate-x-1'}`}
