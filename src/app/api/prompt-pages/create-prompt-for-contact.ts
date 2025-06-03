@@ -1,8 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 
 export async function POST(req: NextRequest) {
-  const supabase = createServerClient();
+  const cookieStore = await cookies();
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get: (name) => cookieStore.get(name)?.value,
+        set: () => {},
+        remove: () => {},
+      },
+    }
+  );
   try {
     const body = await req.json();
     const { contact_id, type, custom_note } = body;
