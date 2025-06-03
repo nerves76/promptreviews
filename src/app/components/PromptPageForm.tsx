@@ -2,7 +2,7 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
 import { generateAIReview } from '@/utils/ai';
-import { FaRobot, FaInfoCircle, FaStar, FaGift, FaVideo, FaImage, FaQuoteRight, FaCamera, FaHeart, FaGoogle, FaYelp, FaFacebook, FaTripadvisor, FaRegStar, FaSmile, FaGlobe, FaBoxOpen, FaThumbsUp, FaBolt, FaRainbow, FaCoffee, FaWrench, FaGlassCheers, FaDumbbell, FaPagelines, FaPeace, FaQuestionCircle } from 'react-icons/fa';
+import { FaRobot, FaInfoCircle, FaStar, FaGift, FaVideo, FaImage, FaQuoteRight, FaCamera, FaHeart, FaGoogle, FaYelp, FaFacebook, FaTripadvisor, FaRegStar, FaSmile, FaGlobe, FaBoxOpen, FaThumbsUp, FaBolt, FaRainbow, FaCoffee, FaWrench, FaGlassCheers, FaDumbbell, FaPagelines, FaPeace, FaQuestionCircle, FaHandsHelping, FaBullseye, FaTrophy, FaCommentDots, FaMagic } from 'react-icons/fa';
 import dynamic from 'next/dynamic';
 import { slugify } from '@/utils/slugify';
 import { useRouter } from 'next/navigation';
@@ -13,11 +13,21 @@ import DisableAIGenerationSection from './DisableAIGenerationSection';
 import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
 import { FALLING_STARS_ICONS } from '@/app/components/prompt-modules/fallingStarsConfig';
+import FallingStarsSection from '@/app/components/FallingStarsSection';
+import RobotTooltip from './RobotTooltip';
+import SectionHeader from './SectionHeader';
 
-// TODO: Move all form state, handlers, and UI from create-prompt-page/page.tsx and dashboard/edit-prompt-page/[slug]/page.tsx into this component.
-// Accept props for mode (create/edit), initial data, onSave/onPublish handlers, and page title.
-// Render the full prompt page form, including all steps, emoji sentiment flow, falling stars, review platforms, etc.
-// This will be used by both create and edit flows for perfect consistency.
+/**
+ * PromptPageForm component
+ *
+ * Usage: Main form for all prompt page types (service, product, photo+testimonial, universal).
+ * - Composes all modular sections: SectionHeader, ReviewWriteSection, OfferSection, EmojiSentimentSection, etc.
+ * - Always use SectionHeader for section/module headers.
+ * - Use PageCard for page layout and floating icon.
+ * - AI Gen buttons must use the standardized style (see ReviewWriteSection).
+ *
+ * See DESIGN_GUIDELINES.md and README.md for structure, section header, and button conventions.
+ */
 
 function getPlatformIcon(url: string, platform: string): { icon: any, label: string } {
   const lowerUrl = url?.toLowerCase?.() || '';
@@ -125,6 +135,10 @@ export default function PromptPageForm({
     initialData.offer_url ?? initialData.offerUrl ?? ''
   );
 
+  const [notePopupEnabled, setNotePopupEnabled] = useState(true);
+
+  const [submitted, setSubmitted] = useState(false);
+
   const handleIconChange = (key: string) => {
     setFallingIcon(key);
     setFormData((prev: any) => ({ ...prev, falling_icon: key }));
@@ -198,14 +212,13 @@ export default function PromptPageForm({
         {
           first_name: formData.first_name,
           last_name: formData.last_name,
-          project_type: formData.features_or_benefits.join(', '),
+          project_type: formData.features_or_benefits?.join(', ') || '',
           product_description: formData.product_description,
         },
         'Photo Testimonial',
         120,
         formData.friendly_note
       );
-      setNoPlatformReviewTemplate(review);
       setFormData((prev: any) => ({ ...prev, no_platform_review_template: review }));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to generate testimonial template');
@@ -247,326 +260,214 @@ export default function PromptPageForm({
   }, [offerEnabled, offerTitle, offerBody, offerUrl, emojiSentimentEnabled, isUniversal]);
 
   // Render logic
-  if (isUniversal) {
-    // Render a single-page form for universal prompt pages and return immediately
+  if (formData.review_type === 'photo') {
     return (
-      <form onSubmit={e => { 
-        e.preventDefault();
-        console.log('Universal form submitted!');
-        onSave({
-          ...formData,
-          offer_enabled: offerEnabled,
-          offer_title: offerTitle,
-          offer_body: offerBody,
-          offer_url: offerUrl,
-          emoji_sentiment_enabled: emojiSentimentEnabled,
-        });
-      }}>
-        <div className="flex justify-between items-start w-full">
-          <div>
-            <h1 className="text-4xl font-bold text-[#1A237E] mb-0">Edit Universal Prompt Page</h1>
-            <p className="text-base text-gray-600 mb-4 max-w-[60ch] mt-3">
-              The Universal Prompt Page are for general reviews. Use this page to collect reviews from anyone, not just specific customers or clients. Frame the QR code and display it prominantly in your business location or share it on social media or in an email newsletter.
-            </p>
+      <>
+        {submitted && (
+          <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden">
+            {[...Array(40)].map((_, i) => {
+              const left = Math.random() * 98 + Math.random() * 2;
+              const duration = 3 + Math.random() * 1.5;
+              const delay = Math.random() * 0.5;
+              const size = 32 + Math.random() * 8;
+              const top = -40 - Math.random() * 360;
+              const iconObj = FALLING_STARS_ICONS.find(opt => opt.key === fallingIcon) || FALLING_STARS_ICONS[0];
+              const IconComp = iconObj.icon;
+              return (
+                <IconComp
+                  key={i}
+                  className="absolute animate-fall"
+                  style={{
+                    color: iconObj.key === 'star' ? '#facc15'
+                      : iconObj.key === 'heart' ? '#ef4444'
+                      : iconObj.key === 'smile' ? '#facc15'
+                      : iconObj.key === 'thumb' ? '#3b82f6'
+                      : iconObj.key === 'bolt' ? '#f59e42'
+                      : iconObj.key === 'rainbow' ? '#d946ef'
+                      : iconObj.key === 'coffee' ? '#92400e'
+                      : iconObj.key === 'wrench' ? '#6b7280'
+                      : iconObj.key === 'confetti' ? '#ec4899'
+                      : iconObj.key === 'barbell' ? '#4b5563'
+                      : iconObj.key === 'flower' ? '#22c55e'
+                      : iconObj.key === 'peace' ? '#a21caf'
+                      : '#facc15',
+                    fontSize: size,
+                    left: `${left}%`,
+                    top,
+                    animationDuration: `${duration}s`,
+                    animationDelay: `${delay}s`,
+                  }}
+                />
+              );
+            })}
           </div>
-          {/* Top right button group */}
-          <div className="flex gap-2 pt-4 pr-4 md:pt-6 md:pr-6">
-            {formData.slug ? (
-              <a
-                href={`/r/${formData.slug}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-              >
-                View
-              </a>
-            ) : (
+        )}
+        <form onSubmit={e => { e.preventDefault(); setSubmitted(true); onSave({ ...formData, aiReviewEnabled }); }}>
+          <h1 className="text-4xl font-bold mb-4 flex items-center gap-3 text-slate-blue">
+            {pageTitle || 'Photo + Testimonial'}
+          </h1>
+          {/* Instructional text under header */}
+          <div className="text-base text-gray-700 -mt-2 mb-8 max-w-2xl">
+            Grab a glowing testimonial and display it on your site using our widget or use it in your promotional materials.
+          </div>
+          {/* Standard section header for customer info */}
+          <div className="mb-6 flex items-center gap-3">
+            <FaInfoCircle className="w-7 h-7 text-slate-blue" />
+            <h2 className="text-2xl font-bold text-slate-blue">Customer/client details</h2>
+          </div>
+          <div className="flex gap-4 mb-4">
+            <div className="flex-1">
+              <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center gap-1">First name <span className='text-red-600'>(required)</span>
+                <RobotTooltip text="This field is passed to AI for prompt generation." />
+              </label>
+              <input
+                type="text"
+                id="first_name"
+                value={formData.first_name}
+                onChange={e => setFormData((prev: any) => ({ ...prev, first_name: e.target.value }))}
+                className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+                placeholder="First name"
+                required
+              />
+            </div>
+            <div className="flex-1">
+              <label htmlFor="last_name" className="block text-sm font-medium text-gray-700 mt-4 mb-2">Last name</label>
+              <input
+                type="text"
+                id="last_name"
+                value={formData.last_name}
+                onChange={e => setFormData((prev: any) => ({ ...prev, last_name: e.target.value }))}
+                className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+                placeholder="Last name"
+              />
+            </div>
+          </div>
+          <div className="flex gap-4 mb-4">
+            <div className="flex-1">
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mt-4 mb-2">Phone number</label>
+              <input
+                type="tel"
+                id="phone"
+                value={formData.phone || ''}
+                onChange={e => setFormData((prev: any) => ({ ...prev, phone: e.target.value }))}
+                className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+                placeholder="Phone number"
+              />
+            </div>
+            <div className="flex-1">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mt-4 mb-2">Email</label>
+              <input
+                type="email"
+                id="email"
+                value={formData.email || ''}
+                onChange={e => setFormData((prev: any) => ({ ...prev, email: e.target.value }))}
+                className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+                placeholder="Email"
+              />
+            </div>
+          </div>
+          <div className="mb-4">
+            <label htmlFor="friendly_note" className="block text-sm font-medium text-gray-700 mb-2">Personalized note</label>
+            <textarea
+              id="friendly_note"
+              value={formData.friendly_note}
+              onChange={e => setFormData((prev: any) => ({ ...prev, friendly_note: e.target.value }))}
+              rows={4}
+              className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring shadow-inner"
+              placeholder="Ty! It was so great having you in yesterday. You left your scarf! I can drop it by tomorrow on my way in. Thanks for leaving us a review, we need all the positivity we can get.  :)"
+            />
+          </div>
+          <div className="mb-4">
+            <label htmlFor="testimonial" className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+              Testimonial template
+              <Tooltip text="Write the testimonial you would love for them to write and then give them creative license to customize it." />
+            </label>
+            <textarea
+              id="testimonial"
+              value={formData.no_platform_review_template || ''}
+              onChange={e => setFormData((prev: any) => ({ ...prev, no_platform_review_template: e.target.value }))}
+              rows={5}
+              className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring shadow-inner"
+              placeholder="Write your testimonial here..."
+              required
+            />
+          </div>
+          {/* AI Generate Button (only if enabled) */}
+          {aiReviewEnabled && (
+            <div className="mb-4 flex justify-start">
               <button
                 type="button"
-                className="inline-flex justify-center rounded-md border border-gray-300 bg-gray-100 py-2 px-4 text-sm font-medium text-gray-400 shadow-sm cursor-not-allowed"
-                disabled
+                className="inline-flex items-center px-4 py-2 border rounded font-semibold shadow text-slate-blue border-slate-blue bg-white hover:bg-slate-blue/10 transition text-sm whitespace-nowrap w-auto min-w-[180px] self-start gap-2"
+                onClick={handleGeneratePhotoTemplate}
+                disabled={aiLoadingPhoto}
+                title="Generate with AI"
               >
-                View
+                <FaMagic className="w-4 h-4" />
+                {aiLoadingPhoto ? 'Generating...' : 'Generate with AI'}
               </button>
-            )}
-            <button
-              type="submit"
-              className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-              disabled={isSaving}
-            >
-              Save
-            </button>
-          </div>
-        </div>
-        {/* Review Platforms Section */}
-        <div className="flex flex-col mb-8 mt-8 px-0 py-2">
-          <div className="flex items-center gap-3 mb-2">
-            <FaStar className="w-7 h-7 text-[#1A237E]" />
-            <h2 className="text-xl font-semibold text-[#1A237E]">Review Platforms</h2>
-          </div>
-          <p className="text-sm text-gray-500 mt-1 mb-8 max-w-[85ch]">Your business profile platforms have been pre-loaded. You can add more if needed.</p>
-          <div className="mt-1 space-y-8">
-            {formData.review_platforms && formData.review_platforms.map((link: any, index: number) => (
-              <div key={index} className="relative mb-8 mt-0 p-6 border border-indigo-200 rounded-2xl bg-indigo-50">
-                {/* Platform icon in top left */}
-                {link.url && (
-                  <div className="absolute -top-4 -left-4 bg-white rounded-full shadow p-2 flex items-center justify-center" title={getPlatformIcon(link.url, link.platform).label}>
-                    {(() => {
-                      const { icon: Icon } = getPlatformIcon(link.url, link.platform);
-                      return <Icon className="w-6 h-6" />;
-                    })()}
-                  </div>
-                )}
-                {/* Remove button in top right */}
+            </div>
+          )}
+          {/* AI Generate On/Off Module */}
+          <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-2 shadow relative mb-8 mt-10">
+            <div className="flex flex-row justify-between items-start px-2 py-2">
+              <SectionHeader
+                icon={<FaRobot className="w-7 h-7 text-slate-blue" />} 
+                title="AI review generation"
+                subCopy={aiReviewEnabled
+                  ? 'Customers will see the "Generate with AI" button to help them write a review.'
+                  : 'The AI review generation button will be hidden from customers on this prompt page.'}
+                className="!mb-0"
+                subCopyLeftOffset="ml-9"
+              />
+              <div className="flex flex-col justify-start pt-1">
                 <button
                   type="button"
-                  onClick={() => handleRemovePlatform(index)}
-                  className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center rounded-full bg-red-100 hover:bg-red-200 text-red-600 text-xl font-bold shadow focus:outline-none focus:ring-2 focus:ring-red-400"
-                  aria-label="Remove platform"
+                  onClick={() => setAiReviewEnabled((v: boolean) => !v)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${aiReviewEnabled ? 'bg-slate-blue' : 'bg-gray-200'}`}
+                  aria-pressed={!!aiReviewEnabled}
                 >
-                  ×
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${aiReviewEnabled ? 'translate-x-5' : 'translate-x-1'}`}
+                  />
                 </button>
-                {/* Check if Published & Mark as Verified actions (service/product only) */}
-                {(formData.review_type === 'service' || formData.review_type === 'product') && (
-                  <div className="absolute top-2 right-14 flex items-center gap-2 z-10">
-                    {link.url && (
-                      <a
-                        href={link.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-blue-700 underline"
-                      >
-                        Check if Published
-                      </a>
-                    )}
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        // Simulate verification (replace with API call as needed)
-                        setFormData((prev: any) => ({
-                          ...prev,
-                          review_platforms: prev.review_platforms.map((p: any, i: number) =>
-                            i === index ? { ...p, verified: true, verified_at: new Date().toISOString() } : p
-                          )
-                        }));
-                      }}
-                      disabled={!!link.verified}
-                      className={`px-2 py-1 rounded text-xs ${link.verified ? 'bg-green-200 text-green-700' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
-                    >
-                      {link.verified ? 'Verified' : 'Mark as Verified'}
-                    </button>
-                    {link.verified && link.verified_at && (
-                      <span className="text-xs text-green-700">({new Date(link.verified_at).toLocaleDateString()})</span>
-                    )}
-                    <span className="ml-1">
-                      <FaQuestionCircle className="w-4 h-4 text-gray-400 cursor-pointer" title="Check if the review was published and mark as 'verified' if it is." />
-                    </span>
-                  </div>
-                )}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="mb-4">
-                    <label htmlFor={`platform-${index}`} className="block text-sm font-semibold text-[#1A237E] mb-2 flex items-center">Platform name</label>
-                    <select
-                      id={`platform-${index}`}
-                      value={link.platform}
-                      onChange={e => handlePlatformChange(index, 'platform', e.target.value)}
-                      className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                      required
-                    >
-                      <option value="">Select a platform</option>
-                      <option value="Google Business Profile">Google Business Profile</option>
-                      <option value="Yelp">Yelp</option>
-                      <option value="Facebook">Facebook</option>
-                      <option value="TripAdvisor">TripAdvisor</option>
-                      <option value="Angi">Angi</option>
-                      <option value="Houzz">Houzz</option>
-                      <option value="BBB">BBB</option>
-                      <option value="Thumbtack">Thumbtack</option>
-                      <option value="HomeAdvisor">HomeAdvisor</option>
-                      <option value="Trustpilot">Trustpilot</option>
-                      <option value="Other">Other</option>
-                    </select>
-                    {link.platform === 'Other' && (
-                      <input
-                        type="text"
-                        className="mt-2 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                        placeholder="Enter platform name"
-                        value={link.customPlatform || ''}
-                        onChange={e => handlePlatformChange(index, 'customPlatform', e.target.value)}
-                        required
-                      />
-                    )}
-                  </div>
-                  <div className="mb-4">
-                    <label htmlFor={`url-${index}`} className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
-                      Review URL
-                    </label>
-                    <input
-                      type="url"
-                      id={`url-${index}`}
-                      value={link.url}
-                      onChange={e => handlePlatformChange(index, 'url', e.target.value)}
-                      placeholder="https://..."
-                      className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                    />
-                  </div>
-                  <div className="mb-4">
-                    <label htmlFor={`wordCount-${index}`} className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
-                      Word count limit
-                    </label>
-                    <input
-                      type="number"
-                      id={`wordCount-${index}`}
-                      value={link.wordCount ?? 200}
-                      onChange={e => handlePlatformChange(index, 'wordCount', Math.max(200, parseInt(e.target.value) || 200))}
-                      className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                      placeholder="Word count limit"
-                      min="200"
-                    />
-                  </div>
-                  <div className="mb-4">
-                    <label htmlFor={`customInstructions-${index}`} className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
-                      Custom instructions
-                    </label>
-                    <input
-                      type="text"
-                      id={`customInstructions-${index}`}
-                      value={link.customInstructions || ''}
-                      onChange={e => handlePlatformChange(index, 'customInstructions', e.target.value)}
-                      placeholder="Add custom instructions for this platform"
-                      className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                    />
-                  </div>
-                </div>
               </div>
-            ))}
-            <button
-              type="button"
-              onClick={handleAddPlatform}
-              className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mt-2"
-            >
-              Add Platform
-            </button>
-          </div>
-        </div>
-        {/* Emoji Sentiment Flow Section */}
-        <div className="flex flex-col mb-8 mt-8">
-          <div className="rounded-lg bg-blue-50 border border-blue-200 p-6">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-3">
-                <FaSmile className="w-7 h-7 text-[#1A237E]" />
-                <h2 className="text-xl font-semibold text-[#1A237E]">Emoji Sentiment Flow</h2>
-              </div>
-              <button
-                type="button"
-                onClick={() => setEmojiSentimentEnabled(v => !v)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${emojiSentimentEnabled ? 'bg-slate-blue' : 'bg-gray-200'}`}
-                aria-pressed={!!emojiSentimentEnabled}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${emojiSentimentEnabled ? 'translate-x-5' : 'translate-x-1'}`}
-                />
-              </button>
-            </div>
-            <div className="text-xs text-gray-500 mt-1 mb-2 max-w-[85ch]">
-              Enabling this routes users to a feedback form if they are less than pleased with their experience. This keeps negative reviews off the web and allows you to respond directly while gathering valuable feedback. Users who select "Delighted" or "Satisfied" are sent to your public prompt page, while those who select "Neutral" or "Unsatisfied" are shown a private feedback form that is saved to your account but not shared publicly.
-            </div>
-            <div className="text-xs text-blue-700 bg-blue-100 border border-blue-200 rounded px-3 py-2 mb-2 max-w-[85ch]">
-              Note: If you have Falling stars feature enabled, it will only run when a user selects "Delighted" or "Satisfied."
-            </div>
-            <div className="mb-2">
-              <label className="block text-xs font-medium text-gray-700 mb-1">Popup question (shown above the emojis):</label>
-              <input
-                type="text"
-                className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                value={emojiSentimentQuestion}
-                onChange={e => setEmojiSentimentQuestion(e.target.value)}
-                placeholder="How was your experience?"
-                maxLength={80}
-                disabled={!emojiSentimentEnabled}
-              />
-            </div>
-            {/* Always show emojis with labels */}
-            <div className="flex justify-center gap-3 my-3 select-none">
-              <div className="flex flex-col items-center">
-                <img src="/emojis/delighted.svg" width="40" height="40" alt="Delighted" title="Delighted" />
-                <span className="text-xs mt-1 text-gray-700">Delighted</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <img src="/emojis/satisfied.svg" width="40" height="40" alt="Satisfied" title="Satisfied" />
-                <span className="text-xs mt-1 text-gray-700">Satisfied</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <img src="/emojis/neutral.svg" width="40" height="40" alt="Neutral" title="Neutral" />
-                <span className="text-xs mt-1 text-gray-700">Neutral</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <img src="/emojis/unsatisfied.svg" width="40" height="40" alt="Unsatisfied" title="Unsatisfied" />
-                <span className="text-xs mt-1 text-gray-700">Unsatisfied</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <img src="/emojis/angry.svg" width="40" height="40" alt="Angry" title="Angry" />
-                <span className="text-xs mt-1 text-gray-700">Angry</span>
-              </div>
-            </div>
-            {/* Feedback message for indifferent/negative emoji */}
-            <div className="mt-2">
-              <label className="block text-xs font-medium text-gray-700 mb-1">Feedback message (shown to customers who select an indifferent or negative emoji):</label>
-              <textarea
-                className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                value={emojiFeedbackMessage}
-                onChange={e => setEmojiFeedbackMessage(e.target.value)}
-                rows={2}
-              />
-            </div>
-            {/* New: Submission thank you message */}
-            <div className="mt-2">
-              <label className="block text-xs font-medium text-gray-700 mb-1">Submission thank you message (shown after feedback is submitted):</label>
-              <input
-                type="text"
-                className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                value={formData.emojiThankYouMessage || ''}
-                onChange={e => setFormData((prev: any) => ({ ...prev, emojiThankYouMessage: e.target.value }))}
-                placeholder="Thank you for your feedback!"
-                maxLength={120}
-              />
             </div>
           </div>
-        </div>
-        {/* Falling Stars Section */}
-        <div className="mb-8 mt-8">
-          <div className="flex items-center justify-between mb-2 px-0 py-2">
-            <h2 className="block text-xl font-semibold text-[#1A237E] flex items-center">
-              <FaStar className="w-6 h-6 mr-2 text-slate-blue" />
-              Falling star animation
-            </h2>
-            <button
-              type="button"
-              onClick={handleToggleFalling}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${fallingEnabled ? 'bg-slate-blue' : 'bg-gray-200'}`}
-              aria-pressed={!!fallingEnabled}
-              disabled={iconUpdating}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${fallingEnabled ? 'translate-x-5' : 'translate-x-1'}`}
+          {/* Falling star module */}
+          <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-2 shadow relative mb-8">
+            <div className="flex flex-row justify-between items-start px-2 py-2 pb-2">
+              <SectionHeader
+                icon={<FaStar className="w-7 h-7 text-slate-blue" />} 
+                title="Falling star animation"
+                subCopy="Enable a fun animation where stars (or other icons) rain down when the prompt page loads. You can choose the icon below."
+                className="!mb-0"
+                subCopyLeftOffset="ml-9"
               />
-            </button>
-          </div>
-          <div className="text-sm text-gray-700 mb-3 max-w-[85ch]">
-            Enable a fun animation where stars (or other icons) rain down when the prompt page loads. You can choose the icon below.
-          </div>
-          <div className={`rounded-2xl border border-indigo-200 bg-indigo-50 p-4 ${!fallingEnabled ? 'opacity-60' : ''}`}>  
-            <div className="flex gap-2 bg-white rounded-full px-3 py-1 border border-gray-200 shadow w-max">
+              <div className="flex flex-col justify-start pt-1">
+                <button
+                  type="button"
+                  onClick={handleToggleFalling}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${fallingEnabled ? 'bg-slate-blue' : 'bg-gray-200'}`}
+                  aria-pressed={!!fallingEnabled}
+                  disabled={iconUpdating}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${fallingEnabled ? 'translate-x-5' : 'translate-x-1'}`}
+                  />
+                </button>
+              </div>
+            </div>
+            {/* Icon picker (enabled) */}
+            <div className="flex gap-4 px-2 flex-wrap ml-9">
               {FALLING_STARS_ICONS.map(opt => {
                 const Icon = opt.icon;
                 return (
                   <button
                     key={opt.key}
-                    className={`p-1 rounded-full focus:outline-none transition-all ${fallingIcon === opt.key ? 'ring-2 ring-indigo-400 bg-indigo-50' : ''}`}
-                    onClick={() => handleIconChange(opt.key)}
-                    aria-label={opt.label}
                     type="button"
-                    disabled={iconUpdating || !fallingEnabled}
+                    className={`p-2 rounded-full border transition bg-white flex items-center justify-center ${fallingIcon === opt.key ? 'border-slate-blue ring-2 ring-slate-blue' : 'border-gray-300'}`}
+                    onClick={() => setFallingIcon(opt.key)}
+                    aria-label={opt.label}
                   >
                     <Icon className={
                       opt.key === 'star' ? 'w-6 h-6 text-yellow-400' :
@@ -591,92 +492,26 @@ export default function PromptPageForm({
               })}
             </div>
           </div>
-        </div>
-        {/* Special Offer Section */}
-        <div className="mb-8 mt-8">
-          <div className="flex items-center justify-between mb-2 px-0 py-2">
-            <h2 className="block text-xl font-semibold text-[#1A237E] flex items-center">
-              <FaGift className="w-6 h-6 mr-2 text-slate-blue" />
-              Special offer
-            </h2>
+          <div className="w-full flex justify-end gap-2 mt-8">
             <button
-              type="button"
-              onClick={() => {
-                setOfferEnabled((prev: boolean) => {
-                  const newValue = !prev;
-                  console.log('[DEBUG] Universal offerEnabled toggled:', newValue);
-                  return newValue;
-                });
-              }}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${offerEnabled ? 'bg-indigo-500' : 'bg-gray-300'}`}
-              aria-pressed={!!offerEnabled}
+              type="submit"
+              className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+              disabled={isSaving}
             >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${offerEnabled ? 'translate-x-5' : 'translate-x-1'}`}
-              />
+              {mode === 'create' ? (isSaving ? 'Publishing...' : 'Save & publish') : (isSaving ? 'Saving...' : 'Save')}
             </button>
           </div>
-          <div className={`rounded-2xl border border-indigo-200 bg-indigo-50 p-4 ${!offerEnabled ? 'opacity-60' : ''}`}> 
-            <input
-              type="text"
-              value={offerTitle ?? 'Special Offer'}
-              onChange={e => setOfferTitle(e.target.value)}
-              placeholder="Offer Title (e.g., Special Offer)"
-              className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner mb-2 font-semibold"
-              disabled={!offerEnabled}
-            />
-            <textarea
-              value={offerBody || ''}
-              onChange={e => setOfferBody(e.target.value)}
-              placeholder="Get 10% off your next visit"
-              className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner py-3"
-              rows={2}
-              disabled={!offerEnabled}
-            />
-            <input
-              type="url"
-              value={offerUrl || ''}
-              onChange={e => setOfferUrl(e.target.value)}
-              placeholder="Offer URL (e.g., https://yourbusiness.com/claim-reward)"
-              className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner py-2"
-              disabled={!offerEnabled}
-            />
-          </div>
-          <div className="text-xs text-gray-500 mt-2 max-w-[85ch]">
-            Note: Services like Google and Yelp have policies against providing rewards in exchange for reviews, so it's best not to promise a reward for "x" number of reviews, etc.
-          </div>
-        </div>
-        {/* AI Generation Button Section (moved to last) */}
-        <div className="flex flex-col mb-8 mt-8 px-0 py-2">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-3">
-              <FaRobot className="w-7 h-7 text-[#1A237E]" />
-              <h2 className="text-xl font-semibold text-[#1A237E]">AI Generation Button</h2>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                setAiReviewEnabled((v: boolean) => {
-                  const newValue = !v;
-                  setFormData((prev: any) => ({ ...prev, aiReviewEnabled: newValue }));
-                  return newValue;
-                });
-              }}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${aiReviewEnabled ? 'bg-slate-blue' : 'bg-gray-200'}`}
-              aria-pressed={!!aiReviewEnabled}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${aiReviewEnabled ? 'translate-x-5' : 'translate-x-1'}`}
-              />
-            </button>
-          </div>
-          <p className="text-xs text-gray-600 mt-2 ml-2 max-w-[85ch]">
-            If you would rather not let your customers/clients use AI to generate a review you can turn this off. This can be useful in cases where you have written a custom review that you want your customer to use or if you want to ensure users write the review themselves.
-          </p>
-        </div>
-        {/* Bottom right button group */}
-        <div className="w-full flex justify-end gap-2 mt-2 sm:gap-4 z-10 pt-4 pr-4 md:pt-6 md:pr-6">
-          {mode === 'create' && step === 1 ? (
+        </form>
+      </>
+    );
+  }
+  if (formData.review_type === 'service' && mode === 'create') {
+    return (
+      <form onSubmit={e => { e.preventDefault(); onSave({ ...formData, ai_button_enabled: aiReviewEnabled }); }}>
+        <h1 className="text-4xl font-bold mb-10 mt-2 text-slate-blue">Create service prompt page</h1>
+        {/* Top right button group for step 1 create flow */}
+        {mode === 'create' && step === 1 && (
+          <div className="absolute top-4 right-8 z-20 flex gap-2">
             <button
               type="button"
               className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
@@ -685,36 +520,360 @@ export default function PromptPageForm({
             >
               Continue
             </button>
-          ) : (
-            <>
-              {formData.slug ? (
-                <a
-                  href={`/r/${formData.slug}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                >
-                  View
-                </a>
-              ) : (
+          </div>
+        )}
+        {/* Top right Save & publish button for step 2 create flow */}
+        {mode === 'create' && formData.review_type === 'service' && step === 2 && (
+          <div className="absolute top-4 right-8 z-20 flex gap-2">
+            <button
+              type="submit"
+              className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+              disabled={isSaving}
+            >
+              {isSaving ? 'Publishing...' : 'Save & publish'}
+            </button>
+          </div>
+        )}
+        <div>
+          {step === 1 ? (
+            <div className="custom-space-y">
+              {formError && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded">{formError}</div>
+              )}
+              {/* Only show customer/client fields if not universal */}
+              {!isUniversal && (
+                <>
+                  <div className="mb-6 flex items-center gap-3">
+                    <FaInfoCircle className="w-7 h-7 text-slate-blue" />
+                    <h2 className="text-2xl font-bold text-slate-blue">Customer/client details</h2>
+                  </div>
+                  <div className="flex gap-4">
+                    <div className="flex-1">
+                      <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center gap-1">First name <span className='text-red-600'>(required)</span>
+                        <RobotTooltip text="This field is passed to AI for prompt generation." />
+                      </label>
+                      <input
+                        type="text"
+                        id="first_name"
+                        value={formData.first_name}
+                        onChange={e => setFormData((prev: any) => ({ ...prev, first_name: e.target.value }))}
+                        className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+                        placeholder="First name"
+                        required
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label htmlFor="last_name" className="block text-sm font-medium text-gray-700 mt-4 mb-2">Last name</label>
+                      <input
+                        type="text"
+                        id="last_name"
+                        value={formData.last_name}
+                        onChange={e => setFormData((prev: any) => ({ ...prev, last_name: e.target.value }))}
+                        className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+                        placeholder="Last name"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-4">
+                    <div className="flex-1">
+                      <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mt-4 mb-2">Phone number</label>
+                      <input
+                        type="tel"
+                        id="phone"
+                        value={formData.phone || ''}
+                        onChange={e => setFormData((prev: any) => ({ ...prev, phone: e.target.value }))}
+                        className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+                        placeholder="Phone number"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label htmlFor="email" className="block text-sm font-medium text-gray-700 mt-4 mb-2">Email</label>
+                      <input
+                        type="email"
+                        id="email"
+                        value={formData.email || ''}
+                        onChange={e => setFormData((prev: any) => ({ ...prev, email: e.target.value }))}
+                        className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+                        placeholder="Email"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label htmlFor="role" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center max-w-[85ch] gap-1">Role/position
+                      <RobotTooltip text="This field is passed to AI for prompt generation." />
+                    </label>
+                    <input
+                      type="text"
+                      id="role"
+                      value={formData.role}
+                      onChange={e => setFormData((prev: any) => ({ ...prev, role: e.target.value }))}
+                      className="mt-1 block w-full max-w-md rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+                      placeholder="e.g., store manager, marketing director, student"
+                    />
+                  </div>
+                  {/* Product type fields */}
+                  {formData.review_type === 'product' ? (
+                    <>
+                      <div className="mt-20 mb-2 flex items-center gap-2">
+                        <FaBoxOpen className="w-5 h-5 text-[#1A237E]" />
+                        <h2 className="text-xl font-semibold text-slate-blue">Product Description</h2>
+                      </div>
+                      <textarea
+                        id="product_description"
+                        value={formData.product_description || ''}
+                        onChange={e => setFormData((prev: any) => ({ ...prev, product_description: e.target.value }))}
+                        rows={4}
+                        className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+                        placeholder="Describe the product being reviewed"
+                        required
+                      />
+                      <div className="mt-8 mb-2 flex items-center gap-2">
+                        <FaStar className="w-5 h-5 text-[#1A237E]" />
+                        <h2 className="text-xl font-semibold text-slate-blue flex items-center gap-1">Features or Benefits <RobotTooltip text="This field is passed to AI for prompt generation." /></h2>
+                      </div>
+                      <div className="space-y-2">
+                        {(formData.features_or_benefits || ['']).map((feature: string, idx: number) => (
+                          <div key={idx} className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              className="w-full border px-3 py-2 rounded"
+                              value={feature}
+                              onChange={e => {
+                                const newFeatures = [...(formData.features_or_benefits || [])];
+                                newFeatures[idx] = e.target.value;
+                                setFormData((prev: any) => ({ ...prev, features_or_benefits: newFeatures }));
+                              }}
+                              required
+                              placeholder="e.g., Long battery life"
+                            />
+                            {(formData.features_or_benefits?.length > 1) && (
+                              <button type="button" onClick={() => {
+                                const newFeatures = (formData.features_or_benefits || []).filter((_: any, i: number) => i !== idx);
+                                setFormData((prev: any) => ({ ...prev, features_or_benefits: newFeatures }));
+                              }} className="text-red-600 font-bold">&times;</button>
+                            )}
+                          </div>
+                        ))}
+                        <button type="button" onClick={() => {
+                          setFormData((prev: any) => ({ ...prev, features_or_benefits: [...(formData.features_or_benefits || []), ''] }));
+                        }} className="text-blue-600 underline mt-2">+ Add Feature/Benefit</button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {/* Services Section (service type) */}
+                      <div className="mt-20 mb-2 flex items-center gap-2">
+                        <FaWrench className="w-5 h-5 text-[#1A237E]" />
+                        <h2 className="text-xl font-semibold text-slate-blue flex items-center gap-1">Services provided <RobotTooltip text="This field is passed to AI for prompt generation." /></h2>
+                      </div>
+                      <div className="space-y-2">
+                        {services.map((service, idx) => (
+                          <div key={idx} className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              className="w-full border px-3 py-2 rounded"
+                              value={service}
+                              onChange={e => {
+                                const newServices = [...services];
+                                newServices[idx] = e.target.value;
+                                setServices(newServices);
+                                setFormData((prev: any) => ({ ...prev, features_or_benefits: newServices }));
+                              }}
+                              required
+                              placeholder="e.g., Web Design"
+                            />
+                            {services.length > 1 && (
+                              <button type="button" onClick={() => {
+                                const newServices = services.filter((_, i) => i !== idx);
+                                setServices(newServices);
+                                setFormData((prev: any) => ({ ...prev, features_or_benefits: newServices }));
+                              }} className="text-red-600 font-bold">&times;</button>
+                            )}
+                          </div>
+                        ))}
+                        <button type="button" onClick={() => {
+                          setServices([...services, '']);
+                          setFormData((prev: any) => ({ ...prev, features_or_benefits: [...services, ''] }));
+                        }} className="text-blue-600 underline mt-2">+ Add Service</button>
+                      </div>
+                      <div className="mt-10 mb-2 flex items-center gap-2">
+                        <FaTrophy className="w-5 h-5 text-[#1A237E]" />
+                        <h2 className="text-xl font-semibold text-slate-blue flex items-center gap-1">Outcome <RobotTooltip text="This field is passed to AI for prompt generation." /></h2>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1 mb-5 max-w-[85ch]">Describe the service you provided and how it benefited this individual.</p>
+                      <textarea
+                        id="product_description"
+                        value={formData.product_description}
+                        onChange={e => setFormData((prev: any) => ({ ...prev, product_description: e.target.value }))}
+                        rows={4}
+                        className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+                        placeholder="Describe the outcome for your client"
+                        required
+                      />
+                    </>
+                  )}
+                  <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-2 shadow relative mb-8 mt-10">
+                    <div className="flex items-center justify-between mb-2 px-2 py-2">
+                      <div className="flex items-center gap-3">
+                        <FaCommentDots className="w-7 h-7 text-slate-blue" />
+                        <span className="text-2xl font-bold text-[#1A237E]">Personalized note pop-up</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setNotePopupEnabled(v => !v)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${notePopupEnabled ? 'bg-slate-blue' : 'bg-gray-200'}`}
+                        aria-pressed={!!notePopupEnabled}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${notePopupEnabled ? 'translate-x-5' : 'translate-x-1'}`}
+                        />
+                      </button>
+                    </div>
+                    <div className="text-sm text-gray-700 px-2">
+                      This note appears as a pop-up at the top of the review page. Use it to set the context and tone for your customer.
+                    </div>
+                    {notePopupEnabled && (
+                      <textarea
+                        id="friendly_note"
+                        value={formData.friendly_note}
+                        onChange={e => setFormData((prev: any) => ({ ...prev, friendly_note: e.target.value }))}
+                        rows={4}
+                        className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring shadow-inner"
+                        placeholder="Ty! It was so great having you in yesterday. You left your scarf! I can drop it by tomorrow on my way in. Thanks for leaving us a review, we need all the positivity we can get.  :)"
+                      />
+                    )}
+                  </div>
+                </>
+              )}
+              <div className="w-full flex justify-end gap-2 mt-8">
                 <button
                   type="button"
-                  className="inline-flex justify-center rounded-md border border-gray-300 bg-gray-100 py-2 px-4 text-sm font-medium text-gray-400 shadow-sm cursor-not-allowed"
-                  disabled
+                  className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+                  onClick={handleStep1Continue}
                 >
-                  View
+                  Continue
                 </button>
-              )}
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-12">
+              {/* --- NEW MODULAR STEP 2 UI (2024) --- */}
+              {/* Review Platforms Section (modular) */}
+              <ReviewWriteSection
+                value={formData.review_platforms}
+                onChange={platforms => setFormData((prev: any) => ({ ...prev, review_platforms: platforms }))}
+                onGenerateReview={handleGenerateAIReview}
+                hideReviewTemplateFields={isUniversal}
+              />
+              {/* Special Offer Section (modular) */}
+              <OfferSection
+                enabled={offerEnabled}
+                onToggle={() => setOfferEnabled((v: boolean) => !v)}
+                title={offerTitle}
+                onTitleChange={setOfferTitle}
+                description={offerBody}
+                onDescriptionChange={setOfferBody}
+                url={offerUrl}
+                onUrlChange={setOfferUrl}
+              />
+              {/* Emoji Sentiment Section (modular) */}
+              <EmojiSentimentSection
+                enabled={emojiSentimentEnabled}
+                onToggle={() => setEmojiSentimentEnabled((v: boolean) => !v)}
+                question={emojiSentimentQuestion}
+                onQuestionChange={setEmojiSentimentQuestion}
+                feedbackMessage={emojiFeedbackMessage}
+                onFeedbackMessageChange={setEmojiFeedbackMessage}
+                thankYouMessage={formData.emojiThankYouMessage}
+                onThankYouMessageChange={(val: string) => setFormData((prev: any) => ({ ...prev, emojiThankYouMessage: val }))}
+                emojiLabels={formData.emojiLabels}
+                onEmojiLabelChange={(idx: number, val: string) => setFormData((prev: any) => {
+                  const newLabels = [...(prev.emojiLabels || [])];
+                  newLabels[idx] = val;
+                  return { ...prev, emojiLabels: newLabels };
+                })}
+              />
+              {/* AI Generation Toggle (modular) */}
+              <DisableAIGenerationSection
+                enabled={aiReviewEnabled}
+                onToggle={() => setAiReviewEnabled((v: boolean) => !v)}
+              />
+              {/* Falling Stars Section (modular, inline for now) */}
+              <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-2 shadow relative mb-8">
+                <div className="flex flex-row justify-between items-start px-2 py-2 pb-2">
+                  <SectionHeader
+                    icon={<FaStar className="w-7 h-7 text-slate-blue" />} 
+                    title="Falling star animation"
+                    subCopy="Enable a fun animation where stars (or other icons) rain down when the prompt page loads. You can choose the icon below."
+                    className="!mb-0"
+                    subCopyLeftOffset="ml-9"
+                  />
+                  <div className="flex flex-col justify-start pt-1">
+                    <button
+                      type="button"
+                      onClick={handleToggleFalling}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${fallingEnabled ? 'bg-slate-blue' : 'bg-gray-200'}`}
+                      aria-pressed={!!fallingEnabled}
+                      disabled={iconUpdating}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${fallingEnabled ? 'translate-x-5' : 'translate-x-1'}`}
+                      />
+                    </button>
+                  </div>
+                </div>
+                {/* Icon picker (enabled) */}
+                <div className="flex gap-4 px-2 flex-wrap ml-9">
+                  {FALLING_STARS_ICONS.map(opt => {
+                    const Icon = opt.icon;
+                    return (
+                      <button
+                        key={opt.key}
+                        type="button"
+                        className={`p-2 rounded-full border transition bg-white flex items-center justify-center ${fallingIcon === opt.key ? 'border-slate-blue ring-2 ring-slate-blue' : 'border-gray-300'}`}
+                        onClick={() => setFallingIcon(opt.key)}
+                        aria-label={opt.label}
+                      >
+                        <Icon className={
+                          opt.key === 'star' ? 'w-6 h-6 text-yellow-400' :
+                          opt.key === 'heart' ? 'w-6 h-6 text-red-500' :
+                          opt.key === 'smile' ? 'w-6 h-6 text-yellow-400' :
+                          opt.key === 'thumb' ? 'w-6 h-6 text-blue-500' :
+                          opt.key === 'bolt' ? 'w-6 h-6 text-amber-400' :
+                          opt.key === 'rainbow' ? 'w-6 h-6 text-fuchsia-400' :
+                          opt.key === 'coffee' ? 'w-6 h-6 text-amber-800' :
+                          opt.key === 'wrench' ? 'w-6 h-6 text-gray-500' :
+                          opt.key === 'confetti' ? 'w-6 h-6 text-pink-400' :
+                          opt.key === 'barbell' ? 'w-6 h-6 text-gray-600' :
+                          opt.key === 'flower' ? 'w-6 h-6 text-green-500' :
+                          opt.key === 'peace' ? 'w-6 h-6 text-purple-500' :
+                          'w-6 h-6'
+                        } />
+                        {iconUpdating && fallingIcon === opt.key && (
+                          <span className="ml-1 animate-spin w-3 h-3 border-2 border-indigo-400 border-t-transparent rounded-full inline-block align-middle"></span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+        {(mode !== 'create' || step === 2) && (
+          <>
+            {/* Bottom right Save & publish/Save button */}
+            <div className="w-full flex justify-end pr-6 pb-4 md:pb-6 mt-8">
               <button
                 type="submit"
                 className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
                 disabled={isSaving}
               >
-                Save
+                {mode === 'create' ? (isSaving ? 'Publishing...' : 'Save & publish') : (isSaving ? 'Saving...' : 'Save')}
               </button>
-            </>
-          )}
-        </div>
+            </div>
+          </>
+        )}
       </form>
     );
   }
@@ -725,7 +884,7 @@ export default function PromptPageForm({
       </h1>
       {/* Top right button group for step 1 create flow */}
       {mode === 'create' && step === 1 && (
-        <div className="absolute top-4 right-4 z-20 flex gap-2">
+        <div className="absolute top-4 right-8 z-20 flex gap-2">
           <button
             type="button"
             className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
@@ -745,78 +904,72 @@ export default function PromptPageForm({
             {/* Only show customer/client fields if not universal */}
             {!isUniversal && (
               <>
-                <div className="mb-6 flex items-center gap-2">
-                  <FaInfoCircle className="w-5 h-5 text-slate-blue" />
-                  <h2 className="text-xl font-semibold text-slate-blue">Customer/client details</h2>
+                <div className="mb-6 flex items-center gap-3">
+                  <FaInfoCircle className="w-7 h-7 text-slate-blue" />
+                  <h2 className="text-2xl font-bold text-slate-blue">Customer/client details</h2>
                 </div>
                 <div className="flex gap-4">
                   <div className="flex-1">
-                    <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 mt-4 mb-2">Their first name <span className='text-red-600'>(required)</span></label>
+                    <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center gap-1">First name <span className='text-red-600'>(required)</span>
+                      <RobotTooltip text="This field is passed to AI for prompt generation." />
+                    </label>
                     <input
                       type="text"
                       id="first_name"
                       value={formData.first_name}
                       onChange={e => setFormData((prev: any) => ({ ...prev, first_name: e.target.value }))}
                       className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                      placeholder="Their first name"
+                      placeholder="First name"
                       required
                     />
                   </div>
                   <div className="flex-1">
-                    <label htmlFor="last_name" className="block text-sm font-medium text-gray-700 mt-4 mb-2">Their last name</label>
+                    <label htmlFor="last_name" className="block text-sm font-medium text-gray-700 mt-4 mb-2">Last name</label>
                     <input
                       type="text"
                       id="last_name"
                       value={formData.last_name}
                       onChange={e => setFormData((prev: any) => ({ ...prev, last_name: e.target.value }))}
                       className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                      placeholder="Their last name"
-                      required
+                      placeholder="Last name"
                     />
                   </div>
                 </div>
                 <div className="flex gap-4">
                   <div className="flex-1">
-                    <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center">
-                      Their phone number
-                      <Tooltip text="So you can text/email them the prompt page." />
-                    </label>
+                    <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mt-4 mb-2">Phone number</label>
                     <input
                       type="tel"
                       id="phone"
                       value={formData.phone || ''}
                       onChange={e => setFormData((prev: any) => ({ ...prev, phone: e.target.value }))}
                       className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                      placeholder="Their phone number"
+                      placeholder="Phone number"
                     />
                   </div>
                   <div className="flex-1">
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center">
-                      Their email
-                      <Tooltip text="So you can text/email them the prompt page." />
-                    </label>
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mt-4 mb-2">Email</label>
                     <input
                       type="email"
                       id="email"
                       value={formData.email || ''}
                       onChange={e => setFormData((prev: any) => ({ ...prev, email: e.target.value }))}
                       className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                      placeholder="Their email address"
+                      placeholder="Email"
                     />
                   </div>
                 </div>
                 <div>
-                  <label htmlFor="role" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center max-w-[85ch]">
-                    Their role/position
-                    <Tooltip text="The role or position of the reviewer helps AI generate more relevant and personalized reviews. For example, a Store Manager might focus on different aspects than a Customer." />
+                  <label htmlFor="role" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center max-w-[85ch] gap-1">Role/position
+                    <RobotTooltip text="This field is passed to AI for prompt generation." />
                   </label>
                   <input
                     type="text"
                     id="role"
                     value={formData.role}
                     onChange={e => setFormData((prev: any) => ({ ...prev, role: e.target.value }))}
-                    className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                    placeholder="e.g., store manager, marketing director, student (their role)"
+                    className="mt-1 block w-full max-w-md rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+                    placeholder="e.g., store manager, marketing director, student"
                   />
                 </div>
                 {/* Product type fields */}
@@ -837,7 +990,7 @@ export default function PromptPageForm({
                     />
                     <div className="mt-8 mb-2 flex items-center gap-2">
                       <FaStar className="w-5 h-5 text-[#1A237E]" />
-                      <h2 className="text-xl font-semibold text-slate-blue">Features or Benefits</h2>
+                      <h2 className="text-xl font-semibold text-slate-blue flex items-center gap-1">Features or Benefits <RobotTooltip text="This field is passed to AI for prompt generation." /></h2>
                     </div>
                     <div className="space-y-2">
                       {(formData.features_or_benefits || ['']).map((feature: string, idx: number) => (
@@ -871,8 +1024,8 @@ export default function PromptPageForm({
                   <>
                     {/* Services Section (service type) */}
                     <div className="mt-20 mb-2 flex items-center gap-2">
-                      <FaStar className="w-5 h-5 text-[#1A237E]" />
-                      <h2 className="text-xl font-semibold text-slate-blue">Services you provided</h2>
+                      <FaWrench className="w-5 h-5 text-[#1A237E]" />
+                      <h2 className="text-xl font-semibold text-slate-blue flex items-center gap-1">Services provided <RobotTooltip text="This field is passed to AI for prompt generation." /></h2>
                     </div>
                     <div className="space-y-2">
                       {services.map((service, idx) => (
@@ -904,38 +1057,52 @@ export default function PromptPageForm({
                         setFormData((prev: any) => ({ ...prev, features_or_benefits: [...services, ''] }));
                       }} className="text-blue-600 underline mt-2">+ Add Service</button>
                     </div>
-                    <div>
-                      <label htmlFor="product_description" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center">
-                        Outcome for them
-                        <Tooltip text="Describe the results and benefits the client received. This information helps AI generate more specific and impactful reviews that highlight the value provided." />
-                      </label>
-                      <p className="text-xs text-gray-500 mt-1 mb-5 max-w-[85ch]">Describe the service you provided and how it benefited this individual.</p>
-                      <textarea
-                        id="product_description"
-                        value={formData.product_description}
-                        onChange={e => setFormData((prev: any) => ({ ...prev, product_description: e.target.value }))}
-                        rows={4}
-                        className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                        placeholder="Describe the outcome for your client"
-                        required
-                      />
+                    <div className="mt-10 mb-2 flex items-center gap-2">
+                      <FaTrophy className="w-5 h-5 text-[#1A237E]" />
+                      <h2 className="text-xl font-semibold text-slate-blue flex items-center gap-1">Outcome <RobotTooltip text="This field is passed to AI for prompt generation." /></h2>
                     </div>
+                    <p className="text-xs text-gray-500 mt-1 mb-5 max-w-[85ch]">Describe the service you provided and how it benefited this individual.</p>
+                    <textarea
+                      id="product_description"
+                      value={formData.product_description}
+                      onChange={e => setFormData((prev: any) => ({ ...prev, product_description: e.target.value }))}
+                      rows={4}
+                      className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+                      placeholder="Describe the outcome for your client"
+                      required
+                    />
                   </>
                 )}
-                <div>
-                  <label htmlFor="friendly_note" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center">
-                    Personalized note to them
-                    <Tooltip text="This note appears at the top of the review page. It helps set the context and tone for the review. The AI will use this information to generate more personalized and relevant reviews." />
-                  </label>
-                  <textarea
-                    key={businessProfile?.business_name || 'no-business-name'}
-                    id="friendly_note"
-                    value={formData.friendly_note}
-                    onChange={e => setFormData((prev: any) => ({ ...prev, friendly_note: e.target.value }))}
-                    rows={4}
-                    className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                    placeholder="Add a personal note for this customer/client"
-                  />
+                <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-2 shadow relative mb-8 mt-10">
+                  <div className="flex items-center justify-between mb-2 px-2 py-2">
+                    <div className="flex items-center gap-3">
+                      <FaCommentDots className="w-7 h-7 text-slate-blue" />
+                      <span className="text-2xl font-bold text-[#1A237E]">Personalized note pop-up</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setNotePopupEnabled(v => !v)}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${notePopupEnabled ? 'bg-slate-blue' : 'bg-gray-200'}`}
+                      aria-pressed={!!notePopupEnabled}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${notePopupEnabled ? 'translate-x-5' : 'translate-x-1'}`}
+                      />
+                    </button>
+                  </div>
+                  <div className="text-sm text-gray-700 px-2">
+                    This note appears as a pop-up at the top of the review page. Use it to set the context and tone for your customer.
+                  </div>
+                  {notePopupEnabled && (
+                    <textarea
+                      id="friendly_note"
+                      value={formData.friendly_note}
+                      onChange={e => setFormData((prev: any) => ({ ...prev, friendly_note: e.target.value }))}
+                      rows={4}
+                      className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring shadow-inner"
+                      placeholder="Ty! It was so great having you in yesterday. You left your scarf! I can drop it by tomorrow on my way in. Thanks for leaving us a review, we need all the positivity we can get.  :)"
+                    />
+                  )}
                 </div>
               </>
             )}
@@ -955,8 +1122,9 @@ export default function PromptPageForm({
             {/* Review Platforms Section (modular) */}
             <ReviewWriteSection
               value={formData.review_platforms}
-              onChange={val => setFormData((prev: any) => ({ ...prev, review_platforms: val }))}
+              onChange={platforms => setFormData((prev: any) => ({ ...prev, review_platforms: platforms }))}
               onGenerateReview={handleGenerateAIReview}
+              hideReviewTemplateFields={isUniversal}
             />
             {/* Special Offer Section (modular) */}
             <OfferSection
@@ -993,28 +1161,30 @@ export default function PromptPageForm({
             />
             {/* Falling Stars Section (modular, inline for now) */}
             <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-2 shadow relative mb-8">
-              <div className="flex items-center justify-between mb-2 px-2 py-2">
-                <div className="flex items-center gap-3">
-                  <FaStar className="w-7 h-7 text-slate-blue" />
-                  <span className="text-2xl font-bold text-[#1A237E]">Falling star animation</span>
+              <div className="flex flex-row justify-between items-start px-2 py-2 pb-2">
+                <SectionHeader
+                  icon={<FaStar className="w-7 h-7 text-slate-blue" />} 
+                  title="Falling star animation"
+                  subCopy="Enable a fun animation where stars (or other icons) rain down when the prompt page loads. You can choose the icon below."
+                  className="!mb-0"
+                  subCopyLeftOffset="ml-9"
+                />
+                <div className="flex flex-col justify-start pt-1">
+                  <button
+                    type="button"
+                    onClick={handleToggleFalling}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${fallingEnabled ? 'bg-slate-blue' : 'bg-gray-200'}`}
+                    aria-pressed={!!fallingEnabled}
+                    disabled={iconUpdating}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${fallingEnabled ? 'translate-x-5' : 'translate-x-1'}`}
+                    />
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleToggleFalling}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${fallingEnabled ? 'bg-slate-blue' : 'bg-gray-200'}`}
-                  aria-pressed={!!fallingEnabled}
-                  disabled={iconUpdating}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${fallingEnabled ? 'translate-x-5' : 'translate-x-1'}`}
-                  />
-                </button>
-              </div>
-              <div className="text-sm text-gray-700 mb-3 max-w-[85ch] px-2">
-                Enable a fun animation where stars (or other icons) rain down when the prompt page loads. You can choose the icon below.
               </div>
               {/* Icon picker (enabled) */}
-              <div className="flex gap-4 px-2 flex-wrap">
+              <div className="flex gap-4 px-2 flex-wrap ml-9">
                 {FALLING_STARS_ICONS.map(opt => {
                   const Icon = opt.icon;
                   return (
@@ -1053,19 +1223,8 @@ export default function PromptPageForm({
       </div>
       {(mode !== 'create' || step === 2) && (
         <>
-          {/* Top right Save & publish button for step 2 create flow (inside form) */}
-          {mode === 'create' && step === 2 && (
-            <button
-              type="submit"
-              className="absolute top-4 right-4 z-20 inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-              disabled={isSaving}
-              style={{ minWidth: 140 }}
-            >
-              {isSaving ? 'Publishing...' : 'Save & publish'}
-            </button>
-          )}
           {/* Bottom right Save & publish/Save button */}
-          <div className="w-full flex justify-end pr-2 pb-4 md:pr-6 md:pb-6 mt-8">
+          <div className="w-full flex justify-end pr-6 pb-4 md:pb-6 mt-8">
             <button
               type="submit"
               className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"

@@ -7,6 +7,7 @@ import { FaStar, FaHeart, FaSmile, FaThumbsUp, FaBolt, FaCoffee, FaWrench, FaRai
 import OfferSection from '../components/OfferSection';
 import DisableAIGenerationSection from '@/app/components/DisableAIGenerationSection';
 import { FALLING_STARS_ICONS } from '@/app/components/prompt-modules/fallingStarsConfig';
+import SectionHeader from '@/app/components/SectionHeader';
 
 export interface UniversalPromptFormState {
   offerEnabled: boolean;
@@ -144,27 +145,29 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
         <DisableAIGenerationSection enabled={aiButtonEnabled} onToggle={() => setAiButtonEnabled(v => !v)} />
         {/* Falling Stars Section (full module) */}
         <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-2 shadow relative mb-8">
-          <div className="flex items-center justify-between mb-2 px-2 py-2">
-            <div className="flex items-center gap-3">
-              <FaStar className="w-7 h-7 text-slate-blue" />
-              <span className="text-2xl font-bold text-[#1A237E]">Falling star animation</span>
+          <div className="flex flex-row justify-between items-start px-2 py-2">
+            <SectionHeader
+              icon={<FaStar className="w-7 h-7 text-slate-blue" />} 
+              title="Falling star animation"
+              subCopy="Enable a fun animation where stars (or other icons) rain down when the prompt page loads. You can choose the icon below."
+              className="!mb-0"
+              subCopyLeftOffset="ml-9"
+            />
+            <div className="flex flex-col justify-start pt-1">
+              <button
+                type="button"
+                onClick={() => setFallingEnabled(v => !v)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${fallingEnabled ? 'bg-slate-blue' : 'bg-gray-200'}`}
+                aria-pressed={!!fallingEnabled}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${fallingEnabled ? 'translate-x-5' : 'translate-x-1'}`}
+                />
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={() => setFallingEnabled(v => !v)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${fallingEnabled ? 'bg-slate-blue' : 'bg-gray-200'}`}
-              aria-pressed={!!fallingEnabled}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${fallingEnabled ? 'translate-x-5' : 'translate-x-1'}`}
-              />
-            </button>
-          </div>
-          <div className="text-sm text-gray-700 mb-3 max-w-[85ch] px-2">
-            Enable a fun animation where stars (or other icons) rain down when the prompt page loads. You can choose the icon below.
           </div>
           {/* Icon picker (enabled) */}
-          <div className="flex gap-4 px-2 flex-wrap">
+          <div className="flex gap-4 px-2 flex-wrap ml-9">
             {FALLING_STARS_ICONS.map(opt => {
               const Icon = opt.icon;
               return (

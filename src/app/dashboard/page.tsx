@@ -5,13 +5,14 @@ import { createBrowserClient } from '@supabase/ssr';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { QRCodeSVG } from 'qrcode.react';
 import DashboardContent from './DashboardContent';
-import { FaHome, FaBuilding } from 'react-icons/fa';
+import { FaHome, FaBuilding, FaBullhorn, FaTimes } from 'react-icons/fa';
 import { getUserOrMock, getSessionOrMock } from '@/utils/supabase';
 import PricingModal from '../components/PricingModal';
 import FiveStarSpinner from '../components/FiveStarSpinner';
 import PageCard from '../components/PageCard';
 import AppLoader from '../components/AppLoader';
 import TopLoaderOverlay from '../components/TopLoaderOverlay';
+import { Button } from '@/app/components/ui/button';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -237,13 +238,7 @@ export default function Dashboard() {
 
   if (!isDashboardReady) {
     return (
-      <div style={{
-        position: 'fixed',
-        top: -190,
-        left: 0,
-        width: '100%',
-        zIndex: 9999
-      }}>
+      <div className="min-h-screen flex flex-col items-center justify-center">
         <AppLoader />
       </div>
     );
@@ -275,12 +270,22 @@ export default function Dashboard() {
       {showPostSaveModal && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-40" onClick={() => setShowPostSaveModal(false)}>
           <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full relative" onClick={e => e.stopPropagation()}>
-            <button className="absolute top-2 right-2 text-gray-400 hover:text-gray-600" onClick={() => setShowPostSaveModal(false)} aria-label="Close">&times;</button>
-            <h2 className="text-2xl font-bold text-slate-blue mb-2">Prompt Page Saved!</h2>
-            <p className="mb-6 text-gray-700">Share your prompt page with your customer:</p>
+            <button
+              className="absolute -top-4 -right-4 bg-white border border-gray-200 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 focus:outline-none"
+              style={{ zIndex: 20, width: 40, height: 40 }}
+              onClick={() => setShowPostSaveModal(false)}
+              aria-label="Close"
+            >
+              <FaTimes className="w-5 h-5 text-red-600" />
+            </button>
+            <h2 className="text-2xl font-bold text-slate-blue mb-2 flex items-center gap-3">
+              <FaBullhorn className="w-7 h-7 text-slate-blue" />
+              Prompt Page Saved!
+            </h2>
+            <p className="mb-6 text-gray-700">Share your prompt page with your customer or client:</p>
             <div className="flex flex-col gap-3">
-              <a href={`sms:?body=${encodeURIComponent('Please leave a review: ' + window.location.origin + (savedPromptPageUrl || ''))}`} className="w-full inline-flex items-center justify-center px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition" target="_blank" rel="noopener noreferrer">Send via SMS</a>
-              <a href={`mailto:?subject=Please leave a review&body=${encodeURIComponent('Please leave a review: ' + window.location.origin + (savedPromptPageUrl || ''))}`} className="w-full inline-flex items-center justify-center px-4 py-2 bg-indigo-50 text-indigo-800 rounded-lg font-medium border border-indigo-200 hover:bg-indigo-100 transition" target="_blank" rel="noopener noreferrer">Send via Email</a>
+              <a href={`sms:?body=${encodeURIComponent('Please leave a review: ' + window.location.origin + (savedPromptPageUrl || ''))}`} className="w-full inline-flex items-center justify-center px-4 py-2 bg-green-100 text-green-800 rounded-lg font-medium hover:bg-green-200 transition" target="_blank" rel="noopener noreferrer">Send via SMS</a>
+              <a href={`mailto:?subject=Please leave a review&body=${encodeURIComponent('Please leave a review: ' + window.location.origin + (savedPromptPageUrl || ''))}`} className="w-full inline-flex items-center justify-center px-4 py-2 bg-blue-100 text-blue-800 rounded-lg font-medium hover:bg-blue-200 transition" target="_blank" rel="noopener noreferrer">Send via Email</a>
               <button onClick={async () => {
                 const link = window.location.origin + (savedPromptPageUrl || '');
                 try {

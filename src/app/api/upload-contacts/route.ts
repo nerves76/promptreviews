@@ -88,7 +88,16 @@ export async function POST(request: Request) {
           review_type: ['reviewtype', 'review type'],
           friendly_note: ['friendlynote', 'friendly note'],
           features_or_benefits: ['featuresorbenefits', 'features or benefits'],
-          product_description: ['productdescription', 'product description']
+          product_description: ['productdescription', 'product description'],
+          address_line1: ['addressline1', 'address line1'],
+          address_line2: ['addressline2', 'address line2'],
+          city: ['city'],
+          state: ['state'],
+          postal_code: ['postalcode', 'postal code'],
+          country: ['country'],
+          business_name: ['businessname', 'business name'],
+          notes: ['notes'],
+          category: ['category']
         };
         // Map normalized header to expected field
         return headers.map((header: string) => {
@@ -155,14 +164,15 @@ export async function POST(request: Request) {
       last_name: record.last_name?.trim() || null,
       email: record.email?.trim() || null,
       phone: record.phone?.trim() || null,
-      offer_url: record.offer_url?.trim() || null,
-      offer_title: record.offer_title?.trim() || null,
-      offer_body: record.offer_body?.trim() || null,
-      role: record.role?.trim() || null,
-      review_type: record.review_type?.trim() || null,
-      friendly_note: record.friendly_note?.trim() || null,
-      features_or_benefits: record.features_or_benefits?.trim() || null,
-      product_description: record.product_description?.trim() || null,
+      address_line1: record.address_line1?.trim() || null,
+      address_line2: record.address_line2?.trim() || null,
+      city: record.city?.trim() || null,
+      state: record.state?.trim() || null,
+      postal_code: record.postal_code?.trim() || null,
+      country: record.country?.trim() || null,
+      business_name: record.business_name?.trim() || null,
+      notes: record.notes?.trim() || null,
+      category: record.category?.trim() || null,
       status: 'in_queue'
     }));
 
@@ -202,147 +212,10 @@ export async function POST(request: Request) {
 
     console.log(`Successfully inserted ${insertedContacts?.length || 0} contacts:`, insertedContacts);
 
-    // Create prompt pages for each contact
-    console.log('Creating prompt pages...');
-    let createdPages = 0;
-    let errors = [];
-
-    for (const contact of insertedContacts || []) {
-      try {
-        console.log(`Processing contact for prompt page:`, contact);
-        
-        // Check if a prompt page already exists for this contact
-        const { data: existingPages, error: existingPagesError } = await supabase
-          .from('prompt_pages')
-          .select('id')
-          .eq('account_id', user.id)
-          .or([
-            contact.email ? `email.eq.${contact.email}` : '',
-            contact.phone ? `phone.eq.${contact.phone}` : ''
-          ].filter(Boolean).join(','));
-        
-        if (existingPagesError) {
-          console.error(`Error checking existing pages for contact ${contact.id}:`, existingPagesError);
-          continue;
-        }
-        
-        if (existingPages && existingPages.length > 0) {
-          console.log(`Skipping prompt page creation for contact ${contact.id} - already exists`);
-          continue;
-        }
-
-        // Create prompt page for this contact
-        console.log(`Creating prompt page for contact ${contact.id}...`);
-        
-        // Generate a unique slug from the contact's name
-        const slugBase = `${contact.first_name} ${contact.last_name || ''}`.trim();
-        const slug = slugify(slugBase, { lower: true, strict: true }) + '-' + Date.now().toString(36);
-        
-        const pageData = {
-          account_id: user.id,
-          first_name: contact.first_name,
-          last_name: contact.last_name,
-          email: contact.email,
-          phone: contact.phone,
-          client_name: `${contact.first_name} ${contact.last_name || ''}`.trim(),
-          review_platforms: [
-            contact.google_url ? { 
-              platform: 'Google', 
-              url: contact.google_url, 
-              name: contact.first_name,
-              wordCount: contact.google_review ? contact.google_review.split(/\s+/).length : 0,
-              reviewText: contact.google_review || '',
-              customInstructions: contact.google_instructions || '' 
-            } : null,
-            contact.yelp_url ? { 
-              platform: 'Yelp', 
-              url: contact.yelp_url, 
-              name: contact.first_name,
-              wordCount: contact.yelp_review ? contact.yelp_review.split(/\s+/).length : 0,
-              reviewText: contact.yelp_review || '',
-              customInstructions: contact.yelp_instructions || '' 
-            } : null,
-            contact.facebook_url ? { 
-              platform: 'Facebook', 
-              url: contact.facebook_url, 
-              name: contact.first_name,
-              wordCount: contact.facebook_review ? contact.facebook_review.split(/\s+/).length : 0,
-              reviewText: contact.facebook_review || '',
-              customInstructions: contact.facebook_instructions || '' 
-            } : null,
-          ].filter(Boolean),
-          offer_body: contact.offer_body,
-          offer_enabled: true,
-          offer_title: contact.offer_title,
-          offer_url: contact.offer_url,
-          status: 'draft',
-          slug: slug,
-          features_or_benefits: contact.features_or_benefits,
-          product_description: contact.product_description,
-          project_type: null,
-          is_universal: false,
-          team_member: null,
-          location: null,
-          tone_of_voice: null,
-          date_completed: null,
-          assigned_team_members: null,
-          qr_code_url: null
-        };
-
-        console.log('Inserting prompt page with data:', JSON.stringify(pageData, null, 2));
-        console.log('Review platforms:', JSON.stringify(pageData.review_platforms, null, 2));
-
-        const { data: insertedPage, error: insertPageError } = await supabase
-          .from('prompt_pages')
-          .insert(pageData)
-          .select()
-          .single();
-
-        if (insertPageError) {
-          console.error(`Error creating prompt page for contact ${contact.id}:`, insertPageError);
-          console.error('Error details:', {
-            code: insertPageError.code,
-            message: insertPageError.message,
-            details: insertPageError.details,
-            hint: insertPageError.hint,
-            pageData: JSON.stringify(pageData, null, 2)
-          });
-          errors.push({ 
-            name: `${contact.first_name} ${contact.last_name || ''}`, 
-            error: insertPageError.message,
-            details: insertPageError.details,
-            hint: insertPageError.hint,
-            code: insertPageError.code
-          });
-        } else {
-          createdPages++;
-          console.log(`Successfully created prompt page for contact ${contact.id}:`, insertedPage);
-        }
-      } catch (error) {
-        console.error(`Unexpected error processing contact ${contact.id}:`, error);
-        errors.push({ 
-          name: `${contact.first_name} ${contact.last_name || ''}`, 
-          error: 'Unexpected error processing contact',
-          details: error instanceof Error ? error.message : String(error)
-        });
-      }
-    }
-
-    if (errors.length > 0) {
-      console.log('Completed with errors:', errors);
-      return NextResponse.json({ 
-        message: `Created ${createdPages} prompt pages with ${errors.length} errors`,
-        errors,
-        contactsCreated: insertedContacts?.length || 0,
-        promptPagesCreated: createdPages
-      }, { status: 207 });
-    }
-
-    console.log('Successfully completed all operations');
+    // No prompt page creation logic here
     return NextResponse.json({ 
-      message: 'Successfully uploaded contacts and created prompt pages',
-      contactsCreated: insertedContacts?.length || 0,
-      promptPagesCreated: createdPages
+      message: 'Successfully uploaded contacts',
+      contactsCreated: insertedContacts?.length || 0
     });
 
   } catch (error) {

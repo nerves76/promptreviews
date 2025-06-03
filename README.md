@@ -319,3 +319,45 @@ if (isLoading) {
 If you need a custom loading message or style, consider extending `AppLoader` or passing props as needed.
 
 ---
+
+# UI/UX Styles & Component Conventions
+
+## Where to Find Key UI Modules
+- **SectionHeader:** `src/app/components/SectionHeader.tsx` — For all section headers with icon, title, and subcopy. Use this for consistent section/module headers.
+- **PageCard:** `src/app/components/PageCard.tsx` — For main page/card layout, floating top-left icon, and card-level actions. Always use for dashboard and prompt page forms.
+- **ReviewWriteSection:** `src/app/dashboard/edit-prompt-page/components/ReviewWriteSection.tsx` — For review platform cards, AI button, and review template fields.
+- **PromptPageForm:** `src/app/components/PromptPageForm.tsx` — Main form for all prompt page types. Shows how to compose all modules and use conventions.
+
+## Visual & Code Conventions
+- **Section headers:**
+  - Use `<SectionHeader icon={...} title="..." subCopy="..." />` for all major sections.
+  - Title: `text-2xl font-bold text-[#1A237E]` (or override with `titleClassName` for page titles).
+  - Subcopy: Left-aligned with title, `text-sm text-gray-700`.
+- **Page-level icons:**
+  - Use the `icon` prop on `PageCard` for a floating, breaching icon in the top-left of the card.
+  - Never render the icon manually inside the form/component.
+- **AI Gen Button:**
+  - Use the standardized button: `inline-flex items-center px-4 py-2 border rounded font-semibold shadow text-slate-blue border-slate-blue bg-white hover:bg-slate-blue/10 transition text-sm whitespace-nowrap w-auto min-w-[180px] self-start gap-2` with `<FaMagic />` and text `Generate with AI`.
+  - Always left-aligned, never full width, and never a primary color.
+- **Review Platform Cards:**
+  - Use `ReviewWriteSection` for all review platform input flows.
+  - Each card has a platform icon breaching the top-left, card title, and action buttons at the top.
+- **Spacing & Typography:**
+  - Follow the rules in `DESIGN_GUIDELINES.md` for all spacing, font sizes, and color usage.
+  - Main page titles: `text-4xl font-bold text-slate-blue` (pass as `titleClassName` to SectionHeader).
+
+## For Visual Rules & Examples
+See `DESIGN_GUIDELINES.md` for:
+- Color palette
+- Icon usage
+- Card and section header patterns
+- Spacing and typography
+- Example code snippets
+
+## Quickstart for New Devs
+- All shared UI modules are in `src/app/components/` or `src/app/dashboard/edit-prompt-page/components/`.
+- Always use SectionHeader and PageCard for new modules/pages.
+- For new AI buttons, copy the style from ReviewWriteSection or PromptPageForm.
+- If in doubt, check DESIGN_GUIDELINES.md or ask for a design/code review.
+
+---

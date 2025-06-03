@@ -3,7 +3,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { generateAIReview } from '@/utils/ai';
-import { FaGoogle, FaFacebook, FaYelp, FaTripadvisor, FaRegStar, FaGift, FaStar, FaHeart, FaThumbsUp, FaStore, FaSmile, FaGlobe, FaHandsHelping, FaUser, FaWrench, FaBoxOpen } from 'react-icons/fa';
+import { FaGoogle, FaFacebook, FaYelp, FaTripadvisor, FaRegStar, FaGift, FaStar, FaHeart, FaThumbsUp, FaStore, FaSmile, FaGlobe, FaHandsHelping, FaUser, FaWrench, FaBoxOpen, FaTrophy, FaCommentDots } from 'react-icons/fa';
 import { IconType } from 'react-icons';
 import Link from 'next/link';
 import { getUserOrMock, getSessionOrMock } from '@/utils/supabase';
@@ -18,6 +18,7 @@ import ServicePromptPageForm, { ServicePromptFormState } from './ServicePromptPa
 import ProductPromptPageForm from '@/app/components/ProductPromptPageForm';
 import React from 'react';
 import AppLoader from '@/app/components/AppLoader';
+import RobotTooltip from '@/app/components/RobotTooltip';
 
 interface ReviewPlatformLink {
   name: string;
@@ -789,7 +790,7 @@ export default function EditPromptPage() {
   // In the main render, for product pages, render only the unified ProductPromptPageForm and return immediately
   if (formData.review_type === 'product') {
     return (
-      <PageCard icon={<FaBoxOpen className="w-9 h-9 text-slate-blue" />}>
+      <PageCard icon={<FaBoxOpen className="w-16 h-16 text-slate-blue" />}>
         <ProductPromptPageForm
           mode="edit"
           initialData={formData}
@@ -847,7 +848,9 @@ export default function EditPromptPage() {
           </h3>
           <div className="flex gap-4">
             <div className="flex-1">
-              <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 mt-4 mb-2">First name</label>
+              <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center gap-1">First name
+                <RobotTooltip text="This field is passed to AI for prompt generation." />
+              </label>
               <input
                 type="text"
                 id="first_name"
@@ -897,87 +900,99 @@ export default function EditPromptPage() {
           </div>
 
           <div>
-            <label htmlFor="role" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center">
-              Role/position
-              <Tooltip text="This will appear on the prompt page and your customer/client can edit it. So, you don't need to add it if you are unsure." />
+            <label htmlFor="role" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center gap-1">Role/position
+              <RobotTooltip text="This field is passed to AI for prompt generation." />
             </label>
             <input
               type="text"
               id="role"
               value={formData.role}
               onChange={e => setFormData(prev => ({ ...prev, role: e.target.value }))}
-              className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+              className="mt-1 block w-full max-w-md rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
               placeholder="e.g., Store Manager, Marketing Director, Student"
             />
           </div>
 
-          <div>
-            <label htmlFor="product_description" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center">
-              Outcome
-              <Tooltip text="Describe the results and benefits the client received. This information helps AI generate more specific and impactful reviews that highlight the value provided." />
-            </label>
-            <p className="text-xs text-gray-500 mt-1 mb-2">Describe the service you provided and how it benefited the individual.</p>
-            <textarea
-              id="product_description"
-              value={formData.product_description}
-              onChange={e => setFormData(prev => ({ ...prev, product_description: e.target.value }))}
-              rows={4}
-              className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-              placeholder="Describe the outcome for your client"
-              required
-            />
+          <div className="mt-20 mb-2 flex items-center gap-2">
+            <FaWrench className="w-5 h-5 text-[#1A237E]" />
+            <h2 className="text-xl font-semibold text-slate-blue flex items-center gap-1">Services provided <RobotTooltip text="This field is passed to AI for prompt generation." /></h2>
+          </div>
+          <div className="space-y-2">
+            {services.map((service, idx) => (
+              <div key={idx} className="flex items-center gap-2">
+                <input
+                  type="text"
+                  className="w-full border px-3 py-2 rounded"
+                  value={service}
+                  onChange={e => {
+                    const newServices = [...services];
+                    newServices[idx] = e.target.value;
+                    setServices(newServices);
+                    setFormData(prev => ({ ...prev, services_offered: newServices }));
+                  }}
+                  required
+                  placeholder="e.g., Web Design"
+                />
+                {services.length > 1 && (
+                  <button type="button" onClick={() => {
+                    const newServices = services.filter((_, i) => i !== idx);
+                    setServices(newServices);
+                    setFormData(prev => ({ ...prev, services_offered: newServices }));
+                  }} className="text-red-600 font-bold">&times;</button>
+                )}
+              </div>
+            ))}
+            <button type="button" onClick={() => {
+              setServices([...services, '']);
+              setFormData(prev => ({ ...prev, services_offered: [...services, ''] }));
+            }} className="text-blue-600 underline mt-2">+ Add Service</button>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mt-4 mb-2">
-              Services provided
-            </label>
-            <div className="space-y-2">
-              {services.map((service, idx) => (
-                <div key={idx} className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    className="w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                    value={service}
-                    onChange={e => {
-                      const newServices = [...services];
-                      newServices[idx] = e.target.value;
-                      setServices(newServices);
-                      setFormData(prev => ({ ...prev, services_offered: newServices }));
-                    }}
-                    required
-                    placeholder="e.g., Web Design"
-                  />
-                  {services.length > 1 && (
-                    <button type="button" onClick={() => {
-                      const newServices = services.filter((_, i) => i !== idx);
-                      setServices(newServices);
-                      setFormData(prev => ({ ...prev, services_offered: newServices }));
-                    }} className="text-red-600 font-bold">&times;</button>
-                  )}
-                </div>
-              ))}
-              <button type="button" onClick={() => {
-                setServices([...services, '']);
-                setFormData(prev => ({ ...prev, services_offered: [...services, ''] }));
-              }} className="text-blue-600 underline mt-2">+ Add Service</button>
+          <div className="mt-10 mb-2 flex items-center gap-2">
+            <FaTrophy className="w-5 h-5 text-[#1A237E]" />
+            <h2 className="text-xl font-semibold text-slate-blue flex items-center gap-1">Outcome <RobotTooltip text="This field is passed to AI for prompt generation." /></h2>
+          </div>
+          <p className="text-xs text-gray-500 mt-1 mb-5 max-w-[85ch]">Describe the service you provided and how it benefited this individual.</p>
+          <textarea
+            id="product_description"
+            value={formData.product_description}
+            onChange={e => setFormData(prev => ({ ...prev, product_description: e.target.value }))}
+            rows={4}
+            className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+            placeholder="Describe the outcome for your client"
+            required
+          />
+
+          <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-2 shadow relative mb-8 mt-10">
+            <div className="flex items-center justify-between mb-2 px-2 py-2">
+              <div className="flex items-center gap-3">
+                <FaCommentDots className="w-7 h-7 text-slate-blue" />
+                <span className="text-2xl font-bold text-[#1A237E]">Personalized note pop-up</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setNotePopupEnabled(v => !v)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${notePopupEnabled ? 'bg-slate-blue' : 'bg-gray-200'}`}
+                aria-pressed={!!notePopupEnabled}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${notePopupEnabled ? 'translate-x-5' : 'translate-x-1'}`}
+                />
+              </button>
             </div>
-          </div>
-
-          <div>
-            <label htmlFor="friendly_note" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center">
-              Personalized note to customer
-              <Tooltip text="This note appears at the top of the review page. It helps set the context and tone for the review. The AI will use this information to generate more personalized and relevant reviews." />
-            </label>
-            <textarea
-              id="friendly_note"
-              value={formData.friendly_note}
-              onChange={e => setFormData(prev => ({ ...prev, friendly_note: e.target.value }))}
-              rows={4}
-              className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-              placeholder={`Hi ${formData.first_name || '[name]'}, thanks so much for doing business with ${businessProfile.business_name || '[business name]'}. As a small business, getting reviews online is super valuable and extends our reach. Thank you for supporting us!\n\n- ${businessProfile.business_name || '[Account holder name]'}`}
-            />
-            <p className="text-xs text-gray-500 mt-1 mb-2">This note will appear at the top of the review page for your customer. Make it personal!</p>
+            <div className="text-sm text-gray-700 mb-3 max-w-[85ch] px-2">
+              This note appears as a pop-up at the top of the review page. Use it to set the context and tone for your customer.
+            </div>
+            {notePopupEnabled && (
+              <textarea
+                id="friendly_note"
+                value={formData.friendly_note}
+                onChange={e => setFormData(prev => ({ ...prev, friendly_note: e.target.value }))}
+                rows={4}
+                className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring shadow-inner"
+                placeholder="Ty! It was so great having you in yesterday. You left your scarf! I can drop it by tomorrow on my way in. Thanks for leaving us a review, we need all the positivity we can get.  :)"
+              />
+            )}
           </div>
 
           <div className="flex justify-end items-center mt-8 pt-6 border-t pb-8">
@@ -999,7 +1014,9 @@ export default function EditPromptPage() {
           </h3>
           <div className="flex gap-4">
             <div className="flex-1">
-              <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 mt-4 mb-2">First name</label>
+              <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center gap-1">First name
+                <RobotTooltip text="This field is passed to AI for prompt generation." />
+              </label>
               <input
                 type="text"
                 id="first_name"
@@ -1049,87 +1066,99 @@ export default function EditPromptPage() {
           </div>
 
           <div>
-            <label htmlFor="role" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center">
-              Role/position
-              <Tooltip text="This will appear on the prompt page and your customer/client can edit it. So, you don't need to add it if you are unsure." />
+            <label htmlFor="role" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center gap-1">Role/position
+              <RobotTooltip text="This field is passed to AI for prompt generation." />
             </label>
             <input
               type="text"
               id="role"
               value={formData.role}
               onChange={e => setFormData(prev => ({ ...prev, role: e.target.value }))}
-              className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+              className="mt-1 block w-full max-w-md rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
               placeholder="e.g., Store Manager, Marketing Director, Student"
             />
           </div>
 
-          <div>
-            <label htmlFor="product_description" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center">
-              Outcome
-              <Tooltip text="Describe the results and benefits the client received. This information helps AI generate more specific and impactful reviews that highlight the value provided." />
-            </label>
-            <p className="text-xs text-gray-500 mt-1 mb-2">Describe the service you provided and how it benefited the individual.</p>
-            <textarea
-              id="product_description"
-              value={formData.product_description}
-              onChange={e => setFormData(prev => ({ ...prev, product_description: e.target.value }))}
-              rows={4}
-              className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-              placeholder="Describe the outcome for your client"
-              required
-            />
+          <div className="mt-20 mb-2 flex items-center gap-2">
+            <FaWrench className="w-5 h-5 text-[#1A237E]" />
+            <h2 className="text-xl font-semibold text-slate-blue flex items-center gap-1">Services provided <RobotTooltip text="This field is passed to AI for prompt generation." /></h2>
+          </div>
+          <div className="space-y-2">
+            {services.map((service, idx) => (
+              <div key={idx} className="flex items-center gap-2">
+                <input
+                  type="text"
+                  className="w-full border px-3 py-2 rounded"
+                  value={service}
+                  onChange={e => {
+                    const newServices = [...services];
+                    newServices[idx] = e.target.value;
+                    setServices(newServices);
+                    setFormData(prev => ({ ...prev, services_offered: newServices }));
+                  }}
+                  required
+                  placeholder="e.g., Web Design"
+                />
+                {services.length > 1 && (
+                  <button type="button" onClick={() => {
+                    const newServices = services.filter((_, i) => i !== idx);
+                    setServices(newServices);
+                    setFormData(prev => ({ ...prev, services_offered: newServices }));
+                  }} className="text-red-600 font-bold">&times;</button>
+                )}
+              </div>
+            ))}
+            <button type="button" onClick={() => {
+              setServices([...services, '']);
+              setFormData(prev => ({ ...prev, services_offered: [...services, ''] }));
+            }} className="text-blue-600 underline mt-2">+ Add Service</button>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mt-4 mb-2">
-              Services provided
-            </label>
-            <div className="space-y-2">
-              {services.map((service, idx) => (
-                <div key={idx} className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    className="w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                    value={service}
-                    onChange={e => {
-                      const newServices = [...services];
-                      newServices[idx] = e.target.value;
-                      setServices(newServices);
-                      setFormData(prev => ({ ...prev, services_offered: newServices }));
-                    }}
-                    required
-                    placeholder="e.g., Web Design"
-                  />
-                  {services.length > 1 && (
-                    <button type="button" onClick={() => {
-                      const newServices = services.filter((_, i) => i !== idx);
-                      setServices(newServices);
-                      setFormData(prev => ({ ...prev, services_offered: newServices }));
-                    }} className="text-red-600 font-bold">&times;</button>
-                  )}
-                </div>
-              ))}
-              <button type="button" onClick={() => {
-                setServices([...services, '']);
-                setFormData(prev => ({ ...prev, services_offered: [...services, ''] }));
-              }} className="text-blue-600 underline mt-2">+ Add Service</button>
+          <div className="mt-10 mb-2 flex items-center gap-2">
+            <FaTrophy className="w-5 h-5 text-[#1A237E]" />
+            <h2 className="text-xl font-semibold text-slate-blue flex items-center gap-1">Outcome <RobotTooltip text="This field is passed to AI for prompt generation." /></h2>
+          </div>
+          <p className="text-xs text-gray-500 mt-1 mb-5 max-w-[85ch]">Describe the service you provided and how it benefited this individual.</p>
+          <textarea
+            id="product_description"
+            value={formData.product_description}
+            onChange={e => setFormData(prev => ({ ...prev, product_description: e.target.value }))}
+            rows={4}
+            className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+            placeholder="Describe the outcome for your client"
+            required
+          />
+
+          <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-2 shadow relative mb-8 mt-10">
+            <div className="flex items-center justify-between mb-2 px-2 py-2">
+              <div className="flex items-center gap-3">
+                <FaCommentDots className="w-7 h-7 text-slate-blue" />
+                <span className="text-2xl font-bold text-[#1A237E]">Personalized note pop-up</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setNotePopupEnabled(v => !v)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${notePopupEnabled ? 'bg-slate-blue' : 'bg-gray-200'}`}
+                aria-pressed={!!notePopupEnabled}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${notePopupEnabled ? 'translate-x-5' : 'translate-x-1'}`}
+                />
+              </button>
             </div>
-          </div>
-
-          <div>
-            <label htmlFor="friendly_note" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center">
-              Personalized note to customer
-              <Tooltip text="This note appears at the top of the review page. It helps set the context and tone for the review. The AI will use this information to generate more personalized and relevant reviews." />
-            </label>
-            <textarea
-              id="friendly_note"
-              value={formData.friendly_note}
-              onChange={e => setFormData(prev => ({ ...prev, friendly_note: e.target.value }))}
-              rows={4}
-              className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-              placeholder={`Hi ${formData.first_name || '[name]'}, thanks so much for doing business with ${businessProfile.business_name || '[business name]'}. As a small business, getting reviews online is super valuable and extends our reach. Thank you for supporting us!\n\n- ${businessProfile.business_name || '[Account holder name]'}`}
-            />
-            <p className="text-xs text-gray-500 mt-1 mb-2">This note will appear at the top of the review page for your customer. Make it personal!</p>
+            <div className="text-sm text-gray-700 mb-3 max-w-[85ch] px-2">
+              This note appears as a pop-up at the top of the review page. Use it to set the context and tone for your customer.
+            </div>
+            {notePopupEnabled && (
+              <textarea
+                id="friendly_note"
+                value={formData.friendly_note}
+                onChange={e => setFormData(prev => ({ ...prev, friendly_note: e.target.value }))}
+                rows={4}
+                className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring shadow-inner"
+                placeholder="Ty! It was so great having you in yesterday. You left your scarf! I can drop it by tomorrow on my way in. Thanks for leaving us a review, we need all the positivity we can get.  :)"
+              />
+            )}
           </div>
 
           <div className="flex justify-end items-center mt-8 pt-6 border-t pb-8">

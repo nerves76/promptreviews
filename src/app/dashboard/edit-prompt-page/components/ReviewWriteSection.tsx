@@ -19,6 +19,7 @@ interface ReviewWriteSectionProps {
   onChange: (platforms: ReviewWritePlatform[]) => void;
   onGenerateReview: (idx: number) => void;
   errors?: string[];
+  hideReviewTemplateFields?: boolean;
 }
 
 const platformOptions = [
@@ -51,11 +52,22 @@ const getPlatformIcon = (name: string, url: string) => {
   return { icon: FaRegStar, color: 'text-slate-blue' };
 };
 
+/**
+ * ReviewWriteSection component
+ *
+ * Usage: For review platform cards, AI button, and review template fields in prompt page forms.
+ * - Use for all review platform input flows (Google, Yelp, etc.).
+ * - Each card has a platform icon breaching the top-left, card title, and action buttons at the top.
+ * - The AI button uses the standardized style: white, slate-blue border/text, FaMagic icon, left-aligned, text 'Generate with AI'.
+ *
+ * See DESIGN_GUIDELINES.md for visual rules and examples.
+ */
 const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
   value,
   onChange,
   onGenerateReview,
   errors = [],
+  hideReviewTemplateFields = false,
 }) => {
   const handlePlatformChange = (idx: number, field: keyof ReviewWritePlatform, val: string | number) => {
     const newPlatforms = value.map((p, i) =>
@@ -70,56 +82,55 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
     <div className="mb-16">
       <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
         <FaStar className="w-7 h-7 text-slate-blue" />
-        Review platforms & reviews
+        Review Platforms
       </h2>
       <div>
-        <div className="flex gap-2 items-center mb-8">
-          <span className="w-1/4 text-xs font-semibold text-gray-500">Platform Name</span>
-          <span className="flex-1 text-xs font-semibold text-gray-500">Platform URL</span>
-          <span className="w-1/6 text-xs font-semibold text-gray-500 text-right" style={{ marginLeft: '-35px' }}>Word Count</span>
-        </div>
         <div className="space-y-12">
           {value.map((platform, idx) => (
-            <div key={idx} className="relative flex flex-col gap-1 mb-12 p-3 pt-8 border border-blue-100 rounded-2xl bg-blue-50 shadow-sm">
+            <div key={idx} className="relative flex flex-col gap-1 mb-12 px-6 py-3 pt-4 border border-blue-100 rounded-2xl bg-blue-50 shadow-sm">
+              {/* Card title: platform name and action buttons row */}
+              <div className="flex items-center justify-between pt-1 pb-2 pr-2">
+                <span className="text-lg font-bold text-slate-blue">
+                  {platform.name || 'Platform'}
+                  {platform.customPlatform && platform.name === 'Other' ? `: ${platform.customPlatform}` : ''}
+                </span>
+                <div className="flex items-center gap-2">
+                  {platform.url && (
+                    <a
+                      href={platform.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-700 underline"
+                    >
+                      Check if Published
+                    </a>
+                  )}
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      // Simulate verification (replace with API call as needed)
+                      const newPlatforms = value.map((p, i) =>
+                        i === idx ? { ...p, verified: true, verified_at: new Date().toISOString() } : p
+                      );
+                      onChange(newPlatforms);
+                    }}
+                    disabled={platform.verified}
+                    className={`px-2 py-1 rounded text-xs ${platform.verified ? 'bg-green-200 text-green-700' : 'bg-slate-blue text-white hover:bg-slate-blue/90'}`}
+                  >
+                    {platform.verified ? 'Verified' : 'Mark as Verified'}
+                  </button>
+                  {platform.verified && platform.verified_at && (
+                    <span className="text-xs text-green-700">({new Date(platform.verified_at).toLocaleDateString()})</span>
+                  )}
+                  <HoverTooltip text="Check if the review was published and mark as 'verified' if it is."><FaQuestionCircle className="w-4 h-4 text-gray-400 cursor-pointer" /></HoverTooltip>
+                </div>
+              </div>
               {/* Platform icon in top left, breaching */}
               <div className="absolute -top-4 -left-4 bg-white rounded-full shadow p-2 flex items-center justify-center" title={platform.name}>
                 {(() => {
                   const { icon: Icon, color } = getPlatformIcon(platform.name, platform.url);
                   return <Icon className={`w-6 h-6 ${color}`} />;
                 })()}
-              </div>
-              {/* Top right: Check if Published, Mark as Verified, Tooltip */}
-              <div className="absolute top-2 right-4 flex items-center gap-2 z-10">
-                {platform.url && (
-                  <a
-                    href={platform.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-blue-700 underline"
-                  >
-                    Check if Published
-                  </a>
-                )}
-                <button
-                  type="button"
-                  onClick={async () => {
-                    // Simulate verification (replace with API call as needed)
-                    const newPlatforms = value.map((p, i) =>
-                      i === idx ? { ...p, verified: true, verified_at: new Date().toISOString() } : p
-                    );
-                    onChange(newPlatforms);
-                  }}
-                  disabled={platform.verified}
-                  className={`px-2 py-1 rounded text-xs ${platform.verified ? 'bg-green-200 text-green-700' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
-                >
-                  {platform.verified ? 'Verified' : 'Mark as Verified'}
-                </button>
-                {platform.verified && platform.verified_at && (
-                  <span className="text-xs text-green-700">({new Date(platform.verified_at).toLocaleDateString()})</span>
-                )}
-                <HoverTooltip text="Check if the review was published and mark as 'verified' if it is.">
-                  <FaQuestionCircle className="w-4 h-4 text-gray-400 cursor-pointer" />
-                </HoverTooltip>
               </div>
               {value.length > 1 && (
                 <button
@@ -131,8 +142,10 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
                   &times;
                 </button>
               )}
-              <div className="flex gap-2 items-center">
+              {/* Move labels inside each card above the inputs */}
+              <div className="flex gap-2 items-center mb-2">
                 <div className="flex flex-col w-1/4">
+                  <label className="text-xs font-semibold text-gray-500 mb-1">Platform Name</label>
                   <select
                     className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
                     value={platform.name}
@@ -155,6 +168,7 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
                   )}
                 </div>
                 <div className="flex flex-col flex-1">
+                  <label className="text-xs font-semibold text-gray-500 mb-1">Platform URL</label>
                   <Input
                     type="url"
                     placeholder="Review URL"
@@ -164,6 +178,7 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
                   />
                 </div>
                 <div className="flex flex-col w-1/6 ml-2">
+                  <label className="text-xs font-semibold text-gray-500 mb-1">Word Count</label>
                   <Input
                     type="number"
                     placeholder="200"
@@ -185,30 +200,30 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
                 maxLength={160}
               />
               <div className="text-xs text-gray-400 text-right">{(platform.customInstructions?.length || 0)}/160</div>
-              {/* Review Text + AI Button */}
-              <div className="flex flex-col gap-2 mt-2">
-                <label className="block text-xs font-medium text-gray-700 mb-1">Review</label>
-                <Textarea
-                  className="w-full text-sm"
-                  placeholder="Write or generate a review for this platform"
-                  value={platform.reviewText || ''}
-                  onChange={e => handlePlatformChange(idx, 'reviewText', e.target.value.slice(0, REVIEW_CHAR_LIMIT))}
-                  rows={3}
-                  maxLength={REVIEW_CHAR_LIMIT}
-                />
-                <div>
+              {/* Review Text + AI Button (conditionally rendered) */}
+              {!hideReviewTemplateFields && (
+                <div className="flex flex-col gap-2 mt-2">
+                  <label className="block text-xs font-medium text-gray-700 mb-1 self-start">Review Template</label>
+                  <Textarea
+                    className="w-full text-sm"
+                    placeholder="Write or generate a review for this platform"
+                    value={platform.reviewText || ''}
+                    onChange={e => handlePlatformChange(idx, 'reviewText', e.target.value.slice(0, REVIEW_CHAR_LIMIT))}
+                    rows={3}
+                    maxLength={REVIEW_CHAR_LIMIT}
+                  />
+                  <div className="text-xs text-gray-400 text-right w-full">{(platform.reviewText?.length || 0)}/{REVIEW_CHAR_LIMIT}</div>
                   <button
                     type="button"
-                    className="flex items-center gap-1 px-3 py-2 bg-white text-indigo-700 border border-indigo-200 rounded-lg font-semibold shadow hover:bg-indigo-50 transition text-sm whitespace-nowrap mt-2"
+                    className="inline-flex items-center px-4 py-2 border rounded font-semibold shadow text-slate-blue border-slate-blue bg-white hover:bg-slate-blue/10 transition text-sm whitespace-nowrap mt-1 w-auto min-w-[180px] self-start"
                     onClick={() => onGenerateReview(idx)}
                     title="Generate with AI"
                   >
-                    <FaMagic className="w-4 h-4" />
+                    <FaMagic className="w-4 h-4 mr-2" />
                     Generate with AI
                   </button>
                 </div>
-                <div className="text-xs text-gray-400 text-right">{(platform.reviewText?.length || 0)}/{REVIEW_CHAR_LIMIT}</div>
-              </div>
+              )}
             </div>
           ))}
         </div>

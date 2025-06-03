@@ -2,6 +2,19 @@
 
 _Last updated: 2024-06-09_
 
+## How to Use This File
+
+This file is the **canonical source for all UI/UX and visual conventions** in PromptReviews. All new modules, pages, and components must follow these patterns unless otherwise documented and approved.
+
+- For a quickstart and where to find key components, see the "UI/UX Styles & Component Conventions" section in the main `README.md`.
+- For implementation, see:
+  - `src/app/components/SectionHeader.tsx` (section headers)
+  - `src/app/components/PageCard.tsx` (page/card layout and floating icons)
+  - `src/app/dashboard/edit-prompt-page/components/ReviewWriteSection.tsx` (review platform cards and AI button)
+  - `src/app/components/PromptPageForm.tsx` (main prompt page form structure)
+
+**If you need to deviate from these rules, document the reason and get approval.**
+
 ## 1. Section & Card Titles
 - **Alignment:** Always centered (unless otherwise specified).
 - **Color:** Slate blue (`#1A237E`).

@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect, useCallback } from 'react';
 import { generateAIReview } from '@/utils/ai';
-import { FaRobot, FaInfoCircle, FaStar, FaGift, FaBoxOpen, FaHeart, FaGoogle, FaYelp, FaFacebook, FaTripadvisor, FaRegStar, FaSmile, FaThumbsUp, FaBolt, FaRainbow, FaCoffee, FaWrench, FaGlassCheers, FaDumbbell, FaPagelines, FaPeace, FaImage, FaQuestionCircle } from 'react-icons/fa';
+import { FaRobot, FaInfoCircle, FaStar, FaGift, FaBoxOpen, FaHeart, FaGoogle, FaYelp, FaFacebook, FaTripadvisor, FaRegStar, FaSmile, FaThumbsUp, FaBolt, FaRainbow, FaCoffee, FaWrench, FaGlassCheers, FaDumbbell, FaPagelines, FaPeace, FaImage, FaQuestionCircle, FaCommentDots } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
 import ReviewWriteSection from '../dashboard/edit-prompt-page/components/ReviewWriteSection';
 import OfferSection from '../dashboard/edit-prompt-page/components/OfferSection';
@@ -11,6 +11,8 @@ import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
 import Cropper from 'react-easy-crop';
 import type { Area } from 'react-easy-crop';
+import RobotTooltip from './RobotTooltip';
+import SectionHeader from './SectionHeader';
 
 function getPlatformIcon(url: string, platform: string) {
   const lowerUrl = url?.toLowerCase?.() || '';
@@ -123,6 +125,8 @@ export default function ProductPromptPageForm({
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [rawProductPhotoFile, setRawProductPhotoFile] = useState<File | null>(null);
+
+  const [notePopupEnabled, setNotePopupEnabled] = useState(true);
 
   const iconOptions = [
     { key: 'star', label: 'Stars', icon: <FaStar className="w-6 h-6 text-yellow-400" /> },
@@ -335,9 +339,13 @@ export default function ProductPromptPageForm({
         onPublishSuccess(formData.slug);
       }
     }}>
-      <h1 className="text-4xl font-bold mb-8 flex items-center gap-3 text-slate-blue">
-        {pageTitle}
-      </h1>
+      <SectionHeader
+        icon={null}
+        title={pageTitle}
+        subCopy="Let's get a review from a customer who loves your product."
+        className="mb-8 mt-2"
+        titleClassName="text-4xl font-bold text-slate-blue"
+      />
       {/* Top right button for step 1 (both create and edit) */}
       {step === 1 && (
         <div className="absolute top-4 right-4 z-20 flex gap-2">
@@ -379,14 +387,14 @@ export default function ProductPromptPageForm({
             {formError && (
               <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded">{formError}</div>
             )}
-            <div className="mb-6 flex items-center gap-2">
-              <FaInfoCircle className="w-5 h-5 text-slate-blue" />
-              <h2 className="text-xl font-semibold text-slate-blue">Customer/client details</h2>
+            <div className="mb-6 flex items-center gap-3">
+              <FaInfoCircle className="w-7 h-7 text-slate-blue" />
+              <h2 className="text-2xl font-bold text-slate-blue">Customer/client details</h2>
             </div>
             <div className="flex gap-4">
               <div className="flex-1">
                 <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center gap-1">First name <span className='text-red-600'>(required)</span>
-                  <RobotTooltip text="Made available for AI prompt generation." />
+                  <RobotTooltip text="This field is passed to AI for prompt generation." />
                 </label>
                 <input
                   type="text"
@@ -444,15 +452,15 @@ export default function ProductPromptPageForm({
             <div>
               <label htmlFor="role" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center max-w-[85ch] gap-1">
                 Role/position
-                <RobotTooltip text="Made available for AI prompt generation." />
+                <RobotTooltip text="This field is passed to AI for prompt generation." />
               </label>
               <input
                 type="text"
                 id="role"
                 value={formData.role}
                 onChange={e => setFormData((prev: any) => ({ ...prev, role: e.target.value }))}
-                className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                placeholder="e.g., store manager, marketing director, student (their role)"
+                className="mt-1 block w-full max-w-md rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+                placeholder="e.g., store manager, marketing director, student"
               />
             </div>
             {/* Product Details Header */}
@@ -540,11 +548,11 @@ export default function ProductPromptPageForm({
               placeholder="Describe the product being reviewed"
               required
             />
-            <div className="mt-8 mb-2 flex items-center gap-2">
-              <FaStar className="w-5 h-5 text-[#1A237E]" />
-              <h2 className="text-xl font-semibold text-slate-blue flex items-center gap-1">
+            <div className="mt-8 mb-2 flex items-center gap-3">
+              <FaStar className="w-7 h-7 text-[#1A237E]" />
+              <h2 className="text-2xl font-bold text-slate-blue flex items-center gap-1">
                 Features or benefits
-                <RobotTooltip text="Made available for AI prompt generation." />
+                <RobotTooltip text="This field is passed to AI for prompt generation." />
               </h2>
             </div>
             <div className="space-y-2">
@@ -574,20 +582,36 @@ export default function ProductPromptPageForm({
                 setFormData((prev: any) => ({ ...prev, features_or_benefits: [...(formData.features_or_benefits || []), ''] }));
               }} className="text-blue-600 underline mt-2">+ Add Feature/Benefit</button>
             </div>
-            <div>
-              <label htmlFor="friendly_note" className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center">
-                Note popup
-                <Tooltip text="This note appears as a popup to the customer on your prompt page." />
-              </label>
-              <textarea
-                key={businessProfile?.business_name || 'no-business-name'}
-                id="friendly_note"
-                value={formData.friendly_note}
-                onChange={e => setFormData((prev: any) => ({ ...prev, friendly_note: e.target.value }))}
-                rows={4}
-                className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                placeholder="Add a personal note for this customer/client"
-              />
+            <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-2 shadow relative mb-8 mt-10">
+              <div className="flex items-center justify-between mb-2 px-2 py-2">
+                <div className="flex items-center gap-3">
+                  <FaCommentDots className="w-7 h-7 text-slate-blue" />
+                  <span className="text-2xl font-bold text-[#1A237E]">Personalized note pop-up</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setNotePopupEnabled(v => !v)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${notePopupEnabled ? 'bg-slate-blue' : 'bg-gray-200'}`}
+                  aria-pressed={!!notePopupEnabled}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${notePopupEnabled ? 'translate-x-5' : 'translate-x-1'}`}
+                  />
+                </button>
+              </div>
+              <div className="text-sm text-gray-700 mb-3 max-w-[85ch] px-2">
+                This note appears as a pop-up at the top of the review page. Use it to set the context and tone for your customer.
+              </div>
+              {notePopupEnabled && (
+                <textarea
+                  id="friendly_note"
+                  value={formData.friendly_note}
+                  onChange={e => setFormData((prev: any) => ({ ...prev, friendly_note: e.target.value }))}
+                  rows={4}
+                  className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring shadow-inner"
+                  placeholder="Ty! It was so great having you in yesterday. You left your scarf! I can drop it by tomorrow on my way in. Thanks for leaving us a review, we need all the positivity we can get.  :)"
+                />
+              )}
             </div>
             <div className="w-full flex justify-end gap-2 mt-8">
               <button
@@ -604,8 +628,9 @@ export default function ProductPromptPageForm({
           <div className="space-y-12">
             <ReviewWriteSection
               value={formData.review_platforms}
-              onChange={val => setFormData((prev: any) => ({ ...prev, review_platforms: val }))}
+              onChange={platforms => setFormData((prev: any) => ({ ...prev, review_platforms: platforms }))}
               onGenerateReview={handleGenerateAIReview}
+              hideReviewTemplateFields={isUniversal}
             />
             <OfferSection
               enabled={offerEnabled}
@@ -732,8 +757,8 @@ export default function ProductPromptPageForm({
   );
 }
 
-function Tooltip({ text }: { text: string }) {
-  const [show, setShow] = useState(false);
+function Tooltip(props: { text: string }) {
+  const [show, setShow] = React.useState(false);
   return (
     <span className="relative inline-block align-middle ml-1">
       <button
@@ -756,31 +781,7 @@ function Tooltip({ text }: { text: string }) {
       </button>
       {show && (
         <div className="absolute z-20 left-1/2 -translate-x-1/2 mt-2 w-56 p-2 bg-white border border-gray-200 rounded shadow text-xs text-gray-700">
-          {text}
-        </div>
-      )}
-    </span>
-  );
-}
-
-function RobotTooltip({ text }: { text: string }) {
-  const [show, setShow] = useState(false);
-  return (
-    <span className="relative inline-block align-middle ml-1">
-      <button
-        type="button"
-        tabIndex={0}
-        aria-label="Show AI info"
-        className="text-slate-blue hover:text-indigo-600 focus:outline-none"
-        onClick={() => setShow(v => !v)}
-        onBlur={() => setShow(false)}
-        style={{ lineHeight: 1 }}
-      >
-        <FaRobot className="inline-block w-4 h-4 align-middle cursor-pointer" title={text} />
-      </button>
-      {show && (
-        <div className="absolute z-20 left-1/2 -translate-x-1/2 mt-2 w-56 p-2 bg-white border border-gray-200 rounded shadow text-xs text-gray-700">
-          {text}
+          {props.text}
         </div>
       )}
     </span>
