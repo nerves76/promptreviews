@@ -3,12 +3,11 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect, useRef, Suspense } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { generateAIReview } from '@/utils/ai';
-import { FaFileAlt, FaInfoCircle, FaStar, FaGift, FaVideo, FaImage, FaQuoteRight, FaCamera, FaHeart, FaGoogle, FaYelp, FaFacebook, FaTripadvisor, FaRegStar, FaSmile, FaHandsHelping } from 'react-icons/fa';
+import { FaFileAlt, FaInfoCircle, FaStar, FaGift, FaVideo, FaImage, FaQuoteRight, FaCamera, FaHeart, FaGoogle, FaYelp, FaFacebook, FaTripadvisor, FaRegStar, FaSmile, FaHandsHelping, FaBoxOpen } from 'react-icons/fa';
 import { checkAccountLimits } from '@/utils/accountLimits';
 import { Dialog } from '@headlessui/react';
 import { getUserOrMock } from '@/utils/supabase';
 import dynamic from 'next/dynamic';
-import Header from '../components/Header';
 import { slugify } from '@/utils/slugify';
 import PromptPageForm from '../components/PromptPageForm';
 import PageCard from '../components/PageCard';
@@ -83,6 +82,8 @@ const initialFormData = {
   ],
   fallingEnabled: false,
   aiButtonEnabled: true,
+  business_name: '',
+  contact_id: '',
 };
 
 // Utility function to map camelCase form data to snake_case DB columns and filter allowed columns
@@ -232,6 +233,25 @@ export default function CreatePromptPageClient() {
       setFormData(prev => ({ ...prev, review_type: type }));
       didSetType.current = true;
     }
+  }, [searchParams]);
+
+  // Prefill contact info from query params
+  useEffect(() => {
+    const first_name = searchParams.get('first_name');
+    const last_name = searchParams.get('last_name');
+    const email = searchParams.get('email');
+    const phone = searchParams.get('phone');
+    const business_name = searchParams.get('business_name');
+    const contact_id = searchParams.get('contact_id');
+    setFormData(prev => ({
+      ...prev,
+      first_name: first_name ?? prev.first_name,
+      last_name: last_name ?? prev.last_name,
+      email: email ?? prev.email,
+      phone: phone ?? prev.phone,
+      business_name: business_name ?? prev.business_name,
+      contact_id: contact_id ?? prev.contact_id,
+    }));
   }, [searchParams]);
 
   // Add platform handlers
@@ -441,8 +461,12 @@ export default function CreatePromptPageClient() {
     }
   };
 
-  if (!businessProfile) {
-    return <AppLoader />;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <AppLoader />
+      </div>
+    );
   }
   if (formData.review_type === 'service') {
     // Ensure all required fields for service are present
@@ -486,7 +510,7 @@ export default function CreatePromptPageClient() {
   if (formData.review_type === 'product') {
     return (
       <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
-        <PageCard icon={<FaStar />}>
+        <PageCard icon={<FaBoxOpen className="w-16 h-16 text-slate-blue" />}>
           <ProductPromptPageForm
             mode="create"
             initialData={{ ...formData, review_type: 'product' }}
@@ -500,23 +524,36 @@ export default function CreatePromptPageClient() {
       </div>
     );
   }
-  return (
-    <>
-      <Header />
-      <div className="min-h-screen py-10 px-4 sm:px-8 md:px-16 lg:px-32">
-        <div className="max-w-3xl mx-auto rounded-xl shadow-lg p-8 mt-0 md:mt-[30px]">
+  if (formData.review_type === 'photo') {
+    return (
+      <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
+        <PageCard icon={<FaCamera className="w-9 h-9 text-slate-blue" />}> 
           <PromptPageForm
-            key={formData.review_type}
             mode="create"
             initialData={formData}
             onSave={handleStep1Submit}
             onPublish={handleStep2Submit}
-            pageTitle="Create Your Prompt Page"
+            pageTitle="Photo + Testimonial"
             supabase={supabase}
             businessProfile={businessProfile}
           />
-        </div>
+        </PageCard>
       </div>
-    </>
+    );
+  }
+  return (
+    <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
+      <PageCard>
+        <PromptPageForm
+          mode="create"
+          initialData={formData}
+          onSave={handleStep1Submit}
+          onPublish={handleStep2Submit}
+          pageTitle="Create Your Prompt Page"
+          supabase={supabase}
+          businessProfile={businessProfile}
+        />
+      </PageCard>
+    </div>
   );
 } 

@@ -17,6 +17,8 @@ import OfferCard from '../../components/OfferCard';
 import offerConfig from '@/app/components/prompt-modules/offerConfig';
 import EmojiSentimentModal from '@/app/components/EmojiSentimentModal';
 import FiveStarSpinner from '@/app/components/FiveStarSpinner';
+import PromptReviewsLogo from '@/app/dashboard/components/PromptReviewsLogo';
+import PageCard from '@/app/components/PageCard';
 
 interface StyleSettings {
   name: string;
@@ -628,7 +630,7 @@ export default function PromptPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center mt-20">
+      <div className="min-h-screen flex flex-col items-center justify-center">
         <AppLoader />
       </div>
     );
@@ -723,7 +725,8 @@ export default function PromptPage() {
             style={{ color: businessProfile?.header_color || '#4F46E5' }}
           >
             <FaHeart className="w-5 h-5" />
-            <span>Save for Later</span>
+            <span className="hidden sm:inline">Save for Later</span>
+            <span className="inline sm:hidden">Save</span>
           </button>
           
           {showSaveMenu && (
@@ -970,378 +973,376 @@ export default function PromptPage() {
               )}
               {/* Main Content (hidden if feedback form is shown) */}
               {!(sentimentComplete && ['neutral','unsatisfied','angry'].includes(sentiment||'')) && <>
-                  {/* Photo + Testimonial Module */}
-                  {(promptPage?.review_type === 'photo' || promptPage?.review_type === 'photo_testimonial') && (
-                    <div className="mb-8 bg-gray-50 rounded-2xl shadow p-8 animate-slideup">
-                      <div className="flex items-center mb-8">
-                        <FaCamera className="w-8 h-8 mr-3" style={{ color: '#1A237E' }} />
-                        <h1 className="text-3xl font-bold text-left" style={{ color: '#1A237E' }}>
-                          Photo + Testimonial
-                        </h1>
-                      </div>
-                      {photoSuccess ? (
-                        <div className="text-green-600 text-center text-lg font-semibold py-8">Thank you for your photo and testimonial!</div>
-                      ) : (
-                        <form onSubmit={handlePhotoSubmit} className="flex flex-col gap-6 items-center">
-                          <div className="flex gap-4">
-                            <button
-                              type="button"
-                              className="px-4 py-2 bg-indigo-600 text-white rounded shadow hover:bg-indigo-700 focus:outline-none"
-                              onClick={() => cameraInputRef.current?.click()}
-                            >
-                              Take Photo
-                            </button>
-                            <button
-                              type="button"
-                              className="px-4 py-2 bg-gray-200 text-gray-800 rounded shadow hover:bg-gray-300 focus:outline-none"
-                              onClick={() => fileInputRef.current?.click()}
-                            >
-                              Upload Photo
-                            </button>
-                          </div>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            capture="environment"
-                            ref={cameraInputRef}
-                            style={{ display: 'none' }}
-                            onChange={handlePhotoChange}
-                          />
-                          <input
-                            type="file"
-                            accept="image/*"
-                            ref={fileInputRef}
-                            style={{ display: 'none' }}
-                            onChange={handlePhotoChange}
-                          />
-                          {photoPreview && (
-                            <img src={photoPreview} alt="Preview" className="rounded-lg shadow max-h-64 object-contain" />
-                          )}
-                          <div className="w-full flex flex-col md:flex-row gap-4">
-                            <div className="flex-1 min-w-[200px] max-w-[400px]">
-                              <label htmlFor="photoReviewerName" className="block text-sm font-medium text-gray-700">
-                                Your Name <span className="text-red-500">*</span>
-                              </label>
-                              <input
-                                type="text"
-                                id="photoReviewerName"
-                                value={photoReviewerName}
-                                onChange={e => setPhotoReviewerName(e.target.value)}
-                                placeholder="Ezra C"
-                                className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
-                                required
-                              />
-                            </div>
-                            <div className="flex-1 min-w-[200px] max-w-[400px]">
-                              <label htmlFor="photoReviewerRole" className="block text-sm font-medium text-gray-700">
-                                Role/Position/Occupation
-                              </label>
-                              <input
-                                type="text"
-                                id="photoReviewerRole"
-                                value={photoReviewerRole}
-                                onChange={e => setPhotoReviewerRole(e.target.value)}
-                                placeholder="Store Manager, GreenSprout Co-Op"
-                                className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
-                              />
-                            </div>
-                          </div>
-                          <textarea
-                            className="w-full rounded-lg border border-gray-300 p-4 min-h-[120px] focus:ring-2 focus:ring-indigo-400"
-                            placeholder="Write your testimonial here..."
-                            value={testimonial}
-                            onChange={e => setTestimonial(e.target.value)}
-                            required
-                          />
-                          <div className="flex justify-between w-full gap-2">
-                            <button
-                              type="button"
-                              onClick={handleGeneratePhotoTestimonial}
-                              disabled={aiLoadingPhoto}
-                              className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg hover:bg-gray-50 transition-colors"
-                            >
-                              <FaPenFancy style={{ color: businessProfile?.header_color || '#4F46E5' }} />
-                              <span style={{ color: businessProfile?.header_color || '#4F46E5' }}>{aiLoadingPhoto ? 'Generating...' : 'Generate with AI'}</span>
-                            </button>
-                            <button
-                              type="submit"
-                              className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg hover:bg-gray-50 transition-colors"
-                              style={{ color: businessProfile?.header_color || '#4F46E5' }}
-                              disabled={photoSubmitting}
-                              title="Copies your review and takes you to review site"
-                            >
-                              {photoSubmitting ? (
-                                <span className="flex items-center justify-center">
-                                  <FiveStarSpinner size={18} color1="#a5b4fc" color2="#6366f1" />
-                                </span>
-                              ) : 'Submit'}
-                            </button>
-                          </div>
-                          {photoError && <div className="text-red-500 text-sm">{photoError}</div>}
-                        </form>
-                      )}
+                {/* Photo + Testimonial Module */}
+                {(promptPage?.review_type === 'photo' || promptPage?.review_type === 'photo_testimonial') && (
+                  <div className="mb-8 bg-gray-50 rounded-2xl shadow p-8 animate-slideup">
+                    <div className="flex items-center mb-8">
+                      <FaCamera className="w-8 h-8 mr-3" style={{ color: '#1A237E' }} />
+                      <h1 className="text-3xl font-bold text-left" style={{ color: '#1A237E' }}>
+                        Photo + Testimonial
+                      </h1>
                     </div>
-                  )}
-                  {/* Personalized Note */}
-                  {promptPage?.friendly_note && !promptPage?.is_universal && showPersonalNote && canShowPersonalNote && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fadein">
-                      <div className="bg-white rounded-lg p-6 max-w-lg mx-4 relative animate-slideup">
-                        <button
-                          className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 focus:outline-none"
-                          onClick={() => setShowPersonalNote(false)}
-                          aria-label="Close note"
-                        >
-                          ×
-                        </button>
-                        <div className="text-gray-900 text-base">
-                          {promptPage.friendly_note}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  {/* Review Platforms Section */}
-                  {promptPage?.review_type !== 'product' && Array.isArray(promptPage?.review_platforms) && promptPage.review_platforms.length > 0 && (
-                    <div className="mb-8">
-                      <div className="bg-gray-50 rounded-2xl shadow pt-6 pb-8 px-8 mb-8">
-                        <h2
-                          className={`text-xl font-bold mb-2 mt-0 ${businessProfile?.primary_font || 'font-inter'}`}
-                          style={{ color: businessProfile?.header_color || '#4F46E5' }}
-                        >
-                          {`Give ${businessProfile?.business_name || 'this business'} a review`}
-                        </h2>
-                        <p className="text-gray-700 text-base font-semibold mt-1 mb-1">
-                          Estimated time to complete: 1-5 minutes
-                        </p>
-                        <p className="text-gray-700 text-base mt-2">
-                          Reviews help us grow. Write something custom, or use AI for a headstart. When you're ready, click "Copy & Submit." You will be taken to the review site where you can login and paste your review.
-                        </p>
-                      </div>
-                      <div className="flex flex-col gap-8">
-                        {promptPage.review_platforms.map((platform: any, idx: number) => {
-                          const { icon: Icon, label } = getPlatformIcon(platform.url, platform.platform || platform.name);
-                          const isUniversal = !!promptPage.is_universal;
-                          return (
-                            <div
-                              key={idx}
-                              className="relative bg-gray-50 rounded-xl shadow p-4 pt-8 flex flex-col items-start border border-gray-100 animate-slideup"
-                              style={{ animationDelay: `${300 + idx * 100}ms` }}
-                            >
-                              {/* Icon in top-left corner */}
-                              <div className="absolute -top-4 -left-4 bg-white rounded-full shadow p-2 flex items-center justify-center" title={label}>
-                                <Icon className="w-7 h-7" style={{ color: businessProfile?.header_color || '#4F46E5' }} />
-                              </div>
-                              <div className="flex items-center gap-3 mb-2 mt-0">
-                                <div
-                                  className={`text-2xl font-bold ${businessProfile?.primary_font || 'font-inter'}`}
-                                  style={{ color: businessProfile?.header_color || '#1A237E' }}
-                                >
-                                  {platform.platform || platform.name}
-                                </div>
-                                {platform.customInstructions && platform.customInstructions.trim() && (
-                                  <button
-                                    type="button"
-                                    className="ml-2 focus:outline-none"
-                                    onClick={() => setOpenInstructionsIdx(openInstructionsIdx === idx ? null : idx)}
-                                    aria-label="Show custom instructions"
-                                    style={{ verticalAlign: 'middle' }}
-                                  >
-                                    <FaQuestionCircle className="inline-block w-5 h-5 align-middle relative" style={{ color: businessProfile?.header_color || '#1A237E', top: '-2px' }} />
-                                  </button>
-                                )}
-                              </div>
-                              {/* Popup for custom instructions */}
-                              {openInstructionsIdx === idx && platform.customInstructions && platform.customInstructions.trim() && (
-                                <div className="absolute z-50 left-1/2 -translate-x-1/2 top-10 bg-white border border-yellow-300 rounded shadow-lg p-4 text-yellow-900 text-sm max-w-xs w-max animate-fadein" style={{ minWidth: 220 }}>
-                                  <div className="flex justify-between items-center mb-2">
-                                    <span className="font-semibold">Instructions</span>
-                                    <button
-                                      type="button"
-                                      className="text-gray-400 hover:text-gray-700 ml-2"
-                                      onClick={() => setOpenInstructionsIdx(null)}
-                                      aria-label="Close instructions"
-                                    >
-                                      ×
-                                    </button>
-                                  </div>
-                                  <div>{platform.customInstructions}</div>
-                                </div>
-                              )}
-                              <div className="flex flex-col md:flex-row gap-4 mb-2 w-full">
-                                <div className="flex-1 min-w-[150px] max-w-[200px]">
-                                  <label htmlFor={`reviewerFirstName-${idx}`} className="block text-sm font-medium text-gray-700">
-                                    First Name <span className="text-red-500">*</span>
-                                  </label>
-                                  <input
-                                    type="text"
-                                    id={`reviewerFirstName-${idx}`}
-                                    value={reviewerFirstNames[idx]}
-                                    onChange={e => handleFirstNameChange(idx, e.target.value)}
-                                    placeholder="Ezra"
-                                    className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
-                                    required
-                                  />
-                                </div>
-                                <div className="flex-1 min-w-[150px] max-w-[200px]">
-                                  <label htmlFor={`reviewerLastName-${idx}`} className="block text-sm font-medium text-gray-700">
-                                    Last Name <span className="text-red-500">*</span>
-                                  </label>
-                                  <input
-                                    type="text"
-                                    id={`reviewerLastName-${idx}`}
-                                    value={reviewerLastNames[idx]}
-                                    onChange={e => handleLastNameChange(idx, e.target.value)}
-                                    placeholder="Scout"
-                                    className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
-                                    required
-                                  />
-                                </div>
-                                <div className="flex-1 min-w-[200px] max-w-[400px]">
-                                  <label htmlFor={`reviewerRole-${idx}`} className="block text-sm font-medium text-gray-700">
-                                    Role/Position/Occupation
-                                  </label>
-                                  <input
-                                    type="text"
-                                    id={`reviewerRole-${idx}`}
-                                    value={reviewerRoles[idx]}
-                                    onChange={e => setReviewerRoles(roles => roles.map((r, i) => i === idx ? e.target.value : r))}
-                                    placeholder="Store Manager, GreenSprout Co-Op"
-                                    className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
-                                  />
-                                </div>
-                              </div>
-                              <textarea
-                                className="w-full mt-2 mb-4 p-4 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                                placeholder="Write your review here..."
-                                value={isUniversal ? (platformReviewTexts[idx] || '') : (platformReviewTexts[idx] || '')}
-                                onChange={e => handleReviewTextChange(idx, e.target.value)}
-                                rows={5}
-                              />
-                              {submitError && <div className="text-red-500 text-sm mb-2">{submitError}</div>}
-                              <div className="flex justify-between w-full">
-                                {aiButtonEnabled && (
-                                  <button
-                                    onClick={() => handleRewriteWithAI(idx)}
-                                    disabled={aiLoading === idx}
-                                    className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg hover:bg-gray-50 transition-colors"
-                                    type="button"
-                                  >
-                                    <FaPenFancy style={{ color: businessProfile?.header_color || '#4F46E5' }} />
-                                    <span style={{ color: businessProfile?.header_color || '#4F46E5' }}>{aiLoading === idx ? 'Generating...' : 'Generate with AI'}</span>
-                                  </button>
-                                )}
-                                <button
-                                  onClick={() => handleCopyAndSubmit(idx, platform.url)}
-                                  className="px-4 py-2 text-white rounded hover:opacity-90 transition-colors"
-                                  style={{ backgroundColor: businessProfile?.secondary_color || '#4F46E5' }}
-                                  disabled={isSubmitting === idx}
-                                  type="button"
-                                  title="Copies your review and takes you to review site"
-                                >
-                                  {isSubmitting === idx ? (
-                                    <span className="flex items-center justify-center">
-                                      <FiveStarSpinner size={18} color1="#a5b4fc" color2="#6366f1" />
-                                    </span>
-                                  ) : 'Copy & Submit'}
-                                </button>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-                  {/* Personalized Note */}
-                  {promptPage?.friendly_note && !promptPage?.is_universal && showPersonalNote && canShowPersonalNote && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fadein">
-                      <div className="bg-white rounded-lg p-6 max-w-lg mx-4 relative animate-slideup">
-                        <button
-                          className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 focus:outline-none"
-                          onClick={() => setShowPersonalNote(false)}
-                          aria-label="Close note"
-                        >
-                          ×
-                        </button>
-                        <div className="text-gray-900 text-base">
-                          {promptPage.friendly_note}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  {/* Website and Social Media Card */}
-                  {(businessProfile?.facebook_url || businessProfile?.instagram_url || businessProfile?.bluesky_url || businessProfile?.tiktok_url || businessProfile?.youtube_url || businessProfile?.linkedin_url || businessProfile?.pinterest_url) && (
-                    <div className="mb-8 bg-gray-50 rounded-2xl shadow p-8 animate-slideup">
-                      <div className="flex flex-col md:flex-row gap-8 w-full">
-                        {/* Website Section (left column) */}
-                        {businessProfile?.business_website && (
-                          <div className="flex-1 flex flex-col justify-start text-center md:text-left md:max-w-[320px] md:pr-4 border-b md:border-b-0 md:border-r border-gray-200 mb-8 md:mb-0">
-                            <h2 
-                              className={`text-2xl font-bold mt-0 mb-6 ${businessProfile?.primary_font || 'font-inter'}`}
-                              style={{ color: businessProfile?.header_color || '#000000' }}
-                            >
-                              Visit Our Website
-                            </h2>
-                            <a
-                              href={businessProfile.business_website}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-block text-xl font-medium hover:opacity-80 transition-opacity"
-                              style={{ color: businessProfile?.header_color || '#4F46E5' }}
-                              onClick={async () => {
-                                if (!promptPage?.id) return;
-                                await sendAnalyticsEvent({
-                                  promptPageId: promptPage.id,
-                                  eventType: 'website_click',
-                                  platform: 'website',
-                                });
-                              }}
-                            >
-                              {businessProfile.business_website.replace(/^https?:\/\//, '')}
-                            </a>
-                          </div>
-                        )}
-                        {/* Social Media Section (right column, wider) */}
-                        <div className="flex-[1.5] flex flex-col justify-start text-center md:text-left w-full md:pl-8">
-                          <h2 
-                            className={`text-2xl font-bold mt-0 mb-6 text-center md:text-left ${businessProfile?.primary_font || 'font-inter'}`}
-                            style={{ color: businessProfile?.header_color || '#000000' }}
+                    {photoSuccess ? (
+                      <div className="text-green-600 text-center text-lg font-semibold py-8">Thank you for your photo and testimonial!</div>
+                    ) : (
+                      <form onSubmit={handlePhotoSubmit} className="flex flex-col gap-6 items-center">
+                        <div className="flex gap-4">
+                          <button
+                            type="button"
+                            className="px-4 py-2 bg-indigo-600 text-white rounded shadow hover:bg-indigo-700 focus:outline-none"
+                            onClick={() => cameraInputRef.current?.click()}
                           >
-                            {`Follow ${businessProfile?.business_name || 'us'} on Social`}
-                          </h2>
-                          <div className="flex flex-wrap justify-center md:justify-start gap-6 p-2 w-full">
-                            <SocialMediaIcons
-                              facebook_url={businessProfile.facebook_url || undefined}
-                              instagram_url={businessProfile.instagram_url || undefined}
-                              bluesky_url={businessProfile.bluesky_url || undefined}
-                              tiktok_url={businessProfile.tiktok_url || undefined}
-                              youtube_url={businessProfile.youtube_url || undefined}
-                              linkedin_url={businessProfile.linkedin_url || undefined}
-                              pinterest_url={businessProfile.pinterest_url || undefined}
-                              color={businessProfile.header_color || '#3b82f6'}
-                              onIconClick={async (platform) => {
-                                if (!promptPage?.id) return;
-                                await sendAnalyticsEvent({
-                                  promptPageId: promptPage.id,
-                                  eventType: 'social_click',
-                                  platform,
-                                });
-                              }}
+                            Take Photo
+                          </button>
+                          <button
+                            type="button"
+                            className="px-4 py-2 bg-gray-200 text-gray-800 rounded shadow hover:bg-gray-300 focus:outline-none"
+                            onClick={() => fileInputRef.current?.click()}
+                          >
+                            Upload Photo
+                          </button>
+                        </div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          capture="environment"
+                          ref={cameraInputRef}
+                          style={{ display: 'none' }}
+                          onChange={handlePhotoChange}
+                        />
+                        <input
+                          type="file"
+                          accept="image/*"
+                          ref={fileInputRef}
+                          style={{ display: 'none' }}
+                          onChange={handlePhotoChange}
+                        />
+                        {photoPreview && (
+                          <img src={photoPreview} alt="Preview" className="rounded-lg shadow max-h-64 object-contain" />
+                        )}
+                        <div className="w-full flex flex-col md:flex-row gap-4">
+                          <div className="flex-1 min-w-[200px] max-w-[400px]">
+                            <label htmlFor="photoReviewerName" className="block text-sm font-medium text-gray-700">
+                              Your Name <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              id="photoReviewerName"
+                              value={photoReviewerName}
+                              onChange={e => setPhotoReviewerName(e.target.value)}
+                              placeholder="Ezra C"
+                              className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                              required
+                            />
+                          </div>
+                          <div className="flex-1 min-w-[200px] max-w-[400px]">
+                            <label htmlFor="photoReviewerRole" className="block text-sm font-medium text-gray-700">
+                              Role/Position/Occupation
+                            </label>
+                            <input
+                              type="text"
+                              id="photoReviewerRole"
+                              value={photoReviewerRole}
+                              onChange={e => setPhotoReviewerRole(e.target.value)}
+                              placeholder="Store Manager, GreenSprout Co-Op"
+                              className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
                             />
                           </div>
                         </div>
+                        <textarea
+                          className="w-full rounded-lg border border-gray-300 p-4 min-h-[120px] focus:ring-2 focus:ring-indigo-400"
+                          placeholder="Write your testimonial here..."
+                          value={testimonial}
+                          onChange={e => setTestimonial(e.target.value)}
+                          required
+                        />
+                        <div className="flex justify-between w-full gap-2">
+                          <button
+                            type="button"
+                            onClick={handleGeneratePhotoTestimonial}
+                            disabled={aiLoadingPhoto}
+                            className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg hover:bg-gray-50 transition-colors"
+                          >
+                            <FaPenFancy style={{ color: businessProfile?.header_color || '#4F46E5' }} />
+                            <span style={{ color: businessProfile?.header_color || '#4F46E5' }}>{aiLoadingPhoto ? 'Generating...' : 'Generate with AI'}</span>
+                          </button>
+                          <button
+                            type="submit"
+                            className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg hover:bg-gray-50 transition-colors"
+                            style={{ color: businessProfile?.header_color || '#4F46E5' }}
+                            disabled={photoSubmitting}
+                            title="Copies your review and takes you to review site"
+                          >
+                            {photoSubmitting ? (
+                              <span className="flex items-center justify-center">
+                                <FiveStarSpinner size={18} color1="#a5b4fc" color2="#6366f1" />
+                              </span>
+                            ) : 'Submit'}
+                          </button>
+                        </div>
+                        {photoError && <div className="text-red-500 text-sm">{photoError}</div>}
+                      </form>
+                    )}
+                  </div>
+                )}
+                {/* Personalized Note */}
+                {promptPage?.friendly_note && !promptPage?.is_universal && showPersonalNote && canShowPersonalNote && (
+                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fadein">
+                    <div className="bg-white rounded-lg p-6 max-w-lg mx-4 relative animate-slideup">
+                      <button
+                        className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 focus:outline-none"
+                        onClick={() => setShowPersonalNote(false)}
+                        aria-label="Close note"
+                      >
+                        ×
+                      </button>
+                      <div className="text-gray-900 text-base">
+                        {promptPage.friendly_note}
                       </div>
                     </div>
-                  )}
+                  </div>
+                )}
+                {/* Review Platforms Section */}
+                {promptPage?.review_type !== 'product' && Array.isArray(promptPage?.review_platforms) && promptPage.review_platforms.length > 0 && (
+                  <div className="mb-8">
+                    <div className="bg-gray-50 rounded-2xl shadow pt-6 pb-8 px-8 mb-8">
+                      <h2
+                        className={`text-xl font-bold mb-2 mt-0 ${businessProfile?.primary_font || 'font-inter'}`}
+                        style={{ color: businessProfile?.header_color || '#4F46E5' }}
+                      >
+                        {`Give ${businessProfile?.business_name || 'this business'} a review`}
+                      </h2>
+                      <p className="text-gray-700 text-base font-semibold mt-1 mb-1">
+                        Estimated time to complete: 1-5 minutes
+                      </p>
+                      <p className="text-gray-700 text-base mt-2">
+                        Reviews help us grow. Write something custom, or use AI for a headstart. When you're ready, click "Copy & Submit." You will be taken to the review site where you can login and paste your review.
+                      </p>
+                    </div>
+                    <div className="flex flex-col gap-8">
+                      {promptPage.review_platforms.map((platform: any, idx: number) => {
+                        const { icon: Icon, label } = getPlatformIcon(platform.url, platform.platform || platform.name);
+                        const isUniversal = !!promptPage.is_universal;
+                        return (
+                          <div
+                            key={idx}
+                            className="relative bg-gray-50 rounded-xl shadow p-4 pt-8 flex flex-col items-start border border-gray-100 animate-slideup"
+                            style={{ animationDelay: `${300 + idx * 100}ms` }}
+                          >
+                            {/* Icon in top-left corner */}
+                            <div className="absolute -top-4 -left-4 bg-white rounded-full shadow p-2 flex items-center justify-center" title={label}>
+                              <Icon className="w-7 h-7" style={{ color: businessProfile?.header_color || '#4F46E5' }} />
+                            </div>
+                            <div className="flex items-center gap-3 mb-2 mt-0">
+                              <div
+                                className={`text-2xl font-bold ${businessProfile?.primary_font || 'font-inter'}`}
+                                style={{ color: businessProfile?.header_color || '#1A237E' }}
+                              >
+                                {platform.platform || platform.name}
+                              </div>
+                              {platform.customInstructions && platform.customInstructions.trim() && (
+                                <button
+                                  type="button"
+                                  className="ml-2 focus:outline-none"
+                                  onClick={() => setOpenInstructionsIdx(openInstructionsIdx === idx ? null : idx)}
+                                  aria-label="Show custom instructions"
+                                  style={{ verticalAlign: 'middle' }}
+                                >
+                                  <FaQuestionCircle className="inline-block w-5 h-5 align-middle relative" style={{ color: businessProfile?.header_color || '#1A237E', top: '-2px' }} />
+                                </button>
+                              )}
+                            </div>
+                            {/* Popup for custom instructions */}
+                            {openInstructionsIdx === idx && platform.customInstructions && platform.customInstructions.trim() && (
+                              <div className="absolute z-50 left-1/2 -translate-x-1/2 top-10 bg-white border border-yellow-300 rounded shadow-lg p-4 text-yellow-900 text-sm max-w-xs w-max animate-fadein" style={{ minWidth: 220 }}>
+                                <div className="flex justify-between items-center mb-2">
+                                  <span className="font-semibold">Instructions</span>
+                                  <button
+                                    type="button"
+                                    className="text-gray-400 hover:text-gray-700 ml-2"
+                                    onClick={() => setOpenInstructionsIdx(null)}
+                                    aria-label="Close instructions"
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                                <div>{platform.customInstructions}</div>
+                              </div>
+                            )}
+                            <div className="flex flex-col md:flex-row gap-4 mb-2 w-full">
+                              <div className="flex-1 min-w-[150px] max-w-[200px]">
+                                <label htmlFor={`reviewerFirstName-${idx}`} className="block text-sm font-medium text-gray-700">
+                                  First Name <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                  type="text"
+                                  id={`reviewerFirstName-${idx}`}
+                                  value={reviewerFirstNames[idx]}
+                                  onChange={e => handleFirstNameChange(idx, e.target.value)}
+                                  placeholder="Ezra"
+                                  className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                                  required
+                                />
+                              </div>
+                              <div className="flex-1 min-w-[150px] max-w-[200px]">
+                                <label htmlFor={`reviewerLastName-${idx}`} className="block text-sm font-medium text-gray-700">
+                                  Last Name <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                  type="text"
+                                  id={`reviewerLastName-${idx}`}
+                                  value={reviewerLastNames[idx]}
+                                  onChange={e => handleLastNameChange(idx, e.target.value)}
+                                  placeholder="Scout"
+                                  className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                                  required
+                                />
+                              </div>
+                              <div className="flex-1 min-w-[200px] max-w-[400px]">
+                                <label htmlFor={`reviewerRole-${idx}`} className="block text-sm font-medium text-gray-700">
+                                  Role/Position/Occupation
+                                </label>
+                                <input
+                                  type="text"
+                                  id={`reviewerRole-${idx}`}
+                                  value={reviewerRoles[idx]}
+                                  onChange={e => setReviewerRoles(roles => roles.map((r, i) => i === idx ? e.target.value : r))}
+                                  placeholder="Store Manager, GreenSprout Co-Op"
+                                  className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                                />
+                              </div>
+                            </div>
+                            <textarea
+                              className="w-full mt-2 mb-4 p-4 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                              placeholder="Write your review here..."
+                              value={isUniversal ? (platformReviewTexts[idx] || '') : (platformReviewTexts[idx] || '')}
+                              onChange={e => handleReviewTextChange(idx, e.target.value)}
+                              rows={5}
+                            />
+                            {submitError && <div className="text-red-500 text-sm mb-2">{submitError}</div>}
+                            <div className="flex justify-between w-full">
+                              {aiButtonEnabled && (
+                                <button
+                                  onClick={() => handleRewriteWithAI(idx)}
+                                  disabled={aiLoading === idx}
+                                  className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg hover:bg-gray-50 transition-colors"
+                                  type="button"
+                                >
+                                  <FaPenFancy style={{ color: businessProfile?.header_color || '#4F46E5' }} />
+                                  <span style={{ color: businessProfile?.header_color || '#4F46E5' }}>{aiLoading === idx ? 'Generating...' : 'Generate with AI'}</span>
+                                </button>
+                              )}
+                              <button
+                                onClick={() => handleCopyAndSubmit(idx, platform.url)}
+                                className="px-4 py-2 text-white rounded hover:opacity-90 transition-colors"
+                                style={{ backgroundColor: businessProfile?.secondary_color || '#4F46E5' }}
+                                disabled={isSubmitting === idx}
+                                type="button"
+                                title="Copies your review and takes you to review site"
+                              >
+                                {isSubmitting === idx ? (
+                                  <span className="flex items-center justify-center">
+                                    <FiveStarSpinner size={18} color1="#a5b4fc" color2="#6366f1" />
+                                  </span>
+                                ) : 'Copy & Submit'}
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+                {/* Personalized Note */}
+                {promptPage?.friendly_note && !promptPage?.is_universal && showPersonalNote && canShowPersonalNote && (
+                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fadein">
+                    <div className="bg-white rounded-lg p-6 max-w-lg mx-4 relative animate-slideup">
+                      <button
+                        className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 focus:outline-none"
+                        onClick={() => setShowPersonalNote(false)}
+                        aria-label="Close note"
+                      >
+                        ×
+                      </button>
+                      <div className="text-gray-900 text-base">
+                        {promptPage.friendly_note}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {/* Website and Social Media Card */}
+                {(businessProfile?.facebook_url || businessProfile?.instagram_url || businessProfile?.bluesky_url || businessProfile?.tiktok_url || businessProfile?.youtube_url || businessProfile?.linkedin_url || businessProfile?.pinterest_url) && (
+                  <div className="mb-8 bg-gray-50 rounded-2xl shadow p-8 animate-slideup">
+                    <div className="flex flex-col md:flex-row gap-8 w-full">
+                      {/* Website Section (left column) */}
+                      {businessProfile?.business_website && (
+                        <div className="flex-1 flex flex-col justify-start text-center md:text-left md:max-w-[320px] md:pr-4 border-b md:border-b-0 md:border-r border-gray-200 mb-8 md:mb-0">
+                          <h2 
+                            className={`text-2xl font-bold mt-0 mb-6 ${businessProfile?.primary_font || 'font-inter'}`}
+                            style={{ color: businessProfile?.header_color || '#000000' }}
+                          >
+                            Visit Our Website
+                          </h2>
+                          <a
+                            href={businessProfile.business_website}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-block text-xl font-medium hover:opacity-80 transition-opacity"
+                            style={{ color: businessProfile?.header_color || '#4F46E5' }}
+                            onClick={async () => {
+                              if (!promptPage?.id) return;
+                              await sendAnalyticsEvent({
+                                promptPageId: promptPage.id,
+                                eventType: 'website_click',
+                                platform: 'website',
+                              });
+                            }}
+                          >
+                            {businessProfile.business_website.replace(/^https?:\/\//, '')}
+                          </a>
+                        </div>
+                      )}
+                      {/* Social Media Section (right column, wider) */}
+                      <div className="flex-[1.5] flex flex-col justify-start text-center md:text-left w-full md:pl-8">
+                        <h2 
+                          className={`text-2xl font-bold mt-0 mb-6 text-center md:text-left ${businessProfile?.primary_font || 'font-inter'}`}
+                          style={{ color: businessProfile?.header_color || '#000000' }}
+                        >
+                          {`Follow ${businessProfile?.business_name || 'us'} on Social`}
+                        </h2>
+                        <div className="flex flex-wrap justify-center md:justify-start gap-6 p-2 w-full">
+                          <SocialMediaIcons
+                            facebook_url={businessProfile.facebook_url || undefined}
+                            instagram_url={businessProfile.instagram_url || undefined}
+                            bluesky_url={businessProfile.bluesky_url || undefined}
+                            tiktok_url={businessProfile.tiktok_url || undefined}
+                            youtube_url={businessProfile.youtube_url || undefined}
+                            linkedin_url={businessProfile.linkedin_url || undefined}
+                            pinterest_url={businessProfile.pinterest_url || undefined}
+                            color={businessProfile.header_color || '#3b82f6'}
+                            onIconClick={async (platform) => {
+                              if (!promptPage?.id) return;
+                              await sendAnalyticsEvent({
+                                promptPageId: promptPage.id,
+                                eventType: 'social_click',
+                                platform,
+                              });
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </>}
 
               {/* PromptReviews Advertisement (always visible) */}
               <div className="mt-12 mb-12 bg-white rounded-2xl shadow p-8 animate-slideup" style={{ background: businessProfile?.header_color || '#4F46E5' }}>
                 <div className="flex flex-col md:flex-row items-center text-center md:text-left gap-8 md:items-center">
                   <div className="flex-shrink-0 flex items-center justify-center w-full md:w-48 mb-4 md:mb-0">
-                    <img
-                      src="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompt-reviews-get-more-reviews-logo.png"
-                      alt="Prompt Reviews Logo"
-                      className="h-10 w-auto"
-                    />
+                    <a href="https://promptreviews.app" target="_blank" rel="noopener noreferrer" aria-label="Prompt Reviews Home">
+                      <PromptReviewsLogo color="#fff" size={360} className="h-32 w-auto" />
+                    </a>
                   </div>
                   <div className="flex-1 flex flex-col justify-center">
                     <div className="flex items-center gap-2 mb-4 justify-center md:justify-start">

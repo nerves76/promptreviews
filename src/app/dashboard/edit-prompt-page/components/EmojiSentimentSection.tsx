@@ -35,25 +35,27 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
   emojiLabels = EMOJI_SENTIMENT_LABELS,
   onEmojiLabelChange,
 }) => (
-  <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-4 shadow relative">
-    <div className="flex items-center justify-between mb-2 px-4 py-2">
-      <div className="flex items-center gap-3">
-        <FaSmile className="w-7 h-7 text-slate-blue" />
-        <span className="text-2xl font-bold text-[#1A237E]">{EMOJI_SENTIMENT_TITLE}</span>
+  <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-2 shadow relative">
+    <div className="flex flex-row justify-between items-start px-2 py-2">
+      <div className="flex flex-col">
+        <div className="flex items-center gap-3">
+          <FaSmile className="w-7 h-7 text-slate-blue" />
+          <span className="text-2xl font-bold text-[#1A237E]">{EMOJI_SENTIMENT_TITLE}</span>
+        </div>
+        <div className="text-sm text-gray-700 mt-[3px] ml-9">{EMOJI_SENTIMENT_SUBTEXT}</div>
       </div>
-      <button
-        type="button"
-        onClick={onToggle}
-        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${enabled ? 'bg-slate-blue' : 'bg-gray-200'}`}
-        aria-pressed={!!enabled}
-      >
-        <span
-          className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${enabled ? 'translate-x-5' : 'translate-x-1'}`}
-        />
-      </button>
-    </div>
-    <div className="text-xs text-gray-500 px-4 -mt-4">
-      {EMOJI_SENTIMENT_SUBTEXT}
+      <div className="flex flex-col justify-start pt-1">
+        <button
+          type="button"
+          onClick={onToggle}
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${enabled ? 'bg-slate-blue' : 'bg-gray-200'}`}
+          aria-pressed={!!enabled}
+        >
+          <span
+            className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${enabled ? 'translate-x-5' : 'translate-x-1'}`}
+          />
+        </button>
+      </div>
     </div>
     {enabled && (
       <div className="text-xs text-blue-700 bg-blue-100 border border-blue-200 rounded px-3 py-2 mb-2 mt-2">

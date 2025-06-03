@@ -7,6 +7,7 @@ import { Textarea } from "@/app/components/ui/textarea";
 import { FaStar, FaHeart, FaSmile, FaThumbsUp, FaBolt, FaCoffee, FaWrench, FaRainbow, FaGlassCheers, FaDumbbell, FaPagelines, FaPeace } from 'react-icons/fa';
 import OfferSection from '../components/OfferSection';
 import DisableAIGenerationSection from '@/app/components/DisableAIGenerationSection';
+import RobotTooltip from '@/app/components/RobotTooltip';
 
 export interface ServicePromptFormState {
   offerEnabled: boolean;

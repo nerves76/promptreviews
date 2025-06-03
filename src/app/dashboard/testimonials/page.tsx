@@ -322,7 +322,7 @@ export default function ReviewsPage() {
 
   if (loading) {
     return (
-      <div style={{ position: 'fixed', top: -190, left: 0, width: '100%', zIndex: 9999 }}>
+      <div className="min-h-screen flex flex-col items-center justify-center">
         <AppLoader />
       </div>
     );

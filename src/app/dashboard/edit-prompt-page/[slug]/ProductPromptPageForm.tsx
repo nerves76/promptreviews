@@ -10,6 +10,7 @@ import DisableAIGenerationSection from '@/app/components/DisableAIGenerationSect
 import Cropper from 'react-easy-crop';
 import type { Area } from 'react-easy-crop';
 import { createBrowserClient } from '@supabase/ssr';
+import SectionHeader from '@/app/components/SectionHeader';
 
 export interface ProductPromptFormState {
   offerEnabled: boolean;
@@ -250,6 +251,13 @@ const ProductPromptPageForm = forwardRef<any, ProductPromptPageFormProps>(
             product_photo: productPhotoUrl,
           });
         }}>
+          {/* Main Title and Subcopy */}
+          <SectionHeader
+            icon={null}
+            title={product_name ? `Edit Product Prompt Page` : `Create Product Prompt Page`}
+            subCopy="Let's get a review from a customer who loves your product."
+            className="mb-8 mt-2"
+          />
           {/* Product Photo Upload - always visible for product pages */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Product Photo</label>

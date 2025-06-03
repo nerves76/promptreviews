@@ -300,7 +300,7 @@ export default function AdminDashboard() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center mt-20">
+      <div className="min-h-screen flex flex-col items-center justify-center">
         <AppLoader />
       </div>
     );

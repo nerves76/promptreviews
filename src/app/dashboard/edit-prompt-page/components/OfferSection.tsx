@@ -31,24 +31,26 @@ const OfferSection: React.FC<OfferSectionProps> = ({
   onUrlChange,
 }) => (
   <div className="rounded-lg p-4 bg-yellow-50 border border-yellow-200 flex flex-col gap-4 shadow relative">
-    <div className="flex items-center justify-between mb-2 px-4 py-2">
-      <div className="flex items-center gap-3">
-        <FaGift className="w-7 h-7 text-yellow-500" />
-        <span className="text-2xl font-bold text-yellow-800">{OFFER_SECTION_TITLE}</span>
+    <div className="flex flex-row justify-between items-start mb-2 px-4 py-2">
+      <div className="flex flex-col">
+        <div className="flex items-center gap-3">
+          <FaGift className="w-7 h-7 text-yellow-500" />
+          <span className="text-2xl font-bold text-yellow-800">{OFFER_SECTION_TITLE}</span>
+        </div>
+        <div className="text-sm text-gray-700 mt-[3px] ml-9">{OFFER_SECTION_SUBTEXT}</div>
       </div>
-      <button
-        type="button"
-        onClick={onToggle}
-        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${enabled ? 'bg-yellow-500' : 'bg-gray-200'}`}
-        aria-pressed={!!enabled}
-      >
-        <span
-          className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${enabled ? 'translate-x-5' : 'translate-x-1'}`}
-        />
-      </button>
-    </div>
-    <div className="text-xs text-gray-500 px-4 -mt-4">
-      {OFFER_SECTION_SUBTEXT}
+      <div className="flex flex-col justify-start pt-1">
+        <button
+          type="button"
+          onClick={onToggle}
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${enabled ? 'bg-yellow-500' : 'bg-gray-200'}`}
+          aria-pressed={!!enabled}
+        >
+          <span
+            className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${enabled ? 'translate-x-5' : 'translate-x-1'}`}
+          />
+        </button>
+      </div>
     </div>
     {enabled && (
       <div className="space-y-3">

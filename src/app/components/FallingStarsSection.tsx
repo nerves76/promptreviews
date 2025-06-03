@@ -7,6 +7,7 @@ interface FallingStarsSectionProps {
   onToggle: () => void;
   icon: string;
   onIconChange: (icon: string) => void;
+  description?: string;
 }
 
 const ICON_OPTIONS = [
@@ -24,9 +25,9 @@ const ICON_OPTIONS = [
   { key: 'peace', label: 'Peace', icon: <FaPeace className="w-6 h-6 text-purple-500" /> },
 ];
 
-const FallingStarsSection: React.FC<FallingStarsSectionProps> = ({ enabled, onToggle, icon, onIconChange }) => (
+const FallingStarsSection: React.FC<FallingStarsSectionProps> = ({ enabled, onToggle, icon, onIconChange, description }) => (
   <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-2 shadow relative mb-8">
-    <div className="flex items-center justify-between mb-2 px-2 py-2">
+    <div className="flex items-center justify-between px-2 py-2">
       <div className="flex items-center gap-3">
         <FaStar className="w-7 h-7 text-slate-blue" />
         <span className="text-2xl font-bold text-[#1A237E]">Falling star animation</span>
@@ -42,8 +43,8 @@ const FallingStarsSection: React.FC<FallingStarsSectionProps> = ({ enabled, onTo
         />
       </button>
     </div>
-    <div className="text-sm text-gray-700 mb-3 max-w-[85ch] px-2">
-      Enable a fun animation where stars (or other icons) rain down when the prompt page loads. You can choose the icon below.
+    <div className="text-sm text-gray-700 -mt-2 mb-5 px-2">
+      {description || 'Enable a fun animation where stars (or other icons) rain down when the prompt page loads. You can choose the icon below.'}
     </div>
     {/* Icon picker (enabled) */}
     <div className="flex gap-4 px-2 flex-wrap">

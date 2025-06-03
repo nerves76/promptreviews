@@ -120,7 +120,7 @@ export default function UniversalEditPromptPage() {
           falling_icon: formState.fallingEnabled ? formState.fallingIcon : null,
           ai_button_enabled: formState.aiButtonEnabled,
         },
-      ], { onConflict: 'account_id,is_universal' });
+      ], { onConflict: 'account_id' });
     if (error) {
       alert('Failed to save: ' + error.message);
     } else {

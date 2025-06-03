@@ -13,6 +13,18 @@ import React from 'react';
  *   </div>
  */
 
+/**
+ * PageCard component
+ *
+ * Usage: For main page/card layout, floating top-left icon, and card-level actions.
+ * - Always use for dashboard and prompt page forms.
+ * - Pass the icon prop for a floating, breaching icon in the top-left.
+ * - Use topRightAction and bottomRightAction for action buttons.
+ * - Wrap in a parent div with min-h-screen flex justify-center for spacing.
+ *
+ * See DESIGN_GUIDELINES.md for visual rules and examples.
+ */
+
 export default function PageCard({
   icon,
   children,

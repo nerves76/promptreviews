@@ -100,16 +100,17 @@ const ReviewPlatformsSection: React.FC<ReviewPlatformsSectionProps> = ({
         )}
       </div>
       <div className="space-y-10">
-        <div className="flex gap-2 items-center mb-6">
-          <span className="w-1/3 text-xs font-semibold text-gray-500">Platform Name</span>
-          <span className="w-1/2 text-xs font-semibold text-gray-500">Platform URL</span>
-          <span className="w-1/6 text-xs font-semibold text-gray-500">Word Count</span>
-        </div>
         {value.map((platform, idx) => (
           <div key={idx} className="flex flex-col gap-1 p-4 pt-8 border border-blue-200 rounded-lg bg-blue-50 shadow-sm relative">
             {/* Platform Icon in top-left corner */}
             <div className="absolute -top-4 -left-4 bg-white rounded-full shadow p-2 flex items-center justify-center" title={getPlatformIcon(platform.name).label}>
               {React.createElement(getPlatformIcon(platform.name).icon, { className: 'w-7 h-7', style: { color: '#4F46E5' } })}
+            </div>
+            {/* Labels row above inputs */}
+            <div className="flex gap-2 items-end mb-1">
+              <span className="w-1/3 text-xs font-semibold text-gray-500">Platform Name</span>
+              <span className="w-1/2 text-xs font-semibold text-gray-500">Platform URL</span>
+              <span className="w-1/6 text-xs font-semibold text-gray-500">Word Count</span>
             </div>
             <div className="flex gap-2 items-center">
               <select
