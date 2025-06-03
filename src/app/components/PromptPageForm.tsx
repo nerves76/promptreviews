@@ -66,12 +66,14 @@ export default function PromptPageForm({
   const [formData, setFormData] = useState({
     ...initialData,
     emojiThankYouMessage: initialData.emoji_thank_you_message || initialData.emojiThankYouMessage || '',
+    show_friendly_note: initialData.show_friendly_note ?? true,
   });
 
   useEffect(() => {
     setFormData({
       ...initialData,
       emojiThankYouMessage: initialData.emoji_thank_you_message || initialData.emojiThankYouMessage || '',
+      show_friendly_note: initialData.show_friendly_note ?? true,
     });
     setOfferEnabled(initialData.offer_enabled ?? initialData.offerEnabled ?? false);
     setOfferTitle(initialData.offer_title ?? initialData.offerTitle ?? '');
@@ -80,6 +82,7 @@ export default function PromptPageForm({
     setEmojiSentimentEnabled(initialData.emoji_sentiment_enabled ?? initialData.emojiSentimentEnabled ?? false);
     setEmojiSentimentQuestion(initialData.emoji_sentiment_question ?? initialData.emojiSentimentQuestion ?? 'How was your experience?');
     setEmojiFeedbackMessage(initialData.emoji_feedback_message ?? initialData.emojiFeedbackMessage ?? 'We value your feedback! Let us know how we can do better.');
+    setNotePopupEnabled(initialData.show_friendly_note ?? true);
   }, [initialData]);
 
   // Ensure slug is set for the View button
@@ -135,7 +138,7 @@ export default function PromptPageForm({
     initialData.offer_url ?? initialData.offerUrl ?? ''
   );
 
-  const [notePopupEnabled, setNotePopupEnabled] = useState(true);
+  const [notePopupEnabled, setNotePopupEnabled] = useState(initialData.show_friendly_note ?? true);
 
   const [submitted, setSubmitted] = useState(false);
 
@@ -259,6 +262,11 @@ export default function PromptPageForm({
     }
   }, [offerEnabled, offerTitle, offerBody, offerUrl, emojiSentimentEnabled, isUniversal]);
 
+  // When notePopupEnabled changes, update formData
+  useEffect(() => {
+    setFormData((prev: any) => ({ ...prev, show_friendly_note: notePopupEnabled }));
+  }, [notePopupEnabled]);
+
   // Render logic
   if (formData.review_type === 'photo') {
     return (
@@ -302,7 +310,7 @@ export default function PromptPageForm({
             })}
           </div>
         )}
-        <form onSubmit={e => { e.preventDefault(); setSubmitted(true); onSave({ ...formData, aiReviewEnabled }); }}>
+        <form onSubmit={e => { e.preventDefault(); setSubmitted(true); onSave({ ...formData, aiReviewEnabled, show_friendly_note: notePopupEnabled }); }}>
           <h1 className="text-4xl font-bold mb-4 flex items-center gap-3 text-slate-blue">
             {pageTitle || 'Photo + Testimonial'}
           </h1>
@@ -368,14 +376,16 @@ export default function PromptPageForm({
           </div>
           <div className="mb-4">
             <label htmlFor="friendly_note" className="block text-sm font-medium text-gray-700 mb-2">Personalized note</label>
-            <textarea
-              id="friendly_note"
-              value={formData.friendly_note}
-              onChange={e => setFormData((prev: any) => ({ ...prev, friendly_note: e.target.value }))}
-              rows={4}
-              className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring shadow-inner"
-              placeholder="Ty! It was so great having you in yesterday. You left your scarf! I can drop it by tomorrow on my way in. Thanks for leaving us a review, we need all the positivity we can get.  :)"
-            />
+            {notePopupEnabled && (
+              <textarea
+                id="friendly_note"
+                value={formData.friendly_note}
+                onChange={e => setFormData((prev: any) => ({ ...prev, friendly_note: e.target.value }))}
+                rows={4}
+                className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring shadow-inner"
+                placeholder="Ty! It was so great having you in yesterday. You left your scarf! I can drop it by tomorrow on my way in. Thanks for leaving us a review, we need all the positivity we can get.  :)"
+              />
+            )}
           </div>
           <div className="mb-4">
             <label htmlFor="testimonial" className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
@@ -732,16 +742,6 @@ export default function PromptPageForm({
                     <div className="text-sm text-gray-700 px-2">
                       This note appears as a pop-up at the top of the review page. Use it to set the context and tone for your customer.
                     </div>
-                    {notePopupEnabled && (
-                      <textarea
-                        id="friendly_note"
-                        value={formData.friendly_note}
-                        onChange={e => setFormData((prev: any) => ({ ...prev, friendly_note: e.target.value }))}
-                        rows={4}
-                        className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring shadow-inner"
-                        placeholder="Ty! It was so great having you in yesterday. You left your scarf! I can drop it by tomorrow on my way in. Thanks for leaving us a review, we need all the positivity we can get.  :)"
-                      />
-                    )}
                   </div>
                 </>
               )}
@@ -878,7 +878,7 @@ export default function PromptPageForm({
     );
   }
   return (
-    <form onSubmit={e => { e.preventDefault(); onSave({ ...formData, ai_button_enabled: aiReviewEnabled }); }}>
+    <form onSubmit={e => { e.preventDefault(); onSave({ ...formData, ai_button_enabled: aiReviewEnabled, show_friendly_note: notePopupEnabled }); }}>
       <h1 className="text-4xl font-bold mb-8 flex items-center gap-3 text-slate-blue">
         {pageTitle}
       </h1>

@@ -34,6 +34,8 @@ export type PromptPage = {
   first_name?: string;
   last_name?: string;
   role?: string;
+  show_friendly_note?: boolean;
+  friendly_note?: string;
 };
 
 export type ReviewSubmission = {

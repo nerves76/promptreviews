@@ -143,6 +143,7 @@ export default function EditPromptPage() {
   const [showResetButton, setShowResetButton] = useState(false);
   const [businessReviewPlatforms, setBusinessReviewPlatforms] = useState<ReviewPlatformLink[]>([]);
   const [accountId, setAccountId] = useState('');
+  const [notePopupEnabled, setNotePopupEnabled] = useState(false);
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -250,6 +251,7 @@ export default function EditPromptPage() {
       setEmojiSentimentEnabled(!!promptData.emoji_sentiment_enabled);
       setEmojiFeedbackMessage(promptData.emoji_feedback_message || 'We value your feedback! Let us know how we can do better.');
       setEmojiSentimentQuestion(promptData.emoji_sentiment_question || 'How was your experience?');
+      setNotePopupEnabled(promptData.show_friendly_note ?? true);
     
       // Fetch business profile
       const { data: businessData } = await supabase
@@ -535,6 +537,7 @@ export default function EditPromptPage() {
           emoji_sentiment_enabled: emojiSentimentEnabled,
           emoji_feedback_message: emojiFeedbackMessage,
           emoji_sentiment_question: emojiSentimentQuestion,
+          show_friendly_note: notePopupEnabled,
         };
 
         // Handle review_platforms
@@ -570,7 +573,7 @@ export default function EditPromptPage() {
         'friendly_note', 'status', 'role', 'review_type', 'offer_enabled', 'offer_title', 'offer_body',
         'offer_url', 'emoji_sentiment_enabled', 'emoji_sentiment_question', 'emoji_feedback_message',
         'emoji_thank_you_message', 'falling_icon', 'is_universal', 'slug', 'account_id', 'category',
-        'no_platform_review_template', 'ai_button_enabled'
+        'no_platform_review_template', 'ai_button_enabled', 'show_friendly_note'
       ];
       const payload = Object.fromEntries(
         Object.entries(updateData).filter(([key]) => validColumns.includes(key))
@@ -660,6 +663,7 @@ export default function EditPromptPage() {
           review_platforms: formState.reviewPlatforms,
           falling_icon: formState.fallingEnabled ? formState.fallingIcon : null,
           ai_button_enabled: formState.aiButtonEnabled,
+          show_friendly_note: notePopupEnabled,
         };
       }
       // Only include valid columns in the payload
@@ -667,7 +671,7 @@ export default function EditPromptPage() {
         'first_name', 'last_name', 'email', 'phone', 'product_name', 'product_description', 'product_photo', 'services_offered', 'friendly_note', 'status', 'role', 'review_type',
         'offer_enabled', 'offer_title', 'offer_body', 'offer_url',
         'emoji_sentiment_enabled', 'emoji_sentiment_question', 'emoji_feedback_message',
-        'emoji_thank_you_message', 'review_platforms', 'falling_icon', 'ai_button_enabled'
+        'emoji_thank_you_message', 'review_platforms', 'falling_icon', 'ai_button_enabled', 'show_friendly_note'
       ];
       const payload = Object.fromEntries(
         Object.entries(updateData).filter(([key]) => validColumns.includes(key))

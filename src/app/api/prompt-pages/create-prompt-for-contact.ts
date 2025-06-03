@@ -38,7 +38,8 @@ export async function POST(req: NextRequest) {
           contact_id,
           type,
           status: 'draft',
-          custom_note: custom_note || null,
+          friendly_note: custom_note || null,
+          show_friendly_note: !!custom_note,
           // Prefill fields as needed, e.g. name/email
           name: `${contact.first_name || ''} ${contact.last_name || ''}`.trim(),
           email: contact.email,
