@@ -590,7 +590,7 @@ export default function ProductPromptPageForm({
                 </div>
                 <button
                   type="button"
-                  onClick={() => setNotePopupEnabled(v => !v)}
+                  onClick={() => setNotePopupEnabled((v: boolean) => !v)}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${notePopupEnabled ? 'bg-slate-blue' : 'bg-gray-200'}`}
                   aria-pressed={!!notePopupEnabled}
                 >
