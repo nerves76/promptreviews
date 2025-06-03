@@ -1,11 +1,7 @@
 "use client";
 
-import { ReviewerProvider } from '@/contexts/ReviewerContext';
+import { ReviewerProvider } from "@/contexts/ReviewerContext";
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  return (
-    <ReviewerProvider>
-      {children}
-    </ReviewerProvider>
-  );
-} 
+  return <ReviewerProvider>{children}</ReviewerProvider>;
+}

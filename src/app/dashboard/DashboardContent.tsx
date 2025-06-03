@@ -1,14 +1,29 @@
-'use client';
-import Link from 'next/link';
-import { RefObject, useState, useEffect, useMemo } from 'react';
-import { createBrowserClient } from '@supabase/ssr';
-import { useAuthGuard } from '@/utils/authGuard';
-import { FaGlobe, FaHome, FaBuilding, FaHistory, FaBolt, FaRegComment, FaLink, FaHandsHelping, FaBoxOpen } from 'react-icons/fa';
-import { MdDownload, MdEvent, MdVideoLibrary, MdPhotoCamera } from 'react-icons/md';
-import { getUserOrMock } from '@/utils/supabase';
-import QRCodeGenerator, { QR_FRAME_SIZES } from './components/QRCodeGenerator';
-import { useRouter } from 'next/navigation';
-import AppLoader from '@/app/components/AppLoader';
+"use client";
+import Link from "next/link";
+import { RefObject, useState, useEffect, useMemo } from "react";
+import { createBrowserClient } from "@supabase/ssr";
+import { useAuthGuard } from "@/utils/authGuard";
+import {
+  FaGlobe,
+  FaHome,
+  FaBuilding,
+  FaHistory,
+  FaBolt,
+  FaRegComment,
+  FaLink,
+  FaHandsHelping,
+  FaBoxOpen,
+} from "react-icons/fa";
+import {
+  MdDownload,
+  MdEvent,
+  MdVideoLibrary,
+  MdPhotoCamera,
+} from "react-icons/md";
+import { getUserOrMock } from "@/utils/supabase";
+import QRCodeGenerator, { QR_FRAME_SIZES } from "./components/QRCodeGenerator";
+import { useRouter } from "next/navigation";
+import AppLoader from "@/app/components/AppLoader";
 
 interface DashboardContentProps {
   userName: string;
@@ -35,7 +50,7 @@ interface DashboardContentProps {
 interface PromptPage {
   id: string;
   slug: string;
-  status: 'in_queue' | 'in_progress' | 'complete' | 'draft';
+  status: "in_queue" | "in_progress" | "complete" | "draft";
   created_at: string;
   phone?: string;
   email?: string;
@@ -46,17 +61,17 @@ interface PromptPage {
 }
 
 const STATUS_COLORS = {
-  in_queue: 'bg-blue-100 text-blue-800',
-  in_progress: 'bg-yellow-100 text-yellow-800',
-  complete: 'bg-green-100 text-green-800',
-  draft: 'bg-gray-100 text-gray-800',
+  in_queue: "bg-blue-100 text-blue-800",
+  in_progress: "bg-yellow-100 text-yellow-800",
+  complete: "bg-green-100 text-green-800",
+  draft: "bg-gray-100 text-gray-800",
 };
 
 const STATUS_LABELS = {
-  in_queue: 'In queue',
-  in_progress: 'In progress',
-  complete: 'Complete',
-  draft: 'Draft',
+  in_queue: "In queue",
+  in_progress: "In progress",
+  complete: "Complete",
+  draft: "Draft",
 };
 
 export default function DashboardContent({
@@ -77,73 +92,98 @@ export default function DashboardContent({
   QRCode,
   setShowQR,
   account,
-  parentLoading
+  parentLoading,
 }: DashboardContentProps) {
-  console.log('DASHBOARD RENDERED');
+  console.log("DASHBOARD RENDERED");
   useAuthGuard();
   const [promptPages, setPromptPages] = useState<PromptPage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedTab, setSelectedTab] = useState<'in_queue' | 'in_progress' | 'complete' | 'draft'>('draft');
-  const [sortField, setSortField] = useState<'first_name' | 'last_name' | 'review_type' | null>(null);
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [selectedTab, setSelectedTab] = useState<
+    "in_queue" | "in_progress" | "complete" | "draft"
+  >("draft");
+  const [sortField, setSortField] = useState<
+    "first_name" | "last_name" | "review_type" | null
+  >(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [selectedPages, setSelectedPages] = useState<string[]>([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteConfirmation, setDeleteConfirmation] = useState('');
-  const [batchStatus, setBatchStatus] = useState<'in_queue' | 'in_progress' | 'complete' | 'draft'>('in_queue');
-  const [qrModal, setQrModal] = useState<{ open: boolean; url: string; clientName: string; logoUrl?: string } | null>(null);
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
+  const [batchStatus, setBatchStatus] = useState<
+    "in_queue" | "in_progress" | "complete" | "draft"
+  >("in_queue");
+  const [qrModal, setQrModal] = useState<{
+    open: boolean;
+    url: string;
+    clientName: string;
+    logoUrl?: string;
+  } | null>(null);
   const [selectedFrameSize, setSelectedFrameSize] = useState(QR_FRAME_SIZES[0]);
   const [showTypeModal, setShowTypeModal] = useState(false);
-  const [selectedType, setSelectedType] = useState('');
+  const [selectedType, setSelectedType] = useState("");
   const [copyLinkId, setCopyLinkId] = useState<string | null>(null);
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [showPostSaveModal, setShowPostSaveModal] = useState(false);
-  const [postSaveData, setPostSaveData] = useState<{ url: string, phone?: string, email?: string, first_name?: string } | null>(null);
+  const [postSaveData, setPostSaveData] = useState<{
+    url: string;
+    phone?: string;
+    email?: string;
+    first_name?: string;
+  } | null>(null);
   const [showStars, setShowStars] = useState(false);
   const router = useRouter();
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   );
 
   const promptTypes = [
     {
-      key: 'service',
-      label: 'Service review',
+      key: "service",
+      label: "Service review",
       icon: <FaHandsHelping className="w-7 h-7 text-slate-blue" />,
-      description: 'Capture a review from a customer or client who loves what you do'
+      description:
+        "Capture a review from a customer or client who loves what you do",
     },
     {
-      key: 'photo',
-      label: 'Photo + testimonial',
+      key: "photo",
+      label: "Photo + testimonial",
       icon: <MdPhotoCamera className="w-7 h-7 text-[#1A237E]" />,
-      description: 'Capture a headshot and testimonial to display on your website or in marketing materials.'
+      description:
+        "Capture a headshot and testimonial to display on your website or in marketing materials.",
     },
     {
-      key: 'product',
-      label: 'Product review',
+      key: "product",
+      label: "Product review",
       icon: <FaBoxOpen className="w-7 h-7 text-slate-blue" />,
-      description: 'Get a review from a customer who fancies your products'
+      description: "Get a review from a customer who fancies your products",
     },
     {
-      key: 'video',
-      label: 'Video testimonial',
+      key: "video",
+      label: "Video testimonial",
       icon: <MdVideoLibrary className="w-7 h-7 text-[#1A237E]" />,
-      description: 'Request a video testimonial from your client.',
-      comingSoon: true
+      description: "Request a video testimonial from your client.",
+      comingSoon: true,
     },
     {
-      key: 'experience',
-      label: 'Experiences & spaces',
+      key: "experience",
+      label: "Experiences & spaces",
       icon: <MdEvent className="w-7 h-7 text-[#1A237E]" />,
-      description: 'For events, rentals, tours, and more.',
-      comingSoon: true
+      description: "For events, rentals, tours, and more.",
+      comingSoon: true,
     },
   ];
 
   function handlePromptTypeSelect(typeKey: string) {
-    if ((isGrower && account && account.custom_prompt_page_count >= maxGrowerPages) || (isBuilder && account && account.custom_prompt_page_count >= maxBuilderPages)) {
+    if (
+      (isGrower &&
+        account &&
+        account.custom_prompt_page_count >= maxGrowerPages) ||
+      (isBuilder &&
+        account &&
+        account.custom_prompt_page_count >= maxBuilderPages)
+    ) {
       setShowLimitModal(true);
       return;
     }
@@ -155,74 +195,90 @@ export default function DashboardContent({
     const fetchPromptPages = async () => {
       try {
         // Log environment variables (without exposing the actual values)
-        console.log('Environment check:', {
+        console.log("Environment check:", {
           hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
           hasSupabaseKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
         });
 
-        if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-          throw new Error('Supabase environment variables are not configured');
+        if (
+          !process.env.NEXT_PUBLIC_SUPABASE_URL ||
+          !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+        ) {
+          throw new Error("Supabase environment variables are not configured");
         }
 
         // Test Supabase connection
-        const { data: testData, error: testError } = await supabase.from('prompt_pages').select('count').limit(1);
-        console.log('Supabase connection test:', { testData, testError });
+        const { data: testData, error: testError } = await supabase
+          .from("prompt_pages")
+          .select("count")
+          .limit(1);
+        console.log("Supabase connection test:", { testData, testError });
 
-        const { data: { user }, error: userError } = await getUserOrMock(supabase);
-        console.log('Auth check:', { 
-          hasUser: !!user, 
+        const {
+          data: { user },
+          error: userError,
+        } = await getUserOrMock(supabase);
+        console.log("Auth check:", {
+          hasUser: !!user,
           userId: user?.id,
-          userError: userError ? {
-            message: userError.message,
-            status: userError.status
-          } : null
+          userError: userError
+            ? {
+                message: userError.message,
+                status: userError.status,
+              }
+            : null,
         });
 
         if (userError) {
-          console.error('Auth error:', userError);
-          throw new Error('Authentication error: ' + userError.message);
+          console.error("Auth error:", userError);
+          throw new Error("Authentication error: " + userError.message);
         }
-        
+
         if (!user) {
-          setError('You must be signed in to view prompt pages');
+          setError("You must be signed in to view prompt pages");
           return;
         }
 
-        console.log('Fetching prompt pages for user:', user.id);
+        console.log("Fetching prompt pages for user:", user.id);
 
         // Try a simpler query first
         const { data, error } = await supabase
-          .from('prompt_pages')
-          .select('id, slug, status, created_at, phone, email, first_name, last_name, is_universal, review_type')
-          .eq('account_id', user.id)
-          .order('created_at', { ascending: false });
+          .from("prompt_pages")
+          .select(
+            "id, slug, status, created_at, phone, email, first_name, last_name, is_universal, review_type",
+          )
+          .eq("account_id", user.id)
+          .order("created_at", { ascending: false });
 
         if (error) {
-          console.error('Supabase query error:', {
+          console.error("Supabase query error:", {
             message: error.message,
             details: error.details,
             hint: error.hint,
-            code: error.code
+            code: error.code,
           });
           throw error;
         }
 
         if (!data) {
-          console.log('No data returned from query');
+          console.log("No data returned from query");
           setPromptPages([]);
           return;
         }
 
-        console.log('Fetched prompt pages:', data);
+        console.log("Fetched prompt pages:", data);
         setPromptPages(data);
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to load prompt pages';
+        const errorMessage =
+          err instanceof Error ? err.message : "Failed to load prompt pages";
         setError(errorMessage);
-        console.error('Error loading prompt pages:', {
+        console.error("Error loading prompt pages:", {
           message: errorMessage,
           error: err,
-          supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ? 'set' : 'not set',
-          supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'set' : 'not set'
+          supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ? "set" : "not set",
+          supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+            ? "set"
+            : "not set",
         });
       } finally {
         setIsLoading(false);
@@ -233,13 +289,13 @@ export default function DashboardContent({
   }, [supabase]);
 
   useEffect(() => {
-    const flag = localStorage.getItem('showPostSaveModal');
+    const flag = localStorage.getItem("showPostSaveModal");
     if (flag) {
       try {
         const data = JSON.parse(flag);
         setPostSaveData(data);
         setShowPostSaveModal(true);
-        localStorage.removeItem('showPostSaveModal');
+        localStorage.removeItem("showPostSaveModal");
       } catch {}
     }
   }, []);
@@ -256,7 +312,7 @@ export default function DashboardContent({
         left: `${left}%`,
         top: `${top}px`,
         fontSize: `${fontSize}px`,
-        color: '#FFD700',
+        color: "#FFD700",
         opacity: 1,
         animationDuration: `${animationDuration}s`,
         animationDelay: `${animationDelay}s`,
@@ -264,66 +320,78 @@ export default function DashboardContent({
     });
   }, [showPostSaveModal]);
 
-  const updateStatus = async (pageId: string, newStatus: 'in_queue' | 'in_progress' | 'complete' | 'draft') => {
+  const updateStatus = async (
+    pageId: string,
+    newStatus: "in_queue" | "in_progress" | "complete" | "draft",
+  ) => {
     try {
       const { error } = await supabase
-        .from('prompt_pages')
+        .from("prompt_pages")
         .update({ status: newStatus })
-        .eq('id', pageId);
+        .eq("id", pageId);
 
       if (error) throw error;
 
-      setPromptPages(pages =>
-        pages.map(page =>
-          page.id === pageId ? { ...page, status: newStatus } : page
-        )
+      setPromptPages((pages) =>
+        pages.map((page) =>
+          page.id === pageId ? { ...page, status: newStatus } : page,
+        ),
       );
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to update status';
-      console.error('Error updating status:', {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to update status";
+      console.error("Error updating status:", {
         message: errorMessage,
-        error: err
+        error: err,
       });
       setError(errorMessage);
     }
   };
 
-  const filteredPromptPages = promptPages.filter(page => {
+  const filteredPromptPages = promptPages.filter((page) => {
     if (page.is_universal) return false;
     if (selectedType && page.review_type !== selectedType) return false;
-    if (selectedTab === 'in_queue') return page.status === 'in_queue';
-    if (selectedTab === 'in_progress') return page.status === 'in_progress';
-    if (selectedTab === 'complete') return page.status === 'complete';
-    if (selectedTab === 'draft') return page.status === 'draft';
+    if (selectedTab === "in_queue") return page.status === "in_queue";
+    if (selectedTab === "in_progress") return page.status === "in_progress";
+    if (selectedTab === "complete") return page.status === "complete";
+    if (selectedTab === "draft") return page.status === "draft";
     return true;
   });
 
-  const inQueueCount = promptPages.filter(page => page.status === 'in_queue' && !page.is_universal).length;
-  const inProgressCount = promptPages.filter(page => page.status === 'in_progress' && !page.is_universal).length;
-  const completeCount = promptPages.filter(page => page.status === 'complete' && !page.is_universal).length;
-  const draftCount = promptPages.filter(page => page.status === 'draft' && !page.is_universal).length;
+  const inQueueCount = promptPages.filter(
+    (page) => page.status === "in_queue" && !page.is_universal,
+  ).length;
+  const inProgressCount = promptPages.filter(
+    (page) => page.status === "in_progress" && !page.is_universal,
+  ).length;
+  const completeCount = promptPages.filter(
+    (page) => page.status === "complete" && !page.is_universal,
+  ).length;
+  const draftCount = promptPages.filter(
+    (page) => page.status === "draft" && !page.is_universal,
+  ).length;
 
-  const handleSort = (field: 'first_name' | 'last_name' | 'review_type') => {
+  const handleSort = (field: "first_name" | "last_name" | "review_type") => {
     if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
       setSortField(field);
-      setSortDirection('asc');
+      setSortDirection("asc");
     }
   };
 
   const sortedPromptPages = [...filteredPromptPages].sort((a, b) => {
     if (!sortField) return 0;
-    let aValue = '';
-    let bValue = '';
-    if (sortField === 'review_type') {
-      aValue = (a.review_type || '').toLowerCase();
-      bValue = (b.review_type || '').toLowerCase();
+    let aValue = "";
+    let bValue = "";
+    if (sortField === "review_type") {
+      aValue = (a.review_type || "").toLowerCase();
+      bValue = (b.review_type || "").toLowerCase();
     } else {
-      aValue = (a[sortField] || '').toLowerCase();
-      bValue = (b[sortField] || '').toLowerCase();
+      aValue = (a[sortField] || "").toLowerCase();
+      bValue = (b[sortField] || "").toLowerCase();
     }
-    if (sortDirection === 'asc') {
+    if (sortDirection === "asc") {
       return aValue.localeCompare(bValue);
     } else {
       return bValue.localeCompare(aValue);
@@ -332,7 +400,7 @@ export default function DashboardContent({
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedPages(filteredPromptPages.map(page => page.id));
+      setSelectedPages(filteredPromptPages.map((page) => page.id));
     } else {
       setSelectedPages([]);
     }
@@ -342,67 +410,81 @@ export default function DashboardContent({
     if (checked) {
       setSelectedPages([...selectedPages, pageId]);
     } else {
-      setSelectedPages(selectedPages.filter(id => id !== pageId));
+      setSelectedPages(selectedPages.filter((id) => id !== pageId));
     }
   };
 
   const handleBatchStatusUpdate = async () => {
     try {
       const { error } = await supabase
-        .from('prompt_pages')
+        .from("prompt_pages")
         .update({ status: batchStatus })
-        .in('id', selectedPages);
+        .in("id", selectedPages);
 
       if (error) throw error;
 
-      setPromptPages(pages =>
-        pages.map(page =>
-          selectedPages.includes(page.id) ? { ...page, status: batchStatus } : page
-        )
+      setPromptPages((pages) =>
+        pages.map((page) =>
+          selectedPages.includes(page.id)
+            ? { ...page, status: batchStatus }
+            : page,
+        ),
       );
       setSelectedPages([]);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to update status';
-      console.error('Error updating status:', {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to update status";
+      console.error("Error updating status:", {
         message: errorMessage,
-        error: err
+        error: err,
       });
       setError(errorMessage);
     }
   };
 
   const handleBatchDelete = async () => {
-    if (deleteConfirmation !== 'DELETE') return;
+    if (deleteConfirmation !== "DELETE") return;
 
     try {
       const { error } = await supabase
-        .from('prompt_pages')
+        .from("prompt_pages")
         .delete()
-        .in('id', selectedPages);
+        .in("id", selectedPages);
 
       if (error) throw error;
 
-      setPromptPages(pages => pages.filter(page => !selectedPages.includes(page.id)));
+      setPromptPages((pages) =>
+        pages.filter((page) => !selectedPages.includes(page.id)),
+      );
       setSelectedPages([]);
       setShowDeleteModal(false);
-      setDeleteConfirmation('');
+      setDeleteConfirmation("");
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to delete pages';
-      console.error('Error deleting pages:', {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to delete pages";
+      console.error("Error deleting pages:", {
         message: errorMessage,
-        error: err
+        error: err,
       });
       setError(errorMessage);
     }
   };
 
   // Soft lock for Grower plan: only allow access to first 4 prompt pages
-  const isGrower = account?.plan === 'grower';
-  const isBuilder = account?.plan === 'builder';
+  const isGrower = account?.plan === "grower";
+  const isBuilder = account?.plan === "builder";
   const maxGrowerPages = 4;
   const maxBuilderPages = 100;
-  const accessiblePromptPages = isGrower ? sortedPromptPages.slice(0, maxGrowerPages) : isBuilder ? sortedPromptPages.slice(0, maxBuilderPages) : sortedPromptPages;
-  const lockedPromptPages = isGrower ? sortedPromptPages.slice(maxGrowerPages) : isBuilder ? sortedPromptPages.slice(maxBuilderPages) : [];
+  const accessiblePromptPages = isGrower
+    ? sortedPromptPages.slice(0, maxGrowerPages)
+    : isBuilder
+      ? sortedPromptPages.slice(0, maxBuilderPages)
+      : sortedPromptPages;
+  const lockedPromptPages = isGrower
+    ? sortedPromptPages.slice(maxGrowerPages)
+    : isBuilder
+      ? sortedPromptPages.slice(maxBuilderPages)
+      : [];
 
   if (isLoading && !parentLoading) {
     return null;
@@ -415,19 +497,20 @@ export default function DashboardContent({
           {/* Main dashboard content, remove pt-12 so title is at the top */}
           <div>
             <div className="flex items-center justify-between mb-8">
-              <h1 className="text-4xl font-bold text-slate-blue">
-                Dashboard
-              </h1>
+              <h1 className="text-4xl font-bold text-slate-blue">Dashboard</h1>
               <button
-                onClick={e => {
+                onClick={(e) => {
                   e.preventDefault();
-                  if ((isGrower && sortedPromptPages.length >= maxGrowerPages) || (isBuilder && sortedPromptPages.length >= maxBuilderPages)) {
+                  if (
+                    (isGrower && sortedPromptPages.length >= maxGrowerPages) ||
+                    (isBuilder && sortedPromptPages.length >= maxBuilderPages)
+                  ) {
                     setShowLimitModal(true);
                     return;
                   }
                   setShowTypeModal(true);
                 }}
-                className={`inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm whitespace-nowrap ${(isGrower && sortedPromptPages.length >= maxGrowerPages) || (isBuilder && sortedPromptPages.length >= maxBuilderPages) ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-slate-blue text-white hover:bg-slate-blue/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-blue'}`}
+                className={`inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm whitespace-nowrap ${(isGrower && sortedPromptPages.length >= maxGrowerPages) || (isBuilder && sortedPromptPages.length >= maxBuilderPages) ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-slate-blue text-white hover:bg-slate-blue/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-blue"}`}
               >
                 Create Prompt Page
               </button>
@@ -437,7 +520,8 @@ export default function DashboardContent({
                 Welcome, {userName}!
               </h2>
               <p className="mt-2 text-sm text-gray-600 max-w-[650px]">
-                Put the kettle on! Let's chat with some customers and get some reviews to grow your business.
+                Put the kettle on! Let's chat with some customers and get some
+                reviews to grow your business.
               </p>
             </div>
             <div className="mt-2 space-y-4">
@@ -453,12 +537,15 @@ export default function DashboardContent({
                         </h2>
                       </div>
                       <div className="flex gap-4 items-center">
-                        <Link href={`/r/${universalPromptPage.slug}`} className="text-slate-blue underline hover:text-slate-blue/80 hover:underline">
+                        <Link
+                          href={`/r/${universalPromptPage.slug}`}
+                          className="text-slate-blue underline hover:text-slate-blue/80 hover:underline"
+                        >
                           View
                         </Link>
                         {universalPromptPage?.slug && (
                           <Link
-                            href={'/dashboard/edit-prompt-page/universal'}
+                            href={"/dashboard/edit-prompt-page/universal"}
                             className="text-slate-blue underline hover:text-slate-blue/80 hover:underline"
                           >
                             Edit
@@ -466,7 +553,16 @@ export default function DashboardContent({
                         )}
                       </div>
                     </div>
-                    <p className="mt-2 text-blue-900 mb-2 text-sm">Your Universal Prompt Page is general-use and not customer specific. The reviews are not prewritten but there is an AI button that will generate a unique review instantly based on your business profile. Your customers/clients can edit before they post. Print your QR code, frame it, and hang it in your place of business for a super-easy way to get customers/clients to post a review. Add the QR code to business cards, menus, flyers, etc.</p>
+                    <p className="mt-2 text-blue-900 mb-2 text-sm">
+                      Your Universal Prompt Page is general-use and not customer
+                      specific. The reviews are not prewritten but there is an
+                      AI button that will generate a unique review instantly
+                      based on your business profile. Your customers/clients can
+                      edit before they post. Print your QR code, frame it, and
+                      hang it in your place of business for a super-easy way to
+                      get customers/clients to post a review. Add the QR code to
+                      business cards, menus, flyers, etc.
+                    </p>
                     <div className="flex flex-wrap gap-2 items-center mt-4">
                       <div className="flex flex-wrap gap-2 items-center">
                         <button
@@ -479,13 +575,23 @@ export default function DashboardContent({
                         </button>
                         <button
                           type="button"
-                          onClick={() => setQrModal({ open: true, url: universalUrl, clientName: business?.name || 'PromptReviews' })}
+                          onClick={() =>
+                            setQrModal({
+                              open: true,
+                              url: universalUrl,
+                              clientName: business?.name || "PromptReviews",
+                            })
+                          }
                           className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-blue text-white rounded hover:bg-slate-blue/90 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
                         >
                           <MdDownload className="w-5 h-5" />
                           QR code
                         </button>
-                        {copySuccess && <span className="ml-2 text-green-600 text-xs font-semibold">{copySuccess}</span>}
+                        {copySuccess && (
+                          <span className="ml-2 text-green-600 text-xs font-semibold">
+                            {copySuccess}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -493,17 +599,29 @@ export default function DashboardContent({
               )}
               <div className="mb-6">
                 <h2 className="text-3xl font-bold text-slate-blue mb-2 flex items-center gap-3">
-                  <span className="text-3xl font-bold align-middle text-slate-blue" style={{fontFamily: 'Inter, sans-serif'}}>[P]</span>
+                  <span
+                    className="text-3xl font-bold align-middle text-slate-blue"
+                    style={{ fontFamily: "Inter, sans-serif" }}
+                  >
+                    [P]
+                  </span>
                   Your custom prompt pages
                 </h2>
-                <p className="text-gray-600 text-base max-w-2xl mb-10">Create and manage your prompt pages and outreach efforts.</p>
+                <p className="text-gray-600 text-base max-w-2xl mb-10">
+                  Create and manage your prompt pages and outreach efforts.
+                </p>
               </div>
               <div className="flex items-center gap-4 mb-4">
-                <label htmlFor="type-filter" className="text-sm font-medium text-gray-700">Filter by type:</label>
+                <label
+                  htmlFor="type-filter"
+                  className="text-sm font-medium text-gray-700"
+                >
+                  Filter by type:
+                </label>
                 <select
                   id="type-filter"
                   value={selectedType}
-                  onChange={e => setSelectedType(e.target.value)}
+                  onChange={(e) => setSelectedType(e.target.value)}
                   className="rounded-md border border-gray-300 px-2 py-1 text-sm"
                 >
                   <option value="">All types</option>
@@ -516,26 +634,26 @@ export default function DashboardContent({
               </div>
               <div className="flex gap-2 mb-4">
                 <button
-                  className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors ${selectedTab === 'draft' ? 'border-gray-600 text-gray-700 bg-gray-50' : 'border-transparent text-gray-600 bg-gray-100 hover:bg-gray-200'}`}
-                  onClick={() => setSelectedTab('draft')}
+                  className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors ${selectedTab === "draft" ? "border-gray-600 text-gray-700 bg-gray-50" : "border-transparent text-gray-600 bg-gray-100 hover:bg-gray-200"}`}
+                  onClick={() => setSelectedTab("draft")}
                 >
                   Draft ({draftCount})
                 </button>
                 <button
-                  className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors ${selectedTab === 'in_queue' ? 'border-indigo-600 text-indigo-700 bg-indigo-50' : 'border-transparent text-gray-600 bg-gray-100 hover:bg-gray-200'}`}
-                  onClick={() => setSelectedTab('in_queue')}
+                  className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors ${selectedTab === "in_queue" ? "border-indigo-600 text-indigo-700 bg-indigo-50" : "border-transparent text-gray-600 bg-gray-100 hover:bg-gray-200"}`}
+                  onClick={() => setSelectedTab("in_queue")}
                 >
                   In queue ({inQueueCount})
                 </button>
                 <button
-                  className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors ${selectedTab === 'in_progress' ? 'border-yellow-500 text-yellow-700 bg-yellow-50' : 'border-transparent text-gray-600 bg-gray-100 hover:bg-gray-200'}`}
-                  onClick={() => setSelectedTab('in_progress')}
+                  className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors ${selectedTab === "in_progress" ? "border-yellow-500 text-yellow-700 bg-yellow-50" : "border-transparent text-gray-600 bg-gray-100 hover:bg-gray-200"}`}
+                  onClick={() => setSelectedTab("in_progress")}
                 >
                   In progress ({inProgressCount})
                 </button>
                 <button
-                  className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors ${selectedTab === 'complete' ? 'border-green-600 text-green-700 bg-green-50' : 'border-transparent text-gray-600 bg-gray-100 hover:bg-green-50'}`}
-                  onClick={() => setSelectedTab('complete')}
+                  className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors ${selectedTab === "complete" ? "border-green-600 text-green-700 bg-green-50" : "border-transparent text-gray-600 bg-gray-100 hover:bg-green-50"}`}
+                  onClick={() => setSelectedTab("complete")}
                 >
                   Complete ({completeCount})
                 </button>
@@ -545,11 +663,20 @@ export default function DashboardContent({
                 <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <span className="text-sm text-gray-600">
-                      {selectedPages.length} page{selectedPages.length !== 1 ? 's' : ''} selected
+                      {selectedPages.length} page
+                      {selectedPages.length !== 1 ? "s" : ""} selected
                     </span>
                     <select
                       value={batchStatus}
-                      onChange={(e) => setBatchStatus(e.target.value as 'in_queue' | 'in_progress' | 'complete' | 'draft')}
+                      onChange={(e) =>
+                        setBatchStatus(
+                          e.target.value as
+                            | "in_queue"
+                            | "in_progress"
+                            | "complete"
+                            | "draft",
+                        )
+                      }
                       className="rounded-md border-gray-300 text-sm"
                     >
                       <option value="in_queue">In queue</option>
@@ -577,7 +704,9 @@ export default function DashboardContent({
                 <div className="mt-4">
                   {business && sortedPromptPages.length === 0 ? (
                     <div className="text-center py-24 bg-white rounded-lg border border-gray-200">
-                      <p className="text-gray-500">No prompt pages in this status.</p>
+                      <p className="text-gray-500">
+                        No prompt pages in this status.
+                      </p>
                     </div>
                   ) : (
                     <>
@@ -585,24 +714,36 @@ export default function DashboardContent({
                         <table className="min-w-full divide-y divide-gray-300">
                           <thead className="bg-gray-50">
                             <tr>
-                              <th scope="col" className="relative w-12 px-3 py-3.5">
+                              <th
+                                scope="col"
+                                className="relative w-12 px-3 py-3.5"
+                              >
                                 <input
                                   type="checkbox"
                                   className="absolute left-4 top-1/2 -mt-2 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
-                                  checked={selectedPages.length === filteredPromptPages.length}
-                                  onChange={(e) => handleSelectAll(e.target.checked)}
+                                  checked={
+                                    selectedPages.length ===
+                                    filteredPromptPages.length
+                                  }
+                                  onChange={(e) =>
+                                    handleSelectAll(e.target.checked)
+                                  }
                                 />
                               </th>
                               <th
                                 scope="col"
                                 className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 cursor-pointer select-none hover:bg-gray-100 group"
-                                onClick={() => handleSort('first_name')}
+                                onClick={() => handleSort("first_name")}
                               >
                                 <div className="flex items-center gap-1">
                                   First
                                   <span className="text-gray-400 opacity-50 group-hover:opacity-100">
-                                    {sortField === 'first_name' ? (
-                                      sortDirection === 'asc' ? '↑' : '↓'
+                                    {sortField === "first_name" ? (
+                                      sortDirection === "asc" ? (
+                                        "↑"
+                                      ) : (
+                                        "↓"
+                                      )
                                     ) : (
                                       <span className="text-xs">↕</span>
                                     )}
@@ -612,13 +753,17 @@ export default function DashboardContent({
                               <th
                                 scope="col"
                                 className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 cursor-pointer select-none hover:bg-gray-100 group"
-                                onClick={() => handleSort('last_name')}
+                                onClick={() => handleSort("last_name")}
                               >
                                 <div className="flex items-center gap-1">
                                   Last
                                   <span className="text-gray-400 opacity-50 group-hover:opacity-100">
-                                    {sortField === 'last_name' ? (
-                                      sortDirection === 'asc' ? '↑' : '↓'
+                                    {sortField === "last_name" ? (
+                                      sortDirection === "asc" ? (
+                                        "↑"
+                                      ) : (
+                                        "↓"
+                                      )
                                     ) : (
                                       <span className="text-xs">↕</span>
                                     )}
@@ -628,57 +773,95 @@ export default function DashboardContent({
                               <th
                                 scope="col"
                                 className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 cursor-pointer select-none hover:bg-gray-100 group"
-                                onClick={() => handleSort('review_type')}
+                                onClick={() => handleSort("review_type")}
                               >
                                 <div className="flex items-center gap-1">
                                   Type
                                   <span className="text-gray-400 opacity-50 group-hover:opacity-100">
-                                    {sortField === 'review_type' ? (
-                                      sortDirection === 'asc' ? '↑' : '↓'
+                                    {sortField === "review_type" ? (
+                                      sortDirection === "asc" ? (
+                                        "↑"
+                                      ) : (
+                                        "↓"
+                                      )
                                     ) : (
                                       <span className="text-xs">↕</span>
                                     )}
                                   </span>
                                 </div>
                               </th>
-                              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                              <th
+                                scope="col"
+                                className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                              >
                                 Edit
                               </th>
-                              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                              <th
+                                scope="col"
+                                className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                              >
                                 Status
                               </th>
-                              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                              <th
+                                scope="col"
+                                className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                              >
                                 Created
                               </th>
-                              <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6 text-sm font-semibold text-gray-900">
+                              <th
+                                scope="col"
+                                className="relative py-3.5 pl-3 pr-4 sm:pr-6 text-sm font-semibold text-gray-900"
+                              >
                                 Send
                               </th>
                             </tr>
                           </thead>
                           <tbody className="bg-white divide-y divide-gray-200">
                             {accessiblePromptPages.map((page, index) => (
-                              <tr key={page.id} className={index % 2 === 0 ? 'bg-white' : 'bg-blue-50'}>
+                              <tr
+                                key={page.id}
+                                className={
+                                  index % 2 === 0 ? "bg-white" : "bg-blue-50"
+                                }
+                              >
                                 <td className="relative w-12 px-3 py-4">
                                   <input
                                     type="checkbox"
                                     className="absolute left-4 top-1/2 -mt-2 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
                                     checked={selectedPages.includes(page.id)}
-                                    onChange={(e) => handleSelectPage(page.id, e.target.checked)}
+                                    onChange={(e) =>
+                                      handleSelectPage(
+                                        page.id,
+                                        e.target.checked,
+                                      )
+                                    }
                                   />
                                 </td>
                                 <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
-                                  {page.first_name || ''}
+                                  {page.first_name || ""}
                                 </td>
                                 <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
-                                  {page.last_name || ''}
+                                  {page.last_name || ""}
                                 </td>
                                 <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900 capitalize">
-                                  {page.review_type === 'service' && 'Service'}
-                                  {page.review_type === 'photo' && 'Photo'}
-                                  {page.review_type === 'video' && 'Video'}
-                                  {page.review_type === 'experience' && 'Exp.'}
-                                  {page.review_type === 'product' && 'Product'}
-                                  {!['service', 'photo', 'video', 'experience', 'product'].includes(page.review_type || '') && (page.review_type ? page.review_type.charAt(0).toUpperCase() + page.review_type.slice(1) : 'Service')}
+                                  {page.review_type === "service" && "Service"}
+                                  {page.review_type === "photo" && "Photo"}
+                                  {page.review_type === "video" && "Video"}
+                                  {page.review_type === "experience" && "Exp."}
+                                  {page.review_type === "product" && "Product"}
+                                  {![
+                                    "service",
+                                    "photo",
+                                    "video",
+                                    "experience",
+                                    "product",
+                                  ].includes(page.review_type || "") &&
+                                    (page.review_type
+                                      ? page.review_type
+                                          .charAt(0)
+                                          .toUpperCase() +
+                                        page.review_type.slice(1)
+                                      : "Service")}
                                 </td>
                                 <td className="whitespace-nowrap px-3 py-4 text-sm flex gap-2 items-center">
                                   <div className="mt-[6px] flex gap-2">
@@ -690,7 +873,9 @@ export default function DashboardContent({
                                     </Link>
                                     {page.slug && (
                                       <Link
-                                        href={'/dashboard/edit-prompt-page/universal'}
+                                        href={
+                                          "/dashboard/edit-prompt-page/universal"
+                                        }
                                         className="text-slate-blue underline hover:text-slate-blue/80 hover:underline"
                                       >
                                         Edit
@@ -701,17 +886,30 @@ export default function DashboardContent({
                                 <td className="whitespace-nowrap px-3 py-4 text-sm">
                                   <select
                                     value={page.status}
-                                    onChange={(e) => updateStatus(page.id, e.target.value as 'in_queue' | 'in_progress' | 'complete' | 'draft')}
-                                    className={`rounded-full px-2 py-1 text-xs font-medium ${STATUS_COLORS[page.status] || 'bg-gray-100 text-gray-800'}`}
+                                    onChange={(e) =>
+                                      updateStatus(
+                                        page.id,
+                                        e.target.value as
+                                          | "in_queue"
+                                          | "in_progress"
+                                          | "complete"
+                                          | "draft",
+                                      )
+                                    }
+                                    className={`rounded-full px-2 py-1 text-xs font-medium ${STATUS_COLORS[page.status] || "bg-gray-100 text-gray-800"}`}
                                   >
                                     <option value="in_queue">In queue</option>
-                                    <option value="in_progress">In progress</option>
+                                    <option value="in_progress">
+                                      In progress
+                                    </option>
                                     <option value="complete">Complete</option>
                                     <option value="draft">Draft</option>
                                   </select>
                                 </td>
                                 <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                  {new Date(page.created_at).toLocaleDateString()}
+                                  {new Date(
+                                    page.created_at,
+                                  ).toLocaleDateString()}
                                 </td>
                                 <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                                   <div className="flex flex-row gap-2 items-center justify-end">
@@ -720,8 +918,10 @@ export default function DashboardContent({
                                         type="button"
                                         className="inline-flex items-center px-3 py-1.5 bg-green-100 text-green-800 rounded hover:bg-green-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap w-full sm:w-auto"
                                         onClick={() => {
-                                          const name = page.first_name || '[name]';
-                                          const businessName = business?.name || '[Business]';
+                                          const name =
+                                            page.first_name || "[name]";
+                                          const businessName =
+                                            business?.name || "[Business]";
                                           const reviewUrl = `${window.location.origin}/r/${page.slug}`;
                                           const message = `Hi ${name}, do you have 1-3 minutes to leave a review for ${businessName}? I have a review you can use and everything. Positive reviews really help small business get found online. Thanks so much! ${reviewUrl}`;
                                           window.location.href = `sms:${page.phone}?&body=${encodeURIComponent(message)}`;
@@ -732,7 +932,7 @@ export default function DashboardContent({
                                     )}
                                     {!page.is_universal && page.email && (
                                       <a
-                                        href={`mailto:${page.email}?subject=${encodeURIComponent('Quick Review Request')}&body=${encodeURIComponent(`Hi ${page.first_name || '[name]'}, do you have 1-3 minutes to leave a review for ${business?.name || '[Business]'}? I have a review you can use and everything. Positive reviews really help small business get found online. Thanks so much! ${window.location.origin}/r/${page.slug}`)}`}
+                                        href={`mailto:${page.email}?subject=${encodeURIComponent("Quick Review Request")}&body=${encodeURIComponent(`Hi ${page.first_name || "[name]"}, do you have 1-3 minutes to leave a review for ${business?.name || "[Business]"}? I have a review you can use and everything. Positive reviews really help small business get found online. Thanks so much! ${window.location.origin}/r/${page.slug}`)}`}
                                         className="inline-flex items-center px-3 py-1.5 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap w-full sm:w-auto"
                                       >
                                         Send Email
@@ -745,11 +945,18 @@ export default function DashboardContent({
                                         title="Copy link"
                                         onClick={async () => {
                                           try {
-                                            await navigator.clipboard.writeText(`${window.location.origin}/r/${page.slug}`);
+                                            await navigator.clipboard.writeText(
+                                              `${window.location.origin}/r/${page.slug}`,
+                                            );
                                             setCopyLinkId(page.id);
-                                            setTimeout(() => setCopyLinkId(null), 2000);
+                                            setTimeout(
+                                              () => setCopyLinkId(null),
+                                              2000,
+                                            );
                                           } catch (err) {
-                                            alert('Could not copy to clipboard. Please copy manually.');
+                                            alert(
+                                              "Could not copy to clipboard. Please copy manually.",
+                                            );
                                           }
                                         }}
                                       >
@@ -760,7 +967,16 @@ export default function DashboardContent({
                                       type="button"
                                       className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-blue text-white rounded hover:bg-slate-blue/90 text-sm font-medium shadow h-9 align-middle whitespace-nowrap w-full sm:w-auto"
                                       aria-label="Download QR Code"
-                                      onClick={() => setQrModal({ open: true, url: `${window.location.origin}/r/${page.slug}`, clientName: `${page.first_name || ''} ${page.last_name || ''}`.trim() || business?.name || 'PromptReviews' })}
+                                      onClick={() =>
+                                        setQrModal({
+                                          open: true,
+                                          url: `${window.location.origin}/r/${page.slug}`,
+                                          clientName:
+                                            `${page.first_name || ""} ${page.last_name || ""}`.trim() ||
+                                            business?.name ||
+                                            "PromptReviews",
+                                        })
+                                      }
                                     >
                                       <MdDownload className="w-5 h-5" />
                                       QR code
@@ -771,12 +987,32 @@ export default function DashboardContent({
                             ))}
                             {lockedPromptPages.length > 0 && (
                               <tr>
-                                <td colSpan={8} className="py-6 text-center bg-yellow-50 text-yellow-800 font-semibold">
-                                  <div className="mb-2">You have more than {isGrower ? maxGrowerPages : maxBuilderPages} prompt pages. Upgrade your plan to access the rest.</div>
-                                  {lockedPromptPages.map(page => (
-                                    <div key={page.id} className="flex items-center justify-between px-4 py-2 bg-yellow-100 rounded mb-2">
-                                      <span className="font-medium">Prompt Page: {page.first_name || page.last_name || page.slug}</span>
-                                      <span className="text-xs text-yellow-700">Locked</span>
+                                <td
+                                  colSpan={8}
+                                  className="py-6 text-center bg-yellow-50 text-yellow-800 font-semibold"
+                                >
+                                  <div className="mb-2">
+                                    You have more than{" "}
+                                    {isGrower
+                                      ? maxGrowerPages
+                                      : maxBuilderPages}{" "}
+                                    prompt pages. Upgrade your plan to access
+                                    the rest.
+                                  </div>
+                                  {lockedPromptPages.map((page) => (
+                                    <div
+                                      key={page.id}
+                                      className="flex items-center justify-between px-4 py-2 bg-yellow-100 rounded mb-2"
+                                    >
+                                      <span className="font-medium">
+                                        Prompt Page:{" "}
+                                        {page.first_name ||
+                                          page.last_name ||
+                                          page.slug}
+                                      </span>
+                                      <span className="text-xs text-yellow-700">
+                                        Locked
+                                      </span>
                                     </div>
                                   ))}
                                 </td>
@@ -803,17 +1039,32 @@ export default function DashboardContent({
                 >
                   &times;
                 </button>
-                <h3 className="text-lg font-bold mb-4 text-indigo-900">Download QR Code</h3>
+                <h3 className="text-lg font-bold mb-4 text-indigo-900">
+                  Download QR Code
+                </h3>
                 <div className="mb-4">
-                  <label htmlFor="frame-size" className="block text-sm font-medium text-gray-700 mb-2">Select frame size</label>
+                  <label
+                    htmlFor="frame-size"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
+                    Select frame size
+                  </label>
                   <select
                     id="frame-size"
                     value={selectedFrameSize.label}
-                    onChange={e => setSelectedFrameSize(QR_FRAME_SIZES.find(s => s.label === e.target.value) || QR_FRAME_SIZES[0])}
+                    onChange={(e) =>
+                      setSelectedFrameSize(
+                        QR_FRAME_SIZES.find(
+                          (s) => s.label === e.target.value,
+                        ) || QR_FRAME_SIZES[0],
+                      )
+                    }
                     className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   >
-                    {QR_FRAME_SIZES.map(size => (
-                      <option key={size.label} value={size.label}>{size.label}</option>
+                    {QR_FRAME_SIZES.map((size) => (
+                      <option key={size.label} value={size.label}>
+                        {size.label}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -826,7 +1077,7 @@ export default function DashboardContent({
                   <a
                     href="#"
                     className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-paleGold hover:bg-yellow-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-                    style={{ background: '#FFD700', color: '#1A237E' }}
+                    style={{ background: "#FFD700", color: "#1A237E" }}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
@@ -841,12 +1092,16 @@ export default function DashboardContent({
           {showProfileModal && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
               <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center">
-                <h2 className="text-xl font-bold mb-4">Let's Get Your Business More Reviews!</h2>
-                <p className="mb-6">First we need to set up your business profile.</p>
+                <h2 className="text-xl font-bold mb-4">
+                  Let's Get Your Business More Reviews!
+                </h2>
+                <p className="mb-6">
+                  First we need to set up your business profile.
+                </p>
                 <button
                   onClick={() => {
                     setShowProfileModal(false);
-                    window.location.href = '/dashboard/create-business';
+                    window.location.href = "/dashboard/create-business";
                   }}
                   className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
                 >
@@ -873,10 +1128,18 @@ export default function DashboardContent({
                 >
                   &times;
                 </button>
-                <h2 className="text-2xl font-bold mb-4 text-indigo-800 relative z-10">It's official.</h2>
+                <h2 className="text-2xl font-bold mb-4 text-indigo-800 relative z-10">
+                  It's official.
+                </h2>
                 <p className="mb-6 text-lg text-gray-700 font-semibold relative z-10">
-                  You're a {account?.plan ? account.plan.charAt(0).toUpperCase() + account.plan.slice(1) : 'Member'}.<br />
-                  Now let's get some amazing reviews and boost your online presence!
+                  You're a{" "}
+                  {account?.plan
+                    ? account.plan.charAt(0).toUpperCase() +
+                      account.plan.slice(1)
+                    : "Member"}
+                  .<br />
+                  Now let's get some amazing reviews and boost your online
+                  presence!
                 </p>
                 <button
                   onClick={() => setShowSuccessModal(false)}
@@ -896,7 +1159,9 @@ export default function DashboardContent({
                   Delete Prompt Pages
                 </h3>
                 <p className="mb-4 text-gray-600">
-                  You are about to delete {selectedPages.length} prompt page{selectedPages.length !== 1 ? 's' : ''}. This action cannot be undone.
+                  You are about to delete {selectedPages.length} prompt page
+                  {selectedPages.length !== 1 ? "s" : ""}. This action cannot be
+                  undone.
                 </p>
                 <p className="mb-4 text-gray-600">
                   Please type DELETE in the box below to continue.
@@ -912,7 +1177,7 @@ export default function DashboardContent({
                   <button
                     onClick={() => {
                       setShowDeleteModal(false);
-                      setDeleteConfirmation('');
+                      setDeleteConfirmation("");
                     }}
                     className="px-4 py-2 text-gray-600 hover:text-gray-800"
                   >
@@ -920,11 +1185,11 @@ export default function DashboardContent({
                   </button>
                   <button
                     onClick={handleBatchDelete}
-                    disabled={deleteConfirmation !== 'DELETE'}
+                    disabled={deleteConfirmation !== "DELETE"}
                     className={`px-4 py-2 rounded ${
-                      deleteConfirmation === 'DELETE'
-                        ? 'bg-red-600 text-white hover:bg-red-700'
-                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      deleteConfirmation === "DELETE"
+                        ? "bg-red-600 text-white hover:bg-red-700"
+                        : "bg-gray-300 text-gray-500 cursor-not-allowed"
                     }`}
                   >
                     Delete
@@ -945,21 +1210,31 @@ export default function DashboardContent({
                 >
                   &times;
                 </button>
-                <h2 className="text-2xl font-bold text-slate-blue mb-6">Select prompt page type</h2>
+                <h2 className="text-2xl font-bold text-slate-blue mb-6">
+                  Select prompt page type
+                </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                  {promptTypes.map(type => (
+                  {promptTypes.map((type) => (
                     <button
                       key={type.key}
-                      onClick={() => !type.comingSoon && handlePromptTypeSelect(type.key)}
-                      className={`flex flex-col items-center gap-2 p-6 rounded-lg border border-gray-200 hover:border-indigo-400 shadow-sm hover:shadow-md transition-all bg-gray-50 hover:bg-indigo-50 focus:outline-none ${type.comingSoon ? 'opacity-60 cursor-not-allowed relative' : ''}`}
+                      onClick={() =>
+                        !type.comingSoon && handlePromptTypeSelect(type.key)
+                      }
+                      className={`flex flex-col items-center gap-2 p-6 rounded-lg border border-gray-200 hover:border-indigo-400 shadow-sm hover:shadow-md transition-all bg-gray-50 hover:bg-indigo-50 focus:outline-none ${type.comingSoon ? "opacity-60 cursor-not-allowed relative" : ""}`}
                       disabled={!!type.comingSoon}
                       tabIndex={type.comingSoon ? -1 : 0}
                     >
                       {type.icon}
-                      <span className="font-semibold text-lg text-slate-blue">{type.label}</span>
-                      <span className="text-sm text-gray-600 text-center">{type.description}</span>
+                      <span className="font-semibold text-lg text-slate-blue">
+                        {type.label}
+                      </span>
+                      <span className="text-sm text-gray-600 text-center">
+                        {type.description}
+                      </span>
                       {type.comingSoon && (
-                        <span className="absolute top-2 right-2 bg-yellow-200 text-yellow-800 text-xs font-semibold px-2 py-0.5 rounded">Coming soon</span>
+                        <span className="absolute top-2 right-2 bg-yellow-200 text-yellow-800 text-xs font-semibold px-2 py-0.5 rounded">
+                          Coming soon
+                        </span>
                       )}
                     </button>
                   ))}
@@ -972,10 +1247,26 @@ export default function DashboardContent({
           {showLimitModal && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
               <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full relative">
-                <button className="absolute top-2 right-2 text-gray-400 hover:text-gray-600" onClick={() => setShowLimitModal(false)} aria-label="Close">&times;</button>
-                <h2 className="text-2xl font-bold text-slate-blue mb-2">Prompt page limit exceeded</h2>
-                <p className="mb-6 text-gray-700">You have reached the maximum number of prompt pages for your plan. Upgrade to create more.</p>
-                <a href="/dashboard/plan" className="inline-block px-4 py-2 bg-slate-blue text-white rounded-lg font-medium hover:bg-slate-blue/90 transition">Upgrade Plan</a>
+                <button
+                  className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
+                  onClick={() => setShowLimitModal(false)}
+                  aria-label="Close"
+                >
+                  &times;
+                </button>
+                <h2 className="text-2xl font-bold text-slate-blue mb-2">
+                  Prompt page limit exceeded
+                </h2>
+                <p className="mb-6 text-gray-700">
+                  You have reached the maximum number of prompt pages for your
+                  plan. Upgrade to create more.
+                </p>
+                <a
+                  href="/dashboard/plan"
+                  className="inline-block px-4 py-2 bg-slate-blue text-white rounded-lg font-medium hover:bg-slate-blue/90 transition"
+                >
+                  Upgrade Plan
+                </a>
               </div>
             </div>
           )}
@@ -990,10 +1281,10 @@ export default function DashboardContent({
                     <span
                       key={i}
                       style={{
-                        position: 'absolute',
+                        position: "absolute",
                         left: props.left,
                         top: props.top,
-                        pointerEvents: 'none',
+                        pointerEvents: "none",
                         zIndex: 50,
                       }}
                     >
@@ -1030,8 +1321,12 @@ export default function DashboardContent({
                   >
                     &times;
                   </button>
-                  <h2 className="text-2xl font-bold mb-4 text-indigo-800 relative z-10">Prompt Page Created!</h2>
-                  <p className="mb-4 text-gray-700 relative z-10">Share your new prompt page with your customer:</p>
+                  <h2 className="text-2xl font-bold mb-4 text-indigo-800 relative z-10">
+                    Prompt Page Created!
+                  </h2>
+                  <p className="mb-4 text-gray-700 relative z-10">
+                    Share your new prompt page with your customer:
+                  </p>
                   <div className="flex flex-col gap-3 mb-6 relative z-10">
                     <a
                       href={postSaveData.url}
@@ -1045,8 +1340,8 @@ export default function DashboardContent({
                       <button
                         className="inline-block px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition"
                         onClick={() => {
-                          const name = postSaveData.first_name || '[name]';
-                          const businessName = business?.name || '[Business]';
+                          const name = postSaveData.first_name || "[name]";
+                          const businessName = business?.name || "[Business]";
                           const reviewUrl = `${window.location.origin}${postSaveData.url}`;
                           const message = `Hi ${name}, do you have 1-3 minutes to leave a review for ${businessName}? I have a review you can use and everything. Positive reviews really help small business get found online. Thanks so much! ${reviewUrl}`;
                           window.location.href = `sms:${postSaveData.phone}?&body=${encodeURIComponent(message)}`;
@@ -1057,7 +1352,7 @@ export default function DashboardContent({
                     )}
                     {postSaveData.email && (
                       <a
-                        href={`mailto:${postSaveData.email}?subject=${encodeURIComponent('Quick Review Request')}&body=${encodeURIComponent(`Hi ${postSaveData.first_name || '[name]'}, do you have 1-3 minutes to leave a review for ${business?.name || '[Business]'}? I have a review you can use and everything. Positive reviews really help small business get found online. Thanks so much! ${window.location.origin}${postSaveData.url}`)}`}
+                        href={`mailto:${postSaveData.email}?subject=${encodeURIComponent("Quick Review Request")}&body=${encodeURIComponent(`Hi ${postSaveData.first_name || "[name]"}, do you have 1-3 minutes to leave a review for ${business?.name || "[Business]"}? I have a review you can use and everything. Positive reviews really help small business get found online. Thanks so much! ${window.location.origin}${postSaveData.url}`)}`}
                         className="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition"
                       >
                         Send Email
@@ -1084,4 +1379,4 @@ export default function DashboardContent({
       </div>
     </>
   );
-} 
+}

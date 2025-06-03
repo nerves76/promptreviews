@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
-import { sendWelcomeEmail } from '@/utils/resend-welcome';
+import { NextResponse } from "next/server";
+import { sendWelcomeEmail } from "@/utils/resend-welcome";
 
 export async function POST(req: Request) {
   try {
@@ -7,8 +7,8 @@ export async function POST(req: Request) {
 
     if (!email || !name) {
       return NextResponse.json(
-        { error: 'Email and name are required' },
-        { status: 400 }
+        { error: "Email and name are required" },
+        { status: 400 },
       );
     }
 
@@ -16,17 +16,17 @@ export async function POST(req: Request) {
 
     if (!result.success) {
       return NextResponse.json(
-        { error: 'Failed to send welcome email' },
-        { status: 500 }
+        { error: "Failed to send welcome email" },
+        { status: 500 },
       );
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error in send-welcome-email route:', error);
+    console.error("Error in send-welcome-email route:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+      { error: "Internal server error" },
+      { status: 500 },
     );
   }
-} 
+}

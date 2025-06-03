@@ -1,4 +1,4 @@
-import Head from 'next/head';
+import Head from "next/head";
 
 export default function AuthLayout({
   children,
@@ -8,11 +8,12 @@ export default function AuthLayout({
   return (
     <>
       <Head>
-        <link rel="stylesheet" href="https://promptreviews.app/wp-content/themes/astra/assets/css/minified/main.min.css?ver=4.11.1" />
+        <link
+          rel="stylesheet"
+          href="https://promptreviews.app/wp-content/themes/astra/assets/css/minified/main.min.css?ver=4.11.1"
+        />
       </Head>
-      <div className="min-h-screen">
-        {children}
-      </div>
+      <div className="min-h-screen">{children}</div>
     </>
   );
-} 
+}

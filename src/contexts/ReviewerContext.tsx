@@ -1,6 +1,12 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 
 interface ReviewerInfo {
   name: string;
@@ -12,38 +18,40 @@ interface ReviewerContextType {
   updateReviewerInfo: (info: Partial<ReviewerInfo>) => void;
 }
 
-const ReviewerContext = createContext<ReviewerContextType | undefined>(undefined);
+const ReviewerContext = createContext<ReviewerContextType | undefined>(
+  undefined,
+);
 
 export function ReviewerProvider({ children }: { children: ReactNode }) {
   const [reviewerInfo, setReviewerInfo] = useState<ReviewerInfo>({
-    name: '',
-    role: ''
+    name: "",
+    role: "",
   });
 
   // Load reviewer info from localStorage on mount
   useEffect(() => {
-    const storedName = localStorage.getItem('reviewerName');
-    const storedRole = localStorage.getItem('reviewerRole');
+    const storedName = localStorage.getItem("reviewerName");
+    const storedRole = localStorage.getItem("reviewerRole");
     if (storedName || storedRole) {
       setReviewerInfo({
-        name: storedName || '',
-        role: storedRole || ''
+        name: storedName || "",
+        role: storedRole || "",
       });
     }
   }, []);
 
   const updateReviewerInfo = (info: Partial<ReviewerInfo>) => {
-    setReviewerInfo(prev => {
+    setReviewerInfo((prev) => {
       const newInfo = { ...prev, ...info };
-      
+
       // Save to localStorage
       if (info.name !== undefined) {
-        localStorage.setItem('reviewerName', info.name);
+        localStorage.setItem("reviewerName", info.name);
       }
       if (info.role !== undefined) {
-        localStorage.setItem('reviewerRole', info.role);
+        localStorage.setItem("reviewerRole", info.role);
       }
-      
+
       return newInfo;
     });
   };
@@ -58,7 +66,7 @@ export function ReviewerProvider({ children }: { children: ReactNode }) {
 export function useReviewer() {
   const context = useContext(ReviewerContext);
   if (context === undefined) {
-    throw new Error('useReviewer must be used within a ReviewerProvider');
+    throw new Error("useReviewer must be used within a ReviewerProvider");
   }
   return context;
-} 
+}

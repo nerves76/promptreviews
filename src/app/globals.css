@@ -16,7 +16,8 @@
   }
 }
 
-html, body {
+html,
+body {
   height: 100%;
   width: 100%;
   margin: 0;
@@ -31,7 +32,12 @@ html {
 body {
   @apply min-h-screen;
   box-sizing: border-box;
-  background: linear-gradient(to bottom, rgb(82, 125, 231) 0%, rgb(120, 100, 200) 50%, rgb(145, 74, 174) 100%) !important;
+  background: linear-gradient(
+    to bottom,
+    rgb(82, 125, 231) 0%,
+    rgb(120, 100, 200) 50%,
+    rgb(145, 74, 174) 100%
+  ) !important;
   background-size: 100% 5000px !important;
   background-repeat: no-repeat !important;
 }
@@ -39,7 +45,7 @@ body {
 .animate-slideup {
   opacity: 0;
   transform: translateY(40px);
-  animation: slideup 0.6s cubic-bezier(0.4,0,0.2,1) forwards;
+  animation: slideup 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 @keyframes slideup {
   to {

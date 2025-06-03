@@ -2,10 +2,10 @@
 export function slugify(text: string, uniquePart?: string): string {
   const baseSlug = text
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '');
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
   if (uniquePart) {
     return `${baseSlug}-${uniquePart}`;
   }
   return baseSlug;
-} 
+}

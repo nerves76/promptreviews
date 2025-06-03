@@ -1,6 +1,10 @@
 "use client";
-import { Providers } from '@/components/Providers';
+import { Providers } from "@/components/Providers";
 
-export default function ClientRoot({ children }: { children: React.ReactNode }) {
+export default function ClientRoot({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return <Providers>{children}</Providers>;
-} 
+}

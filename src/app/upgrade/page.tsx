@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { createBrowserClient } from '@supabase/ssr';
-import { FaCheck, FaRocket, FaUsers, FaCrown, FaStar } from 'react-icons/fa';
-import { useAuthGuard } from '@/utils/authGuard';
-import { getUserOrMock } from '@/utils/supabase';
-import FiveStarSpinner from '@/app/components/FiveStarSpinner';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { createBrowserClient } from "@supabase/ssr";
+import { FaCheck, FaRocket, FaUsers, FaCrown, FaStar } from "react-icons/fa";
+import { useAuthGuard } from "@/utils/authGuard";
+import { getUserOrMock } from "@/utils/supabase";
+import FiveStarSpinner from "@/app/components/FiveStarSpinner";
 
 interface PricingTier {
   name: string;
@@ -21,56 +21,56 @@ interface PricingTier {
 
 const pricingTiers: PricingTier[] = [
   {
-    name: 'Community Grower',
+    name: "Community Grower",
     price: 15,
     trialDays: 15,
     contactLimit: 0,
     promptPageLimit: 3,
     features: [
-      '15-day free trial',
-      '3 custom prompt pages',
-      'Basic review management',
-      'Email support',
-      'Review analytics'
+      "15-day free trial",
+      "3 custom prompt pages",
+      "Basic review management",
+      "Email support",
+      "Review analytics",
     ],
     icon: <FaStar className="w-8 h-8" />,
-    color: 'bg-blue-500'
+    color: "bg-blue-500",
   },
   {
-    name: 'Community Builder',
+    name: "Community Builder",
     price: 35,
     trialDays: 0,
     contactLimit: 100,
     promptPageLimit: Infinity,
     features: [
-      '100 contacts',
-      'Unlimited prompt pages',
-      'Advanced review management',
-      'Priority email support',
-      'Detailed analytics',
-      'Review rewards system'
+      "100 contacts",
+      "Unlimited prompt pages",
+      "Advanced review management",
+      "Priority email support",
+      "Detailed analytics",
+      "Review rewards system",
     ],
     icon: <FaUsers className="w-8 h-8" />,
-    color: 'bg-purple-500'
+    color: "bg-purple-500",
   },
   {
-    name: 'Community Champion',
+    name: "Community Champion",
     price: 100,
     trialDays: 0,
     contactLimit: 500,
     promptPageLimit: Infinity,
     features: [
-      '500 contacts',
-      'Unlimited prompt pages',
-      'Enterprise review management',
-      '24/7 priority support',
-      'Advanced analytics',
-      'Custom review workflows',
-      'Team collaboration'
+      "500 contacts",
+      "Unlimited prompt pages",
+      "Enterprise review management",
+      "24/7 priority support",
+      "Advanced analytics",
+      "Custom review workflows",
+      "Team collaboration",
     ],
     icon: <FaCrown className="w-8 h-8" />,
-    color: 'bg-yellow-500'
-  }
+    color: "bg-yellow-500",
+  },
 ];
 
 export default function UpgradePage() {
@@ -82,26 +82,28 @@ export default function UpgradePage() {
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   );
 
   useEffect(() => {
     const fetchCurrentPlan = async () => {
       try {
-        const { data: { user } } = await getUserOrMock(supabase);
+        const {
+          data: { user },
+        } = await getUserOrMock(supabase);
         if (!user) return;
 
         const { data: account, error: accountError } = await supabase
-          .from('accounts')
-          .select('plan, trial_end, is_free')
-          .eq('id', user.id)
+          .from("accounts")
+          .select("plan, trial_end, is_free")
+          .eq("id", user.id)
           .single();
 
         if (accountError) throw accountError;
         setCurrentPlan(account.plan);
       } catch (err) {
-        setError('Failed to fetch current plan');
-        console.error('Error fetching plan:', err);
+        setError("Failed to fetch current plan");
+        console.error("Error fetching plan:", err);
       } finally {
         setIsLoading(false);
       }
@@ -112,7 +114,7 @@ export default function UpgradePage() {
 
   const handleUpgrade = async (plan: string) => {
     // TODO: Implement Stripe checkout
-    router.push('/contact?plan=' + plan);
+    router.push("/contact?plan=" + plan);
   };
 
   if (isLoading) {
@@ -137,7 +139,8 @@ export default function UpgradePage() {
             Choose Your Growth Plan
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Select the perfect plan to help your business grow through authentic customer reviews and testimonials.
+            Select the perfect plan to help your business grow through authentic
+            customer reviews and testimonials.
           </p>
         </div>
 
@@ -147,16 +150,17 @@ export default function UpgradePage() {
             <div
               key={tier.name}
               className={`bg-white rounded-2xl shadow-xl overflow-hidden ${
-                currentPlan === tier.name.toLowerCase().replace(' ', '_')
-                  ? 'ring-2 ring-indigo-500'
-                  : ''
+                currentPlan === tier.name.toLowerCase().replace(" ", "_")
+                  ? "ring-2 ring-indigo-500"
+                  : ""
               }`}
             >
               {/* Tier Header */}
               <div className={`${tier.color} p-6 text-white`}>
                 <div className="flex items-center justify-between">
                   {tier.icon}
-                  {currentPlan === tier.name.toLowerCase().replace(' ', '_') && (
+                  {currentPlan ===
+                    tier.name.toLowerCase().replace(" ", "_") && (
                     <span className="bg-white text-gray-900 px-3 py-1 rounded-full text-sm font-medium">
                       Current Plan
                     </span>
@@ -182,17 +186,21 @@ export default function UpgradePage() {
 
                 {/* Upgrade Button */}
                 <button
-                  onClick={() => handleUpgrade(tier.name.toLowerCase().replace(' ', '_'))}
+                  onClick={() =>
+                    handleUpgrade(tier.name.toLowerCase().replace(" ", "_"))
+                  }
                   className={`mt-8 w-full py-3 px-4 rounded-lg font-semibold transition-colors ${
-                    currentPlan === tier.name.toLowerCase().replace(' ', '_')
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                    currentPlan === tier.name.toLowerCase().replace(" ", "_")
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-indigo-600 text-white hover:bg-indigo-700"
                   }`}
-                  disabled={currentPlan === tier.name.toLowerCase().replace(' ', '_')}
+                  disabled={
+                    currentPlan === tier.name.toLowerCase().replace(" ", "_")
+                  }
                 >
-                  {currentPlan === tier.name.toLowerCase().replace(' ', '_')
-                    ? 'Current Plan'
-                    : 'Upgrade Now'}
+                  {currentPlan === tier.name.toLowerCase().replace(" ", "_")
+                    ? "Current Plan"
+                    : "Upgrade Now"}
                 </button>
               </div>
             </div>
@@ -205,10 +213,11 @@ export default function UpgradePage() {
             Need a Custom Plan?
           </h2>
           <p className="text-gray-600 mb-8">
-            For businesses with unique needs or larger contact lists, we offer custom enterprise solutions.
+            For businesses with unique needs or larger contact lists, we offer
+            custom enterprise solutions.
           </p>
           <button
-            onClick={() => router.push('/contact')}
+            onClick={() => router.push("/contact")}
             className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
           >
             <FaRocket className="mr-2" />
@@ -218,4 +227,4 @@ export default function UpgradePage() {
       </div>
     </div>
   );
-} 
+}

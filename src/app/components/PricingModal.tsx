@@ -1,52 +1,52 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
 const tiers = [
   {
-    key: 'grower',
-    name: 'Grower',
-    price: '15 / month',
+    key: "grower",
+    name: "Grower",
+    price: "15 / month",
     order: 1,
-    bg: 'bg-blue-100',
-    text: 'text-slate-blue',
-    button: 'bg-slate-blue hover:bg-slate-blue/90 text-white',
+    bg: "bg-blue-100",
+    text: "text-slate-blue",
+    button: "bg-slate-blue hover:bg-slate-blue/90 text-white",
     features: [
-      '**14-day free trial*',
-      'Universal prompt page',
-      '3 custom prompt pages',
-      'Review widget',
+      "**14-day free trial*",
+      "Universal prompt page",
+      "3 custom prompt pages",
+      "Review widget",
     ],
   },
   {
-    key: 'builder',
-    name: 'Builder',
-    price: '35 / month',
+    key: "builder",
+    name: "Builder",
+    price: "35 / month",
     order: 2,
-    bg: 'bg-purple-200',
-    text: 'text-slate-blue',
-    button: 'bg-slate-blue hover:bg-slate-blue/90 text-white',
+    bg: "bg-purple-200",
+    text: "text-slate-blue",
+    button: "bg-slate-blue hover:bg-slate-blue/90 text-white",
     features: [
-      'Workflow management',
-      'Universal prompt page',
-      '1000 contacts / prompt pages',
-      'Review widget',
-      'Analytics',
+      "Workflow management",
+      "Universal prompt page",
+      "1000 contacts / prompt pages",
+      "Review widget",
+      "Analytics",
     ],
   },
   {
-    key: 'maven',
-    name: 'Maven',
-    price: '100 / month',
+    key: "maven",
+    name: "Maven",
+    price: "100 / month",
     order: 3,
-    bg: 'bg-yellow-200',
-    text: 'text-slate-blue',
-    button: 'bg-slate-blue hover:bg-slate-blue/90 text-white',
+    bg: "bg-yellow-200",
+    text: "text-slate-blue",
+    button: "bg-slate-blue hover:bg-slate-blue/90 text-white",
     features: [
-      'Up to 10 Business Locations',
-      'Workflow management',
-      '1 Universal prompt page per business',
-      '10,000 contacts / prompt pages',
-      'Review widget',
-      'Analytics',
+      "Up to 10 Business Locations",
+      "Workflow management",
+      "1 Universal prompt page per business",
+      "10,000 contacts / prompt pages",
+      "Review widget",
+      "Analytics",
     ],
   },
 ];
@@ -59,95 +59,148 @@ interface PricingModalProps {
 }
 
 function getButtonLabel(tierKey: string, currentPlan?: string) {
-  if (!currentPlan) return 'Choose';
-  if (tierKey === currentPlan) return 'Your Plan';
-  if (currentPlan === 'free') return 'Choose';
-  const current = tiers.find(t => t.key === currentPlan);
-  const target = tiers.find(t => t.key === tierKey);
-  if (!current || !target) return 'Choose';
-  if (target.order > current.order) return 'Upgrade';
-  if (target.order < current.order) return 'Downgrade';
-  return 'Choose';
+  if (!currentPlan) return "Choose";
+  if (tierKey === currentPlan) return "Your Plan";
+  if (currentPlan === "free") return "Choose";
+  const current = tiers.find((t) => t.key === currentPlan);
+  const target = tiers.find((t) => t.key === tierKey);
+  if (!current || !target) return "Choose";
+  if (target.order > current.order) return "Upgrade";
+  if (target.order < current.order) return "Downgrade";
+  return "Choose";
 }
 
 const featureTooltips: Record<string, string> = {
-  'Workflow management': 'Automate and organize your review collection process.',
-  'Review widget': 'Embed a review collection widget on your website.',
-  'Analytics': 'Track review performance and engagement.',
-  'Universal prompt page': 'A single page to collect reviews from any platform, including a QR code for easy sharing.',
-  'custom prompt pages': 'Custom prompt pages are designed for sending a personalized review request to an individual customer or client.',
-  'prompt pages': 'Prompt pages are designed for sending a personalized review request to an individual customer or client.',
+  "Workflow management":
+    "Automate and organize your review collection process.",
+  "Review widget": "Embed a review collection widget on your website.",
+  Analytics: "Track review performance and engagement.",
+  "Universal prompt page":
+    "A single page to collect reviews from any platform, including a QR code for easy sharing.",
+  "custom prompt pages":
+    "Custom prompt pages are designed for sending a personalized review request to an individual customer or client.",
+  "prompt pages":
+    "Prompt pages are designed for sending a personalized review request to an individual customer or client.",
 };
 
-export default function PricingModal({ onSelectTier, asModal = true, currentPlan, hasHadPaidPlan = false }: PricingModalProps) {
+export default function PricingModal({
+  onSelectTier,
+  asModal = true,
+  currentPlan,
+  hasHadPaidPlan = false,
+}: PricingModalProps) {
   const [tooltip, setTooltip] = useState<string | null>(null);
-  const [tooltipPos, setTooltipPos] = useState<{x: number, y: number} | null>(null);
+  const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(
+    null,
+  );
   const wrapperClass = asModal
-    ? 'fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 overflow-y-auto'
-    : 'w-full flex flex-col items-center justify-center';
+    ? "fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 overflow-y-auto"
+    : "w-full flex flex-col items-center justify-center";
   return (
     <div className={wrapperClass}>
       <div className="flex flex-col items-center w-full max-w-7xl mx-auto p-8 px-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full">
-          {tiers.map(tier => {
-            const isGrower = tier.key === 'grower';
+          {tiers.map((tier) => {
+            const isGrower = tier.key === "grower";
             return (
               <div
                 key={tier.key}
                 className={
                   `${tier.bg} rounded-2xl shadow-lg p-8 md:p-10 flex flex-col items-center w-full max-w-xs md:max-w-sm lg:max-w-md xl:max-w-lg relative ` +
-                  (tier.key === currentPlan ? ' border border-4 border-solid border-indigo-700' : '') +
-                  (
-                    isGrower && !hasHadPaidPlan && (!currentPlan || currentPlan === 'grower' || currentPlan === 'free' || currentPlan === 'none')
-                      ? ' ring-2 ring-yellow-400'
-                      : ''
-                  )
+                  (tier.key === currentPlan
+                    ? " border border-4 border-solid border-indigo-700"
+                    : "") +
+                  (isGrower &&
+                  !hasHadPaidPlan &&
+                  (!currentPlan ||
+                    currentPlan === "grower" ||
+                    currentPlan === "free" ||
+                    currentPlan === "none")
+                    ? " ring-2 ring-yellow-400"
+                    : "")
                 }
                 style={{
                   minHeight: 420,
-                  marginBottom: '2rem',
-                  borderColor: tier.key === currentPlan ? '#4338ca' : undefined
+                  marginBottom: "2rem",
+                  borderColor: tier.key === currentPlan ? "#4338ca" : undefined,
                 }}
               >
                 {/* Show gold banner only if user has NOT had a paid plan and is NOT currently subscribed */}
-                {isGrower && !hasHadPaidPlan && (!currentPlan || currentPlan === 'grower' || currentPlan === 'free' || currentPlan === 'none') && (
-                  <span className="absolute -top-5 left-1/2 -translate-x-1/2 bg-yellow-400 text-slate-900 font-bold px-4 py-1 rounded-full text-xs shadow-lg z-10 border border-yellow-300">14-day Free Trial</span>
-                )}
-                <h3 className={`text-3xl font-bold mb-2 ${tier.text}`}>{tier.name}</h3>
-                <div className={`text-2xl font-semibold mb-4 ${tier.text}`}>{tier.price}</div>
+                {isGrower &&
+                  !hasHadPaidPlan &&
+                  (!currentPlan ||
+                    currentPlan === "grower" ||
+                    currentPlan === "free" ||
+                    currentPlan === "none") && (
+                    <span className="absolute -top-5 left-1/2 -translate-x-1/2 bg-yellow-400 text-slate-900 font-bold px-4 py-1 rounded-full text-xs shadow-lg z-10 border border-yellow-300">
+                      14-day Free Trial
+                    </span>
+                  )}
+                <h3 className={`text-3xl font-bold mb-2 ${tier.text}`}>
+                  {tier.name}
+                </h3>
+                <div className={`text-2xl font-semibold mb-4 ${tier.text}`}>
+                  {tier.price}
+                </div>
                 <ul className="mb-8 text-lg text-gray-800 space-y-2">
-                  {tier.features.map(f => {
+                  {tier.features.map((f) => {
                     // Hide the 14-day free trial feature if user is already subscribed or has had a paid plan
                     if (
                       isGrower &&
-                      f.includes('14-day free trial') &&
-                      (hasHadPaidPlan || (currentPlan && currentPlan !== 'grower' && currentPlan !== 'free' && currentPlan !== 'none'))
+                      f.includes("14-day free trial") &&
+                      (hasHadPaidPlan ||
+                        (currentPlan &&
+                          currentPlan !== "grower" &&
+                          currentPlan !== "free" &&
+                          currentPlan !== "none"))
                     ) {
                       return null;
                     }
-                    const isBold = f.startsWith('**');
-                    const cleanFeature = f.replace('**', '');
-                    let tooltipText = featureTooltips[cleanFeature.replace('*', '').trim()];
-                    if (!tooltipText && cleanFeature.toLowerCase().includes('prompt pages')) {
-                      tooltipText = featureTooltips['prompt pages'];
+                    const isBold = f.startsWith("**");
+                    const cleanFeature = f.replace("**", "");
+                    let tooltipText =
+                      featureTooltips[cleanFeature.replace("*", "").trim()];
+                    if (
+                      !tooltipText &&
+                      cleanFeature.toLowerCase().includes("prompt pages")
+                    ) {
+                      tooltipText = featureTooltips["prompt pages"];
                     }
                     return (
                       <li
                         key={f}
-                        className={isBold ? 'font-bold flex items-center' : 'flex items-center'}
-                        style={{ position: 'relative' }}
-                        onMouseEnter={e => {
+                        className={
+                          isBold
+                            ? "font-bold flex items-center"
+                            : "flex items-center"
+                        }
+                        style={{ position: "relative" }}
+                        onMouseEnter={(e) => {
                           if (tooltipText) {
                             setTooltip(tooltipText);
-                            const rect = (e.target as HTMLElement).getBoundingClientRect();
-                            setTooltipPos({ x: rect.left + rect.width / 2, y: rect.top });
+                            const rect = (
+                              e.target as HTMLElement
+                            ).getBoundingClientRect();
+                            setTooltipPos({
+                              x: rect.left + rect.width / 2,
+                              y: rect.top,
+                            });
                           }
                         }}
-                        onMouseLeave={() => { setTooltip(null); setTooltipPos(null); }}
+                        onMouseLeave={() => {
+                          setTooltip(null);
+                          setTooltipPos(null);
+                        }}
                       >
                         {cleanFeature}
                         {tooltipText && (
-                          <span className="ml-2 text-gray-400 cursor-pointer" tabIndex={0} aria-label="More info">&#9432;</span>
+                          <span
+                            className="ml-2 text-gray-400 cursor-pointer"
+                            tabIndex={0}
+                            aria-label="More info"
+                          >
+                            &#9432;
+                          </span>
                         )}
                       </li>
                     );
@@ -161,10 +214,13 @@ export default function PricingModal({ onSelectTier, asModal = true, currentPlan
                   {getButtonLabel(tier.key, currentPlan)}
                 </button>
                 {/* Always render a div for consistent button row height */}
-                <div className="mt-2 text-xs text-gray-500 text-center w-full" style={{ minHeight: 20 }}>
-                  {tier.key === 'grower' && !hasHadPaidPlan && (
-                    '*No credit card necessary'
-                  )}
+                <div
+                  className="mt-2 text-xs text-gray-500 text-center w-full"
+                  style={{ minHeight: 20 }}
+                >
+                  {tier.key === "grower" &&
+                    !hasHadPaidPlan &&
+                    "*No credit card necessary"}
                 </div>
               </div>
             );
@@ -173,19 +229,40 @@ export default function PricingModal({ onSelectTier, asModal = true, currentPlan
         {tooltip && tooltipPos && (
           <div
             className="fixed z-50 px-4 py-2 bg-white text-gray-900 text-sm rounded shadow-lg border border-gray-200"
-            style={{ left: tooltipPos.x, top: tooltipPos.y - 40, transform: 'translate(-50%, -100%)', pointerEvents: 'none' }}
+            style={{
+              left: tooltipPos.x,
+              top: tooltipPos.y - 40,
+              transform: "translate(-50%, -100%)",
+              pointerEvents: "none",
+            }}
           >
             {tooltip}
           </div>
         )}
         <div className="mt-8 text-xs text-black text-center w-full">
-          By continuing, you agree to our{' '}
-          <a href="/terms" target="_blank" rel="noopener noreferrer" className="underline text-indigo-700 hover:text-indigo-900">Terms & Conditions</a>{' '}and{' '}
-          <a href="/privacy" target="_blank" rel="noopener noreferrer" className="underline text-indigo-700 hover:text-indigo-900">Privacy Policy</a>.
+          By continuing, you agree to our{" "}
+          <a
+            href="/terms"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline text-indigo-700 hover:text-indigo-900"
+          >
+            Terms & Conditions
+          </a>{" "}
+          and{" "}
+          <a
+            href="/privacy"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline text-indigo-700 hover:text-indigo-900"
+          >
+            Privacy Policy
+          </a>
+          .
         </div>
       </div>
     </div>
   );
 }
 
-export { tiers }; 
+export { tiers };

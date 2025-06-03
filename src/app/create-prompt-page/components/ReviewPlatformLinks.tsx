@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 import { Input } from "@/app/components/ui/input";
 
 interface ReviewPlatformLink {
@@ -14,22 +14,25 @@ interface ReviewPlatformLinksProps {
 }
 
 const PLATFORM_OPTIONS = [
-  { value: 'google', label: 'Google' },
-  { value: 'yelp', label: 'Yelp' },
-  { value: 'facebook', label: 'Facebook' },
-  { value: 'trustpilot', label: 'Trustpilot' },
-  { value: 'other', label: 'Other' },
+  { value: "google", label: "Google" },
+  { value: "yelp", label: "Yelp" },
+  { value: "facebook", label: "Facebook" },
+  { value: "trustpilot", label: "Trustpilot" },
+  { value: "other", label: "Other" },
 ];
 
-export default function ReviewPlatformLinks({ links, onChange }: ReviewPlatformLinksProps) {
-  const [newPlatform, setNewPlatform] = useState('');
-  const [newUrl, setNewUrl] = useState('');
+export default function ReviewPlatformLinks({
+  links,
+  onChange,
+}: ReviewPlatformLinksProps) {
+  const [newPlatform, setNewPlatform] = useState("");
+  const [newUrl, setNewUrl] = useState("");
 
   const handleAddLink = () => {
     if (newPlatform && newUrl) {
       onChange([...links, { platform: newPlatform, url: newUrl }]);
-      setNewPlatform('');
-      setNewUrl('');
+      setNewPlatform("");
+      setNewUrl("");
     }
   };
 
@@ -42,7 +45,10 @@ export default function ReviewPlatformLinks({ links, onChange }: ReviewPlatformL
     <div className="space-y-4">
       <div className="flex items-end space-x-4">
         <div className="flex-1">
-          <label htmlFor="platform" className="block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="platform"
+            className="block text-sm font-medium text-gray-700"
+          >
             Platform
           </label>
           <select
@@ -60,7 +66,10 @@ export default function ReviewPlatformLinks({ links, onChange }: ReviewPlatformL
           </select>
         </div>
         <div className="flex-1">
-          <label htmlFor="url" className="block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="url"
+            className="block text-sm font-medium text-gray-700"
+          >
             Review URL
           </label>
           <Input
@@ -82,13 +91,19 @@ export default function ReviewPlatformLinks({ links, onChange }: ReviewPlatformL
 
       {links.length > 0 && (
         <div className="mt-4">
-          <h3 className="text-sm font-medium text-gray-700 mb-2">Added Platforms</h3>
+          <h3 className="text-sm font-medium text-gray-700 mb-2">
+            Added Platforms
+          </h3>
           <ul className="space-y-2">
             {links.map((link, index) => (
-              <li key={index} className="flex items-center justify-between bg-gray-50 p-3 rounded-md">
+              <li
+                key={index}
+                className="flex items-center justify-between bg-gray-50 p-3 rounded-md"
+              >
                 <div>
                   <span className="font-medium">
-                    {PLATFORM_OPTIONS.find((p) => p.value === link.platform)?.label || link.platform}
+                    {PLATFORM_OPTIONS.find((p) => p.value === link.platform)
+                      ?.label || link.platform}
                   </span>
                   <span className="text-gray-500 text-sm ml-2">{link.url}</span>
                 </div>
@@ -106,4 +121,4 @@ export default function ReviewPlatformLinks({ links, onChange }: ReviewPlatformL
       )}
     </div>
   );
-} 
+}

@@ -1,4 +1,4 @@
-import FiveStarSpinner from './FiveStarSpinner';
+import FiveStarSpinner from "./FiveStarSpinner";
 
 export default function AppLoader({ size = 24 }: { size?: number } = {}) {
   return (
@@ -7,4 +7,4 @@ export default function AppLoader({ size = 24 }: { size?: number } = {}) {
       <div className="mt-4 text-lg text-white font-semibold">Loading…</div>
     </div>
   );
-} 
+}

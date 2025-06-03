@@ -1,8 +1,11 @@
-import { createClient } from '@supabase/supabase-js';
-import { Suspense } from 'react';
+import { createClient } from "@supabase/supabase-js";
+import { Suspense } from "react";
 
-console.log('DOCKER ENV SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
-console.log('DOCKER ENV SUPABASE_ANON_KEY:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+console.log("DOCKER ENV SUPABASE_URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
+console.log(
+  "DOCKER ENV SUPABASE_ANON_KEY:",
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+);
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -30,7 +33,7 @@ export type PromptPage = {
   offer_body?: string;
   offer_url?: string;
   account_id: string;
-  status: 'in_queue' | 'in_progress' | 'complete' | 'draft';
+  status: "in_queue" | "in_progress" | "complete" | "draft";
   first_name?: string;
   last_name?: string;
   role?: string;
@@ -43,7 +46,7 @@ export type ReviewSubmission = {
   prompt_page_id: string;
   platform: string;
   submitted_at: string;
-  status: 'clicked' | 'submitted';
+  status: "clicked" | "submitted";
   user_agent: string | null;
   ip_address: string | null;
   created_at: string;
@@ -82,18 +85,18 @@ export type Database = {
     Tables: {
       prompt_pages: {
         Row: PromptPage;
-        Insert: Omit<PromptPage, 'id' | 'created_at' | 'updated_at'>;
-        Update: Partial<Omit<PromptPage, 'id'>>;
+        Insert: Omit<PromptPage, "id" | "created_at" | "updated_at">;
+        Update: Partial<Omit<PromptPage, "id">>;
       };
       review_submissions: {
         Row: ReviewSubmission;
-        Insert: Omit<ReviewSubmission, 'id' | 'submitted_at'>;
-        Update: Partial<Omit<ReviewSubmission, 'id'>>;
+        Insert: Omit<ReviewSubmission, "id" | "submitted_at">;
+        Update: Partial<Omit<ReviewSubmission, "id">>;
       };
       contacts: {
         Row: Contact;
-        Insert: Omit<Contact, 'id' | 'created_at' | 'updated_at'>;
-        Update: Partial<Omit<Contact, 'id'>>;
+        Insert: Omit<Contact, "id" | "created_at" | "updated_at">;
+        Update: Partial<Omit<Contact, "id">>;
       };
     };
   };
@@ -105,4 +108,4 @@ export async function getUserOrMock(supabase: any) {
 
 export async function getSessionOrMock(supabase: any) {
   return await supabase.auth.getSession();
-} 
+}

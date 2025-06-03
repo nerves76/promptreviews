@@ -1,4 +1,4 @@
-import AppLoader from './AppLoader';
+import AppLoader from "./AppLoader";
 
 export default function TopLoaderOverlay() {
   return (
@@ -6,4 +6,4 @@ export default function TopLoaderOverlay() {
       <AppLoader />
     </div>
   );
-} 
+}
