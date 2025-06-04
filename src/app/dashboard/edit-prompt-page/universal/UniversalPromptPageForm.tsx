@@ -289,7 +289,11 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
                                             ? "w-6 h-6 text-green-500"
                                             : opt.key === "peace"
                                               ? "w-6 h-6 text-purple-500"
-                                              : "w-6 h-6"
+                                              : opt.key === "bicycle"
+                                                ? "w-6 h-6 text-green-500"
+                                                : opt.key === "anchor"
+                                                  ? "w-6 h-6 text-blue-500"
+                                                  : "w-6 h-6"
                     }
                   />
                 </button>

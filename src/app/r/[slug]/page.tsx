@@ -46,6 +46,8 @@ import {
   FaDumbbell,
   FaPagelines,
   FaPeace,
+  FaBicycle,
+  FaAnchor,
 } from "react-icons/fa";
 import { IconType } from "react-icons";
 import ReviewSubmissionForm from "@/components/ReviewSubmissionForm";
@@ -244,6 +246,7 @@ export default function PromptPage() {
     clipboard: false,
     bookmarks: false,
   });
+  const [showOnlyHeart, setShowOnlyHeart] = useState(false);
   const saveMenuRef = useRef<HTMLDivElement>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<number | null>(null);
@@ -287,6 +290,9 @@ export default function PromptPage() {
   const [fallbackModalText, setFallbackModalText] = useState("");
   const [fallbackModalUrl, setFallbackModalUrl] = useState("");
   const aiButtonEnabled = promptPage?.ai_button_enabled !== false;
+  // Add state for showing the review form after sentiment
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [selectedSentiment, setSelectedSentiment] = useState<string | null>(null);
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -892,6 +898,19 @@ export default function PromptPage() {
     }
   }, [promptPage, mergedFallingEnabled, sentimentComplete, sentiment]);
 
+  // Hide Save text on mobile when scrolling down
+  useEffect(() => {
+    function handleScroll() {
+      if (window.innerWidth <= 640) {
+        setShowOnlyHeart(window.scrollY > 60);
+      } else {
+        setShowOnlyHeart(false);
+      }
+    }
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">
@@ -938,7 +957,7 @@ export default function PromptPage() {
       {/* Special Offer Banner - very top, thin, dismissible */}
       {showBanner && (
         <div
-          className="w-full flex items-center justify-center relative px-2 py-4 bg-yellow-50 border-b border-yellow-300 shadow-sm z-50"
+          className="w-full flex items-center justify-center relative px-2 py-1 bg-yellow-50 border-b border-yellow-300 shadow-sm z-50"
           style={{ minHeight: 64, fontSize: "1rem" }}
         >
           <OfferCard
@@ -949,7 +968,7 @@ export default function PromptPage() {
             iconColor="#facc15"
           />
           <button
-            className="absolute top-2 right-2 text-black text-lg font-bold hover:text-yellow-600 focus:outline-none"
+            className="absolute top-2 right-2 text-yellow-900 text-lg font-bold hover:text-yellow-600 focus:outline-none"
             aria-label="Dismiss"
             onClick={() => setShowRewardsBanner(false)}
             style={{ lineHeight: 1 }}
@@ -1140,6 +1159,34 @@ export default function PromptPage() {
                       }}
                     />
                   );
+                else if (promptPage.falling_icon === "bicycle")
+                  IconComp = (
+                    <FaBicycle
+                      className="absolute animate-fall"
+                      style={{
+                        color: "#22c55e", // green
+                        fontSize: size,
+                        left: 0,
+                        top: 0,
+                        animationDuration: `${duration}s`,
+                        animationDelay: `${delay}s`,
+                      }}
+                    />
+                  );
+                else if (promptPage.falling_icon === "anchor")
+                  IconComp = (
+                    <FaAnchor
+                      className="absolute animate-fall"
+                      style={{
+                        color: "#3b82f6", // blue
+                        fontSize: size,
+                        left: 0,
+                        top: 0,
+                        animationDuration: `${duration}s`,
+                        animationDelay: `${delay}s`,
+                      }}
+                    />
+                  );
                 const top = -40 - Math.random() * 360; // increase vertical spread: -40px to -400px
                 return (
                   <span
@@ -1160,7 +1207,7 @@ export default function PromptPage() {
           )}
         {/* Save for Later Button */}
         <div
-          className={`fixed right-4 z-50 transition-all duration-300 ${showBanner ? "top-24" : "top-4"}`}
+          className={`fixed right-4 z-50 transition-all duration-300 ${showBanner ? "top-28 sm:top-24" : "top-4"}`}
           ref={saveMenuRef}
         >
           <button
@@ -1175,8 +1222,8 @@ export default function PromptPage() {
             }}
           >
             <FaHeart className="w-5 h-5" />
-            <span className="hidden sm:inline">Save for Later</span>
-            <span className="inline sm:hidden">Save</span>
+            <span className={`hidden sm:inline${showOnlyHeart ? " sm:hidden" : ""}`}>{showOnlyHeart ? "" : "Save for Later"}</span>
+            <span className={`inline sm:hidden${showOnlyHeart ? " hidden" : ""}`}>{showOnlyHeart ? "" : "Save"}</span>
           </button>
 
           {showSaveMenu && (
@@ -1361,8 +1408,18 @@ export default function PromptPage() {
                   sentiment || "",
                 ) && (
                   <div className="w-full flex justify-center my-8">
-                    <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-[1000px] w-full flex flex-col items-center animate-fadein relative">
-                      <h2 className="text-2xl font-bold text-slate-blue mb-4">
+                    <div
+                      className="rounded-2xl shadow-2xl p-8 max-w-[1000px] w-full flex flex-col items-center animate-fadein relative"
+                      style={{
+                        background: businessProfile.card_bg || "#fff",
+                        color: businessProfile.card_text || "#1A1A1A",
+                        fontFamily: businessProfile.primary_font || "Inter",
+                      }}
+                    >
+                      <h2
+                        className="text-2xl font-bold mb-4"
+                        style={{ color: businessProfile.primary_color || "#4F46E5" }}
+                      >
                         {promptPage.emoji_feedback_message ||
                           "We value your feedback! Let us know how we can do better."}
                       </h2>
@@ -1435,7 +1492,8 @@ export default function PromptPage() {
                           <div className="flex-1">
                             <label
                               htmlFor="feedbackFirstName"
-                              className="block text-sm font-medium text-gray-700"
+                              className="block text-sm font-medium"
+                              style={{ color: businessProfile.card_text || "#1A1A1A" }}
                             >
                               First Name <span className="text-red-500">*</span>
                             </label>
@@ -1443,17 +1501,21 @@ export default function PromptPage() {
                               type="text"
                               id="feedbackFirstName"
                               value={feedbackFirstName}
-                              onChange={(e) =>
-                                setFeedbackFirstName(e.target.value)
-                              }
+                              onChange={(e) => setFeedbackFirstName(e.target.value)}
                               required
                               className="mt-1 block w-full rounded-lg border border-gray-300 p-3"
+                              style={{
+                                background: businessProfile.card_bg || "#fff",
+                                color: businessProfile.card_text || "#1A1A1A",
+                                fontFamily: businessProfile.primary_font || "Inter",
+                              }}
                             />
                           </div>
                           <div className="flex-1">
                             <label
                               htmlFor="feedbackLastName"
-                              className="block text-sm font-medium text-gray-700"
+                              className="block text-sm font-medium"
+                              style={{ color: businessProfile.card_text || "#1A1A1A" }}
                             >
                               Last Name <span className="text-red-500">*</span>
                             </label>
@@ -1461,11 +1523,14 @@ export default function PromptPage() {
                               type="text"
                               id="feedbackLastName"
                               value={feedbackLastName}
-                              onChange={(e) =>
-                                setFeedbackLastName(e.target.value)
-                              }
+                              onChange={(e) => setFeedbackLastName(e.target.value)}
                               required
                               className="mt-1 block w-full rounded-lg border border-gray-300 p-3"
+                              style={{
+                                background: businessProfile.card_bg || "#fff",
+                                color: businessProfile.card_text || "#1A1A1A",
+                                fontFamily: businessProfile.primary_font || "Inter",
+                              }}
                             />
                           </div>
                         </div>
@@ -1473,7 +1538,8 @@ export default function PromptPage() {
                           <div className="flex-1">
                             <label
                               htmlFor="feedbackEmail"
-                              className="block text-sm font-medium text-gray-700"
+                              className="block text-sm font-medium"
+                              style={{ color: businessProfile.card_text || "#1A1A1A" }}
                             >
                               Email <span className="text-red-500">*</span>
                             </label>
@@ -1484,12 +1550,18 @@ export default function PromptPage() {
                               onChange={(e) => setFeedbackEmail(e.target.value)}
                               required
                               className="mt-1 block w-full rounded-lg border border-gray-300 p-3"
+                              style={{
+                                background: businessProfile.card_bg || "#fff",
+                                color: businessProfile.card_text || "#1A1A1A",
+                                fontFamily: businessProfile.primary_font || "Inter",
+                              }}
                             />
                           </div>
                           <div className="flex-1">
                             <label
                               htmlFor="feedbackPhone"
-                              className="block text-sm font-medium text-gray-700"
+                              className="block text-sm font-medium"
+                              style={{ color: businessProfile.card_text || "#1A1A1A" }}
                             >
                               Phone (optional)
                             </label>
@@ -1499,19 +1571,34 @@ export default function PromptPage() {
                               value={feedbackPhone}
                               onChange={(e) => setFeedbackPhone(e.target.value)}
                               className="mt-1 block w-full rounded-lg border border-gray-300 p-3"
+                              style={{
+                                background: businessProfile.card_bg || "#fff",
+                                color: businessProfile.card_text || "#1A1A1A",
+                                fontFamily: businessProfile.primary_font || "Inter",
+                              }}
                             />
                           </div>
                         </div>
                         <textarea
-                          className="w-full rounded-lg border border-gray-300 p-4 min-h-[120px] focus:ring-2 focus:ring-indigo-400 mb-4"
+                          className="w-full rounded-lg border border-gray-300 p-4 min-h-[120px] focus:ring-2 mb-4"
                           placeholder="Your feedback..."
                           value={feedback}
                           onChange={(e) => setFeedback(e.target.value)}
                           required
+                          style={{
+                            background: businessProfile.card_bg || "#fff",
+                            color: businessProfile.card_text || "#1A1A1A",
+                            fontFamily: businessProfile.primary_font || "Inter",
+                          }}
                         />
                         <button
                           type="submit"
-                          className="px-6 py-2 bg-slate-blue text-white rounded-lg font-semibold shadow hover:bg-indigo-900 transition"
+                          className="px-6 py-2 rounded-lg font-semibold shadow transition"
+                          style={{
+                            background: businessProfile.secondary_color || "#818CF8",
+                            color: "#fff",
+                            fontFamily: businessProfile.primary_font || "Inter",
+                          }}
                           disabled={feedbackSubmitting}
                         >
                           Submit Feedback
@@ -1763,7 +1850,7 @@ export default function PromptPage() {
                                         marginLeft: "4px"
                                       }}
                                     >
-                                      {platform.platform || platform.name}
+                                      Leave a review on {(platform.platform || platform.name) === "Google Business Profile" ? "Google" : (platform.platform || platform.name)}
                                     </div>
                                     {platform.customInstructions &&
                                       platform.customInstructions.trim() && (
@@ -2070,13 +2157,13 @@ export default function PromptPage() {
 
               {/* PromptReviews Advertisement (always visible) */}
               <div
-                className="mt-12 mb-12 rounded-2xl shadow p-8 animate-slideup"
+                className="mt-12 mb-12 rounded-2xl shadow p-4 md:p-8 animate-slideup"
                 style={{
                   background: getAccessibleColor(businessProfile?.primary_color || "#4F46E5")
                 }}
               >
-                <div className="flex flex-col md:flex-row items-center text-center md:text-left gap-8 md:items-center">
-                  <div className="flex-shrink-0 flex items-center justify-center w-full md:w-48 mb-4 md:mb-0">
+                <div className="flex flex-col md:flex-row items-center text-center md:text-left gap-4 md:gap-8 md:items-center">
+                  <div className="flex-shrink-0 flex items-center justify-center w-full md:w-48 mb-0">
                     <a
                       href="https://promptreviews.app"
                       target="_blank"
@@ -2096,7 +2183,7 @@ export default function PromptPage() {
                         Powered by Prompt Reviews
                       </span>
                     </div>
-                    <p className="max-w-2xl text-white">
+                    <p className="max-w-2xl text-white text-sm md:text-base">
                       Get more reviews for your business with our easy-to-use
                       review management platform. Create custom review pages,
                       track your progress, and grow your online presence.
@@ -2199,12 +2286,13 @@ export default function PromptPage() {
           feedbackMessage={mergedEmojiFeedbackMessage}
           thankYouMessage={mergedEmojiThankYouMessage}
           onPositive={(sentimentValue) => {
-            if (mergedFallingEnabled) {
-              setShowSentimentModal(false);
-              setSentiment(sentimentValue);
-              setSentimentComplete(true);
-            }
+            setShowSentimentModal(false);
+            setSentiment(sentimentValue);
+            setSentimentComplete(true);
           }}
+          headerColor={businessProfile?.primary_color || "#4F46E5"}
+          buttonColor={businessProfile?.secondary_color || "#818CF8"}
+          fontFamily={businessProfile?.primary_font || "Inter"}
         />
       )}
     </div>

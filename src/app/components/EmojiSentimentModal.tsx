@@ -16,6 +16,9 @@ interface EmojiSentimentModalProps {
   thankYouMessage?: string;
   emojiLabels?: string[];
   onPositive?: (sentiment: string) => void;
+  headerColor?: string;
+  buttonColor?: string;
+  fontFamily?: string;
 }
 
 const EmojiSentimentModal: React.FC<EmojiSentimentModalProps> = ({
@@ -26,6 +29,9 @@ const EmojiSentimentModal: React.FC<EmojiSentimentModalProps> = ({
   thankYouMessage = "Thank you for your feedback!",
   emojiLabels = EMOJI_SENTIMENT_LABELS,
   onPositive,
+  headerColor = "#4F46E5",
+  buttonColor = "#4F46E5",
+  fontFamily = "Inter",
 }) => {
   const [selected, setSelected] = useState<number | null>(0);
   const [feedback, setFeedback] = useState("");
@@ -40,12 +46,18 @@ const EmojiSentimentModal: React.FC<EmojiSentimentModalProps> = ({
   // Modal overlay and card
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 animate-fadein">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full relative animate-slideup border-2 border-blue-200">
-        <div className="mb-4 text-base font-medium text-gray-800 text-center">
+      <div
+        className="bg-white rounded-2xl shadow-2xl p-10 max-w-lg w-full relative animate-slideup border-2 border-blue-200"
+        style={{ fontFamily }}
+      >
+        <div
+          className="mb-8 text-3xl font-bold text-center"
+          style={{ color: headerColor }}
+        >
           {question}
         </div>
         {/* Emoji row */}
-        <div className="flex justify-center gap-3 my-3 select-none">
+        <div className="flex justify-center gap-6 my-8 select-none">
           {emojiLabels.map((label, i) => {
             const iconDef = EMOJI_SENTIMENT_ICONS[i];
             const Icon = iconDef?.icon || EMOJI_SENTIMENT_ICONS[1].icon;
@@ -60,66 +72,28 @@ const EmojiSentimentModal: React.FC<EmojiSentimentModalProps> = ({
                 type="button"
               >
                 <Icon
-                  className={`w-10 h-10 ${color} ${selected === i ? "ring-2 ring-blue-400" : ""}`}
+                  className={`w-12 h-12 ${color} ${selected === i ? "ring-2 ring-blue-400" : ""}`}
                 />
-                <span className="text-xs mt-1 text-gray-700">{label}</span>
+                <span className="text-sm mt-2 text-gray-700">{label}</span>
               </button>
             );
           })}
         </div>
         {/* Feedback/Continue logic */}
-        {selected !== null &&
-        !submitted &&
-        ["neutral", "unsatisfied", "angry"].includes(
-          emojiLabels[selected].toLowerCase(),
-        ) ? (
-          <form
-            className="mt-4 flex flex-col gap-3"
-            onSubmit={(e) => {
-              e.preventDefault();
-              setSubmitted(true);
+        <div className="mt-8 text-center">
+          <button
+            className="px-8 py-3 rounded-lg font-bold text-lg shadow-lg text-white hover:opacity-90 focus:outline-none transition"
+            style={{ backgroundColor: buttonColor }}
+            onClick={() => {
+              if (selected !== null) {
+                onPositive && onPositive(emojiLabels[selected].toLowerCase());
+              }
               onClose();
             }}
           >
-            <div className="text-sm text-gray-700 mb-1 text-center">
-              {feedbackMessage}
-            </div>
-            <textarea
-              className="w-full rounded-lg border border-gray-300 p-3 text-base bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none"
-              value={feedback}
-              onChange={(e) => setFeedback(e.target.value)}
-              rows={3}
-              maxLength={160}
-              placeholder="Your feedback..."
-              required
-            />
-            <button
-              type="submit"
-              className="w-full px-6 py-3 rounded-lg font-bold text-lg shadow-lg bg-slate-blue text-white hover:bg-indigo-900 focus:outline-none transition"
-            >
-              Submit Feedback
-            </button>
-          </form>
-        ) : (
-          <div className="mt-6 text-center">
-            <button
-              className="px-6 py-3 rounded-lg font-bold text-lg shadow-lg bg-slate-blue text-white hover:bg-indigo-900 focus:outline-none transition"
-              onClick={() => {
-                if (
-                  selected !== null &&
-                  ["excellent", "satisfied"].includes(
-                    emojiLabels[selected].toLowerCase(),
-                  )
-                ) {
-                  onPositive && onPositive(emojiLabels[selected].toLowerCase());
-                }
-                onClose();
-              }}
-            >
-              Continue
-            </button>
-          </div>
-        )}
+            Continue
+          </button>
+        </div>
       </div>
     </div>
   );
