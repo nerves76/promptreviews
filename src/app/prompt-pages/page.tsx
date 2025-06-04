@@ -363,18 +363,16 @@ export default function PromptPages() {
       {/* Style Modal */}
       {showStyleModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-2xl max-w-2xl w-full relative overflow-visible" style={{ height: '95vh', maxHeight: '95vh', boxShadow: '0 8px 32px rgba(30, 41, 59, 0.18)' }}>
+          <div className="bg-white rounded-2xl w-full max-w-[600px] p-0 relative flex flex-col items-stretch">
             <button
-              className="absolute -top-4 -right-4 bg-white border border-gray-200 rounded-full shadow-lg z-20 flex items-center justify-center hover:bg-gray-100 focus:outline-none"
+              className="absolute top-4 right-4 bg-white border border-gray-200 rounded-full shadow z-20 flex items-center justify-center hover:bg-gray-100 focus:outline-none"
               style={{ width: 40, height: 40 }}
               onClick={() => setShowStyleModal(false)}
               aria-label="Close style modal"
             >
               <FaTimes className="w-5 h-5 text-red-600" />
             </button>
-            <div className="p-0">
-              <StylePage />
-            </div>
+            <StylePage />
           </div>
         </div>
       )}
