@@ -17,7 +17,7 @@ import { FaHandsHelping, FaBoxOpen } from "react-icons/fa";
 import { MdPhotoCamera, MdVideoLibrary, MdEvent } from "react-icons/md";
 import { useRouter } from "next/navigation";
 
-const StylePage = dynamic(() => import("../dashboard/style/page"), { ssr: false });
+const StylePage = dynamic(() => import("../dashboard/style/StyleModalPage"), { ssr: false });
 
 export default function PromptPages() {
   const [loading, setLoading] = useState(true);
@@ -200,7 +200,7 @@ export default function PromptPages() {
           <div className="flex flex-col gap-2">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
               <div>
-                <h1 className="text-3xl md:text-4xl font-bold text-slate-blue mb-0">Prompt Pages</h1>
+                <h1 className="text-3xl md:text-4xl font-bold text-slate-blue mb-0">Prompt pages</h1>
                 <p className="text-gray-600 text-base max-w-2xl mb-6">Create and manage your prompt pages and outreach efforts.</p>
               </div>
               <button
@@ -363,16 +363,26 @@ export default function PromptPages() {
       {/* Style Modal */}
       {showStyleModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-2xl w-full max-w-[600px] p-0 relative flex flex-col items-stretch">
-            <button
-              className="absolute top-4 right-4 bg-white border border-gray-200 rounded-full shadow z-20 flex items-center justify-center hover:bg-gray-100 focus:outline-none"
-              style={{ width: 40, height: 40 }}
-              onClick={() => setShowStyleModal(false)}
-              aria-label="Close style modal"
-            >
-              <FaTimes className="w-5 h-5 text-red-600" />
-            </button>
-            <StylePage />
+          <div
+            className="bg-white rounded-2xl w-full max-w-[600px] relative flex flex-col"
+            style={{ maxHeight: "90vh" }}
+          >
+            {/* Header with close button */}
+            <div className="flex items-center justify-between px-6 py-4 border-b sticky top-0 bg-white z-10 rounded-t-2xl">
+              <h2 className="text-2xl font-bold text-slate-blue m-0">Prompt page style</h2>
+              <button
+                className="bg-white border border-gray-200 rounded-full shadow flex items-center justify-center hover:bg-gray-100 focus:outline-none"
+                style={{ width: 40, height: 40 }}
+                onClick={() => setShowStyleModal(false)}
+                aria-label="Close style modal"
+              >
+                <FaTimes className="w-5 h-5 text-red-600" />
+              </button>
+            </div>
+            {/* Scrollable content */}
+            <div className="overflow-y-auto px-6 py-4" style={{ maxHeight: "calc(90vh - 72px)" }}>
+              <StylePage />
+            </div>
           </div>
         </div>
       )}
