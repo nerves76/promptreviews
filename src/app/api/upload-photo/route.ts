@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
     // 2. List all files in testimonial-photos bucket
     let totalSize = 0;
     let page = 1;
-    let allFiles = [];
+    let allFiles: any[] = [];
     while (true) {
       const { data: files, error: listError } = await supabase.storage
         .from("testimonial-photos")
