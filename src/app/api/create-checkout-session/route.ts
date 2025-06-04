@@ -2,14 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+const stripeSecretKey = "sk_test_hardcoded_key";
 if (!stripeSecretKey) {
   throw new Error("STRIPE_SECRET_KEY is not set");
 }
 const stripe = new Stripe(stripeSecretKey, { apiVersion: "2025-05-28.basil" });
 
-const builderPriceId = process.env.STRIPE_PRICE_ID_BUILDER || "";
-const mavenPriceId = process.env.STRIPE_PRICE_ID_MAVEN || "";
+const builderPriceId = "price_123" || "";
+const mavenPriceId = "price_456" || "";
 if (!builderPriceId || !mavenPriceId) {
   throw new Error("Stripe price IDs are not set");
 }

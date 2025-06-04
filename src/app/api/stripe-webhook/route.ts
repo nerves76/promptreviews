@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+const stripeSecretKey = "sk_test_hardcoded_key";
 if (!stripeSecretKey) {
   throw new Error("STRIPE_SECRET_KEY is not set");
 }
@@ -10,7 +10,7 @@ const stripe = new Stripe(stripeSecretKey);
 
 export async function POST(req: NextRequest) {
   const sig = req.headers.get("stripe-signature");
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  const webhookSecret = "whsec_hardcoded_secret";
   if (!webhookSecret) {
     throw new Error("STRIPE_WEBHOOK_SECRET is not set");
   }

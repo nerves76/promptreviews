@@ -258,7 +258,7 @@ export default function BusinessForm({
                 <button
                   onClick={handleCropConfirm}
                   type="button"
-                  className="px-4 py-2 rounded bg-indigo-600 text-white"
+                  className="px-4 py-2 rounded bg-slate-blue text-white hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue"
                 >
                   Crop & Save
                 </button>
