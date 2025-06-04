@@ -26,21 +26,21 @@ const OfferCard: React.FC<OfferCardProps> = ({
     <offerConfig.icon
       style={{
         color: iconColor,
-        fontSize: 18,
-        marginRight: 8,
+        fontSize: 32,
+        marginRight: 12,
         verticalAlign: "middle",
       }}
     />
   );
   return (
-    <div className="bg-yellow-50 rounded-lg flex flex-col items-center justify-center w-full min-h-[30px] h-[30px] px-4 py-0 animate-slideup">
-      <div className="flex items-center justify-center w-full gap-2">
-        {Icon}
-        <span className="text-sm font-semibold text-yellow-900 truncate text-center">
+    <div className="bg-yellow-50 rounded-lg flex flex-col items-center justify-center w-full min-h-[48px] h-auto px-4 pt-0 pb-1 sm:pt-4 sm:pb-3 animate-slideup">
+      <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center w-full gap-2 sm:gap-3 text-sm sm:text-base">
+        <span className="hidden sm:inline">{Icon}</span>
+        <span className="font-bold text-yellow-900 truncate text-center text-lg sm:text-lg mb-0">
           {title}
         </span>
         {message && (
-          <span className="text-xs text-yellow-800 mx-2 text-center">
+          <span className="text-yellow-800 mx-0 sm:mx-3 text-center text-base sm:text-base text-sm mb-0">
             {message}
           </span>
         )}
@@ -50,13 +50,14 @@ const OfferCard: React.FC<OfferCardProps> = ({
             href={learnMoreUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="px-2 py-0 bg-yellow-400 text-yellow-900 rounded font-semibold hover:bg-yellow-300 transition text-xs h-[22px] flex items-center"
+            className="underline text-yellow-900 font-bold text-base text-center"
+            style={{ display: "inline", marginTop: 0 }}
           >
             {buttonText}
           </a>
         ) : (
           <button
-            className="px-2 py-0 bg-yellow-400 text-yellow-900 rounded font-semibold hover:bg-yellow-300 transition text-xs h-[22px] flex items-center"
+            className="mt-2 sm:mt-0 px-4 py-2 bg-yellow-400 text-yellow-900 rounded font-bold hover:bg-yellow-300 transition text-base h-auto flex items-center w-full sm:w-auto justify-center"
             onClick={onButtonClick}
           >
             {buttonText}

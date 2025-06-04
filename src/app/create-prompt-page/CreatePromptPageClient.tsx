@@ -813,19 +813,19 @@ export default function CreatePromptPageClient() {
           </div>
         </div>
       )}
-      <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
-        <PageCard>
-          <PromptPageForm
-            mode="create"
-            initialData={formData}
-            onSave={handleStep1Submit}
-            onPublish={handleStep2Submit}
-            pageTitle="Create Your Prompt Page"
-            supabase={supabase}
-            businessProfile={businessProfile}
-          />
-        </PageCard>
-      </div>
+    <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
+      <PageCard>
+        <PromptPageForm
+          mode="create"
+          initialData={formData}
+          onSave={handleStep1Submit}
+          onPublish={handleStep2Submit}
+          pageTitle="Create Your Prompt Page"
+          supabase={supabase}
+          businessProfile={businessProfile}
+        />
+      </PageCard>
+    </div>
     </>
   );
 }

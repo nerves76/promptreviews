@@ -59,6 +59,7 @@ import FiveStarSpinner from "@/app/components/FiveStarSpinner";
 import PromptReviewsLogo from "@/app/dashboard/components/PromptReviewsLogo";
 import PageCard from "@/app/components/PageCard";
 import imageCompression from 'browser-image-compression';
+import { getAccessibleColor } from "@/utils/colorUtils";
 
 interface StyleSettings {
   name: string;
@@ -80,6 +81,8 @@ interface StyleSettings {
   gradient_start: string;
   gradient_middle: string;
   gradient_end: string;
+  card_bg: string;
+  card_text: string;
 }
 
 interface ReviewPlatform {
@@ -94,7 +97,7 @@ interface BusinessProfile {
   logo_url: string | null;
   primary_font: string;
   secondary_font: string;
-  header_color: string;
+  primary_color: string;
   secondary_color: string;
   background_color: string;
   text_color: string;
@@ -118,6 +121,8 @@ interface BusinessProfile {
   default_offer_url?: string;
   address_city?: string;
   address_state?: string;
+  card_bg: string;
+  card_text: string;
 }
 
 // Helper to get platform icon based on URL or platform name
@@ -186,12 +191,41 @@ const sentimentOptions = [
   },
 ];
 
+// Helper to determine if card_bg is off-white or cream
+function isOffWhiteOrCream(color: string) {
+  const offWhites = ["#F8FAFC", "#F9FAFB", "#F3F4F6", "#FAF3E3", "#FFF9E3", "#FFF8E1", "#FDF6EC", "#F5F5DC", "#FFFDD0", "#FFFDE7", "#FFFBEA"];
+  return offWhites.map(c => c.toUpperCase()).includes(color.toUpperCase());
+}
+
 export default function PromptPage() {
   const router = useRouter();
   const params = useParams();
   const [promptPage, setPromptPage] = useState<any>(null);
-  const [businessProfile, setBusinessProfile] =
-    useState<BusinessProfile | null>(null);
+  const [businessProfile, setBusinessProfile] = useState<BusinessProfile>({
+    name: "",
+    logo_url: null,
+    primary_font: "Inter",
+    secondary_font: "Inter",
+    primary_color: "#4F46E5",
+    secondary_color: "#818CF8",
+    background_color: "#FFFFFF",
+    text_color: "#1F2937",
+    facebook_url: null,
+    instagram_url: null,
+    bluesky_url: null,
+    tiktok_url: null,
+    youtube_url: null,
+    linkedin_url: null,
+    pinterest_url: null,
+    background_type: "gradient",
+    gradient_start: "#3B82F6",
+    gradient_middle: "",
+    gradient_end: "#c026d3",
+    business_name: "",
+    review_platforms: [],
+    card_bg: "#FFFFFF",
+    card_text: "#1A1A1A",
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -266,42 +300,87 @@ export default function PromptPage() {
       const slug = params.slug as string;
 
       try {
-        const { data: promptData, error: promptError } = await supabase
-          .from("prompt_pages")
-          .select("*")
-          .eq("slug", slug)
-          .single();
-
-        if (promptError) {
-          console.error("PromptPage Supabase error:", promptError);
-          throw promptError;
-        }
-        setPromptPage(promptData);
-
-        const { data: businessData, error: businessError } = await supabase
-          .from("businesses")
-          .select("*")
-          .eq("account_id", promptData.account_id)
-          .single();
-
-        if (businessError) {
-          console.error("BusinessProfile Supabase error:", businessError);
-          throw businessError;
-        }
-        console.log("Business data from Supabase:", businessData);
-        setBusinessProfile({
-          ...businessData,
-          business_name: businessData.name,
-          review_platforms: [],
-          business_website: businessData.business_website,
-          default_offer_url: businessData.default_offer_url,
+        // Log Supabase configuration (without sensitive data)
+        console.log("Supabase configuration:", {
+          url: process.env.NEXT_PUBLIC_SUPABASE_URL ? "set" : "not set",
+          anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? "set" : "not set"
         });
-        console.log(
-          "Set business profile with website:",
-          businessData.business_website,
-        );
-      } catch (err) {
-        console.error("PromptPage fetch error:", err);
+
+        // First query - Get prompt page
+        try {
+          const { data: promptData, error: promptError } = await supabase
+            .from("prompt_pages")
+            .select("*")
+            .eq("slug", slug)
+            .maybeSingle(); // Use maybeSingle() instead of single()
+
+          if (promptError) {
+            console.error("PromptPage Supabase error details:", {
+              message: promptError.message,
+              details: promptError.details,
+              hint: promptError.hint,
+              code: promptError.code
+            });
+            throw promptError;
+          }
+
+          if (!promptData) {
+            setError(`Page not found: ${slug}`);
+            setLoading(false);
+            return;
+          }
+
+          console.log("Successfully fetched prompt page:", promptData);
+          setPromptPage(promptData);
+
+          // Second query - Get business profile
+          try {
+            const { data: businessData, error: businessError } = await supabase
+              .from("businesses")
+              .select("*")
+              .eq("account_id", promptData.account_id)
+              .maybeSingle(); // Use maybeSingle() instead of single()
+
+            if (businessError) {
+              console.error("BusinessProfile Supabase error details:", {
+                message: businessError.message,
+                details: businessError.details,
+                hint: businessError.hint,
+                code: businessError.code
+              });
+              throw businessError;
+            }
+
+            if (!businessData) {
+              setError(`Business profile not found for account: ${promptData.account_id}`);
+              setLoading(false);
+              return;
+            }
+
+            console.log("Successfully fetched business profile:", businessData);
+            setBusinessProfile({
+              ...businessData,
+              business_name: businessData.name,
+              review_platforms: [],
+              business_website: businessData.business_website,
+              default_offer_url: businessData.default_offer_url,
+              card_bg: businessData.card_bg,
+              card_text: businessData.card_text,
+            });
+          } catch (businessErr: unknown) {
+            console.error("Error fetching business profile:", businessErr);
+            throw businessErr;
+          }
+        } catch (promptErr: unknown) {
+          console.error("Error fetching prompt page:", promptErr);
+          throw promptErr;
+        }
+      } catch (err: unknown) {
+        console.error("PromptPage fetch error:", {
+          error: err,
+          message: err instanceof Error ? err.message : "Unknown error",
+          stack: err instanceof Error ? err.stack : undefined
+        });
         setError(err instanceof Error ? err.message : "Failed to load page");
       } finally {
         setLoading(false);
@@ -794,12 +873,10 @@ export default function PromptPage() {
   const backgroundStyle =
     businessProfile?.background_type === "gradient"
       ? {
-          background: `linear-gradient(to bottom right, ${businessProfile.gradient_start}, ${businessProfile.gradient_middle}, ${businessProfile.gradient_end})`,
-          color: businessProfile?.text_color || "#1F2937",
+          background: `linear-gradient(to bottom, ${businessProfile.gradient_start}, ${businessProfile.gradient_end})`,
         }
       : {
-          backgroundColor: businessProfile?.background_color || "#FFFFFF",
-          color: businessProfile?.text_color || "#1F2937",
+          background: businessProfile?.background_color || "#fff",
         };
 
   // Trigger falling animation after sentiment modal is completed with a positive sentiment
@@ -857,12 +934,12 @@ export default function PromptPage() {
   }
 
   return (
-    <>
+    <div style={backgroundStyle} className="min-h-screen w-full">
       {/* Special Offer Banner - very top, thin, dismissible */}
       {showBanner && (
         <div
-          className="w-full flex items-center justify-center relative px-2 py-1 bg-yellow-50 border-b border-yellow-300 shadow-sm z-50"
-          style={{ minHeight: 0, fontSize: "1rem" }}
+          className="w-full flex items-center justify-center relative px-2 py-4 bg-yellow-50 border-b border-yellow-300 shadow-sm z-50"
+          style={{ minHeight: 64, fontSize: "1rem" }}
         >
           <OfferCard
             title={offerTitle}
@@ -872,7 +949,7 @@ export default function PromptPage() {
             iconColor="#facc15"
           />
           <button
-            className="absolute right-4 text-black text-lg font-bold hover:text-yellow-600 focus:outline-none"
+            className="absolute top-2 right-2 text-black text-lg font-bold hover:text-yellow-600 focus:outline-none"
             aria-label="Dismiss"
             onClick={() => setShowRewardsBanner(false)}
             style={{ lineHeight: 1 }}
@@ -1083,13 +1160,19 @@ export default function PromptPage() {
           )}
         {/* Save for Later Button */}
         <div
-          className={`fixed right-4 z-50 transition-all duration-300 ${showBanner ? "top-16" : "top-4"}`}
+          className={`fixed right-4 z-50 transition-all duration-300 ${showBanner ? "top-24" : "top-4"}`}
           ref={saveMenuRef}
         >
           <button
             onClick={() => setShowSaveMenu(!showSaveMenu)}
-            className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-md hover:bg-gray-50 transition-colors"
-            style={{ color: businessProfile?.header_color || "#4F46E5" }}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg shadow-md hover:bg-gray-50 transition-colors"
+            style={{
+              background: isOffWhiteOrCream(businessProfile?.card_bg || "#FFFFFF")
+                ? businessProfile?.card_bg || "#FFFFFF"
+                : "#FFFFFF",
+              color: getAccessibleColor(businessProfile?.primary_color || "#4F46E5"),
+              border: "1px solid #E5E7EB"
+            }}
           >
             <FaHeart className="w-5 h-5" />
             <span className="hidden sm:inline">Save for Later</span>
@@ -1101,7 +1184,7 @@ export default function PromptPage() {
               <button
                 onClick={() => handleSaveOption("calendar")}
                 className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
-                style={{ color: businessProfile?.header_color || "#4F46E5" }}
+                style={{ color: businessProfile?.primary_color || "#4F46E5" }}
               >
                 <FaCalendarAlt className="w-4 h-4" />
                 Add to Calendar
@@ -1109,7 +1192,7 @@ export default function PromptPage() {
               <button
                 onClick={() => handleSaveOption("email")}
                 className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
-                style={{ color: businessProfile?.header_color || "#4F46E5" }}
+                style={{ color: businessProfile?.primary_color || "#4F46E5" }}
               >
                 <FaEnvelope className="w-4 h-4" />
                 Email to Self
@@ -1117,7 +1200,7 @@ export default function PromptPage() {
               <button
                 onClick={() => handleSaveOption("home-screen")}
                 className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
-                style={{ color: businessProfile?.header_color || "#4F46E5" }}
+                style={{ color: businessProfile?.primary_color || "#4F46E5" }}
               >
                 <FaHome className="w-4 h-4" />
                 Add to Home Screen
@@ -1126,7 +1209,7 @@ export default function PromptPage() {
                 <button
                   onClick={() => handleSaveOption("copy-link")}
                   className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
-                  style={{ color: businessProfile?.header_color || "#4F46E5" }}
+                  style={{ color: businessProfile?.primary_color || "#4F46E5" }}
                 >
                   <FaLink className="w-4 h-4" />
                   Copy Link
@@ -1136,7 +1219,7 @@ export default function PromptPage() {
                 <button
                   onClick={() => handleSaveOption("reading-list")}
                   className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
-                  style={{ color: businessProfile?.header_color || "#4F46E5" }}
+                  style={{ color: businessProfile?.primary_color || "#4F46E5" }}
                 >
                   <FaBookmark className="w-4 h-4" />
                   Add to Reading List
@@ -1145,7 +1228,7 @@ export default function PromptPage() {
               <button
                 onClick={() => handleSaveOption("pocket")}
                 className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
-                style={{ color: businessProfile?.header_color || "#4F46E5" }}
+                style={{ color: businessProfile?.primary_color || "#4F46E5" }}
               >
                 <svg
                   className="w-4 h-4"
@@ -1159,7 +1242,7 @@ export default function PromptPage() {
               <button
                 onClick={() => handleSaveOption("instapaper")}
                 className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
-                style={{ color: businessProfile?.header_color || "#4F46E5" }}
+                style={{ color: businessProfile?.primary_color || "#4F46E5" }}
               >
                 <svg
                   className="w-4 h-4"
@@ -1174,7 +1257,7 @@ export default function PromptPage() {
                 <button
                   onClick={() => handleSaveOption("favorites")}
                   className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
-                  style={{ color: businessProfile?.header_color || "#4F46E5" }}
+                  style={{ color: businessProfile?.primary_color || "#4F46E5" }}
                 >
                   <FaFavorites className="w-4 h-4" />
                   Bookmark in Browser
@@ -1212,7 +1295,7 @@ export default function PromptPage() {
                 {/* Business Name - Added more space above */}
                 <h1
                   className={`text-3xl font-bold text-center mb-1 mt-24 ${businessProfile?.primary_font || "font-inter"}`}
-                  style={{ color: businessProfile?.header_color || "#4F46E5" }}
+                  style={{ color: businessProfile?.primary_color || "#4F46E5" }}
                 >
                   {businessProfile?.business_name || "Business Name"}
                 </h1>
@@ -1235,40 +1318,40 @@ export default function PromptPage() {
                   <div className="bg-white rounded-2xl shadow p-8 mb-8 flex flex-col md:flex-row items-center md:items-start max-w-[1000px] mx-auto animate-slideup relative mt-12 gap-8">
                     {promptPage.product_photo && (
                       <div className="flex-shrink-0 mb-4 md:mb-0">
-                        <img
-                          src={promptPage.product_photo}
-                          alt={promptPage.product_name}
+                      <img
+                        src={promptPage.product_photo}
+                        alt={promptPage.product_name}
                           className="rounded-2xl w-[300px] h-[300px] object-cover border"
-                        />
+                      />
                       </div>
                     )}
                     <div className="flex-1 flex flex-col justify-center items-center md:items-start text-center md:text-left">
                       <h2 className="text-2xl font-bold text-slate-blue mb-2">
-                        {promptPage.product_name}
-                      </h2>
-                      {/* Only show details if not neutral/frustrated sentiment */}
-                      {(!sentiment ||
-                        (sentiment !== "neutral" &&
-                          sentiment !== "frustrated")) && (
-                        <>
-                          {promptPage.product_description && (
+                      {promptPage.product_name}
+                    </h2>
+                    {/* Only show details if not neutral/frustrated sentiment */}
+                    {(!sentiment ||
+                      (sentiment !== "neutral" &&
+                        sentiment !== "frustrated")) && (
+                      <>
+                        {promptPage.product_description && (
                             <div className="text-lg text-gray-700 mb-3">
-                              {promptPage.product_description}
-                            </div>
-                          )}
-                          {promptPage.features_or_benefits?.length > 0 && (
-                            <ul className="mb-3 text-gray-700 text-base list-disc list-inside">
-                              {promptPage.features_or_benefits.map(
-                                (f: string, i: number) =>
-                                  f && <li key={i}>{f}</li>,
-                              )}
-                            </ul>
-                          )}
-                          <div className="text-sm text-gray-500">
-                            Share your experience with this product below!
+                            {promptPage.product_description}
                           </div>
-                        </>
-                      )}
+                        )}
+                        {promptPage.features_or_benefits?.length > 0 && (
+                          <ul className="mb-3 text-gray-700 text-base list-disc list-inside">
+                            {promptPage.features_or_benefits.map(
+                              (f: string, i: number) =>
+                                f && <li key={i}>{f}</li>,
+                            )}
+                          </ul>
+                        )}
+                          <div className="text-sm text-gray-500">
+                          Share your experience with this product below!
+                        </div>
+                      </>
+                    )}
                     </div>
                   </div>
                 )}
@@ -1570,13 +1653,13 @@ export default function PromptPage() {
                               <FaPenFancy
                                 style={{
                                   color:
-                                    businessProfile?.header_color || "#4F46E5",
+                                    businessProfile?.primary_color || "#4F46E5",
                                 }}
                               />
                               <span
                                 style={{
                                   color:
-                                    businessProfile?.header_color || "#4F46E5",
+                                    businessProfile?.primary_color || "#4F46E5",
                                 }}
                               >
                                 {aiLoadingPhoto
@@ -1589,7 +1672,7 @@ export default function PromptPage() {
                               className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg hover:bg-gray-50 transition-colors"
                               style={{
                                 color:
-                                  businessProfile?.header_color || "#4F46E5",
+                                  businessProfile?.primary_color || "#4F46E5",
                               }}
                               disabled={photoSubmitting}
                               title="Copies your review and takes you to review site"
@@ -1666,18 +1749,18 @@ export default function PromptPage() {
                                       className="w-7 h-7"
                                       style={{
                                         color:
-                                          businessProfile?.header_color ||
+                                          businessProfile?.primary_color ||
                                           "#4F46E5",
                                       }}
                                     />
                                   </div>
-                                  <div className="flex items-center gap-3 mb-2 mt-0">
+                                  <div className="flex items-center gap-3 mb-4 mt-0">
                                     <div
                                       className={`text-2xl font-bold ${businessProfile?.primary_font || "font-inter"}`}
                                       style={{
-                                        color:
-                                          businessProfile?.header_color ||
-                                          "#1A237E",
+                                        color: businessProfile?.primary_color || "#4F46E5",
+                                        marginTop: "-5px",
+                                        marginLeft: "4px"
                                       }}
                                     >
                                       {platform.platform || platform.name}
@@ -1701,7 +1784,7 @@ export default function PromptPage() {
                                             className="inline-block w-5 h-5 align-middle relative"
                                             style={{
                                               color:
-                                                businessProfile?.header_color ||
+                                                businessProfile?.primary_color ||
                                                 "#1A237E",
                                               top: "-2px",
                                             }}
@@ -1755,7 +1838,7 @@ export default function PromptPage() {
                                           )
                                         }
                                         placeholder="Ezra"
-                                        className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                                        className="w-full mt-1 mb-2 p-3 border rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                         required
                                       />
                                     </div>
@@ -1778,7 +1861,7 @@ export default function PromptPage() {
                                           )
                                         }
                                         placeholder="Scout"
-                                        className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                                        className="w-full mt-1 mb-2 p-3 border rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                         required
                                       />
                                     </div>
@@ -1801,7 +1884,7 @@ export default function PromptPage() {
                                           )
                                         }
                                         placeholder="Store Manager, GreenSprout Co-Op"
-                                        className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                                        className="w-full mt-1 mb-2 p-3 border rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                       />
                                     </div>
                                   </div>
@@ -1837,14 +1920,14 @@ export default function PromptPage() {
                                         <FaPenFancy
                                           style={{
                                             color:
-                                              businessProfile?.header_color ||
+                                              businessProfile?.primary_color ||
                                               "#4F46E5",
                                           }}
                                         />
                                         <span
                                           style={{
                                             color:
-                                              businessProfile?.header_color ||
+                                              businessProfile?.primary_color ||
                                               "#4F46E5",
                                           }}
                                         >
@@ -1904,8 +1987,7 @@ export default function PromptPage() {
                             <h2
                               className={`text-2xl font-bold mt-0 mb-6 ${businessProfile?.primary_font || "font-inter"}`}
                               style={{
-                                color:
-                                  businessProfile?.header_color || "#000000",
+                                color: businessProfile?.primary_color || "#4F46E5",
                               }}
                             >
                               Visit Our Website
@@ -1917,7 +1999,7 @@ export default function PromptPage() {
                               className="inline-block text-xl font-medium hover:opacity-80 transition-opacity"
                               style={{
                                 color:
-                                  businessProfile?.header_color || "#4F46E5",
+                                  businessProfile?.primary_color || "#4F46E5",
                               }}
                               onClick={async () => {
                                 if (!promptPage?.id) return;
@@ -1940,7 +2022,7 @@ export default function PromptPage() {
                           <h2
                             className={`text-2xl font-bold mt-0 mb-6 text-center md:text-left ${businessProfile?.primary_font || "font-inter"}`}
                             style={{
-                              color: businessProfile?.header_color || "#000000",
+                              color: businessProfile?.primary_color || "#4F46E5",
                             }}
                           >
                             {`Follow ${businessProfile?.business_name || "us"} on Social`}
@@ -1968,7 +2050,7 @@ export default function PromptPage() {
                               pinterest_url={
                                 businessProfile.pinterest_url || undefined
                               }
-                              color={businessProfile.header_color || "#3b82f6"}
+                              color={businessProfile.primary_color || "#4F46E5"}
                               onIconClick={async (platform) => {
                                 if (!promptPage?.id) return;
                                 await sendAnalyticsEvent({
@@ -1988,9 +2070,9 @@ export default function PromptPage() {
 
               {/* PromptReviews Advertisement (always visible) */}
               <div
-                className="mt-12 mb-12 bg-white rounded-2xl shadow p-8 animate-slideup"
+                className="mt-12 mb-12 rounded-2xl shadow p-8 animate-slideup"
                 style={{
-                  background: businessProfile?.header_color || "#4F46E5",
+                  background: getAccessibleColor(businessProfile?.primary_color || "#4F46E5")
                 }}
               >
                 <div className="flex flex-col md:flex-row items-center text-center md:text-left gap-8 md:items-center">
@@ -2023,7 +2105,7 @@ export default function PromptPage() {
                       href="https://promptreviews.com"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="mt-4 font-medium hover:opacity-80 transition-opacity inline-block text-white underline"
+                      className="mt-4 font-medium hover:opacity-80 transition-opacity inline-block underline text-white"
                     >
                       Learn more about Prompt Reviews →
                     </a>
@@ -2125,6 +2207,6 @@ export default function PromptPage() {
           }}
         />
       )}
-    </>
+    </div>
   );
 }

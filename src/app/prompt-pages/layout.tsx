@@ -16,9 +16,9 @@ export default function PublicPromptLayout({
 }) {
   return (
     <div
-      className={`${inter.className} min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 overscroll-x-auto`}
-    >
-      {children}
+        className={`${inter.className} min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 overscroll-x-auto`}
+      >
+        {children}
     </div>
   );
 }
