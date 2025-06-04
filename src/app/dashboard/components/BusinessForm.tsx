@@ -199,10 +199,10 @@ export default function BusinessForm({
             />
           )}
           <div className="flex-1 w-full max-w-xs">
-            <label className="block font-medium text-sm text-gray-500 mb-1">
-              Business logo (PNG, JPG, or WebP, max 400×400px, max 300KB)
-              <Tooltip text="For best results, upload a square logo (400×400 pixels) in PNG, JPG, or WebP format, under 300KB. A white background is recommended. Images will be automatically optimized and converted to WebP for best results." />
+            <label className="block font-bold text-lg text-gray-900 mb-1">
+              Upload your logo or your face (whichever is more iconic).
             </label>
+            <div className="text-sm text-gray-500 mb-2">400x400px for best results (PNG, JPG, or WEBP)</div>
             <input
               type="file"
               accept="image/png, image/jpeg, image/webp"

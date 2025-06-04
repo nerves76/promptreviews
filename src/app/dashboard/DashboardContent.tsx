@@ -24,6 +24,7 @@ import { getUserOrMock } from "@/utils/supabase";
 import QRCodeGenerator, { QR_FRAME_SIZES } from "./components/QRCodeGenerator";
 import { useRouter } from "next/navigation";
 import AppLoader from "@/app/components/AppLoader";
+import React from "react";
 
 interface DashboardContentProps {
   userName: string;
@@ -142,34 +143,34 @@ export default function DashboardContent({
     {
       key: "service",
       label: "Service review",
-      icon: <FaHandsHelping className="w-7 h-7 text-slate-blue" />,
+      icon: <FaHandsHelping size={28} color="#1A237E" />,
       description:
         "Capture a review from a customer or client who loves what you do",
     },
     {
       key: "photo",
       label: "Photo + testimonial",
-      icon: <MdPhotoCamera className="w-7 h-7 text-[#1A237E]" />,
+      icon: <MdPhotoCamera size={28} color="#1A237E" />,
       description:
         "Capture a headshot and testimonial to display on your website or in marketing materials.",
     },
     {
       key: "product",
       label: "Product review",
-      icon: <FaBoxOpen className="w-7 h-7 text-slate-blue" />,
+      icon: <FaBoxOpen size={28} color="#1A237E" />,
       description: "Get a review from a customer who fancies your products",
     },
     {
       key: "video",
       label: "Video testimonial",
-      icon: <MdVideoLibrary className="w-7 h-7 text-[#1A237E]" />,
+      icon: <MdVideoLibrary size={28} color="#1A237E" />,
       description: "Request a video testimonial from your client.",
       comingSoon: true,
     },
     {
       key: "experience",
       label: "Experiences & spaces",
-      icon: <MdEvent className="w-7 h-7 text-[#1A237E]" />,
+      icon: <MdEvent size={28} color="#1A237E" />,
       description: "For events, rentals, tours, and more.",
       comingSoon: true,
     },
@@ -498,22 +499,6 @@ export default function DashboardContent({
           <div>
             <div className="flex items-center justify-between mb-8">
               <h1 className="text-4xl font-bold text-slate-blue">Dashboard</h1>
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (
-                    (isGrower && sortedPromptPages.length >= maxGrowerPages) ||
-                    (isBuilder && sortedPromptPages.length >= maxBuilderPages)
-                  ) {
-                    setShowLimitModal(true);
-                    return;
-                  }
-                  setShowTypeModal(true);
-                }}
-                className={`inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm whitespace-nowrap ${(isGrower && sortedPromptPages.length >= maxGrowerPages) || (isBuilder && sortedPromptPages.length >= maxBuilderPages) ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-slate-blue text-white hover:bg-slate-blue/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-blue"}`}
-              >
-                Create Prompt Page
-              </button>
             </div>
             <div className="mb-16">
               <h2 className="text-2xl font-bold text-slate-blue">
@@ -532,7 +517,7 @@ export default function DashboardContent({
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2">
                         <h2 className="text-2xl font-bold text-slate-blue flex items-center gap-3">
-                          <FaGlobe className="w-7 h-7 text-slate-blue" />
+                          <FaGlobe size={28} color="#1A237E" />
                           Universal Prompt Page
                         </h2>
                       </div>
@@ -570,7 +555,7 @@ export default function DashboardContent({
                           onClick={handleCopyLink}
                           className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
                         >
-                          <FaLink className="w-4 h-4" />
+                          <FaLink size={20} color="#1A237E" />
                           Copy link
                         </button>
                         <button
@@ -584,7 +569,7 @@ export default function DashboardContent({
                           }
                           className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-blue text-white rounded hover:bg-slate-blue/90 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
                         >
-                          <MdDownload className="w-5 h-5" />
+                          <MdDownload size={22} color="#fff" />
                           QR code
                         </button>
                         {copySuccess && (
@@ -597,434 +582,6 @@ export default function DashboardContent({
                   </div>
                 </div>
               )}
-              <div className="mb-6">
-                <h2 className="text-3xl font-bold text-slate-blue mb-2 flex items-center gap-3">
-                  <span
-                    className="text-3xl font-bold align-middle text-slate-blue"
-                    style={{ fontFamily: "Inter, sans-serif" }}
-                  >
-                    [P]
-                  </span>
-                  Your custom prompt pages
-                </h2>
-                <p className="text-gray-600 text-base max-w-2xl mb-10">
-                  Create and manage your prompt pages and outreach efforts.
-                </p>
-              </div>
-              <div className="flex items-center gap-4 mb-4">
-                <label
-                  htmlFor="type-filter"
-                  className="text-sm font-medium text-gray-700"
-                >
-                  Filter by type:
-                </label>
-                <select
-                  id="type-filter"
-                  value={selectedType}
-                  onChange={(e) => setSelectedType(e.target.value)}
-                  className="rounded-md border border-gray-300 px-2 py-1 text-sm"
-                >
-                  <option value="">All types</option>
-                  <option value="service">Service review</option>
-                  <option value="product">Product review</option>
-                  <option value="experience">Experiences & spaces</option>
-                  <option value="video">Video testimonial</option>
-                  <option value="photo">Photo + testimonial</option>
-                </select>
-              </div>
-              <div className="flex gap-2 mb-4">
-                <button
-                  className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors ${selectedTab === "draft" ? "border-gray-600 text-gray-700 bg-gray-50" : "border-transparent text-gray-600 bg-gray-100 hover:bg-gray-200"}`}
-                  onClick={() => setSelectedTab("draft")}
-                >
-                  Draft ({draftCount})
-                </button>
-                <button
-                  className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors ${selectedTab === "in_queue" ? "border-indigo-600 text-indigo-700 bg-indigo-50" : "border-transparent text-gray-600 bg-gray-100 hover:bg-gray-200"}`}
-                  onClick={() => setSelectedTab("in_queue")}
-                >
-                  In queue ({inQueueCount})
-                </button>
-                <button
-                  className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors ${selectedTab === "in_progress" ? "border-yellow-500 text-yellow-700 bg-yellow-50" : "border-transparent text-gray-600 bg-gray-100 hover:bg-gray-200"}`}
-                  onClick={() => setSelectedTab("in_progress")}
-                >
-                  In progress ({inProgressCount})
-                </button>
-                <button
-                  className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors ${selectedTab === "complete" ? "border-green-600 text-green-700 bg-green-50" : "border-transparent text-gray-600 bg-gray-100 hover:bg-green-50"}`}
-                  onClick={() => setSelectedTab("complete")}
-                >
-                  Complete ({completeCount})
-                </button>
-              </div>
-              {/* Batch Actions */}
-              {selectedPages.length > 0 && (
-                <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <span className="text-sm text-gray-600">
-                      {selectedPages.length} page
-                      {selectedPages.length !== 1 ? "s" : ""} selected
-                    </span>
-                    <select
-                      value={batchStatus}
-                      onChange={(e) =>
-                        setBatchStatus(
-                          e.target.value as
-                            | "in_queue"
-                            | "in_progress"
-                            | "complete"
-                            | "draft",
-                        )
-                      }
-                      className="rounded-md border-gray-300 text-sm"
-                    >
-                      <option value="in_queue">In queue</option>
-                      <option value="in_progress">In progress</option>
-                      <option value="complete">Complete</option>
-                      <option value="draft">Draft</option>
-                    </select>
-                    <button
-                      onClick={handleBatchStatusUpdate}
-                      className="px-3 py-1.5 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm font-medium"
-                    >
-                      Update Status
-                    </button>
-                  </div>
-                  <button
-                    onClick={() => setShowDeleteModal(true)}
-                    className="px-3 py-1.5 bg-red-600 text-white rounded hover:bg-red-700 text-sm font-medium"
-                  >
-                    Delete Selected
-                  </button>
-                </div>
-              )}
-              {/* Custom Prompt Pages Table */}
-              <div className="mt-0">
-                <div className="mt-4">
-                  {business && sortedPromptPages.length === 0 ? (
-                    <div className="text-center py-24 bg-white rounded-lg border border-gray-200">
-                      <p className="text-gray-500">
-                        No prompt pages in this status.
-                      </p>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-                        <table className="min-w-full divide-y divide-gray-300">
-                          <thead className="bg-gray-50">
-                            <tr>
-                              <th
-                                scope="col"
-                                className="relative w-12 px-3 py-3.5"
-                              >
-                                <input
-                                  type="checkbox"
-                                  className="absolute left-4 top-1/2 -mt-2 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
-                                  checked={
-                                    selectedPages.length ===
-                                    filteredPromptPages.length
-                                  }
-                                  onChange={(e) =>
-                                    handleSelectAll(e.target.checked)
-                                  }
-                                />
-                              </th>
-                              <th
-                                scope="col"
-                                className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 cursor-pointer select-none hover:bg-gray-100 group"
-                                onClick={() => handleSort("first_name")}
-                              >
-                                <div className="flex items-center gap-1">
-                                  First
-                                  <span className="text-gray-400 opacity-50 group-hover:opacity-100">
-                                    {sortField === "first_name" ? (
-                                      sortDirection === "asc" ? (
-                                        "↑"
-                                      ) : (
-                                        "↓"
-                                      )
-                                    ) : (
-                                      <span className="text-xs">↕</span>
-                                    )}
-                                  </span>
-                                </div>
-                              </th>
-                              <th
-                                scope="col"
-                                className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 cursor-pointer select-none hover:bg-gray-100 group"
-                                onClick={() => handleSort("last_name")}
-                              >
-                                <div className="flex items-center gap-1">
-                                  Last
-                                  <span className="text-gray-400 opacity-50 group-hover:opacity-100">
-                                    {sortField === "last_name" ? (
-                                      sortDirection === "asc" ? (
-                                        "↑"
-                                      ) : (
-                                        "↓"
-                                      )
-                                    ) : (
-                                      <span className="text-xs">↕</span>
-                                    )}
-                                  </span>
-                                </div>
-                              </th>
-                              <th
-                                scope="col"
-                                className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 cursor-pointer select-none hover:bg-gray-100 group"
-                                onClick={() => handleSort("review_type")}
-                              >
-                                <div className="flex items-center gap-1">
-                                  Type
-                                  <span className="text-gray-400 opacity-50 group-hover:opacity-100">
-                                    {sortField === "review_type" ? (
-                                      sortDirection === "asc" ? (
-                                        "↑"
-                                      ) : (
-                                        "↓"
-                                      )
-                                    ) : (
-                                      <span className="text-xs">↕</span>
-                                    )}
-                                  </span>
-                                </div>
-                              </th>
-                              <th
-                                scope="col"
-                                className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                              >
-                                Edit
-                              </th>
-                              <th
-                                scope="col"
-                                className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                              >
-                                Status
-                              </th>
-                              <th
-                                scope="col"
-                                className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                              >
-                                Created
-                              </th>
-                              <th
-                                scope="col"
-                                className="relative py-3.5 pl-3 pr-4 sm:pr-6 text-sm font-semibold text-gray-900"
-                              >
-                                Send
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody className="bg-white divide-y divide-gray-200">
-                            {accessiblePromptPages.map((page, index) => (
-                              <tr
-                                key={page.id}
-                                className={
-                                  index % 2 === 0 ? "bg-white" : "bg-blue-50"
-                                }
-                              >
-                                <td className="relative w-12 px-3 py-4">
-                                  <input
-                                    type="checkbox"
-                                    className="absolute left-4 top-1/2 -mt-2 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
-                                    checked={selectedPages.includes(page.id)}
-                                    onChange={(e) =>
-                                      handleSelectPage(
-                                        page.id,
-                                        e.target.checked,
-                                      )
-                                    }
-                                  />
-                                </td>
-                                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
-                                  {page.first_name || ""}
-                                </td>
-                                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
-                                  {page.last_name || ""}
-                                </td>
-                                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900 capitalize">
-                                  {page.review_type === "service" && "Service"}
-                                  {page.review_type === "photo" && "Photo"}
-                                  {page.review_type === "video" && "Video"}
-                                  {page.review_type === "experience" && "Exp."}
-                                  {page.review_type === "product" && "Product"}
-                                  {![
-                                    "service",
-                                    "photo",
-                                    "video",
-                                    "experience",
-                                    "product",
-                                  ].includes(page.review_type || "") &&
-                                    (page.review_type
-                                      ? page.review_type
-                                          .charAt(0)
-                                          .toUpperCase() +
-                                        page.review_type.slice(1)
-                                      : "Service")}
-                                </td>
-                                <td className="whitespace-nowrap px-3 py-4 text-sm flex gap-2 items-center">
-                                  <div className="mt-[6px] flex gap-2">
-                                    <Link
-                                      href={`/r/${page.slug}`}
-                                      className="text-slate-blue underline hover:text-slate-blue/80 hover:underline"
-                                    >
-                                      View
-                                    </Link>
-                                    {page.slug && (
-                                      <Link
-                                        href={
-                                          "/dashboard/edit-prompt-page/universal"
-                                        }
-                                        className="text-slate-blue underline hover:text-slate-blue/80 hover:underline"
-                                      >
-                                        Edit
-                                      </Link>
-                                    )}
-                                  </div>
-                                </td>
-                                <td className="whitespace-nowrap px-3 py-4 text-sm">
-                                  <select
-                                    value={page.status}
-                                    onChange={(e) =>
-                                      updateStatus(
-                                        page.id,
-                                        e.target.value as
-                                          | "in_queue"
-                                          | "in_progress"
-                                          | "complete"
-                                          | "draft",
-                                      )
-                                    }
-                                    className={`rounded-full px-2 py-1 text-xs font-medium ${STATUS_COLORS[page.status] || "bg-gray-100 text-gray-800"}`}
-                                  >
-                                    <option value="in_queue">In queue</option>
-                                    <option value="in_progress">
-                                      In progress
-                                    </option>
-                                    <option value="complete">Complete</option>
-                                    <option value="draft">Draft</option>
-                                  </select>
-                                </td>
-                                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                  {new Date(
-                                    page.created_at,
-                                  ).toLocaleDateString()}
-                                </td>
-                                <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                                  <div className="flex flex-row gap-2 items-center justify-end">
-                                    {!page.is_universal && page.phone && (
-                                      <button
-                                        type="button"
-                                        className="inline-flex items-center px-3 py-1.5 bg-green-100 text-green-800 rounded hover:bg-green-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap w-full sm:w-auto"
-                                        onClick={() => {
-                                          const name =
-                                            page.first_name || "[name]";
-                                          const businessName =
-                                            business?.name || "[Business]";
-                                          const reviewUrl = `${window.location.origin}/r/${page.slug}`;
-                                          const message = `Hi ${name}, do you have 1-3 minutes to leave a review for ${businessName}? I have a review you can use and everything. Positive reviews really help small business get found online. Thanks so much! ${reviewUrl}`;
-                                          window.location.href = `sms:${page.phone}?&body=${encodeURIComponent(message)}`;
-                                        }}
-                                      >
-                                        Send SMS
-                                      </button>
-                                    )}
-                                    {!page.is_universal && page.email && (
-                                      <a
-                                        href={`mailto:${page.email}?subject=${encodeURIComponent("Quick Review Request")}&body=${encodeURIComponent(`Hi ${page.first_name || "[name]"}, do you have 1-3 minutes to leave a review for ${business?.name || "[Business]"}? I have a review you can use and everything. Positive reviews really help small business get found online. Thanks so much! ${window.location.origin}/r/${page.slug}`)}`}
-                                        className="inline-flex items-center px-3 py-1.5 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap w-full sm:w-auto"
-                                      >
-                                        Send Email
-                                      </a>
-                                    )}
-                                    {!page.is_universal && (
-                                      <button
-                                        type="button"
-                                        className="inline-flex items-center px-2 py-1.5 bg-slate-blue text-white rounded hover:bg-slate-blue/80 text-sm font-medium shadow h-9 align-middle whitespace-nowrap w-full sm:w-auto"
-                                        title="Copy link"
-                                        onClick={async () => {
-                                          try {
-                                            await navigator.clipboard.writeText(
-                                              `${window.location.origin}/r/${page.slug}`,
-                                            );
-                                            setCopyLinkId(page.id);
-                                            setTimeout(
-                                              () => setCopyLinkId(null),
-                                              2000,
-                                            );
-                                          } catch (err) {
-                                            alert(
-                                              "Could not copy to clipboard. Please copy manually.",
-                                            );
-                                          }
-                                        }}
-                                      >
-                                        <FaLink className="w-4 h-4" />
-                                      </button>
-                                    )}
-                                    <button
-                                      type="button"
-                                      className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-blue text-white rounded hover:bg-slate-blue/90 text-sm font-medium shadow h-9 align-middle whitespace-nowrap w-full sm:w-auto"
-                                      aria-label="Download QR Code"
-                                      onClick={() =>
-                                        setQrModal({
-                                          open: true,
-                                          url: `${window.location.origin}/r/${page.slug}`,
-                                          clientName:
-                                            `${page.first_name || ""} ${page.last_name || ""}`.trim() ||
-                                            business?.name ||
-                                            "PromptReviews",
-                                        })
-                                      }
-                                    >
-                                      <MdDownload className="w-5 h-5" />
-                                      QR code
-                                    </button>
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
-                            {lockedPromptPages.length > 0 && (
-                              <tr>
-                                <td
-                                  colSpan={8}
-                                  className="py-6 text-center bg-yellow-50 text-yellow-800 font-semibold"
-                                >
-                                  <div className="mb-2">
-                                    You have more than{" "}
-                                    {isGrower
-                                      ? maxGrowerPages
-                                      : maxBuilderPages}{" "}
-                                    prompt pages. Upgrade your plan to access
-                                    the rest.
-                                  </div>
-                                  {lockedPromptPages.map((page) => (
-                                    <div
-                                      key={page.id}
-                                      className="flex items-center justify-between px-4 py-2 bg-yellow-100 rounded mb-2"
-                                    >
-                                      <span className="font-medium">
-                                        Prompt Page:{" "}
-                                        {page.first_name ||
-                                          page.last_name ||
-                                          page.slug}
-                                      </span>
-                                      <span className="text-xs text-yellow-700">
-                                        Locked
-                                      </span>
-                                    </div>
-                                  ))}
-                                </td>
-                              </tr>
-                            )}
-                          </tbody>
-                        </table>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
             </div>
           </div>
 

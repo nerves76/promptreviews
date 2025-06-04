@@ -1232,40 +1232,44 @@ export default function PromptPage() {
               {/* Product Module for Product Pages */}
               {promptPage?.review_type === "product" &&
                 promptPage.product_name && (
-                  <div className="bg-white rounded-2xl shadow p-8 mb-8 flex flex-col items-center max-w-xl mx-auto animate-slideup relative">
+                  <div className="bg-white rounded-2xl shadow p-8 mb-8 flex flex-col md:flex-row items-center md:items-start max-w-[1000px] mx-auto animate-slideup relative mt-12 gap-8">
                     {promptPage.product_photo && (
-                      <img
-                        src={promptPage.product_photo}
-                        alt={promptPage.product_name}
-                        className="rounded-2xl w-[300px] h-[300px] object-cover border mb-4"
-                      />
+                      <div className="flex-shrink-0 mb-4 md:mb-0">
+                        <img
+                          src={promptPage.product_photo}
+                          alt={promptPage.product_name}
+                          className="rounded-2xl w-[300px] h-[300px] object-cover border"
+                        />
+                      </div>
                     )}
-                    <h2 className="text-2xl font-bold text-slate-blue mb-2 text-center">
-                      {promptPage.product_name}
-                    </h2>
-                    {/* Only show details if not neutral/frustrated sentiment */}
-                    {(!sentiment ||
-                      (sentiment !== "neutral" &&
-                        sentiment !== "frustrated")) && (
-                      <>
-                        {promptPage.product_description && (
-                          <div className="text-lg text-gray-700 mb-3 text-center">
-                            {promptPage.product_description}
+                    <div className="flex-1 flex flex-col justify-center items-center md:items-start text-center md:text-left">
+                      <h2 className="text-2xl font-bold text-slate-blue mb-2">
+                        {promptPage.product_name}
+                      </h2>
+                      {/* Only show details if not neutral/frustrated sentiment */}
+                      {(!sentiment ||
+                        (sentiment !== "neutral" &&
+                          sentiment !== "frustrated")) && (
+                        <>
+                          {promptPage.product_description && (
+                            <div className="text-lg text-gray-700 mb-3">
+                              {promptPage.product_description}
+                            </div>
+                          )}
+                          {promptPage.features_or_benefits?.length > 0 && (
+                            <ul className="mb-3 text-gray-700 text-base list-disc list-inside">
+                              {promptPage.features_or_benefits.map(
+                                (f: string, i: number) =>
+                                  f && <li key={i}>{f}</li>,
+                              )}
+                            </ul>
+                          )}
+                          <div className="text-sm text-gray-500">
+                            Share your experience with this product below!
                           </div>
-                        )}
-                        {promptPage.features_or_benefits?.length > 0 && (
-                          <ul className="mb-3 text-gray-700 text-base list-disc list-inside">
-                            {promptPage.features_or_benefits.map(
-                              (f: string, i: number) =>
-                                f && <li key={i}>{f}</li>,
-                            )}
-                          </ul>
-                        )}
-                        <div className="text-sm text-gray-500 text-center">
-                          Share your experience with this product below!
-                        </div>
-                      </>
-                    )}
+                        </>
+                      )}
+                    </div>
                   </div>
                 )}
               {/* Feedback Form Section (if negative sentiment) */}
@@ -1634,29 +1638,9 @@ export default function PromptPage() {
                       </div>
                     )}
                   {/* Review Platforms Section */}
-                  {promptPage?.review_type !== "product" &&
-                    Array.isArray(promptPage?.review_platforms) &&
+                  {Array.isArray(promptPage?.review_platforms) &&
                     promptPage.review_platforms.length > 0 && (
                       <div className="mb-8">
-                        <div className="bg-gray-50 rounded-2xl shadow pt-6 pb-8 px-8 mb-8">
-                          <h2
-                            className={`text-xl font-bold mb-2 mt-0 ${businessProfile?.primary_font || "font-inter"}`}
-                            style={{
-                              color: businessProfile?.header_color || "#4F46E5",
-                            }}
-                          >
-                            {`Give ${businessProfile?.business_name || "this business"} a review`}
-                          </h2>
-                          <p className="text-gray-700 text-base font-semibold mt-1 mb-1">
-                            Estimated time to complete: 1-5 minutes
-                          </p>
-                          <p className="text-gray-700 text-base mt-2">
-                            Reviews help us grow. Write something custom, or use
-                            AI for a headstart. When you're ready, click "Copy &
-                            Submit." You will be taken to the review site where
-                            you can login and paste your review.
-                          </p>
-                        </div>
                         <div className="flex flex-col gap-8">
                           {promptPage.review_platforms.map(
                             (platform: any, idx: number) => {

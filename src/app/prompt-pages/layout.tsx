@@ -15,12 +15,10 @@ export default function PublicPromptLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body
-        className={`${inter.className} min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 overscroll-x-auto`}
-      >
-        {children}
-      </body>
-    </html>
+    <div
+      className={`${inter.className} min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 overscroll-x-auto`}
+    >
+      {children}
+    </div>
   );
 }

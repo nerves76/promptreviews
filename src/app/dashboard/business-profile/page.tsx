@@ -81,7 +81,6 @@ export default function BusinessProfilePage() {
   useAuthGuard();
   const [form, setForm] = useState({
     name: "",
-    features_or_benefits: "",
     company_values: "",
     differentiators: "",
     years_in_business: "",
@@ -421,11 +420,6 @@ export default function BusinessProfilePage() {
       .from("businesses")
       .update({
         name: form.name,
-        features_or_benefits: Array.isArray(services)
-          ? services.filter((s: string) => s && s.trim())
-          : typeof services === "string"
-            ? [services].filter((s: string) => s && s.trim())
-            : [],
         company_values: form.company_values,
         differentiators: form.differentiators,
         years_in_business: form.years_in_business,
@@ -467,7 +461,6 @@ export default function BusinessProfilePage() {
     }
     setSuccess("Profile updated successfully!");
     setLoading(false);
-    setTimeout(() => router.push("/dashboard"), 1500);
   };
 
   if (loading) {
@@ -497,6 +490,11 @@ export default function BusinessProfilePage() {
 
   return (
     <PageCard icon={<FaStore className="w-7 h-7 text-slate-blue" />}>
+      {success && (
+        <div className="mb-6 p-4 bg-green-50 text-green-700 rounded-md text-base font-medium border border-green-200">
+          {success}
+        </div>
+      )}
       <div className="flex items-start justify-between mt-2 mb-4">
         <div className="flex flex-col mt-0 md:mt-[3px]">
           <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
