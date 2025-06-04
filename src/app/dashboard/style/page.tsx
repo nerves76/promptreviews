@@ -59,7 +59,8 @@ const fontOptions = [
   { name: "Plus Jakarta Sans", class: "font-plus-jakarta-sans" },
 ];
 
-export default function StylePage({ noCard = false }: StylePageProps) {
+export default function StylePage() {
+  const noCard = false;
   useAuthGuard();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
