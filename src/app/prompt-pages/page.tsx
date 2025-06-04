@@ -373,7 +373,7 @@ export default function PromptPages() {
               <FaTimes className="w-5 h-5 text-red-600" />
             </button>
             <div className="p-0">
-              <StylePage noCard />
+              <StylePage />
             </div>
           </div>
         </div>
