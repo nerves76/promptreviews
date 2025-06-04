@@ -188,6 +188,43 @@ function mapToDbColumns(formData: any): any {
   );
 }
 
+const promptTypes = [
+  {
+    key: "service",
+    label: "Service review",
+    icon: <FaHandsHelping className="w-7 h-7 text-slate-blue" />,
+    description:
+      "Capture a review from a customer or client who loves what you do",
+  },
+  {
+    key: "photo",
+    label: "Photo + testimonial",
+    icon: <FaCamera className="w-7 h-7 text-[#1A237E]" />,
+    description:
+      "Capture a headshot and testimonial to display on your website or in marketing materials.",
+  },
+  {
+    key: "product",
+    label: "Product review",
+    icon: <FaBoxOpen className="w-7 h-7 text-slate-blue" />,
+    description: "Get a review from a customer who fancies your products",
+  },
+  {
+    key: "video",
+    label: "Video testimonial",
+    icon: <FaVideo className="w-7 h-7 text-[#1A237E]" />,
+    description: "Request a video testimonial from your client.",
+    comingSoon: true,
+  },
+  {
+    key: "experience",
+    label: "Experiences & spaces",
+    icon: <FaGift className="w-7 h-7 text-[#1A237E]" />,
+    description: "For events, rentals, tours, and more.",
+    comingSoon: true,
+  },
+];
+
 export default function CreatePromptPageClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -227,6 +264,8 @@ export default function CreatePromptPageClient() {
     initialFormData.emojiThankYouMessage,
   );
   const didSetType = useRef(false);
+  const [showTypeModal, setShowTypeModal] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -353,6 +392,24 @@ export default function CreatePromptPageClient() {
       contact_id: contact_id ?? prev.contact_id,
     }));
   }, [searchParams]);
+
+  // Show modal if no type is set
+  useEffect(() => {
+    const type = searchParams.get("type") || formData.review_type;
+    if (!type) {
+      setShowTypeModal(true);
+    }
+  }, [searchParams, formData.review_type]);
+
+  // Handler for selecting a prompt type
+  function handlePromptTypeSelect(typeKey: string) {
+    setShowTypeModal(false);
+    setFormData((prev) => ({ ...prev, review_type: typeKey }));
+    // Optionally update the URL query param for type
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
+    params.set("type", typeKey);
+    router.replace(`/create-prompt-page?${params.toString()}`);
+  }
 
   // Add platform handlers
   const handleAddPlatform = () => {
@@ -579,7 +636,12 @@ export default function CreatePromptPageClient() {
         data: { user },
       } = await getUserOrMock(supabase);
       if (!user) throw new Error("No user found");
-      let updateData = mapToDbColumns({ ...formData, account_id: user.id });
+      // Always set review_type to 'product' if this is a product page
+      let reviewType = formData.review_type;
+      if (reviewType !== 'product' && formData.product_name) {
+        reviewType = 'product';
+      }
+      let updateData = mapToDbColumns({ ...formData, account_id: user.id, review_type: reviewType });
       console.log("[DEBUG] handleStep2Submit updateData:", updateData);
       const { data, error } = await supabase
         .from("prompt_pages")
@@ -614,6 +676,10 @@ export default function CreatePromptPageClient() {
       setIsSaving(false);
     }
   };
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   if (isLoading) {
     return (
@@ -704,18 +770,62 @@ export default function CreatePromptPageClient() {
     );
   }
   return (
-    <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
-      <PageCard>
-        <PromptPageForm
-          mode="create"
-          initialData={formData}
-          onSave={handleStep1Submit}
-          onPublish={handleStep2Submit}
-          pageTitle="Create Your Prompt Page"
-          supabase={supabase}
-          businessProfile={businessProfile}
-        />
-      </PageCard>
-    </div>
+    <>
+      {mounted && showTypeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-lg p-8 max-w-3xl w-full text-center relative">
+            <button
+              className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl"
+              onClick={() => setShowTypeModal(false)}
+              aria-label="Close"
+            >
+              &times;
+            </button>
+            <h2 className="text-2xl font-bold text-slate-blue mb-6">
+              Select prompt page type
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              {promptTypes.map((type) => (
+                <button
+                  key={type.key}
+                  onClick={() =>
+                    !type.comingSoon && handlePromptTypeSelect(type.key)
+                  }
+                  className={`flex flex-col items-center gap-2 p-6 rounded-lg border border-gray-200 hover:border-indigo-400 shadow-sm hover:shadow-md transition-all bg-gray-50 hover:bg-indigo-50 focus:outline-none ${type.comingSoon ? "opacity-60 cursor-not-allowed relative" : ""}`}
+                  disabled={!!type.comingSoon}
+                  tabIndex={type.comingSoon ? -1 : 0}
+                >
+                  {type.icon}
+                  <span className="font-semibold text-lg text-slate-blue">
+                    {type.label}
+                  </span>
+                  <span className="text-sm text-gray-600 text-center">
+                    {type.description}
+                  </span>
+                  {type.comingSoon && (
+                    <span className="absolute top-2 right-2 bg-yellow-200 text-yellow-800 text-xs font-semibold px-2 py-0.5 rounded">
+                      Coming soon
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+      <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
+        <PageCard>
+          <PromptPageForm
+            mode="create"
+            initialData={formData}
+            onSave={handleStep1Submit}
+            onPublish={handleStep2Submit}
+            pageTitle="Create Your Prompt Page"
+            supabase={supabase}
+            businessProfile={businessProfile}
+          />
+        </PageCard>
+      </div>
+    </>
   );
 }

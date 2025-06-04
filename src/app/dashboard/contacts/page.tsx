@@ -23,6 +23,7 @@ import PromptPageForm from "@/app/components/PromptPageForm";
 import { useRouter } from "next/navigation";
 import { FaHandsHelping, FaBoxOpen } from "react-icons/fa";
 import { MdPhotoCamera, MdVideoLibrary, MdEvent } from "react-icons/md";
+import PromptTypeSelectModal from "@/app/components/PromptTypeSelectModal";
 
 export default function UploadContactsPage() {
   useAuthGuard();
@@ -168,6 +169,7 @@ export default function UploadContactsPage() {
       "postal_code",
       "country",
       "business_name",
+      "role",
       "notes",
       "category",
     ];
@@ -183,6 +185,7 @@ export default function UploadContactsPage() {
       "62704",
       "USA",
       "Acme Corp",
+      "Manager",
       "VIP customer",
       "VIP",
     ];
@@ -231,6 +234,7 @@ export default function UploadContactsPage() {
     "postal_code",
     "country",
     "business_name",
+    "role",
     "notes",
     "category",
   ];
@@ -395,6 +399,7 @@ export default function UploadContactsPage() {
       email: selectedContactForPrompt.email || "",
       phone: selectedContactForPrompt.phone || "",
       business_name: selectedContactForPrompt.business_name || "",
+      role: selectedContactForPrompt.role || "",
       contact_id: selectedContactForPrompt.id || "",
     });
     router.push(`/create-prompt-page?${params.toString()}`);
@@ -412,12 +417,13 @@ export default function UploadContactsPage() {
   let fieldKeys = contactFieldKeys.includes("category")
     ? contactFieldKeys
     : [...contactFieldKeys, "category"];
+  if (!fieldKeys.includes("role")) fieldKeys = [...fieldKeys, "role"];
   fieldKeys = fieldKeys.filter(
     (k) =>
       k !== "id" && k !== "first_name" && k !== "last_name" && k !== "category",
   );
   fieldKeys = fieldKeys.sort();
-  fieldKeys = ["Name", ...fieldKeys, "category"];
+  fieldKeys = ["Name", ...fieldKeys, "role", "category"];
 
   return (
     <PageCard icon={<FaUsers className="w-9 h-9 text-[#1A237E]" />}>
@@ -481,6 +487,9 @@ export default function UploadContactsPage() {
                       Phone
                     </th>
                     <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Role
+                    </th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status
                     </th>
                     <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -510,6 +519,9 @@ export default function UploadContactsPage() {
                       </td>
                       <td className="px-3 py-2 text-sm text-gray-900">
                         {contact.phone}
+                      </td>
+                      <td className="px-3 py-2 text-sm text-gray-900">
+                        {contact.role || ""}
                       </td>
                       <td className="px-3 py-2 text-sm text-gray-900">
                         {contact.status}
@@ -547,6 +559,14 @@ export default function UploadContactsPage() {
             </div>
           )}
         </div>
+
+        {/* Prompt Type Select Modal */}
+        <PromptTypeSelectModal
+          open={showTypeModal}
+          onClose={() => setShowTypeModal(false)}
+          onSelectType={handlePromptTypeSelect}
+          promptTypes={promptTypes}
+        />
 
         {/* Upload Modal */}
         <Dialog
@@ -725,6 +745,7 @@ export default function UploadContactsPage() {
                           postal_code: updated.postal_code,
                           country: updated.country,
                           business_name: updated.business_name,
+                          role: updated.role,
                           notes: updated.notes,
                           category: updated.category,
                         })
@@ -852,6 +873,16 @@ export default function UploadContactsPage() {
                     </div>
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium text-gray-700">
+                        Role / Position
+                      </label>
+                      <input
+                        name="role"
+                        defaultValue={editContact.role || ""}
+                        className="w-full border rounded px-2 py-1"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700">
                         Notes
                       </label>
                       <input
@@ -900,50 +931,6 @@ export default function UploadContactsPage() {
             </div>
           </div>
         </Dialog>
-
-        {/* Prompt Type Selection Modal */}
-        {showTypeModal && selectedContactForPrompt && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-            <div className="bg-white rounded-lg shadow-lg p-8 max-w-3xl w-full text-center relative">
-              <button
-                className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl"
-                onClick={() => setShowTypeModal(false)}
-                aria-label="Close"
-              >
-                &times;
-              </button>
-              <h2 className="text-2xl font-bold text-slate-blue mb-6">
-                Select prompt page type
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                {promptTypes.map((type) => (
-                  <button
-                    key={type.key}
-                    onClick={() =>
-                      !type.comingSoon && handlePromptTypeSelect(type.key)
-                    }
-                    className={`flex flex-col items-center gap-2 p-6 rounded-lg border border-gray-200 hover:border-indigo-400 shadow-sm hover:shadow-md transition-all bg-gray-50 hover:bg-indigo-50 focus:outline-none ${type.comingSoon ? "opacity-60 cursor-not-allowed relative" : ""}`}
-                    disabled={!!type.comingSoon}
-                    tabIndex={type.comingSoon ? -1 : 0}
-                  >
-                    {type.icon}
-                    <span className="font-semibold text-lg text-slate-blue">
-                      {type.label}
-                    </span>
-                    <span className="text-sm text-gray-600 text-center">
-                      {type.description}
-                    </span>
-                    {type.comingSoon && (
-                      <span className="absolute top-2 right-2 bg-yellow-200 text-yellow-800 text-xs font-semibold px-2 py-0.5 rounded">
-                        Coming soon
-                      </span>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Delete Confirmation Modal */}
         {showDeleteModal && (

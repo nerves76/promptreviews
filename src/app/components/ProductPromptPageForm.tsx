@@ -389,15 +389,16 @@ export default function ProductPromptPageForm({
     setProductPhotoError("");
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!["image/png", "image/jpeg", "image/jpg"].includes(file.type)) {
-      setProductPhotoError("Only PNG or JPG images are allowed.");
+    if (!["image/png", "image/jpeg", "image/jpg", "image/webp"].includes(file.type)) {
+      setProductPhotoError("Only PNG, JPG, or WEBP images are allowed.");
       return;
     }
     try {
       const compressedFile = await imageCompression(file, {
         maxSizeMB: 0.3, // 300KB
-        maxWidthOrHeight: 1024,
+        maxWidthOrHeight: 600,
         useWebWorker: true,
+        fileType: 'image/webp', // Always convert to webp
       });
       setRawProductPhotoFile(compressedFile);
       setShowCropper(true);
@@ -420,8 +421,8 @@ export default function ProductPromptPageForm({
     const croppedBlob = await getCroppedImg(productPhotoUrl, croppedAreaPixels);
     const croppedFile = new File(
       [croppedBlob],
-      rawProductPhotoFile?.name || "product.png",
-      { type: "image/png" },
+      (rawProductPhotoFile?.name?.replace(/\.[^.]+$/, '') || "product") + ".webp",
+      { type: "image/webp" },
     );
     setProductPhotoFile(croppedFile);
     setProductPhotoUrl(URL.createObjectURL(croppedFile));
@@ -717,8 +718,7 @@ export default function ProductPromptPageForm({
               className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center gap-1"
             >
               Product image
-              <span className="text-xs text-gray-500 ml-2">Max size 300KB</span>
-              <Tooltip text="Upload a photo of the product. This will be shown on the public page." />
+              <Tooltip text="Upload a photo of the product. This will be shown on the public page. Recommended size: 600x600px." />
             </label>
             {productPhotoUrl && (
               <img
@@ -730,7 +730,7 @@ export default function ProductPromptPageForm({
             <input
               type="file"
               id="product_photo"
-              accept="image/png, image/jpeg"
+              accept="image/png, image/jpeg, image/webp"
               onChange={handleProductPhotoChange}
               className="mb-2"
             />
