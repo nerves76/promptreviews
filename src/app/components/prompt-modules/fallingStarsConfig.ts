@@ -11,6 +11,8 @@ import {
   FaDumbbell,
   FaPagelines,
   FaPeace,
+  FaBicycle,
+  FaAnchor,
 } from "react-icons/fa";
 import { IconType } from "react-icons";
 
@@ -36,4 +38,6 @@ export const FALLING_STARS_ICONS: {
   { key: "barbell", label: "Barbell", icon: FaDumbbell },
   { key: "flower", label: "Flower", icon: FaPagelines },
   { key: "peace", label: "Peace", icon: FaPeace },
+  { key: "bicycle", label: "Bicycles", icon: FaBicycle },
+  { key: "anchor", label: "Anchors", icon: FaAnchor },
 ];
