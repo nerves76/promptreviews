@@ -1009,7 +1009,7 @@ export default function PromptPage() {
   }
 
   return (
-    <div style={backgroundStyle} className={`min-h-screen w-full ${getFontClass(businessProfile?.primary_font)}`}>
+    <div style={backgroundStyle} className="min-h-screen w-full">
       {/* Special Offer Banner - very top, thin, dismissible */}
       {showBanner && (
         <div
@@ -1373,7 +1373,7 @@ export default function PromptPage() {
           <div className="relative w-full">
             <div className="max-w-[1000px] w-full mx-auto px-4">
               {/* Business Info Card (always visible) */}
-              <div className="bg-gray-50 rounded-2xl shadow p-6 mb-8 flex flex-col items-center max-w-xl mx-auto animate-slideup relative mt-32">
+              <div className={`bg-gray-50 rounded-2xl shadow p-6 mb-8 flex flex-col items-center max-w-xl mx-auto animate-slideup relative mt-32 ${getFontClass(businessProfile?.primary_font)}`}>
                 {/* Business Logo - No drop-down animation */}
                 <div
                   className="absolute left-1/2 -translate-x-1/2 w-52 h-52 aspect-square flex items-center justify-center mb-10"
