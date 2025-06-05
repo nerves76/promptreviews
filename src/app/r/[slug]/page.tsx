@@ -199,6 +199,56 @@ function isOffWhiteOrCream(color: string) {
   return offWhites.map(c => c.toUpperCase()).includes(color.toUpperCase());
 }
 
+// Helper to get font class from fontOptions (should match StyleModalPage)
+const fontClassMap: Record<string, string> = {
+  "Inter": "font-inter",
+  "Roboto": "font-roboto",
+  "Open Sans": "font-open-sans",
+  "Lato": "font-lato",
+  "Montserrat": "font-montserrat",
+  "Poppins": "font-poppins",
+  "Source Sans 3": "font-source-sans",
+  "Raleway": "font-raleway",
+  "Nunito": "font-nunito",
+  "Playfair Display": "font-playfair",
+  "Merriweather": "font-merriweather",
+  "Roboto Slab": "font-roboto-slab",
+  "PT Sans": "font-pt-sans",
+  "Oswald": "font-oswald",
+  "Roboto Condensed": "font-roboto-condensed",
+  "Source Serif 4": "font-source-serif",
+  "Noto Sans": "font-noto-sans",
+  "Ubuntu": "font-ubuntu",
+  "Work Sans": "font-work-sans",
+  "Quicksand": "font-quicksand",
+  "Josefin Sans": "font-josefin-sans",
+  "Mukta": "font-mukta",
+  "Rubik": "font-rubik",
+  "IBM Plex Sans": "font-ibm-plex-sans",
+  "Barlow": "font-barlow",
+  "Mulish": "font-mulish",
+  "Comfortaa": "font-comfortaa",
+  "Outfit": "font-outfit",
+  "Plus Jakarta Sans": "font-plus-jakarta-sans",
+  "Courier Prime": "font-courier-prime",
+  "IBM Plex Mono": "font-ibm-plex-mono",
+  // System fonts
+  "Arial": "font-arial",
+  "Helvetica": "font-helvetica",
+  "Verdana": "font-verdana",
+  "Tahoma": "font-tahoma",
+  "Trebuchet MS": "font-trebuchet-ms",
+  "Times New Roman": "font-times-new-roman",
+  "Georgia": "font-georgia",
+  "Courier New": "font-courier-new",
+  "Lucida Console": "font-lucida-console",
+  "Palatino": "font-palatino",
+  "Garamond": "font-garamond",
+};
+function getFontClass(fontName: string) {
+  return fontClassMap[fontName] || "";
+}
+
 export default function PromptPage() {
   const router = useRouter();
   const params = useParams();
@@ -402,15 +452,21 @@ export default function PromptPage() {
         promptPage.review_platforms.map((p: any) => p.reviewText || ""),
       );
       setAiRewriteCounts(promptPage.review_platforms.map(() => 0));
-      setReviewerFirstNames(
-        promptPage.review_platforms.map(() => promptPage.first_name || ""),
-      );
-      setReviewerLastNames(
-        promptPage.review_platforms.map(() => promptPage.last_name || ""),
-      );
-      setReviewerRoles(
-        promptPage.review_platforms.map(() => promptPage.role || ""),
-      );
+      if (promptPage.is_universal) {
+        setReviewerFirstNames(promptPage.review_platforms.map(() => ""));
+        setReviewerLastNames(promptPage.review_platforms.map(() => ""));
+        setReviewerRoles(promptPage.review_platforms.map(() => ""));
+      } else {
+        setReviewerFirstNames(
+          promptPage.review_platforms.map(() => promptPage.first_name || ""),
+        );
+        setReviewerLastNames(
+          promptPage.review_platforms.map(() => promptPage.last_name || ""),
+        );
+        setReviewerRoles(
+          promptPage.review_platforms.map(() => promptPage.role || ""),
+        );
+      }
     }
   }, [promptPage]);
 
@@ -953,7 +1009,7 @@ export default function PromptPage() {
   }
 
   return (
-    <div style={backgroundStyle} className="min-h-screen w-full">
+    <div style={backgroundStyle} className={`min-h-screen w-full ${getFontClass(businessProfile?.primary_font)}`}>
       {/* Special Offer Banner - very top, thin, dismissible */}
       {showBanner && (
         <div
@@ -1212,7 +1268,7 @@ export default function PromptPage() {
         >
           <button
             onClick={() => setShowSaveMenu(!showSaveMenu)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg shadow-md hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg shadow-md hover:bg-gray-50 transition-colors group"
             style={{
               background: isOffWhiteOrCream(businessProfile?.card_bg || "#FFFFFF")
                 ? businessProfile?.card_bg || "#FFFFFF"
@@ -1221,7 +1277,7 @@ export default function PromptPage() {
               border: "1px solid #E5E7EB"
             }}
           >
-            <FaHeart className="w-5 h-5" />
+            <FaHeart className="w-5 h-5 transition-colors group-hover:text-red-500" />
             <span className={`hidden sm:inline${showOnlyHeart ? " sm:hidden" : ""}`}>{showOnlyHeart ? "" : "Save for Later"}</span>
             <span className={`inline sm:hidden${showOnlyHeart ? " hidden" : ""}`}>{showOnlyHeart ? "" : "Save"}</span>
           </button>
@@ -1341,7 +1397,7 @@ export default function PromptPage() {
                 </div>
                 {/* Business Name - Added more space above */}
                 <h1
-                  className={`text-3xl font-bold text-center mb-1 mt-24 ${businessProfile?.primary_font || "font-inter"}`}
+                  className={`text-3xl font-bold text-center mb-1 mt-24 ${getFontClass(businessProfile?.primary_font)}`}
                   style={{ color: businessProfile?.primary_color || "#4F46E5" }}
                 >
                   {businessProfile?.business_name || "Business Name"}
@@ -1373,32 +1429,32 @@ export default function PromptPage() {
                       </div>
                     )}
                     <div className="flex-1 flex flex-col justify-center items-center md:items-start text-center md:text-left">
-                      <h2 className="text-2xl font-bold text-slate-blue mb-2">
-                      {promptPage.product_name}
-                    </h2>
-                    {/* Only show details if not neutral/frustrated sentiment */}
-                    {(!sentiment ||
-                      (sentiment !== "neutral" &&
-                        sentiment !== "frustrated")) && (
-                      <>
-                        {promptPage.product_description && (
-                            <div className="text-lg text-gray-700 mb-3">
-                            {promptPage.product_description}
+                      <h2 className={`text-2xl font-bold text-slate-blue mb-2 ${getFontClass(businessProfile?.primary_font)}`}>
+                        {promptPage.product_name}
+                      </h2>
+                      {/* Only show details if not neutral/frustrated sentiment */}
+                      {(!sentiment ||
+                        (sentiment !== "neutral" &&
+                          sentiment !== "frustrated")) && (
+                        <>
+                          {promptPage.product_description && (
+                            <div className={`text-lg text-gray-700 mb-3 ${getFontClass(businessProfile?.secondary_font)}`}>
+                              {promptPage.product_description}
+                            </div>
+                          )}
+                          {promptPage.features_or_benefits?.length > 0 && (
+                            <ul className="mb-3 text-gray-700 text-base list-disc list-inside">
+                              {promptPage.features_or_benefits.map(
+                                (f: string, i: number) =>
+                                  f && <li key={i}>{f}</li>,
+                              )}
+                            </ul>
+                          )}
+                          <div className={`text-sm text-gray-500 ${getFontClass(businessProfile?.secondary_font)}`}>
+                            Share your experience with this product below!
                           </div>
-                        )}
-                        {promptPage.features_or_benefits?.length > 0 && (
-                          <ul className="mb-3 text-gray-700 text-base list-disc list-inside">
-                            {promptPage.features_or_benefits.map(
-                              (f: string, i: number) =>
-                                f && <li key={i}>{f}</li>,
-                            )}
-                          </ul>
-                        )}
-                          <div className="text-sm text-gray-500">
-                          Share your experience with this product below!
-                        </div>
-                      </>
-                    )}
+                        </>
+                      )}
                     </div>
                   </div>
                 )}
