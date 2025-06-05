@@ -48,39 +48,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={[
-        inter.className,
-        roboto.className,
-        openSans.className,
-        lato.className,
-        montserrat.className,
-        poppins.className,
-        sourceSans.className,
-        raleway.className,
-        nunito.className,
-        playfair.className,
-        merriweather.className,
-        robotoSlab.className,
-        ptSans.className,
-        oswald.className,
-        robotoCondensed.className,
-        sourceSerif.className,
-        notoSans.className,
-        ubuntu.className,
-        workSans.className,
-        quicksand.className,
-        josefinSans.className,
-        mukta.className,
-        rubik.className,
-        ibmPlexSans.className,
-        barlow.className,
-        mulish.className,
-        comfortaa.className,
-        outfit.className,
-        plusJakartaSans.className,
-        courierPrime.className,
-        ibmPlexMono.className,
-      ].join(' ') + " min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 overscroll-x-auto"}>
+      <body className={inter.className + " min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 overscroll-x-auto"}>
         <ClientRoot>
           <AppMain>{children}</AppMain>
         </ClientRoot>
