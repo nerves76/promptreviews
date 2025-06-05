@@ -2,11 +2,53 @@
 import * as React from "react";
 import { createBrowserClient } from "@supabase/ssr";
 
+// Only include fonts that are actually loaded and used in the project
 const fontOptions = [
+  // Google Fonts
   { name: "Inter", class: "font-inter" },
   { name: "Roboto", class: "font-roboto" },
   { name: "Open Sans", class: "font-open-sans" },
-  // ...add more as needed
+  { name: "Lato", class: "font-lato" },
+  { name: "Montserrat", class: "font-montserrat" },
+  { name: "Poppins", class: "font-poppins" },
+  { name: "Source Sans 3", class: "font-source-sans" },
+  { name: "Raleway", class: "font-raleway" },
+  { name: "Nunito", class: "font-nunito" },
+  { name: "Playfair Display", class: "font-playfair" },
+  { name: "Merriweather", class: "font-merriweather" },
+  { name: "Roboto Slab", class: "font-roboto-slab" },
+  { name: "PT Sans", class: "font-pt-sans" },
+  { name: "Oswald", class: "font-oswald" },
+  { name: "Roboto Condensed", class: "font-roboto-condensed" },
+  { name: "Source Serif 4", class: "font-source-serif" },
+  { name: "Noto Sans", class: "font-noto-sans" },
+  { name: "Ubuntu", class: "font-ubuntu" },
+  { name: "Work Sans", class: "font-work-sans" },
+  { name: "Quicksand", class: "font-quicksand" },
+  { name: "Josefin Sans", class: "font-josefin-sans" },
+  { name: "Mukta", class: "font-mukta" },
+  { name: "Rubik", class: "font-rubik" },
+  { name: "IBM Plex Sans", class: "font-ibm-plex-sans" },
+  { name: "Barlow", class: "font-barlow" },
+  { name: "Mulish", class: "font-mulish" },
+  { name: "Comfortaa", class: "font-comfortaa" },
+  { name: "Outfit", class: "font-outfit" },
+  { name: "Plus Jakarta Sans", class: "font-plus-jakarta-sans" },
+  // Typewriter Fonts
+  { name: "Courier Prime", class: "font-courier-prime" },
+  { name: "IBM Plex Mono", class: "font-ibm-plex-mono" },
+  // System Fonts
+  { name: "Arial", class: "font-arial" },
+  { name: "Helvetica", class: "font-helvetica" },
+  { name: "Verdana", class: "font-verdana" },
+  { name: "Tahoma", class: "font-tahoma" },
+  { name: "Trebuchet MS", class: "font-trebuchet-ms" },
+  { name: "Times New Roman", class: "font-times-new-roman" },
+  { name: "Georgia", class: "font-georgia" },
+  { name: "Courier New", class: "font-courier-new" },
+  { name: "Lucida Console", class: "font-lucida-console" },
+  { name: "Palatino", class: "font-palatino" },
+  { name: "Garamond", class: "font-garamond" },
 ];
 
 const cardBgOptions = [
@@ -24,6 +66,12 @@ const textColorOptions = [
   { name: "Navy", value: "#1A237E" },
   { name: "Dark Brown", value: "#3E2723" },
 ];
+
+// Helper to get font class from fontOptions
+function getFontClass(fontName: string) {
+  const found = fontOptions.find(f => f.name === fontName);
+  return found ? found.class : '';
+}
 
 export default function StylePage() {
   const supabase = React.useMemo(() => createBrowserClient(
@@ -144,14 +192,14 @@ export default function StylePage() {
             </div>
           )}
           <h3
-            className="text-xl font-bold mb-2"
-            style={{ color: settings.primary_color, fontFamily: settings.primary_font }}
+            className={`text-xl font-bold mb-2 ${getFontClass(settings.primary_font)}`}
+            style={{ color: settings.primary_color }}
           >
             Preview heading
           </h3>
           <p
-            className="mb-4"
-            style={{ color: settings.card_text, fontFamily: settings.secondary_font }}
+            className={`mb-4 ${getFontClass(settings.secondary_font)}`}
+            style={{ color: settings.card_text }}
           >
             This is how your background, text, and buttons will look with selected fonts and colors.
           </p>
@@ -173,12 +221,22 @@ export default function StylePage() {
             onChange={e => setSettings(s => ({ ...s, primary_font: e.target.value }))}
             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           >
-            {fontOptions.map(font => (
-              <option key={font.name} value={font.name}>
-                {font.name}
-              </option>
-            ))}
+            <optgroup label="Google Fonts">
+              {fontOptions.filter(f => !["Arial","Helvetica","Verdana","Tahoma","Trebuchet MS","Times New Roman","Georgia","Courier New","Lucida Console","Palatino","Garamond"].includes(f.name)).map(font => (
+                <option key={font.name} value={font.name}>
+                  {font.name}
+                </option>
+              ))}
+            </optgroup>
+            <optgroup label="System Fonts">
+              {fontOptions.filter(f => ["Arial","Helvetica","Verdana","Tahoma","Trebuchet MS","Times New Roman","Georgia","Courier New","Lucida Console","Palatino","Garamond"].includes(f.name)).map(font => (
+                <option key={font.name} value={font.name}>
+                  {font.name}
+                </option>
+              ))}
+            </optgroup>
           </select>
+          <p className="text-xs text-gray-500 mt-1">System fonts may look different on different devices.</p>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Secondary Font</label>
@@ -187,12 +245,22 @@ export default function StylePage() {
             onChange={e => setSettings(s => ({ ...s, secondary_font: e.target.value }))}
             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           >
-            {fontOptions.map(font => (
-              <option key={font.name} value={font.name}>
-                {font.name}
-              </option>
-            ))}
+            <optgroup label="Google Fonts">
+              {fontOptions.filter(f => !["Arial","Helvetica","Verdana","Tahoma","Trebuchet MS","Times New Roman","Georgia","Courier New","Lucida Console","Palatino","Garamond"].includes(f.name)).map(font => (
+                <option key={font.name} value={font.name}>
+                  {font.name}
+                </option>
+              ))}
+            </optgroup>
+            <optgroup label="System Fonts">
+              {fontOptions.filter(f => ["Arial","Helvetica","Verdana","Tahoma","Trebuchet MS","Times New Roman","Georgia","Courier New","Lucida Console","Palatino","Garamond"].includes(f.name)).map(font => (
+                <option key={font.name} value={font.name}>
+                  {font.name}
+                </option>
+              ))}
+            </optgroup>
           </select>
+          <p className="text-xs text-gray-500 mt-1">System fonts may look different on different devices.</p>
         </div>
       </div>
 
