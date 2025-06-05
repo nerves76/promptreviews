@@ -163,6 +163,16 @@ export default function Header() {
                 Dashboard
               </Link>
               <Link
+                href="/prompt-pages"
+                className={`${
+                  isActive("/prompt-pages")
+                    ? "border-[#1A237E] text-[#1A237E]"
+                    : "border-transparent text-[#1A237E] hover:border-[#1A237E]/30 hover:text-[#1A237E]"
+                } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16`}
+              >
+                Prompt pages
+              </Link>
+              <Link
                 href="/dashboard/business-profile"
                 className={`${
                   isActive("/dashboard/business-profile")
@@ -181,16 +191,6 @@ export default function Header() {
                 } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16`}
               >
                 Your reviews
-              </Link>
-              <Link
-                href="/prompt-pages"
-                className={`${
-                  isActive("/prompt-pages")
-                    ? "border-[#1A237E] text-[#1A237E]"
-                    : "border-transparent text-[#1A237E] hover:border-[#1A237E]/30 hover:text-[#1A237E]"
-                } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16`}
-              >
-                Prompt pages
               </Link>
               <Link
                 href="/dashboard/widget"
@@ -371,6 +371,17 @@ export default function Header() {
                 Dashboard
               </Link>
               <Link
+                href="/prompt-pages"
+                className={`${
+                  isActive("/prompt-pages")
+                    ? "bg-[#1A237E]/10 text-[#1A237E]"
+                    : "text-[#1A237E] hover:bg-[#1A237E]/10"
+                } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
+                onClick={() => setMenuOpen(false)}
+              >
+                Prompt pages
+              </Link>
+              <Link
                 href="/dashboard/business-profile"
                 className={`${
                   isActive("/dashboard/business-profile")
@@ -391,17 +402,6 @@ export default function Header() {
                 onClick={() => setMenuOpen(false)}
               >
                 Your reviews
-              </Link>
-              <Link
-                href="/prompt-pages"
-                className={`${
-                  isActive("/prompt-pages")
-                    ? "bg-[#1A237E]/10 text-[#1A237E]"
-                    : "text-[#1A237E] hover:bg-[#1A237E]/10"
-                } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
-                onClick={() => setMenuOpen(false)}
-              >
-                Prompt pages
               </Link>
               <Link
                 href="/dashboard/widget"
