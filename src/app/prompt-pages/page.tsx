@@ -4,7 +4,7 @@ import React from "react";
 import { useEffect, useState, useRef } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 import Link from "next/link";
-import { FaGlobe, FaLink, FaTimes } from "react-icons/fa";
+import { FaGlobe, FaLink, FaTimes, FaPalette, FaPlus } from "react-icons/fa";
 import { MdDownload } from "react-icons/md";
 import PageCard from "@/app/components/PageCard";
 import UniversalPromptPageForm from "../dashboard/edit-prompt-page/universal/UniversalPromptPageForm";
@@ -203,13 +203,24 @@ export default function PromptPages() {
                 <h1 className="text-3xl md:text-4xl font-bold text-slate-blue mb-0">Prompt pages</h1>
                 <p className="text-gray-600 text-base max-w-2xl mb-6">Create and manage your prompt pages and outreach efforts.</p>
               </div>
-              <button
-                type="button"
-                className="bg-slate-blue text-white rounded font-semibold px-4 py-2 hover:bg-slate-blue/90 transition whitespace-nowrap mt-2 md:mt-0"
-                onClick={() => setShowStyleModal(true)}
-              >
-                Style
-              </button>
+              <div className="flex gap-2 mt-2 md:mt-0">
+                <button
+                  type="button"
+                  className="bg-blue-100 text-slate-blue rounded font-semibold px-4 py-2 hover:bg-blue-200 transition whitespace-nowrap flex items-center gap-2"
+                  onClick={() => setShowStyleModal(true)}
+                >
+                  <FaPalette className="w-4 h-4" />
+                  Style
+                </button>
+                <button
+                  type="button"
+                  className="bg-slate-blue text-white rounded font-semibold px-4 py-2 hover:bg-slate-blue/90 transition whitespace-nowrap flex items-center gap-2"
+                  onClick={() => setShowTypeModal(true)}
+                >
+                  <FaPlus className="w-4 h-4" />
+                  Create Prompt Page
+                </button>
+              </div>
             </div>
             {/* Universal Prompt Page Card (dashboard port) */}
             {universalPromptPage && (
@@ -337,7 +348,7 @@ export default function PromptPages() {
         </PageCard>
         <div className="w-full max-w-[1000px] mx-auto mt-0">
           {/* Prompt Pages Table (replica of dashboard) */}
-          <div className="overflow-x-auto shadow sm:rounded-lg mb-6">
+          <div className="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg mb-6">
             <PromptPagesTable
               promptPages={promptPages}
               business={business}

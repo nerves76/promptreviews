@@ -47,7 +47,7 @@ interface Review {
   status: string;
   emoji_sentiment_selection?: string;
   verified?: boolean;
-  verified_at?: string;
+  verified_at?: string | null;
   platform_url?: string;
 }
 
@@ -460,23 +460,26 @@ export default function ReviewsPage() {
     }
   }, [openReviewPopoverId]);
 
-  // Mark review as verified
-  const handleMarkVerified = async (reviewId: string) => {
+  // Toggle review verified status
+  const handleToggleVerified = async (reviewId: string, currentVerified: boolean) => {
     try {
       const { error } = await supabase
         .from("review_submissions")
-        .update({ verified: true, verified_at: new Date().toISOString() })
+        .update({
+          verified: !currentVerified,
+          verified_at: !currentVerified ? new Date().toISOString() : null,
+        })
         .eq("id", reviewId);
       if (error) throw error;
       setReviews((prev) =>
         prev.map((r) =>
           r.id === reviewId
-            ? { ...r, verified: true, verified_at: new Date().toISOString() }
+            ? { ...r, verified: !currentVerified, verified_at: !currentVerified ? new Date().toISOString() : null }
             : r,
         ),
       );
     } catch (err) {
-      setError("Failed to mark as verified. Please try again.");
+      setError("Failed to update verified status. Please try again.");
     }
   };
 
@@ -780,18 +783,17 @@ export default function ReviewsPage() {
                           View prompt page
                         </a>
                         <button
-                          className={`text-xs rounded px-3 py-1 ${review.verified ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-indigo-100 text-indigo-800 hover:bg-indigo-200"}`}
-                          disabled={review.verified}
+                          className={`text-xs rounded px-3 py-1 ${review.verified ? "bg-green-100 text-green-700 hover:bg-green-200" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}
                           onClick={(e) => {
                             if (review.id.startsWith("sample-")) {
                               e.preventDefault();
                               handleSampleNotice();
                             } else {
-                              handleMarkVerified(review.id);
+                              handleToggleVerified(review.id, !!review.verified);
                             }
                           }}
                         >
-                          {review.verified ? "Verified" : "Mark as Verified"}
+                          {review.verified ? "Un-verify" : "Mark as Verified"}
                         </button>
                       </div>
                       <button

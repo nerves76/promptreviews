@@ -13,6 +13,7 @@ import PageCard from "../components/PageCard";
 import AppLoader from "../components/AppLoader";
 import TopLoaderOverlay from "../components/TopLoaderOverlay";
 import { Button } from "@/app/components/ui/button";
+import Link from "next/link";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -38,6 +39,10 @@ export default function Dashboard() {
   const [showPricingModal, setShowPricingModal] = useState(true);
   const [pendingAccountUpdate, setPendingAccountUpdate] = useState(false);
   const success = searchParams.get("success");
+  const [reviewStats, setReviewStats] = useState({
+    total: { week: 0, month: 0, year: 0 },
+    verified: { week: 0, month: 0, year: 0 },
+  });
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -232,6 +237,49 @@ export default function Dashboard() {
     console.log("Dashboard debug:", { account, pendingAccountUpdate });
   }, [account, pendingAccountUpdate]);
 
+  useEffect(() => {
+    const fetchStats = async () => {
+      const { data: pages } = await supabase
+        .from("prompt_pages")
+        .select("id")
+        .eq("account_id", user.id);
+      const pageIds = (pages || []).map((p: any) => p.id);
+      if (!pageIds.length) return;
+      const { data: reviews } = await supabase
+        .from("review_submissions")
+        .select("created_at, verified")
+        .in("prompt_page_id", pageIds);
+      const now = new Date();
+      const isThisWeek = (date: Date) => {
+        const firstDayOfWeek = new Date(now);
+        firstDayOfWeek.setDate(now.getDate() - now.getDay());
+        firstDayOfWeek.setHours(0, 0, 0, 0);
+        return date >= firstDayOfWeek && date <= now;
+      };
+      const isThisMonth = (date: Date) =>
+        date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth();
+      const isThisYear = (date: Date) => date.getFullYear() === now.getFullYear();
+      let totalWeek = 0, totalMonth = 0, totalYear = 0;
+      let verifiedWeek = 0, verifiedMonth = 0, verifiedYear = 0;
+      (reviews || []).forEach((r: any) => {
+        const d = new Date(r.created_at);
+        if (isThisWeek(d)) totalWeek++;
+        if (isThisMonth(d)) totalMonth++;
+        if (isThisYear(d)) totalYear++;
+        if (r.verified) {
+          if (isThisWeek(d)) verifiedWeek++;
+          if (isThisMonth(d)) verifiedMonth++;
+          if (isThisYear(d)) verifiedYear++;
+        }
+      });
+      setReviewStats({
+        total: { week: totalWeek, month: totalMonth, year: totalYear },
+        verified: { week: verifiedWeek, month: verifiedMonth, year: verifiedYear },
+      });
+    };
+    fetchStats();
+  }, [user, supabase]);
+
   const handleCreatePromptPageClick = (
     e: React.MouseEvent<HTMLAnchorElement>,
   ) => {
@@ -297,101 +345,28 @@ export default function Dashboard() {
     "there";
 
   return (
-    <div className="min-h-screen flex items-start px-4 sm:px-0">
-      {/* Post-save share modal */}
-      {showPostSaveModal && (
-        <div
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-40"
-          onClick={() => setShowPostSaveModal(false)}
-        >
-          <div
-            className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full relative"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              className="absolute -top-4 -right-4 bg-white border border-gray-200 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 focus:outline-none"
-              style={{ zIndex: 20, width: 40, height: 40 }}
-              onClick={() => setShowPostSaveModal(false)}
-              aria-label="Close"
-            >
-              <FaTimes className="w-5 h-5 text-red-600" />
-            </button>
-            <h2 className="text-2xl font-bold text-slate-blue mb-2 flex items-center gap-3">
-              <FaBullhorn className="w-7 h-7 text-slate-blue" />
-              Prompt Page Saved!
-            </h2>
-            <p className="mb-6 text-gray-700">
-              Share your prompt page with your customer or client:
-            </p>
-            <div className="flex flex-col gap-3">
-              <a
-                href={`sms:?body=${encodeURIComponent("Please leave a review: " + window.location.origin + (savedPromptPageUrl || ""))}`}
-                className="w-full inline-flex items-center justify-center px-4 py-2 bg-green-100 text-green-800 rounded-lg font-medium hover:bg-green-200 transition"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Send via SMS
-              </a>
-              <a
-                href={`mailto:?subject=Please leave a review&body=${encodeURIComponent("Please leave a review: " + window.location.origin + (savedPromptPageUrl || ""))}`}
-                className="w-full inline-flex items-center justify-center px-4 py-2 bg-blue-100 text-blue-800 rounded-lg font-medium hover:bg-blue-200 transition"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Send via Email
-              </a>
-              <button
-                onClick={async () => {
-                  const link =
-                    window.location.origin + (savedPromptPageUrl || "");
-                  try {
-                    await navigator.clipboard.writeText(link);
-                    alert("Copied!");
-                  } catch (err) {
-                    window.prompt("Copy this link:", link);
-                  }
-                  setShowPostSaveModal(false);
-                }}
-                className="w-full inline-flex items-center justify-center px-4 py-2 bg-gray-100 text-gray-800 rounded-lg font-medium border border-gray-300 hover:bg-gray-200 transition"
-              >
-                Copy Link
-              </button>
-              <a
-                href={savedPromptPageUrl || "#"}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full inline-flex items-center justify-center px-4 py-2 bg-white text-indigo-700 rounded-lg font-medium border border-indigo-200 hover:bg-indigo-50 transition"
-              >
-                View Page
-              </a>
-            </div>
-          </div>
-        </div>
-      )}
-      <PageCard icon={<FaHome className="w-9 h-9 text-[#1A237E]" />}>
-        <div className="mt-2">
-          <DashboardContent
-            userName={userName}
-            business={business}
-            customPromptPages={customPromptPages}
-            universalPromptPage={universalPromptPage}
-            createPromptPageRef={createPromptPageRef}
-            handleCreatePromptPageClick={handleCreatePromptPageClick}
-            showQR={showQR}
-            handleCopyLink={handleCopyLink}
-            copySuccess={copySuccess}
-            showProfileModal={showProfileModal}
-            setShowProfileModal={setShowProfileModal}
-            showSuccessModal={showSuccessModal}
-            setShowSuccessModal={setShowSuccessModal}
-            universalUrl={universalUrl}
-            QRCode={QRCodeSVG}
-            setShowQR={setShowQR}
-            account={account}
-            parentLoading={isLoading}
-          />
-        </div>
-      </PageCard>
-    </div>
+    <PageCard>
+      <DashboardContent
+        userName={userName}
+        business={business}
+        customPromptPages={customPromptPages}
+        universalPromptPage={universalPromptPage}
+        createPromptPageRef={createPromptPageRef}
+        handleCreatePromptPageClick={handleCreatePromptPageClick}
+        showQR={showQR}
+        handleCopyLink={handleCopyLink}
+        copySuccess={copySuccess}
+        showProfileModal={showProfileModal}
+        setShowProfileModal={setShowProfileModal}
+        showSuccessModal={showSuccessModal}
+        setShowSuccessModal={setShowSuccessModal}
+        universalUrl={universalUrl}
+        QRCode={QRCodeSVG}
+        setShowQR={setShowQR}
+        account={account}
+        parentLoading={isLoading}
+        reviewStats={reviewStats}
+      />
+    </PageCard>
   );
 }

@@ -13,6 +13,9 @@ import {
   FaLink,
   FaHandsHelping,
   FaBoxOpen,
+  FaChartBar,
+  FaQuestionCircle,
+  FaPalette,
 } from "react-icons/fa";
 import {
   MdDownload,
@@ -46,6 +49,10 @@ interface DashboardContentProps {
   account: any;
   successMessage?: string;
   parentLoading?: boolean;
+  reviewStats: {
+    total: { week: number; month: number; year: number };
+    verified: { week: number; month: number; year: number };
+  };
 }
 
 interface PromptPage {
@@ -94,6 +101,7 @@ export default function DashboardContent({
   setShowQR,
   account,
   parentLoading,
+  reviewStats,
 }: DashboardContentProps) {
   console.log("DASHBOARD RENDERED");
   useAuthGuard();
@@ -493,22 +501,96 @@ export default function DashboardContent({
 
   return (
     <>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-12 w-full gap-2 relative">
+        <div className="absolute z-10" style={{ left: "-69px", top: "-37px" }}>
+          <div className="rounded-full bg-white w-16 h-16 flex items-center justify-center shadow-lg">
+            <FaHome className="w-8 h-8 text-slate-blue" />
+          </div>
+        </div>
+        <h1 className="text-4xl font-bold flex items-center gap-3 text-slate-blue pl-1.5 pt-2">
+          Dashboard
+        </h1>
+      </div>
+      {/* Existing welcome section (standard design) */}
+      <div className="mb-16">
+        <h2 className="text-2xl font-bold text-slate-blue">
+          Welcome, {userName}!
+        </h2>
+        <p className="mt-2 text-sm text-gray-600 max-w-[650px]">
+          Put the kettle on! Let's chat with some customers and get some
+          reviews to grow your business.
+        </p>
+      </div>
+      {/* Review Stats Section (standard section style) */}
+      <div className="mb-16">
+        <div className="rounded-lg p-6 bg-blue-50 border border-blue-200 flex flex-col md:flex-row items-center gap-8 shadow">
+          <div className="flex-1 w-full">
+            <div className="flex items-center gap-2 mb-4">
+              <FaChartBar className="w-6 h-6 text-slate-blue" />
+              <h3 className="text-xl font-bold text-slate-blue mr-4">Review Stats</h3>
+              <Link href="/dashboard/analytics" className="text-slate-blue underline text-base font-medium hover:text-indigo-800 transition ml-auto">
+                View More Stats
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+              <div className="bg-indigo-50 rounded-lg p-6 flex flex-col items-center w-full">
+                <p className="text-lg font-semibold text-indigo-700 mb-2 flex items-center gap-1">
+                  Total Reviews
+                  <span className="relative group">
+                    <FaQuestionCircle className="w-4 h-4 text-slate-blue cursor-pointer" />
+                    <span className="absolute left-1/2 -translate-x-1/2 mt-2 w-48 p-2 bg-white border border-gray-200 rounded shadow text-xs text-gray-700 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-20">
+                      Total number of reviews submitted for your prompt pages. Week/Month/Year are based on the review submission date.
+                    </span>
+                  </span>
+                </p>
+                <div className="flex gap-6 text-4xl font-extrabold text-slate-blue">
+                  <div className="flex flex-col items-center">
+                    <span>{reviewStats.total.week}</span>
+                    <span className="text-xs text-gray-500 mt-1">This Week</span>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <span>{reviewStats.total.month}</span>
+                    <span className="text-xs text-gray-500 mt-1">This Month</span>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <span>{reviewStats.total.year}</span>
+                    <span className="text-xs text-gray-500 mt-1">This Year</span>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 flex flex-col items-center w-full">
+                <p className="text-lg font-semibold text-green-700 mb-2 flex items-center gap-1">
+                  Reviews Verified
+                  <span className="relative group">
+                    <FaQuestionCircle className="w-4 h-4 text-green-700 cursor-pointer" />
+                    <span className="absolute left-1/2 -translate-x-1/2 mt-2 w-48 p-2 bg-white border border-gray-200 rounded shadow text-xs text-gray-700 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-20">
+                      Number of reviews you have marked as verified. Week/Month/Year are based on the review verification date.
+                    </span>
+                  </span>
+                </p>
+                <div className="flex gap-6 text-4xl font-extrabold text-green-700">
+                  <div className="flex flex-col items-center">
+                    <span>{reviewStats.verified.week}</span>
+                    <span className="text-xs text-gray-500 mt-1">This Week</span>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <span>{reviewStats.verified.month}</span>
+                    <span className="text-xs text-gray-500 mt-1">This Month</span>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <span>{reviewStats.verified.year}</span>
+                    <span className="text-xs text-gray-500 mt-1">This Year</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
       <div className="min-h-screen flex justify-center items-start w-full">
         <div className="relative w-full">
           {/* Main dashboard content, remove pt-12 so title is at the top */}
           <div>
-            <div className="flex items-center justify-between mb-8">
-              <h1 className="text-4xl font-bold text-slate-blue">Dashboard</h1>
-            </div>
-            <div className="mb-16">
-              <h2 className="text-2xl font-bold text-slate-blue">
-                Welcome, {userName}!
-              </h2>
-              <p className="mt-2 text-sm text-gray-600 max-w-[650px]">
-                Put the kettle on! Let's chat with some customers and get some
-                reviews to grow your business.
-              </p>
-            </div>
             <div className="mt-2 space-y-4">
               {/* Universal Prompt Page Card */}
               {universalPromptPage && (
@@ -528,14 +610,12 @@ export default function DashboardContent({
                         >
                           View
                         </Link>
-                        {universalPromptPage?.slug && (
-                          <Link
-                            href={"/dashboard/edit-prompt-page/universal"}
-                            className="text-slate-blue underline hover:text-slate-blue/80 hover:underline"
-                          >
-                            Edit
-                          </Link>
-                        )}
+                        <Link
+                          href={"/dashboard/edit-prompt-page/universal"}
+                          className="text-slate-blue underline hover:text-slate-blue/80 hover:underline"
+                        >
+                          Edit
+                        </Link>
                       </div>
                     </div>
                     <p className="mt-2 text-blue-900 mb-2 text-sm">
