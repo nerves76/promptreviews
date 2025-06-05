@@ -5,6 +5,13 @@ import { createClient } from "@supabase/supabase-js";
 
 export async function POST(request: Request) {
   try {
+    const body = await request.json();
+    // Log Supabase config and payload
+    console.log("[track-review] Supabase URL:", process.env.NEXT_PUBLIC_SUPABASE_URL || "hardcoded");
+    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || (typeof supabase !== 'undefined' ? 'hardcoded' : 'not set');
+    console.log("[track-review] Supabase anon key (first 8 chars):", anonKey ? anonKey.slice(0, 8) + '...' : 'not set');
+    console.log("[track-review] Payload:", JSON.stringify(body));
+
     const {
       promptPageId,
       platform,
@@ -17,7 +24,7 @@ export async function POST(request: Request) {
       sentiment,
       email,
       phone,
-    } = await request.json();
+    } = body;
     const userAgent = request.headers.get("user-agent") || "";
     const ipAddress =
       request.headers.get("x-forwarded-for") ||
@@ -46,6 +53,7 @@ export async function POST(request: Request) {
       .single();
 
     if (error) {
+      console.error("[track-review] Error inserting review_submissions:", error);
       throw error;
     }
 
@@ -67,7 +75,7 @@ export async function POST(request: Request) {
         },
       });
     if (analyticsError) {
-      console.error("Error inserting analytics event:", analyticsError);
+      console.error("[track-review] Error inserting analytics event:", analyticsError);
       return NextResponse.json(
         {
           error: "Failed to log analytics event",
