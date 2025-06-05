@@ -50,6 +50,10 @@ interface AnalyticsData {
   reviewSubmitsWeek: number;
   reviewSubmitsMonth: number;
   reviewSubmitsYear: number;
+  verifiedReviewsAll: number;
+  verifiedReviewsWeek: number;
+  verifiedReviewsMonth: number;
+  verifiedReviewsYear: number;
 }
 
 // Map sentiment keys to FontAwesome icons and labels
@@ -92,6 +96,8 @@ export default function AnalyticsPage() {
     | "last3Months"
     | "lastMonth"
     | "thisMonth"
+    | "thisWeek"
+    | "lastWeek"
   >("all");
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -150,36 +156,79 @@ export default function AnalyticsPage() {
           .in("prompt_page_id", pageIds);
         if (eventsError) throw eventsError;
 
+        // Fetch all review submissions for these prompt pages
+        const { data: reviewSubmissions, error: reviewError } = await supabase
+          .from("review_submissions")
+          .select("id, prompt_page_id, created_at, verified")
+          .in("prompt_page_id", pageIds);
+        if (reviewError) throw reviewError;
+
         // Filter by time range
-        const now = new Date();
         let startDate: Date | null = null;
+        let endDate: Date | null = null;
+        const now = new Date();
         const thisYear = now.getFullYear();
         const thisMonth = now.getMonth();
+        const thisDay = now.getDate();
+        const thisDayOfWeek = now.getDay();
         switch (timeRange) {
           case "lastYear":
-            startDate = new Date(thisYear - 1, now.getMonth(), now.getDate());
+            startDate = new Date(thisYear - 1, 0, 1);
+            endDate = new Date(thisYear - 1, 11, 31, 23, 59, 59, 999);
             break;
           case "thisYear":
             startDate = new Date(thisYear, 0, 1);
+            endDate = now;
             break;
           case "last6Months":
             startDate = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+            endDate = now;
             break;
           case "last3Months":
             startDate = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+            endDate = now;
             break;
           case "lastMonth":
             startDate = new Date(thisYear, thisMonth - 1, 1);
+            endDate = new Date(thisYear, thisMonth, 0, 23, 59, 59, 999);
             break;
           case "thisMonth":
             startDate = new Date(thisYear, thisMonth, 1);
+            endDate = now;
             break;
+          case "thisWeek": {
+            // Sunday as first day of week
+            const firstDayOfWeek = new Date(now);
+            firstDayOfWeek.setDate(thisDay - thisDayOfWeek);
+            firstDayOfWeek.setHours(0, 0, 0, 0);
+            startDate = firstDayOfWeek;
+            endDate = now;
+            break;
+          }
+          case "lastWeek": {
+            // Sunday as first day of week
+            const firstDayOfThisWeek = new Date(now);
+            firstDayOfThisWeek.setDate(thisDay - thisDayOfWeek);
+            firstDayOfThisWeek.setHours(0, 0, 0, 0);
+            const firstDayOfLastWeek = new Date(firstDayOfThisWeek);
+            firstDayOfLastWeek.setDate(firstDayOfThisWeek.getDate() - 7);
+            const lastDayOfLastWeek = new Date(firstDayOfThisWeek);
+            lastDayOfLastWeek.setDate(firstDayOfThisWeek.getDate() - 1);
+            lastDayOfLastWeek.setHours(23, 59, 59, 999);
+            startDate = firstDayOfLastWeek;
+            endDate = lastDayOfLastWeek;
+            break;
+          }
           default:
             startDate = null;
+            endDate = null;
         }
-        const filteredEvents = startDate
-          ? events.filter((e: any) => new Date(e.created_at) >= startDate)
-          : events;
+        const filteredEvents = events.filter((e: any) => {
+          const eventDate = new Date(e.created_at);
+          if (startDate && eventDate < startDate) return false;
+          if (endDate && eventDate > endDate) return false;
+          return true;
+        });
 
         const analyticsData: AnalyticsData = {
           totalClicks: filteredEvents.length,
@@ -198,6 +247,10 @@ export default function AnalyticsPage() {
           reviewSubmitsWeek: 0,
           reviewSubmitsMonth: 0,
           reviewSubmitsYear: 0,
+          verifiedReviewsAll: 0,
+          verifiedReviewsWeek: 0,
+          verifiedReviewsMonth: 0,
+          verifiedReviewsYear: 0,
         };
 
         // Timeline data for chart
@@ -297,6 +350,30 @@ export default function AnalyticsPage() {
               365,
         ).length;
 
+        // Filter review submissions by date range for verified stats
+        const filteredReviews = reviewSubmissions.filter((r: any) => {
+          const reviewDate = new Date(r.created_at);
+          if (startDate && reviewDate < startDate) return false;
+          if (endDate && reviewDate > endDate) return false;
+          return true;
+        });
+        analyticsData.verifiedReviewsAll = filteredReviews.filter((r: any) => r.verified).length;
+        analyticsData.verifiedReviewsWeek = filteredReviews.filter(
+          (r: any) =>
+            r.verified &&
+            (now.getTime() - new Date(r.created_at).getTime()) / (1000 * 60 * 60 * 24) <= 7,
+        ).length;
+        analyticsData.verifiedReviewsMonth = filteredReviews.filter(
+          (r: any) =>
+            r.verified &&
+            (now.getTime() - new Date(r.created_at).getTime()) / (1000 * 60 * 60 * 24) <= 30,
+        ).length;
+        analyticsData.verifiedReviewsYear = filteredReviews.filter(
+          (r: any) =>
+            r.verified &&
+            (now.getTime() - new Date(r.created_at).getTime()) / (1000 * 60 * 60 * 24) <= 365,
+        ).length;
+
         // Prepare timeline data for chart (sorted by month)
         const timelineData = Object.entries(timelineMap)
           .sort(([a], [b]) => a.localeCompare(b))
@@ -363,6 +440,8 @@ export default function AnalyticsPage() {
           <option value="last3Months">Last 3 Months</option>
           <option value="lastMonth">Last Month</option>
           <option value="thisMonth">This Month</option>
+          <option value="thisWeek">This Week</option>
+          <option value="lastWeek">Last Week</option>
         </select>
       </div>
 
@@ -429,30 +508,22 @@ export default function AnalyticsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div className="bg-indigo-50 rounded-lg p-4">
             <p className="text-sm font-medium text-indigo-600">
-              Total Reviews (All Time)
+              Total Reviews
             </p>
             <p className="mt-2 text-3xl font-semibold text-indigo-900">
               {analytics.reviewSubmitsAll}
             </p>
-            <div className="mt-2 text-xs text-gray-500">
-              Last 7d:{" "}
-              <span className="font-bold text-indigo-700">
-                {analytics.reviewSubmitsWeek}
-              </span>{" "}
-              &nbsp;|&nbsp; Last 30d:{" "}
-              <span className="font-bold text-indigo-700">
-                {analytics.reviewSubmitsMonth}
-              </span>{" "}
-              &nbsp;|&nbsp; Last 365d:{" "}
-              <span className="font-bold text-indigo-700">
-                {analytics.reviewSubmitsYear}
-              </span>
-            </div>
+          </div>
+          <div className="bg-green-50 rounded-lg p-4">
+            <p className="text-sm font-medium text-green-700">
+              Verified Reviews
+            </p>
+            <p className="mt-2 text-3xl font-semibold text-green-900">
+              {analytics.verifiedReviewsAll}
+            </p>
           </div>
           <div className="bg-indigo-50 rounded-lg p-4">
-            <p className="text-sm font-medium text-indigo-600">
-              Website Clicks
-            </p>
+            <p className="text-sm font-medium text-indigo-600">Website Clicks</p>
             <p className="mt-2 text-3xl font-semibold text-indigo-900">
               {analytics.websiteClicks}
             </p>
@@ -579,15 +650,23 @@ export default function AnalyticsPage() {
         </div>
       )}
       {analytics && analytics.copySubmitEvents.length > 0 && (
-        <div className="mb-8">
+        <div className="mb-16">
           <h3 className="text-lg font-bold mb-2">Copy & Submit Events</h3>
           <table className="min-w-full divide-y divide-gray-200">
             <thead>
               <tr>
-                <th>Date</th>
-                <th>Prompt Page</th>
-                <th>Page Type</th>
-                <th>Review Platform</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Date
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Prompt Page
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Page Type
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Review Platform
+                </th>
               </tr>
             </thead>
             <tbody>

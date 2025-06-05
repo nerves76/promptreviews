@@ -139,7 +139,49 @@ export default function PromptPagesTable({
 
   return (
     <div>
-      <div className="flex items-center justify-between gap-4 mb-4">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex gap-2">
+          <button
+            className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors
+              ${selectedTab === "draft"
+                ? "border-slate-blue bg-white text-slate-blue shadow-sm z-10"
+                : "border-transparent bg-slate-blue text-white hover:bg-slate-blue/90"}
+            `}
+            onClick={() => setSelectedTab("draft")}
+          >
+            Draft ({draftCount})
+          </button>
+          <button
+            className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors
+              ${selectedTab === "in_queue"
+                ? "border-slate-blue bg-white text-slate-blue shadow-sm z-10"
+                : "border-transparent bg-slate-blue text-white hover:bg-slate-blue/90"}
+            `}
+            onClick={() => setSelectedTab("in_queue")}
+          >
+            In queue ({inQueueCount})
+          </button>
+          <button
+            className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors
+              ${selectedTab === "in_progress"
+                ? "border-slate-blue bg-white text-slate-blue shadow-sm z-10"
+                : "border-transparent bg-slate-blue text-white hover:bg-slate-blue/90"}
+            `}
+            onClick={() => setSelectedTab("in_progress")}
+          >
+            In progress ({inProgressCount})
+          </button>
+          <button
+            className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors
+              ${selectedTab === "complete"
+                ? "border-slate-blue bg-white text-slate-blue shadow-sm z-10"
+                : "border-transparent bg-slate-blue text-white hover:bg-slate-blue/90"}
+            `}
+            onClick={() => setSelectedTab("complete")}
+          >
+            Complete ({completeCount})
+          </button>
+        </div>
         <select
           value={selectedType}
           onChange={(e) => setSelectedType(e.target.value)}
@@ -152,55 +194,6 @@ export default function PromptPagesTable({
           <option value="video">Video testimonial</option>
           <option value="photo">Photo + testimonial</option>
         </select>
-        <button
-          type="button"
-          onClick={onCreatePromptPage}
-          className="inline-flex items-center gap-2 px-4 py-2 border-2 border-white bg-slate-blue text-white rounded-md font-semibold text-sm shadow-sm transition whitespace-nowrap hover:bg-slate-blue/80"
-        >
-          + Create prompt page
-        </button>
-      </div>
-      <div className="flex gap-2 mb-2">
-        <button
-          className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors
-            ${selectedTab === "draft"
-              ? "border-slate-blue bg-white text-slate-blue shadow-sm z-10"
-              : "border-transparent bg-slate-blue text-white hover:bg-slate-blue/90"}
-          `}
-          onClick={() => setSelectedTab("draft")}
-        >
-          Draft ({draftCount})
-        </button>
-        <button
-          className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors
-            ${selectedTab === "in_queue"
-              ? "border-slate-blue bg-white text-slate-blue shadow-sm z-10"
-              : "border-transparent bg-slate-blue text-white hover:bg-slate-blue/90"}
-          `}
-          onClick={() => setSelectedTab("in_queue")}
-        >
-          In queue ({inQueueCount})
-        </button>
-        <button
-          className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors
-            ${selectedTab === "in_progress"
-              ? "border-slate-blue bg-white text-slate-blue shadow-sm z-10"
-              : "border-transparent bg-slate-blue text-white hover:bg-slate-blue/90"}
-          `}
-          onClick={() => setSelectedTab("in_progress")}
-        >
-          In progress ({inProgressCount})
-        </button>
-        <button
-          className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors
-            ${selectedTab === "complete"
-              ? "border-slate-blue bg-white text-slate-blue shadow-sm z-10"
-              : "border-transparent bg-slate-blue text-white hover:bg-slate-blue/90"}
-          `}
-          onClick={() => setSelectedTab("complete")}
-        >
-          Complete ({completeCount})
-        </button>
       </div>
       {/* Batch Actions */}
       {selectedPages.length > 0 && (

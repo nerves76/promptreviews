@@ -1,14 +1,14 @@
 import { createClient } from "@supabase/supabase-js";
 import { Suspense } from "react";
 
-console.log("DOCKER ENV SUPABASE_URL:", "https://ltneloufqjktdplodvao.supabase.co");
+console.log("DOCKER ENV SUPABASE_URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
 console.log(
   "DOCKER ENV SUPABASE_ANON_KEY:",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0bmVsb3VmcWprdGRwbG9kdmFvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgwNDE1NzgsImV4cCI6MjA2MzYxNzU3OH0.ypbH1mu5m6a4jHFtpJfZPWeQVndtzZcmVELfNdqvgLw",
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
 );
 
-const supabaseUrl = "https://ltneloufqjktdplodvao.supabase.co"!;
-const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0bmVsb3VmcWprdGRwbG9kdmFvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgwNDE1NzgsImV4cCI6MjA2MzYxNzU3OH0.ypbH1mu5m6a4jHFtpJfZPWeQVndtzZcmVELfNdqvgLw"!;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
