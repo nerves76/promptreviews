@@ -10,6 +10,7 @@ interface OfferCardProps {
   icon?: React.ReactNode;
   learnMoreUrl?: string;
   input?: React.ReactNode;
+  businessProfile?: any;
 }
 
 const OfferCard: React.FC<OfferCardProps> = ({
@@ -21,6 +22,7 @@ const OfferCard: React.FC<OfferCardProps> = ({
   icon,
   learnMoreUrl,
   input,
+  businessProfile,
 }) => {
   const Icon = icon || (
     <offerConfig.icon
@@ -32,11 +34,27 @@ const OfferCard: React.FC<OfferCardProps> = ({
       }}
     />
   );
+
+  const getFontClass = (font: string) => {
+    // Implement your logic to determine the appropriate font class based on the font name
+    // For example, you can use a switch statement or a mapping function
+    switch (font) {
+      case "Inter":
+        return "font-inter";
+      case "Roboto":
+        return "font-roboto";
+      case "Helvetica":
+        return "font-helvetica";
+      default:
+        return "font-inter";
+    }
+  };
+
   return (
     <div className="bg-yellow-50 rounded-lg flex flex-col items-center justify-center w-full min-h-[32px] h-auto px-2 pt-0 pb-0 sm:pt-2 sm:pb-1 animate-slideup">
       <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center w-full gap-1 sm:gap-2 text-sm sm:text-base">
         <span className="hidden sm:inline">{Icon}</span>
-        <span className="font-bold text-yellow-900 truncate text-center text-base sm:text-lg mb-0">
+        <span className={`font-bold text-yellow-900 truncate text-center text-base sm:text-lg mb-0 ${getFontClass(businessProfile?.primary_font || "Inter")}`}>
           {title}
         </span>
         {message && (
