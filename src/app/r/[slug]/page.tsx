@@ -1405,7 +1405,7 @@ export default function PromptPage() {
                 {/* City/State under business name */}
                 {(businessProfile?.address_city ||
                   businessProfile?.address_state) && (
-                  <div className="text-center text-base text-gray-600 font-medium">
+                  <div className={`text-center text-base text-gray-600 font-medium ${getFontClass(businessProfile?.secondary_font)}`}>
                     {[
                       businessProfile.address_city,
                       businessProfile.address_state,
@@ -1899,7 +1899,7 @@ export default function PromptPage() {
                                   </div>
                                   <div className="flex items-center gap-3 mb-4 mt-0">
                                     <div
-                                      className={`text-2xl font-bold ${businessProfile?.primary_font || "font-inter"}`}
+                                      className={`text-2xl font-bold ${getFontClass(businessProfile?.primary_font)}`}
                                       style={{
                                         color: businessProfile?.primary_color || "#4F46E5",
                                         marginTop: "-5px",
@@ -2133,7 +2133,7 @@ export default function PromptPage() {
                                 color: businessProfile?.primary_color || "#4F46E5",
                               }}
                             >
-                              Visit Our Website
+                              <span className={`font-bold ${getFontClass(businessProfile?.primary_font || "Inter")}`}>Visit Our Website</span>
                             </h2>
                             <a
                               href={businessProfile.business_website}
@@ -2168,7 +2168,7 @@ export default function PromptPage() {
                               color: businessProfile?.primary_color || "#4F46E5",
                             }}
                           >
-                            {`Follow ${businessProfile?.business_name || "us"} on Social`}
+                            <span className={`font-bold ${getFontClass(businessProfile?.primary_font || "Inter")}`}>Follow on social</span>
                           </h2>
                           <div className="flex flex-wrap justify-center md:justify-start gap-6 p-2 w-full">
                             <SocialMediaIcons
