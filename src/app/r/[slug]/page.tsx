@@ -343,6 +343,8 @@ export default function PromptPage() {
   // Add state for showing the review form after sentiment
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [selectedSentiment, setSelectedSentiment] = useState<string | null>(null);
+  // Add state for open platforms
+  const [openPlatforms, setOpenPlatforms] = useState<number[]>([]);
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -966,6 +968,15 @@ export default function PromptPage() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Open first by default if 3 or more platforms
+  useEffect(() => {
+    if (Array.isArray(promptPage?.review_platforms) && promptPage.review_platforms.length >= 3) {
+      setOpenPlatforms([0]);
+    } else if (Array.isArray(promptPage?.review_platforms)) {
+      setOpenPlatforms(promptPage.review_platforms.map((_: any, idx: number) => idx));
+    }
+  }, [promptPage?.review_platforms]);
 
   if (loading) {
     return (
@@ -1868,249 +1879,242 @@ export default function PromptPage() {
                     promptPage.review_platforms.length > 0 && (
                       <div className="mb-8">
                         <div className="flex flex-col gap-8">
-                          {promptPage.review_platforms.map(
-                            (platform: any, idx: number) => {
-                              const { icon: Icon, label } = getPlatformIcon(
-                                platform.url,
-                                platform.platform || platform.name,
-                              );
-                              const isUniversal = !!promptPage.is_universal;
-                              return (
+                          {promptPage.review_platforms.map((platform: any, idx: number) => {
+                            const { icon: Icon, label } = getPlatformIcon(
+                              platform.url,
+                              platform.platform || platform.name,
+                            );
+                            const isUniversal = !!promptPage.is_universal;
+                            const isAccordion = promptPage.review_platforms.length >= 3;
+                            const isOpen = !isAccordion || openPlatforms.includes(idx);
+                            return (
+                              <div
+                                key={idx}
+                                className="relative bg-gray-50 rounded-xl shadow p-4 pt-8 flex flex-col items-start border border-gray-100 animate-slideup"
+                                style={{ animationDelay: `${300 + idx * 100}ms` }}
+                              >
+                                {/* Icon in top-left corner */}
                                 <div
-                                  key={idx}
-                                  className="relative bg-gray-50 rounded-xl shadow p-4 pt-8 flex flex-col items-start border border-gray-100 animate-slideup"
-                                  style={{
-                                    animationDelay: `${300 + idx * 100}ms`,
-                                  }}
+                                  className="absolute -top-4 -left-4 bg-white rounded-full shadow p-2 flex items-center justify-center"
+                                  title={label}
                                 >
-                                  {/* Icon in top-left corner */}
+                                  <Icon
+                                    className="w-7 h-7"
+                                    style={{ color: businessProfile?.primary_color || "#4F46E5" }}
+                                  />
+                                </div>
+                                {/* Accordion header */}
+                                <div
+                                  className="flex items-center mb-4 mt-0 cursor-pointer w-full"
+                                  onClick={() => {
+                                    if (!isAccordion) return;
+                                    setOpenPlatforms((prev) =>
+                                      prev.includes(idx)
+                                        ? prev.filter((i) => i !== idx)
+                                        : [...prev, idx]
+                                    );
+                                  }}
+                                  style={{ userSelect: "none" }}
+                                >
                                   <div
-                                    className="absolute -top-4 -left-4 bg-white rounded-full shadow p-2 flex items-center justify-center"
-                                    title={label}
+                                    className={`text-2xl font-bold ${getFontClass(businessProfile?.primary_font)}`}
+                                    style={{ color: businessProfile?.primary_color || "#4F46E5", marginTop: "-5px", marginLeft: "4px" }}
                                   >
-                                    <Icon
-                                      className="w-7 h-7"
-                                      style={{
-                                        color:
-                                          businessProfile?.primary_color ||
-                                          "#4F46E5",
-                                      }}
-                                    />
+                                    Leave a review on {(platform.platform || platform.name) === "Google Business Profile" ? "Google" : (platform.platform || platform.name)}
                                   </div>
-                                  <div className="flex items-center gap-3 mb-4 mt-0">
-                                    <div
-                                      className={`text-2xl font-bold ${getFontClass(businessProfile?.primary_font)}`}
-                                      style={{
-                                        color: businessProfile?.primary_color || "#4F46E5",
-                                        marginTop: "-5px",
-                                        marginLeft: "4px"
-                                      }}
-                                    >
-                                      Leave a review on {(platform.platform || platform.name) === "Google Business Profile" ? "Google" : (platform.platform || platform.name)}
-                                    </div>
-                                    {platform.customInstructions &&
+                                  <div className="flex-1" />
+                                  {isAccordion && (
+                                    <span className="text-lg flex items-center justify-end" style={{ color: businessProfile?.primary_color || "#4F46E5" }}>
+                                      {/* Chevron icon: right when closed, down when open */}
+                                      <svg
+                                        width="24"
+                                        height="24"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        style={{ display: 'inline', verticalAlign: 'middle', transition: 'transform 0.2s', transform: isOpen ? 'rotate(-90deg)' : 'rotate(0deg)' }}
+                                      >
+                                        <path d="M16 5l-8 7 8 7" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                                      </svg>
+                                    </span>
+                                  )}
+                                </div>
+                                {/* Only render the rest if open */}
+                                {isOpen && (
+                                  <>
+                                    {/* Popup for custom instructions */}
+                                    {openInstructionsIdx === idx &&
+                                      platform.customInstructions &&
                                       platform.customInstructions.trim() && (
-                                        <button
-                                          type="button"
-                                          className="ml-2 focus:outline-none"
-                                          onClick={() =>
-                                            setOpenInstructionsIdx(
-                                              openInstructionsIdx === idx
-                                                ? null
-                                                : idx,
+                                        <div
+                                          className="absolute z-50 left-1/2 -translate-x-1/2 top-10 bg-white border border-yellow-300 rounded shadow-lg p-4 text-yellow-900 text-sm max-w-xs w-max animate-fadein"
+                                          style={{ minWidth: 220 }}
+                                        >
+                                          <div className="flex justify-between items-center mb-2">
+                                            <span className="font-semibold">Instructions</span>
+                                            <button
+                                              type="button"
+                                              className="text-gray-400 hover:text-gray-700 ml-2"
+                                              onClick={() => setOpenInstructionsIdx(null)}
+                                              aria-label="Close instructions"
+                                            >
+                                              ×
+                                            </button>
+                                          </div>
+                                          <div>{platform.customInstructions}</div>
+                                        </div>
+                                      )}
+                                    <div className="flex flex-col md:flex-row gap-4 mb-2 w-full">
+                                      <div className="flex-1 min-w-[150px] max-w-[200px]">
+                                        <label
+                                          htmlFor={`reviewerFirstName-${idx}`}
+                                          className="block text-sm font-medium text-gray-700"
+                                        >
+                                          First Name{" "}
+                                          <span className="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                          type="text"
+                                          id={`reviewerFirstName-${idx}`}
+                                          value={reviewerFirstNames[idx]}
+                                          onChange={(e) =>
+                                            handleFirstNameChange(
+                                              idx,
+                                              e.target.value,
                                             )
                                           }
-                                          aria-label="Show custom instructions"
-                                          style={{ verticalAlign: "middle" }}
+                                          placeholder="Ezra"
+                                          className="w-full mt-1 mb-2 p-3 border rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                          required
+                                        />
+                                      </div>
+                                      <div className="flex-1 min-w-[150px] max-w-[200px]">
+                                        <label
+                                          htmlFor={`reviewerLastName-${idx}`}
+                                          className="block text-sm font-medium text-gray-700"
                                         >
-                                          <FaQuestionCircle
-                                            className="inline-block w-5 h-5 align-middle relative"
+                                          Last Name{" "}
+                                          <span className="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                          type="text"
+                                          id={`reviewerLastName-${idx}`}
+                                          value={reviewerLastNames[idx]}
+                                          onChange={(e) =>
+                                            handleLastNameChange(
+                                              idx,
+                                              e.target.value,
+                                            )
+                                          }
+                                          placeholder="Scout"
+                                          className="w-full mt-1 mb-2 p-3 border rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                          required
+                                        />
+                                      </div>
+                                      <div className="flex-1 min-w-[200px] max-w-[400px]">
+                                        <label
+                                          htmlFor={`reviewerRole-${idx}`}
+                                          className="block text-sm font-medium text-gray-700"
+                                        >
+                                          Role/Position/Occupation
+                                        </label>
+                                        <input
+                                          type="text"
+                                          id={`reviewerRole-${idx}`}
+                                          value={reviewerRoles[idx]}
+                                          onChange={(e) =>
+                                            setReviewerRoles((roles) =>
+                                              roles.map((r, i) =>
+                                                i === idx ? e.target.value : r,
+                                              ),
+                                            )
+                                          }
+                                          placeholder="Store Manager, GreenSprout Co-Op"
+                                          className="w-full mt-1 mb-2 p-3 border rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                        />
+                                      </div>
+                                    </div>
+                                    <textarea
+                                      className="w-full mt-2 mb-4 p-4 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                      placeholder="Write your review here..."
+                                      value={
+                                        isUniversal
+                                          ? platformReviewTexts[idx] || ""
+                                          : platformReviewTexts[idx] || ""
+                                      }
+                                      onChange={(e) =>
+                                        handleReviewTextChange(
+                                          idx,
+                                          e.target.value,
+                                        )
+                                      }
+                                      rows={5}
+                                    />
+                                    {submitError && (
+                                      <div className="text-red-500 text-sm mb-2">
+                                        {submitError}
+                                      </div>
+                                    )}
+                                    <div className="flex justify-between w-full">
+                                      {aiButtonEnabled && (
+                                        <button
+                                          onClick={() => handleRewriteWithAI(idx)}
+                                          disabled={aiLoading === idx}
+                                          className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg hover:bg-gray-50 transition-colors"
+                                          type="button"
+                                        >
+                                          <FaPenFancy
                                             style={{
                                               color:
                                                 businessProfile?.primary_color ||
-                                                "#1A237E",
-                                              top: "-2px",
+                                                "#4F46E5",
                                             }}
                                           />
+                                          <span
+                                            style={{
+                                              color:
+                                                businessProfile?.primary_color ||
+                                                "#4F46E5",
+                                            }}
+                                          >
+                                            {aiLoading === idx
+                                              ? "Generating..."
+                                              : "Generate with AI"}
+                                          </span>
                                         </button>
                                       )}
-                                  </div>
-                                  {/* Popup for custom instructions */}
-                                  {openInstructionsIdx === idx &&
-                                    platform.customInstructions &&
-                                    platform.customInstructions.trim() && (
-                                      <div
-                                        className="absolute z-50 left-1/2 -translate-x-1/2 top-10 bg-white border border-yellow-300 rounded shadow-lg p-4 text-yellow-900 text-sm max-w-xs w-max animate-fadein"
-                                        style={{ minWidth: 220 }}
-                                      >
-                                        <div className="flex justify-between items-center mb-2">
-                                          <span className="font-semibold">
-                                            Instructions
-                                          </span>
-                                          <button
-                                            type="button"
-                                            className="text-gray-400 hover:text-gray-700 ml-2"
-                                            onClick={() =>
-                                              setOpenInstructionsIdx(null)
-                                            }
-                                            aria-label="Close instructions"
-                                          >
-                                            ×
-                                          </button>
-                                        </div>
-                                        <div>{platform.customInstructions}</div>
-                                      </div>
-                                    )}
-                                  <div className="flex flex-col md:flex-row gap-4 mb-2 w-full">
-                                    <div className="flex-1 min-w-[150px] max-w-[200px]">
-                                      <label
-                                        htmlFor={`reviewerFirstName-${idx}`}
-                                        className="block text-sm font-medium text-gray-700"
-                                      >
-                                        First Name{" "}
-                                        <span className="text-red-500">*</span>
-                                      </label>
-                                      <input
-                                        type="text"
-                                        id={`reviewerFirstName-${idx}`}
-                                        value={reviewerFirstNames[idx]}
-                                        onChange={(e) =>
-                                          handleFirstNameChange(
-                                            idx,
-                                            e.target.value,
-                                          )
-                                        }
-                                        placeholder="Ezra"
-                                        className="w-full mt-1 mb-2 p-3 border rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                        required
-                                      />
-                                    </div>
-                                    <div className="flex-1 min-w-[150px] max-w-[200px]">
-                                      <label
-                                        htmlFor={`reviewerLastName-${idx}`}
-                                        className="block text-sm font-medium text-gray-700"
-                                      >
-                                        Last Name{" "}
-                                        <span className="text-red-500">*</span>
-                                      </label>
-                                      <input
-                                        type="text"
-                                        id={`reviewerLastName-${idx}`}
-                                        value={reviewerLastNames[idx]}
-                                        onChange={(e) =>
-                                          handleLastNameChange(
-                                            idx,
-                                            e.target.value,
-                                          )
-                                        }
-                                        placeholder="Scout"
-                                        className="w-full mt-1 mb-2 p-3 border rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                        required
-                                      />
-                                    </div>
-                                    <div className="flex-1 min-w-[200px] max-w-[400px]">
-                                      <label
-                                        htmlFor={`reviewerRole-${idx}`}
-                                        className="block text-sm font-medium text-gray-700"
-                                      >
-                                        Role/Position/Occupation
-                                      </label>
-                                      <input
-                                        type="text"
-                                        id={`reviewerRole-${idx}`}
-                                        value={reviewerRoles[idx]}
-                                        onChange={(e) =>
-                                          setReviewerRoles((roles) =>
-                                            roles.map((r, i) =>
-                                              i === idx ? e.target.value : r,
-                                            ),
-                                          )
-                                        }
-                                        placeholder="Store Manager, GreenSprout Co-Op"
-                                        className="w-full mt-1 mb-2 p-3 border rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                      />
-                                    </div>
-                                  </div>
-                                  <textarea
-                                    className="w-full mt-2 mb-4 p-4 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                                    placeholder="Write your review here..."
-                                    value={
-                                      isUniversal
-                                        ? platformReviewTexts[idx] || ""
-                                        : platformReviewTexts[idx] || ""
-                                    }
-                                    onChange={(e) =>
-                                      handleReviewTextChange(
-                                        idx,
-                                        e.target.value,
-                                      )
-                                    }
-                                    rows={5}
-                                  />
-                                  {submitError && (
-                                    <div className="text-red-500 text-sm mb-2">
-                                      {submitError}
-                                    </div>
-                                  )}
-                                  <div className="flex justify-between w-full">
-                                    {aiButtonEnabled && (
                                       <button
-                                        onClick={() => handleRewriteWithAI(idx)}
-                                        disabled={aiLoading === idx}
-                                        className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg hover:bg-gray-50 transition-colors"
+                                        onClick={() =>
+                                          handleCopyAndSubmit(idx, platform.url)
+                                        }
+                                        className="px-4 py-2 text-white rounded hover:opacity-90 transition-colors"
+                                        style={{
+                                          backgroundColor:
+                                            businessProfile?.secondary_color ||
+                                            "#4F46E5",
+                                        }}
+                                        disabled={isSubmitting === idx}
                                         type="button"
+                                        title="Copies your review and takes you to review site"
                                       >
-                                        <FaPenFancy
-                                          style={{
-                                            color:
-                                              businessProfile?.primary_color ||
-                                              "#4F46E5",
-                                          }}
-                                        />
-                                        <span
-                                          style={{
-                                            color:
-                                              businessProfile?.primary_color ||
-                                              "#4F46E5",
-                                          }}
-                                        >
-                                          {aiLoading === idx
-                                            ? "Generating..."
-                                            : "Generate with AI"}
-                                        </span>
+                                        {isSubmitting === idx ? (
+                                          <span className="flex items-center justify-center">
+                                            <FiveStarSpinner
+                                              size={18}
+                                              color1="#a5b4fc"
+                                              color2="#6366f1"
+                                            />
+                                          </span>
+                                        ) : (
+                                          "Copy & Submit"
+                                        )}
                                       </button>
-                                    )}
-                                    <button
-                                      onClick={() =>
-                                        handleCopyAndSubmit(idx, platform.url)
-                                      }
-                                      className="px-4 py-2 text-white rounded hover:opacity-90 transition-colors"
-                                      style={{
-                                        backgroundColor:
-                                          businessProfile?.secondary_color ||
-                                          "#4F46E5",
-                                      }}
-                                      disabled={isSubmitting === idx}
-                                      type="button"
-                                      title="Copies your review and takes you to review site"
-                                    >
-                                      {isSubmitting === idx ? (
-                                        <span className="flex items-center justify-center">
-                                          <FiveStarSpinner
-                                            size={18}
-                                            color1="#a5b4fc"
-                                            color2="#6366f1"
-                                          />
-                                        </span>
-                                      ) : (
-                                        "Copy & Submit"
-                                      )}
-                                    </button>
-                                  </div>
-                                </div>
-                              );
-                            },
-                          )}
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     )}
@@ -2133,7 +2137,7 @@ export default function PromptPage() {
                                 color: businessProfile?.primary_color || "#4F46E5",
                               }}
                             >
-                              <span className={`font-bold ${getFontClass(businessProfile?.primary_font || "Inter")}`}>Visit Our Website</span>
+                              <span className={`font-bold ${getFontClass(businessProfile?.primary_font || "Inter")}`}>Visit our website</span>
                             </h2>
                             <a
                               href={businessProfile.business_website}
