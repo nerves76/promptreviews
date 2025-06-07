@@ -527,59 +527,59 @@ export default function DashboardContent({
           <div className="flex-1 w-full">
             <div className="flex items-center gap-2 mb-4">
               <FaChartBar className="w-6 h-6 text-slate-blue" />
-              <h3 className="text-xl font-bold text-slate-blue mr-4">Review Stats</h3>
+              <h3 className="text-xl font-bold text-slate-blue mr-4">Review stats</h3>
               <Link href="/dashboard/analytics" className="text-slate-blue underline text-base font-medium hover:text-indigo-800 transition ml-auto">
-                View More Stats
+                View more stats
               </Link>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
               <div className="bg-indigo-50 rounded-lg p-6 flex flex-col items-center w-full">
                 <p className="text-lg font-semibold text-indigo-700 mb-2 flex items-center gap-1">
-                  Total Reviews
+                  Total reviews
                   <span className="relative group">
                     <FaQuestionCircle className="w-4 h-4 text-slate-blue cursor-pointer" />
                     <span className="absolute left-1/2 -translate-x-1/2 mt-2 w-48 p-2 bg-white border border-gray-200 rounded shadow text-xs text-gray-700 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-20">
-                      Total number of reviews submitted for your prompt pages. Week/Month/Year are based on the review submission date.
+                      Total number of reviews submitted for your prompt pages. Week/month/year are based on the review submission date.
                     </span>
                   </span>
                 </p>
                 <div className="flex gap-6 text-4xl font-extrabold text-slate-blue">
                   <div className="flex flex-col items-center">
                     <span>{reviewStats.total.week}</span>
-                    <span className="text-xs text-gray-500 mt-1">This Week</span>
+                    <span className="text-xs text-gray-500 mt-1">This week</span>
                   </div>
                   <div className="flex flex-col items-center">
                     <span>{reviewStats.total.month}</span>
-                    <span className="text-xs text-gray-500 mt-1">This Month</span>
+                    <span className="text-xs text-gray-500 mt-1">This month</span>
                   </div>
                   <div className="flex flex-col items-center">
                     <span>{reviewStats.total.year}</span>
-                    <span className="text-xs text-gray-500 mt-1">This Year</span>
+                    <span className="text-xs text-gray-500 mt-1">This year</span>
                   </div>
                 </div>
               </div>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 flex flex-col items-center w-full">
+              <div className="bg-blue-50 rounded-lg p-6 flex flex-col items-center w-full">
                 <p className="text-lg font-semibold text-green-700 mb-2 flex items-center gap-1">
-                  Reviews Verified
+                  Reviews verified
                   <span className="relative group">
                     <FaQuestionCircle className="w-4 h-4 text-green-700 cursor-pointer" />
                     <span className="absolute left-1/2 -translate-x-1/2 mt-2 w-48 p-2 bg-white border border-gray-200 rounded shadow text-xs text-gray-700 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-20">
-                      Number of reviews you have marked as verified. Week/Month/Year are based on the review verification date.
+                      Number of reviews you have marked as verified. Week/month/year are based on the review verification date.
                     </span>
                   </span>
                 </p>
                 <div className="flex gap-6 text-4xl font-extrabold text-green-700">
                   <div className="flex flex-col items-center">
                     <span>{reviewStats.verified.week}</span>
-                    <span className="text-xs text-gray-500 mt-1">This Week</span>
+                    <span className="text-xs text-gray-500 mt-1">This week</span>
                   </div>
                   <div className="flex flex-col items-center">
                     <span>{reviewStats.verified.month}</span>
-                    <span className="text-xs text-gray-500 mt-1">This Month</span>
+                    <span className="text-xs text-gray-500 mt-1">This month</span>
                   </div>
                   <div className="flex flex-col items-center">
                     <span>{reviewStats.verified.year}</span>
-                    <span className="text-xs text-gray-500 mt-1">This Year</span>
+                    <span className="text-xs text-gray-500 mt-1">This year</span>
                   </div>
                 </div>
               </div>
