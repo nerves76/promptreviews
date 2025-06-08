@@ -48,6 +48,7 @@ import {
   FaPeace,
   FaBicycle,
   FaAnchor,
+  FaGripLines,
 } from "react-icons/fa";
 import { IconType } from "react-icons";
 import ReviewSubmissionForm from "@/components/ReviewSubmissionForm";
@@ -282,7 +283,7 @@ export default function PromptPage() {
   const [error, setError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [platformReviewTexts, setPlatformReviewTexts] = useState<string[]>([]);
-  const [aiRewriteCounts, setAiRewriteCounts] = useState<number[]>([]);
+  const [aiRewriteCounts, setAiRewriteCounts] = useState<number[]>(Array(promptPage?.review_platforms?.length || 0).fill(0));
   const [aiLoading, setAiLoading] = useState<number | null>(null);
   const [showRewardsBanner, setShowRewardsBanner] = useState(true);
   const [showPersonalNote, setShowPersonalNote] = useState(true);
@@ -345,11 +346,19 @@ export default function PromptPage() {
   const [selectedSentiment, setSelectedSentiment] = useState<string | null>(null);
   // Add state for open platforms
   const [openPlatforms, setOpenPlatforms] = useState<number[]>([]);
+  const [showLimitModal, setShowLimitModal] = useState(false);
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   );
+
+  useEffect(() => {
+    const savedCounts = sessionStorage.getItem('aiRewriteCounts');
+    if (savedCounts) {
+      setAiRewriteCounts(JSON.parse(savedCounts));
+    }
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -625,7 +634,11 @@ export default function PromptPage() {
       setPlatformReviewTexts((prev) =>
         prev.map((t, i) => (i === idx ? text : t)),
       );
-      setAiRewriteCounts((prev) => prev.map((c, i) => (i === idx ? c + 1 : c)));
+      setAiRewriteCounts((prev) => {
+        const newCounts = prev.map((c, i) => (i === idx ? c + 1 : c));
+        sessionStorage.setItem('aiRewriteCounts', JSON.stringify(newCounts));
+        return newCounts;
+      });
       if (
         !currentUser &&
         promptPage?.id &&
@@ -1798,29 +1811,34 @@ export default function PromptPage() {
                             required
                           />
                           <div className="flex justify-between w-full gap-2">
-                            <button
-                              type="button"
-                              onClick={handleGeneratePhotoTestimonial}
-                              disabled={aiLoadingPhoto}
-                              className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg hover:bg-gray-50 transition-colors"
-                            >
-                              <FaPenFancy
-                                style={{
-                                  color:
-                                    businessProfile?.primary_color || "#4F46E5",
-                                }}
-                              />
-                              <span
-                                style={{
-                                  color:
-                                    businessProfile?.primary_color || "#4F46E5",
-                                }}
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={handleGeneratePhotoTestimonial}
+                                disabled={aiLoadingPhoto}
+                                className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg hover:bg-gray-50 transition-colors"
                               >
-                                {aiLoadingPhoto
-                                  ? "Generating..."
-                                  : "Generate with AI"}
+                                <FaPenFancy
+                                  style={{
+                                    color:
+                                      businessProfile?.primary_color || "#4F46E5",
+                                  }}
+                                />
+                                <span
+                                  style={{
+                                    color:
+                                      businessProfile?.primary_color || "#4F46E5",
+                                  }}
+                                >
+                                  {aiLoadingPhoto
+                                    ? "Generating..."
+                                    : "Generate with AI"}
+                                </span>
+                              </button>
+                              <span className="text-sm text-gray-500">
+                                {3 - aiRewriteCounts[idx]}/3
                               </span>
-                            </button>
+                            </div>
                             <button
                               type="submit"
                               className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg hover:bg-gray-50 transition-colors"
@@ -2057,31 +2075,36 @@ export default function PromptPage() {
                                     )}
                                     <div className="flex justify-between w-full">
                                       {aiButtonEnabled && (
-                                        <button
-                                          onClick={() => handleRewriteWithAI(idx)}
-                                          disabled={aiLoading === idx}
-                                          className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg hover:bg-gray-50 transition-colors"
-                                          type="button"
-                                        >
-                                          <FaPenFancy
-                                            style={{
-                                              color:
-                                                businessProfile?.primary_color ||
-                                                "#4F46E5",
-                                            }}
-                                          />
-                                          <span
-                                            style={{
-                                              color:
-                                                businessProfile?.primary_color ||
-                                                "#4F46E5",
-                                            }}
+                                        <div className="flex items-center gap-2">
+                                          <button
+                                            onClick={() => handleRewriteWithAI(idx)}
+                                            disabled={aiLoading === idx || aiRewriteCounts[idx] >= 3}
+                                            className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg hover:bg-gray-50 transition-colors"
+                                            type="button"
                                           >
-                                            {aiLoading === idx
-                                              ? "Generating..."
-                                              : "Generate with AI"}
+                                            <FaPenFancy
+                                              style={{
+                                                color:
+                                                  businessProfile?.primary_color ||
+                                                  "#4F46E5",
+                                              }}
+                                            />
+                                            <span
+                                              style={{
+                                                color:
+                                                  businessProfile?.primary_color ||
+                                                  "#4F46E5",
+                                              }}
+                                            >
+                                              {aiLoading === idx
+                                                ? "Generating..."
+                                                : "Generate with AI"}
+                                            </span>
+                                          </button>
+                                          <span className="text-sm text-gray-500">
+                                            {3 - aiRewriteCounts[idx]}/3
                                           </span>
-                                        </button>
+                                        </div>
                                       )}
                                       <button
                                         onClick={() =>
@@ -2355,6 +2378,35 @@ export default function PromptPage() {
           fontFamily={businessProfile?.primary_font || "Inter"}
         />
       )}
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full relative">
+          <div className="bg-blue-100 p-2 rounded-t-lg flex items-center justify-between cursor-move">
+            <span className="text-blue-600 flex items-center">
+              <FaGripLines className="mr-2" /> Drag
+            </span>
+            <button
+              className="text-gray-400 hover:text-gray-600"
+              onClick={() => setShowLimitModal(false)}
+              aria-label="Close"
+            >
+              &times;
+            </button>
+          </div>
+          <h2 className="text-2xl font-bold text-slate-blue mb-2">
+            Prompt page limit exceeded
+          </h2>
+          <p className="mb-6 text-gray-700">
+            You have reached the maximum number of prompt pages for your
+            plan. Upgrade to create more.
+          </p>
+          <a
+            href="/dashboard/plan"
+            className="inline-block px-4 py-2 bg-slate-blue text-white rounded-lg font-medium hover:bg-slate-blue/90 transition"
+          >
+            Upgrade Plan
+          </a>
+        </div>
+      </div>
     </div>
   );
 }

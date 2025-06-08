@@ -277,9 +277,6 @@ export default function AnalyticsPage() {
 
           // Count event types
           switch (event.event_type) {
-            case "view":
-              analyticsData.views++;
-              break;
             case "generate_with_ai":
               analyticsData.aiGenerations++;
               analyticsData.aiEvents.push({
@@ -309,15 +306,6 @@ export default function AnalyticsPage() {
                 feedback: event.feedback || (event.metadata?.feedback ?? ""),
                 date: event.created_at,
               });
-              break;
-            case "website_click":
-              analyticsData.websiteClicks++;
-              break;
-            case "social_click":
-              if (event.platform) {
-                analyticsData.socialClicks[event.platform] =
-                  (analyticsData.socialClicks[event.platform] || 0) + 1;
-              }
               break;
             default:
               break;
@@ -522,18 +510,6 @@ export default function AnalyticsPage() {
               {analytics.verifiedReviewsAll}
             </p>
           </div>
-          <div className="bg-indigo-50 rounded-lg p-4">
-            <p className="text-sm font-medium text-indigo-600">Website Clicks</p>
-            <p className="mt-2 text-3xl font-semibold text-indigo-900">
-              {analytics.websiteClicks}
-            </p>
-          </div>
-          <div className="bg-indigo-50 rounded-lg p-4">
-            <p className="text-sm font-medium text-indigo-600">Social Clicks</p>
-            <p className="mt-2 text-3xl font-semibold text-indigo-900">
-              {Object.values(analytics.socialClicks).reduce((a, b) => a + b, 0)}
-            </p>
-          </div>
 
           <div className="bg-indigo-50 rounded-lg p-4">
             <p className="text-sm font-medium text-indigo-600">
@@ -550,13 +526,6 @@ export default function AnalyticsPage() {
             </p>
             <p className="mt-2 text-3xl font-semibold text-indigo-900">
               {analytics.copySubmits}
-            </p>
-          </div>
-
-          <div className="bg-indigo-50 rounded-lg p-4">
-            <p className="text-sm font-medium text-indigo-600">Page Views</p>
-            <p className="mt-2 text-3xl font-semibold text-indigo-900">
-              {analytics.views}
             </p>
           </div>
 

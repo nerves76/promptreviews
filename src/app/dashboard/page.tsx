@@ -239,6 +239,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     const fetchStats = async () => {
+      if (!user || !user.id) return;
       const { data: pages } = await supabase
         .from("prompt_pages")
         .select("id")
