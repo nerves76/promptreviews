@@ -38,8 +38,6 @@ export async function POST(req: NextRequest) {
     // Only track important events, not page views
     const importantEvents = [
       "review_submitted",
-      "website_click",
-      "social_click",
       "ai_generate",
       "copy_submit",
       "emoji_sentiment",
