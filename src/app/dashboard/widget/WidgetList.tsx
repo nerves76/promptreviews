@@ -5,6 +5,7 @@ import { FaCopy, FaArrowsAlt } from "react-icons/fa";
 import { getUserOrMock } from "@/utils/supabase";
 import FiveStarSpinner from "@/app/components/FiveStarSpinner";
 import { ChatBubbleLeftIcon } from "@heroicons/react/24/outline";
+import { CheckIcon, DocumentDuplicateIcon } from "@heroicons/react/24/outline";
 
 const WORD_LIMIT = 120;
 const MAX_WIDGET_REVIEWS = 8;
@@ -14,6 +15,7 @@ type Widget = {
   name: string;
   user_id: string;
   created_at: string;
+  widget_type: string;
 };
 
 function wordCount(str: string) {
@@ -60,6 +62,7 @@ export default function WidgetList({
   const [editing, setEditing] = useState(null as null | string);
   const [form, setForm] = useState({
     name: "",
+    widgetType: "multi",
   });
 
   // Review management state
@@ -71,6 +74,7 @@ export default function WidgetList({
   const [editedReviews, setEditedReviews] = useState<{ [id: string]: string }>({});
   const [editedNames, setEditedNames] = useState<{ [id: string]: string }>({});
   const [editedRoles, setEditedRoles] = useState<{ [id: string]: string }>({});
+  const [editedRatings, setEditedRatings] = useState<{ [id: string]: number | null }>({});
   const [reviewError, setReviewError] = useState("");
   const [reviewSort, setReviewSort] = useState<"recent" | "alphabetical">("recent");
   const [reviewSearch, setReviewSearch] = useState("");
@@ -80,6 +84,14 @@ export default function WidgetList({
   const [reviewModalDragging, setReviewModalDragging] = useState(false);
   const reviewModalDragStart = useRef<{ x: number; y: number } | null>(null);
   const reviewModalRef = useRef<HTMLDivElement>(null);
+  const [showAddCustomReview, setShowAddCustomReview] = useState(false);
+  const [newCustomReview, setNewCustomReview] = useState({
+    review_content: "",
+    first_name: "",
+    last_name: "",
+    reviewer_role: "",
+    star_rating: null,
+  });
 
   // Widget design state (for editing)
   const [design, setDesign] = useState(
@@ -140,28 +152,65 @@ export default function WidgetList({
     return () => window.removeEventListener("openNewWidgetForm", handler);
   }, []);
 
-  // Fetch real reviews from Supabase
+  // Update the useEffect for showReviewModal to fetch from review_submissions for allReviews, and widget_reviews for selectedReviews.
   useEffect(() => {
-    if (!showReviewModal) return;
+    if (!showReviewModal || !selectedWidget) return;
     setLoadingReviews(true);
     const supabase = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     );
-    console.log("[DEBUG] Fetching reviews for widget modal...");
+    console.log('[DEBUG] Fetching reviews for widget:', selectedWidget);
+    
+    // Fetch all available reviews from review_submissions (no prompt_page_id filter)
     supabase
-      .from("review_submissions")
-      .select("id, first_name, last_name, reviewer_role, review_content, platform, created_at")
+      .from('review_submissions')
+      .select('id, first_name, last_name, reviewer_role, review_content, platform, created_at')
+      .order('created_at', { ascending: false })
       .then(({ data, error }) => {
-        console.log("[DEBUG] Reviews fetched:", data);
-        console.log("[DEBUG] Error if any:", error);
+        console.log('[DEBUG] Raw review_submissions data:', data);
+        console.log('[DEBUG] review_submissions error:', error);
+        
         if (error) {
-          console.error("[DEBUG] Detailed error:", error.message, error.details, error.hint);
+          console.error('[DEBUG] Error fetching review_submissions:', error);
+          setLoadingReviews(false);
+          return;
         }
-        setAllReviews(data || []);
+        
+        if (!data || data.length === 0) {
+          console.log('[DEBUG] No reviews found in review_submissions');
+          setAllReviews([]);
+          setLoadingReviews(false);
+          return;
+        }
+
+        const mappedReviews = data.map(r => ({
+          review_id: r.id,
+          first_name: r.first_name,
+          last_name: r.last_name,
+          reviewer_role: r.reviewer_role,
+          review_content: r.review_content,
+          platform: r.platform,
+          created_at: r.created_at
+        }));
+        
+        console.log('[DEBUG] Mapped reviews:', mappedReviews);
+        setAllReviews(mappedReviews);
         setLoadingReviews(false);
       });
-  }, [showReviewModal]);
+
+    // Fetch selected reviews for this widget from widget_reviews
+    supabase
+      .from('widget_reviews')
+      .select('id, review_id, review_content, first_name, last_name, reviewer_role, platform, created_at, star_rating, order_index')
+      .eq('widget_id', selectedWidget)
+      .order('order_index', { ascending: true })
+      .then(({ data, error }) => {
+        console.log('[DEBUG] widget_reviews data:', data);
+        console.log('[DEBUG] widget_reviews error:', error);
+        setSelectedReviews(data || []);
+      });
+  }, [showReviewModal, selectedWidget]);
 
   // On mount, fetch widgets from Supabase
   useEffect(() => {
@@ -186,10 +235,10 @@ export default function WidgetList({
   const handleOpenForm = (widget?: Widget) => {
     if (widget) {
       setEditing(widget.id);
-      setForm({ name: widget.name });
+      setForm({ name: widget.name, widgetType: widget.widget_type || "multi" });
     } else {
       setEditing(null);
-      setForm({ name: "" });
+      setForm({ name: "", widgetType: "multi" });
     }
     setShowForm(true);
   };
@@ -213,28 +262,80 @@ export default function WidgetList({
         return;
       }
 
+      // Get all accounts for this user via account_users
+      let { data: accountLinks, error: accountLinksError } = await supabase
+        .from("account_users")
+        .select("account_id, accounts(*)")
+        .eq("user_id", user.id);
+
+      let account_id;
+      if (accountLinksError) {
+        alert("Could not fetch accounts for user.");
+        return;
+      }
+      if (accountLinks && accountLinks.length > 0) {
+        // Use the first account the user belongs to
+        account_id = accountLinks[0].account_id;
+      } else {
+        // No account found, create a new account and link user as owner
+        const { data: newAccount, error: createAccountError } = await supabase
+          .from("accounts")
+          .insert([{ name: `${user.email || "My Account"}` }])
+          .select()
+          .single();
+        if (createAccountError || !newAccount) {
+          alert("Could not create account for user.");
+          return;
+        }
+        // Link user to new account as owner
+        const { data: accountUser, error: accountUserError } = await supabase
+          .from("account_users")
+          .insert([
+            {
+              account_id: newAccount.id,
+              user_id: user.id,
+              role: "owner",
+            },
+          ])
+          .select()
+          .single();
+        if (accountUserError || !accountUser) {
+          alert("Could not link user to new account.");
+          return;
+        }
+        account_id = newAccount.id;
+      }
+
       if (editing) {
         // Update existing widget
         const { error } = await supabase
           .from("widgets")
           .update({
             name: form.name.trim(),
+            account_id: account_id,
+            widget_type: form.widgetType,
           })
           .eq("id", editing);
 
         if (error) throw error;
 
         setWidgets(widgets.map((w) =>
-          w.id === editing ? { ...w, name: form.name.trim() } : w
+          w.id === editing ? { ...w, name: form.name.trim(), account_id: account_id, widget_type: form.widgetType } : w
         ));
       } else {
         // Create new widget
+        console.log("Creating widget with:", {
+          name: form.name.trim(),
+          account_id: account_id,
+          widget_type: form.widgetType,
+        });
         const { data, error } = await supabase
           .from("widgets")
           .insert([
             {
               name: form.name.trim(),
-              user_id: user.id,
+              account_id: account_id,
+              widget_type: form.widgetType,
             },
           ])
           .select()
@@ -246,9 +347,9 @@ export default function WidgetList({
       }
 
       setShowForm(false);
-      setForm({ name: "" });
-    } catch (error) {
-      console.error("Error creating widget:", error);
+      setForm({ name: "", widgetType: "multi" });
+    } catch (error: any) {
+      console.error("Error creating widget:", error, error?.message, error?.details);
       alert("Failed to create widget. Please try again.");
     }
   };
@@ -268,7 +369,7 @@ export default function WidgetList({
     const { data: widgetReviews, error } = await supabase
       .from("widget_reviews")
       .select(
-        "review_id, review_content, first_name, last_name, reviewer_role, platform, created_at",
+        "review_id, review_content, first_name, last_name, reviewer_role, platform, created_at, star_rating"
       )
       .eq("widget_id", widgetId)
       .order("order_index", { ascending: true });
@@ -283,39 +384,75 @@ export default function WidgetList({
       setEditedReviews({});
       setEditedNames({});
       setEditedRoles({});
+      setEditedRatings({});
       setLoadingReviews(false);
       return;
     }
-    // Set selectedReviews to the reviews in the widget, mapping id: review_id
-    const mappedReviews = (widgetReviews || []).map((r) => ({
-      ...r,
-      id: r.review_id,
-    }));
-    setSelectedReviews(mappedReviews);
-    console.log("[DEBUG] selectedReviews set:", mappedReviews);
+    // Set selectedReviews to the reviews in the widget
+    setSelectedReviews(widgetReviews || []);
+    console.log("[DEBUG] selectedReviews set:", widgetReviews);
     // Set edited fields to match the widget's current reviews
     const editedReviewsObj: { [id: string]: string } = {};
     const editedNamesObj: { [id: string]: string } = {};
     const editedRolesObj: { [id: string]: string } = {};
+    const editedRatingsObj: { [id: string]: number | null } = {};
     (widgetReviews || []).forEach((r) => {
       editedReviewsObj[r.review_id] = r.review_content;
       editedNamesObj[r.review_id] = `${r.first_name} ${r.last_name}`;
       editedRolesObj[r.review_id] = r.reviewer_role;
+      editedRatingsObj[r.review_id] = r.star_rating ?? null;
     });
     setEditedReviews(editedReviewsObj);
     setEditedNames(editedNamesObj);
     setEditedRoles(editedRolesObj);
+    setEditedRatings(editedRatingsObj);
     setLoadingReviews(false);
   };
 
   const handleToggleReview = (review: any) => {
-    const alreadySelected = selectedReviews.some((r) => r.id === review.id);
+    const alreadySelected = selectedReviews.some((r) => r.review_id === review.review_id);
     let updated;
     if (alreadySelected) {
-      updated = selectedReviews.filter((r) => r.id !== review.id);
+      updated = selectedReviews.filter((r) => r.review_id !== review.review_id);
+      // Remove from edited fields when removing
+      setEditedReviews((prev) => {
+        const { [review.review_id]: _, ...rest } = prev;
+        return rest;
+      });
+      setEditedNames((prev) => {
+        const { [review.review_id]: _, ...rest } = prev;
+        return rest;
+      });
+      setEditedRoles((prev) => {
+        const { [review.review_id]: _, ...rest } = prev;
+        return rest;
+      });
+      setEditedRatings((prev) => {
+        const { [review.review_id]: _, ...rest } = prev;
+        return rest;
+      });
     } else {
+      // Only add if not already present
+      if (selectedReviews.some((r) => r.review_id === review.review_id)) return;
       if (selectedReviews.length >= MAX_WIDGET_REVIEWS) return;
       updated = [...selectedReviews, review];
+      // Initialize edited fields when adding
+      setEditedReviews((prev) => ({
+        ...prev,
+        [review.review_id]: review.review_content || "",
+      }));
+      setEditedNames((prev) => ({
+        ...prev,
+        [review.review_id]: `${review.first_name} ${review.last_name}`,
+      }));
+      setEditedRoles((prev) => ({
+        ...prev,
+        [review.review_id]: review.reviewer_role || "",
+      }));
+      setEditedRatings((prev) => ({
+        ...prev,
+        [review.review_id]: review.star_rating ?? null,
+      }));
     }
     setSelectedReviews(updated);
   };
@@ -325,10 +462,14 @@ export default function WidgetList({
   };
 
   const handleSaveReviews = async () => {
-    if (!selectedWidget) return;
+    if (!selectedWidget) {
+      setReviewError("No widget selected");
+      return;
+    }
+    const widgetId = selectedWidget;
     // Validate all selected reviews are within word limit
     for (const review of selectedReviews) {
-      const text = editedReviews[review.id] ?? review.review_content;
+      const text = editedReviews[review.review_id] ?? review.review_content;
       if (wordCount(text) > WORD_LIMIT) {
         setReviewError(
           `One or more reviews are too long. Limit: ${WORD_LIMIT} words.`,
@@ -344,31 +485,47 @@ export default function WidgetList({
     const { data: currentWidgetReviews, error: fetchError } = await supabase
       .from("widget_reviews")
       .select("id, review_id")
-      .eq("widget_id", selectedWidget);
+      .eq("widget_id", widgetId);
     if (fetchError) {
       setReviewError("Failed to fetch widget reviews: " + fetchError.message);
       return;
     }
     const currentIds = (currentWidgetReviews || []).map((r) => r.review_id);
+    // Delete unselected reviews for this widget
+    const selectedIds = selectedReviews.map((r) => r.review_id);
+    if (currentIds.length > 0) {
+      const idsToDelete = currentIds.filter((id) => !selectedIds.includes(id));
+      if (idsToDelete.length > 0) {
+        await supabase
+          .from("widget_reviews")
+          .delete()
+          .eq("widget_id", widgetId)
+          .in("review_id", idsToDelete);
+      }
+    }
     // Insert new reviews
     const { error } = await supabase
       .from("widget_reviews")
-      .insert(
+      .upsert(
         selectedReviews.map((review, index) => ({
-          widget_id: selectedWidget,
-          review_id: review.id,
-          review_content: editedReviews[review.id] ?? review.review_content,
-          first_name: (editedNames[review.id] ?? `${review.first_name} ${review.last_name}`).split(' ')[0],
-          last_name: (editedNames[review.id] ?? `${review.first_name} ${review.last_name}`).split(' ').slice(1).join(' '),
-          reviewer_role: editedRoles[review.id] ?? review.reviewer_role,
+          widget_id: widgetId,
+          review_id: review.review_id,
+          review_content: editedReviews[review.review_id] ?? review.review_content,
+          first_name: (editedNames[review.review_id] ?? `${review.first_name} ${review.last_name}`).split(' ')[0],
+          last_name: (editedNames[review.review_id] ?? `${review.first_name} ${review.last_name}`).split(' ').slice(1).join(' '),
+          reviewer_role: editedRoles[review.review_id] ?? review.reviewer_role,
           platform: review.platform,
           order_index: index,
-        }))
+          star_rating: (editedRatings[review.review_id] !== undefined && editedRatings[review.review_id] !== null)
+            ? Math.round(editedRatings[review.review_id] * 2) / 2
+            : (typeof review.star_rating === 'number' ? Math.round(review.star_rating * 2) / 2 : null),
+        })),
+        { onConflict: 'widget_id,review_id' }
       );
 
     if (error) {
-      console.error("Error saving widget reviews:", error);
-      alert("Failed to save reviews. Please try again.");
+      console.error("Error saving widget reviews:", error, JSON.stringify(error));
+      alert("Failed to save reviews. Please try again.\n" + JSON.stringify(error));
       return;
     }
     setShowReviewModal(false);
@@ -463,9 +620,9 @@ export default function WidgetList({
     supabase
       .from("widget_reviews")
       .select(
-        "id, review_id, review_content, first_name, last_name, reviewer_role, platform, order_index",
+        "id, review_id, review_content, first_name, last_name, reviewer_role, platform, order_index, star_rating"
       )
-      .eq("widget_id", selectedWidget)
+      .eq("widget_id", selectedWidget!)
       .order("order_index", { ascending: true })
       .then(({ data, error }) => {
         console.log("[DEBUG] Widget reviews fetched:", data);
@@ -498,7 +655,7 @@ export default function WidgetList({
         .update({
           theme: design,
         })
-        .eq("id", selectedWidget);
+        .eq("id", selectedWidget!);
 
       if (error) throw error;
 
@@ -597,59 +754,150 @@ export default function WidgetList({
     };
   }, [reviewModalDragging]);
 
+  useEffect(() => {
+    // Auto-select the only widget if there is one
+    if (widgets.length === 1 && onSelectWidget) {
+      onSelectWidget(widgets[0]);
+    }
+  }, [widgets, onSelectWidget]);
+
+  // Ensure only unique review_ids are rendered
+  const uniqueSelectedReviews = Array.from(
+    new Map(selectedReviews.map(r => [r.review_id, r])).values()
+  );
+
+  const [editingNameId, setEditingNameId] = useState<string | null>(null);
+  const [editingNameValue, setEditingNameValue] = useState("");
+  const handleSaveWidgetName = async (id: string, name: string) => {
+    if (!name.trim()) return;
+    setWidgets(widgets => widgets.map(w => w.id === id ? { ...w, name } : w));
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    );
+    await supabase.from("widgets").update({ name: name.trim() }).eq("id", id);
+  };
+
+  const handleAddCustomReview = async () => {
+    if (!newCustomReview.review_content || !newCustomReview.first_name || !newCustomReview.last_name) {
+      setReviewError("Please fill in all required fields");
+      return;
+    }
+
+    if (!selectedWidget) {
+      setReviewError("No widget selected");
+      return;
+    }
+
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    );
+
+    // Create a new review directly in widget_reviews
+    const { data, error } = await supabase
+      .from("widget_reviews")
+      .insert([
+        {
+          widget_id: selectedWidget!,
+          review_content: newCustomReview.review_content,
+          first_name: newCustomReview.first_name,
+          last_name: newCustomReview.last_name,
+          reviewer_role: newCustomReview.reviewer_role,
+          star_rating: newCustomReview.star_rating ?? null,
+          order_index: allReviews.length,
+          platform: "custom",
+        },
+      ])
+      .select()
+      .single();
+
+    if (error) {
+      setReviewError("Failed to add custom review: " + error.message);
+      return;
+    }
+
+    if (!data) {
+      setReviewError("Failed to add custom review: No data returned");
+      return;
+    }
+
+    // Add to selected reviews
+    setSelectedReviews([...selectedReviews, data]);
+    setAllReviews([...allReviews, data]);
+    
+    // Reset form
+    setNewCustomReview({
+      review_content: "",
+      first_name: "",
+      last_name: "",
+      reviewer_role: "",
+      star_rating: null,
+    });
+    setShowAddCustomReview(false);
+  };
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center mb-6">
-        <button
-          onClick={() => handleOpenForm()}
-          className="px-4 py-2 bg-dustyPlum text-pureWhite rounded hover:bg-lavenderHaze hover:text-dustyPlum transition-colors font-semibold"
-        >
-          + New widget
-        </button>
-      </div>
-
-      {isClient && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Widget List */}
+      <div className="bg-white rounded-lg shadow">
+        <div className="grid grid-cols-1 gap-6">
           {widgets.map((widget) => (
             <div
               key={widget.id}
-              className="bg-white rounded-lg shadow-md overflow-hidden"
+              className={`bg-white rounded-lg shadow-md overflow-hidden cursor-pointer border-2 transition-all ${selectedWidgetId === widget.id ? 'border-indigo-500 ring-2 ring-indigo-200' : 'border-transparent'}`}
+              onClick={() => onSelectWidget?.(widget)}
             >
-              <div className="p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    {widget.name}
-                  </h3>
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-2">
+                    {editingNameId === widget.id ? (
+                      <input
+                        type="text"
+                        value={editingNameValue}
+                        autoFocus
+                        onChange={e => setEditingNameValue(e.target.value)}
+                        onBlur={async () => {
+                          await handleSaveWidgetName(widget.id, editingNameValue);
+                          setEditingNameId(null);
+                        }}
+                        onKeyDown={async (e) => {
+                          if (e.key === 'Enter') {
+                            await handleSaveWidgetName(widget.id, editingNameValue);
+                            setEditingNameId(null);
+                          } else if (e.key === 'Escape') {
+                            setEditingNameId(null);
+                          }
+                        }}
+                        className="text-xl font-semibold text-gray-900 border-b border-indigo-300 focus:outline-none focus:border-indigo-500 bg-transparent px-1"
+                        style={{ minWidth: 80 }}
+                      />
+                    ) : (
+                      <span
+                        className="text-xl font-semibold text-gray-900 cursor-pointer hover:underline flex items-center gap-1"
+                        onClick={e => {
+                          e.stopPropagation();
+                          setEditingNameId(widget.id);
+                          setEditingNameValue(widget.name);
+                        }}
+                      >
+                        {widget.name}
+                        <i className="fa-solid fa-up-down-left-right text-gray-400 w-5 h-5"></i>
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-4">
                     <button
-                      onClick={async () => await handleOpenReviewModal(widget.id)}
-                      className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                      onClick={async (e) => { e.stopPropagation(); await handleOpenReviewModal(widget.id); }}
+                      className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                       title="Manage Reviews"
                     >
                       <ChatBubbleLeftIcon className="h-5 w-5 text-gray-500" />
+                      <span className="text-sm font-medium">Manage Reviews</span>
                     </button>
                     <button
-                      onClick={() => handleOpenForm(widget)}
-                      className="p-2 text-gray-600 hover:text-gray-900"
-                      title="Edit Widget"
-                    >
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                        />
-                      </svg>
-                    </button>
-                    <button
-                      onClick={() => handleEditStyle(widget.id)}
-                      className="p-2 text-gray-600 hover:text-gray-900"
+                      onClick={(e) => { e.stopPropagation(); handleEditStyle(widget.id); }}
+                      className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                       title="Edit Style"
                     >
                       <svg
@@ -665,10 +913,11 @@ export default function WidgetList({
                           d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"
                         />
                       </svg>
+                      <span className="text-sm font-medium">Edit Style</span>
                     </button>
                     <button
-                      onClick={() => handleDeleteWidget(widget.id)}
-                      className="p-2 text-gray-600 hover:text-red-600"
+                      onClick={(e) => { e.stopPropagation(); handleDeleteWidget(widget.id); }}
+                      className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
                       title="Delete Widget"
                     >
                       <svg
@@ -684,33 +933,34 @@ export default function WidgetList({
                           d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                         />
                       </svg>
+                      <span className="text-sm font-medium">Delete</span>
                     </button>
                   </div>
                 </div>
                 <div className="space-y-4">
-                  {widget.reviews?.slice(0, 2).map((review: any) => (
+                  {widget.reviews?.slice(0, 3).map((review: any) => (
                     <div
-                      key={review.id}
-                      className="bg-gray-50 rounded-lg p-3 text-sm"
+                      key={review.review_id}
+                      className="bg-gray-50 rounded-lg p-4 text-sm"
                     >
                       <div className="font-medium text-gray-900">
                         {`${review.first_name} ${review.last_name}`}
                       </div>
-                      <div className="text-gray-500 text-xs mb-1">
+                      <div className="text-gray-500 text-xs mb-2">
                         {review.reviewer_role}
                       </div>
-                      <div className="text-gray-600 line-clamp-2">
+                      <div className="text-gray-600 line-clamp-3">
                         {review.review_content}
                       </div>
                     </div>
                   ))}
-                  {widget.reviews && widget.reviews.length > 2 && (
+                  {widget.reviews && widget.reviews.length > 3 && (
                     <div className="text-center">
                       <button
-                        onClick={async () => await handleOpenReviewModal(widget.id)}
-                        className="text-sm text-indigo-600 hover:text-indigo-700"
+                        onClick={async (e) => { e.stopPropagation(); await handleOpenReviewModal(widget.id); }}
+                        className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
                       >
-                        +{widget.reviews.length - 2} more reviews
+                        +{widget.reviews.length - 3} more reviews
                       </button>
                     </div>
                   )}
@@ -719,7 +969,7 @@ export default function WidgetList({
             </div>
           ))}
         </div>
-      )}
+      </div>
 
       {/* Add New/Edit Widget Form Modal */}
       {showForm && (
@@ -734,12 +984,21 @@ export default function WidgetList({
             ref={editModalRef}
           >
             <div
-              className="p-4 border-b cursor-move"
+              className="p-4 border-b cursor-move flex items-center justify-between bg-blue-100 rounded-t-2xl"
               onMouseDown={handleEditMouseDown}
             >
-              <h2 className="text-lg font-semibold text-gray-900">
-                {editing ? "Edit Widget" : "New Widget"}
-              </h2>
+              <div className="flex-1 flex justify-center items-center gap-2">
+                <i className="fa-solid fa-up-down-left-right text-gray-400 w-5 h-5"></i>
+                <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider">drag</span>
+              </div>
+              <button
+                onClick={() => setShowForm(false)}
+                className="text-gray-400 hover:text-gray-500 ml-2"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
             <div className="p-4">
               <div className="space-y-4">
@@ -756,6 +1015,33 @@ export default function WidgetList({
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                     placeholder="Enter widget name"
                   />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Widget Type
+                  </label>
+                  <div className="flex gap-4 mt-1">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="widgetType"
+                        value="single"
+                        checked={form.widgetType === "single"}
+                        onChange={() => setForm((prev) => ({ ...prev, widgetType: "single" }))}
+                      />
+                      Single Card
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="widgetType"
+                        value="multi"
+                        checked={form.widgetType === "multi"}
+                        onChange={() => setForm((prev) => ({ ...prev, widgetType: "multi" }))}
+                      />
+                      Multi Card (carousel/grid)
+                    </label>
+                  </div>
                 </div>
               </div>
             </div>
@@ -780,48 +1066,24 @@ export default function WidgetList({
 
       {/* Edit Style Modal */}
       {showEditModal && selectedWidget && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
-            <div
-              className="flex items-center justify-between p-4 border-b cursor-move"
-              onMouseDown={handleEditMouseDown}
-            >
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 bg-slate-blue rounded-full flex items-center justify-center">
-                  <svg
-                    className="w-4 h-4 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 6h16M4 12h16m-7 6h7"
-                    />
-                  </svg>
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+            <div className="relative">
+              <div className="p-4 border-b bg-blue-100 flex items-center justify-between relative select-none cursor-move rounded-t-2xl" onMouseDown={handleReviewModalMouseDown}>
+                <h2 className="text-lg font-semibold text-gray-900">Manage Reviews</h2>
+                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none">
+                  <i className="fa-solid fa-up-down-left-right text-gray-400 w-5 h-5"></i>
+                  <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider">drag</span>
                 </div>
-                <h2 className="text-lg font-semibold text-gray-900">
-                  Edit Style
-                </h2>
               </div>
               <button
-                onClick={() => setShowEditModal(false)}
-                className="text-gray-400 hover:text-gray-500"
+                onClick={e => { e.stopPropagation(); setShowEditModal(false); }}
+                className="absolute -top-4 -right-4 z-20 bg-white rounded-full shadow p-1 border border-gray-200 hover:bg-gray-50"
+                style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                aria-label="Close"
               >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
+                <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
@@ -985,17 +1247,6 @@ export default function WidgetList({
                   <div className="flex items-center gap-2">
                     <input
                       type="checkbox"
-                      checked={design.showGrid}
-                      onChange={(e) => handleDesignChange("showGrid", e.target.checked)}
-                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                    />
-                    <label className="text-sm font-medium text-gray-700">
-                      Show Grid
-                    </label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
                       checked={design.autoAdvance}
                       onChange={(e) => handleDesignChange("autoAdvance", e.target.checked)}
                       className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
@@ -1040,40 +1291,35 @@ export default function WidgetList({
       )}
 
       {showReviewModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div 
-            className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col"
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col"
+            ref={reviewModalRef}
             style={{
               position: 'absolute',
               left: reviewModalPos.x,
               top: reviewModalPos.y,
             }}
-            ref={reviewModalRef}
           >
-            <div 
-              className="p-4 border-b cursor-move flex items-center justify-between"
-              onMouseDown={handleReviewModalMouseDown}
-            >
-              <h2 className="text-lg font-semibold text-gray-900">Manage Reviews</h2>
+            <div className="relative">
+              <div className="p-4 border-b bg-blue-100 flex items-center justify-between relative select-none cursor-move rounded-t-2xl" onMouseDown={handleReviewModalMouseDown}>
+                <h2 className="text-lg font-semibold text-gray-900">Manage Reviews</h2>
+                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none">
+                  <i className="fa-solid fa-up-down-left-right text-gray-400 w-5 h-5"></i>
+                  <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider">drag</span>
+                </div>
+              </div>
               <button
-                onClick={() => setShowReviewModal(false)}
-                className="text-gray-400 hover:text-gray-500"
+                onClick={e => { e.stopPropagation(); setShowReviewModal(false); }}
+                className="absolute -top-4 -right-4 z-20 bg-white rounded-full shadow p-1 border border-gray-200 hover:bg-gray-50"
+                style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                aria-label="Close"
               >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
+                <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
+
             <div className="p-6 flex-1 overflow-y-auto">
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1109,9 +1355,9 @@ export default function WidgetList({
                     <div className="space-y-2 max-h-[60vh] overflow-y-auto">
                       {getFilteredAndSortedReviews().reviews.map((review) => (
                         <div
-                          key={review.id}
+                          key={review.review_id}
                           className={`p-3 rounded-lg border ${
-                            selectedReviews.some((r) => r.id === review.id)
+                            uniqueSelectedReviews.some((r) => r.id === review.id)
                               ? "border-indigo-500 bg-indigo-50"
                               : "border-gray-200 hover:border-gray-300"
                           }`}
@@ -1131,12 +1377,12 @@ export default function WidgetList({
                             <button
                               onClick={() => handleToggleReview(review)}
                               className={`ml-2 px-3 py-1 rounded ${
-                                selectedReviews.some((r) => r.id === review.id)
+                                uniqueSelectedReviews.some((r) => r.id === review.id)
                                   ? "bg-indigo-100 text-indigo-700"
                                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                               }`}
                             >
-                              {selectedReviews.some((r) => r.id === review.id)
+                              {uniqueSelectedReviews.some((r) => r.id === review.id)
                                 ? "Remove"
                                 : "Add"}
                             </button>
@@ -1171,11 +1417,11 @@ export default function WidgetList({
                   </div>
                   <div>
                     <h3 className="font-medium mb-2">Selected Reviews</h3>
-                    <div className="space-y-2 max-h-[60vh] overflow-y-auto">
-                      {selectedReviews.map((review) => (
+                    <div className="space-y-2 max-h-[60vh] overflow-y-auto bg-blue-50 rounded-md p-2">
+                      {uniqueSelectedReviews.map((review) => (
                         <div
-                          key={review.id}
-                          className="p-3 rounded-lg border border-gray-200"
+                          key={review.review_id}
+                          className="p-3 rounded-lg border border-gray-200 bg-blue-50"
                         >
                           <div className="space-y-2">
                             <div>
@@ -1184,11 +1430,11 @@ export default function WidgetList({
                               </label>
                               <input
                                 type="text"
-                                value={editedNames[review.id] || ""}
+                                value={editedNames[review.review_id] || ""}
                                 onChange={(e) =>
                                   setEditedNames((prev) => ({
                                     ...prev,
-                                    [review.id]: e.target.value,
+                                    [review.review_id]: e.target.value,
                                   }))
                                 }
                                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
@@ -1200,11 +1446,11 @@ export default function WidgetList({
                               </label>
                               <input
                                 type="text"
-                                value={editedRoles[review.id] || ""}
+                                value={editedRoles[review.review_id] || ""}
                                 onChange={(e) =>
                                   setEditedRoles((prev) => ({
                                     ...prev,
-                                    [review.id]: e.target.value,
+                                    [review.review_id]: e.target.value,
                                   }))
                                 }
                                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
@@ -1215,10 +1461,39 @@ export default function WidgetList({
                                 Review
                               </label>
                               <textarea
-                                value={editedReviews[review.id] || ""}
-                                onChange={(e) => handleReviewEdit(review.id, e.target.value)}
+                                value={editedReviews[review.review_id] || ""}
+                                onChange={(e) => handleReviewEdit(review.review_id, e.target.value)}
                                 rows={3}
                                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700">
+                                Star Rating
+                              </label>
+                              <input
+                                type="number"
+                                min={1}
+                                max={5}
+                                step={0.5}
+                                value={editedRatings[review.review_id] ?? ''}
+                                onChange={e => {
+                                  const val = e.target.value;
+                                  let parsed: number | null = null;
+                                  if (val !== '') {
+                                    parsed = parseFloat(val);
+                                    if (!isNaN(parsed)) {
+                                      // Clamp and round
+                                      if (parsed < 1 || parsed > 5) return;
+                                      parsed = Math.round(parsed * 2) / 2;
+                                    } else {
+                                      parsed = null;
+                                    }
+                                  }
+                                  setEditedRatings(prev => ({ ...prev, [review.review_id]: val === '' ? null : parsed }));
+                                }}
+                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                placeholder="1-5 (e.g. 4.5)"
                               />
                             </div>
                             <button
