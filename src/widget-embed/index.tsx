@@ -1,6 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserClient } from '@supabase/ssr';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation, Pagination, A11y, Autoplay } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
 
 // Define the widget types
 type WidgetType = 'single' | 'multi' | 'photo';
@@ -137,6 +142,39 @@ function getRelativeTime(dateString: string): string {
   return `${diffInYears} years ago`;
 }
 
+// Add star rating rendering helper
+function renderStars(rating: number) {
+  if (typeof rating !== 'number' || isNaN(rating)) return null;
+  const stars = [];
+  for (let i = 1; i <= 5; i++) {
+    const full = i <= Math.floor(rating);
+    const half = !full && i - 0.5 <= rating;
+    const gradientId = `half-star-gradient-${i}-${Math.random()}`;
+    stars.push(
+      <svg
+        key={i}
+        width="16"
+        height="16"
+        viewBox="0 0 20 20"
+        fill={full ? '#FBBF24' : half ? `url(#${gradientId})` : '#E5E7EB'}
+        stroke="#FBBF24"
+        style={{ display: 'inline-block', marginRight: 2 }}
+      >
+        {half && (
+          <defs>
+            <linearGradient id={gradientId}>
+              <stop offset="50%" stopColor="#FBBF24" />
+              <stop offset="50%" stopColor="#E5E7EB" />
+            </linearGradient>
+          </defs>
+        )}
+        <polygon points="10,1 12.59,7.36 19.51,7.64 14,12.14 15.82,18.99 10,15.27 4.18,18.99 6,12.14 0.49,7.64 7.41,7.36" />
+      </svg>
+    );
+  }
+  return <span style={{ display: 'inline-flex', alignItems: 'center', marginBottom: 4 }}>{stars}</span>;
+}
+
 // Widget component for single card
 const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
   const design = getDesignWithDefaults(data.design);
@@ -170,6 +208,7 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
         {review.review_content}
       </p>
       <div style={{ marginTop: '10px' }}>
+        {typeof review.star_rating === 'number' && renderStars(review.star_rating)}
         <span style={{ fontWeight: 'bold', color: design.nameTextColor }}>
           {review.first_name} {review.last_name}
         </span>
@@ -181,6 +220,11 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
             {getRelativeTime(review.created_at)}
           </span>
         )}
+        {review.platform && (
+          <span style={{ color: '#888', marginLeft: '5px', fontSize: 12 }}>
+            {review.platform}
+          </span>
+        )}
       </div>
     </div>
   );
@@ -190,50 +234,77 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
 const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
   const design = getDesignWithDefaults(data.design);
   const { reviews } = data;
-
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', justifyContent: 'center' }}>
-      {reviews.map((review) => (
-        <div
-          key={review.id}
-          style={{
-            background: design.bgColor,
-            color: design.textColor,
-            borderRadius: design.borderRadius,
-            boxShadow: design.shadow ? `0 4px 6px rgba(0, 0, 0, 0.1)` : 'none',
-            padding: '20px',
-            width: '300px',
-            position: 'relative',
-          }}
-        >
-          {design.showQuotes && (
-            <>
-              <span style={{ position: 'absolute', left: '10px', top: '10px', fontSize: '48px', color: design.accentColor, opacity: 0.5 }}>
-                "
-              </span>
-              <span style={{ position: 'absolute', right: '10px', bottom: '10px', fontSize: '48px', color: design.accentColor, opacity: 0.5 }}>
-                "
-              </span>
-            </>
-          )}
-          <p style={{ fontSize: design.quoteFontSize, lineHeight: design.lineSpacing }}>
-            {review.review_content}
-          </p>
-          <div style={{ marginTop: '10px' }}>
-            <span style={{ fontWeight: 'bold', color: design.nameTextColor }}>
-              {review.first_name} {review.last_name}
-            </span>
-            <span style={{ color: design.roleTextColor, marginLeft: '5px' }}>
-              {review.reviewer_role}
-            </span>
-            {design.showRelativeDate && review.created_at && (
-              <span style={{ color: design.roleTextColor, marginLeft: '5px' }}>
-                {getRelativeTime(review.created_at)}
-              </span>
-            )}
-          </div>
-        </div>
-      ))}
+    <div style={{ maxWidth: design.width, margin: '0 auto', position: 'relative' }}>
+      <Swiper
+        modules={[Navigation, Pagination, A11y, Autoplay]}
+        spaceBetween={30}
+        slidesPerView={3}
+        navigation
+        pagination={{ clickable: true }}
+        autoplay={design.autoAdvance ? {
+          delay: (design.slideshowSpeed ?? 4) * 1000,
+          disableOnInteraction: false,
+        } : false}
+        breakpoints={{
+          320: { slidesPerView: 1, spaceBetween: 20 },
+          640: { slidesPerView: 2, spaceBetween: 20 },
+          1024: { slidesPerView: 3, spaceBetween: 30 },
+        }}
+        className="promptreviews-swiper"
+      >
+        {reviews.map((review) => (
+          <SwiperSlide key={review.id}>
+            <div
+              style={{
+                background: design.bgColor,
+                color: design.textColor,
+                borderRadius: design.borderRadius,
+                boxShadow: design.shadow ? `0 4px 6px rgba(0, 0, 0, 0.1)` : 'none',
+                padding: '20px',
+                width: '100%',
+                position: 'relative',
+                minHeight: 320,
+                border: design.border ? `${design.borderWidth ?? 2}px solid ${design.borderColor ?? '#cccccc'}` : 'none',
+                overflow: 'hidden',
+              }}
+            >
+              {design.showQuotes && (
+                <>
+                  <span style={{ position: 'absolute', left: '10px', top: '10px', fontSize: '48px', color: design.accentColor, opacity: 0.5 }}>
+                    "
+                  </span>
+                  <span style={{ position: 'absolute', right: '10px', bottom: '10px', fontSize: '48px', color: design.accentColor, opacity: 0.5 }}>
+                    "
+                  </span>
+                </>
+              )}
+              <p style={{ fontSize: design.quoteFontSize, lineHeight: design.lineSpacing }}>
+                {review.review_content}
+              </p>
+              <div style={{ marginTop: '10px' }}>
+                {typeof review.star_rating === 'number' && renderStars(review.star_rating)}
+                <span style={{ fontWeight: 'bold', color: design.nameTextColor }}>
+                  {review.first_name} {review.last_name}
+                </span>
+                <span style={{ color: design.roleTextColor, marginLeft: '5px' }}>
+                  {review.reviewer_role}
+                </span>
+                {design.showRelativeDate && review.created_at && (
+                  <span style={{ color: design.roleTextColor, marginLeft: '5px' }}>
+                    {getRelativeTime(review.created_at)}
+                  </span>
+                )}
+                {review.platform && (
+                  <span style={{ color: '#888', marginLeft: '5px', fontSize: 12 }}>
+                    {review.platform}
+                  </span>
+                )}
+              </div>
+            </div>
+          </SwiperSlide>
+        ))}
+      </Swiper>
     </div>
   );
 };
@@ -242,62 +313,86 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
 const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
   const design = getDesignWithDefaults(data.design);
   const { reviews } = data;
-  const review = reviews[0]; // Photo widget shows only the first review
-
   return (
-    <div
-      style={{
-        display: 'flex',
-        background: design.bgColor,
-        color: design.textColor,
-        borderRadius: design.borderRadius,
-        boxShadow: design.shadow ? `0 4px 6px rgba(0, 0, 0, 0.1)` : 'none',
-        padding: '20px',
-        maxWidth: design.width,
-        margin: '0 auto',
-        position: 'relative',
-      }}
-    >
-      {review.photo_url && (
-        <img
-          src={review.photo_url}
-          alt={`${review.first_name} ${review.last_name}`}
-          style={{
-            width: '100px',
-            height: '100px',
-            borderRadius: '50%',
-            marginRight: '20px',
-          }}
-        />
-      )}
-      <div>
-        {design.showQuotes && (
-          <>
-            <span style={{ position: 'absolute', left: '10px', top: '10px', fontSize: '48px', color: design.accentColor, opacity: 0.5 }}>
-              "
-            </span>
-            <span style={{ position: 'absolute', right: '10px', bottom: '10px', fontSize: '48px', color: design.accentColor, opacity: 0.5 }}>
-              "
-            </span>
-          </>
-        )}
-        <p style={{ fontSize: design.quoteFontSize, lineHeight: design.lineSpacing }}>
-          {review.review_content}
-        </p>
-        <div style={{ marginTop: '10px' }}>
-          <span style={{ fontWeight: 'bold', color: design.nameTextColor }}>
-            {review.first_name} {review.last_name}
-          </span>
-          <span style={{ color: design.roleTextColor, marginLeft: '5px' }}>
-            {review.reviewer_role}
-          </span>
-          {design.showRelativeDate && review.created_at && (
-            <span style={{ color: design.roleTextColor, marginLeft: '5px' }}>
-              {getRelativeTime(review.created_at)}
-            </span>
-          )}
-        </div>
-      </div>
+    <div style={{ maxWidth: design.width, margin: '0 auto', position: 'relative' }}>
+      <Swiper
+        modules={[Navigation, Pagination, A11y, Autoplay]}
+        spaceBetween={30}
+        slidesPerView={1}
+        navigation
+        pagination={{ clickable: true }}
+        autoplay={design.autoAdvance ? {
+          delay: (design.slideshowSpeed ?? 4) * 1000,
+          disableOnInteraction: false,
+        } : false}
+        className="promptreviews-swiper"
+      >
+        {reviews.map((review) => (
+          <SwiperSlide key={review.id}>
+            <div
+              style={{
+                display: 'flex',
+                background: design.bgColor,
+                color: design.textColor,
+                borderRadius: design.borderRadius,
+                boxShadow: design.shadow ? `0 4px 6px rgba(0, 0, 0, 0.1)` : 'none',
+                padding: '20px',
+                width: '100%',
+                minHeight: 320,
+                border: design.border ? `${design.borderWidth ?? 2}px solid ${design.borderColor ?? '#cccccc'}` : 'none',
+                overflow: 'hidden',
+              }}
+            >
+              {review.photo_url && (
+                <img
+                  src={review.photo_url}
+                  alt={`${review.first_name} ${review.last_name}`}
+                  style={{
+                    width: '100px',
+                    height: '100px',
+                    borderRadius: '50%',
+                    marginRight: '20px',
+                  }}
+                />
+              )}
+              <div>
+                {design.showQuotes && (
+                  <>
+                    <span style={{ position: 'absolute', left: '10px', top: '10px', fontSize: '48px', color: design.accentColor, opacity: 0.5 }}>
+                      "
+                    </span>
+                    <span style={{ position: 'absolute', right: '10px', bottom: '10px', fontSize: '48px', color: design.accentColor, opacity: 0.5 }}>
+                      "
+                    </span>
+                  </>
+                )}
+                <p style={{ fontSize: design.quoteFontSize, lineHeight: design.lineSpacing }}>
+                  {review.review_content}
+                </p>
+                <div style={{ marginTop: '10px' }}>
+                  {typeof review.star_rating === 'number' && renderStars(review.star_rating)}
+                  <span style={{ fontWeight: 'bold', color: design.nameTextColor }}>
+                    {review.first_name} {review.last_name}
+                  </span>
+                  <span style={{ color: design.roleTextColor, marginLeft: '5px' }}>
+                    {review.reviewer_role}
+                  </span>
+                  {design.showRelativeDate && review.created_at && (
+                    <span style={{ color: design.roleTextColor, marginLeft: '5px' }}>
+                      {getRelativeTime(review.created_at)}
+                    </span>
+                  )}
+                  {review.platform && (
+                    <span style={{ color: '#888', marginLeft: '5px', fontSize: 12 }}>
+                      {review.platform}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </SwiperSlide>
+        ))}
+      </Swiper>
     </div>
   );
 };
