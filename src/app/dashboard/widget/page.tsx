@@ -99,6 +99,11 @@ export default function WidgetPage() {
     bodyTextColor: "#22223b",
     nameTextColor: "#22223b",
     roleTextColor: "#22223b",
+    sectionBgType: "inherit",
+    sectionBgColor: "#ffffff",
+    shadowIntensity: 0.2,
+    shadowColor: "#222222",
+    borderColor: "#cccccc",
   });
   const [currentGroup, setCurrentGroup] = useState(0);
   const [isClient, setIsClient] = useState(false);
@@ -184,9 +189,10 @@ export default function WidgetPage() {
   // Auto-advance logic
   useEffect(() => {
     if (!design.autoAdvance || reviews.length <= 1) return;
+    if (current >= reviews.length - 1) return; // Stop at last card
     const timer = setTimeout(
       () => {
-        setCurrent((prev) => (prev + 1) % reviews.length);
+        setCurrent((prev) => prev + 1);
       },
       (design.slideshowSpeed ?? 4) * 1000,
     );
@@ -234,6 +240,20 @@ export default function WidgetPage() {
     reviewGroups.push(reviews.slice(i, i + 3));
   }
 
+  useEffect(() => {
+    const styleId = 'custom-swiper-dot-style';
+    let styleTag = document.getElementById(styleId) as HTMLStyleElement | null;
+    if (!styleTag) {
+      styleTag = document.createElement('style');
+      styleTag.id = styleId;
+      document.head.appendChild(styleTag);
+    }
+    styleTag.innerHTML = `.my-custom-swiper-pagination .swiper-pagination-bullet-active { background: ${design.bgColor} !important; }`;
+    return () => {
+      if (styleTag) styleTag.remove();
+    };
+  }, [design.bgColor]);
+
   if (loading) {
     return <TopLoaderOverlay />;
   }
@@ -244,8 +264,21 @@ export default function WidgetPage() {
     <>
       {/* Widget Preview on Gradient */}
       <div
-        className="w-full mx-auto mb-12 mt-10 px-2 sm:px-4 md:px-8"
-        style={{ maxWidth: selectedWidget?.widget_type === 'multi' ? 1000 : (design.showGrid ? 1000 : 800) }}
+        className="w-full mx-auto mb-12 mt-10 px-0"
+        style={{
+          position: 'relative',
+          minHeight: 400,
+          width: '100vw',
+          left: '50%',
+          right: '50%',
+          marginLeft: '-50vw',
+          marginRight: '-50vw',
+          maxWidth: '100vw',
+          background: design.sectionBgType === 'custom'
+            ? design.sectionBgColor
+            : 'none',
+          transition: 'background 0.3s',
+        }}
       >
         <h2 className="text-2xl font-bold text-white mb-4 text-center">
           Live widget preview
@@ -254,7 +287,7 @@ export default function WidgetPage() {
           className="flex flex-col justify-center relative bg-transparent"
           aria-label="Review carousel preview"
           style={{
-            background: 'none',
+            background: design.sectionBgType === "custom" ? design.sectionBgColor : "none",
             color: design.textColor,
             border: 'none',
             boxShadow: 'none',
@@ -279,8 +312,13 @@ export default function WidgetPage() {
             <>
               <div className="flex flex-col items-center">
                 <div className="flex flex-row items-center justify-center gap-8 px-8 md:px-16 w-full max-w-5xl mx-auto">
-                  <button className="swiper-button-prev !static !transform-none w-14 h-14 bg-white rounded-full shadow-lg text-[#1A237E] hover:bg-gray-100 flex items-center justify-center z-10 p-4 border-none" aria-label="Previous">
-                    <MdArrowBack size={24} />
+                  <button
+                    type="button"
+                    onClick={() => swiperInstance?.slidePrev()}
+                    className="rounded-full bg-white/60 backdrop-blur border border-gray-200 w-10 h-10 flex items-center justify-center transition hover:bg-white/80 z-10"
+                    aria-label="Previous"
+                  >
+                    <FaChevronLeft className="text-xl" style={{ color: design.accentColor }} />
                   </button>
                   <div className="flex-1 flex justify-center">
                     <Swiper
@@ -304,131 +342,159 @@ export default function WidgetPage() {
                     >
                       {reviews.map((review, index) => (
                         <SwiperSlide key={review.id || index}>
-                          <article
-                            className="flex flex-col items-center gap-4 py-6 relative bg-white rounded-3xl shadow-lg w-full"
-                            style={{
-                              background:
-                                design.bgColor === "transparent"
-                                  ? "none"
-                                  : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
-                              color: design.textColor,
-                              minHeight: 300,
-                              border: "none",
-                              borderRadius: design.borderRadius,
-                              boxShadow: "none",
-                            }}
-                            itemScope
-                            itemType="https://schema.org/Review"
-                          >
-                            {design.showQuotes && (
-                              <span
-                                className="absolute left-1/2 top-8 -translate-x-1/2 z-0 pointer-events-none"
-                                style={{ width: 96, height: 96, opacity: 0.5 }}
-                              >
-                                <svg
-                                  width="96"
-                                  height="96"
-                                  viewBox="0 0 96 96"
-                                  fill="none"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  style={{ display: "block" }}
-                                >
-                                  <text
-                                    y="76"
-                                    fontSize="96"
-                                    fill={lightenHex(design.accentColor, 0.7)}
-                                    fontFamily="serif"
-                                  >
-                                    "
-                                  </text>
-                                </svg>
-                              </span>
-                            )}
-                            <div className="flex items-center justify-center mb-2 mt-1">
-                              {typeof (review as any).star_rating === 'number' && !isNaN((review as any).star_rating) ? (
+                          <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                            <article
+                              className="flex flex-col items-center gap-4 py-6 relative bg-white rounded-3xl w-full px-4 md:px-[15px]"
+                              style={{
+                                background:
+                                  design.bgColor === "transparent"
+                                    ? "none"
+                                    : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
+                                color: design.textColor,
+                                minHeight: 300,
+                                border: design.border ? `${design.borderWidth ?? 2}px solid ${design.borderColor ?? '#cccccc'}` : "none",
+                                borderRadius: design.borderRadius,
+                                boxShadow: design.shadow ? `inset 0 4px 32px 0 ${hexToRgba(design.shadowColor ?? '#222222', design.shadowIntensity ?? 0.2)}` : 'none',
+                              }}
+                              itemScope
+                              itemType="https://schema.org/Review"
+                            >
+                              {design.showQuotes && (
                                 <>
-                                  {Array.from({ length: 5 }).map((_, i) => {
-                                    const rating = (review as any).star_rating;
-                                    const full = i + 1 <= Math.floor(rating);
-                                    const half = !full && i + 0.5 <= rating;
-                                    const gradientId = `half-star-gradient-${i}`;
-                                    return (
-                                      <svg
-                                        key={i}
-                                        width="16"
-                                        height="16"
-                                        viewBox="0 0 20 20"
-                                        fill={full ? '#FBBF24' : half ? `url(#${gradientId})` : '#E5E7EB'}
-                                        stroke="#FBBF24"
-                                        className="inline-block mx-0.5"
+                                  <span
+                                    className="absolute left-4 top-4 z-0 pointer-events-none"
+                                    style={{ width: 96, height: 96, opacity: 0.5 }}
+                                  >
+                                    <svg
+                                      width="96"
+                                      height="96"
+                                      viewBox="0 0 96 96"
+                                      fill="none"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      style={{ display: "block" }}
+                                    >
+                                      <text
+                                        y="76"
+                                        fontSize="96"
+                                        fill={lightenHex(design.accentColor, 0.7)}
+                                        fontFamily="serif"
                                       >
-                                        {half && (
-                                          <defs>
-                                            <linearGradient id={gradientId}>
-                                              <stop offset="50%" stopColor="#FBBF24" />
-                                              <stop offset="50%" stopColor="#E5E7EB" />
-                                            </linearGradient>
-                                          </defs>
-                                        )}
-                                        <polygon points="10,1 12.59,7.36 19.51,7.64 14,12.14 15.82,18.99 10,15.27 4.18,18.99 6,12.14 0.49,7.64 7.41,7.36" />
-                                      </svg>
-                                    );
-                                  })}
-                                  <span className="ml-2 text-xs text-gray-500">
-                                    {(review as any).star_rating.toFixed(1)}
+                                        “
+                                      </text>
+                                    </svg>
+                                  </span>
+                                  <span
+                                    className="absolute right-4 bottom-4 z-0 pointer-events-none"
+                                    style={{ width: 96, height: 96, opacity: 0.5 }}
+                                  >
+                                    <svg
+                                      width="96"
+                                      height="96"
+                                      viewBox="0 0 96 96"
+                                      fill="none"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      style={{ display: "block" }}
+                                    >
+                                      <text
+                                        y="76"
+                                        fontSize="96"
+                                        fill={lightenHex(design.accentColor, 0.7)}
+                                        fontFamily="serif"
+                                      >
+                                        ”
+                                      </text>
+                                    </svg>
                                   </span>
                                 </>
-                              ) : null}
-                            </div>
-                            <p
-                              className="text-lg mb-2 md:mb-4 px-1 md:px-2 text-center"
-                              itemProp="reviewBody"
-                              style={{
-                                lineHeight: design.lineSpacing,
-                                fontSize: 18,
-                                color: design.bodyTextColor,
-                              }}
-                            >
-                              {review.review_content}
-                            </p>
-                            <div className="flex flex-col items-center gap-1 w-full mt-auto">
-                              <span
-                                className="font-semibold text-indigo-700"
-                                itemProp="author"
-                                itemScope
-                                itemType="https://schema.org/Person"
-                                style={{ fontSize: design.attributionFontSize, color: design.nameTextColor }}
+                              )}
+                              <div className="flex items-center justify-center mb-2 mt-1">
+                                {typeof (review as any).star_rating === 'number' && !isNaN((review as any).star_rating) ? (
+                                  <>
+                                    {Array.from({ length: 5 }).map((_, i) => {
+                                      const rating = (review as any).star_rating;
+                                      const full = i + 1 <= Math.floor(rating);
+                                      const half = !full && i + 0.5 <= rating;
+                                      const gradientId = `half-star-gradient-${i}`;
+                                      return (
+                                        <svg
+                                          key={i}
+                                          width="16"
+                                          height="16"
+                                          viewBox="0 0 20 20"
+                                          fill={full ? '#FBBF24' : half ? `url(#${gradientId})` : '#E5E7EB'}
+                                          stroke="#FBBF24"
+                                          className="inline-block mx-0.5"
+                                        >
+                                          {half && (
+                                            <defs>
+                                              <linearGradient id={gradientId}>
+                                                <stop offset="50%" stopColor="#FBBF24" />
+                                                <stop offset="50%" stopColor="#E5E7EB" />
+                                              </linearGradient>
+                                            </defs>
+                                          )}
+                                          <polygon points="10,1 12.59,7.36 19.51,7.64 14,12.14 15.82,18.99 10,15.27 4.18,18.99 6,12.14 0.49,7.64 7.41,7.36" />
+                                        </svg>
+                                      );
+                                    })}
+                                  </>
+                                ) : null}
+                              </div>
+                              <p
+                                className="text-lg mb-2 md:mb-4 px-1 md:px-2 text-center text-base md:text-[20px]"
+                                itemProp="reviewBody"
+                                style={{
+                                  lineHeight: design.lineSpacing,
+                                  fontSize: undefined,
+                                  color: design.bodyTextColor,
+                                }}
                               >
-                                <span itemProp="name">
-                                  {review.first_name} {review.last_name}
-                                </span>
-                              </span>
-                              <span
-                                className="text-xs text-gray-500"
-                                itemProp="author"
-                                itemScope
-                                itemType="https://schema.org/Person"
-                                style={{ fontSize: design.attributionFontSize * 0.85, color: design.roleTextColor }}
-                              >
-                                <span itemProp="jobTitle">
-                                  {review.reviewer_role}
-                                </span>
-                              </span>
-                              {design.showRelativeDate &&
-                                review.created_at &&
-                                review.platform && (
-                                  <span className="text-xs text-gray-400 mt-1">
-                                    {getRelativeTime(review.created_at)} via {review.platform}
+                                {review.review_content}
+                              </p>
+                              <div className="flex flex-col items-center gap-1 w-full mt-auto">
+                                <span
+                                  className="font-semibold text-indigo-700"
+                                  itemProp="author"
+                                  itemScope
+                                  itemType="https://schema.org/Person"
+                                  style={{ fontSize: design.attributionFontSize, color: design.nameTextColor }}
+                                >
+                                  <span itemProp="name">
+                                    {review.first_name} {review.last_name}
                                   </span>
-                                )}
-                            </div>
-                          </article>
+                                </span>
+                                <span
+                                  className="text-xs text-gray-500"
+                                  itemProp="author"
+                                  itemScope
+                                  itemType="https://schema.org/Person"
+                                  style={{ fontSize: design.attributionFontSize * 0.85, color: design.roleTextColor }}
+                                >
+                                  <span itemProp="jobTitle">
+                                    {review.reviewer_role}
+                                  </span>
+                                </span>
+                                {design.showRelativeDate &&
+                                  review.created_at &&
+                                  review.platform && (
+                                    <span className="text-xs text-gray-400 mt-1">
+                                      {getRelativeTime(review.created_at)} via {review.platform}
+                                    </span>
+                                  )}
+                              </div>
+                            </article>
+                          </div>
                         </SwiperSlide>
                       ))}
                     </Swiper>
                   </div>
-                  <button className="swiper-button-next !static !transform-none w-14 h-14 bg-white rounded-full shadow-lg text-[#1A237E] hover:bg-gray-100 flex items-center justify-center z-10 p-4 border-none" aria-label="Next">
-                    <MdArrowForward size={24} />
+                  <button
+                    type="button"
+                    onClick={() => swiperInstance?.slideNext()}
+                    className="rounded-full bg-white/60 backdrop-blur border border-gray-200 w-10 h-10 flex items-center justify-center transition hover:bg-white/80 z-10"
+                    aria-label="Next"
+                  >
+                    <FaChevronRight className="text-xl" style={{ color: design.accentColor }} />
                   </button>
                 </div>
               </div>
@@ -438,8 +504,13 @@ export default function WidgetPage() {
             <>
               <div className="flex flex-col items-center">
                 <div className="flex flex-row items-center justify-center gap-8 px-8 md:px-16 w-full max-w-6xl mx-auto">
-                  <button className="swiper-button-prev !static !transform-none w-14 h-14 bg-white rounded-full shadow-lg text-[#1A237E] hover:bg-gray-100 flex items-center justify-center z-10 p-4 border-none" aria-label="Previous">
-                    <MdArrowBack size={24} />
+                  <button
+                    type="button"
+                    onClick={() => swiperInstance?.slidePrev()}
+                    className="rounded-full bg-white/60 backdrop-blur border border-gray-200 w-10 h-10 flex items-center justify-center transition hover:bg-white/80 z-10"
+                    aria-label="Previous"
+                  >
+                    <FaChevronLeft className="text-xl" style={{ color: design.accentColor }} />
                   </button>
                   <div className="flex-1 flex justify-center">
                     <Swiper
@@ -477,112 +548,114 @@ export default function WidgetPage() {
                     >
                       {reviews.map((review, index) => (
                         <SwiperSlide key={review.id || index}>
-                          <article
-                            className="flex flex-col items-center gap-4 py-6 relative bg-white rounded-lg shadow-md p-6 w-full"
-                            style={{
-                              background:
-                                design.bgColor === "transparent"
-                                  ? "none"
-                                  : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
-                              color: design.textColor,
-                              borderRadius: design.borderRadius,
-                              boxShadow: design.shadow ? "0 4px 24px 0 rgba(80, 60, 180, 0.10)" : "none",
-                              border: design.border ? `${design.borderWidth ?? 2}px solid ${design.accentColor}` : "none",
-                              height: 320,
-                              minHeight: 320,
-                              maxHeight: 320,
-                              overflow: 'hidden',
-                            }}
-                            itemScope
-                            itemType="https://schema.org/Review"
-                          >
-                            <div className="flex items-center justify-center mb-2 mt-1">
-                              {typeof (review as any).star_rating === 'number' && !isNaN((review as any).star_rating) ? (
-                                <>
-                                  {Array.from({ length: 5 }).map((_, i) => {
-                                    const rating = (review as any).star_rating;
-                                    const full = i + 1 <= Math.floor(rating);
-                                    const half = !full && i + 0.5 <= rating;
-                                    const gradientId = `half-star-gradient-${i}`;
-                                    return (
-                                      <svg
-                                        key={i}
-                                        width="16"
-                                        height="16"
-                                        viewBox="0 0 20 20"
-                                        fill={full ? '#FBBF24' : half ? `url(#${gradientId})` : '#E5E7EB'}
-                                        stroke="#FBBF24"
-                                        className="inline-block mx-0.5"
-                                      >
-                                        {half && (
-                                          <defs>
-                                            <linearGradient id={gradientId}>
-                                              <stop offset="50%" stopColor="#FBBF24" />
-                                              <stop offset="50%" stopColor="#E5E7EB" />
-                                            </linearGradient>
-                                          </defs>
-                                        )}
-                                        <polygon points="10,1 12.59,7.36 19.51,7.64 14,12.14 15.82,18.99 10,15.27 4.18,18.99 6,12.14 0.49,7.64 7.41,7.36" />
-                                      </svg>
-                                    );
-                                  })}
-                                  <span className="ml-2 text-xs text-gray-500">
-                                    {(review as any).star_rating.toFixed(1)}
-                                  </span>
-                                </>
-                              ) : null}
-                            </div>
-                            <p
-                              className="text-lg mb-2 md:mb-4 px-1 md:px-2 text-center"
-                              itemProp="reviewBody"
+                          <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                            <article
+                              className="flex flex-col items-center gap-4 py-6 relative bg-white rounded-lg shadow-md p-6 w-full"
                               style={{
-                                lineHeight: design.lineSpacing,
-                                fontSize: 14,
-                                color: design.bodyTextColor,
+                                background:
+                                  design.bgColor === "transparent"
+                                    ? "none"
+                                    : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
+                                color: design.textColor,
+                                borderRadius: design.borderRadius,
+                                boxShadow: design.shadow ? `inset 0 4px 32px 0 ${hexToRgba(design.shadowColor ?? '#222222', design.shadowIntensity ?? 0.2)}` : "none",
+                                border: design.border ? `${design.borderWidth ?? 2}px solid ${design.borderColor ?? '#cccccc'}` : "none",
+                                height: 320,
+                                minHeight: 320,
+                                maxHeight: 320,
                                 overflow: 'hidden',
-                                textOverflow: 'ellipsis',
                               }}
+                              itemScope
+                              itemType="https://schema.org/Review"
                             >
-                              {review.review_content}
-                            </p>
-                            <div className="flex flex-col items-center gap-1 w-full mt-auto">
-                              <span
-                                className="font-semibold text-indigo-700"
-                                itemProp="author"
-                                itemScope
-                                itemType="https://schema.org/Person"
-                                style={{ fontSize: design.attributionFontSize * 0.85, color: design.nameTextColor }}
+                              <div className="flex items-center justify-center mb-2 mt-1">
+                                {typeof (review as any).star_rating === 'number' && !isNaN((review as any).star_rating) ? (
+                                  <>
+                                    {Array.from({ length: 5 }).map((_, i) => {
+                                      const rating = (review as any).star_rating;
+                                      const full = i + 1 <= Math.floor(rating);
+                                      const half = !full && i + 0.5 <= rating;
+                                      const gradientId = `half-star-gradient-${i}`;
+                                      return (
+                                        <svg
+                                          key={i}
+                                          width="16"
+                                          height="16"
+                                          viewBox="0 0 20 20"
+                                          fill={full ? '#FBBF24' : half ? `url(#${gradientId})` : '#E5E7EB'}
+                                          stroke="#FBBF24"
+                                          className="inline-block mx-0.5"
+                                        >
+                                          {half && (
+                                            <defs>
+                                              <linearGradient id={gradientId}>
+                                                <stop offset="50%" stopColor="#FBBF24" />
+                                                <stop offset="50%" stopColor="#E5E7EB" />
+                                              </linearGradient>
+                                            </defs>
+                                          )}
+                                          <polygon points="10,1 12.59,7.36 19.51,7.64 14,12.14 15.82,18.99 10,15.27 4.18,18.99 6,12.14 0.49,7.64 7.41,7.36" />
+                                        </svg>
+                                      );
+                                    })}
+                                  </>
+                                ) : null}
+                              </div>
+                              <p
+                                className="text-lg mb-2 md:mb-4 px-1 md:px-2 text-center text-base md:text-[20px]"
+                                itemProp="reviewBody"
+                                style={{
+                                  lineHeight: design.lineSpacing,
+                                  fontSize: undefined,
+                                  color: design.bodyTextColor,
+                                }}
                               >
-                                <span itemProp="name">
-                                  {review.first_name} {review.last_name}
-                                </span>
-                              </span>
-                              <span
-                                className="text-xs text-gray-500"
-                                itemProp="author"
-                                itemScope
-                                itemType="https://schema.org/Person"
-                                style={{ fontSize: design.attributionFontSize * 0.85, color: design.roleTextColor }}
-                              >
-                                <span itemProp="jobTitle">
-                                  {review.reviewer_role}
-                                </span>
-                              </span>
-                              {design.showRelativeDate &&
-                                review.created_at &&
-                                review.platform && (
-                                  <span className="text-xs text-gray-400 mt-1">
-                                    {getRelativeTime(review.created_at)} via {review.platform}
+                                {review.review_content}
+                              </p>
+                              <div className="flex flex-col items-center gap-1 w-full mt-auto">
+                                <span
+                                  className="font-semibold text-indigo-700"
+                                  itemProp="author"
+                                  itemScope
+                                  itemType="https://schema.org/Person"
+                                  style={{ fontSize: design.attributionFontSize * 0.85, color: design.nameTextColor }}
+                                >
+                                  <span itemProp="name">
+                                    {review.first_name} {review.last_name}
                                   </span>
-                                )}
-                            </div>
-                          </article>
+                                </span>
+                                <span
+                                  className="text-xs text-gray-500"
+                                  itemProp="author"
+                                  itemScope
+                                  itemType="https://schema.org/Person"
+                                  style={{ fontSize: design.attributionFontSize * 0.85, color: design.roleTextColor }}
+                                >
+                                  <span itemProp="jobTitle">
+                                    {review.reviewer_role}
+                                  </span>
+                                </span>
+                                {design.showRelativeDate &&
+                                  review.created_at &&
+                                  review.platform && (
+                                    <span className="text-xs text-gray-400 mt-1">
+                                      {getRelativeTime(review.created_at)} via {review.platform}
+                                    </span>
+                                  )}
+                              </div>
+                            </article>
+                          </div>
                         </SwiperSlide>
                       ))}
                     </Swiper>
                   </div>
-                  <button className="swiper-button-next !static !transform-none w-14 h-14 bg-white rounded-full shadow-lg text-[#1A237E] hover:bg-gray-100 flex items-center justify-center z-10 p-4 border-none" aria-label="Next">
-                    <MdArrowForward size={24} />
+                  <button
+                    type="button"
+                    onClick={() => swiperInstance?.slideNext()}
+                    className="rounded-full bg-white/60 backdrop-blur border border-gray-200 w-10 h-10 flex items-center justify-center transition hover:bg-white/80 z-10"
+                    aria-label="Next"
+                  >
+                    <FaChevronRight className="text-xl" style={{ color: design.accentColor }} />
                   </button>
                 </div>
               </div>
