@@ -567,6 +567,43 @@ function injectSwiperCSS() {
   }
 }
 
+// Helper to inject Swiper navigation CSS for embed
+function injectSwiperNavCSS() {
+  if (!document.getElementById('pr-swiper-nav-css')) {
+    const style = document.createElement('style');
+    style.id = 'pr-swiper-nav-css';
+    style.innerHTML = `
+      .pr-swiper-nav-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 10;
+        background: rgba(255,255,255,0.85);
+        border: 1px solid #e5e7eb;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .pr-swiper-nav-btn:hover {
+        background: #f3f4f6;
+      }
+      .pr-swiper-nav-prev { left: -24px; }
+      .pr-swiper-nav-next { right: -24px; }
+      @media (max-width: 600px) {
+        .pr-swiper-nav-prev { left: 4px; }
+        .pr-swiper-nav-next { right: 4px; }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+}
+
 // Entry point
 async function init() {
   const container = document.getElementById('promptreviews-widget');
@@ -576,6 +613,7 @@ async function init() {
   }
 
   injectSwiperCSS();
+  injectSwiperNavCSS();
 
   const widgetId = container.getAttribute('data-widget');
   if (!widgetId) {
