@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import ReactDOM from 'react-dom/client';
 import { createBrowserClient } from '@supabase/ssr';
 
 // Define the widget types
@@ -299,7 +299,7 @@ async function init() {
     return;
   }
 
-  ReactDOM.render(<WidgetRenderer data={data} />, container);
+  ReactDOM.createRoot(container).render(<WidgetRenderer data={data} />);
 }
 
 // Start the widget

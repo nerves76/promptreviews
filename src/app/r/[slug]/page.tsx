@@ -1836,7 +1836,7 @@ export default function PromptPage() {
                                 </span>
                               </button>
                               <span className="text-sm text-gray-500">
-                                {3 - aiRewriteCounts[idx]}/3
+                                {3 - aiRewriteCounts[0]}/3
                               </span>
                             </div>
                             <button
@@ -2102,7 +2102,7 @@ export default function PromptPage() {
                                             </span>
                                           </button>
                                           <span className="text-sm text-gray-500">
-                                            {3 - aiRewriteCounts[idx]}/3
+                                            {3 - aiRewriteCounts[0]}/3
                                           </span>
                                         </div>
                                       )}
