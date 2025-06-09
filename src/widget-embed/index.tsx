@@ -411,6 +411,18 @@ const WidgetRenderer: React.FC<{ data: WidgetData }> = ({ data }) => {
   }
 };
 
+// Helper to inject Swiper CSS at runtime
+function injectSwiperCSS() {
+  const SWIPER_CSS_URL = 'https://cdn.jsdelivr.net/npm/swiper@11.1.0/swiper-bundle.min.css';
+  if (!document.querySelector('link[data-pr-swiper]')) {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = SWIPER_CSS_URL;
+    link.setAttribute('data-pr-swiper', 'true');
+    document.head.appendChild(link);
+  }
+}
+
 // Entry point
 async function init() {
   const container = document.getElementById('promptreviews-widget');
@@ -418,6 +430,8 @@ async function init() {
     console.error('Widget container not found');
     return;
   }
+
+  injectSwiperCSS();
 
   const widgetId = container.getAttribute('data-widget');
   if (!widgetId) {
