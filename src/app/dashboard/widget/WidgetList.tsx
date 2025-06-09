@@ -28,6 +28,9 @@ type DesignState = {
   bgColor: string;
   textColor: string;
   accentColor: string;
+  bodyTextColor: string;
+  nameTextColor: string;
+  roleTextColor: string;
   quoteFontSize: number;
   attributionFontSize: number;
   borderRadius: number;
@@ -99,7 +102,10 @@ export default function WidgetList({
       bgType: "solid", // 'none' | 'solid'
       bgColor: "#ffffff",
       textColor: "#22223b",
-      accentColor: "#6c47ff",
+      accentColor: "slateblue",
+      bodyTextColor: "#22223b",
+      nameTextColor: "#1a237e",
+      roleTextColor: "#6b7280",
       quoteFontSize: 18,
       attributionFontSize: 15,
       borderRadius: 16,
@@ -361,6 +367,14 @@ export default function WidgetList({
     setShowReviewModal(true);
     setReviewError("");
     setLoadingReviews(true);
+    
+    // Center the modal on screen
+    const modalWidth = 1000; // Approximate width of the modal
+    const modalHeight = 600; // Approximate height of the modal
+    const x = Math.max(0, (window.innerWidth - modalWidth) / 2);
+    const y = Math.max(0, (window.innerHeight - modalHeight) / 2);
+    setReviewModalPos({ x, y });
+    
     const supabase = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -511,8 +525,8 @@ export default function WidgetList({
           widget_id: widgetId,
           review_id: review.review_id,
           review_content: editedReviews[review.review_id] ?? review.review_content,
-          first_name: (editedNames[review.review_id] ?? `${review.first_name} ${review.last_name}`).split(' ')[0],
-          last_name: (editedNames[review.review_id] ?? `${review.first_name} ${review.last_name}`).split(' ').slice(1).join(' '),
+          first_name: (editedNames[review.review_id] ?? `${review.first_name || ''} ${review.last_name || ''}`.trim()).split(' ')[0],
+          last_name: (editedNames[review.review_id] ?? `${review.first_name || ''} ${review.last_name || ''}`.trim()).split(' ').slice(1).join(' '),
           reviewer_role: editedRoles[review.review_id] ?? review.reviewer_role,
           platform: review.platform,
           order_index: index,
@@ -778,64 +792,75 @@ export default function WidgetList({
     await supabase.from("widgets").update({ name: name.trim() }).eq("id", id);
   };
 
-  const handleAddCustomReview = async () => {
-    if (!newCustomReview.review_content || !newCustomReview.first_name || !newCustomReview.last_name) {
-      setReviewError("Please fill in all required fields");
-      return;
-    }
-
-    if (!selectedWidget) {
-      setReviewError("No widget selected");
-      return;
-    }
-
-    const supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    );
-
-    // Create a new review directly in widget_reviews
-    const { data, error } = await supabase
-      .from("widget_reviews")
-      .insert([
-        {
-          widget_id: selectedWidget!,
-          review_content: newCustomReview.review_content,
-          first_name: newCustomReview.first_name,
-          last_name: newCustomReview.last_name,
-          reviewer_role: newCustomReview.reviewer_role,
-          star_rating: newCustomReview.star_rating ?? null,
-          order_index: allReviews.length,
-          platform: "custom",
-        },
-      ])
-      .select()
-      .single();
-
-    if (error) {
-      setReviewError("Failed to add custom review: " + error.message);
-      return;
-    }
-
-    if (!data) {
-      setReviewError("Failed to add custom review: No data returned");
-      return;
-    }
-
-    // Add to selected reviews
-    setSelectedReviews([...selectedReviews, data]);
-    setAllReviews([...allReviews, data]);
-    
-    // Reset form
-    setNewCustomReview({
-      review_content: "",
-      first_name: "",
-      last_name: "",
-      reviewer_role: "",
+  const handleAddCustomReview = () => {
+    // Create a new blank review object with a proper UUID
+    const newReview = {
+      review_id: crypto.randomUUID(),
+      first_name: '',
+      last_name: '',
+      reviewer_role: '',
+      review_content: '',
       star_rating: null,
-    });
-    setShowAddCustomReview(false);
+      platform: 'custom',
+      created_at: new Date().toISOString(),
+    };
+    setSelectedReviews([newReview, ...selectedReviews]);
+    setEditedNames(prev => ({ ...prev, [newReview.review_id]: '' }));
+    setEditedRoles(prev => ({ ...prev, [newReview.review_id]: '' }));
+    setEditedReviews(prev => ({ ...prev, [newReview.review_id]: '' }));
+    setEditedRatings(prev => ({ ...prev, [newReview.review_id]: null }));
   };
+
+  // Add state for style modal position and dragging
+  const [styleModalPos, setStyleModalPos] = useState({ x: 0, y: 0 });
+  const [styleModalDragging, setStyleModalDragging] = useState(false);
+  const styleModalDragStart = useRef<{ x: number; y: number } | null>(null);
+  const styleModalRef = useRef<HTMLDivElement>(null);
+
+  // Center style modal after mount
+  useEffect(() => {
+    if (showEditModal) {
+      const width = 800;
+      const height = 600;
+      const x = Math.max((window.innerWidth - width) / 2, 0);
+      const y = Math.max((window.innerHeight - height) / 2, 0);
+      setStyleModalPos({ x, y });
+    }
+  }, [showEditModal]);
+
+  const handleStyleModalMouseDown = (e: React.MouseEvent) => {
+    setStyleModalDragging(true);
+    styleModalDragStart.current = {
+      x: e.clientX - styleModalPos.x,
+      y: e.clientY - styleModalPos.y,
+    };
+    document.body.style.userSelect = "none";
+  };
+  const handleStyleModalMouseUp = () => {
+    setStyleModalDragging(false);
+    styleModalDragStart.current = null;
+    document.body.style.userSelect = "";
+  };
+  const handleStyleModalMouseMove = (e: MouseEvent) => {
+    if (!styleModalDragging || !styleModalDragStart.current) return;
+    setStyleModalPos({
+      x: e.clientX - styleModalDragStart.current.x,
+      y: e.clientY - styleModalDragStart.current.y,
+    });
+  };
+  useEffect(() => {
+    if (styleModalDragging) {
+      window.addEventListener("mousemove", handleStyleModalMouseMove);
+      window.addEventListener("mouseup", handleStyleModalMouseUp);
+    } else {
+      window.removeEventListener("mousemove", handleStyleModalMouseMove);
+      window.removeEventListener("mouseup", handleStyleModalMouseUp);
+    }
+    return () => {
+      window.removeEventListener("mousemove", handleStyleModalMouseMove);
+      window.removeEventListener("mouseup", handleStyleModalMouseUp);
+    };
+  }, [styleModalDragging]);
 
   return (
     <div className="space-y-6">
@@ -1067,10 +1092,18 @@ export default function WidgetList({
       {/* Edit Style Modal */}
       {showEditModal && selectedWidget && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+          <div
+            className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col"
+            ref={styleModalRef}
+            style={{
+              position: "absolute",
+              left: styleModalPos.x,
+              top: styleModalPos.y,
+            }}
+          >
             <div className="relative">
-              <div className="p-4 border-b bg-blue-100 flex items-center justify-between relative select-none cursor-move rounded-t-2xl" onMouseDown={handleReviewModalMouseDown}>
-                <h2 className="text-lg font-semibold text-gray-900">Manage Reviews</h2>
+              <div className="p-4 border-b bg-blue-100 flex items-center justify-between relative select-none cursor-move rounded-t-2xl" onMouseDown={handleStyleModalMouseDown}>
+                <h2 className="text-lg font-semibold text-gray-900">Edit Style</h2>
                 <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none">
                   <i className="fa-solid fa-up-down-left-right text-gray-400 w-5 h-5"></i>
                   <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider">drag</span>
@@ -1092,21 +1125,20 @@ export default function WidgetList({
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Background Type
+                      Card Background Type
                     </label>
                     <select
                       value={design.bgType}
-                      onChange={(e) => handleDesignChange("bgType", e.target.value as "none" | "solid")}
+                      onChange={(e) => handleDesignChange("bgType", e.target.value as "solid")}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                     >
-                      <option value="none">None</option>
                       <option value="solid">Solid Color</option>
                     </select>
                   </div>
                   {design.bgType === "solid" && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Background Color
+                        Card Background Color
                       </label>
                       <input
                         type="color"
@@ -1114,6 +1146,23 @@ export default function WidgetList({
                         onChange={(e) => handleDesignChange("bgColor", e.target.value)}
                         className="w-full h-10 rounded-md border border-gray-300"
                       />
+                    </div>
+                  )}
+                  {design.bgType === "solid" && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Card Background Opacity
+                      </label>
+                      <input
+                        type="range"
+                        min={0}
+                        max={1}
+                        step={0.01}
+                        value={design.bgOpacity}
+                        onChange={e => handleDesignChange("bgOpacity", parseFloat(e.target.value))}
+                        className="w-full"
+                      />
+                      <div className="text-xs text-gray-500 mt-1 text-right">{Math.round(design.bgOpacity * 100)}%</div>
                     </div>
                   )}
                   <div>
@@ -1138,30 +1187,41 @@ export default function WidgetList({
                       className="w-full h-10 rounded-md border border-gray-300"
                     />
                   </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Body Text Color
+                    </label>
+                    <input
+                      type="color"
+                      value={design.bodyTextColor}
+                      onChange={(e) => handleDesignChange("bodyTextColor", e.target.value)}
+                      className="w-full h-10 rounded-md border border-gray-300"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Name Text Color
+                    </label>
+                    <input
+                      type="color"
+                      value={design.nameTextColor}
+                      onChange={(e) => handleDesignChange("nameTextColor", e.target.value)}
+                      className="w-full h-10 rounded-md border border-gray-300"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Role Text Color
+                    </label>
+                    <input
+                      type="color"
+                      value={design.roleTextColor}
+                      onChange={(e) => handleDesignChange("roleTextColor", e.target.value)}
+                      className="w-full h-10 rounded-md border border-gray-300"
+                    />
+                  </div>
                 </div>
                 <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Quote Font Size
-                    </label>
-                    <input
-                      type="number"
-                      value={design.quoteFontSize}
-                      onChange={(e) => handleDesignChange("quoteFontSize", parseInt(e.target.value) || 18)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Attribution Font Size
-                    </label>
-                    <input
-                      type="number"
-                      value={design.attributionFontSize}
-                      onChange={(e) => handleDesignChange("attributionFontSize", parseInt(e.target.value) || 15)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                    />
-                  </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Border Radius
@@ -1357,9 +1417,9 @@ export default function WidgetList({
                         <div
                           key={review.review_id}
                           className={`p-3 rounded-lg border ${
-                            uniqueSelectedReviews.some((r) => r.id === review.id)
-                              ? "border-indigo-500 bg-indigo-50"
-                              : "border-gray-200 hover:border-gray-300"
+                            uniqueSelectedReviews.some((r) => r.review_id === review.review_id)
+                              ? 'border-indigo-500 bg-indigo-50'
+                              : 'border-gray-200 hover:border-gray-300'
                           }`}
                         >
                           <div className="flex items-start justify-between">
@@ -1374,18 +1434,14 @@ export default function WidgetList({
                                 {review.review_content}
                               </div>
                             </div>
-                            <button
-                              onClick={() => handleToggleReview(review)}
-                              className={`ml-2 px-3 py-1 rounded ${
-                                uniqueSelectedReviews.some((r) => r.id === review.id)
-                                  ? "bg-indigo-100 text-indigo-700"
-                                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                              }`}
-                            >
-                              {uniqueSelectedReviews.some((r) => r.id === review.id)
-                                ? "Remove"
-                                : "Add"}
-                            </button>
+                            {!uniqueSelectedReviews.some((r) => r.review_id === review.review_id) && (
+                              <button
+                                onClick={() => handleToggleReview(review)}
+                                className="ml-2 px-3 py-1 rounded bg-gray-100 text-gray-700 hover:bg-gray-200"
+                              >
+                                Add
+                              </button>
+                            )}
                           </div>
                         </div>
                       ))}
@@ -1416,6 +1472,14 @@ export default function WidgetList({
                     </div>
                   </div>
                   <div>
+                    <div className="flex justify-end mb-2">
+                      <button
+                        onClick={handleAddCustomReview}
+                        className="px-3 py-1 rounded-md border border-indigo-500 text-indigo-700 bg-white hover:bg-indigo-50 text-sm font-medium"
+                      >
+                        + Add Custom Review
+                      </button>
+                    </div>
                     <h3 className="font-medium mb-2">Selected Reviews</h3>
                     <div className="space-y-2 max-h-[60vh] overflow-y-auto bg-blue-50 rounded-md p-2">
                       {uniqueSelectedReviews.map((review) => (
@@ -1430,13 +1494,14 @@ export default function WidgetList({
                               </label>
                               <input
                                 type="text"
-                                value={editedNames[review.review_id] || ""}
-                                onChange={(e) =>
+                                value={editedNames[review.review_id] ?? `${review.first_name || ''} ${review.last_name || ''}`.trim()}
+                                onChange={(e) => {
+                                  const newValue = e.target.value;
                                   setEditedNames((prev) => ({
                                     ...prev,
-                                    [review.review_id]: e.target.value,
-                                  }))
-                                }
+                                    [review.review_id]: newValue,
+                                  }));
+                                }}
                                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                               />
                             </div>
@@ -1446,7 +1511,7 @@ export default function WidgetList({
                               </label>
                               <input
                                 type="text"
-                                value={editedRoles[review.review_id] || ""}
+                                value={editedRoles[review.review_id] || ''}
                                 onChange={(e) =>
                                   setEditedRoles((prev) => ({
                                     ...prev,
@@ -1461,11 +1526,22 @@ export default function WidgetList({
                                 Review
                               </label>
                               <textarea
-                                value={editedReviews[review.review_id] || ""}
-                                onChange={(e) => handleReviewEdit(review.review_id, e.target.value)}
+                                value={editedReviews[review.review_id] || ''}
+                                onChange={(e) => handleReviewEdit(review.review_id, e.target.value.slice(0, 120))}
                                 rows={3}
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                maxLength={120}
+                                className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm ${((editedReviews[review.review_id] || '').length > 120) ? 'border-red-500 text-red-600' : ''}`}
                               />
+                              <div className="mt-1 text-sm flex justify-between">
+                                <span className={(editedReviews[review.review_id] || '').length > 120 ? 'text-red-600' : 'text-gray-500'}>
+                                  {(editedReviews[review.review_id] || '').length} / 120 characters
+                                </span>
+                                {(editedReviews[review.review_id] || '').length > 120 && (
+                                  <span className="text-red-600">
+                                    Review is too long
+                                  </span>
+                                )}
+                              </div>
                             </div>
                             <div>
                               <label className="block text-sm font-medium text-gray-700">
@@ -1483,7 +1559,6 @@ export default function WidgetList({
                                   if (val !== '') {
                                     parsed = parseFloat(val);
                                     if (!isNaN(parsed)) {
-                                      // Clamp and round
                                       if (parsed < 1 || parsed > 5) return;
                                       parsed = Math.round(parsed * 2) / 2;
                                     } else {
@@ -1496,12 +1571,14 @@ export default function WidgetList({
                                 placeholder="1-5 (e.g. 4.5)"
                               />
                             </div>
-                            <button
-                              onClick={() => handleToggleReview(review)}
-                              className="w-full px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200"
-                            >
-                              Remove
-                            </button>
+                            <div className="flex justify-end">
+                              <button
+                                onClick={() => handleToggleReview(review)}
+                                className="px-4 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200 font-semibold"
+                              >
+                                Remove
+                              </button>
+                            </div>
                           </div>
                         </div>
                       ))}

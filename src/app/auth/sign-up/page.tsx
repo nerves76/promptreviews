@@ -70,6 +70,32 @@ export default function SignUpPage() {
         return;
       }
 
+      // Try to create account and account_users row if user is available
+      if (data?.user) {
+        try {
+          const { data: newAccount, error: createAccountError } = await supabase
+            .from("accounts")
+            .insert([{ id: data.user.id, name: email }])
+            .select()
+            .single();
+
+          if (!createAccountError && newAccount) {
+            await supabase
+              .from("account_users")
+              .insert([
+                {
+                  account_id: newAccount.id,
+                  user_id: data.user.id,
+                  role: "owner",
+                },
+              ]);
+          }
+        } catch (err) {
+          // It's okay to fail silently here, as you can retry after sign-in
+          console.warn("Could not create account/account_users on sign-up:", err);
+        }
+      }
+
       setEmailSent(true);
       setLoading(false);
     } catch (err) {

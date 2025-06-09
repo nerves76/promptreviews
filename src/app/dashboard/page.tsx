@@ -52,9 +52,12 @@ export default function Dashboard() {
   useEffect(() => {
     const getUser = async () => {
       try {
-        const {
-          data: { user },
-        } = await getUserOrMock(supabase);
+        const { data: { user }, error } = await getUserOrMock(supabase);
+        if (error) {
+          console.error("Auth error:", error);
+          router.push("/auth/sign-in");
+          return;
+        }
         if (!user) {
           router.push("/auth/sign-in");
           return;
@@ -62,6 +65,7 @@ export default function Dashboard() {
         setUser(user);
       } catch (error) {
         console.error("Error loading user:", error);
+        router.push("/auth/sign-in");
       } finally {
         setIsLoading(false);
       }
@@ -76,21 +80,10 @@ export default function Dashboard() {
       try {
         setIsLoading(true);
 
-        // Debug: log current user/session before fetching account
-        const {
-          data: { user: currentUser },
-          error: userError,
-        } = await supabase.auth.getUser();
-        console.log(
-          "Current user before account fetch:",
-          currentUser,
-          "Error:",
-          userError,
-        );
-
-        const {
-          data: { session },
-        } = await getSessionOrMock(supabase);
+        const { data: { session }, error: sessionError } = await getSessionOrMock(supabase);
+        if (sessionError) {
+          throw new Error("Session error: " + (sessionError as Error).message);
+        }
         if (!session) {
           throw new Error("No active session found. Please sign in again.");
         }
@@ -103,10 +96,14 @@ export default function Dashboard() {
           )
           .eq("id", session.user.id)
           .single();
-        console.log("Fetched accountData:", accountData);
-        if (!accountError && accountData) {
-          setAccount(accountData);
+
+        if (accountError) {
+          throw new Error("Error fetching account: " + (accountError as Error).message);
         }
+        if (!accountData) {
+          throw new Error("No account data found");
+        }
+        setAccount(accountData);
 
         // Fetch business profile
         const { data: businessData, error: businessError } = await supabase
