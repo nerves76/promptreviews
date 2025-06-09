@@ -1,16 +1,23 @@
 import { createClient } from "@supabase/supabase-js";
 import { Suspense } from "react";
 
-console.log("DOCKER ENV SUPABASE_URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
-console.log(
-  "DOCKER ENV SUPABASE_ANON_KEY:",
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-);
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+  throw new Error('Missing env.NEXT_PUBLIC_SUPABASE_URL');
+}
+if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+  throw new Error('Missing env.NEXT_PUBLIC_SUPABASE_ANON_KEY');
+}
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true
+  }
+});
 
 export type PromptPage = {
   id: string;
@@ -103,9 +110,23 @@ export type Database = {
 };
 
 export async function getUserOrMock(supabase: any) {
-  return await supabase.auth.getUser();
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error) throw error;
+    return { data: { user }, error: null };
+  } catch (error) {
+    console.error('Error getting user:', error);
+    return { data: { user: null }, error };
+  }
 }
 
 export async function getSessionOrMock(supabase: any) {
-  return await supabase.auth.getSession();
+  try {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (error) throw error;
+    return { data: { session }, error: null };
+  } catch (error) {
+    console.error('Error getting session:', error);
+    return { data: { session: null }, error };
+  }
 }

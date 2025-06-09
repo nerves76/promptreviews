@@ -93,6 +93,9 @@ export default function WidgetPage() {
     attributionFontSize: 16,
     showRelativeDate: true,
     showGrid: false,
+    bodyTextColor: "#22223b",
+    nameTextColor: "#22223b",
+    roleTextColor: "#22223b",
   });
   const [currentGroup, setCurrentGroup] = useState(0);
   const [isClient, setIsClient] = useState(false);
@@ -113,7 +116,7 @@ export default function WidgetPage() {
     supabase
       .from("widget_reviews")
       .select(
-        "id, review_content, reviewer_name, reviewer_role, platform, created_at, order_index",
+        "id, review_content, first_name, last_name, reviewer_role, platform, created_at, order_index, star_rating",
       )
       .eq("widget_id", selectedWidget.id)
       .order("order_index", { ascending: true })
@@ -139,6 +142,10 @@ export default function WidgetPage() {
         if (data) setReviews(data);
         setLoading(false);
       });
+  }, [selectedWidget]);
+
+  useEffect(() => {
+    setReviews([]);
   }, [selectedWidget]);
 
   // Auto-advance logic
@@ -182,7 +189,7 @@ export default function WidgetPage() {
       reviewBody: r.review_content,
       author: {
         "@type": "Person",
-        name: r.reviewer_name,
+        name: r.first_name + " " + r.last_name,
         jobTitle: r.reviewer_role,
       },
     })),
@@ -205,41 +212,51 @@ export default function WidgetPage() {
       {/* Widget Preview on Gradient */}
       <div
         className="w-full mx-auto mb-12 mt-10 px-2 sm:px-4 md:px-8"
-        style={{ maxWidth: design.showGrid ? 1000 : 800 }}
+        style={{ maxWidth: selectedWidget?.widget_type === 'multi' ? 1000 : (design.showGrid ? 1000 : 800) }}
       >
         <h2 className="text-2xl font-bold text-white mb-4 text-center">
           Live widget preview
         </h2>
         <section
-          className={`flex flex-col justify-center relative${design.showGrid ? " bg-transparent shadow-none border-none p-0" : ""}`}
+          className={`flex flex-col justify-center relative`}
           aria-label="Review carousel preview"
           style={
-            design.showGrid
+            selectedWidget?.widget_type === 'multi'
               ? {
-                  background: "none",
+                  background: 'none',
                   color: design.textColor,
-                  border: "none",
-                  boxShadow: "none",
+                  border: 'none',
+                  boxShadow: 'none',
                   padding: 0,
                   minHeight: 320,
-                  margin: "0 auto",
+                  margin: '0 auto',
+                }
+              : design.showGrid
+              ? {
+                  background: 'none',
+                  color: design.textColor,
+                  border: 'none',
+                  boxShadow: 'none',
+                  padding: 0,
+                  minHeight: 320,
+                  margin: '0 auto',
                 }
               : {
                   background:
-                    design.bgColor === "transparent"
-                      ? "none"
+                    design.bgColor === 'transparent'
+                      ? 'none'
                       : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
                   color: design.textColor,
                   borderRadius: design.borderRadius,
                   boxShadow: design.shadow
-                    ? "0 4px 24px 0 rgba(80, 60, 180, 0.10)"
-                    : "none",
+                    ? '0 4px 24px 0 rgba(80, 60, 180, 0.10)'
+                    : 'none',
                   padding: 48,
                   minHeight: 320,
-                  margin: "0 auto",
+                  margin: '0 auto',
                   border: design.border
                     ? `${design.borderWidth ?? 2}px solid ${design.accentColor}`
-                    : "none",
+                    : 'none',
                 }
           }
         >
@@ -255,309 +272,273 @@ export default function WidgetPage() {
             >
               <AppLoader />
             </div>
-          ) : isClient && design.showGrid ? (
-            <div
-              className="relative w-full"
-              style={{ minHeight: 220, padding: 0, overflow: "hidden" }}
-            >
-              <Swiper
-                key={swiperInstance ? "nav-ready" : "nav-not-ready"}
-                modules={[Navigation, Pagination, A11y, Autoplay]}
-                slidesPerView={Math.min(3, reviews.length)}
-                spaceBetween={32}
-                pagination={
-                  reviews.length > 1
-                    ? { clickable: true, el: ".custom-swiper-pagination" }
-                    : false
-                }
-                loop={reviews.length > 3}
-                autoplay={
-                  design.autoAdvance && reviews.length > 1
-                    ? {
-                        delay: (design.slideshowSpeed ?? 4) * 1000,
-                        disableOnInteraction: false,
-                      }
-                    : false
-                }
-                style={{ paddingBottom: 48 }}
-                breakpoints={{
-                  0: { slidesPerView: Math.min(1, reviews.length) },
-                  640: { slidesPerView: Math.min(1, reviews.length) },
-                  768: { slidesPerView: Math.min(2, reviews.length) },
-                  1024: { slidesPerView: Math.min(3, reviews.length) },
-                }}
-                onSwiper={setSwiperInstance}
-              >
-                {reviews.map((review) => (
-                  <SwiperSlide key={review.id}>
-                    <article
-                      className={`flex flex-col items-center gap-4 py-6 relative${design.showQuotes ? " pt-24" : ""}`}
-                      style={{
-                        background: "none",
-                        color: design.textColor,
-                        minHeight: 360,
-                        border: "none",
-                        borderRadius: design.borderRadius,
-                        boxShadow: "none",
-                      }}
-                      itemScope
-                      itemType="https://schema.org/Review"
+          ) : selectedWidget?.widget_type === 'single' ? (
+            reviews[current] ? (
+              <div className="flex flex-col items-center w-full">
+                <article
+                  className={`flex flex-col items-center gap-4 py-6 relative${design.showQuotes ? " pt-24" : ""}`}
+                  style={{
+                    background:
+                      design.bgColor === "transparent"
+                        ? "none"
+                        : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
+                    color: design.textColor,
+                    minHeight: 300,
+                    border: "none",
+                    borderRadius: design.borderRadius,
+                    boxShadow: "none",
+                  }}
+                  itemScope
+                  itemType="https://schema.org/Review"
+                >
+                  {design.showQuotes && (
+                    <span
+                      className="absolute left-1/2 top-8 -translate-x-1/2 z-0 pointer-events-none"
+                      style={{ width: 96, height: 96, opacity: 0.5 }}
                     >
-                      {design.showQuotes && (
-                        <span
-                          className="absolute left-1/2 top-8 -translate-x-1/2 z-0 pointer-events-none"
-                          style={{ width: 96, height: 96, opacity: 0.5 }}
+                      <svg
+                        width="96"
+                        height="96"
+                        viewBox="0 0 96 96"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        style={{ display: "block" }}
+                      >
+                        <text
+                          y="76"
+                          fontSize="96"
+                          fill={lightenHex(design.accentColor, 0.7)}
+                          fontFamily="serif"
                         >
-                          <svg
-                            width="96"
-                            height="96"
-                            viewBox="0 0 96 96"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                            style={{ display: "block" }}
-                          >
-                            <text
-                              x="20"
-                              y="76"
-                              fontSize="96"
-                              fill={lightenHex(design.accentColor, 0.7)}
-                              fontFamily="serif"
+                          "
+                        </text>
+                      </svg>
+                    </span>
+                  )}
+                  <div className="flex items-center justify-center mb-2 mt-1">
+                    {typeof (reviews[current] as any).star_rating === 'number' && !isNaN((reviews[current] as any).star_rating) ? (
+                      <>
+                        {Array.from({ length: 5 }).map((_, i) => {
+                          const rating = (reviews[current] as any).star_rating;
+                          const full = i + 1 <= Math.floor(rating);
+                          const half = !full && i + 0.5 <= rating;
+                          const gradientId = `half-star-gradient-${i}`;
+                          return (
+                            <svg
+                              key={i}
+                              width="16"
+                              height="16"
+                              viewBox="0 0 20 20"
+                              fill={full ? '#FBBF24' : half ? `url(#${gradientId})` : '#E5E7EB'}
+                              stroke="#FBBF24"
+                              className="inline-block mx-0.5"
                             >
-                              “
-                            </text>
-                          </svg>
+                              {half && (
+                                <defs>
+                                  <linearGradient id={gradientId}>
+                                    <stop offset="50%" stopColor="#FBBF24" />
+                                    <stop offset="50%" stopColor="#E5E7EB" />
+                                  </linearGradient>
+                                </defs>
+                              )}
+                              <polygon points="10,1 12.59,7.36 19.51,7.64 14,12.14 15.82,18.99 10,15.27 4.18,18.99 6,12.14 0.49,7.64 7.41,7.36" />
+                            </svg>
+                          );
+                        })}
+                        <span className="ml-2 text-xs text-gray-500">
+                          {(reviews[current] as any).star_rating.toFixed(1)}
+                        </span>
+                      </>
+                    ) : null}
+                  </div>
+                  <p
+                    className="text-lg mb-2 md:mb-4 px-1 md:px-2 text-center"
+                    itemProp="reviewBody"
+                    style={{
+                      lineHeight: design.lineSpacing,
+                      fontSize: 18,
+                      color: design.bodyTextColor,
+                    }}
+                  >
+                    {reviews[current]?.review_content}
+                  </p>
+                  <div className="flex flex-col items-center gap-1 w-full mt-auto">
+                    <span
+                      className="font-semibold text-indigo-700"
+                      itemProp="author"
+                      itemScope
+                      itemType="https://schema.org/Person"
+                      style={{ fontSize: design.attributionFontSize, color: design.nameTextColor }}
+                    >
+                      <span itemProp="name">
+                        {reviews[current]?.first_name} {reviews[current]?.last_name}
+                      </span>
+                    </span>
+                    <span
+                      className="text-xs text-gray-500"
+                      itemProp="author"
+                      itemScope
+                      itemType="https://schema.org/Person"
+                      style={{ fontSize: design.attributionFontSize * 0.85, color: design.roleTextColor }}
+                    >
+                      <span itemProp="jobTitle">
+                        {reviews[current]?.reviewer_role}
+                      </span>
+                    </span>
+                    {design.showRelativeDate &&
+                      reviews[current]?.created_at &&
+                      reviews[current]?.platform && (
+                        <span className="text-xs text-gray-400 mt-1">
+                          {getRelativeTime(reviews[current].created_at)} via{" "}
+                          {reviews[current].platform}
                         </span>
                       )}
-                      <p
-                        className="text-lg mb-2 md:mb-4 px-2 md:px-4 text-center"
-                        itemProp="reviewBody"
-                        style={{
-                          lineHeight: design.lineSpacing,
-                          fontSize: design.quoteFontSize,
-                          color: design.textColor,
-                        }}
-                      >
-                        {review.review_content}
-                      </p>
-                      <div className="flex flex-col items-center gap-1 w-full mt-auto">
-                        <span
-                          className="font-semibold text-indigo-700"
-                          itemProp="author"
-                          itemScope
-                          itemType="https://schema.org/Person"
-                          style={{ fontSize: design.attributionFontSize }}
-                        >
-                          <span itemProp="name">{review.reviewer_name}</span>
-                        </span>
-                        <span
-                          className="text-xs text-gray-500"
-                          itemProp="author"
-                          itemScope
-                          itemType="https://schema.org/Person"
-                          style={{
-                            fontSize: design.attributionFontSize * 0.85,
-                          }}
-                        >
-                          <span itemProp="jobTitle">
-                            {review.reviewer_role}
-                          </span>
-                        </span>
-                        {design.showRelativeDate &&
-                          review.created_at &&
-                          review.platform && (
-                            <span className="text-xs text-gray-400 mt-1">
-                              {getRelativeTime(review.created_at)} via{" "}
-                              {review.platform}
-                            </span>
-                          )}
-                      </div>
-                    </article>
-                  </SwiperSlide>
-                ))}
-                <div
-                  className="w-full flex justify-center mt-8 pointer-events-auto"
-                  style={{ minHeight: 40 }}
-                >
-                  <button
-                    onClick={() => swiperInstance && swiperInstance.slidePrev()}
-                    aria-label="Previous reviews"
-                    className="custom-prev w-10 h-10 aspect-square bg-white rounded-full shadow hover:bg-gray-100 focus:outline-none cursor-pointer flex items-center justify-center pointer-events-auto"
-                    style={{
-                      boxShadow: "0 4px 24px 0 rgba(80, 60, 180, 0.10)",
-                    }}
-                  >
-                    <FaChevronLeft className="w-4 h-4 text-[#1A237E]" />
-                  </button>
-                  <div className="custom-swiper-pagination flex justify-center gap-2 pointer-events-auto mx-5"></div>
-                  <button
-                    onClick={() => swiperInstance && swiperInstance.slideNext()}
-                    aria-label="Next reviews"
-                    className="custom-next w-10 h-10 aspect-square bg-white rounded-full shadow hover:bg-gray-100 focus:outline-none cursor-pointer flex items-center justify-center pointer-events-auto"
-                    style={{
-                      boxShadow: "0 4px 24px 0 rgba(80, 60, 180, 0.10)",
-                    }}
-                  >
-                    <FaChevronRight className="w-4 h-4 text-[#1A237E]" />
-                  </button>
-                </div>
-              </Swiper>
-              <style jsx global>{`
-                .swiper-button-next,
-                .swiper-button-prev {
-                  color: #4f46e5;
-                  z-index: 20;
-                  display: flex !important;
-                  align-items: center;
-                  justify-content: center;
-                  width: 40px;
-                  height: 40px;
-                  background: #fff;
-                  border-radius: 50%;
-                  box-shadow: 0 2px 8px rgba(80, 60, 180, 0.1);
-                  transition: background 0.2s;
-                  cursor: pointer;
-                  pointer-events: auto !important;
-                }
-                .swiper-button-next:hover,
-                .swiper-button-prev:hover {
-                  background: #f3f4f6;
-                }
-                .swiper-pagination-bullet {
-                  background: #a5b4fc;
-                  opacity: 1;
-                }
-                .swiper-pagination-bullet-active {
-                  background: #4f46e5;
-                }
-                .swiper {
-                  overflow: hidden !important;
-                }
-              `}</style>
-            </div>
+                  </div>
+                </article>
+              </div>
+            ) : null
           ) : (
             <div className="flex flex-col items-center w-full">
-              <article
-                className={`flex flex-col items-center gap-4 py-6 relative${design.showQuotes ? " pt-24" : ""}`}
-                style={{
-                  background:
-                    design.bgColor === "transparent"
-                      ? "none"
-                      : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
-                  color: design.textColor,
-                  minHeight: 300,
-                  border: "none",
-                  borderRadius: design.borderRadius,
-                  boxShadow: "none",
-                }}
-                itemScope
-                itemType="https://schema.org/Review"
-              >
-                {design.showQuotes && (
-                  <span
-                    className="absolute left-1/2 top-8 -translate-x-1/2 z-0 pointer-events-none"
-                    style={{ width: 96, height: 96, opacity: 0.5 }}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full bg-transparent shadow-none border-none p-0">
+                {reviews.slice(Math.floor(current / 3) * 3, Math.floor(current / 3) * 3 + 3).map((review, idx) => (
+                  <article
+                    key={review.id || idx}
+                    className={`flex flex-col items-center gap-4 py-6 relative bg-white rounded-lg shadow-md p-6 w-full`}
+                    style={{
+                      background:
+                        design.bgColor === "transparent"
+                          ? "none"
+                          : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
+                      color: design.textColor,
+                      borderRadius: design.borderRadius,
+                      boxShadow: design.shadow ? "0 4px 24px 0 rgba(80, 60, 180, 0.10)" : "none",
+                      border: design.border ? `${design.borderWidth ?? 2}px solid ${design.accentColor}` : "none",
+                      height: 320,
+                      minHeight: 320,
+                      maxHeight: 320,
+                      overflow: 'hidden',
+                    }}
+                    itemScope
+                    itemType="https://schema.org/Review"
                   >
-                    <svg
-                      width="96"
-                      height="96"
-                      viewBox="0 0 96 96"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      style={{ display: "block" }}
+                    <div className="flex items-center justify-center mb-2 mt-1">
+                      {typeof (review as any).star_rating === 'number' && !isNaN((review as any).star_rating) ? (
+                        <>
+                          {Array.from({ length: 5 }).map((_, i) => {
+                            const rating = (review as any).star_rating;
+                            const full = i + 1 <= Math.floor(rating);
+                            const half = !full && i + 0.5 <= rating;
+                            const gradientId = `half-star-gradient-${i}`;
+                            return (
+                              <svg
+                                key={i}
+                                width="16"
+                                height="16"
+                                viewBox="0 0 20 20"
+                                fill={full ? '#FBBF24' : half ? `url(#${gradientId})` : '#E5E7EB'}
+                                stroke="#FBBF24"
+                                className="inline-block mx-0.5"
+                              >
+                                {half && (
+                                  <defs>
+                                    <linearGradient id={gradientId}>
+                                      <stop offset="50%" stopColor="#FBBF24" />
+                                      <stop offset="50%" stopColor="#E5E7EB" />
+                                    </linearGradient>
+                                  </defs>
+                                )}
+                                <polygon points="10,1 12.59,7.36 19.51,7.64 14,12.14 15.82,18.99 10,15.27 4.18,18.99 6,12.14 0.49,7.64 7.41,7.36" />
+                              </svg>
+                            );
+                          })}
+                          <span className="ml-2 text-xs text-gray-500">
+                            {(review as any).star_rating.toFixed(1)}
+                          </span>
+                        </>
+                      ) : null}
+                    </div>
+                    <p
+                      className="text-lg mb-2 md:mb-4 px-1 md:px-2 text-center"
+                      itemProp="reviewBody"
+                      style={{
+                        lineHeight: design.lineSpacing,
+                        fontSize: 14,
+                        color: design.bodyTextColor,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }}
                     >
-                      <text
-                        x="20"
-                        y="76"
-                        fontSize="96"
-                        fill={lightenHex(design.accentColor, 0.7)}
-                        fontFamily="serif"
+                      {review.review_content}
+                    </p>
+                    <div className="flex flex-col items-center gap-1 w-full mt-auto">
+                      <span
+                        className="font-semibold text-indigo-700"
+                        itemProp="author"
+                        itemScope
+                        itemType="https://schema.org/Person"
+                        style={{ fontSize: design.attributionFontSize * 0.85, color: design.nameTextColor }}
                       >
-                        “
-                      </text>
-                    </svg>
-                  </span>
-                )}
-                <p
-                  className="text-lg mb-2 md:mb-4 px-2 md:px-8 text-center"
-                  itemProp="reviewBody"
-                  style={{
-                    lineHeight: design.lineSpacing,
-                    fontSize: 20,
-                    color: design.textColor,
-                  }}
-                >
-                  {reviews[current]?.review_content}
-                </p>
-                <div className="flex flex-col items-center gap-1 w-full mt-auto">
-                  <span
-                    className="font-semibold text-indigo-700"
-                    itemProp="author"
-                    itemScope
-                    itemType="https://schema.org/Person"
-                    style={{ fontSize: design.attributionFontSize }}
-                  >
-                    <span itemProp="name">
-                      {reviews[current]?.reviewer_name}
-                    </span>
-                  </span>
-                  <span
-                    className="text-xs text-gray-500"
-                    itemProp="author"
-                    itemScope
-                    itemType="https://schema.org/Person"
-                    style={{ fontSize: design.attributionFontSize * 0.85 }}
-                  >
-                    <span itemProp="jobTitle">
-                      {reviews[current]?.reviewer_role}
-                    </span>
-                  </span>
-                  {design.showRelativeDate &&
-                    reviews[current]?.created_at &&
-                    reviews[current]?.platform && (
-                      <span className="text-xs text-gray-400 mt-1">
-                        {getRelativeTime(reviews[current].created_at)} via{" "}
-                        {reviews[current].platform}
+                        <span itemProp="name">
+                          {review.first_name} {review.last_name}
+                        </span>
                       </span>
-                    )}
+                      <span
+                        className="text-xs text-gray-500"
+                        itemProp="author"
+                        itemScope
+                        itemType="https://schema.org/Person"
+                        style={{ fontSize: design.attributionFontSize * 0.85, color: design.roleTextColor }}
+                      >
+                        <span itemProp="jobTitle">
+                          {review.reviewer_role}
+                        </span>
+                      </span>
+                      {design.showRelativeDate &&
+                        review.created_at &&
+                        review.platform && (
+                          <span className="text-xs text-gray-400 mt-1">
+                            {getRelativeTime(review.created_at)} via {review.platform}
+                          </span>
+                        )}
+                    </div>
+                  </article>
+                ))}
+              </div>
+              {/* Navigation for multi-card */}
+              {reviews.length > 3 && (
+                <div className="w-full flex flex-col items-center justify-center gap-0 mt-8 pointer-events-auto" style={{ minHeight: 40 }}>
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    {Array.from({ length: Math.ceil(reviews.length / 3) }).map((_, idx) => (
+                      <span
+                        key={idx}
+                        className={`w-3 h-3 rounded-full mx-1 transition-colors duration-200 ${Math.floor(current / 3) === idx ? "bg-indigo-500" : "bg-indigo-200"}`}
+                      />
+                    ))}
+                  </div>
+                  <div className="flex items-center justify-center gap-0">
+                    <button
+                      onClick={() => setCurrent((current - 3 + reviews.length) % reviews.length)}
+                      aria-label="Previous reviews"
+                      className="w-10 h-10 aspect-square bg-white rounded-full shadow hover:bg-gray-100 focus:outline-none cursor-pointer flex items-center justify-center pointer-events-auto"
+                      style={{ boxShadow: "0 4px 24px 0 rgba(80, 60, 180, 0.10)" }}
+                    >
+                      <FaChevronLeft className="w-4 h-4 text-[#1A237E]" />
+                    </button>
+                    <button
+                      onClick={() => setCurrent((current + 3) % reviews.length)}
+                      aria-label="Next reviews"
+                      className="w-10 h-10 aspect-square bg-white rounded-full shadow hover:bg-gray-100 focus:outline-none cursor-pointer flex items-center justify-center pointer-events-auto ml-4"
+                      style={{ boxShadow: "0 4px 24px 0 rgba(80, 60, 180, 0.10)" }}
+                    >
+                      <FaChevronRight className="w-4 h-4 text-[#1A237E]" />
+                    </button>
+                  </div>
                 </div>
-              </article>
+              )}
             </div>
           )}
           <div id="carousel-live" className="sr-only" aria-live="polite" />
         </section>
-        {!design.showGrid && reviews.length > 1 && (
-          <div
-            className="w-full flex items-center justify-center gap-0 mt-8 pointer-events-auto"
-            style={{ minHeight: 40 }}
-          >
-            <button
-              onClick={() =>
-                setCurrent((current - 1 + reviews.length) % reviews.length)
-              }
-              aria-label="Previous review"
-              className="w-10 h-10 aspect-square bg-white rounded-full shadow hover:bg-gray-100 focus:outline-none cursor-pointer flex items-center justify-center pointer-events-auto"
-              style={{ boxShadow: "0 4px 24px 0 rgba(80, 60, 180, 0.10)" }}
-            >
-              <FaChevronLeft className="w-4 h-4 text-[#1A237E]" />
-            </button>
-            <div className="flex justify-center gap-2 pointer-events-auto mx-5">
-              {reviews.map((_, idx) => (
-                <span
-                  key={idx}
-                  className={`w-2.5 h-2.5 rounded-full ${idx === current ? "bg-indigo-500" : "bg-indigo-200"}`}
-                />
-              ))}
-            </div>
-            <button
-              onClick={() => setCurrent((current + 1) % reviews.length)}
-              aria-label="Next review"
-              className="w-10 h-10 aspect-square bg-white rounded-full shadow hover:bg-gray-100 focus:outline-none cursor-pointer flex items-center justify-center pointer-events-auto"
-              style={{ boxShadow: "0 4px 24px 0 rgba(80, 60, 180, 0.10)" }}
-            >
-              <FaChevronRight className="w-4 h-4 text-[#1A237E]" />
-            </button>
-          </div>
-        )}
       </div>
       {/* Main Card Below */}
       <PageCard icon={<FaCode className="w-9 h-9 text-[#1A237E]" />}>
@@ -575,9 +556,7 @@ export default function WidgetPage() {
           </button>
         </div>
         <p className="mt-2 text-gray-500 text-sm max-w-md mb-8">
-          Create up to 3 widgets. Add up to 8 reviews per widget. Edit your
-          reviews to fit by selecting the most impactful lines and removing the
-          rest. Widgets are accessibly designed and SEO friendly.
+          Create up to 3 widgets.  Choose which reviews you want to add and select the most impactful lines to include in your widget. Use "Style" to change look and feel.
         </p>
         {/* Widget Management Section */}
         <WidgetList
@@ -594,7 +573,7 @@ export default function WidgetPage() {
             supabase
               .from("widget_reviews")
               .select(
-                "id, review_content, reviewer_name, reviewer_role, platform, created_at, order_index",
+                "id, review_content, first_name, last_name, reviewer_role, platform, created_at, order_index, star_rating",
               )
               .eq("widget_id", selectedWidget.id)
               .order("order_index", { ascending: true })

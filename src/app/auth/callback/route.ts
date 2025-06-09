@@ -37,6 +37,34 @@ export async function GET(request: Request) {
       );
     }
 
+    // Ensure user is linked to an account
+    const { id: userId, email } = session.user;
+    const { data: accountLinks, error: accountLinksError } = await supabase
+      .from("account_users")
+      .select("account_id")
+      .eq("user_id", userId);
+
+    if (!accountLinks || accountLinks.length === 0) {
+      // No account found, create one and link user as owner
+      const { data: newAccount, error: createAccountError } = await supabase
+        .from("accounts")
+        .insert([{ name: email }])
+        .select()
+        .single();
+
+      if (!createAccountError && newAccount) {
+        await supabase
+          .from("account_users")
+          .insert([
+            {
+              account_id: newAccount.id,
+              user_id: userId,
+              role: "owner",
+            },
+          ]);
+      }
+    }
+
     // Wait for the session to be set
     await new Promise((resolve) => setTimeout(resolve, 1000));
 

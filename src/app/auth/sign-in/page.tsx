@@ -93,6 +93,30 @@ export default function SignIn() {
             // Don't show error to user, just log it
           }
         }
+
+        // Ensure account_users row exists
+        const { data: accountUser, error: accountUserError } = await supabase
+          .from("account_users")
+          .select("*")
+          .eq("user_id", data.user.id)
+          .eq("account_id", data.user.id)
+          .single();
+
+        if (accountUserError && accountUserError.code === "PGRST116") {
+          // No account_users row exists, create one
+          const { error: createAccountUserError } = await supabase
+            .from("account_users")
+            .insert({
+              user_id: data.user.id,
+              account_id: data.user.id,
+              role: "owner",
+            });
+
+          if (createAccountUserError) {
+            console.error("Account user creation error:", createAccountUserError);
+            // Don't show error to user, just log it
+          }
+        }
       } catch (err) {
         console.error("Account check/creation error:", err);
         // Don't show error to user, just log it
