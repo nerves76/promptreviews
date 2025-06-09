@@ -175,67 +175,39 @@ function renderStars(rating: number) {
   return <span style={{ display: 'inline-flex', alignItems: 'center', marginBottom: 4 }}>{stars}</span>;
 }
 
-// Widget component for single card
-const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
-  const design = getDesignWithDefaults(data.design);
-  const { reviews } = data;
-  const review = reviews[0]; // Single widget shows only the first review
+// Helper to convert hex to rgba
+function hexToRgba(hex: string, alpha: number) {
+  let c = hex.replace('#', '');
+  if (c.length === 3)
+    c = c.split('').map((x) => x + x).join('');
+  const num = parseInt(c, 16);
+  const r = (num >> 16) & 255;
+  const g = (num >> 8) & 255;
+  const b = num & 255;
+  return `rgba(${r},${g},${b},${alpha})`;
+}
 
-  return (
-    <div
-      style={{
-        background: design.bgColor,
-        color: design.textColor,
-        borderRadius: design.borderRadius,
-        boxShadow: design.shadow ? `0 4px 6px rgba(0, 0, 0, 0.1)` : 'none',
-        padding: '20px',
-        maxWidth: design.width,
-        margin: '0 auto',
-        position: 'relative',
-      }}
-    >
-      {design.showQuotes && (
-        <>
-          <span style={{ position: 'absolute', left: '10px', top: '10px', fontSize: '48px', color: design.accentColor, opacity: 0.5 }}>
-            "
-          </span>
-          <span style={{ position: 'absolute', right: '10px', bottom: '10px', fontSize: '48px', color: design.accentColor, opacity: 0.5 }}>
-            "
-          </span>
-        </>
-      )}
-      <p style={{ fontSize: design.quoteFontSize, lineHeight: design.lineSpacing }}>
-        {review.review_content}
-      </p>
-      <div style={{ marginTop: '10px' }}>
-        {typeof review.star_rating === 'number' && renderStars(review.star_rating)}
-        <span style={{ fontWeight: 'bold', color: design.nameTextColor }}>
-          {review.first_name} {review.last_name}
-        </span>
-        <span style={{ color: design.roleTextColor, marginLeft: '5px' }}>
-          {review.reviewer_role}
-        </span>
-        {design.showRelativeDate && review.created_at && (
-          <span style={{ color: design.roleTextColor, marginLeft: '5px' }}>
-            {getRelativeTime(review.created_at)}
-          </span>
-        )}
-        {review.platform && (
-          <span style={{ color: '#888', marginLeft: '5px', fontSize: 12 }}>
-            {review.platform}
-          </span>
-        )}
-      </div>
-    </div>
-  );
-};
+// Helper to lighten a hex color
+function lightenHex(hex: string, amount: number = 0.7) {
+  let c = hex.replace('#', '');
+  if (c.length === 3)
+    c = c.split('').map((x) => x + x).join('');
+  const num = parseInt(c, 16);
+  let r = (num >> 16) & 255;
+  let g = (num >> 8) & 255;
+  let b = num & 255;
+  r = Math.round(r + (255 - r) * amount);
+  g = Math.round(g + (255 - g) * amount);
+  b = Math.round(b + (255 - b) * amount);
+  return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+}
 
-// Widget component for multi card
+// Replace MultiWidget, SingleWidget, and PhotoWidget with dashboard-matching markup
 const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
   const design = getDesignWithDefaults(data.design);
   const { reviews } = data;
   return (
-    <div style={{ maxWidth: design.width, margin: '0 auto', position: 'relative' }}>
+    <div style={{ maxWidth: '100%', margin: '0 auto', position: 'relative' }}>
       <Swiper
         modules={[Navigation, Pagination, A11y, Autoplay]}
         spaceBetween={30}
@@ -251,56 +223,74 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
           640: { slidesPerView: 2, spaceBetween: 20 },
           1024: { slidesPerView: 3, spaceBetween: 30 },
         }}
-        className="promptreviews-swiper"
+        className="max-w-5xl w-full"
       >
-        {reviews.map((review) => (
-          <SwiperSlide key={review.id}>
-            <div
-              style={{
-                background: design.bgColor,
-                color: design.textColor,
-                borderRadius: design.borderRadius,
-                boxShadow: design.shadow ? `0 4px 6px rgba(0, 0, 0, 0.1)` : 'none',
-                padding: '20px',
-                width: '100%',
-                position: 'relative',
-                minHeight: 320,
-                border: design.border ? `${design.borderWidth ?? 2}px solid ${design.borderColor ?? '#cccccc'}` : 'none',
-                overflow: 'hidden',
-              }}
-            >
-              {design.showQuotes && (
-                <>
-                  <span style={{ position: 'absolute', left: '10px', top: '10px', fontSize: '48px', color: design.accentColor, opacity: 0.5 }}>
-                    "
+        {reviews.map((review, index) => (
+          <SwiperSlide key={review.id || index}>
+            <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+              <article
+                className="flex flex-col items-center gap-4 py-6 relative bg-white rounded-3xl w-full px-4 md:px-[15px] justify-center flex-1"
+                style={{
+                  background:
+                    design.bgColor === 'transparent'
+                      ? 'none'
+                      : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
+                  color: design.textColor,
+                  minHeight: 320,
+                  maxHeight: 320,
+                  height: 320,
+                  border: design.border ? `${design.borderWidth ?? 2}px solid ${design.borderColor ?? '#cccccc'}` : 'none',
+                  borderRadius: design.borderRadius,
+                  boxShadow: design.shadow ? `inset 0 4px 32px 0 ${hexToRgba(design.shadowColor ?? '#222222', design.shadowIntensity ?? 0.2)}` : 'none',
+                  overflow: 'hidden',
+                }}
+                itemScope
+                itemType="https://schema.org/Review"
+              >
+                <div className="flex items-center justify-center mb-2 mt-1">
+                  {typeof review.star_rating === 'number' && renderStars(review.star_rating)}
+                </div>
+                <p
+                  className="text-lg mb-2 md:mb-4 px-1 md:px-2 text-center"
+                  itemProp="reviewBody"
+                  style={{
+                    lineHeight: design.lineSpacing,
+                    fontSize: 14,
+                    color: design.bodyTextColor,
+                  }}
+                >
+                  {review.review_content}
+                </p>
+                <div className="flex flex-col items-center gap-1 w-full mt-auto">
+                  <span
+                    className="font-semibold text-indigo-700"
+                    itemProp="author"
+                    itemScope
+                    itemType="https://schema.org/Person"
+                    style={{ fontSize: design.attributionFontSize * 0.85, color: design.nameTextColor }}
+                  >
+                    <span itemProp="name">
+                      {review.first_name} {review.last_name}
+                    </span>
                   </span>
-                  <span style={{ position: 'absolute', right: '10px', bottom: '10px', fontSize: '48px', color: design.accentColor, opacity: 0.5 }}>
-                    "
+                  <span
+                    className="text-xs text-gray-500"
+                    itemProp="author"
+                    itemScope
+                    itemType="https://schema.org/Person"
+                    style={{ fontSize: design.attributionFontSize * 0.85, color: design.roleTextColor }}
+                  >
+                    <span itemProp="jobTitle">
+                      {review.reviewer_role}
+                    </span>
                   </span>
-                </>
-              )}
-              <p style={{ fontSize: design.quoteFontSize, lineHeight: design.lineSpacing }}>
-                {review.review_content}
-              </p>
-              <div style={{ marginTop: '10px' }}>
-                {typeof review.star_rating === 'number' && renderStars(review.star_rating)}
-                <span style={{ fontWeight: 'bold', color: design.nameTextColor }}>
-                  {review.first_name} {review.last_name}
-                </span>
-                <span style={{ color: design.roleTextColor, marginLeft: '5px' }}>
-                  {review.reviewer_role}
-                </span>
-                {design.showRelativeDate && review.created_at && (
-                  <span style={{ color: design.roleTextColor, marginLeft: '5px' }}>
-                    {getRelativeTime(review.created_at)}
-                  </span>
-                )}
-                {review.platform && (
-                  <span style={{ color: '#888', marginLeft: '5px', fontSize: 12 }}>
-                    {review.platform}
-                  </span>
-                )}
-              </div>
+                  {design.showRelativeDate && review.created_at && review.platform && (
+                    <span className="text-xs text-gray-400 mt-1">
+                      {getRelativeTime(review.created_at)} via {review.platform}
+                    </span>
+                  )}
+                </div>
+              </article>
             </div>
           </SwiperSlide>
         ))}
@@ -309,12 +299,11 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
   );
 };
 
-// Widget component for photo card
-const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
+const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
   const design = getDesignWithDefaults(data.design);
   const { reviews } = data;
   return (
-    <div style={{ maxWidth: design.width, margin: '0 auto', position: 'relative' }}>
+    <div style={{ maxWidth: '100%', margin: '0 auto', position: 'relative' }}>
       <Swiper
         modules={[Navigation, Pagination, A11y, Autoplay]}
         spaceBetween={30}
@@ -325,70 +314,225 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
           delay: (design.slideshowSpeed ?? 4) * 1000,
           disableOnInteraction: false,
         } : false}
-        className="promptreviews-swiper"
+        className="max-w-3xl w-full"
       >
-        {reviews.map((review) => (
-          <SwiperSlide key={review.id}>
-            <div
-              style={{
-                display: 'flex',
-                background: design.bgColor,
-                color: design.textColor,
-                borderRadius: design.borderRadius,
-                boxShadow: design.shadow ? `0 4px 6px rgba(0, 0, 0, 0.1)` : 'none',
-                padding: '20px',
-                width: '100%',
-                minHeight: 320,
-                border: design.border ? `${design.borderWidth ?? 2}px solid ${design.borderColor ?? '#cccccc'}` : 'none',
-                overflow: 'hidden',
-              }}
-            >
-              {review.photo_url && (
-                <img
-                  src={review.photo_url}
-                  alt={`${review.first_name} ${review.last_name}`}
-                  style={{
-                    width: '100px',
-                    height: '100px',
-                    borderRadius: '50%',
-                    marginRight: '20px',
-                  }}
-                />
-              )}
-              <div>
+        {reviews.map((review, index) => (
+          <SwiperSlide key={review.id || index}>
+            <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+              <article
+                className="flex flex-col sm:flex-col items-center gap-4 py-6 relative bg-white rounded-3xl w-full px-4 sm:px-[15px] justify-center flex-1 h-auto sm:h-[320px] shadow"
+                style={{
+                  background:
+                    design.bgColor === 'transparent'
+                      ? 'none'
+                      : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
+                  color: design.textColor,
+                  minHeight: 320,
+                  maxHeight: 320,
+                  height: 'auto',
+                  border: design.border ? `${design.borderWidth ?? 2}px solid ${design.borderColor ?? '#cccccc'}` : 'none',
+                  borderRadius: design.borderRadius,
+                  boxShadow: design.shadow ? `inset 0 4px 32px 0 ${hexToRgba(design.shadowColor ?? '#222222', design.shadowIntensity ?? 0.2)}` : 'none',
+                  overflow: 'hidden',
+                }}
+                itemScope
+                itemType="https://schema.org/Review"
+              >
                 {design.showQuotes && (
                   <>
-                    <span style={{ position: 'absolute', left: '10px', top: '10px', fontSize: '48px', color: design.accentColor, opacity: 0.5 }}>
-                      "
+                    <span
+                      className="absolute left-4 top-4 z-0 pointer-events-none"
+                      style={{ width: 96, height: 96, opacity: 0.5 }}
+                    >
+                      <svg
+                        width="96"
+                        height="96"
+                        viewBox="0 0 96 96"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        style={{ display: 'block' }}
+                      >
+                        <text
+                          y="76"
+                          fontSize="96"
+                          fill={lightenHex(design.accentColor, 0.7)}
+                          fontFamily="serif"
+                        >
+                          {'\u201C'}
+                        </text>
+                      </svg>
                     </span>
-                    <span style={{ position: 'absolute', right: '10px', bottom: '10px', fontSize: '48px', color: design.accentColor, opacity: 0.5 }}>
-                      "
+                    <span
+                      className="absolute right-4 bottom-4 z-0 pointer-events-none"
+                      style={{ width: 96, height: 96, opacity: 0.5 }}
+                    >
+                      <svg
+                        width="96"
+                        height="96"
+                        viewBox="0 0 96 96"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        style={{ display: 'block' }}
+                      >
+                        <text
+                          y="76"
+                          fontSize="96"
+                          fill={lightenHex(design.accentColor, 0.7)}
+                          fontFamily="serif"
+                        >
+                          {'\u201D'}
+                        </text>
+                      </svg>
                     </span>
                   </>
                 )}
-                <p style={{ fontSize: design.quoteFontSize, lineHeight: design.lineSpacing }}>
+                <div className="flex items-center justify-center mb-2 mt-1">
+                  {typeof review.star_rating === 'number' && renderStars(review.star_rating)}
+                </div>
+                <p
+                  className="text-lg mb-2 md:mb-4 px-1 md:px-2 text-center"
+                  itemProp="reviewBody"
+                  style={{
+                    lineHeight: design.lineSpacing,
+                    color: design.bodyTextColor,
+                  }}
+                >
                   {review.review_content}
                 </p>
-                <div style={{ marginTop: '10px' }}>
-                  {typeof review.star_rating === 'number' && renderStars(review.star_rating)}
-                  <span style={{ fontWeight: 'bold', color: design.nameTextColor }}>
-                    {review.first_name} {review.last_name}
-                  </span>
-                  <span style={{ color: design.roleTextColor, marginLeft: '5px' }}>
-                    {review.reviewer_role}
-                  </span>
-                  {design.showRelativeDate && review.created_at && (
-                    <span style={{ color: design.roleTextColor, marginLeft: '5px' }}>
-                      {getRelativeTime(review.created_at)}
+                <div className="flex flex-col items-center gap-1 w-full mt-auto">
+                  <span
+                    className="font-semibold text-indigo-700"
+                    itemProp="author"
+                    itemScope
+                    itemType="https://schema.org/Person"
+                    style={{ fontSize: design.attributionFontSize, color: design.nameTextColor }}
+                  >
+                    <span itemProp="name">
+                      {review.first_name} {review.last_name}
                     </span>
-                  )}
-                  {review.platform && (
-                    <span style={{ color: '#888', marginLeft: '5px', fontSize: 12 }}>
-                      {review.platform}
+                  </span>
+                  <span
+                    className="text-xs text-gray-500"
+                    itemProp="author"
+                    itemScope
+                    itemType="https://schema.org/Person"
+                    style={{ fontSize: design.attributionFontSize * 0.85, color: design.roleTextColor }}
+                  >
+                    <span itemProp="jobTitle">
+                      {review.reviewer_role}
+                    </span>
+                  </span>
+                  {design.showRelativeDate && review.created_at && review.platform && (
+                    <span className="text-xs text-gray-400 mt-1">
+                      {getRelativeTime(review.created_at)} via {review.platform}
                     </span>
                   )}
                 </div>
-              </div>
+              </article>
+            </div>
+          </SwiperSlide>
+        ))}
+      </Swiper>
+    </div>
+  );
+};
+
+const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
+  const design = getDesignWithDefaults(data.design);
+  const { reviews } = data;
+  return (
+    <div style={{ maxWidth: '100%', margin: '0 auto', position: 'relative' }}>
+      <Swiper
+        modules={[Navigation, Pagination, A11y, Autoplay]}
+        spaceBetween={30}
+        slidesPerView={1}
+        navigation
+        pagination={{ clickable: true }}
+        autoplay={design.autoAdvance ? {
+          delay: (design.slideshowSpeed ?? 4) * 1000,
+          disableOnInteraction: false,
+        } : false}
+        className="max-w-3xl w-full"
+      >
+        {reviews.map((review, index) => (
+          <SwiperSlide key={review.id || index}>
+            <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+              <article
+                className="flex flex-col sm:flex-row items-stretch h-auto sm:h-[320px] bg-white rounded-3xl w-full px-0 md:px-0 justify-center flex-1 shadow"
+                style={{
+                  background:
+                    design.bgColor === 'transparent'
+                      ? 'none'
+                      : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
+                  color: design.textColor,
+                  minHeight: 320,
+                  maxHeight: 320,
+                  height: 320,
+                  border: design.border ? `${design.borderWidth ?? 2}px solid ${design.borderColor ?? '#cccccc'}` : 'none',
+                  borderRadius: design.borderRadius,
+                  boxShadow: design.shadow ? `inset 0 4px 32px 0 ${hexToRgba(design.shadowColor ?? '#222222', design.shadowIntensity ?? 0.2)}` : 'none',
+                  overflow: 'hidden',
+                }}
+                itemScope
+                itemType="https://schema.org/Review"
+              >
+                <div className="flex items-center justify-center bg-gray-100 overflow-hidden w-full sm:w-1/3 min-w-[200px] h-48 sm:h-full">
+                  {review.photo_url ? (
+                    <img
+                      src={review.photo_url}
+                      alt="Reviewer photo"
+                      className="object-cover w-full h-full"
+                      style={{ display: 'block' }}
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center w-full h-full text-gray-400 bg-gray-100">
+                      No Photo
+                    </div>
+                  )}
+                </div>
+                {/* Testimonial on right (or below on mobile) */}
+                <div className="flex-1 flex flex-col justify-center px-4 sm:px-8 py-4">
+                  <p
+                    className="text-base md:text-lg mb-2 md:mb-4 px-1 md:px-2 text-left"
+                    itemProp="reviewBody"
+                    style={{
+                      lineHeight: design.lineSpacing,
+                      color: design.bodyTextColor,
+                    }}
+                  >
+                    {review.review_content}
+                  </p>
+                  <div className="flex flex-col items-start gap-1 w-full mt-auto">
+                    <span
+                      className="font-semibold text-indigo-700"
+                      itemProp="author"
+                      itemScope
+                      itemType="https://schema.org/Person"
+                      style={{ fontSize: design.attributionFontSize, color: design.nameTextColor }}
+                    >
+                      <span itemProp="name">
+                        {review.first_name} {review.last_name}
+                      </span>
+                    </span>
+                    <span
+                      className="text-xs text-gray-500"
+                      itemProp="author"
+                      itemScope
+                      itemType="https://schema.org/Person"
+                      style={{ fontSize: design.attributionFontSize * 0.85, color: design.roleTextColor }}
+                    >
+                      <span itemProp="jobTitle">
+                        {review.reviewer_role}
+                      </span>
+                    </span>
+                    {design.showRelativeDate && review.created_at && review.platform && (
+                      <span className="text-xs text-gray-400 mt-1">
+                        {getRelativeTime(review.created_at)} via {review.platform}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </article>
             </div>
           </SwiperSlide>
         ))}
