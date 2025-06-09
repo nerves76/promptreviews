@@ -230,17 +230,12 @@ export default function DashboardContent({
         console.log("Auth check:", {
           hasUser: !!user,
           userId: user?.id,
-          userError: userError
-            ? {
-                message: userError.message,
-                status: userError.status,
-              }
-            : null,
+          userError: userError || null,
         });
 
         if (userError) {
           console.error("Auth error:", userError);
-          throw new Error("Authentication error: " + userError.message);
+          throw new Error("Authentication error");
         }
 
         if (!user) {
