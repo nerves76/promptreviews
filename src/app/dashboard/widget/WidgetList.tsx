@@ -558,7 +558,7 @@ export default function WidgetList({
           platform: review.platform,
           order_index: index,
           star_rating: (editedRatings[review.review_id] !== undefined && editedRatings[review.review_id] !== null)
-            ? Math.round(editedRatings[review.review_id] * 2) / 2
+            ? Math.round(editedRatings[review.review_id]! * 2) / 2
             : (typeof review.star_rating === 'number' ? Math.round(review.star_rating * 2) / 2 : null),
           photo_url: photoUploads[review.review_id] || null,
         })),
@@ -575,10 +575,11 @@ export default function WidgetList({
   };
 
   const handleEditMouseDown = (e: React.MouseEvent) => {
+    if (!editModalRef.current) return;
     setEditDragging(true);
     editDragStart.current = {
-      x: e.clientX - editModalPos.x,
-      y: e.clientY - editModalPos.y,
+      x: e.clientX - editModalRef.current.getBoundingClientRect().left,
+      y: e.clientY - editModalRef.current.getBoundingClientRect().top,
     };
     document.body.style.userSelect = "none";
   };
@@ -609,7 +610,7 @@ export default function WidgetList({
   }, [editDragging]);
 
   const handleCopyEmbed = async (widgetId: string) => {
-    const code = `<div id="promptreviews-widget" data-widget="${widgetId}"></div>\n<script src="https://yourdomain.com/widget.js" async></script>`;
+    const code = `<div id="promptreviews-widget" data-widget="${widgetId}"></div>\n<script src="https://app.promptreviews.app/widget.js" async></script>`;
     try {
       await navigator.clipboard.writeText(code);
     } catch (err) {
@@ -1415,89 +1416,46 @@ export default function WidgetList({
                     </>
                   )}
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Show Quotes
-                  </label>
-                  <input
-                    type="checkbox"
-                    checked={design.showQuotes}
-                    onChange={(e) => handleDesignChange("showQuotes", e.target.checked)}
-                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Show Relative Date
-                  </label>
-                  <input
-                    type="checkbox"
-                    checked={design.showRelativeDate}
-                    onChange={(e) => handleDesignChange("showRelativeDate", e.target.checked)}
-                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Auto Advance
-                  </label>
-                  <input
-                    type="checkbox"
-                    checked={design.autoAdvance}
-                    onChange={(e) => handleDesignChange("autoAdvance", e.target.checked)}
-                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                  />
-                </div>
-              </div>
-              <div className="mt-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center gap-2">
+                <div className="space-y-4 mt-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Show Quotes</label>
                     <input
                       type="checkbox"
                       checked={design.showQuotes}
                       onChange={(e) => handleDesignChange("showQuotes", e.target.checked)}
                       className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                     />
-                    <label className="text-sm font-medium text-gray-700">
-                      Show Quotes
-                    </label>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Show Relative Date</label>
                     <input
                       type="checkbox"
                       checked={design.showRelativeDate}
                       onChange={(e) => handleDesignChange("showRelativeDate", e.target.checked)}
                       className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                     />
-                    <label className="text-sm font-medium text-gray-700">
-                      Show Relative Date
-                    </label>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Auto Advance</label>
                     <input
                       type="checkbox"
                       checked={design.autoAdvance}
                       onChange={(e) => handleDesignChange("autoAdvance", e.target.checked)}
                       className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                     />
-                    <label className="text-sm font-medium text-gray-700">
-                      Auto Advance
-                    </label>
                   </div>
+                  {design.autoAdvance && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Slideshow Speed (seconds)</label>
+                      <input
+                        type="number"
+                        value={design.slideshowSpeed}
+                        onChange={(e) => handleDesignChange("slideshowSpeed", parseInt(e.target.value) || 4)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                      />
+                    </div>
+                  )}
                 </div>
-                {design.autoAdvance && (
-                  <div className="mt-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Slideshow Speed (seconds)
-                    </label>
-                    <input
-                      type="number"
-                      value={design.slideshowSpeed}
-                      onChange={(e) => handleDesignChange("slideshowSpeed", parseInt(e.target.value) || 4)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                    />
-                  </div>
-                )}
               </div>
             </div>
             <div className="border-t p-4 flex justify-end">
