@@ -50,6 +50,39 @@ interface WidgetData {
   }>;
 }
 
+// Add this helper function after the WidgetData interface
+const DEFAULT_DESIGN = {
+  bgColor: '#fff',
+  textColor: '#22223b',
+  accentColor: '#6c47ff',
+  bodyTextColor: '#22223b',
+  nameTextColor: '#22223b',
+  roleTextColor: '#22223b',
+  quoteFontSize: 16,
+  attributionFontSize: 16,
+  borderRadius: 16,
+  shadow: true,
+  bgOpacity: 0.08,
+  autoAdvance: true,
+  slideshowSpeed: 4,
+  border: true,
+  borderWidth: 2,
+  lineSpacing: 1.5,
+  showQuotes: true,
+  showRelativeDate: true,
+  showGrid: false,
+  width: 400,
+  sectionBgType: 'solid',
+  sectionBgColor: '#fff',
+  shadowIntensity: 0.2,
+  shadowColor: '#000',
+  borderColor: '#eee',
+};
+
+function getDesignWithDefaults(design: Partial<typeof DEFAULT_DESIGN> = {}) {
+  return { ...DEFAULT_DESIGN, ...design };
+}
+
 // Function to fetch widget data from Supabase
 async function fetchWidgetData(widgetId: string): Promise<WidgetData | null> {
   const supabase = createBrowserClient(
@@ -105,7 +138,8 @@ function getRelativeTime(dateString: string): string {
 
 // Widget component for single card
 const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
-  const { design, reviews } = data;
+  const design = getDesignWithDefaults(data.design);
+  const { reviews } = data;
   const review = reviews[0]; // Single widget shows only the first review
 
   return (
@@ -153,7 +187,8 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
 
 // Widget component for multi card
 const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
-  const { design, reviews } = data;
+  const design = getDesignWithDefaults(data.design);
+  const { reviews } = data;
 
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', justifyContent: 'center' }}>
@@ -204,7 +239,8 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
 
 // Widget component for photo card
 const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
-  const { design, reviews } = data;
+  const design = getDesignWithDefaults(data.design);
+  const { reviews } = data;
   const review = reviews[0]; // Photo widget shows only the first review
 
   return (
