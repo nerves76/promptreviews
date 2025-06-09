@@ -45,6 +45,11 @@ type DesignState = {
   showRelativeDate: boolean;
   showGrid: boolean;
   width: number;
+  sectionBgType?: "none" | "custom";
+  sectionBgColor?: string;
+  shadowIntensity?: number;
+  shadowColor?: string;
+  borderColor: string;
 };
 
 export default function WidgetList({
@@ -120,6 +125,11 @@ export default function WidgetList({
       showRelativeDate: false,
       showGrid: false,
       width: 1000, // Set default width to 1000
+      sectionBgType: "none",
+      sectionBgColor: "#ffffff",
+      shadowIntensity: 0.2,
+      shadowColor: '#222222',
+      borderColor: '#cccccc',
     },
   );
 
@@ -147,6 +157,16 @@ export default function WidgetList({
   useEffect(() => {
     if (onDesignChange) onDesignChange(design);
   }, [design, onDesignChange]);
+
+  // Add effect to update design when selected widget changes
+  useEffect(() => {
+    if (selectedWidget) {
+      const widget = widgets.find(w => w.id === selectedWidget);
+      if (widget?.theme) {
+        setDesign(widget.theme);
+      }
+    }
+  }, [selectedWidget, widgets]);
 
   // Listen for openNewWidgetForm event from parent
   useEffect(() => {
@@ -1123,48 +1143,78 @@ export default function WidgetList({
             <div className="flex-1 overflow-y-auto p-6">
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Card Background Type
-                    </label>
-                    <select
-                      value={design.bgType}
-                      onChange={(e) => handleDesignChange("bgType", e.target.value as "solid")}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                    >
-                      <option value="solid">Solid Color</option>
-                    </select>
+                  {/* Background Section */}
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <div className="font-semibold text-gray-700 mb-2 text-sm">Background</div>
+                    <div className="mb-3">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Section Background Type
+                      </label>
+                      <select
+                        value={design.sectionBgType || "none"}
+                        onChange={(e) => handleDesignChange("sectionBgType", e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                      >
+                        <option value="none">None</option>
+                        <option value="custom">Custom Color</option>
+                      </select>
+                    </div>
+                    {design.sectionBgType === "custom" && (
+                      <div className="mb-3">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Section Background Color
+                        </label>
+                        <input
+                          type="color"
+                          value={design.sectionBgColor || "#ffffff"}
+                          onChange={(e) => handleDesignChange("sectionBgColor", e.target.value)}
+                          className="w-full h-10 rounded-md border border-gray-300"
+                        />
+                      </div>
+                    )}
+                    <div className="mb-3">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Card Background Type
+                      </label>
+                      <select
+                        value={design.bgType}
+                        onChange={(e) => handleDesignChange("bgType", e.target.value as "solid")}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                      >
+                        <option value="solid">Solid Color</option>
+                      </select>
+                    </div>
+                    {design.bgType === "solid" && (
+                      <div className="mb-3">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Card Background Color
+                        </label>
+                        <input
+                          type="color"
+                          value={design.bgColor}
+                          onChange={(e) => handleDesignChange("bgColor", e.target.value)}
+                          className="w-full h-10 rounded-md border border-gray-300"
+                        />
+                      </div>
+                    )}
+                    {design.bgType === "solid" && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Card Background Opacity
+                        </label>
+                        <input
+                          type="range"
+                          min={0}
+                          max={1}
+                          step={0.01}
+                          value={design.bgOpacity}
+                          onChange={e => handleDesignChange("bgOpacity", parseFloat(e.target.value))}
+                          className="w-full"
+                        />
+                        <div className="text-xs text-gray-500 mt-1 text-right">{Math.round(design.bgOpacity * 100)}%</div>
+                      </div>
+                    )}
                   </div>
-                  {design.bgType === "solid" && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Card Background Color
-                      </label>
-                      <input
-                        type="color"
-                        value={design.bgColor}
-                        onChange={(e) => handleDesignChange("bgColor", e.target.value)}
-                        className="w-full h-10 rounded-md border border-gray-300"
-                      />
-                    </div>
-                  )}
-                  {design.bgType === "solid" && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Card Background Opacity
-                      </label>
-                      <input
-                        type="range"
-                        min={0}
-                        max={1}
-                        step={0.01}
-                        value={design.bgOpacity}
-                        onChange={e => handleDesignChange("bgOpacity", parseFloat(e.target.value))}
-                        className="w-full"
-                      />
-                      <div className="text-xs text-gray-500 mt-1 text-right">{Math.round(design.bgOpacity * 100)}%</div>
-                    </div>
-                  )}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Text Color
@@ -1173,17 +1223,6 @@ export default function WidgetList({
                       type="color"
                       value={design.textColor}
                       onChange={(e) => handleDesignChange("textColor", e.target.value)}
-                      className="w-full h-10 rounded-md border border-gray-300"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Accent Color
-                    </label>
-                    <input
-                      type="color"
-                      value={design.accentColor}
-                      onChange={(e) => handleDesignChange("accentColor", e.target.value)}
                       className="w-full h-10 rounded-md border border-gray-300"
                     />
                   </div>
@@ -1220,29 +1259,66 @@ export default function WidgetList({
                       className="w-full h-10 rounded-md border border-gray-300"
                     />
                   </div>
-                </div>
-                <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Border Radius
+                      Accent Color
                     </label>
                     <input
-                      type="number"
-                      value={design.borderRadius}
-                      onChange={(e) => handleDesignChange("borderRadius", parseInt(e.target.value) || 16)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                      type="color"
+                      value={design.accentColor ?? 'slateblue'}
+                      onChange={(e) => handleDesignChange("accentColor", e.target.value)}
+                      className="w-full h-10 rounded-md border border-gray-300"
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Border Width
-                    </label>
-                    <input
-                      type="number"
-                      value={design.borderWidth}
-                      onChange={(e) => handleDesignChange("borderWidth", parseInt(e.target.value) || 2)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                    />
+                </div>
+                <div className="space-y-4">
+                  {/* Border Section */}
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <div className="font-semibold text-gray-700 mb-2 text-sm">Border</div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <input
+                        type="checkbox"
+                        checked={design.border}
+                        onChange={(e) => handleDesignChange("border", e.target.checked)}
+                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                      />
+                      <label className="text-sm font-medium text-gray-700">
+                        Show Border
+                      </label>
+                    </div>
+                    <div className="mb-3">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Border Color
+                      </label>
+                      <input
+                        type="color"
+                        value={design.borderColor ?? '#cccccc'}
+                        onChange={(e) => handleDesignChange("borderColor", e.target.value)}
+                        className="w-full h-10 rounded-md border border-gray-300"
+                      />
+                    </div>
+                    <div className="mb-3">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Border Radius
+                      </label>
+                      <input
+                        type="number"
+                        value={design.borderRadius}
+                        onChange={(e) => handleDesignChange("borderRadius", parseInt(e.target.value) || 16)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Border Width
+                      </label>
+                      <input
+                        type="number"
+                        value={design.borderWidth}
+                        onChange={(e) => handleDesignChange("borderWidth", parseInt(e.target.value) || 2)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                      />
+                    </div>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1257,10 +1333,10 @@ export default function WidgetList({
                     />
                   </div>
                 </div>
-              </div>
-              <div className="mt-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center gap-2">
+                {/* Vignette Shadow Section */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <div className="font-semibold text-gray-700 mb-2 text-sm">Vignette Shadow</div>
+                  <div className="flex items-center gap-2 mb-2">
                     <input
                       type="checkbox"
                       checked={design.shadow}
@@ -1268,20 +1344,73 @@ export default function WidgetList({
                       className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                     />
                     <label className="text-sm font-medium text-gray-700">
-                      Show Shadow
+                      Show Vignette Shadow
                     </label>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={design.border}
-                      onChange={(e) => handleDesignChange("border", e.target.checked)}
-                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                    />
-                    <label className="text-sm font-medium text-gray-700">
-                      Show Border
-                    </label>
-                  </div>
+                  {design.shadow && (
+                    <>
+                      <div className="flex items-center gap-2 mb-2">
+                        <label className="text-xs text-gray-500">Vignette Intensity</label>
+                        <input
+                          type="range"
+                          min={0}
+                          max={1}
+                          step={0.01}
+                          value={design.shadowIntensity ?? 0.2}
+                          onChange={e => handleDesignChange("shadowIntensity", parseFloat(e.target.value))}
+                          className="w-full"
+                          style={{ maxWidth: 120 }}
+                        />
+                        <span className="text-xs text-gray-500 ml-2">{Math.round((design.shadowIntensity ?? 0.2) * 100)}%</span>
+                      </div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <label className="text-xs text-gray-500">Vignette Color</label>
+                        <input
+                          type="color"
+                          value={design.shadowColor ?? '#222222'}
+                          onChange={e => handleDesignChange("shadowColor", e.target.value)}
+                          className="h-6 w-10 border border-gray-300 rounded"
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Show Quotes
+                  </label>
+                  <input
+                    type="checkbox"
+                    checked={design.showQuotes}
+                    onChange={(e) => handleDesignChange("showQuotes", e.target.checked)}
+                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Show Relative Date
+                  </label>
+                  <input
+                    type="checkbox"
+                    checked={design.showRelativeDate}
+                    onChange={(e) => handleDesignChange("showRelativeDate", e.target.checked)}
+                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Auto Advance
+                  </label>
+                  <input
+                    type="checkbox"
+                    checked={design.autoAdvance}
+                    onChange={(e) => handleDesignChange("autoAdvance", e.target.checked)}
+                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                  />
+                </div>
+              </div>
+              <div className="mt-6">
+                <div className="grid grid-cols-2 gap-4">
                   <div className="flex items-center gap-2">
                     <input
                       type="checkbox"
