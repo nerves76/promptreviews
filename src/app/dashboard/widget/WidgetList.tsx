@@ -142,6 +142,13 @@ export default function WidgetList({
   // Copy embed code state
   const [copiedWidgetId, setCopiedWidgetId] = useState<string | null>(null);
 
+  // Add a new state for photo uploads
+  const [photoUploads, setPhotoUploads] = useState<{ [id: string]: string }>({});
+
+  // Add a new state for photo upload progress and errors
+  const [photoUploadProgress, setPhotoUploadProgress] = useState<{ [id: string]: boolean }>({});
+  const [photoUploadErrors, setPhotoUploadErrors] = useState<{ [id: string]: string }>({});
+
   // Center edit modal after mount
   useEffect(() => {
     if (showForm) {
@@ -553,6 +560,7 @@ export default function WidgetList({
           star_rating: (editedRatings[review.review_id] !== undefined && editedRatings[review.review_id] !== null)
             ? Math.round(editedRatings[review.review_id] * 2) / 2
             : (typeof review.star_rating === 'number' ? Math.round(review.star_rating * 2) / 2 : null),
+          photo_url: photoUploads[review.review_id] || null,
         })),
         { onConflict: 'widget_id,review_id' }
       );
@@ -882,6 +890,30 @@ export default function WidgetList({
     };
   }, [styleModalDragging]);
 
+  // Update the photo upload handler to use the new endpoint and widgetId
+  const handlePhotoUpload = async (reviewId: string, file: File) => {
+    setPhotoUploadProgress((prev) => ({ ...prev, [reviewId]: true }));
+    setPhotoUploadErrors((prev) => ({ ...prev, [reviewId]: "" }));
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("widgetId", selectedWidget || "");
+      const res = await fetch("/api/upload-widget-photo", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok || !data.url) {
+        throw new Error(data.error || "Upload failed");
+      }
+      setPhotoUploads((prev) => ({ ...prev, [reviewId]: data.url }));
+    } catch (err: any) {
+      setPhotoUploadErrors((prev) => ({ ...prev, [reviewId]: err.message || "Upload failed" }));
+    } finally {
+      setPhotoUploadProgress((prev) => ({ ...prev, [reviewId]: false }));
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Widget List */}
@@ -927,11 +959,30 @@ export default function WidgetList({
                         }}
                       >
                         {widget.name}
+                        {/* Widget type label */}
+                        <span className={`ml-2 px-2 py-0.5 rounded text-xs font-semibold ${
+                          widget.widget_type === 'single' ? 'bg-blue-100 text-blue-700' :
+                          widget.widget_type === 'multi' ? 'bg-green-100 text-green-700' :
+                          widget.widget_type === 'photo' ? 'bg-purple-100 text-purple-700' :
+                          'bg-gray-100 text-gray-500'
+                        }`}>
+                          {widget.widget_type === 'single' ? 'Single' :
+                           widget.widget_type === 'multi' ? 'Multi' :
+                           widget.widget_type === 'photo' ? 'Photo' :
+                           widget.widget_type}
+                        </span>
                         <i className="fa-solid fa-up-down-left-right text-gray-400 w-5 h-5"></i>
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={e => { e.stopPropagation(); handleCopyEmbed(widget.id); }}
+                      className="px-3 py-1 rounded bg-gray-100 text-gray-700 hover:bg-gray-200 text-xs font-medium border border-gray-200"
+                      title="Copy embed code"
+                    >
+                      {copiedWidgetId === widget.id ? 'Copied!' : 'Copy Embed Code'}
+                    </button>
                     <button
                       onClick={async (e) => { e.stopPropagation(); await handleOpenReviewModal(widget.id); }}
                       className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
@@ -1061,32 +1112,17 @@ export default function WidgetList({
                     placeholder="Enter widget name"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Widget Type
-                  </label>
-                  <div className="flex gap-4 mt-1">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="widgetType"
-                        value="single"
-                        checked={form.widgetType === "single"}
-                        onChange={() => setForm((prev) => ({ ...prev, widgetType: "single" }))}
-                      />
-                      Single Card
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="widgetType"
-                        value="multi"
-                        checked={form.widgetType === "multi"}
-                        onChange={() => setForm((prev) => ({ ...prev, widgetType: "multi" }))}
-                      />
-                      Multi Card (carousel/grid)
-                    </label>
-                  </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Widget Type</label>
+                  <select
+                    value={form.widgetType}
+                    onChange={(e) => setForm({ ...form, widgetType: e.target.value })}
+                    className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring shadow-inner"
+                  >
+                    <option value="single">Single Card</option>
+                    <option value="multi">Multi Card</option>
+                    <option value="photo">Photo (with image + testimonial)</option>
+                  </select>
                 </div>
               </div>
             </div>
@@ -1215,49 +1251,53 @@ export default function WidgetList({
                       </div>
                     )}
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Text Color
-                    </label>
-                    <input
-                      type="color"
-                      value={design.textColor}
-                      onChange={(e) => handleDesignChange("textColor", e.target.value)}
-                      className="w-full h-10 rounded-md border border-gray-300"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Body Text Color
-                    </label>
-                    <input
-                      type="color"
-                      value={design.bodyTextColor}
-                      onChange={(e) => handleDesignChange("bodyTextColor", e.target.value)}
-                      className="w-full h-10 rounded-md border border-gray-300"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Name Text Color
-                    </label>
-                    <input
-                      type="color"
-                      value={design.nameTextColor}
-                      onChange={(e) => handleDesignChange("nameTextColor", e.target.value)}
-                      className="w-full h-10 rounded-md border border-gray-300"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Role Text Color
-                    </label>
-                    <input
-                      type="color"
-                      value={design.roleTextColor}
-                      onChange={(e) => handleDesignChange("roleTextColor", e.target.value)}
-                      className="w-full h-10 rounded-md border border-gray-300"
-                    />
+                  {/* Text Colors Section */}
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <div className="font-semibold text-gray-700 mb-2 text-sm">Text Colors</div>
+                    <div className="mb-3">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Main Text Color
+                      </label>
+                      <input
+                        type="color"
+                        value={design.textColor}
+                        onChange={(e) => handleDesignChange("textColor", e.target.value)}
+                        className="w-full h-10 rounded-md border border-gray-300"
+                      />
+                    </div>
+                    <div className="mb-3">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Body Text Color
+                      </label>
+                      <input
+                        type="color"
+                        value={design.bodyTextColor}
+                        onChange={(e) => handleDesignChange("bodyTextColor", e.target.value)}
+                        className="w-full h-10 rounded-md border border-gray-300"
+                      />
+                    </div>
+                    <div className="mb-3">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Name Text Color
+                      </label>
+                      <input
+                        type="color"
+                        value={design.nameTextColor}
+                        onChange={(e) => handleDesignChange("nameTextColor", e.target.value)}
+                        className="w-full h-10 rounded-md border border-gray-300"
+                      />
+                    </div>
+                    <div className="mb-3">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Role Text Color
+                      </label>
+                      <input
+                        type="color"
+                        value={design.roleTextColor}
+                        onChange={(e) => handleDesignChange("roleTextColor", e.target.value)}
+                        className="w-full h-10 rounded-md border border-gray-300"
+                      />
+                    </div>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1614,7 +1654,7 @@ export default function WidgetList({
                       {uniqueSelectedReviews.map((review) => (
                         <div
                           key={review.review_id}
-                          className="p-3 rounded-lg border border-gray-200 bg-blue-50"
+                          className="p-3 rounded-lg border border-gray-200 bg-blue-50 mb-2"
                         >
                           <div className="space-y-2">
                             <div>
@@ -1708,12 +1748,58 @@ export default function WidgetList({
                                 Remove
                               </button>
                             </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700">Photo</label>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    handlePhotoUpload(review.review_id, file);
+                                  }
+                                }}
+                                className="w-full"
+                              />
+                              {photoUploadProgress[review.review_id] && <span className="text-xs text-blue-600">Uploading...</span>}
+                              {photoUploadErrors[review.review_id] && <span className="text-xs text-red-600">{photoUploadErrors[review.review_id]}</span>}
+                              {photoUploads[review.review_id] && (
+                                <img src={photoUploads[review.review_id]} alt="Uploaded" className="mt-2 h-20 w-20 object-cover" />
+                              )}
+                            </div>
                           </div>
                         </div>
                       ))}
                     </div>
                   </div>
                 </div>
+                {selectedWidget && widgets.find(w => w.id === selectedWidget)?.widget_type === 'photo' && selectedWidget && (
+                  <div className="mb-3">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Upload Photo
+                    </label>
+                    {selectedReviews.map((review) => (
+                      <div key={review.review_id} className="mb-2">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              handlePhotoUpload(review.review_id, file);
+                            }
+                          }}
+                          className="w-full"
+                        />
+                        {photoUploadProgress[review.review_id] && <span className="text-xs text-blue-600">Uploading...</span>}
+                        {photoUploadErrors[review.review_id] && <span className="text-xs text-red-600">{photoUploadErrors[review.review_id]}</span>}
+                        {photoUploads[review.review_id] && (
+                          <img src={photoUploads[review.review_id]} alt="Uploaded" className="mt-2 h-20 w-20 object-cover" />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
                 {reviewError && (
                   <div className="text-red-600 text-sm mt-2">{reviewError}</div>
                 )}
