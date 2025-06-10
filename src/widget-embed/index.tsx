@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserClient } from '@supabase/ssr';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -124,22 +124,25 @@ async function fetchWidgetData(widgetId: string): Promise<WidgetData | null> {
   };
 }
 
-// Helper function to get relative time
-function getRelativeTime(dateString: string): string {
-  const date = new Date(dateString);
+// Helper to get relative time string (dashboard logic)
+function getRelativeTime(dateString: string) {
   const now = new Date();
-  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-  if (diffInSeconds < 60) return `${diffInSeconds} seconds ago`;
-  const diffInMinutes = Math.floor(diffInSeconds / 60);
-  if (diffInMinutes < 60) return `${diffInMinutes} minutes ago`;
-  const diffInHours = Math.floor(diffInMinutes / 60);
-  if (diffInHours < 24) return `${diffInHours} hours ago`;
-  const diffInDays = Math.floor(diffInHours / 24);
-  if (diffInDays < 30) return `${diffInDays} days ago`;
-  const diffInMonths = Math.floor(diffInDays / 30);
-  if (diffInMonths < 12) return `${diffInMonths} months ago`;
-  const diffInYears = Math.floor(diffInMonths / 12);
-  return `${diffInYears} years ago`;
+  const date = new Date(dateString);
+  const diff = now.getTime() - date.getTime();
+  const seconds = Math.floor(diff / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+  const weeks = Math.floor(days / 7);
+  const months = Math.floor(days / 30);
+  const years = Math.floor(days / 365);
+  if (years > 0) return `${years} year${years > 1 ? "s" : ""} ago`;
+  if (months > 0) return `${months} month${months > 1 ? "s" : ""} ago`;
+  if (weeks > 0) return `${weeks} week${weeks > 1 ? "s" : ""} ago`;
+  if (days > 0) return `${days} day${days > 1 ? "s" : ""} ago`;
+  if (hours > 0) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+  if (minutes > 0) return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
+  return "just now";
 }
 
 // Add star rating rendering helper
@@ -311,6 +314,61 @@ function injectSwiperNavCSS() {
   }
 }
 
+// Inject dashboard-style navigation button CSS
+function injectWidgetNavCSS() {
+  if (!document.getElementById('pr-widget-nav-css')) {
+    const style = document.createElement('style');
+    style.id = 'pr-widget-nav-css';
+    style.innerHTML = `
+      .pr-widget-nav-btn {
+        border-radius: 9999px;
+        background: rgba(255,255,255,0.6);
+        backdrop-filter: blur(2px);
+        border: 1px solid #e5e7eb;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s;
+        z-index: 10;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      }
+      .pr-widget-nav-btn:hover {
+        background: #fff;
+      }
+      .pr-widget-nav-btn svg {
+        width: 24px;
+        height: 24px;
+        display: block;
+      }
+      .pr-widget-nav-row {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        gap: 32px;
+        width: 100%;
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 0 16px;
+      }
+      .pr-widget-nav-center {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+      }
+      .pr-widget-pagination {
+        display: flex;
+        justify-content: center;
+        margin-top: 24px;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+}
+
 // Entry point
 async function init() {
   const container = document.getElementById('promptreviews-widget');
@@ -330,6 +388,7 @@ async function init() {
   await injectSwiperCSS();
   injectSwiperNavCSS();
   injectWidgetResponsiveCSS();
+  injectWidgetNavCSS();
 
   const widgetId = container.getAttribute('data-widget');
   if (!widgetId) {
@@ -352,363 +411,409 @@ init();
 const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
   const design = getDesignWithDefaults(data.design);
   const { reviews } = data;
+  const prevRef = React.useRef<HTMLButtonElement>(null);
+  const nextRef = React.useRef<HTMLButtonElement>(null);
+  React.useEffect(() => { injectWidgetNavCSS(); }, []);
   return (
-    <div>
-      <Swiper
-        modules={[Navigation, Pagination, A11y, Autoplay]}
-        spaceBetween={30}
-        slidesPerView={3}
-        navigation
-        pagination={{ clickable: true }}
-        autoplay={design.autoAdvance ? {
-          delay: (design.slideshowSpeed ?? 4) * 1000,
-          disableOnInteraction: false,
-        } : false}
-        breakpoints={{
-          320: { slidesPerView: 1, spaceBetween: 20 },
-          640: { slidesPerView: 2, spaceBetween: 20 },
-          1024: { slidesPerView: 3, spaceBetween: 30 },
-        }}
-        style={{ maxWidth: '1000px', width: '100%' }}
-      >
-        {reviews.map((review, index) => (
-          <SwiperSlide key={review.id || index}>
-            <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-              <article
-                className="pr-widget-card"
-                style={{
-                  background: design.bgColor === 'transparent' ? 'none' : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
-                  color: design.textColor,
-                  border: design.border ? `${design.borderWidth ?? 2}px solid ${design.borderColor ?? '#cccccc'}` : 'none',
-                  borderRadius: `${design.borderRadius}px`,
-                  boxShadow: design.shadow ? `inset 0 4px 32px 0 ${hexToRgba(design.shadowColor ?? '#222222', design.shadowIntensity ?? 0.2)}` : 'none',
-                }}
-                itemScope
-                itemType="https://schema.org/Review"
-              >
-                <div className="pr-widget-stars">
-                  {typeof review.star_rating === 'number' && renderStars(review.star_rating)}
-                </div>
-                <p
-                  className="pr-widget-review-body"
-                  style={{
-                    fontSize: '14px',
-                    lineHeight: design.lineSpacing,
-                    color: design.bodyTextColor,
-                  }}
-                  itemProp="reviewBody"
-                >
-                  {review.review_content}
-                </p>
-                <div className="pr-widget-author">
-                  <span
-                    style={{ 
-                      fontWeight: '600',
-                      fontSize: `${design.attributionFontSize * 0.85}px`,
-                      color: design.nameTextColor
+    <>
+      <div className="pr-widget-nav-row">
+        <button ref={prevRef} className="pr-widget-nav-btn" aria-label="Previous">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <path d="M20 28L10 16L20 4" stroke="#111" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+        <div className="pr-widget-nav-center">
+          <Swiper
+            modules={[Navigation, Pagination, A11y, Autoplay]}
+            spaceBetween={30}
+            slidesPerView={3}
+            navigation={{ prevEl: prevRef.current, nextEl: nextRef.current }}
+            pagination={{ clickable: true, el: '.pr-widget-pagination' }}
+            autoplay={design.autoAdvance ? {
+              delay: (design.slideshowSpeed ?? 4) * 1000,
+              disableOnInteraction: false,
+            } : false}
+            breakpoints={{
+              320: { slidesPerView: 1, spaceBetween: 20 },
+              640: { slidesPerView: 2, spaceBetween: 20 },
+              1024: { slidesPerView: 3, spaceBetween: 30 },
+            }}
+            style={{ maxWidth: '1000px', width: '100%' }}
+            onInit={(swiper) => {
+              // @ts-ignore
+              swiper.params.navigation.prevEl = prevRef.current;
+              // @ts-ignore
+              swiper.params.navigation.nextEl = nextRef.current;
+              swiper.navigation.init();
+              swiper.navigation.update();
+            }}
+          >
+            {reviews.map((review, index) => (
+              <SwiperSlide key={review.id || index}>
+                <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                  <article
+                    className="pr-widget-card"
+                    style={{
+                      background: design.bgColor === 'transparent' ? 'none' : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
+                      color: design.textColor,
+                      border: design.border ? `${design.borderWidth ?? 2}px solid ${design.borderColor ?? '#cccccc'}` : 'none',
+                      borderRadius: `${design.borderRadius}px`,
+                      boxShadow: design.shadow ? `inset 0 4px 32px 0 ${hexToRgba(design.shadowColor ?? '#222222', design.shadowIntensity ?? 0.2)}` : 'none',
                     }}
-                    itemProp="author"
                     itemScope
-                    itemType="https://schema.org/Person"
+                    itemType="https://schema.org/Review"
                   >
-                    <span itemProp="name">
-                      {review.first_name} {review.last_name}
-                    </span>
-                  </span>
-                  <span
-                    style={{ 
-                      fontSize: `${design.attributionFontSize * 0.85}px`,
-                      color: design.roleTextColor
-                    }}
-                    itemProp="author"
-                    itemScope
-                    itemType="https://schema.org/Person"
-                  >
-                    <span itemProp="jobTitle">
-                      {review.reviewer_role}
-                    </span>
-                  </span>
-                  {design.showRelativeDate && review.created_at && review.platform && (
-                    <span style={{ fontSize: '12px', color: '#9ca3af', marginTop: '4px' }}>
-                      {getRelativeTime(review.created_at)} via {review.platform}
-                    </span>
-                  )}
+                    <div className="pr-widget-stars">
+                      {typeof review.star_rating === 'number' && renderStars(review.star_rating)}
+                    </div>
+                    <p
+                      className="pr-widget-review-body"
+                      style={{ fontSize: '14px', lineHeight: design.lineSpacing, color: design.bodyTextColor }}
+                      itemProp="reviewBody"
+                    >
+                      {review.review_content}
+                    </p>
+                    <div className="pr-widget-author">
+                      <span style={{ fontWeight: '600', fontSize: `${design.attributionFontSize * 0.85}px`, color: design.nameTextColor }} itemProp="author" itemScope itemType="https://schema.org/Person">
+                        <span itemProp="name">{review.first_name} {review.last_name}</span>
+                      </span>
+                      <span style={{ fontSize: `${design.attributionFontSize * 0.85}px`, color: design.roleTextColor }} itemProp="author" itemScope itemType="https://schema.org/Person">
+                        <span itemProp="jobTitle">{review.reviewer_role}</span>
+                      </span>
+                      {design.showRelativeDate && review.created_at && (
+                        <span style={{ fontSize: '12px', color: '#9ca3af', marginTop: '4px' }}>
+                          {getRelativeTime(review.created_at)}
+                          {review.platform ? ` via ${review.platform}` : ''}
+                        </span>
+                      )}
+                    </div>
+                  </article>
                 </div>
-              </article>
-            </div>
-          </SwiperSlide>
-        ))}
-      </Swiper>
-    </div>
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        </div>
+        <button ref={nextRef} className="pr-widget-nav-btn" aria-label="Next">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <path d="M12 4L22 16L12 28" stroke="#111" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+      </div>
+      <div className="pr-widget-pagination" />
+    </>
   );
 };
 
 const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
   const design = getDesignWithDefaults(data.design);
   const { reviews } = data;
+  const prevRef = React.useRef<HTMLButtonElement>(null);
+  const nextRef = React.useRef<HTMLButtonElement>(null);
+  React.useEffect(() => { injectWidgetNavCSS(); }, []);
   return (
-    <div>
-      <Swiper
-        modules={[Navigation, Pagination, A11y, Autoplay]}
-        spaceBetween={30}
-        slidesPerView={1}
-        navigation
-        pagination={{ clickable: true }}
-        autoplay={design.autoAdvance ? {
-          delay: (design.slideshowSpeed ?? 4) * 1000,
-          disableOnInteraction: false,
-        } : false}
-        style={{ maxWidth: '800px', width: '100%' }}
-      >
-        {reviews.map((review, index) => (
-          <SwiperSlide key={review.id || index}>
-            <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-              <article
-                className="pr-widget-card"
-                style={{
-                  background: design.bgColor === 'transparent' ? 'none' : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
-                  color: design.textColor,
-                  border: design.border ? `${design.borderWidth ?? 2}px solid ${design.borderColor ?? '#cccccc'}` : 'none',
-                  borderRadius: `${design.borderRadius}px`,
-                  boxShadow: design.shadow ? `inset 0 4px 32px 0 ${hexToRgba(design.shadowColor ?? '#222222', design.shadowIntensity ?? 0.2)}` : 'none',
-                }}
-                itemScope
-                itemType="https://schema.org/Review"
-              >
-                {design.showQuotes && (
-                  <>
-                    <span
-                      style={{
-                        position: 'absolute',
-                        left: '16px',
-                        top: '16px',
-                        zIndex: 0,
-                        pointerEvents: 'none',
-                        width: '96px',
-                        height: '96px',
-                        opacity: 0.5
-                      }}
-                    >
-                      <svg
-                        width="96"
-                        height="96"
-                        viewBox="0 0 96 96"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                        style={{ display: 'block' }}
-                      >
-                        <text
-                          y="76"
-                          fontSize="96"
-                          fill={lightenHex(design.accentColor, 0.7)}
-                          fontFamily="serif"
-                        >
-                          {'\u201C'}
-                        </text>
-                      </svg>
-                    </span>
-                    <span
-                      style={{
-                        position: 'absolute',
-                        right: '16px',
-                        bottom: '16px',
-                        zIndex: 0,
-                        pointerEvents: 'none',
-                        width: '96px',
-                        height: '96px',
-                        opacity: 0.5
-                      }}
-                    >
-                      <svg
-                        width="96"
-                        height="96"
-                        viewBox="0 0 96 96"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                        style={{ display: 'block' }}
-                      >
-                        <text
-                          y="76"
-                          fontSize="96"
-                          fill={lightenHex(design.accentColor, 0.7)}
-                          fontFamily="serif"
-                        >
-                          {'\u201D'}
-                        </text>
-                      </svg>
-                    </span>
-                  </>
-                )}
-                <div className="pr-widget-stars">
-                  {typeof review.star_rating === 'number' && renderStars(review.star_rating)}
-                </div>
-                <p
-                  className="pr-widget-review-body"
-                  style={{
-                    fontSize: `${design.quoteFontSize}px`,
-                    lineHeight: design.lineSpacing,
-                    color: design.bodyTextColor,
-                  }}
-                  itemProp="reviewBody"
-                >
-                  {review.review_content}
-                </p>
-                <div className="pr-widget-author">
-                  <span
-                    style={{ 
-                      fontWeight: '600',
-                      fontSize: `${design.attributionFontSize}px`,
-                      color: design.nameTextColor
+    <>
+      <div className="pr-widget-nav-row">
+        <button ref={prevRef} className="pr-widget-nav-btn" aria-label="Previous">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <path d="M20 28L10 16L20 4" stroke="#111" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+        <div className="pr-widget-nav-center">
+          <Swiper
+            modules={[Navigation, Pagination, A11y, Autoplay]}
+            spaceBetween={30}
+            slidesPerView={1}
+            navigation={{ prevEl: prevRef.current, nextEl: nextRef.current }}
+            pagination={{ clickable: true, el: '.pr-widget-pagination' }}
+            autoplay={design.autoAdvance ? {
+              delay: (design.slideshowSpeed ?? 4) * 1000,
+              disableOnInteraction: false,
+            } : false}
+            style={{ maxWidth: '800px', width: '100%' }}
+            onInit={(swiper) => {
+              // @ts-ignore
+              swiper.params.navigation.prevEl = prevRef.current;
+              // @ts-ignore
+              swiper.params.navigation.nextEl = nextRef.current;
+              swiper.navigation.init();
+              swiper.navigation.update();
+            }}
+          >
+            {reviews.map((review, index) => (
+              <SwiperSlide key={review.id || index}>
+                <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                  <article
+                    className="pr-widget-card"
+                    style={{
+                      background: design.bgColor === 'transparent' ? 'none' : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
+                      color: design.textColor,
+                      border: design.border ? `${design.borderWidth ?? 2}px solid ${design.borderColor ?? '#cccccc'}` : 'none',
+                      borderRadius: `${design.borderRadius}px`,
+                      boxShadow: design.shadow ? `inset 0 4px 32px 0 ${hexToRgba(design.shadowColor ?? '#222222', design.shadowIntensity ?? 0.2)}` : 'none',
                     }}
-                    itemProp="author"
                     itemScope
-                    itemType="https://schema.org/Person"
+                    itemType="https://schema.org/Review"
                   >
-                    <span itemProp="name">
-                      {review.first_name} {review.last_name}
-                    </span>
-                  </span>
-                  <span
-                    style={{ 
-                      fontSize: `${design.attributionFontSize * 0.85}px`,
-                      color: design.roleTextColor
-                    }}
-                    itemProp="author"
-                    itemScope
-                    itemType="https://schema.org/Person"
-                  >
-                    <span itemProp="jobTitle">
-                      {review.reviewer_role}
-                    </span>
-                  </span>
-                  {design.showRelativeDate && review.created_at && review.platform && (
-                    <span style={{ fontSize: '12px', color: '#9ca3af', marginTop: '4px' }}>
-                      {getRelativeTime(review.created_at)} via {review.platform}
-                    </span>
-                  )}
+                    {design.showQuotes && (
+                      <>
+                        <span
+                          style={{
+                            position: 'absolute',
+                            left: '16px',
+                            top: '16px',
+                            zIndex: 0,
+                            pointerEvents: 'none',
+                            width: '96px',
+                            height: '96px',
+                            opacity: 0.5
+                          }}
+                        >
+                          <svg
+                            width="96"
+                            height="96"
+                            viewBox="0 0 96 96"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                            style={{ display: 'block' }}
+                          >
+                            <text
+                              y="76"
+                              fontSize="96"
+                              fill={lightenHex(design.accentColor, 0.7)}
+                              fontFamily="serif"
+                            >
+                              {'\u201C'}
+                            </text>
+                          </svg>
+                        </span>
+                        <span
+                          style={{
+                            position: 'absolute',
+                            right: '16px',
+                            bottom: '16px',
+                            zIndex: 0,
+                            pointerEvents: 'none',
+                            width: '96px',
+                            height: '96px',
+                            opacity: 0.5
+                          }}
+                        >
+                          <svg
+                            width="96"
+                            height="96"
+                            viewBox="0 0 96 96"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                            style={{ display: 'block' }}
+                          >
+                            <text
+                              y="76"
+                              fontSize="96"
+                              fill={lightenHex(design.accentColor, 0.7)}
+                              fontFamily="serif"
+                            >
+                              {'\u201D'}
+                            </text>
+                          </svg>
+                        </span>
+                      </>
+                    )}
+                    <div className="pr-widget-stars">
+                      {typeof review.star_rating === 'number' && renderStars(review.star_rating)}
+                    </div>
+                    <p
+                      className="pr-widget-review-body"
+                      style={{
+                        fontSize: `${design.quoteFontSize}px`,
+                        lineHeight: design.lineSpacing,
+                        color: design.bodyTextColor,
+                      }}
+                      itemProp="reviewBody"
+                    >
+                      {review.review_content}
+                    </p>
+                    <div className="pr-widget-author">
+                      <span
+                        style={{ 
+                          fontWeight: '600',
+                          fontSize: `${design.attributionFontSize}px`,
+                          color: design.nameTextColor
+                        }}
+                        itemProp="author"
+                        itemScope
+                        itemType="https://schema.org/Person"
+                      >
+                        <span itemProp="name">
+                          {review.first_name} {review.last_name}
+                        </span>
+                      </span>
+                      <span
+                        style={{ 
+                          fontSize: `${design.attributionFontSize * 0.85}px`,
+                          color: design.roleTextColor
+                        }}
+                        itemProp="author"
+                        itemScope
+                        itemType="https://schema.org/Person"
+                      >
+                        <span itemProp="jobTitle">
+                          {review.reviewer_role}
+                        </span>
+                      </span>
+                      {design.showRelativeDate && review.created_at && (
+                        <span style={{ fontSize: '12px', color: '#9ca3af', marginTop: '4px' }}>
+                          {getRelativeTime(review.created_at)}
+                          {review.platform ? ` via ${review.platform}` : ''}
+                        </span>
+                      )}
+                    </div>
+                  </article>
                 </div>
-              </article>
-            </div>
-          </SwiperSlide>
-        ))}
-      </Swiper>
-    </div>
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        </div>
+        <div className="pr-widget-pagination" />
+      </div>
+    </>
   );
 };
 
 const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
   const design = getDesignWithDefaults(data.design);
   const { reviews } = data;
+  const prevRef = React.useRef<HTMLButtonElement>(null);
+  const nextRef = React.useRef<HTMLButtonElement>(null);
+  React.useEffect(() => { injectWidgetNavCSS(); }, []);
   return (
-    <div>
-      <Swiper
-        modules={[Navigation, Pagination, A11y, Autoplay]}
-        spaceBetween={30}
-        slidesPerView={1}
-        navigation
-        pagination={{ clickable: true }}
-        autoplay={design.autoAdvance ? {
-          delay: (design.slideshowSpeed ?? 4) * 1000,
-          disableOnInteraction: false,
-        } : false}
-        style={{ maxWidth: '800px', width: '100%' }}
-      >
-        {reviews.map((review, index) => (
-          <SwiperSlide key={review.id || index}>
-            <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-              <article
-                className="pr-widget-photo-card"
-                style={{
-                  background: design.bgColor === 'transparent' ? 'none' : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
-                  color: design.textColor,
-                  border: design.border ? `${design.borderWidth ?? 2}px solid ${design.borderColor ?? '#cccccc'}` : 'none',
-                  borderRadius: `${design.borderRadius}px`,
-                  boxShadow: design.shadow ? `inset 0 4px 32px 0 ${hexToRgba(design.shadowColor ?? '#222222', design.shadowIntensity ?? 0.2)}` : 'none',
-                }}
-                itemScope
-                itemType="https://schema.org/Review"
-              >
-                <div className="pr-widget-photo-img">
-                  {review.photo_url ? (
-                    <img
-                      src={review.photo_url}
-                      alt="Reviewer photo"
-                      style={{
-                        objectFit: 'cover',
-                        width: '100%',
-                        height: '100%',
-                        display: 'block'
-                      }}
-                    />
-                  ) : (
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      width: '100%',
-                      height: '100%',
-                      color: '#9ca3af',
-                      backgroundColor: '#f3f4f6'
-                    }}>
-                      No Photo
-                    </div>
-                  )}
-                </div>
-                <div className="pr-widget-photo-content">
-                  <p
-                    className="pr-widget-photo-body"
+    <>
+      <div className="pr-widget-nav-row">
+        <button ref={prevRef} className="pr-widget-nav-btn" aria-label="Previous">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <path d="M20 28L10 16L20 4" stroke="#111" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+        <div className="pr-widget-nav-center">
+          <Swiper
+            modules={[Navigation, Pagination, A11y, Autoplay]}
+            spaceBetween={30}
+            slidesPerView={1}
+            navigation={{ prevEl: prevRef.current, nextEl: nextRef.current }}
+            pagination={{ clickable: true, el: '.pr-widget-pagination' }}
+            autoplay={design.autoAdvance ? {
+              delay: (design.slideshowSpeed ?? 4) * 1000,
+              disableOnInteraction: false,
+            } : false}
+            style={{ maxWidth: '800px', width: '100%' }}
+            onInit={(swiper) => {
+              // @ts-ignore
+              swiper.params.navigation.prevEl = prevRef.current;
+              // @ts-ignore
+              swiper.params.navigation.nextEl = nextRef.current;
+              swiper.navigation.init();
+              swiper.navigation.update();
+            }}
+          >
+            {reviews.map((review, index) => (
+              <SwiperSlide key={review.id || index}>
+                <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                  <article
+                    className="pr-widget-photo-card"
                     style={{
-                      fontSize: '16px',
-                      marginBottom: '16px',
-                      padding: '0 8px',
-                      textAlign: 'left',
-                      lineHeight: design.lineSpacing,
-                      color: design.bodyTextColor,
+                      background: design.bgColor === 'transparent' ? 'none' : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
+                      color: design.textColor,
+                      border: design.border ? `${design.borderWidth ?? 2}px solid ${design.borderColor ?? '#cccccc'}` : 'none',
+                      borderRadius: `${design.borderRadius}px`,
+                      boxShadow: design.shadow ? `inset 0 4px 32px 0 ${hexToRgba(design.shadowColor ?? '#222222', design.shadowIntensity ?? 0.2)}` : 'none',
                     }}
-                    itemProp="reviewBody"
+                    itemScope
+                    itemType="https://schema.org/Review"
                   >
-                    {review.review_content}
-                  </p>
-                  <div className="pr-widget-author pr-widget-photo-author">
-                    <span
-                      style={{ 
-                        fontWeight: '600',
-                        fontSize: `${design.attributionFontSize}px`,
-                        color: design.nameTextColor
-                      }}
-                      itemProp="author"
-                      itemScope
-                      itemType="https://schema.org/Person"
-                    >
-                      <span itemProp="name">
-                        {review.first_name} {review.last_name}
-                      </span>
-                    </span>
-                    <span
-                      style={{ 
-                        fontSize: `${design.attributionFontSize * 0.85}px`,
-                        color: design.roleTextColor
-                      }}
-                      itemProp="author"
-                      itemScope
-                      itemType="https://schema.org/Person"
-                    >
-                      <span itemProp="jobTitle">
-                        {review.reviewer_role}
-                      </span>
-                    </span>
-                    {design.showRelativeDate && review.created_at && review.platform && (
-                      <span style={{ fontSize: '12px', color: '#9ca3af', marginTop: '4px' }}>
-                        {getRelativeTime(review.created_at)} via {review.platform}
-                      </span>
-                    )}
-                  </div>
+                    <div className="pr-widget-photo-img">
+                      {review.photo_url ? (
+                        <img
+                          src={review.photo_url}
+                          alt="Reviewer photo"
+                          style={{
+                            objectFit: 'cover',
+                            width: '100%',
+                            height: '100%',
+                            display: 'block'
+                          }}
+                        />
+                      ) : (
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          width: '100%',
+                          height: '100%',
+                          color: '#9ca3af',
+                          backgroundColor: '#f3f4f6'
+                        }}>
+                          No Photo
+                        </div>
+                      )}
+                    </div>
+                    <div className="pr-widget-photo-content">
+                      <p
+                        className="pr-widget-photo-body"
+                        style={{
+                          fontSize: '16px',
+                          marginBottom: '16px',
+                          padding: '0 8px',
+                          textAlign: 'left',
+                          lineHeight: design.lineSpacing,
+                          color: design.bodyTextColor,
+                        }}
+                        itemProp="reviewBody"
+                      >
+                        {review.review_content}
+                      </p>
+                      <div className="pr-widget-author pr-widget-photo-author">
+                        <span
+                          style={{ 
+                            fontWeight: '600',
+                            fontSize: `${design.attributionFontSize}px`,
+                            color: design.nameTextColor
+                          }}
+                          itemProp="author"
+                          itemScope
+                          itemType="https://schema.org/Person"
+                        >
+                          <span itemProp="name">
+                            {review.first_name} {review.last_name}
+                          </span>
+                        </span>
+                        <span
+                          style={{ 
+                            fontSize: `${design.attributionFontSize * 0.85}px`,
+                            color: design.roleTextColor
+                          }}
+                          itemProp="author"
+                          itemScope
+                          itemType="https://schema.org/Person"
+                        >
+                          <span itemProp="jobTitle">
+                            {review.reviewer_role}
+                          </span>
+                        </span>
+                        {design.showRelativeDate && review.created_at && (
+                          <span style={{ fontSize: '12px', color: '#9ca3af', marginTop: '4px' }}>
+                            {getRelativeTime(review.created_at)}
+                            {review.platform ? ` via ${review.platform}` : ''}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </article>
                 </div>
-              </article>
-            </div>
-          </SwiperSlide>
-        ))}
-      </Swiper>
-    </div>
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        </div>
+        <div className="pr-widget-pagination" />
+      </div>
+    </>
   );
 }; 
