@@ -7,8 +7,8 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     // Log Supabase config and payload
-    console.log("[track-review] Supabase URL:", process.env.NEXT_PUBLIC_SUPABASE_URL || "hardcoded");
-    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || (typeof supabase !== 'undefined' ? 'hardcoded' : 'not set');
+    console.log("[track-review] Supabase URL:", process.env.NEXT_PUBLIC_SUPABASE_URL || "not set");
+    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || (typeof supabase !== 'undefined' ? 'not set' : 'not set');
     console.log("[track-review] Supabase anon key (first 8 chars):", anonKey ? anonKey.slice(0, 8) + '...' : 'not set');
     console.log("[track-review] Payload:", JSON.stringify(body));
 
