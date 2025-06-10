@@ -334,6 +334,11 @@ function injectWidgetNavCSS() {
         z-index: 10;
         cursor: pointer;
         box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      }
+      .pr-widget-nav-btn.left {
+        padding: 10px 14px 10px 10px;
+      }
+      .pr-widget-nav-btn.right {
         padding: 10px 10px 10px 14px;
       }
       .pr-widget-nav-btn:hover {
@@ -449,8 +454,8 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
   return (
     <>
       <div className="pr-widget-nav-row">
-        <button ref={prevRef} className="pr-widget-nav-btn" aria-label="Previous">
-          <span className="pr-widget-triangle-left"></span>
+        <button ref={prevRef} className="pr-widget-nav-btn left" aria-label="Previous">
+          <span className="pr-widget-triangle-left" style={{ borderRightColor: design.accentColor || '#222' }}></span>
         </button>
         <div className="pr-widget-nav-center">
           <Swiper
@@ -523,8 +528,8 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
             ))}
           </Swiper>
         </div>
-        <button ref={nextRef} className="pr-widget-nav-btn" aria-label="Next">
-          <span className="pr-widget-triangle-right"></span>
+        <button ref={nextRef} className="pr-widget-nav-btn right" aria-label="Next">
+          <span className="pr-widget-triangle-right" style={{ borderLeftColor: design.accentColor || '#222' }}></span>
         </button>
       </div>
       <div className="pr-widget-pagination" />
@@ -541,8 +546,8 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
   return (
     <>
       <div className="pr-widget-nav-row">
-        <button ref={prevRef} className="pr-widget-nav-btn" aria-label="Previous">
-          <span className="pr-widget-triangle-left"></span>
+        <button ref={prevRef} className="pr-widget-nav-btn left" aria-label="Previous">
+          <span className="pr-widget-triangle-left" style={{ borderRightColor: design.accentColor || '#222' }}></span>
         </button>
         <div className="pr-widget-nav-center">
           <Swiper
@@ -714,8 +719,8 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
   return (
     <>
       <div className="pr-widget-nav-row">
-        <button ref={prevRef} className="pr-widget-nav-btn" aria-label="Previous">
-          <span className="pr-widget-triangle-left"></span>
+        <button ref={prevRef} className="pr-widget-nav-btn left" aria-label="Previous">
+          <span className="pr-widget-triangle-left" style={{ borderRightColor: design.accentColor || '#222' }}></span>
         </button>
         <div className="pr-widget-nav-center">
           <Swiper
