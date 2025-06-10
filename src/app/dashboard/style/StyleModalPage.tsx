@@ -90,11 +90,6 @@ export default function StylePage() {
     gradient_end: "#c026d3",
     card_bg: "#FFFFFF",
     card_text: "#1A1A1A",
-    showQuotes: false,
-    showRelativeDate: false,
-    vignetteShadow: false,
-    vignetteIntensity: 0.2,
-    vignetteColor: "#222222",
   });
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
@@ -196,11 +191,11 @@ export default function StylePage() {
           </button>
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="flex flex-col gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8 mt-2 mb-2">
+        <div className="flex flex-col gap-8">
           {/* Font pickers */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Primary Font</label>
+            <label className="block text-sm font-medium text-gray-700 mb-5">Primary Font</label>
             <select
               value={settings.primary_font}
               onChange={e => setSettings(s => ({ ...s, primary_font: e.target.value }))}
@@ -220,7 +215,7 @@ export default function StylePage() {
             <p className="text-xs text-gray-500 mt-1">System fonts may look different on different devices.</p>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Secondary Font</label>
+            <label className="block text-sm font-medium text-gray-700 mb-5">Secondary Font</label>
             <select
               value={settings.secondary_font}
               onChange={e => setSettings(s => ({ ...s, secondary_font: e.target.value }))}
@@ -239,39 +234,19 @@ export default function StylePage() {
             </select>
             <p className="text-xs text-gray-500 mt-1">System fonts may look different on different devices.</p>
           </div>
-          {/* Color pickers */}
+          {/* Primary color */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Primary Color</label>
+            <label className="block text-sm font-medium text-gray-700 mb-5">Primary Color</label>
             <div className="flex items-center gap-2">
               <input type="color" value={settings.primary_color} onChange={e => setSettings(s => ({ ...s, primary_color: e.target.value }))} className="w-12 h-8 rounded" />
               <input type="text" value={settings.primary_color} readOnly className="w-24 px-2 py-1 border rounded bg-gray-50 text-gray-800" onFocus={e => e.target.select()} />
             </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Secondary Color</label>
-            <div className="flex items-center gap-2">
-              <input type="color" value={settings.secondary_color} onChange={e => setSettings(s => ({ ...s, secondary_color: e.target.value }))} className="w-12 h-8 rounded" />
-              <input type="text" value={settings.secondary_color} readOnly className="w-24 px-2 py-1 border rounded bg-gray-50 text-gray-800" onFocus={e => e.target.select()} />
-            </div>
-          </div>
-          {/* Card background and text color options */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Card Background</label>
-            <select value={settings.card_bg} onChange={e => setSettings(s => ({ ...s, card_bg: e.target.value }))} className="block w-full rounded-md border-gray-300 shadow-sm">
-              {cardBgOptions.map(opt => (<option key={opt.value} value={opt.value}>{opt.name}</option>))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Card Text Color</label>
-            <select value={settings.card_text} onChange={e => setSettings(s => ({ ...s, card_text: e.target.value }))} className="block w-full rounded-md border-gray-300 shadow-sm">
-              {textColorOptions.map(opt => (<option key={opt.value} value={opt.value}>{opt.name}</option>))}
-            </select>
-          </div>
         </div>
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-8">
           {/* Background type */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Background Type</label>
+            <label className="block text-sm font-medium text-gray-700 mb-5">Background Type</label>
             <div className="flex gap-4">
               <label><input type="radio" name="background_type" value="solid" checked={settings.background_type === "solid"} onChange={() => setSettings(s => ({ ...s, background_type: "solid" }))} /><span className="ml-2">Solid</span></label>
               <label><input type="radio" name="background_type" value="gradient" checked={settings.background_type === "gradient"} onChange={() => setSettings(s => ({ ...s, background_type: "gradient" }))} /><span className="ml-2">Gradient</span></label>
@@ -295,47 +270,27 @@ export default function StylePage() {
               </div>
             )}
           </div>
-          {/* Toggles and vignette controls for balance */}
+          {/* Secondary color */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Show Quotes</label>
-            <input type="checkbox" checked={settings.showQuotes} onChange={e => setSettings(s => ({ ...s, showQuotes: e.target.checked }))} />
+            <label className="block text-sm font-medium text-gray-700 mb-5">Secondary Color</label>
+            <div className="flex items-center gap-2">
+              <input type="color" value={settings.secondary_color} onChange={e => setSettings(s => ({ ...s, secondary_color: e.target.value }))} className="w-12 h-8 rounded" />
+              <input type="text" value={settings.secondary_color} readOnly className="w-24 px-2 py-1 border rounded bg-gray-50 text-gray-800" onFocus={e => e.target.select()} />
+            </div>
+          </div>
+          {/* Card background and text color options */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-5">Card Background</label>
+            <select value={settings.card_bg} onChange={e => setSettings(s => ({ ...s, card_bg: e.target.value }))} className="block w-full rounded-md border-gray-300 shadow-sm">
+              {cardBgOptions.map(opt => (<option key={opt.value} value={opt.value}>{opt.name}</option>))}
+            </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Show Relative Date</label>
-            <input type="checkbox" checked={settings.showRelativeDate} onChange={e => setSettings(s => ({ ...s, showRelativeDate: e.target.checked }))} />
+            <label className="block text-sm font-medium text-gray-700 mb-5">Card Text Color</label>
+            <select value={settings.card_text} onChange={e => setSettings(s => ({ ...s, card_text: e.target.value }))} className="block w-full rounded-md border-gray-300 shadow-sm">
+              {textColorOptions.map(opt => (<option key={opt.value} value={opt.value}>{opt.name}</option>))}
+            </select>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Vignette Shadow</label>
-            <input type="checkbox" checked={settings.vignetteShadow} onChange={e => setSettings(s => ({ ...s, vignetteShadow: e.target.checked }))} />
-          </div>
-          {/* Vignette Intensity and Color controls */}
-          {settings.vignetteShadow && (
-            <>
-              <div className="flex items-center gap-2 mb-2">
-                <label className="text-xs text-gray-500">Vignette Intensity</label>
-                <input
-                  type="range"
-                  min={0}
-                  max={1}
-                  step={0.01}
-                  value={settings.vignetteIntensity ?? 0.2}
-                  onChange={e => setSettings(s => ({ ...s, vignetteIntensity: parseFloat(e.target.value) }))}
-                  className="w-full"
-                  style={{ maxWidth: 120 }}
-                />
-                <span className="text-xs text-gray-500 ml-2">{Math.round((settings.vignetteIntensity ?? 0.2) * 100)}%</span>
-              </div>
-              <div className="flex items-center gap-2 mb-2">
-                <label className="text-xs text-gray-500">Vignette Color</label>
-                <input
-                  type="color"
-                  value={settings.vignetteColor || '#222222'}
-                  onChange={e => setSettings(s => ({ ...s, vignetteColor: e.target.value }))}
-                  className="h-6 w-10 border border-gray-300 rounded"
-                />
-              </div>
-            </>
-          )}
         </div>
       </div>
       <div className="mt-8 text-right">
