@@ -418,8 +418,8 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
     <>
       <div className="pr-widget-nav-row">
         <button ref={prevRef} className="pr-widget-nav-btn" aria-label="Previous">
-          <svg viewBox="0 0 24 24" fill="none">
-            <polygon points="16,4 6,12 16,20" fill="red" />
+          <svg viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M12.293 16.293a1 1 0 010-1.414L8.414 10l3.879-3.879a1 1 0 10-1.414-1.414l-4.586 4.586a1 1 0 000 1.414l4.586 4.586a1 1 0 001.414-1.414z" clipRule="evenodd" />
           </svg>
         </button>
         <div className="pr-widget-nav-center">
@@ -494,8 +494,8 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
           </Swiper>
         </div>
         <button ref={nextRef} className="pr-widget-nav-btn" aria-label="Next">
-          <svg viewBox="0 0 24 24" fill="none">
-            <polygon points="8,4 18,12 8,20" fill="red" />
+          <svg viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M7.707 3.293a1 1 0 010 1.414L11.586 10l-3.879 3.879a1 1 0 101.414 1.414l4.586-4.586a1 1 0 000-1.414l-4.586-4.586a1 1 0 00-1.414 1.414z" clipRule="evenodd" />
           </svg>
         </button>
       </div>
@@ -514,8 +514,8 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
     <>
       <div className="pr-widget-nav-row">
         <button ref={prevRef} className="pr-widget-nav-btn" aria-label="Previous">
-          <svg viewBox="0 0 24 24" fill="none">
-            <polygon points="16,4 6,12 16,20" fill="red" />
+          <svg viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M12.293 16.293a1 1 0 010-1.414L8.414 10l3.879-3.879a1 1 0 10-1.414-1.414l-4.586 4.586a1 1 0 000 1.414l4.586 4.586a1 1 0 001.414-1.414z" clipRule="evenodd" />
           </svg>
         </button>
         <div className="pr-widget-nav-center">
@@ -689,8 +689,8 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
     <>
       <div className="pr-widget-nav-row">
         <button ref={prevRef} className="pr-widget-nav-btn" aria-label="Previous">
-          <svg viewBox="0 0 24 24" fill="none">
-            <polygon points="16,4 6,12 16,20" fill="red" />
+          <svg viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M12.293 16.293a1 1 0 010-1.414L8.414 10l3.879-3.879a1 1 0 10-1.414-1.414l-4.586 4.586a1 1 0 000 1.414l4.586 4.586a1 1 0 001.414-1.414z" clipRule="evenodd" />
           </svg>
         </button>
         <div className="pr-widget-nav-center">
