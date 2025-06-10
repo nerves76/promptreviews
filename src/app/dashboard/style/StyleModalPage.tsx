@@ -90,6 +90,11 @@ export default function StylePage() {
     gradient_end: "#c026d3",
     card_bg: "#FFFFFF",
     card_text: "#1A1A1A",
+    showQuotes: false,
+    showRelativeDate: false,
+    vignetteShadow: false,
+    vignetteIntensity: 0.2,
+    vignetteColor: "#222222",
   });
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
@@ -155,13 +160,12 @@ export default function StylePage() {
   }
 
   return (
-    <div className="bg-white p-8 rounded-2xl shadow max-w-3xl w-full overflow-y-auto relative" style={{ maxHeight: '80vh' }}>
+    <div className="bg-white p-8 rounded-2xl shadow max-w-2xl w-full overflow-y-auto relative" style={{ maxHeight: '80vh' }}>
       {success && (
         <div className="mb-4 bg-green-50 border border-green-200 text-green-700 rounded-md p-4 text-center font-medium animate-fadein">
           Style settings saved!
         </div>
       )}
-      {/* Top-right Save button */}
       <button
         className="absolute top-6 right-8 px-5 py-2 bg-slate-blue text-white rounded font-semibold shadow hover:bg-slate-700 transition z-10"
         style={{ minWidth: 90 }}
@@ -174,232 +178,166 @@ export default function StylePage() {
       <p className="text-gray-600 mb-6">
         Use these settings to make your prompt pages match your brand.
       </p>
-
-      {/* Preview */}
-      <div
-        className="relative my-8 p-6 rounded-lg"
-        style={{
-          background:
-            settings.background_type === "solid"
-              ? settings.background_color
-              : `linear-gradient(to right, ${settings.gradient_start}, ${settings.gradient_end})`,
-        }}
-      >
+      <div className="relative my-8 p-6 rounded-lg">
         <div className="bg-white rounded-lg shadow p-6 mx-auto" style={{ maxWidth: 800, background: settings.card_bg, color: settings.card_text }}>
           {success && (
             <div className="mb-4 p-4 bg-green-50 text-green-700 rounded-lg border border-green-200 text-center font-medium animate-fadein">
               Style settings saved!
             </div>
           )}
-          <h3
-            className={`text-xl font-bold mb-2 ${getFontClass(settings.primary_font)}`}
-            style={{ color: settings.primary_color }}
-          >
+          <h3 className={`text-xl font-bold mb-2 ${getFontClass(settings.primary_font)}`} style={{ color: settings.primary_color }}>
             Preview heading
           </h3>
-          <p
-            className={`mb-4 ${getFontClass(settings.secondary_font)}`}
-            style={{ color: settings.card_text }}
-          >
+          <p className={`mb-4 ${getFontClass(settings.secondary_font)}`} style={{ color: settings.card_text }}>
             This is how your background, text, and buttons will look with selected fonts and colors.
           </p>
-          <button
-            className="px-4 py-2 rounded"
-            style={{ background: settings.secondary_color, color: "#fff" }}
-          >
+          <button className="px-4 py-2 rounded" style={{ background: settings.secondary_color, color: "#fff" }}>
             Sample Button
           </button>
         </div>
       </div>
-
-      {/* Font pickers */}
-      <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Primary Font</label>
-          <select
-            value={settings.primary_font}
-            onChange={e => setSettings(s => ({ ...s, primary_font: e.target.value }))}
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          >
-            <optgroup label="Google Fonts">
-              {fontOptions.filter(f => !["Arial","Helvetica","Verdana","Tahoma","Trebuchet MS","Times New Roman","Georgia","Courier New","Lucida Console","Palatino","Garamond"].includes(f.name)).map(font => (
-                <option key={font.name} value={font.name}>
-                  {font.name}
-                </option>
-              ))}
-            </optgroup>
-            <optgroup label="System Fonts">
-              {fontOptions.filter(f => ["Arial","Helvetica","Verdana","Tahoma","Trebuchet MS","Times New Roman","Georgia","Courier New","Lucida Console","Palatino","Garamond"].includes(f.name)).map(font => (
-                <option key={font.name} value={font.name}>
-                  {font.name}
-                </option>
-              ))}
-            </optgroup>
-          </select>
-          <p className="text-xs text-gray-500 mt-1">System fonts may look different on different devices.</p>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Secondary Font</label>
-          <select
-            value={settings.secondary_font}
-            onChange={e => setSettings(s => ({ ...s, secondary_font: e.target.value }))}
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          >
-            <optgroup label="Google Fonts">
-              {fontOptions.filter(f => !["Arial","Helvetica","Verdana","Tahoma","Trebuchet MS","Times New Roman","Georgia","Courier New","Lucida Console","Palatino","Garamond"].includes(f.name)).map(font => (
-                <option key={font.name} value={font.name}>
-                  {font.name}
-                </option>
-              ))}
-            </optgroup>
-            <optgroup label="System Fonts">
-              {fontOptions.filter(f => ["Arial","Helvetica","Verdana","Tahoma","Trebuchet MS","Times New Roman","Georgia","Courier New","Lucida Console","Palatino","Garamond"].includes(f.name)).map(font => (
-                <option key={font.name} value={font.name}>
-                  {font.name}
-                </option>
-              ))}
-            </optgroup>
-          </select>
-          <p className="text-xs text-gray-500 mt-1">System fonts may look different on different devices.</p>
-        </div>
-      </div>
-
-      {/* Color pickers */}
-      <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Primary Color</label>
-          <div className="flex items-center gap-2">
-            <input
-              type="color"
-              value={settings.primary_color}
-              onChange={e => setSettings(s => ({ ...s, primary_color: e.target.value }))}
-              className="w-12 h-8 rounded"
-            />
-            <input
-              type="text"
-              value={settings.primary_color}
-              readOnly
-              className="w-24 px-2 py-1 border rounded bg-gray-50 text-gray-800"
-              onFocus={e => e.target.select()}
-            />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="flex flex-col gap-6">
+          {/* Font pickers */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Primary Font</label>
+            <select
+              value={settings.primary_font}
+              onChange={e => setSettings(s => ({ ...s, primary_font: e.target.value }))}
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            >
+              <optgroup label="Google Fonts">
+                {fontOptions.filter(f => !["Arial","Helvetica","Verdana","Tahoma","Trebuchet MS","Times New Roman","Georgia","Courier New","Lucida Console","Palatino","Garamond"].includes(f.name)).map(font => (
+                  <option key={font.name} value={font.name}>{font.name}</option>
+                ))}
+              </optgroup>
+              <optgroup label="System Fonts">
+                {fontOptions.filter(f => ["Arial","Helvetica","Verdana","Tahoma","Trebuchet MS","Times New Roman","Georgia","Courier New","Lucida Console","Palatino","Garamond"].includes(f.name)).map(font => (
+                  <option key={font.name} value={font.name}>{font.name}</option>
+                ))}
+              </optgroup>
+            </select>
+            <p className="text-xs text-gray-500 mt-1">System fonts may look different on different devices.</p>
           </div>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Secondary Color</label>
-          <div className="flex items-center gap-2">
-            <input
-              type="color"
-              value={settings.secondary_color}
-              onChange={e => setSettings(s => ({ ...s, secondary_color: e.target.value }))}
-              className="w-12 h-8 rounded"
-            />
-            <input
-              type="text"
-              value={settings.secondary_color}
-              readOnly
-              className="w-24 px-2 py-1 border rounded bg-gray-50 text-gray-800"
-              onFocus={e => e.target.select()}
-            />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Secondary Font</label>
+            <select
+              value={settings.secondary_font}
+              onChange={e => setSettings(s => ({ ...s, secondary_font: e.target.value }))}
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            >
+              <optgroup label="Google Fonts">
+                {fontOptions.filter(f => !["Arial","Helvetica","Verdana","Tahoma","Trebuchet MS","Times New Roman","Georgia","Courier New","Lucida Console","Palatino","Garamond"].includes(f.name)).map(font => (
+                  <option key={font.name} value={font.name}>{font.name}</option>
+                ))}
+              </optgroup>
+              <optgroup label="System Fonts">
+                {fontOptions.filter(f => ["Arial","Helvetica","Verdana","Tahoma","Trebuchet MS","Times New Roman","Georgia","Courier New","Lucida Console","Palatino","Garamond"].includes(f.name)).map(font => (
+                  <option key={font.name} value={font.name}>{font.name}</option>
+                ))}
+              </optgroup>
+            </select>
+            <p className="text-xs text-gray-500 mt-1">System fonts may look different on different devices.</p>
           </div>
-        </div>
-      </div>
-
-      {/* Background type */}
-      <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-1">Background Type</label>
-        <div className="flex gap-4">
-          <label>
-            <input
-              type="radio"
-              name="background_type"
-              value="solid"
-              checked={settings.background_type === "solid"}
-              onChange={() => setSettings(s => ({ ...s, background_type: "solid" }))}
-            />
-            <span className="ml-2">Solid</span>
-          </label>
-          <label>
-            <input
-              type="radio"
-              name="background_type"
-              value="gradient"
-              checked={settings.background_type === "gradient"}
-              onChange={() => setSettings(s => ({ ...s, background_type: "gradient" }))}
-            />
-            <span className="ml-2">Gradient</span>
-          </label>
-        </div>
-        {settings.background_type === "gradient" && (
-          <div className="flex gap-4 mt-2">
-            <div>
-              <label className="block text-xs text-gray-500">Start</label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="color"
-                  value={settings.gradient_start}
-                  onChange={e => setSettings(s => ({ ...s, gradient_start: e.target.value }))}
-                  className="w-12 h-8 rounded"
-                />
-                <input
-                  type="text"
-                  value={settings.gradient_start}
-                  readOnly
-                  className="w-24 px-2 py-1 border rounded bg-gray-50 text-gray-800"
-                  onFocus={e => e.target.select()}
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-xs text-gray-500">End</label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="color"
-                  value={settings.gradient_end}
-                  onChange={e => setSettings(s => ({ ...s, gradient_end: e.target.value }))}
-                  className="w-12 h-8 rounded"
-                />
-                <input
-                  type="text"
-                  value={settings.gradient_end}
-                  readOnly
-                  className="w-24 px-2 py-1 border rounded bg-gray-50 text-gray-800"
-                  onFocus={e => e.target.select()}
-                />
-              </div>
+          {/* Color pickers */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Primary Color</label>
+            <div className="flex items-center gap-2">
+              <input type="color" value={settings.primary_color} onChange={e => setSettings(s => ({ ...s, primary_color: e.target.value }))} className="w-12 h-8 rounded" />
+              <input type="text" value={settings.primary_color} readOnly className="w-24 px-2 py-1 border rounded bg-gray-50 text-gray-800" onFocus={e => e.target.select()} />
             </div>
           </div>
-        )}
-      </div>
-
-      {/* Card background and text color options */}
-      <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Card Background</label>
-          <select
-            value={settings.card_bg}
-            onChange={e => setSettings(s => ({ ...s, card_bg: e.target.value }))}
-            className="block w-full rounded-md border-gray-300 shadow-sm"
-          >
-            {cardBgOptions.map(opt => (
-              <option key={opt.value} value={opt.value}>{opt.name}</option>
-            ))}
-          </select>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Secondary Color</label>
+            <div className="flex items-center gap-2">
+              <input type="color" value={settings.secondary_color} onChange={e => setSettings(s => ({ ...s, secondary_color: e.target.value }))} className="w-12 h-8 rounded" />
+              <input type="text" value={settings.secondary_color} readOnly className="w-24 px-2 py-1 border rounded bg-gray-50 text-gray-800" onFocus={e => e.target.select()} />
+            </div>
+          </div>
+          {/* Card background and text color options */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Card Background</label>
+            <select value={settings.card_bg} onChange={e => setSettings(s => ({ ...s, card_bg: e.target.value }))} className="block w-full rounded-md border-gray-300 shadow-sm">
+              {cardBgOptions.map(opt => (<option key={opt.value} value={opt.value}>{opt.name}</option>))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Card Text Color</label>
+            <select value={settings.card_text} onChange={e => setSettings(s => ({ ...s, card_text: e.target.value }))} className="block w-full rounded-md border-gray-300 shadow-sm">
+              {textColorOptions.map(opt => (<option key={opt.value} value={opt.value}>{opt.name}</option>))}
+            </select>
+          </div>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Card Text Color</label>
-          <select
-            value={settings.card_text}
-            onChange={e => setSettings(s => ({ ...s, card_text: e.target.value }))}
-            className="block w-full rounded-md border-gray-300 shadow-sm"
-          >
-            {textColorOptions.map(opt => (
-              <option key={opt.value} value={opt.value}>{opt.name}</option>
-            ))}
-          </select>
+        <div className="flex flex-col gap-6">
+          {/* Background type */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Background Type</label>
+            <div className="flex gap-4">
+              <label><input type="radio" name="background_type" value="solid" checked={settings.background_type === "solid"} onChange={() => setSettings(s => ({ ...s, background_type: "solid" }))} /><span className="ml-2">Solid</span></label>
+              <label><input type="radio" name="background_type" value="gradient" checked={settings.background_type === "gradient"} onChange={() => setSettings(s => ({ ...s, background_type: "gradient" }))} /><span className="ml-2">Gradient</span></label>
+            </div>
+            {settings.background_type === "gradient" && (
+              <div className="flex gap-4 mt-2">
+                <div>
+                  <label className="block text-xs text-gray-500">Start</label>
+                  <div className="flex items-center gap-2">
+                    <input type="color" value={settings.gradient_start} onChange={e => setSettings(s => ({ ...s, gradient_start: e.target.value }))} className="w-12 h-8 rounded" />
+                    <input type="text" value={settings.gradient_start} readOnly className="w-24 px-2 py-1 border rounded bg-gray-50 text-gray-800" onFocus={e => e.target.select()} />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500">End</label>
+                  <div className="flex items-center gap-2">
+                    <input type="color" value={settings.gradient_end} onChange={e => setSettings(s => ({ ...s, gradient_end: e.target.value }))} className="w-12 h-8 rounded" />
+                    <input type="text" value={settings.gradient_end} readOnly className="w-24 px-2 py-1 border rounded bg-gray-50 text-gray-800" onFocus={e => e.target.select()} />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          {/* Toggles and vignette controls for balance */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Show Quotes</label>
+            <input type="checkbox" checked={settings.showQuotes} onChange={e => setSettings(s => ({ ...s, showQuotes: e.target.checked }))} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Show Relative Date</label>
+            <input type="checkbox" checked={settings.showRelativeDate} onChange={e => setSettings(s => ({ ...s, showRelativeDate: e.target.checked }))} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Vignette Shadow</label>
+            <input type="checkbox" checked={settings.vignetteShadow} onChange={e => setSettings(s => ({ ...s, vignetteShadow: e.target.checked }))} />
+          </div>
+          {/* Vignette Intensity and Color controls */}
+          {settings.vignetteShadow && (
+            <>
+              <div className="flex items-center gap-2 mb-2">
+                <label className="text-xs text-gray-500">Vignette Intensity</label>
+                <input
+                  type="range"
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  value={settings.vignetteIntensity ?? 0.2}
+                  onChange={e => setSettings(s => ({ ...s, vignetteIntensity: parseFloat(e.target.value) }))}
+                  className="w-full"
+                  style={{ maxWidth: 120 }}
+                />
+                <span className="text-xs text-gray-500 ml-2">{Math.round((settings.vignetteIntensity ?? 0.2) * 100)}%</span>
+              </div>
+              <div className="flex items-center gap-2 mb-2">
+                <label className="text-xs text-gray-500">Vignette Color</label>
+                <input
+                  type="color"
+                  value={settings.vignetteColor || '#222222'}
+                  onChange={e => setSettings(s => ({ ...s, vignetteColor: e.target.value }))}
+                  className="h-6 w-10 border border-gray-300 rounded"
+                />
+              </div>
+            </>
+          )}
         </div>
       </div>
-
-      {/* Save button */}
       <div className="mt-8 text-right">
         <button className="px-6 py-2 bg-slate-blue text-white rounded hover:bg-slate-700 transition" onClick={handleSave} disabled={saving}>
           {saving ? "Saving..." : "Save"}
