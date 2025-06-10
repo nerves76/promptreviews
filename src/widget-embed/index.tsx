@@ -339,9 +339,11 @@ function injectWidgetNavCSS() {
         background: #fff;
       }
       .pr-widget-nav-btn svg {
-        width: 60%;
-        height: 60%;
+        width: 20px;
+        height: 20px;
         display: block;
+        margin: 0;
+        padding: 0;
       }
       .pr-widget-nav-row {
         display: flex;
@@ -418,8 +420,8 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
     <>
       <div className="pr-widget-nav-row">
         <button ref={prevRef} className="pr-widget-nav-btn" aria-label="Previous">
-          <svg viewBox="0 0 40 40" fill="red">
-            <rect x="0" y="0" width="40" height="40" />
+          <svg viewBox="0 0 20 20" fill="currentColor">
+            <polygon points="13,5 7,10 13,15" />
           </svg>
         </button>
         <div className="pr-widget-nav-center">
@@ -494,8 +496,8 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
           </Swiper>
         </div>
         <button ref={nextRef} className="pr-widget-nav-btn" aria-label="Next">
-          <svg viewBox="0 0 40 40" fill="red">
-            <rect x="0" y="0" width="40" height="40" />
+          <svg viewBox="0 0 20 20" fill="currentColor">
+            <polygon points="7,5 13,10 7,15" />
           </svg>
         </button>
       </div>
@@ -514,8 +516,8 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
     <>
       <div className="pr-widget-nav-row">
         <button ref={prevRef} className="pr-widget-nav-btn" aria-label="Previous">
-          <svg viewBox="0 0 40 40" fill="red">
-            <rect x="0" y="0" width="40" height="40" />
+          <svg viewBox="0 0 20 20" fill="currentColor">
+            <polygon points="13,5 7,10 13,15" />
           </svg>
         </button>
         <div className="pr-widget-nav-center">
@@ -689,8 +691,8 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
     <>
       <div className="pr-widget-nav-row">
         <button ref={prevRef} className="pr-widget-nav-btn" aria-label="Previous">
-          <svg viewBox="0 0 40 40" fill="red">
-            <rect x="0" y="0" width="40" height="40" />
+          <svg viewBox="0 0 20 20" fill="currentColor">
+            <polygon points="13,5 7,10 13,15" />
           </svg>
         </button>
         <div className="pr-widget-nav-center">
