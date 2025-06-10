@@ -417,7 +417,9 @@ export default function WidgetPage() {
                     className="rounded-full bg-white/60 backdrop-blur border border-gray-200 w-10 h-10 flex items-center justify-center transition hover:bg-white/80 z-10"
                     aria-label="Previous"
                   >
-                    <FaChevronLeft className="text-xl" style={{ color: design.accentColor }} />
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <polygon points="18,4 6,12 18,20" fill={design.accentColor || '#111'} />
+                    </svg>
                   </button>
                   <div className="flex-1 flex justify-center">
                     <Swiper
@@ -596,7 +598,9 @@ export default function WidgetPage() {
                     className="rounded-full bg-white/60 backdrop-blur border border-gray-200 w-10 h-10 flex items-center justify-center transition hover:bg-white/80 z-10"
                     aria-label="Next"
                   >
-                    <FaChevronRight className="text-xl" style={{ color: design.accentColor }} />
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <polygon points="6,4 18,12 6,20" fill={design.accentColor || '#111'} />
+                    </svg>
                   </button>
                 </div>
               </div>
@@ -612,7 +616,9 @@ export default function WidgetPage() {
                     className="rounded-full bg-white/60 backdrop-blur border border-gray-200 w-10 h-10 flex items-center justify-center transition hover:bg-white/80 z-10"
                     aria-label="Previous"
                   >
-                    <FaChevronLeft className="text-xl" style={{ color: design.accentColor }} />
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <polygon points="18,4 6,12 18,20" fill={design.accentColor || '#111'} />
+                    </svg>
                   </button>
                   <div className="flex-1 flex justify-center">
                     <Swiper
@@ -757,7 +763,9 @@ export default function WidgetPage() {
                     className="rounded-full bg-white/60 backdrop-blur border border-gray-200 w-10 h-10 flex items-center justify-center transition hover:bg-white/80 z-10"
                     aria-label="Next"
                   >
-                    <FaChevronRight className="text-xl" style={{ color: design.accentColor }} />
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <polygon points="6,4 18,12 6,20" fill={design.accentColor || '#111'} />
+                    </svg>
                   </button>
                 </div>
               </div>
