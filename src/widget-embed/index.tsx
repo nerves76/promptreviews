@@ -366,6 +366,26 @@ function injectWidgetNavCSS() {
         justify-content: center;
         margin-top: 24px;
       }
+      .pr-widget-nav-btn-left::before {
+        content: '';
+        display: block;
+        width: 0;
+        height: 0;
+        border-top: 10px solid transparent;
+        border-bottom: 10px solid transparent;
+        border-right: 14px solid #222;
+        margin: 0 auto;
+      }
+      .pr-widget-nav-btn-right::before {
+        content: '';
+        display: block;
+        width: 0;
+        height: 0;
+        border-top: 10px solid transparent;
+        border-bottom: 10px solid transparent;
+        border-left: 14px solid #222;
+        margin: 0 auto;
+      }
     `;
     document.head.appendChild(style);
   }
@@ -419,11 +439,7 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
   return (
     <>
       <div className="pr-widget-nav-row">
-        <button ref={prevRef} className="pr-widget-nav-btn" aria-label="Previous">
-          <svg viewBox="0 0 20 20" fill="currentColor">
-            <polygon points="15,4 5,10 15,16" />
-          </svg>
-        </button>
+        <button ref={prevRef} className="pr-widget-nav-btn pr-widget-nav-btn-left" aria-label="Previous"></button>
         <div className="pr-widget-nav-center">
           <Swiper
             modules={[Navigation, Pagination, A11y, Autoplay]}
@@ -495,11 +511,7 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
             ))}
           </Swiper>
         </div>
-        <button ref={nextRef} className="pr-widget-nav-btn" aria-label="Next">
-          <svg viewBox="0 0 20 20" fill="currentColor">
-            <polygon points="5,4 15,10 5,16" />
-          </svg>
-        </button>
+        <button ref={nextRef} className="pr-widget-nav-btn pr-widget-nav-btn-right" aria-label="Next"></button>
       </div>
       <div className="pr-widget-pagination" />
     </>
@@ -515,11 +527,7 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
   return (
     <>
       <div className="pr-widget-nav-row">
-        <button ref={prevRef} className="pr-widget-nav-btn" aria-label="Previous">
-          <svg viewBox="0 0 20 20" fill="currentColor">
-            <polygon points="15,4 5,10 15,16" />
-          </svg>
-        </button>
+        <button ref={prevRef} className="pr-widget-nav-btn pr-widget-nav-btn-left" aria-label="Previous"></button>
         <div className="pr-widget-nav-center">
           <Swiper
             modules={[Navigation, Pagination, A11y, Autoplay]}
@@ -690,11 +698,7 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
   return (
     <>
       <div className="pr-widget-nav-row">
-        <button ref={prevRef} className="pr-widget-nav-btn" aria-label="Previous">
-          <svg viewBox="0 0 20 20" fill="currentColor">
-            <polygon points="15,4 5,10 15,16" />
-          </svg>
-        </button>
+        <button ref={prevRef} className="pr-widget-nav-btn pr-widget-nav-btn-left" aria-label="Previous"></button>
         <div className="pr-widget-nav-center">
           <Swiper
             modules={[Navigation, Pagination, A11y, Autoplay]}
