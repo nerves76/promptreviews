@@ -264,16 +264,10 @@ export default function WidgetPage() {
     <>
       {/* Widget Preview on Gradient */}
       <div
-        className="w-full mx-auto mb-12 mt-10 px-0"
+        className="w-full max-w-full mx-auto mb-12 mt-10 px-2 sm:px-0"
         style={{
-          position: 'relative',
+          boxSizing: 'border-box',
           minHeight: 400,
-          width: '100vw',
-          left: '50%',
-          right: '50%',
-          marginLeft: '-50vw',
-          marginRight: '-50vw',
-          maxWidth: '100vw',
           background: design.sectionBgType === 'custom'
             ? design.sectionBgColor
             : 'none',
@@ -330,9 +324,9 @@ export default function WidgetPage() {
             >
               {reviews.map((review, index) => (
                 <SwiperSlide key={review.id || index}>
-                  <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                  <div style={{ position: 'relative', width: '100%', height: '100%' }} className="h-full">
                     <article
-                      className="flex flex-row items-stretch gap-0 py-6 relative bg-white rounded-3xl w-full px-0 md:px-0 justify-center flex-1 shadow"
+                      className="flex flex-col sm:flex-row items-stretch h-auto sm:h-[320px] bg-white rounded-3xl w-full px-0 md:px-0 justify-center flex-1 shadow"
                       style={{
                         background:
                           design.bgColor === "transparent"
@@ -350,23 +344,22 @@ export default function WidgetPage() {
                       itemScope
                       itemType="https://schema.org/Review"
                     >
-                      {/* Photo on left */}
-                      <div className="flex-none flex items-center justify-center bg-gray-100" style={{ width: '33.33%', minWidth: 200, height: '100%' }}>
+                      <div className="flex items-center justify-center bg-gray-100 overflow-hidden w-full sm:w-1/3 min-w-[200px] h-48 sm:h-full">
                         {review.photo_url ? (
                           <img
                             src={review.photo_url}
                             alt="Reviewer photo"
-                            className="object-cover rounded-l-3xl"
-                            style={{ width: '100%', height: 320, objectFit: 'cover' }}
+                            className="object-cover w-full h-full"
+                            style={{ display: 'block' }}
                           />
                         ) : (
-                          <div className="flex items-center justify-center w-full h-full text-gray-400 bg-gray-100 rounded-l-3xl" style={{ width: '100%', height: 320 }}>
+                          <div className="flex items-center justify-center w-full h-full text-gray-400 bg-gray-100">
                             No Photo
                           </div>
                         )}
                       </div>
-                      {/* Testimonial on right */}
-                      <div className="flex-1 flex flex-col justify-center px-8 py-4">
+                      {/* Testimonial on right (or below on mobile) */}
+                      <div className="flex-1 flex flex-col justify-center px-4 sm:px-8 py-4">
                         <p
                           className="text-base md:text-lg mb-2 md:mb-4 px-1 md:px-2 text-left"
                           itemProp="reviewBody"
@@ -450,7 +443,7 @@ export default function WidgetPage() {
                         <SwiperSlide key={review.id || index}>
                           <div style={{ position: 'relative', width: '100%', height: '100%' }}>
                             <article
-                              className="flex flex-col items-center gap-4 py-6 relative bg-white rounded-3xl w-full px-4 md:px-[15px] justify-center flex-1"
+                              className="flex flex-col sm:flex-col items-center gap-4 py-6 relative bg-white rounded-3xl w-full px-4 sm:px-[15px] justify-center flex-1 h-auto sm:h-[320px] shadow"
                               style={{
                                 background:
                                   design.bgColor === "transparent"
@@ -459,7 +452,7 @@ export default function WidgetPage() {
                                 color: design.textColor,
                                 minHeight: 320,
                                 maxHeight: 320,
-                                height: 320,
+                                height: 'auto',
                                 border: design.border ? `${design.borderWidth ?? 2}px solid ${design.borderColor ?? '#cccccc'}` : "none",
                                 borderRadius: design.borderRadius,
                                 boxShadow: design.shadow ? `inset 0 4px 32px 0 ${hexToRgba(design.shadowColor ?? '#222222', design.shadowIntensity ?? 0.2)}` : 'none',
