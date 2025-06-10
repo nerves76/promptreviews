@@ -339,8 +339,8 @@ function injectWidgetNavCSS() {
         background: #fff;
       }
       .pr-widget-nav-btn svg {
-        width: 24px;
-        height: 24px;
+        width: 60%;
+        height: 60%;
         display: block;
       }
       .pr-widget-nav-row {
@@ -418,7 +418,7 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
     <>
       <div className="pr-widget-nav-row">
         <button ref={prevRef} className="pr-widget-nav-btn" aria-label="Previous">
-          <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+          <svg viewBox="0 0 40 40" fill="none">
             <polygon points="28,8 12,20 28,32" fill="#111" />
           </svg>
         </button>
@@ -494,7 +494,7 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
           </Swiper>
         </div>
         <button ref={nextRef} className="pr-widget-nav-btn" aria-label="Next">
-          <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+          <svg viewBox="0 0 40 40" fill="none">
             <polygon points="12,8 28,20 12,32" fill="#111" />
           </svg>
         </button>
@@ -514,7 +514,7 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
     <>
       <div className="pr-widget-nav-row">
         <button ref={prevRef} className="pr-widget-nav-btn" aria-label="Previous">
-          <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+          <svg viewBox="0 0 40 40" fill="none">
             <polygon points="28,8 12,20 28,32" fill="#111" />
           </svg>
         </button>
@@ -689,7 +689,7 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
     <>
       <div className="pr-widget-nav-row">
         <button ref={prevRef} className="pr-widget-nav-btn" aria-label="Previous">
-          <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+          <svg viewBox="0 0 40 40" fill="none">
             <polygon points="28,8 12,20 28,32" fill="#111" />
           </svg>
         </button>
