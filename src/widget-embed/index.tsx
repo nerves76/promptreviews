@@ -419,7 +419,9 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
       <div className="pr-widget-nav-row">
         <button ref={prevRef} className="pr-widget-nav-btn" aria-label="Previous">
           <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <path d="M20 28L10 16L20 4" stroke="#111" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+            <line x1="24" y1="16" x2="8" y2="16" stroke="#111" strokeWidth="4" strokeLinecap="round"/>
+            <line x1="14" y1="10" x2="8" y2="16" stroke="#111" strokeWidth="4" strokeLinecap="round"/>
+            <line x1="14" y1="22" x2="8" y2="16" stroke="#111" strokeWidth="4" strokeLinecap="round"/>
           </svg>
         </button>
         <div className="pr-widget-nav-center">
@@ -495,7 +497,9 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
         </div>
         <button ref={nextRef} className="pr-widget-nav-btn" aria-label="Next">
           <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <path d="M12 4L22 16L12 28" stroke="#111" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+            <line x1="8" y1="16" x2="24" y2="16" stroke="#111" strokeWidth="4" strokeLinecap="round"/>
+            <line x1="18" y1="10" x2="24" y2="16" stroke="#111" strokeWidth="4" strokeLinecap="round"/>
+            <line x1="18" y1="22" x2="24" y2="16" stroke="#111" strokeWidth="4" strokeLinecap="round"/>
           </svg>
         </button>
       </div>
@@ -515,7 +519,9 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
       <div className="pr-widget-nav-row">
         <button ref={prevRef} className="pr-widget-nav-btn" aria-label="Previous">
           <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <path d="M20 28L10 16L20 4" stroke="#111" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+            <line x1="24" y1="16" x2="8" y2="16" stroke="#111" strokeWidth="4" strokeLinecap="round"/>
+            <line x1="14" y1="10" x2="8" y2="16" stroke="#111" strokeWidth="4" strokeLinecap="round"/>
+            <line x1="14" y1="22" x2="8" y2="16" stroke="#111" strokeWidth="4" strokeLinecap="round"/>
           </svg>
         </button>
         <div className="pr-widget-nav-center">
@@ -690,7 +696,9 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
       <div className="pr-widget-nav-row">
         <button ref={prevRef} className="pr-widget-nav-btn" aria-label="Previous">
           <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <path d="M20 28L10 16L20 4" stroke="#111" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+            <line x1="24" y1="16" x2="8" y2="16" stroke="#111" strokeWidth="4" strokeLinecap="round"/>
+            <line x1="14" y1="10" x2="8" y2="16" stroke="#111" strokeWidth="4" strokeLinecap="round"/>
+            <line x1="14" y1="22" x2="8" y2="16" stroke="#111" strokeWidth="4" strokeLinecap="round"/>
           </svg>
         </button>
         <div className="pr-widget-nav-center">
