@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserClient } from '@supabase/ssr';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -448,9 +448,19 @@ init();
 const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
   const design = getDesignWithDefaults(data.design);
   const { reviews } = data;
-  const prevRef = React.useRef<HTMLButtonElement>(null);
-  const nextRef = React.useRef<HTMLButtonElement>(null);
-  React.useEffect(() => { injectWidgetNavCSS(); }, []);
+  const prevRef = useRef(null);
+  const nextRef = useRef(null);
+  const swiperRef = useRef(null);
+
+  useEffect(() => {
+    if (swiperRef.current && prevRef.current && nextRef.current) {
+      swiperRef.current.params.navigation.prevEl = prevRef.current;
+      swiperRef.current.params.navigation.nextEl = nextRef.current;
+      swiperRef.current.navigation.init();
+      swiperRef.current.navigation.update();
+    }
+  }, [prevRef, nextRef, swiperRef]);
+
   return (
     <>
       <div className="pr-widget-nav-row">
@@ -459,6 +469,7 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
         </button>
         <div className="pr-widget-nav-center">
           <Swiper
+            ref={swiperRef}
             modules={[Navigation, Pagination, A11y, Autoplay]}
             spaceBetween={30}
             slidesPerView={3}
@@ -474,14 +485,6 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
               1024: { slidesPerView: 3, spaceBetween: 30 },
             }}
             style={{ maxWidth: '1000px', width: '100%' }}
-            onInit={(swiper) => {
-              // @ts-ignore
-              swiper.params.navigation.prevEl = prevRef.current;
-              // @ts-ignore
-              swiper.params.navigation.nextEl = nextRef.current;
-              swiper.navigation.init();
-              swiper.navigation.update();
-            }}
           >
             {reviews.map((review, index) => (
               <SwiperSlide key={review.id || index}>
@@ -540,9 +543,19 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
 const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
   const design = getDesignWithDefaults(data.design);
   const { reviews } = data;
-  const prevRef = React.useRef<HTMLButtonElement>(null);
-  const nextRef = React.useRef<HTMLButtonElement>(null);
-  React.useEffect(() => { injectWidgetNavCSS(); }, []);
+  const prevRef = useRef(null);
+  const nextRef = useRef(null);
+  const swiperRef = useRef(null);
+
+  useEffect(() => {
+    if (swiperRef.current && prevRef.current && nextRef.current) {
+      swiperRef.current.params.navigation.prevEl = prevRef.current;
+      swiperRef.current.params.navigation.nextEl = nextRef.current;
+      swiperRef.current.navigation.init();
+      swiperRef.current.navigation.update();
+    }
+  }, [prevRef, nextRef, swiperRef]);
+
   return (
     <>
       <div className="pr-widget-nav-row">
@@ -551,6 +564,7 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
         </button>
         <div className="pr-widget-nav-center">
           <Swiper
+            ref={swiperRef}
             modules={[Navigation, Pagination, A11y, Autoplay]}
             spaceBetween={30}
             slidesPerView={1}
@@ -561,14 +575,6 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
               disableOnInteraction: false,
             } : false}
             style={{ maxWidth: '800px', width: '100%' }}
-            onInit={(swiper) => {
-              // @ts-ignore
-              swiper.params.navigation.prevEl = prevRef.current;
-              // @ts-ignore
-              swiper.params.navigation.nextEl = nextRef.current;
-              swiper.navigation.init();
-              swiper.navigation.update();
-            }}
           >
             {reviews.map((review, index) => (
               <SwiperSlide key={review.id || index}>
@@ -713,9 +719,19 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
 const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
   const design = getDesignWithDefaults(data.design);
   const { reviews } = data;
-  const prevRef = React.useRef<HTMLButtonElement>(null);
-  const nextRef = React.useRef<HTMLButtonElement>(null);
-  React.useEffect(() => { injectWidgetNavCSS(); }, []);
+  const prevRef = useRef(null);
+  const nextRef = useRef(null);
+  const swiperRef = useRef(null);
+
+  useEffect(() => {
+    if (swiperRef.current && prevRef.current && nextRef.current) {
+      swiperRef.current.params.navigation.prevEl = prevRef.current;
+      swiperRef.current.params.navigation.nextEl = nextRef.current;
+      swiperRef.current.navigation.init();
+      swiperRef.current.navigation.update();
+    }
+  }, [prevRef, nextRef, swiperRef]);
+
   return (
     <>
       <div className="pr-widget-nav-row">
@@ -724,6 +740,7 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
         </button>
         <div className="pr-widget-nav-center">
           <Swiper
+            ref={swiperRef}
             modules={[Navigation, Pagination, A11y, Autoplay]}
             spaceBetween={30}
             slidesPerView={1}
@@ -734,14 +751,6 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
               disableOnInteraction: false,
             } : false}
             style={{ maxWidth: '800px', width: '100%' }}
-            onInit={(swiper) => {
-              // @ts-ignore
-              swiper.params.navigation.prevEl = prevRef.current;
-              // @ts-ignore
-              swiper.params.navigation.nextEl = nextRef.current;
-              swiper.navigation.init();
-              swiper.navigation.update();
-            }}
           >
             {reviews.map((review, index) => (
               <SwiperSlide key={review.id || index}>
