@@ -334,6 +334,7 @@ function injectWidgetNavCSS() {
         z-index: 10;
         cursor: pointer;
         box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        padding: 10px 10px 10px 14px;
       }
       .pr-widget-nav-btn:hover {
         background: #fff;
@@ -380,6 +381,20 @@ function injectWidgetNavCSS() {
         border-top: 10px solid transparent;
         border-bottom: 10px solid transparent;
         border-left: 14px solid #222;
+      }
+      @media (max-width: 600px) {
+        .pr-widget-nav-row {
+          flex-direction: column;
+          gap: 8px;
+          align-items: center;
+        }
+        .pr-widget-nav-center {
+          order: 1;
+        }
+        .pr-widget-nav-btn {
+          order: 2;
+          margin: 0 8px;
+        }
       }
     `;
     document.head.appendChild(style);
