@@ -480,7 +480,7 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                       <span style={{ fontSize: `${design.attributionFontSize * 0.85}px`, color: design.roleTextColor }} itemProp="author" itemScope itemType="https://schema.org/Person">
                         <span itemProp="jobTitle">{review.reviewer_role}</span>
                       </span>
-                      {design.showRelativeDate && review.created_at && (
+                      {review.created_at && (
                         <span style={{ fontSize: '12px', color: '#9ca3af', marginTop: '4px' }}>
                           {getRelativeTime(review.created_at)}
                           {review.platform ? ` via ${review.platform}` : ''}
@@ -660,7 +660,7 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                           {review.reviewer_role}
                         </span>
                       </span>
-                      {design.showRelativeDate && review.created_at && (
+                      {review.created_at && (
                         <span style={{ fontSize: '12px', color: '#9ca3af', marginTop: '4px' }}>
                           {getRelativeTime(review.created_at)}
                           {review.platform ? ` via ${review.platform}` : ''}
@@ -798,7 +798,7 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                             {review.reviewer_role}
                           </span>
                         </span>
-                        {design.showRelativeDate && review.created_at && (
+                        {review.created_at && (
                           <span style={{ fontSize: '12px', color: '#9ca3af', marginTop: '4px' }}>
                             {getRelativeTime(review.created_at)}
                             {review.platform ? ` via ${review.platform}` : ''}
