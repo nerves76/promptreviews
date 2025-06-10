@@ -418,8 +418,8 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
     <>
       <div className="pr-widget-nav-row">
         <button ref={prevRef} className="pr-widget-nav-btn" aria-label="Previous">
-          <svg viewBox="0 0 40 40" fill="none">
-            <polygon points="28,8 12,20 28,32" fill="#111" />
+          <svg viewBox="0 0 24 24" fill="none">
+            <polygon points="16,4 6,12 16,20" fill="red" />
           </svg>
         </button>
         <div className="pr-widget-nav-center">
@@ -494,8 +494,8 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
           </Swiper>
         </div>
         <button ref={nextRef} className="pr-widget-nav-btn" aria-label="Next">
-          <svg viewBox="0 0 40 40" fill="none">
-            <polygon points="12,8 28,20 12,32" fill="#111" />
+          <svg viewBox="0 0 24 24" fill="none">
+            <polygon points="8,4 18,12 8,20" fill="red" />
           </svg>
         </button>
       </div>
@@ -514,8 +514,8 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
     <>
       <div className="pr-widget-nav-row">
         <button ref={prevRef} className="pr-widget-nav-btn" aria-label="Previous">
-          <svg viewBox="0 0 40 40" fill="none">
-            <polygon points="28,8 12,20 28,32" fill="#111" />
+          <svg viewBox="0 0 24 24" fill="none">
+            <polygon points="16,4 6,12 16,20" fill="red" />
           </svg>
         </button>
         <div className="pr-widget-nav-center">
@@ -689,8 +689,8 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
     <>
       <div className="pr-widget-nav-row">
         <button ref={prevRef} className="pr-widget-nav-btn" aria-label="Previous">
-          <svg viewBox="0 0 40 40" fill="none">
-            <polygon points="28,8 12,20 28,32" fill="#111" />
+          <svg viewBox="0 0 24 24" fill="none">
+            <polygon points="16,4 6,12 16,20" fill="red" />
           </svg>
         </button>
         <div className="pr-widget-nav-center">
