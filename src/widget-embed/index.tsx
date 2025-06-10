@@ -366,25 +366,20 @@ function injectWidgetNavCSS() {
         justify-content: center;
         margin-top: 24px;
       }
-      .pr-widget-nav-btn-left::before {
-        content: '';
+      .pr-widget-triangle-left, .pr-widget-triangle-right {
         display: block;
         width: 0;
         height: 0;
+      }
+      .pr-widget-triangle-left {
         border-top: 10px solid transparent;
         border-bottom: 10px solid transparent;
         border-right: 14px solid #222;
-        margin: 0 auto;
       }
-      .pr-widget-nav-btn-right::before {
-        content: '';
-        display: block;
-        width: 0;
-        height: 0;
+      .pr-widget-triangle-right {
         border-top: 10px solid transparent;
         border-bottom: 10px solid transparent;
         border-left: 14px solid #222;
-        margin: 0 auto;
       }
     `;
     document.head.appendChild(style);
@@ -439,7 +434,9 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
   return (
     <>
       <div className="pr-widget-nav-row">
-        <button ref={prevRef} className="pr-widget-nav-btn pr-widget-nav-btn-left" aria-label="Previous"></button>
+        <button ref={prevRef} className="pr-widget-nav-btn" aria-label="Previous">
+          <span className="pr-widget-triangle-left"></span>
+        </button>
         <div className="pr-widget-nav-center">
           <Swiper
             modules={[Navigation, Pagination, A11y, Autoplay]}
@@ -511,7 +508,9 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
             ))}
           </Swiper>
         </div>
-        <button ref={nextRef} className="pr-widget-nav-btn pr-widget-nav-btn-right" aria-label="Next"></button>
+        <button ref={nextRef} className="pr-widget-nav-btn" aria-label="Next">
+          <span className="pr-widget-triangle-right"></span>
+        </button>
       </div>
       <div className="pr-widget-pagination" />
     </>
@@ -527,7 +526,9 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
   return (
     <>
       <div className="pr-widget-nav-row">
-        <button ref={prevRef} className="pr-widget-nav-btn pr-widget-nav-btn-left" aria-label="Previous"></button>
+        <button ref={prevRef} className="pr-widget-nav-btn" aria-label="Previous">
+          <span className="pr-widget-triangle-left"></span>
+        </button>
         <div className="pr-widget-nav-center">
           <Swiper
             modules={[Navigation, Pagination, A11y, Autoplay]}
@@ -698,7 +699,9 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
   return (
     <>
       <div className="pr-widget-nav-row">
-        <button ref={prevRef} className="pr-widget-nav-btn pr-widget-nav-btn-left" aria-label="Previous"></button>
+        <button ref={prevRef} className="pr-widget-nav-btn" aria-label="Previous">
+          <span className="pr-widget-triangle-left"></span>
+        </button>
         <div className="pr-widget-nav-center">
           <Swiper
             modules={[Navigation, Pagination, A11y, Autoplay]}
