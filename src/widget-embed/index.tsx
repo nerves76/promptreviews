@@ -421,7 +421,7 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
       <div className="pr-widget-nav-row">
         <button ref={prevRef} className="pr-widget-nav-btn" aria-label="Previous">
           <svg viewBox="0 0 20 20" fill="currentColor">
-            <polygon points="13,5 7,10 13,15" />
+            <polygon points="15,4 5,10 15,16" />
           </svg>
         </button>
         <div className="pr-widget-nav-center">
@@ -497,7 +497,7 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
         </div>
         <button ref={nextRef} className="pr-widget-nav-btn" aria-label="Next">
           <svg viewBox="0 0 20 20" fill="currentColor">
-            <polygon points="7,5 13,10 7,15" />
+            <polygon points="5,4 15,10 5,16" />
           </svg>
         </button>
       </div>
@@ -517,7 +517,7 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
       <div className="pr-widget-nav-row">
         <button ref={prevRef} className="pr-widget-nav-btn" aria-label="Previous">
           <svg viewBox="0 0 20 20" fill="currentColor">
-            <polygon points="13,5 7,10 13,15" />
+            <polygon points="15,4 5,10 15,16" />
           </svg>
         </button>
         <div className="pr-widget-nav-center">
@@ -692,7 +692,7 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
       <div className="pr-widget-nav-row">
         <button ref={prevRef} className="pr-widget-nav-btn" aria-label="Previous">
           <svg viewBox="0 0 20 20" fill="currentColor">
-            <polygon points="13,5 7,10 13,15" />
+            <polygon points="15,4 5,10 15,16" />
           </svg>
         </button>
         <div className="pr-widget-nav-center">
