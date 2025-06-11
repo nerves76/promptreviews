@@ -1172,6 +1172,14 @@ document.addEventListener('DOMContentLoaded', () => {
   widgetElements.forEach(async (element) => {
     const widgetId = element.getAttribute('data-widget');
     if (widgetId) {
+      // Inject main widget CSS if not already present
+      if (!document.querySelector('link[data-pr-widget-css]')) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://app.promptreviews.app/widget.css';
+        link.setAttribute('data-pr-widget-css', 'true');
+        document.head.appendChild(link);
+      }
       // Inject all necessary widget styles before rendering
       injectWidgetResponsiveCSS();
       injectWidgetNavCSS();
