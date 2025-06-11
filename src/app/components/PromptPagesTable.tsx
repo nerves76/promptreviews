@@ -360,21 +360,6 @@ export default function PromptPagesTable({
                 </td>
               </tr>
             ))}
-            {lockedPromptPages.length > 0 && (
-              <tr>
-                <td colSpan={8} className="py-6 text-center bg-yellow-50 text-yellow-800 font-semibold">
-                  <div className="mb-2">
-                    You have more than {isGrower ? maxGrowerPages : maxBuilderPages} prompt pages. Upgrade your plan to access the rest.
-                  </div>
-                  {lockedPromptPages.map((page) => (
-                    <div key={page.id} className="flex items-center justify-between px-4 py-2 bg-yellow-100 rounded mb-2">
-                      <span className="font-medium">Prompt Page: {page.first_name || page.last_name || page.slug}</span>
-                      <span className="text-xs text-yellow-700">Locked</span>
-                    </div>
-                  ))}
-                </td>
-              </tr>
-            )}
           </tbody>
         </table>
       </div>

@@ -1,0 +1,1 @@
+ALTER TABLE widgets ADD COLUMN submit_reviews_enabled BOOLEAN NOT NULL DEFAULT true; 

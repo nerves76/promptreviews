@@ -15,60 +15,7 @@ import AppLoader from "@/app/components/AppLoader";
 import TopLoaderOverlay from "@/app/components/TopLoaderOverlay";
 import { useRouter } from "next/navigation";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-
-// Helper to convert hex to rgba
-function hexToRgba(hex: string, alpha: number) {
-  let c = hex.replace("#", "");
-  if (c.length === 3)
-    c = c
-      .split("")
-      .map((x) => x + x)
-      .join("");
-  const num = parseInt(c, 16);
-  const r = (num >> 16) & 255;
-  const g = (num >> 8) & 255;
-  const b = num & 255;
-  return `rgba(${r},${g},${b},${alpha})`;
-}
-
-// Helper to lighten a hex color by blending with white
-function lightenHex(hex: string, amount: number = 0.7) {
-  let c = hex.replace("#", "");
-  if (c.length === 3)
-    c = c
-      .split("")
-      .map((x) => x + x)
-      .join("");
-  const num = parseInt(c, 16);
-  let r = (num >> 16) & 255;
-  let g = (num >> 8) & 255;
-  let b = num & 255;
-  r = Math.round(r + (255 - r) * amount);
-  g = Math.round(g + (255 - g) * amount);
-  b = Math.round(b + (255 - b) * amount);
-  return `rgb(${r},${g},${b})`;
-}
-
-// Helper to get relative time string
-function getRelativeTime(dateString: string) {
-  const now = new Date();
-  const date = new Date(dateString);
-  const diff = now.getTime() - date.getTime();
-  const seconds = Math.floor(diff / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
-  const weeks = Math.floor(days / 7);
-  const months = Math.floor(days / 30);
-  const years = Math.floor(days / 365);
-  if (years > 0) return `${years} year${years > 1 ? "s" : ""} ago`;
-  if (months > 0) return `${months} month${months > 1 ? "s" : ""} ago`;
-  if (weeks > 0) return `${weeks} week${weeks > 1 ? "s" : ""} ago`;
-  if (days > 0) return `${days} day${days > 1 ? "s" : ""} ago`;
-  if (hours > 0) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
-  if (minutes > 0) return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
-  return "just now";
-}
+import { MultiWidget, SingleWidget, PhotoWidget, getDesignWithDefaults, hexToRgba, getRelativeTime, renderStars, lightenHex, injectWidgetResponsiveCSS, injectWidgetNavCSS } from '../../../widget-embed/index';
 
 export default function WidgetPage() {
   const [current, setCurrent] = useState(0);
@@ -104,6 +51,7 @@ export default function WidgetPage() {
     shadowIntensity: 0.2,
     shadowColor: "#222222",
     borderColor: "#cccccc",
+    showSubmitReviewButton: false,
   });
   const [currentGroup, setCurrentGroup] = useState(0);
   const [isClient, setIsClient] = useState(false);
@@ -111,6 +59,7 @@ export default function WidgetPage() {
   const [reviews, setReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [widgets, setWidgets] = useState<any[]>([]);
+  const [universalPromptSlug, setUniversalPromptSlug] = useState<string | null>(null);
 
   useEffect(() => setIsClient(true), []);
 
@@ -254,6 +203,31 @@ export default function WidgetPage() {
     };
   }, [design.bgColor]);
 
+  useEffect(() => {
+    injectWidgetResponsiveCSS();
+    injectWidgetNavCSS();
+  }, []);
+
+  // Fetch universal prompt page slug when selectedWidget changes
+  useEffect(() => {
+    async function fetchUniversalPromptSlug() {
+      if (!selectedWidget?.account_id) return;
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      );
+      const { data, error } = await supabase
+        .from("prompt_pages")
+        .select("slug")
+        .eq("account_id", selectedWidget.account_id)
+        .eq("is_universal", true)
+        .single();
+      if (data?.slug) setUniversalPromptSlug(data.slug);
+      else setUniversalPromptSlug(null);
+    }
+    fetchUniversalPromptSlug();
+  }, [selectedWidget]);
+
   if (loading) {
     return <TopLoaderOverlay />;
   }
@@ -274,7 +248,7 @@ export default function WidgetPage() {
           transition: 'background 0.3s',
         }}
       >
-        <h2 className="text-2xl font-bold text-white mb-4 text-center">
+        <h2 className="text-2xl font-bold text-white mb-10 text-center">
           Live widget preview
         </h2>
         <section
@@ -282,12 +256,12 @@ export default function WidgetPage() {
           aria-label="Review carousel preview"
           style={{
             background: design.sectionBgType === "custom" ? design.sectionBgColor : "none",
-            color: design.textColor,
-            border: 'none',
-            boxShadow: 'none',
-            padding: 0,
-            minHeight: 320,
-            margin: '0 auto',
+                  color: design.textColor,
+                  border: 'none',
+                  boxShadow: 'none',
+                  padding: 0,
+                  minHeight: 320,
+                  margin: '0 auto',
           }}
         >
           {loading ? (
@@ -302,476 +276,13 @@ export default function WidgetPage() {
             >
               <AppLoader />
             </div>
-          ) : selectedWidget?.widget_type === 'photo' ? (
-            <Swiper
-              modules={[Navigation, Pagination, A11y, Autoplay]}
-              spaceBetween={30}
-              slidesPerView={1}
-              navigation={{
-                nextEl: '.swiper-button-next',
-                prevEl: '.swiper-button-prev',
-              }}
-              pagination={{
-                clickable: true,
-                el: '.my-custom-swiper-pagination',
-              }}
-              autoplay={design.autoAdvance ? {
-                delay: (design.slideshowSpeed ?? 4) * 1000,
-                disableOnInteraction: false,
-              } : false}
-              onSwiper={setSwiperInstance}
-              className="max-w-3xl w-full"
-            >
-              {reviews.map((review, index) => (
-                <SwiperSlide key={review.id || index}>
-                  <div style={{ position: 'relative', width: '100%', height: '100%' }} className="h-full">
-                    <article
-                      className="flex flex-col sm:flex-row items-stretch h-auto sm:h-[320px] bg-white rounded-3xl w-full px-0 md:px-0 justify-center flex-1 shadow"
-                      style={{
-                        background:
-                          design.bgColor === "transparent"
-                            ? "none"
-                            : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
-                        color: design.textColor,
-                        minHeight: 320,
-                        maxHeight: 320,
-                        height: 320,
-                        border: design.border ? `${design.borderWidth ?? 2}px solid ${design.borderColor ?? '#cccccc'}` : "none",
-                        borderRadius: design.borderRadius,
-                        boxShadow: design.shadow ? `inset 0 4px 32px 0 ${hexToRgba(design.shadowColor ?? '#222222', design.shadowIntensity ?? 0.2)}` : 'none',
-                        overflow: 'hidden',
-                      }}
-                      itemScope
-                      itemType="https://schema.org/Review"
-                    >
-                      <div className="flex items-center justify-center bg-gray-100 overflow-hidden w-full sm:w-1/3 min-w-[200px] h-48 sm:h-full">
-                        {review.photo_url ? (
-                          <img
-                            src={review.photo_url}
-                            alt="Reviewer photo"
-                            className="object-cover w-full h-full"
-                            style={{ display: 'block' }}
-                          />
-                        ) : (
-                          <div className="flex items-center justify-center w-full h-full text-gray-400 bg-gray-100">
-                            No Photo
-                          </div>
-                        )}
-                      </div>
-                      {/* Testimonial on right (or below on mobile) */}
-                      <div className="flex-1 flex flex-col justify-center px-4 sm:px-8 py-4">
-                        <p
-                          className="text-base md:text-lg mb-2 md:mb-4 px-1 md:px-2 text-left"
-                          itemProp="reviewBody"
-                          style={{
-                            lineHeight: design.lineSpacing,
-                            color: design.bodyTextColor,
-                          }}
-                        >
-                          {review.review_content}
-                        </p>
-                        <div className="flex flex-col items-start gap-1 w-full mt-auto">
-                          <span
-                            className="font-semibold text-indigo-700"
-                            itemProp="author"
-                            itemScope
-                            itemType="https://schema.org/Person"
-                            style={{ fontSize: design.attributionFontSize, color: design.nameTextColor }}
-                          >
-                            <span itemProp="name">
-                              {review.first_name} {review.last_name}
-                            </span>
-                          </span>
-                          <span
-                            className="text-xs text-gray-500"
-                            itemProp="author"
-                            itemScope
-                            itemType="https://schema.org/Person"
-                            style={{ fontSize: design.attributionFontSize * 0.85, color: design.roleTextColor }}
-                          >
-                            <span itemProp="jobTitle">
-                              {review.reviewer_role}
-                            </span>
-                          </span>
-                          {design.showRelativeDate &&
-                            review.created_at &&
-                            review.platform && (
-                              <span className="text-xs text-gray-400 mt-1">
-                                {getRelativeTime(review.created_at)} via {review.platform}
-                              </span>
-                            )}
-                        </div>
-                      </div>
-                    </article>
-                  </div>
-                </SwiperSlide>
-              ))}
-            </Swiper>
+          ) : selectedWidget?.widget_type === 'multi' ? (
+            <MultiWidget data={{ ...selectedWidget, reviews, design, universalPromptSlug }} />
           ) : selectedWidget?.widget_type === 'single' ? (
-            <>
-              <div className="flex flex-col items-center">
-                <div className="flex flex-row items-center justify-center gap-8 px-8 md:px-16 w-full max-w-5xl mx-auto">
-                  <button
-                    type="button"
-                    onClick={() => swiperInstance?.slidePrev()}
-                    className="rounded-full bg-white/60 backdrop-blur border border-gray-200 w-10 h-10 flex items-center justify-center transition hover:bg-white/80 z-10"
-                    aria-label="Previous"
-                  >
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                      <polygon points="18,4 6,12 18,20" fill={design.accentColor || '#111'} />
-                    </svg>
-                  </button>
-                  <div className="flex-1 flex justify-center">
-                    <Swiper
-                      modules={[Navigation, Pagination, A11y, Autoplay]}
-                      spaceBetween={30}
-                      slidesPerView={1}
-                      navigation={{
-                        nextEl: '.swiper-button-next',
-                        prevEl: '.swiper-button-prev',
-                      }}
-                      pagination={{
-                        clickable: true,
-                        el: '.my-custom-swiper-pagination',
-                      }}
-                      autoplay={design.autoAdvance ? {
-                        delay: (design.slideshowSpeed ?? 4) * 1000,
-                        disableOnInteraction: false,
-                      } : false}
-                      onSwiper={setSwiperInstance}
-                      className="max-w-3xl w-full"
-                    >
-                      {reviews.map((review, index) => (
-                        <SwiperSlide key={review.id || index}>
-                          <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-                            <article
-                              className="flex flex-col sm:flex-col items-center gap-4 py-6 relative bg-white rounded-3xl w-full px-4 sm:px-[15px] justify-center flex-1 h-auto sm:h-[320px] shadow"
-                              style={{
-                                background:
-                                  design.bgColor === "transparent"
-                                    ? "none"
-                                    : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
-                                color: design.textColor,
-                                minHeight: 320,
-                                maxHeight: 320,
-                                height: 'auto',
-                                border: design.border ? `${design.borderWidth ?? 2}px solid ${design.borderColor ?? '#cccccc'}` : "none",
-                                borderRadius: design.borderRadius,
-                                boxShadow: design.shadow ? `inset 0 4px 32px 0 ${hexToRgba(design.shadowColor ?? '#222222', design.shadowIntensity ?? 0.2)}` : 'none',
-                                overflow: 'hidden',
-                              }}
-                              itemScope
-                              itemType="https://schema.org/Review"
-                            >
-                              {design.showQuotes && (
-                                <>
-                                  <span
-                                    className="absolute left-4 top-4 z-0 pointer-events-none"
-                                    style={{ width: 96, height: 96, opacity: 0.5 }}
-                                  >
-                                    <svg
-                                      width="96"
-                                      height="96"
-                                      viewBox="0 0 96 96"
-                                      fill="none"
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      style={{ display: "block" }}
-                                    >
-                                      <text
-                                        y="76"
-                                        fontSize="96"
-                                        fill={lightenHex(design.accentColor, 0.7)}
-                                        fontFamily="serif"
-                                      >
-                                        {'\u201C'}
-                                      </text>
-                                    </svg>
-                                  </span>
-                                  <span
-                                    className="absolute right-4 bottom-4 z-0 pointer-events-none"
-                                    style={{ width: 96, height: 96, opacity: 0.5 }}
-                                  >
-                                    <svg
-                                      width="96"
-                                      height="96"
-                                      viewBox="0 0 96 96"
-                                      fill="none"
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      style={{ display: "block" }}
-                                    >
-                                      <text
-                                        y="76"
-                                        fontSize="96"
-                                        fill={lightenHex(design.accentColor, 0.7)}
-                                        fontFamily="serif"
-                                      >
-                                        {'\u201D'}
-                                      </text>
-                                    </svg>
-                                  </span>
-                                </>
-                              )}
-                              <div className="flex items-center justify-center mb-2 mt-1">
-                                {typeof (review as any).star_rating === 'number' && !isNaN((review as any).star_rating) ? (
-                                  <>
-                                    {Array.from({ length: 5 }).map((_, i) => {
-                                      const rating = (review as any).star_rating;
-                                      const full = i + 1 <= Math.floor(rating);
-                                      const half = !full && i + 0.5 <= rating;
-                                      const gradientId = `half-star-gradient-${i}`;
-                                      return (
-                                        <svg
-                                          key={i}
-                                          width="16"
-                                          height="16"
-                                          viewBox="0 0 20 20"
-                                          fill={full ? '#FBBF24' : half ? `url(#${gradientId})` : '#E5E7EB'}
-                                          stroke="#FBBF24"
-                                          className="inline-block mx-0.5"
-                                        >
-                                          {half && (
-                                            <defs>
-                                              <linearGradient id={gradientId}>
-                                                <stop offset="50%" stopColor="#FBBF24" />
-                                                <stop offset="50%" stopColor="#E5E7EB" />
-                                              </linearGradient>
-                                            </defs>
-                                          )}
-                                          <polygon points="10,1 12.59,7.36 19.51,7.64 14,12.14 15.82,18.99 10,15.27 4.18,18.99 6,12.14 0.49,7.64 7.41,7.36" />
-                                        </svg>
-                                      );
-                                    })}
-                                  </>
-                                ) : null}
-                              </div>
-                              <p
-                                className={`text-lg mb-2 md:mb-4 px-1 md:px-2 text-center ${selectedWidget?.widget_type === 'multi' ? '' : 'text-base md:text-[20px]'}`}
-                                itemProp="reviewBody"
-                                style={{
-                                  lineHeight: design.lineSpacing,
-                                  fontSize: selectedWidget?.widget_type === 'multi' ? 14 : undefined,
-                                  color: design.bodyTextColor,
-                                }}
-                              >
-                                {review.review_content}
-                              </p>
-                              <div className="flex flex-col items-center gap-1 w-full mt-auto">
-                                <span
-                                  className="font-semibold text-indigo-700"
-                                  itemProp="author"
-                                  itemScope
-                                  itemType="https://schema.org/Person"
-                                  style={{ fontSize: design.attributionFontSize, color: design.nameTextColor }}
-                                >
-                                  <span itemProp="name">
-                                    {review.first_name} {review.last_name}
-                                  </span>
-                                </span>
-                                <span
-                                  className="text-xs text-gray-500"
-                                  itemProp="author"
-                                  itemScope
-                                  itemType="https://schema.org/Person"
-                                  style={{ fontSize: design.attributionFontSize * 0.85, color: design.roleTextColor }}
-                                >
-                                  <span itemProp="jobTitle">
-                                    {review.reviewer_role}
-                                  </span>
-                                </span>
-                                {design.showRelativeDate &&
-                                  review.created_at &&
-                                  review.platform && (
-                                    <span className="text-xs text-gray-400 mt-1">
-                                      {getRelativeTime(review.created_at)} via {review.platform}
-                                    </span>
-                                  )}
-                              </div>
-                            </article>
-                          </div>
-                        </SwiperSlide>
-                      ))}
-                    </Swiper>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => swiperInstance?.slideNext()}
-                    className="rounded-full bg-white/60 backdrop-blur border border-gray-200 w-10 h-10 flex items-center justify-center transition hover:bg-white/80 z-10"
-                    aria-label="Next"
-                  >
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                      <polygon points="6,4 18,12 6,20" fill={design.accentColor || '#111'} />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-              <div className="my-custom-swiper-pagination flex justify-center mt-6" />
-            </>
-          ) : (
-            <>
-              <div className="flex flex-col items-center">
-                <div className="flex flex-row items-center justify-center gap-8 px-8 md:px-16 w-full max-w-6xl mx-auto">
-                  <button
-                    type="button"
-                    onClick={() => swiperInstance?.slidePrev()}
-                    className="rounded-full bg-white/60 backdrop-blur border border-gray-200 w-10 h-10 flex items-center justify-center transition hover:bg-white/80 z-10"
-                    aria-label="Previous"
-                  >
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                      <polygon points="18,4 6,12 18,20" fill={design.accentColor || '#111'} />
-                    </svg>
-                  </button>
-                  <div className="flex-1 flex justify-center">
-                    <Swiper
-                      modules={[Navigation, Pagination, A11y, Autoplay]}
-                      spaceBetween={30}
-                      slidesPerView={3}
-                      navigation={{
-                        nextEl: '.swiper-button-next',
-                        prevEl: '.swiper-button-prev',
-                      }}
-                      pagination={{
-                        clickable: true,
-                        el: '.my-custom-swiper-pagination',
-                      }}
-                      autoplay={design.autoAdvance ? {
-                        delay: (design.slideshowSpeed ?? 4) * 1000,
-                        disableOnInteraction: false,
-                      } : false}
-                      onSwiper={setSwiperInstance}
-                      className="max-w-5xl w-full"
-                      breakpoints={{
-                        320: {
-                          slidesPerView: 1,
-                          spaceBetween: 20
-                        },
-                        640: {
-                          slidesPerView: 2,
-                          spaceBetween: 20
-                        },
-                        1024: {
-                          slidesPerView: 3,
-                          spaceBetween: 30
-                        }
-                      }}
-                    >
-                      {reviews.map((review, index) => (
-                        <SwiperSlide key={review.id || index}>
-                          <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-                            <article
-                              className="flex flex-col items-center gap-4 py-6 relative bg-white rounded-3xl w-full px-4 md:px-[15px] justify-center flex-1"
-                              style={{
-                                background:
-                                  design.bgColor === "transparent"
-                                    ? "none"
-                                    : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
-                                color: design.textColor,
-                                minHeight: 320,
-                                maxHeight: 320,
-                                height: 320,
-                                border: design.border ? `${design.borderWidth ?? 2}px solid ${design.borderColor ?? '#cccccc'}` : "none",
-                                borderRadius: design.borderRadius,
-                                boxShadow: design.shadow ? `inset 0 4px 32px 0 ${hexToRgba(design.shadowColor ?? '#222222', design.shadowIntensity ?? 0.2)}` : 'none',
-                                overflow: 'hidden',
-                              }}
-                              itemScope
-                              itemType="https://schema.org/Review"
-                            >
-                              <div className="flex items-center justify-center mb-2 mt-1">
-                                {typeof (review as any).star_rating === 'number' && !isNaN((review as any).star_rating) ? (
-                                  <>
-                                    {Array.from({ length: 5 }).map((_, i) => {
-                                      const rating = (review as any).star_rating;
-                                      const full = i + 1 <= Math.floor(rating);
-                                      const half = !full && i + 0.5 <= rating;
-                                      const gradientId = `half-star-gradient-${i}`;
-                                      return (
-                                        <svg
-                                          key={i}
-                                          width="16"
-                                          height="16"
-                                          viewBox="0 0 20 20"
-                                          fill={full ? '#FBBF24' : half ? `url(#${gradientId})` : '#E5E7EB'}
-                                          stroke="#FBBF24"
-                                          className="inline-block mx-0.5"
-                                        >
-                                          {half && (
-                                            <defs>
-                                              <linearGradient id={gradientId}>
-                                                <stop offset="50%" stopColor="#FBBF24" />
-                                                <stop offset="50%" stopColor="#E5E7EB" />
-                                              </linearGradient>
-                                            </defs>
-                                          )}
-                                          <polygon points="10,1 12.59,7.36 19.51,7.64 14,12.14 15.82,18.99 10,15.27 4.18,18.99 6,12.14 0.49,7.64 7.41,7.36" />
-                                        </svg>
-                                      );
-                                    })}
-                                  </>
-                                ) : null}
-                              </div>
-                              <p
-                                className={`text-lg mb-2 md:mb-4 px-1 md:px-2 text-center ${selectedWidget?.widget_type === 'multi' ? '' : 'text-base md:text-[20px]'}`}
-                                itemProp="reviewBody"
-                                style={{
-                                  lineHeight: design.lineSpacing,
-                                  fontSize: selectedWidget?.widget_type === 'multi' ? 14 : undefined,
-                                  color: design.bodyTextColor,
-                                }}
-                              >
-                                {review.review_content}
-                              </p>
-                              <div className="flex flex-col items-center gap-1 w-full mt-auto">
-                                <span
-                                  className="font-semibold text-indigo-700"
-                                  itemProp="author"
-                                  itemScope
-                                  itemType="https://schema.org/Person"
-                                  style={{ fontSize: design.attributionFontSize * 0.85, color: design.nameTextColor }}
-                                >
-                                  <span itemProp="name">
-                                    {review.first_name} {review.last_name}
-                                  </span>
-                                </span>
-                                <span
-                                  className="text-xs text-gray-500"
-                                  itemProp="author"
-                                  itemScope
-                                  itemType="https://schema.org/Person"
-                                  style={{ fontSize: design.attributionFontSize * 0.85, color: design.roleTextColor }}
-                                >
-                                  <span itemProp="jobTitle">
-                                    {review.reviewer_role}
-                                  </span>
-                                </span>
-                                {design.showRelativeDate &&
-                                  review.created_at &&
-                                  review.platform && (
-                                    <span className="text-xs text-gray-400 mt-1">
-                                      {getRelativeTime(review.created_at)} via {review.platform}
-                                    </span>
-                                  )}
-                              </div>
-                            </article>
-                          </div>
-                        </SwiperSlide>
-                      ))}
-                    </Swiper>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => swiperInstance?.slideNext()}
-                    className="rounded-full bg-white/60 backdrop-blur border border-gray-200 w-10 h-10 flex items-center justify-center transition hover:bg-white/80 z-10"
-                    aria-label="Next"
-                  >
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                      <polygon points="6,4 18,12 6,20" fill={design.accentColor || '#111'} />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-              <div className="my-custom-swiper-pagination flex justify-center mt-6" />
-            </>
-          )}
+            <SingleWidget data={{ ...selectedWidget, reviews, design, universalPromptSlug }} />
+          ) : selectedWidget?.widget_type === 'photo' ? (
+            <PhotoWidget data={{ ...selectedWidget, reviews, design, universalPromptSlug }} />
+                      ) : null}
           <div id="carousel-live" className="sr-only" aria-live="polite" />
         </section>
       </div>

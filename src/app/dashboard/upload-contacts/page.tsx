@@ -244,21 +244,10 @@ export default function UploadContactsPage() {
         if (
           response.status === 403 &&
           data.error &&
-          data.error.includes("Limit reached for your plan (100 contacts)")
+          data.error.includes("Limit reached for your plan")
         ) {
           setUpgradeModalMessage(
-            `Contact Limit Reached\n\nYou've reached the maximum of 100 contacts for the Community Builder plan. Upgrade to Community Champion for up to 500 contacts, more outreach, and more growth!`,
-          );
-          setShowUpgradeModal(true);
-          return;
-        }
-        if (
-          response.status === 403 &&
-          data.error &&
-          data.error.includes("Limit reached for your plan (500 contacts)")
-        ) {
-          setUpgradeModalMessage(
-            `Contact Limit Reached\n\nYou've reached the maximum of 500 contacts for the Community Champion plan.\nNeed more? We offer custom plans for high-volume outreach.`,
+            `Contact Limit Reached\n\n${data.error}\nUpgrade your plan to add more contacts.`
           );
           setShowUpgradeModal(true);
           return;
@@ -326,27 +315,29 @@ export default function UploadContactsPage() {
             <Dialog.Description className="mb-6 text-gray-700 whitespace-pre-line">
               {upgradeModalMessage}
             </Dialog.Description>
+            {/* Show 'Contact us' for 10,000+ contacts, otherwise 'Upgrade now' */}
+            {upgradeModalMessage && /10,000|10000|more than 9999/.test(upgradeModalMessage) ? (
+              <a
+                href="https://promptreviews.app/contact"
+                className="w-full block py-2 px-4 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-semibold text-center mb-2"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Contact us
+              </a>
+            ) : (
+              <button
+                className="w-full py-2 px-4 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-semibold mb-2"
+                onClick={() => {
+                  setShowUpgradeModal(false);
+                  window.location.href = "/upgrade";
+                }}
+              >
+                Upgrade now
+              </button>
+            )}
             <button
-              className="w-full py-2 px-4 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-semibold"
-              onClick={() => {
-                setShowUpgradeModal(false);
-                if (
-                  upgradeModalMessage &&
-                  upgradeModalMessage.includes("500 contacts")
-                ) {
-                  router.push("/contact");
-                } else {
-                  router.push("/upgrade");
-                }
-              }}
-            >
-              {upgradeModalMessage &&
-              upgradeModalMessage.includes("500 contacts")
-                ? "Contact us"
-                : "Upgrade now"}
-            </button>
-            <button
-              className="w-full mt-2 py-2 px-4 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+              className="w-full py-2 px-4 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
               onClick={() => setShowUpgradeModal(false)}
             >
               Cancel

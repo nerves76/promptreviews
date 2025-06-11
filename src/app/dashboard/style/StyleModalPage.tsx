@@ -193,83 +193,83 @@ export default function StylePage() {
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8 mt-2 mb-2">
         <div className="flex flex-col gap-8">
-          {/* Font pickers */}
-          <div>
+      {/* Font pickers */}
+        <div>
             <label className="block text-sm font-medium text-gray-700 mb-5">Primary Font</label>
-            <select
-              value={settings.primary_font}
-              onChange={e => setSettings(s => ({ ...s, primary_font: e.target.value }))}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-            >
-              <optgroup label="Google Fonts">
-                {fontOptions.filter(f => !["Arial","Helvetica","Verdana","Tahoma","Trebuchet MS","Times New Roman","Georgia","Courier New","Lucida Console","Palatino","Garamond"].includes(f.name)).map(font => (
+          <select
+            value={settings.primary_font}
+            onChange={e => setSettings(s => ({ ...s, primary_font: e.target.value }))}
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          >
+            <optgroup label="Google Fonts">
+              {fontOptions.filter(f => !["Arial","Helvetica","Verdana","Tahoma","Trebuchet MS","Times New Roman","Georgia","Courier New","Lucida Console","Palatino","Garamond"].includes(f.name)).map(font => (
                   <option key={font.name} value={font.name}>{font.name}</option>
-                ))}
-              </optgroup>
-              <optgroup label="System Fonts">
-                {fontOptions.filter(f => ["Arial","Helvetica","Verdana","Tahoma","Trebuchet MS","Times New Roman","Georgia","Courier New","Lucida Console","Palatino","Garamond"].includes(f.name)).map(font => (
+              ))}
+            </optgroup>
+            <optgroup label="System Fonts">
+              {fontOptions.filter(f => ["Arial","Helvetica","Verdana","Tahoma","Trebuchet MS","Times New Roman","Georgia","Courier New","Lucida Console","Palatino","Garamond"].includes(f.name)).map(font => (
                   <option key={font.name} value={font.name}>{font.name}</option>
-                ))}
-              </optgroup>
-            </select>
-            <p className="text-xs text-gray-500 mt-1">System fonts may look different on different devices.</p>
-          </div>
-          <div>
+              ))}
+            </optgroup>
+          </select>
+          <p className="text-xs text-gray-500 mt-1">System fonts may look different on different devices.</p>
+        </div>
+        <div>
             <label className="block text-sm font-medium text-gray-700 mb-5">Secondary Font</label>
-            <select
-              value={settings.secondary_font}
-              onChange={e => setSettings(s => ({ ...s, secondary_font: e.target.value }))}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-            >
-              <optgroup label="Google Fonts">
-                {fontOptions.filter(f => !["Arial","Helvetica","Verdana","Tahoma","Trebuchet MS","Times New Roman","Georgia","Courier New","Lucida Console","Palatino","Garamond"].includes(f.name)).map(font => (
+          <select
+            value={settings.secondary_font}
+            onChange={e => setSettings(s => ({ ...s, secondary_font: e.target.value }))}
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          >
+            <optgroup label="Google Fonts">
+              {fontOptions.filter(f => !["Arial","Helvetica","Verdana","Tahoma","Trebuchet MS","Times New Roman","Georgia","Courier New","Lucida Console","Palatino","Garamond"].includes(f.name)).map(font => (
                   <option key={font.name} value={font.name}>{font.name}</option>
-                ))}
-              </optgroup>
-              <optgroup label="System Fonts">
-                {fontOptions.filter(f => ["Arial","Helvetica","Verdana","Tahoma","Trebuchet MS","Times New Roman","Georgia","Courier New","Lucida Console","Palatino","Garamond"].includes(f.name)).map(font => (
+              ))}
+            </optgroup>
+            <optgroup label="System Fonts">
+              {fontOptions.filter(f => ["Arial","Helvetica","Verdana","Tahoma","Trebuchet MS","Times New Roman","Georgia","Courier New","Lucida Console","Palatino","Garamond"].includes(f.name)).map(font => (
                   <option key={font.name} value={font.name}>{font.name}</option>
-                ))}
-              </optgroup>
-            </select>
-            <p className="text-xs text-gray-500 mt-1">System fonts may look different on different devices.</p>
-          </div>
+              ))}
+            </optgroup>
+          </select>
+          <p className="text-xs text-gray-500 mt-1">System fonts may look different on different devices.</p>
+        </div>
           {/* Primary color */}
-          <div>
+        <div>
             <label className="block text-sm font-medium text-gray-700 mb-5">Primary Color</label>
-            <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
               <input type="color" value={settings.primary_color} onChange={e => setSettings(s => ({ ...s, primary_color: e.target.value }))} className="w-12 h-8 rounded" />
               <input type="text" value={settings.primary_color} readOnly className="w-24 px-2 py-1 border rounded bg-gray-50 text-gray-800" onFocus={e => e.target.select()} />
-            </div>
+        </div>
           </div>
         </div>
         <div className="flex flex-col gap-8">
-          {/* Background type */}
+      {/* Background type */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-5">Background Type</label>
-            <div className="flex gap-4">
+        <div className="flex gap-4">
               <label><input type="radio" name="background_type" value="solid" checked={settings.background_type === "solid"} onChange={() => setSettings(s => ({ ...s, background_type: "solid" }))} /><span className="ml-2">Solid</span></label>
               <label><input type="radio" name="background_type" value="gradient" checked={settings.background_type === "gradient"} onChange={() => setSettings(s => ({ ...s, background_type: "gradient" }))} /><span className="ml-2">Gradient</span></label>
-            </div>
-            {settings.background_type === "gradient" && (
-              <div className="flex gap-4 mt-2">
-                <div>
-                  <label className="block text-xs text-gray-500">Start</label>
-                  <div className="flex items-center gap-2">
+        </div>
+        {settings.background_type === "gradient" && (
+          <div className="flex gap-4 mt-2">
+            <div>
+              <label className="block text-xs text-gray-500">Start</label>
+              <div className="flex items-center gap-2">
                     <input type="color" value={settings.gradient_start} onChange={e => setSettings(s => ({ ...s, gradient_start: e.target.value }))} className="w-12 h-8 rounded" />
                     <input type="text" value={settings.gradient_start} readOnly className="w-24 px-2 py-1 border rounded bg-gray-50 text-gray-800" onFocus={e => e.target.select()} />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-500">End</label>
-                  <div className="flex items-center gap-2">
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500">End</label>
+              <div className="flex items-center gap-2">
                     <input type="color" value={settings.gradient_end} onChange={e => setSettings(s => ({ ...s, gradient_end: e.target.value }))} className="w-12 h-8 rounded" />
                     <input type="text" value={settings.gradient_end} readOnly className="w-24 px-2 py-1 border rounded bg-gray-50 text-gray-800" onFocus={e => e.target.select()} />
-                  </div>
-                </div>
               </div>
-            )}
+            </div>
           </div>
+        )}
+      </div>
           {/* Secondary color */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-5">Secondary Color</label>
@@ -278,18 +278,18 @@ export default function StylePage() {
               <input type="text" value={settings.secondary_color} readOnly className="w-24 px-2 py-1 border rounded bg-gray-50 text-gray-800" onFocus={e => e.target.select()} />
             </div>
           </div>
-          {/* Card background and text color options */}
-          <div>
+      {/* Card background and text color options */}
+        <div>
             <label className="block text-sm font-medium text-gray-700 mb-5">Card Background</label>
             <select value={settings.card_bg} onChange={e => setSettings(s => ({ ...s, card_bg: e.target.value }))} className="block w-full rounded-md border-gray-300 shadow-sm">
               {cardBgOptions.map(opt => (<option key={opt.value} value={opt.value}>{opt.name}</option>))}
-            </select>
-          </div>
-          <div>
+          </select>
+        </div>
+        <div>
             <label className="block text-sm font-medium text-gray-700 mb-5">Card Text Color</label>
             <select value={settings.card_text} onChange={e => setSettings(s => ({ ...s, card_text: e.target.value }))} className="block w-full rounded-md border-gray-300 shadow-sm">
               {textColorOptions.map(opt => (<option key={opt.value} value={opt.value}>{opt.name}</option>))}
-            </select>
+          </select>
           </div>
         </div>
       </div>

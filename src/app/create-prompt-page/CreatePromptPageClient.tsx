@@ -813,19 +813,59 @@ export default function CreatePromptPageClient() {
           </div>
         </div>
       )}
-    <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
-      <PageCard>
-        <PromptPageForm
-          mode="create"
-          initialData={formData}
-          onSave={handleStep1Submit}
-          onPublish={handleStep2Submit}
-          pageTitle="Create Your Prompt Page"
-          supabase={supabase}
-          businessProfile={businessProfile}
-        />
-      </PageCard>
-    </div>
+
+      {/* Limit Exceeded Modal */}
+      {showUpgradeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full relative">
+            <button
+              className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
+              onClick={() => setShowUpgradeModal(false)}
+              aria-label="Close"
+            >
+              &times;
+            </button>
+            <h2 className="text-2xl font-bold text-slate-blue mb-2">
+              Prompt page limit exceeded
+            </h2>
+            <p className="mb-6 text-gray-700">
+              {upgradeModalMessage || "You have reached the maximum number of prompt pages for your plan. Upgrade to create more."}
+            </p>
+            {/* Show 'Contact us' for 500+ prompt pages, otherwise 'Upgrade Plan' */}
+            {upgradeModalMessage && /500|\b[5-9][0-9]{2,}|[1-9][0-9]{3,}/.test(upgradeModalMessage) ? (
+              <a
+                href="https://promptreviews.app/contact"
+                className="inline-block px-4 py-2 bg-slate-blue text-white rounded-lg font-medium hover:bg-slate-blue/90 transition mb-2 w-full text-center"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Contact us
+              </a>
+            ) : (
+              <a
+                href="/dashboard/plan"
+                className="inline-block px-4 py-2 bg-slate-blue text-white rounded-lg font-medium hover:bg-slate-blue/90 transition mb-2 w-full text-center"
+              >
+                Upgrade Plan
+              </a>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
+        <PageCard>
+          <PromptPageForm
+            mode="create"
+            initialData={formData}
+            onSave={handleStep1Submit}
+            onPublish={handleStep2Submit}
+            pageTitle="Create Your Prompt Page"
+            supabase={supabase}
+            businessProfile={businessProfile}
+          />
+        </PageCard>
+      </div>
     </>
   );
 }

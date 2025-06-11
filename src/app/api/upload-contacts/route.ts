@@ -55,7 +55,7 @@ export async function POST(request: Request) {
     const limitCheck = await checkAccountLimits(supabase, user.id, "contact");
     if (!limitCheck.allowed) {
       return NextResponse.json(
-        { error: limitCheck.reason || "Upgrade required to add contacts." },
+        { error: limitCheck.reason || `Limit reached for your plan (${limitCheck.limit || 'unknown'} contacts). Upgrade required to add contacts.` },
         { status: 403 },
       );
     }

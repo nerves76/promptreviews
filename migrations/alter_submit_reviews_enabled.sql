@@ -1,0 +1,1 @@
+ALTER TABLE widgets ALTER COLUMN submit_reviews_enabled SET DEFAULT true; 
