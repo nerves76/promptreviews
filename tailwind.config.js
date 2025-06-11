@@ -53,6 +53,9 @@ module.exports = {
         "pure-white": "#FFFFFF", // Neutral Light
         "charcoal-black": "#342D2D", // Neutral Dark
       },
+      gap: {
+        15: '3.75rem', // 60px
+      },
     },
   },
   plugins: [],

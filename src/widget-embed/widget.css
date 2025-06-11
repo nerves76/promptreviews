@@ -1,3 +1,44 @@
 @tailwind base;
 @tailwind components;
-@tailwind utilities; 
+@tailwind utilities;
+
+/* Custom PromptReviews Widget Styles */
+.pr-widget-root { max-width: 100%; margin: 0 auto; position: relative; }
+.pr-widget-card { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 24px 16px; position: relative; min-height: 320px; max-height: 320px; height: 320px; overflow: hidden; }
+.pr-widget-photo-card { display: flex; flex-direction: column; align-items: stretch; min-height: 320px; max-height: 320px; height: 320px; overflow: hidden; }
+.pr-widget-photo-img { display: flex; align-items: center; justify-content: center; background-color: #f3f4f6; overflow: hidden; width: 100%; min-width: 200px; height: 192px; }
+.pr-widget-photo-content { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 16px; position: relative; }
+@media (min-width: 640px) {
+  .pr-widget-photo-card { flex-direction: row; height: 320px; }
+  .pr-widget-photo-img { width: 33.333333%; height: 100%; }
+  .pr-widget-photo-content { padding: 32px; }
+}
+.pr-widget-stars { display: flex; align-items: center; justify-content: center; margin-bottom: 8px; margin-top: 4px; }
+.pr-widget-review-body { margin-bottom: 16px; padding: 0 8px; text-align: center; }
+.pr-widget-photo-body { margin-bottom: 16px; padding: 0 8px; text-align: left; }
+.pr-widget-author { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 100%; margin-top: auto; }
+.pr-widget-photo-author { align-items: flex-start; }
+.pr-widget-pagination { display: flex; justify-content: center; margin-top: 1.5rem; }
+.pr-widget-pagination .swiper-pagination-bullet { width: 8px; height: 8px; background: #d1d5db; opacity: 1; }
+.pr-widget-pagination .swiper-pagination-bullet-active { background: #4F46E5; }
+.swiper-button-disabled { opacity: 0.5; cursor: not-allowed; }
+.swiper-button-disabled:hover { background: rgba(255, 255, 255, 0.6) !important; }
+.swiper-slide { height: auto !important; }
+.swiper-slide > div { height: 100% !important; }
+.swiper-slide article { height: 320px !important; }
+
+/* Additional styles for better responsiveness */
+@media (max-width: 640px) {
+  .pr-widget-card,
+  .swiper-slide article {
+    min-height: 240px;
+    height: auto !important;
+    max-height: none !important;
+    padding-bottom: 24px;
+  }
+  .pr-widget-nav-row,
+  .flex-row.items-center.justify-center {
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+  }
+} 
