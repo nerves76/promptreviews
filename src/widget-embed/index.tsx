@@ -634,7 +634,7 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                               zIndex: 1,
                             }}>”</span>
                           )}
-                          <div className="flex flex-col items-center justify-center w-full px-4 md:px-8" style={{ paddingLeft: 16, paddingRight: 16, mdPaddingLeft: 32, mdPaddingRight: 32 }}>
+                          <div className="flex flex-col items-center justify-center w-full px-4 md:px-8" style={{ paddingLeft: 16, paddingRight: 16 }}>
                             <div className="flex items-center justify-center mb-2 mt-1">
                               {typeof review.star_rating === 'number' && !isNaN(review.star_rating) && renderStars(review.star_rating)}
                             </div>
