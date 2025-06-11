@@ -42,6 +42,7 @@ interface WidgetData {
     shadowColor?: string;
     borderColor: string;
     showSubmitReviewButton: boolean;
+    font: string;
   };
   reviews: Array<{
     id: string;
@@ -87,6 +88,7 @@ const DEFAULT_DESIGN = {
   shadowColor: "#222222",
   borderColor: "#cccccc",
   showSubmitReviewButton: true,
+  font: 'Inter',
 };
 
 function getDesignWithDefaults(design: Partial<typeof DEFAULT_DESIGN> = {}) {
@@ -434,6 +436,52 @@ function injectWidgetNavCSS() {
   }
 }
 
+// Helper to map font name to font-family CSS string
+const FONT_FAMILIES: Record<string, string> = {
+  'Inter': 'Inter, sans-serif',
+  'Roboto': 'Roboto, sans-serif',
+  'Open Sans': 'Open Sans, sans-serif',
+  'Lato': 'Lato, sans-serif',
+  'Montserrat': 'Montserrat, sans-serif',
+  'Poppins': 'Poppins, sans-serif',
+  'Source Sans 3': 'Source Sans 3, sans-serif',
+  'Raleway': 'Raleway, sans-serif',
+  'Nunito': 'Nunito, sans-serif',
+  'Playfair Display': 'Playfair Display, serif',
+  'Merriweather': 'Merriweather, serif',
+  'Roboto Slab': 'Roboto Slab, serif',
+  'PT Sans': 'PT Sans, sans-serif',
+  'Oswald': 'Oswald, sans-serif',
+  'Roboto Condensed': 'Roboto Condensed, sans-serif',
+  'Source Serif 4': 'Source Serif 4, serif',
+  'Noto Sans': 'Noto Sans, sans-serif',
+  'Ubuntu': 'Ubuntu, sans-serif',
+  'Work Sans': 'Work Sans, sans-serif',
+  'Quicksand': 'Quicksand, sans-serif',
+  'Josefin Sans': 'Josefin Sans, sans-serif',
+  'Mukta': 'Mukta, sans-serif',
+  'Rubik': 'Rubik, sans-serif',
+  'IBM Plex Sans': 'IBM Plex Sans, sans-serif',
+  'Barlow': 'Barlow, sans-serif',
+  'Mulish': 'Mulish, sans-serif',
+  'Comfortaa': 'Comfortaa, cursive',
+  'Outfit': 'Outfit, sans-serif',
+  'Plus Jakarta Sans': 'Plus Jakarta Sans, sans-serif',
+  'Courier Prime': 'Courier Prime, monospace',
+  'IBM Plex Mono': 'IBM Plex Mono, monospace',
+  'Arial': 'Arial, sans-serif',
+  'Helvetica': 'Helvetica, sans-serif',
+  'Verdana': 'Verdana, sans-serif',
+  'Tahoma': 'Tahoma, sans-serif',
+  'Trebuchet MS': 'Trebuchet MS, sans-serif',
+  'Times New Roman': 'Times New Roman, serif',
+  'Georgia': 'Georgia, serif',
+  'Courier New': 'Courier New, monospace',
+  'Lucida Console': 'Lucida Console, monospace',
+  'Palatino': 'Palatino, serif',
+  'Garamond': 'Garamond, serif',
+};
+
 // MultiWidget implementation
 const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
   const design = getDesignWithDefaults(data.design);
@@ -486,7 +534,12 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
 
   return (
     <>
-      <div className="flex flex-col items-center">
+      {/* Get more reviews! Widget by PromptReviews.app */}
+      <div
+        className="flex flex-col items-center"
+        style={{ fontFamily: FONT_FAMILIES[design.font] || 'Inter, sans-serif' }}
+        data-pr-identifier="PromptReviews.app"
+      >
         <div className="flex flex-col-reverse sm:flex-row items-center justify-center gap-4 sm:gap-6 sm:gap-15 px-2 md:px-4 w-full max-w-4xl mx-auto">
           {/* Navigation and pagination, always rendered */}
           <button
@@ -647,22 +700,6 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
           </button>
           <div className="pr-widget-pagination flex justify-center order-2 sm:order-none w-full mt-4 sm:mt-0" />
         </div>
-        {design.showSubmitReviewButton && data.universalPromptSlug && (
-          <div className="max-w-5xl mx-auto pr-8 w-full">
-            <div className="flex justify-end mt-2">
-              <a
-                href={`/r/${data.universalPromptSlug}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={buttonStyle}
-                onMouseEnter={() => setSubmitHover(true)}
-                onMouseLeave={() => setSubmitHover(false)}
-              >
-                Submit a review
-              </a>
-            </div>
-          </div>
-        )}
       </div>
     </>
   );
@@ -723,7 +760,12 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
 
   return (
     <>
-      <div className="flex flex-col items-center">
+      {/* Get more reviews! Widget by PromptReviews.app */}
+      <div
+        className="flex flex-col items-center"
+        style={{ fontFamily: FONT_FAMILIES[design.font] || 'Inter, sans-serif' }}
+        data-pr-identifier="PromptReviews.app"
+      >
         <div className="flex flex-col sm:flex-row items-center justify-center w-full max-w-3xl mx-auto px-4 gap-4 relative">
           <button
             ref={prevRef}
@@ -876,22 +918,6 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
         </div>
         <div className="pr-widget-pagination flex justify-center mt-6" />
       </div>
-      {design.showSubmitReviewButton && data.universalPromptSlug && (
-        <div className="max-w-5xl mx-auto pr-8 w-full">
-          <div className="flex justify-end mt-2">
-            <a
-              href={`/r/${data.universalPromptSlug}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={buttonStyle}
-              onMouseEnter={() => setSubmitHover(true)}
-              onMouseLeave={() => setSubmitHover(false)}
-            >
-              Submit a review
-            </a>
-          </div>
-        </div>
-      )}
     </>
   );
 };
@@ -948,7 +974,12 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
 
   return (
     <>
-      <div className="flex flex-col items-center">
+      {/* Get more reviews! Widget by PromptReviews.app */}
+      <div
+        className="flex flex-col items-center"
+        style={{ fontFamily: FONT_FAMILIES[design.font] || 'Inter, sans-serif' }}
+        data-pr-identifier="PromptReviews.app"
+      >
         <div className="flex flex-row items-center justify-center gap-6 sm:gap-15 px-8 md:px-16 w-full max-w-6xl mx-auto">
           <button
             ref={prevRef}
@@ -1131,24 +1162,30 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
         </div>
       </div>
       <div className="pr-widget-pagination flex justify-center mt-6" />
-      {design.showSubmitReviewButton && data.universalPromptSlug && (
-        <div className="max-w-5xl mx-auto pr-8 w-full">
-          <div className="flex justify-end mt-2">
-            <a
-              href={`/r/${data.universalPromptSlug}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={buttonStyle}
-              onMouseEnter={() => setSubmitHover(true)}
-              onMouseLeave={() => setSubmitHover(false)}
-            >
-              Submit a review
-            </a>
-          </div>
-        </div>
-      )}
     </>
   );
 };
+
+// Initialize widgets
+document.addEventListener('DOMContentLoaded', () => {
+  const widgetElements = document.querySelectorAll('.promptreviews-widget');
+  widgetElements.forEach((element) => {
+    const widgetId = element.getAttribute('data-widget');
+    if (widgetId) {
+      const root = ReactDOM.createRoot(element);
+      root.render(<WidgetContainer widgetId={widgetId} />);
+    }
+  });
+});
+
+// Helper function to parse widget ID
+function parseWidgetId(widgetId: string) {
+  const [accountId, widgetType, timestamp] = widgetId.split('_');
+  return {
+    accountId,
+    widgetType,
+    timestamp: parseInt(timestamp)
+  };
+}
 
 export { MultiWidget, SingleWidget, PhotoWidget, getDesignWithDefaults, hexToRgba, getRelativeTime, renderStars, lightenHex, injectWidgetResponsiveCSS, injectWidgetNavCSS }; 

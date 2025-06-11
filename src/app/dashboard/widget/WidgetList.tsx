@@ -376,6 +376,7 @@ export default function WidgetList({
               name: form.name.trim(),
               account_id: account_id,
               widget_type: form.widgetType,
+              id: `${account_id}_${form.widgetType}_${Date.now()}` // Generate unique ID based on account, type, and timestamp
             },
           ])
           .select()
@@ -617,7 +618,9 @@ export default function WidgetList({
   }, [editDragging]);
 
   const handleCopyEmbed = async (widgetId: string) => {
-    const code = `<div id="promptreviews-widget" data-widget="${widgetId}"></div>\n<script src="https://app.promptreviews.app/widget.js" async></script>`;
+    const widget = widgets.find(w => w.id === widgetId);
+    const widgetType = widget?.widget_type || '';
+    const code = `<!-- PromptReviews Widget Type: ${widgetType} -->\n<div class="promptreviews-widget" data-widget="${widgetId}" data-widget-type="${widgetType}"></div>\n<script src="https://app.promptreviews.app/widget.js" async></script>`;
     try {
       await navigator.clipboard.writeText(code);
     } catch (err) {
