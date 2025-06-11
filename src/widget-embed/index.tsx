@@ -241,8 +241,18 @@ function injectWidgetResponsiveCSS() {
       
       /* Additional styles for better responsiveness */
       @media (max-width: 640px) {
-        /* .gap-8 { gap: 1rem; } */
-        .px-8 { padding-left: 1rem; padding-right: 1rem; }
+        .pr-widget-card,
+        .swiper-slide article {
+          min-height: 240px;
+          height: auto !important;
+          max-height: none !important;
+          padding-bottom: 24px;
+        }
+        .pr-widget-nav-row,
+        .flex-row.items-center.justify-center {
+          flex-direction: column !important;
+          gap: 0.5rem !important;
+        }
       }
     `;
     document.head.appendChild(style);
@@ -477,10 +487,11 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
   return (
     <>
       <div className="flex flex-col items-center">
-        <div className="flex flex-row items-center justify-center gap-6 sm:gap-15 px-2 md:px-4 w-full max-w-4xl mx-auto">
+        <div className="flex flex-col-reverse sm:flex-row items-center justify-center gap-4 sm:gap-6 sm:gap-15 px-2 md:px-4 w-full max-w-4xl mx-auto">
+          {/* Navigation and pagination, always rendered */}
           <button
             ref={prevRef}
-            className="rounded-full border border-gray-200 w-10 h-10 min-w-10 min-h-10 flex items-center justify-center transition z-10"
+            className="rounded-full border border-gray-200 w-10 h-10 min-w-10 min-h-10 flex items-center justify-center transition z-10 mx-2 order-1 sm:order-none"
             aria-label="Previous"
             style={{
               width: 40,
@@ -496,7 +507,7 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
               <polygon points="12.5,3 5.5,10 12.5,17" fill={design.accentColor || '#111'} />
             </svg>
           </button>
-          <div className="flex-1 flex justify-center">
+          <div className="flex-1 flex justify-center order-2 sm:order-none">
             <Swiper
               key={String(design.autoAdvance)}
               onSwiper={setSwiperInstance}
@@ -508,24 +519,24 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
               ]}
               spaceBetween={30}
               slidesPerView={3}
+              breakpoints={{
+                320: { slidesPerView: 1, spaceBetween: 20 },
+                640: { slidesPerView: 2, spaceBetween: 20 },
+                1024: { slidesPerView: 3, spaceBetween: 30 },
+              }}
               navigation={{ prevEl: prevRef.current, nextEl: nextRef.current }}
               pagination={{ clickable: true, el: '.pr-widget-pagination' }}
               {...(design.autoAdvance ? { autoplay: {
                 delay: (design.slideshowSpeed ?? 4) * 1000,
                 disableOnInteraction: false,
               }} : {})}
-              breakpoints={{
-                320: { slidesPerView: 1, spaceBetween: 20 },
-                640: { slidesPerView: 2, spaceBetween: 20 },
-                1024: { slidesPerView: 3, spaceBetween: 30 },
-              }}
               className="max-w-5xl w-full"
             >
               {reviews.map((review, index) => (
                 <SwiperSlide key={review.id || index}>
                   <div style={{ position: 'relative', width: '100%', height: '100%' }}>
                     <article
-                      className="flex flex-col items-center gap-4 py-6 relative bg-white rounded-3xl w-full px-4 md:px-[15px] justify-center flex-1"
+                      className="flex flex-col flex-1 items-center gap-4 py-6 relative bg-white rounded-3xl w-full px-4 md:px-[15px] justify-center"
                       style={{
                         background: design.bgColor === 'transparent' ? 'none' : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
                         color: design.textColor,
@@ -540,14 +551,14 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                       itemScope
                       itemType="https://schema.org/Review"
                     >
-                      <div className="pr-widget-photo-content flex flex-col justify-center items-center" style={{ position: 'relative', height: '100%', paddingLeft: 32, paddingRight: 32, overflow: 'visible' }}>
+                      <div className="pr-widget-photo-content flex flex-col justify-between h-full items-center" style={{ position: 'relative', height: '100%', padding: '6px 16px' }}>
                         <div style={{ position: 'relative', width: '100%' }}>
                           {/* Opening quote, absolutely positioned to the left, aligned with top of text */}
                           {design.showQuotes && (
                             <span style={{
                               position: 'absolute',
-                              left: 0,
-                              top: 0,
+                              left: -8,
+                              top: -16,
                               fontSize: 68,
                               color: lightenHex(design.accentColor, 0.7),
                               opacity: 0.4,
@@ -570,11 +581,11 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                               zIndex: 1,
                             }}>”</span>
                           )}
-                          <div className="flex flex-col items-center justify-center w-full" style={{ padding: '0 48px' }}>
+                          <div className="flex flex-col items-center justify-center w-full px-4 md:px-8" style={{ paddingLeft: 16, paddingRight: 16, mdPaddingLeft: 32, mdPaddingRight: 32 }}>
                             <div className="flex items-center justify-center mb-2 mt-1">
                               {typeof review.star_rating === 'number' && !isNaN(review.star_rating) && renderStars(review.star_rating)}
                             </div>
-                            <div className="w-full text-center" style={{ fontSize: 18, lineHeight: design.lineSpacing, color: design.bodyTextColor }}>
+                            <div className="w-full text-center" style={{ fontSize: 14, lineHeight: design.lineSpacing, color: design.bodyTextColor }}>
                               {review.review_content}
                             </div>
                           </div>
@@ -618,7 +629,7 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
           </div>
           <button
             ref={nextRef}
-            className="rounded-full border border-gray-200 w-10 h-10 min-w-10 min-h-10 flex items-center justify-center transition z-10"
+            className="rounded-full border border-gray-200 w-10 h-10 min-w-10 min-h-10 flex items-center justify-center transition z-10 mx-2 order-3 sm:order-none"
             aria-label="Next"
             style={{
               width: 40,
@@ -634,25 +645,25 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
               <polygon points="7.5,3 14.5,10 7.5,17" fill={design.accentColor || '#111'} />
             </svg>
           </button>
+          <div className="pr-widget-pagination flex justify-center order-2 sm:order-none w-full mt-4 sm:mt-0" />
         </div>
-      </div>
-      <div className="pr-widget-pagination flex justify-center mt-6" />
-      {design.showSubmitReviewButton && data.universalPromptSlug && (
-        <div className="max-w-5xl mx-auto pr-8 w-full">
-          <div className="flex justify-end mt-2">
-            <a
-              href={`/r/${data.universalPromptSlug}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={buttonStyle}
-              onMouseEnter={() => setSubmitHover(true)}
-              onMouseLeave={() => setSubmitHover(false)}
-            >
-              Submit a review
-            </a>
+        {design.showSubmitReviewButton && data.universalPromptSlug && (
+          <div className="max-w-5xl mx-auto pr-8 w-full">
+            <div className="flex justify-end mt-2">
+              <a
+                href={`/r/${data.universalPromptSlug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={buttonStyle}
+                onMouseEnter={() => setSubmitHover(true)}
+                onMouseLeave={() => setSubmitHover(false)}
+              >
+                Submit a review
+              </a>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </>
   );
 };
@@ -660,9 +671,6 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
 // SingleWidget implementation
 const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
   const design = getDesignWithDefaults(data.design);
-  // Debug log
-  console.log('SingleWidget data:', data);
-  console.log('SingleWidget design:', design);
   const { reviews } = data;
   const prevRef = React.useRef(null);
   const nextRef = React.useRef(null);
@@ -684,6 +692,13 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
     }
   }, [swiperInstance, prevRef, nextRef]);
 
+  useEffect(() => {
+    if (swiperInstance && swiperInstance.pagination && typeof swiperInstance.pagination.render === 'function') {
+      swiperInstance.pagination.render();
+      swiperInstance.pagination.update();
+    }
+  }, [swiperInstance, reviews]);
+
   const cardBg = design.bgColor === 'transparent' ? 'none' : hexToRgba(design.bgColor, design.bgOpacity ?? 1);
   const accent = design.accentColor;
   const navArrowBg = design.bgColor === 'transparent' ? 'rgba(255,255,255,0.4)' : hexToRgba(design.bgColor, 0.4);
@@ -695,7 +710,6 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
     display: 'inline-block',
     border: `2px solid ${navArrowBorder}`,
     background: buttonBg,
-    color: accent,
     borderRadius: design.borderRadius,
     padding: '4px 16px',
     fontWeight: 500,
@@ -710,10 +724,10 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
   return (
     <>
       <div className="flex flex-col items-center">
-        <div className="flex flex-row items-center justify-center gap-6 sm:gap-15 px-2 md:px-4 w-full max-w-4xl mx-auto">
+        <div className="flex flex-col sm:flex-row items-center justify-center w-full max-w-3xl mx-auto px-4 gap-4 relative">
           <button
             ref={prevRef}
-            className="rounded-full border border-gray-200 w-10 h-10 min-w-10 min-h-10 flex items-center justify-center transition z-10"
+            className="rounded-full border border-gray-200 w-10 h-10 min-w-10 min-h-10 flex items-center justify-center transition order-1 sm:order-none sm:absolute sm:left-0 sm:top-1/2 sm:-translate-y-1/2 sm:-ml-16 z-10"
             aria-label="Previous"
             style={{
               width: 40,
@@ -729,7 +743,7 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
               <polygon points="12.5,3 5.5,10 12.5,17" fill={design.accentColor || '#111'} />
             </svg>
           </button>
-          <div className="flex-1 flex justify-center">
+          <div className="flex-1 flex justify-center order-2 sm:order-none">
             <Swiper
               key={String(design.autoAdvance)}
               onSwiper={setSwiperInstance}
@@ -751,31 +765,27 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
             >
               {reviews.map((review, index) => (
                 <SwiperSlide key={review.id || index}>
-                  <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                  <div className="flex justify-center w-full">
                     <article
-                      className="flex flex-col items-center gap-4 py-6 relative bg-white rounded-3xl w-full px-4 md:px-[15px] justify-center flex-1"
+                      className="flex flex-col flex-1 items-center gap-4 py-6 relative bg-white rounded-3xl w-full max-w-2xl px-4 md:px-6 justify-center"
                       style={{
                         background: design.bgColor === 'transparent' ? 'none' : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
                         color: design.textColor,
                         minHeight: 320,
-                        maxHeight: 320,
-                        height: 320,
                         border: design.border ? `${design.borderWidth ?? 2}px solid ${design.borderColor ?? '#cccccc'}` : 'none',
                         borderRadius: design.borderRadius,
                         boxShadow: design.shadow ? `inset 0 4px 32px 0 ${hexToRgba(design.shadowColor ?? '#222222', design.shadowIntensity ?? 0.2)}` : 'none',
-                        overflow: 'hidden',
                       }}
                       itemScope
                       itemType="https://schema.org/Review"
                     >
-                      <div className="pr-widget-photo-content flex flex-col justify-center items-center" style={{ position: 'relative', height: '100%', paddingLeft: 32, paddingRight: 32, overflow: 'visible' }}>
-                        <div style={{ position: 'relative', width: '100%' }}>
-                          {/* Opening quote, absolutely positioned to the left, aligned with top of text */}
+                      <div className="flex flex-col flex-1 w-full h-full" style={{ position: 'relative', padding: '0 16px' }}>
+                        <div className="flex-1 flex flex-col items-center justify-center w-full" style={{ position: 'relative', width: '100%' }}>
                           {design.showQuotes && (
                             <span style={{
                               position: 'absolute',
-                              left: 0,
-                              top: 0,
+                              left: 16,
+                              top: 32,
                               fontSize: 68,
                               color: lightenHex(design.accentColor, 0.7),
                               opacity: 0.4,
@@ -784,7 +794,6 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                               zIndex: 1,
                             }}>“</span>
                           )}
-                          {/* Closing quote, absolutely positioned to the right, aligned with bottom of text */}
                           {design.showQuotes && (
                             <span style={{
                               position: 'absolute',
@@ -798,16 +807,18 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                               zIndex: 1,
                             }}>”</span>
                           )}
-                          <div className="flex flex-col items-center justify-center w-full" style={{ padding: '0 48px' }}>
+                          <div className="flex flex-col items-center justify-center w-full min-h-[180px]">
                             <div className="flex items-center justify-center mb-2 mt-1">
                               {typeof review.star_rating === 'number' && !isNaN(review.star_rating) && renderStars(review.star_rating)}
                             </div>
-                            <div className="w-full text-center" style={{ fontSize: 18, lineHeight: design.lineSpacing, color: design.bodyTextColor }}>
-                              {review.review_content}
+                            <div className="flex items-center justify-center w-full">
+                              <div className="w-full text-center" style={{ fontSize: 16, lineHeight: design.lineSpacing, color: design.bodyTextColor }}>
+                                {review.review_content}
+                              </div>
                             </div>
                           </div>
                         </div>
-                        <div className="flex flex-col items-center gap-1 w-full mt-auto">
+                        <div className="flex flex-col items-center gap-1 w-full mt-4">
                           <span
                             className="font-semibold"
                             itemProp="author"
@@ -846,7 +857,7 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
           </div>
           <button
             ref={nextRef}
-            className="rounded-full border border-gray-200 w-10 h-10 min-w-10 min-h-10 flex items-center justify-center transition z-10"
+            className="rounded-full border border-gray-200 w-10 h-10 min-w-10 min-h-10 flex items-center justify-center transition order-3 sm:order-none sm:absolute sm:right-0 sm:top-1/2 sm:-translate-y-1/2 sm:-mr-16 z-10"
             aria-label="Next"
             style={{
               width: 40,
@@ -863,8 +874,8 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
             </svg>
           </button>
         </div>
+        <div className="pr-widget-pagination flex justify-center mt-6" />
       </div>
-      <div className="pr-widget-pagination flex justify-center mt-6" />
       {design.showSubmitReviewButton && data.universalPromptSlug && (
         <div className="max-w-5xl mx-auto pr-8 w-full">
           <div className="flex justify-end mt-2">
@@ -1021,14 +1032,14 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                           </div>
                         )}
                       </div>
-                      <div className="pr-widget-photo-content flex flex-col justify-center items-center" style={{ position: 'relative', height: '100%', paddingLeft: 32, paddingRight: 32, overflow: 'visible' }}>
+                      <div className="pr-widget-photo-content flex flex-col justify-between h-full items-center" style={{ position: 'relative', height: '100%', paddingLeft: 32, paddingRight: 32, overflow: 'visible' }}>
                         <div style={{ position: 'relative', width: '100%' }}>
                           {/* Opening quote, absolutely positioned to the left, aligned with top of text */}
                           {design.showQuotes && (
                             <span style={{
                               position: 'absolute',
-                              left: 0,
-                              top: 0,
+                              left: -8,
+                              top: -16,
                               fontSize: 68,
                               color: lightenHex(design.accentColor, 0.7),
                               opacity: 0.4,
@@ -1051,12 +1062,14 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                               zIndex: 1,
                             }}>”</span>
                           )}
-                          <div className="flex flex-col items-center justify-center w-full" style={{ padding: '0 48px' }}>
+                          <div className="flex flex-col items-center justify-center w-full h-[180px] flex-1">
                             <div className="flex items-center justify-center mb-2 mt-1">
                               {typeof review.star_rating === 'number' && !isNaN(review.star_rating) && renderStars(review.star_rating)}
                             </div>
-                            <div className="w-full text-center" style={{ fontSize: 18, lineHeight: design.lineSpacing, color: design.bodyTextColor }}>
-                              {review.review_content}
+                            <div className="flex items-center justify-center w-full">
+                              <div className="w-full text-center" style={{ fontSize: 14, lineHeight: design.lineSpacing, color: design.bodyTextColor }}>
+                                {review.review_content}
+                              </div>
                             </div>
                           </div>
                         </div>
