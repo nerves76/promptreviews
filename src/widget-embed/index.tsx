@@ -1183,8 +1183,6 @@ document.addEventListener('DOMContentLoaded', () => {
       // Inject all necessary widget styles before rendering
       injectWidgetResponsiveCSS();
       injectWidgetNavCSS();
-      await injectSwiperCSS();
-      injectSwiperNavCSS();
       const root = ReactDOM.createRoot(element);
       const data = await fetchWidgetData(widgetId);
       if (!data) return;
