@@ -131,7 +131,6 @@ export default function DashboardContent({
   const [showTypeModal, setShowTypeModal] = useState(false);
   const [selectedType, setSelectedType] = useState("");
   const [copyLinkId, setCopyLinkId] = useState<string | null>(null);
-  const [showLimitModal, setShowLimitModal] = useState(false);
   const [showPostSaveModal, setShowPostSaveModal] = useState(false);
   const [postSaveData, setPostSaveData] = useState<{
     url: string;
@@ -193,7 +192,7 @@ export default function DashboardContent({
         account &&
         account.custom_prompt_page_count >= maxBuilderPages)
     ) {
-      setShowLimitModal(true);
+      router.push('/dashboard/plan');
       return;
     }
     setShowTypeModal(false);
@@ -871,34 +870,6 @@ export default function DashboardContent({
                     </button>
                   ))}
                 </div>
-              </div>
-            </div>
-          )}
-
-          {/* Prompt page limit exceeded modal */}
-          {showLimitModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-              <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full relative">
-                <button
-                  className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
-                  onClick={() => setShowLimitModal(false)}
-                  aria-label="Close"
-                >
-                  &times;
-                </button>
-                <h2 className="text-2xl font-bold text-slate-blue mb-2">
-                  Prompt page limit exceeded
-                </h2>
-                <p className="mb-6 text-gray-700">
-                  You have reached the maximum number of prompt pages for your
-                  plan. Upgrade to create more.
-                </p>
-                <a
-                  href="/dashboard/plan"
-                  className="inline-block px-4 py-2 bg-slate-blue text-white rounded-lg font-medium hover:bg-slate-blue/90 transition"
-                >
-                  Upgrade Plan
-                </a>
               </div>
             </div>
           )}

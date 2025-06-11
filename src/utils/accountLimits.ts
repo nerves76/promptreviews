@@ -30,6 +30,8 @@ export async function checkAccountLimits(
     limit = 100;
   } else if (account.plan === "community_champion") {
     limit = 500;
+  } else if (account.plan === "free") {
+    return { allowed: true };
   }
   // Count current usage
   let count = 0;
@@ -51,6 +53,7 @@ export async function checkAccountLimits(
     return {
       allowed: false,
       reason: `Limit reached for your plan (${limit} ${type === "prompt_page" ? "prompt pages" : "contacts"}).`,
+      limit,
     };
   }
   return { allowed: true };

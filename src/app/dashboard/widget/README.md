@@ -55,4 +55,76 @@ This module provides UI and logic for managing reviews associated with widgets i
 
 ---
 
+## Widget Embed & Rendering on External Sites
+
+### How Embedding Works
+- Each widget can be embedded on any website using a simple embed code snippet, which looks like:
+  ```html
+  <div id="promptreviews-widget" data-widget="YOUR_WIDGET_ID"></div>
+  <script src="https://app.promptreviews.app/widget.js" async></script>
+  ```
+- The `data-widget` attribute should be set to the unique widget ID you want to display.
+- The script (`widget.js`) is responsible for loading the widget code and rendering the widget in place of the div.
+
+### How the Widget is Rendered
+- When the script loads, it:
+  1. Reads the `data-widget` attribute to get the widget ID.
+  2. Fetches the widget configuration and reviews from the backend (using the widget ID).
+  3. Renders the widget using the same React components as the dashboard preview (ensuring a unified look and behavior).
+  4. Applies all design settings (colors, fonts, border, etc.) as configured in the dashboard.
+
+### How Settings Are Saved and Loaded
+- Widget settings (design, display options, etc.) are saved in the database (typically in the `widgets` table) when you use the dashboard UI.
+- When a widget is loaded (either in the dashboard preview or via the embed), the backend returns the saved settings, which are merged with any defaults.
+- Any changes made in the dashboard must be saved and, if you want them to appear on external sites, the embed script may need to be rebuilt and redeployed (if you are self-hosting the script).
+- The embed always fetches the latest settings from the backend, so changes in the dashboard are reflected in real time (unless cached or unless you are using a static build of the script).
+
+### Notes
+- The embed code is designed to be copy-paste simple for end users.
+- If you add new settings or features, ensure the backend API and the embed script both support them.
+- For troubleshooting, check the browser console for errors and ensure the widget ID is correct.
+
+_Last updated: 2024-06-07_
+
+---
+
+## Consistency Between Dashboard Preview and Embedded Widget
+
+### Why Might the Embedded Widget Look Different?
+- **Stale or Cached Settings:**
+  - The embed fetches the latest settings from the backend, but browser or CDN caching can cause old settings to be used. Always clear cache or use cache-busting techniques when testing changes.
+- **Script Version Mismatch:**
+  - If you update the widget code (React components, CSS, etc.), but the external site is loading an old version of `widget.js`, the embed may not reflect the latest changes. Make sure the script is rebuilt and redeployed after updates.
+- **Environment Differences:**
+  - The dashboard preview may have access to more data (e.g., draft reviews, user-specific settings) than the public embed, which only loads published and public data.
+- **Design Propagation:**
+  - If new design settings are added, ensure they are saved in the database, returned by the API, and used in both the dashboard and embed environments. Missing fields can cause the embed to fall back to defaults.
+- **CSS/Font Loading:**
+  - The dashboard may load global styles or fonts that are not included in the embed. Make sure all required CSS and fonts are bundled with or loaded by the embed script.
+- **Feature Flags or Conditional Logic:**
+  - Some features may be enabled only in the dashboard for testing. Double-check that all intended features are enabled in production embeds.
+
+### Best Practices When Adding Features
+- **Update All Layers:**
+  - When adding a new setting or feature, update:
+    1. The dashboard UI (for editing the setting)
+    2. The database schema (to store the setting)
+    3. The API/backend (to return the setting)
+    4. The embed script and React components (to use the setting)
+- **Test in Both Environments:**
+  - Always test new features in both the dashboard preview and a real external embed to ensure consistency.
+- **Document New Settings:**
+  - Add documentation for new settings and features in this README to help future developers.
+- **Handle Defaults Carefully:**
+  - When loading settings, always merge with sensible defaults to avoid undefined behavior if a field is missing.
+- **Check for Breaking Changes:**
+  - If you change the structure of the widget data or settings, ensure backward compatibility or provide a migration path.
+
+### Troubleshooting Checklist
+- Is the embed script up to date and deployed?
+- Are all settings being saved and returned by the API?
+- Are there any console errors in the browser?
+- Are all required assets (CSS, fonts) loaded in the embed?
+- Is the widget ID correct in the embed code?
+
 _Last updated: 2024-06-07_ 
