@@ -1169,11 +1169,16 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
 // Initialize widgets
 document.addEventListener('DOMContentLoaded', () => {
   const widgetElements = document.querySelectorAll('.promptreviews-widget');
-  widgetElements.forEach((element) => {
+  widgetElements.forEach(async (element) => {
     const widgetId = element.getAttribute('data-widget');
     if (widgetId) {
       const root = ReactDOM.createRoot(element);
-      root.render(<WidgetContainer widgetId={widgetId} />);
+      const data = await fetchWidgetData(widgetId);
+      if (!data) return;
+      let WidgetComponent = MultiWidget;
+      if (data.widget_type === 'single') WidgetComponent = SingleWidget;
+      if (data.widget_type === 'photo') WidgetComponent = PhotoWidget;
+      root.render(<WidgetComponent data={data} />);
     }
   });
 });
