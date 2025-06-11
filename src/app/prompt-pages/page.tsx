@@ -346,9 +346,9 @@ export default function PromptPages() {
             )}
           </div>
         </PageCard>
-        <div className="w-full max-w-[1000px] mx-auto mt-0">
+        <div className="w-full max-w-[1000px] mx-auto mt-0 px-2 sm:px-4 md:px-8 mb-6">
           {/* Prompt Pages Table (replica of dashboard) */}
-          <div className="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg mb-6">
+          <div className="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
             <PromptPagesTable
               promptPages={promptPages}
               business={business}
