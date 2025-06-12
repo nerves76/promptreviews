@@ -7,7 +7,26 @@ module.exports = {
     "./src/widget-embed/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   safelist: [
-    "bg-white", "rounded-3xl", "flex", "flex-col", "items-center", "justify-center", "w-full", "max-w-4xl", "max-w-3xl", "max-w-6xl", "mx-auto", "px-2", "px-4", "px-8", "md:px-4", "md:px-6", "md:px-8", "md:px-16", "gap-4", "gap-6", "gap-15", "order-1", "order-2", "order-3", "sm:flex-row", "sm:order-none", "sm:gap-6", "sm:gap-15", "sm:absolute", "sm:left-0", "sm:top-1/2", "sm:-translate-y-1/2", "sm:-ml-16", "sm:right-0", "sm:-mr-16", "relative", "rounded-full", "rounded-3xl", "rounded-l-2xl", "border", "border-gray-200", "bg-white", "bg-gray-50", "bg-gray-100", "shadow", "transition", "z-10", "min-w-10", "min-h-10", "h-10", "w-10", "mb-2", "mt-1", "mt-4", "text-xs", "font-semibold", "text-gray-400", "text-gray-900", "text-center", "text-sm", "text-gray-500", "text-gray-600", "text-gray-700", "text-purple-700", "text-blue-700", "text-green-700", "text-indigo-600", "text-indigo-700", "text-slate-blue", "pr-widget-pagination", "pr-widget-photo-content", "pr-widget-photo-img", "pr-widget-photo-author"
+    // Layout and responsive classes for widgets
+    "flex", "flex-col", "flex-row", "items-center", "items-stretch", "justify-center", "justify-between", "flex-1",
+    "w-full", "w-2/5", "h-full", "h-[320px]", "sm:h-[320px]", "min-h-[180px]", "max-h-[320px]", "min-w-10", "min-h-10",
+    "rounded-3xl", "rounded-full", "rounded-l-2xl", "border", "border-gray-200", "bg-white", "bg-gray-50", "bg-gray-100",
+    "shadow", "transition", "z-10", "order-1", "order-2", "order-3", "sm:order-none", "sm:flex-row", "sm:gap-6", "sm:gap-15",
+    "sm:absolute", "sm:left-0", "sm:top-1/2", "sm:right-0", "sm:-translate-y-1/2", "sm:-ml-16", "sm:-mr-16",
+    "mx-auto", "mx-2", "px-0", "px-2", "px-4", "px-8", "md:px-0", "md:px-4", "md:px-6", "md:px-8", "md:px-16",
+    "py-6", "h-10", "w-10", "mb-2", "mt-1", "mt-4", "mt-auto", "text-xs", "font-semibold", "text-gray-400", "text-gray-900",
+    "text-center", "text-sm", "text-gray-500", "text-gray-600", "text-gray-700", "text-purple-700", "text-blue-700", "text-green-700",
+    "text-indigo-600", "text-indigo-700", "text-slate-blue", "pr-widget-pagination",
+    // Utility and spacing
+    "gap-1", "gap-2", "gap-4", "gap-6", "gap-8", "gap-15", "sm:gap-6", "sm:gap-15",
+    // Max widths
+    "max-w-2xl", "max-w-3xl", "max-w-4xl", "max-w-5xl", "max-w-6xl",
+    // Object fit
+    "object-cover",
+    // For Swiper and navigation
+    "swiper-slide", "swiper-pagination-bullet", "swiper-pagination-bullet-active",
+    // Any other classes used in widget JSX
+    "overflow-hidden", "overflow-visible", "relative", "absolute",
   ],
   theme: {
     extend: {
