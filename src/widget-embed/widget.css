@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /* Custom PromptReviews Widget Styles */
-.pr-widget-root { max-width: 100%; margin: 0 auto; position: relative; }
+.pr-widget-root { max-width: 100%; margin: 0 auto; position: relative; background: yellow !important; }
 .pr-widget-card { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 24px 16px; position: relative; min-height: 320px; max-height: 320px; height: 320px; overflow: hidden; }
 .pr-widget-photo-card { display: flex; flex-direction: column; align-items: stretch; min-height: 320px; max-height: 320px; height: 320px; overflow: hidden; }
 .pr-widget-photo-img { display: flex; align-items: center; justify-content: center; background-color: #f3f4f6; overflow: hidden; width: 100%; min-width: 200px; height: 192px; }
