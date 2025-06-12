@@ -961,6 +961,11 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
               ]}
               spaceBetween={20}
               slidesPerView={1}
+              breakpoints={{
+                320: { slidesPerView: 1, spaceBetween: 20 },
+                640: { slidesPerView: 2, spaceBetween: 20 },
+                1024: { slidesPerView: 3, spaceBetween: 30 },
+              }}
               navigation={{ prevEl: prevRef.current, nextEl: nextRef.current }}
               pagination={{ clickable: true, el: '.pr-widget-pagination' }}
               {...(design.autoAdvance ? { autoplay: {
