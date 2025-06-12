@@ -368,7 +368,7 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const prevRef = useRef<HTMLButtonElement>(null);
   const nextRef = useRef<HTMLButtonElement>(null);
-  const swiperRef = useRef<SwiperType>();
+  const swiperRef = useRef<SwiperType>(null);
   const reviews = getFilteredAndSortedReviews(data.reviews);
   const navArrowBg = 'rgba(255,255,255,0.6)';
 
