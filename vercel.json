@@ -1,0 +1,10 @@
+{
+  "headers": [
+    {
+      "source": "/widget.css",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
+      ]
+    }
+  ]
+} 
