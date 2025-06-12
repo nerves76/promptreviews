@@ -506,35 +506,10 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
 const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
   const design = getDesignWithDefaults(data.design);
   const { reviews } = data;
-  const prevRef = React.useRef(null);
-  const nextRef = React.useRef(null);
-  const [swiperInstance, setSwiperInstance] = React.useState<any>(null);
   const [submitHover, setSubmitHover] = useState(false);
 
-  React.useEffect(() => {
-    if (
-      swiperInstance &&
-      swiperInstance.params &&
-      swiperInstance.params.navigation &&
-      prevRef.current &&
-      nextRef.current
-    ) {
-      swiperInstance.params.navigation.prevEl = prevRef.current;
-      swiperInstance.params.navigation.nextEl = nextRef.current;
-      swiperInstance.navigation.init();
-      swiperInstance.navigation.update();
-    }
-  }, [swiperInstance, prevRef, nextRef]);
-
-  useEffect(() => {
-    if (swiperInstance && swiperInstance.pagination && typeof swiperInstance.pagination.render === 'function') {
-      swiperInstance.pagination.render();
-      swiperInstance.pagination.update();
-    }
-  }, [swiperInstance, reviews]);
-
   return (
-    <div className="flex flex-col items-center w-full max-w-md mx-auto bg-white rounded-lg shadow p-6">
+    <div className="flex flex-col items-center w-full max-w-3xl mx-auto bg-white rounded-2xl shadow p-6">
       {reviews && reviews.length > 0 && (
         <div className="flex flex-col items-center w-full">
           <div className="flex items-center justify-center mb-2 mt-1">
@@ -582,10 +557,10 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
   }, [swiperInstance, prevRef, nextRef]);
 
   return (
-    <div className="flex flex-col items-center w-full max-w-3xl mx-auto bg-white rounded-2xl shadow p-6">
+    <div className="flex flex-col items-center w-full max-w-md mx-auto bg-white rounded-2xl shadow p-4 sm:p-6">
       {reviews && reviews.length > 0 && (
-        <div className="flex flex-row items-stretch w-full gap-6">
-          <div className="flex items-center justify-center w-2/5 bg-gray-50 rounded-l-2xl overflow-hidden min-h-[180px] min-w-[120px]">
+        <div className="flex flex-row items-stretch w-full gap-4 sm:gap-6">
+          <div className="flex items-center justify-center w-2/5 bg-gray-50 rounded-l-2xl overflow-hidden min-h-[120px] min-w-[80px] sm:min-h-[180px] sm:min-w-[120px]">
             {reviews[0].photo_url ? (
               <img
                 src={reviews[0].photo_url}
@@ -610,8 +585,8 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
               </div>
             )}
           </div>
-          <div className="flex flex-col justify-between h-full items-center flex-1 px-8">
-            <div className="flex flex-col items-center justify-center w-full min-h-[180px]">
+          <div className="flex flex-col justify-between h-full items-center flex-1 px-4 sm:px-8">
+            <div className="flex flex-col items-center justify-center w-full min-h-[120px] sm:min-h-[180px]">
               <div className="flex items-center justify-center mb-2 mt-1">
                 {typeof reviews[0].star_rating === 'number' && !isNaN(reviews[0].star_rating) && renderStars(reviews[0].star_rating)}
               </div>
