@@ -85,6 +85,58 @@ Keys include supabase, Stripe, Resend
 
 ---
 
+## **Updating Widget Styles (Tailwind CSS Build)**
+
+**Widget CSS Management:**
+
+- All widget styles are managed directly in `public/widget.css`
+- This file is served directly to users and embedded sites
+- To modify widget styles:
+  1. Edit `public/widget.css` directly
+  2. Test your changes locally
+  3. Commit and push the changes
+  4. Deploy to update the live widget styles
+
+Note: The widget CSS is now managed manually to ensure reliable updates and direct control over the final output.
+
+**How the build works (now automated):**
+
+- The `package.json` build script runs:
+  ```sh
+  npx tailwindcss -i ./src/widget-embed/widget.css -o ./public/widget.css --minify
+  ```
+  as part of every Vercel deployment.
+- **You do NOT need to run this command manually before pushing.**
+- Vercel will always generate the latest CSS from your source on every deploy.
+- A safelist is included in `src/widget-embed/widget.css` to ensure all Tailwind utility classes used in widget JSX are present in the final CSS, even if not detected by Tailwind's scan.
+
+**How to update widget styles:**
+
+1. Edit your styles in `src/widget-embed/widget.css` (and/or your widget JSX).
+2. Commit and push your changes.
+3. Vercel will build and deploy the correct, up-to-date CSS automatically.
+
+**Summary:**
+- No more manual CSS builds needed.
+- No more missing classes in production.
+- Just edit, commit, and push—Vercel takes care of the rest.
+
+For more details, see the safelist comment in `src/widget-embed/widget.css`.
+
+**Tip:**
+- You can add this to your `package.json` scripts for convenience:
+  ```json
+  "scripts": {
+    "build:widget:css": "npx tailwindcss -i ./src/widget-embed/widget.css -o ./public/widget.css --minify"
+  }
+  ```
+  Then just run:
+  ```sh
+  npm run build:widget:css
+  ```
+
+---
+
 ## **Debugging Tips**
 
 - **If login/auth breaks:**
