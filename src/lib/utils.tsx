@@ -1,10 +1,4 @@
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
 import React from 'react';
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
 
 export const renderStars = (rating: number) => {
   if (typeof rating !== 'number' || isNaN(rating)) return null;
@@ -36,4 +30,4 @@ export const renderStars = (rating: number) => {
     );
   }
   return <span style={{ display: 'inline-flex', alignItems: 'center', marginBottom: 4 }}>{stars}</span>;
-};
+}; 

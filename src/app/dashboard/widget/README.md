@@ -88,6 +88,50 @@ _Last updated: 2024-06-07_
 
 ---
 
+## Updating Widget Styles (Tailwind CSS Build)
+
+**Widget CSS Management:**
+
+- All widget styles are managed directly in `public/widget.css`
+- This file is served directly to users and embedded sites
+- To modify widget styles:
+  1. Edit `public/widget.css` directly
+  2. Test your changes locally
+  3. Commit and push the changes
+  4. Deploy to update the live widget styles
+
+Note: The widget CSS is now managed manually to ensure reliable updates and direct control over the final output.
+
+**How to update widget styles:**
+
+1. Edit your styles in `src/widget-embed/widget.css`.
+2. Run the following command to generate the production CSS:
+   ```sh
+   npx tailwindcss -i ./src/widget-embed/widget.css -o ./public/widget.css --minify
+   ```
+   This will also update `public/widget.css.map` for debugging.
+3. Commit and push both `src/widget-embed/widget.css` and the generated `public/widget.css` (and optionally `public/widget.css.map`).
+4. Deploy as usual.
+
+**Why?**
+- `public/widget.css` is the file actually served to users and embedded sites.
+- It is always generated from your source file by Tailwind/PostCSS.
+- Manual edits to `public/widget.css` will be lost on the next build.
+
+**Tip:**
+- You can add this to your `package.json` scripts for convenience:
+  ```json
+  "scripts": {
+    "build:widget:css": "npx tailwindcss -i ./src/widget-embed/widget.css -o ./public/widget.css --minify"
+  }
+  ```
+  Then just run:
+  ```sh
+  npm run build:widget:css
+  ```
+
+---
+
 ## Consistency Between Dashboard Preview and Embedded Widget
 
 ### Why Might the Embedded Widget Look Different?
@@ -127,4 +171,68 @@ _Last updated: 2024-06-07_
 - Are all required assets (CSS, fonts) loaded in the embed?
 - Is the widget ID correct in the embed code?
 
-_Last updated: 2024-06-07_ 
+_Last updated: 2024-06-07_
+
+# Widget Styling
+
+The widget styles are now managed directly in `public/widget.css` using CSS variables. This approach provides several benefits:
+
+1. Direct control over the final CSS output
+2. Easy customization through CSS variables
+3. No build process required for style updates
+4. Immediate visibility of changes
+
+## CSS Variables
+
+The widget uses the following CSS variables for styling:
+
+- `--card-background`: Background color of review cards
+- `--card-border-radius`: Border radius of cards
+- `--card-border-color`: Color of card borders
+- `--card-border-width`: Width of card borders
+- `--text-color`: Color of review text
+- `--heading-color`: Color of reviewer names
+- `--accent-color`: Color of accents (quotes, navigation)
+- `--section-background`: Background color of the widget section
+- `--card-shadow-intensity`: Intensity of card shadow
+- `--card-shadow-color`: Color of card shadow
+
+## Modifying Widget Styles
+
+To modify widget styles:
+
+1. Edit `public/widget.css` directly
+2. Test changes locally
+3. Commit and push changes
+4. Deploy to update live widget styles
+
+## Design Settings
+
+The widget's design settings from the edit style modal are applied by setting these CSS variables in the widget component. This ensures that any changes made in the dashboard are immediately reflected in the widget's appearance.
+
+## Responsive Design
+
+The widget is fully responsive and uses CSS media queries to adjust its layout based on screen size. The main breakpoints are:
+
+- Mobile: Single column layout
+- Tablet (640px+): Two column layout
+- Desktop (1024px+): Three column layout
+
+## Browser Support
+
+The widget uses modern CSS features that are supported by all major browsers:
+
+- CSS Variables
+- Flexbox
+- Grid
+- Media Queries
+- Backdrop Filter
+
+## Performance
+
+The widget's CSS is optimized for performance:
+
+- Minimal CSS footprint
+- No unused styles
+- Efficient selectors
+- Hardware-accelerated animations 

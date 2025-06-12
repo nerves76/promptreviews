@@ -2,10 +2,14 @@ import React, { useRef, useEffect, useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserClient } from '@supabase/ssr';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import type { Swiper as SwiperType } from 'swiper';
 import { Navigation, Pagination, A11y, Autoplay } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
+import { FONT_FAMILIES } from '../lib/constants';
+import { Review } from '../types';
+import { renderStars } from '../lib/utils';
 
 // Define the widget types
 type WidgetType = 'single' | 'multi' | 'photo';
@@ -149,39 +153,6 @@ function getRelativeTime(dateString: string) {
   if (hours > 0) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
   if (minutes > 0) return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
   return "just now";
-}
-
-// Add star rating rendering helper
-function renderStars(rating: number) {
-  if (typeof rating !== 'number' || isNaN(rating)) return null;
-  const stars = [];
-  for (let i = 1; i <= 5; i++) {
-    const full = i <= Math.floor(rating);
-    const half = !full && i - 0.5 <= rating;
-    const gradientId = `half-star-gradient-${i}-${Math.random()}`;
-    stars.push(
-      <svg
-        key={i}
-        width="16"
-        height="16"
-        viewBox="0 0 20 20"
-        fill={full ? '#FBBF24' : half ? `url(#${gradientId})` : '#E5E7EB'}
-        stroke="#FBBF24"
-        style={{ display: 'inline-block', marginRight: 2 }}
-      >
-        {half && (
-          <defs>
-            <linearGradient id={gradientId}>
-              <stop offset="50%" stopColor="#FBBF24" />
-              <stop offset="50%" stopColor="#E5E7EB" />
-            </linearGradient>
-          </defs>
-        )}
-        <polygon points="10,1 12.59,7.36 19.51,7.64 14,12.14 15.82,18.99 10,15.27 4.18,18.99 6,12.14 0.49,7.64 7.41,7.36" />
-      </svg>
-    );
-  }
-  return <span style={{ display: 'inline-flex', alignItems: 'center', marginBottom: 4 }}>{stars}</span>;
 }
 
 // Helper to convert hex to rgba
@@ -386,242 +357,127 @@ function injectWidgetNavCSS() {
   }
 }
 
-// Helper to map font name to font-family CSS string
-const FONT_FAMILIES: Record<string, string> = {
-  'Inter': 'Inter, sans-serif',
-  'Roboto': 'Roboto, sans-serif',
-  'Open Sans': 'Open Sans, sans-serif',
-  'Lato': 'Lato, sans-serif',
-  'Montserrat': 'Montserrat, sans-serif',
-  'Poppins': 'Poppins, sans-serif',
-  'Source Sans 3': 'Source Sans 3, sans-serif',
-  'Raleway': 'Raleway, sans-serif',
-  'Nunito': 'Nunito, sans-serif',
-  'Playfair Display': 'Playfair Display, serif',
-  'Merriweather': 'Merriweather, serif',
-  'Roboto Slab': 'Roboto Slab, serif',
-  'PT Sans': 'PT Sans, sans-serif',
-  'Oswald': 'Oswald, sans-serif',
-  'Roboto Condensed': 'Roboto Condensed, sans-serif',
-  'Source Serif 4': 'Source Serif 4, serif',
-  'Noto Sans': 'Noto Sans, sans-serif',
-  'Ubuntu': 'Ubuntu, sans-serif',
-  'Work Sans': 'Work Sans, sans-serif',
-  'Quicksand': 'Quicksand, sans-serif',
-  'Josefin Sans': 'Josefin Sans, sans-serif',
-  'Mukta': 'Mukta, sans-serif',
-  'Rubik': 'Rubik, sans-serif',
-  'IBM Plex Sans': 'IBM Plex Sans, sans-serif',
-  'Barlow': 'Barlow, sans-serif',
-  'Mulish': 'Mulish, sans-serif',
-  'Comfortaa': 'Comfortaa, cursive',
-  'Outfit': 'Outfit, sans-serif',
-  'Plus Jakarta Sans': 'Plus Jakarta Sans, sans-serif',
-  'Courier Prime': 'Courier Prime, monospace',
-  'IBM Plex Mono': 'IBM Plex Mono, monospace',
-  'Arial': 'Arial, sans-serif',
-  'Helvetica': 'Helvetica, sans-serif',
-  'Verdana': 'Verdana, sans-serif',
-  'Tahoma': 'Tahoma, sans-serif',
-  'Trebuchet MS': 'Trebuchet MS, sans-serif',
-  'Times New Roman': 'Times New Roman, serif',
-  'Georgia': 'Georgia, serif',
-  'Courier New': 'Courier New, monospace',
-  'Lucida Console': 'Lucida Console, monospace',
-  'Palatino': 'Palatino, serif',
-  'Garamond': 'Garamond, serif',
+const getFilteredAndSortedReviews = (reviews: Review[]) => {
+  return reviews.filter(review => review.review_content && review.review_content.trim().length > 0)
+    .sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
 };
 
 // MultiWidget implementation
 const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
-  const design = getDesignWithDefaults(data.design);
-  // Debug log
-  console.log('MultiWidget data:', data);
-  console.log('MultiWidget design:', design);
-  const { reviews } = data;
-  const prevRef = React.useRef(null);
-  const nextRef = React.useRef(null);
-  const [swiperInstance, setSwiperInstance] = React.useState<any>(null);
-  const [submitHover, setSubmitHover] = useState(false);
+  const design = getDesignWithDefaults(data.design || {});
+  const [activeIndex, setActiveIndex] = useState(0);
+  const prevRef = useRef<HTMLButtonElement>(null);
+  const nextRef = useRef<HTMLButtonElement>(null);
+  const swiperRef = useRef<SwiperType>();
+  const reviews = getFilteredAndSortedReviews(data.reviews);
+  const navArrowBg = 'rgba(255,255,255,0.6)';
 
-  React.useEffect(() => {
-    if (
-      swiperInstance &&
-      swiperInstance.params &&
-      swiperInstance.params.navigation &&
-      prevRef.current &&
-      nextRef.current
-    ) {
-      swiperInstance.params.navigation.prevEl = prevRef.current;
-      swiperInstance.params.navigation.nextEl = nextRef.current;
-      swiperInstance.navigation.init();
-      swiperInstance.navigation.update();
-    }
-  }, [swiperInstance, prevRef, nextRef]);
-
-  const cardBg = design.bgColor === 'transparent' ? 'none' : hexToRgba(design.bgColor, design.bgOpacity ?? 1);
-  const accent = design.accentColor;
-  const navArrowBg = design.bgColor === 'transparent' ? 'rgba(255,255,255,0.4)' : hexToRgba(design.bgColor, 0.4);
-  const navArrowBorder = navArrowBg;
-  const buttonBg = submitHover
-    ? (design.bgColor === 'transparent' ? 'rgba(255,255,255,0.2)' : hexToRgba(design.bgColor, 0.2))
-    : navArrowBg;
-  const buttonStyle = {
-    display: 'inline-block',
-    border: `2px solid ${navArrowBorder}`,
-    background: buttonBg,
-    color: accent,
-    borderRadius: design.borderRadius,
-    padding: '4px 16px',
-    fontWeight: 500,
-    fontSize: 14,
-    textDecoration: 'none',
-    cursor: 'pointer',
-    transition: 'all 0.2s',
-    boxSizing: 'border-box',
-    transform: 'translateX(7px)',
-  };
+  // Set CSS variables based on design
+  useEffect(() => {
+    const root = document.documentElement;
+    root.style.setProperty('--card-background', design.bgColor);
+    root.style.setProperty('--card-border-radius', `${design.borderRadius}px`);
+    root.style.setProperty('--card-border-color', design.borderColor);
+    root.style.setProperty('--card-border-width', `${design.borderWidth}px`);
+    root.style.setProperty('--text-color', design.textColor);
+    root.style.setProperty('--heading-color', design.nameTextColor);
+    root.style.setProperty('--accent-color', design.accentColor);
+    root.style.setProperty('--section-background', design.sectionBgType === 'none' ? 'transparent' : design.sectionBgColor);
+    root.style.setProperty('--card-shadow-intensity', design.shadowIntensity?.toString() || '0.2');
+    root.style.setProperty('--card-shadow-color', design.shadowColor || '#222222');
+  }, [design]);
 
   return (
     <>
       {/* Get more reviews! Widget by PromptReviews.app */}
       <div
-        className="flex flex-col items-center"
+        className="promptreviews-widget flex flex-col items-center"
         style={{ fontFamily: FONT_FAMILIES[design.font] || 'Inter, sans-serif' }}
         data-pr-identifier="PromptReviews.app"
+        data-bg-type={design.sectionBgType}
+        data-shadow={design.shadow}
+        data-border={design.border}
       >
         <div className="flex flex-col-reverse sm:flex-row items-center justify-center gap-4 sm:gap-6 sm:gap-15 px-2 md:px-4 w-full max-w-4xl mx-auto">
           {/* Navigation and pagination, always rendered */}
           <button
             ref={prevRef}
-            className="rounded-full border border-gray-200 w-10 h-10 min-w-10 min-h-10 flex items-center justify-center transition z-10 mx-2 order-1 sm:order-none"
+            className="nav-button"
             aria-label="Previous"
-            style={{
-              width: 40,
-              height: 40,
-              minWidth: 40,
-              minHeight: 40,
-              aspectRatio: '1 / 1',
-              background: navArrowBg,
-              backdropFilter: 'blur(2px)',
-            }}
           >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{ display: 'block', margin: 'auto' }}>
-              <polygon points="12.5,3 5.5,10 12.5,17" fill={design.accentColor || '#111'} />
+              <polygon points="12.5,3 5.5,10 12.5,17" fill="currentColor" />
             </svg>
           </button>
-          <div className="flex-1 flex justify-center order-2 sm:order-none">
+
+          <div className="flex-1">
             <Swiper
-              key={String(design.autoAdvance)}
-              onSwiper={setSwiperInstance}
-              modules={[
-                Navigation,
-                Pagination,
-                A11y,
-                ...(design.autoAdvance ? [Autoplay] : [])
-              ]}
-              spaceBetween={20}
+              modules={[Navigation, Pagination, A11y, Autoplay]}
+              spaceBetween={30}
               slidesPerView={1}
-              breakpoints={{
-                320: { slidesPerView: 1, spaceBetween: 20 },
-                640: { slidesPerView: 2, spaceBetween: 20 },
-                1024: { slidesPerView: 3, spaceBetween: 30 },
+              navigation={{
+                prevEl: prevRef.current,
+                nextEl: nextRef.current,
               }}
-              navigation={{ prevEl: prevRef.current, nextEl: nextRef.current }}
-              pagination={{ clickable: true, el: '.pr-widget-pagination' }}
-              {...(design.autoAdvance ? { autoplay: {
-                delay: (design.slideshowSpeed ?? 4) * 1000,
+              pagination={{ clickable: true }}
+              onBeforeInit={(swiper) => {
+                swiperRef.current = swiper;
+              }}
+              onSlideChange={(swiper) => setActiveIndex(swiper.activeIndex)}
+              autoplay={design.autoAdvance ? {
+                delay: design.slideshowSpeed * 1000,
                 disableOnInteraction: false,
-              }} : {})}
-              className="max-w-5xl w-full"
+              } : false}
+              className="w-full"
             >
               {reviews.map((review, index) => (
                 <SwiperSlide key={review.id || index}>
                   <div style={{ position: 'relative', width: '100%', height: '100%' }}>
                     <article
-                      className="flex flex-col flex-1 items-center gap-4 py-6 relative bg-white rounded-3xl w-full px-4 md:px-[15px] justify-center"
-                      style={{
-                        background: design.bgColor === 'transparent' ? 'none' : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
-                        color: design.textColor,
-                        minHeight: 320,
-                        maxHeight: 320,
-                        height: 320,
-                        border: design.border ? `${design.borderWidth ?? 2}px solid ${design.borderColor ?? '#cccccc'}` : '2px solid red',
-                        borderRadius: design.borderRadius,
-                        boxShadow: design.shadow ? `inset 0 4px 32px 0 ${hexToRgba(design.shadowColor ?? '#222222', design.shadowIntensity ?? 0.2)}` : 'none',
-                        overflow: 'hidden',
-                      }}
+                      className="card"
                       itemScope
                       itemType="https://schema.org/Review"
                     >
-                      <div className="pr-widget-photo-content flex flex-col justify-between h-full items-center" style={{ position: 'relative', height: '100%', padding: '6px 16px' }}>
+                      <div className="pr-widget-photo-content flex flex-col justify-between h-full items-center">
                         <div style={{ position: 'relative', width: '100%' }}>
-                          {/* Opening quote, absolutely positioned to the left, aligned with top of text */}
+                          {/* Opening quote */}
                           {design.showQuotes && (
-                            <span style={{
-                              position: 'absolute',
-                              left: -8,
-                              top: -16,
-                              fontSize: 68,
-                              color: lightenHex(design.accentColor, 0.7),
-                              opacity: 0.4,
-                              fontFamily: 'Georgia, Times, \'Times New Roman\', serif',
-                              lineHeight: 1,
-                              zIndex: 1,
-                            }}>“</span>
+                            <span className="quote quote-open">"</span>
                           )}
-                          {/* Closing quote, absolutely positioned to the right, aligned with bottom of text */}
+                          {/* Closing quote */}
                           {design.showQuotes && (
-                            <span style={{
-                              position: 'absolute',
-                              right: 0,
-                              bottom: -56,
-                              fontSize: 68,
-                              color: lightenHex(design.accentColor, 0.7),
-                              opacity: 0.4,
-                              fontFamily: 'Georgia, Times, \'Times New Roman\', serif',
-                              lineHeight: 1,
-                              zIndex: 1,
-                            }}>”</span>
+                            <span className="quote quote-close">"</span>
                           )}
-                          <div className="flex flex-col items-center justify-center w-full px-4 md:px-8" style={{ paddingLeft: 16, paddingRight: 16 }}>
+                          <div className="flex flex-col items-center justify-center w-full px-4 md:px-8">
                             <div className="flex items-center justify-center mb-2 mt-1">
                               {typeof review.star_rating === 'number' && !isNaN(review.star_rating) && renderStars(review.star_rating)}
                             </div>
-                            <div className="w-full text-center" style={{ fontSize: 14, lineHeight: design.lineSpacing, color: design.bodyTextColor }}>
+                            <div className="text">
                               {review.review_content}
                             </div>
                           </div>
                         </div>
                         <div className="flex flex-col items-center gap-1 w-full mt-auto">
                           <span
-                            className="font-semibold"
+                            className="heading"
                             itemProp="author"
                             itemScope
                             itemType="https://schema.org/Person"
-                            style={{ fontSize: design.attributionFontSize * 0.85, color: design.nameTextColor }}
                           >
                             <span itemProp="name">
                               {review.first_name} {review.last_name}
                             </span>
                           </span>
                           <span
-                            className="text-xs"
+                            className="text"
                             itemProp="author"
                             itemScope
                             itemType="https://schema.org/Person"
-                            style={{ fontSize: design.attributionFontSize * 0.85, color: design.roleTextColor }}
                           >
                             <span itemProp="jobTitle">
                               {review.reviewer_role}
                             </span>
                           </span>
-                          {design.showRelativeDate && review.created_at && (
-                            <span className="text-xs text-gray-400 mt-1">
-                              {getRelativeTime(review.created_at)}
-                              {review.platform && review.platform !== 'custom' ? ` via ${review.platform}` : ''}
-                            </span>
-                          )}
                         </div>
                       </div>
                     </article>
@@ -630,25 +486,16 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
               ))}
             </Swiper>
           </div>
+
           <button
             ref={nextRef}
-            className="rounded-full border border-gray-200 w-10 h-10 min-w-10 min-h-10 flex items-center justify-center transition z-10 mx-2 order-3 sm:order-none"
+            className="nav-button"
             aria-label="Next"
-            style={{
-              width: 40,
-              height: 40,
-              minWidth: 40,
-              minHeight: 40,
-              aspectRatio: '1 / 1',
-              background: navArrowBg,
-              backdropFilter: 'blur(2px)',
-            }}
           >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{ display: 'block', margin: 'auto' }}>
-              <polygon points="7.5,3 14.5,10 7.5,17" fill={design.accentColor || '#111'} />
+              <polygon points="7.5,3 14.5,10 7.5,17" fill="currentColor" />
             </svg>
           </button>
-          <div className="pr-widget-pagination flex justify-center order-2 sm:order-none w-full mt-4 sm:mt-0" />
         </div>
       </div>
     </>
