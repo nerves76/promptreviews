@@ -9,7 +9,7 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import { FONT_FAMILIES } from '../lib/constants';
 import { Review } from '../types';
-import { renderStars } from '../lib/utils';
+import { renderStars } from '../lib/renderStars';
 
 // Define the widget types
 type WidgetType = 'single' | 'multi' | 'photo';
