@@ -163,4 +163,19 @@
   .md\:px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
   .md\:px-\[15px\] { padding-left: 15px; padding-right: 15px; }
   .md\:px-0 { padding-left: 0; padding-right: 0; }
+}
+.text-gray-400 { color: #9ca3af; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mt-1 { margin-top: 0.25rem; }
+.max-w-5xl { max-width: 64rem; }
+.max-w-2xl { max-width: 42rem; }
+.min-h-\[180px\], .min-h-[180px] { min-height: 180px; }
+.h-\[320px\], .h-[320px] { height: 320px; }
+.object-cover { object-fit: cover; }
+.w-12 { width: 3rem; }
+.h-12 { height: 3rem; }
+@media (min-width: 640px) {
+  .sm\:-translate-y-1\/2 { transform: translateY(-50%); }
+  .sm\:-ml-16 { margin-left: -4rem; }
+  .sm\:-mr-16 { margin-right: -4rem; }
 } 
