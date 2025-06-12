@@ -1167,7 +1167,7 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
 };
 
 // Initialize widgets
-document.addEventListener('DOMContentLoaded', () => {
+function initPromptReviewsWidgets() {
   const widgetElements = document.querySelectorAll('.promptreviews-widget');
   widgetElements.forEach(async (element) => {
     const widgetId = element.getAttribute('data-widget');
@@ -1192,7 +1192,13 @@ document.addEventListener('DOMContentLoaded', () => {
       root.render(<WidgetComponent data={data} />);
     }
   });
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initPromptReviewsWidgets);
+} else {
+  initPromptReviewsWidgets();
+}
 
 // Helper function to parse widget ID
 function parseWidgetId(widgetId: string) {
