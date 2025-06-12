@@ -570,8 +570,8 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                 A11y,
                 ...(design.autoAdvance ? [Autoplay] : [])
               ]}
-              spaceBetween={30}
-              slidesPerView={3}
+              spaceBetween={20}
+              slidesPerView={1}
               breakpoints={{
                 320: { slidesPerView: 1, spaceBetween: 20 },
                 640: { slidesPerView: 2, spaceBetween: 20 },
@@ -766,10 +766,10 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
         style={{ fontFamily: FONT_FAMILIES[design.font] || 'Inter, sans-serif' }}
         data-pr-identifier="PromptReviews.app"
       >
-        <div className="flex flex-col sm:flex-row items-center justify-center w-full max-w-3xl mx-auto px-4 gap-4 relative">
+        <div className="flex flex-col-reverse sm:flex-row items-center justify-center gap-4 sm:gap-6 sm:gap-15 px-2 md:px-4 w-full max-w-4xl mx-auto">
           <button
             ref={prevRef}
-            className="rounded-full border border-gray-200 w-10 h-10 min-w-10 min-h-10 flex items-center justify-center transition order-1 sm:order-none sm:absolute sm:left-0 sm:top-1/2 sm:-translate-y-1/2 sm:-ml-16 z-10"
+            className="rounded-full border border-gray-200 w-10 h-10 min-w-10 min-h-10 flex items-center justify-center transition z-10 mx-2 order-1 sm:order-none"
             aria-label="Previous"
             style={{
               width: 40,
@@ -795,7 +795,7 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                 A11y,
                 ...(design.autoAdvance ? [Autoplay] : [])
               ]}
-              spaceBetween={30}
+              spaceBetween={20}
               slidesPerView={1}
               navigation={{ prevEl: prevRef.current, nextEl: nextRef.current }}
               pagination={{ clickable: true, el: '.pr-widget-pagination' }}
@@ -1009,7 +1009,7 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                 A11y,
                 ...(design.autoAdvance ? [Autoplay] : [])
               ]}
-              spaceBetween={30}
+              spaceBetween={20}
               slidesPerView={1}
               navigation={{ prevEl: prevRef.current, nextEl: nextRef.current }}
               pagination={{ clickable: true, el: '.pr-widget-pagination' }}
