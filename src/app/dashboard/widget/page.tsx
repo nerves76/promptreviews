@@ -15,7 +15,7 @@ import AppLoader from "@/app/components/AppLoader";
 import TopLoaderOverlay from "@/app/components/TopLoaderOverlay";
 import { useRouter } from "next/navigation";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-import { MultiWidget, SingleWidget, PhotoWidget, getDesignWithDefaults, hexToRgba, getRelativeTime, renderStars, lightenHex, injectWidgetResponsiveCSS, injectWidgetNavCSS } from '../../../widget-embed/index';
+import { MultiWidget, SingleWidget, PhotoWidget, getDesignWithDefaults, hexToRgba, getRelativeTime, renderStars, lightenHex, injectWidgetNavCSS } from '../../../widget-embed/index';
 
 export default function WidgetPage() {
   const [current, setCurrent] = useState(0);
@@ -204,7 +204,6 @@ export default function WidgetPage() {
   }, [design.bgColor]);
 
   useEffect(() => {
-    injectWidgetResponsiveCSS();
     injectWidgetNavCSS();
   }, []);
 
