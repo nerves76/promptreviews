@@ -546,7 +546,7 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                         minHeight: 320,
                         maxHeight: 320,
                         height: 320,
-                        border: design.border ? `${design.borderWidth ?? 2}px solid ${design.borderColor ?? '#cccccc'}` : 'none',
+                        border: design.border ? `${design.borderWidth ?? 2}px solid ${design.borderColor ?? '#cccccc'}` : '2px solid red',
                         borderRadius: design.borderRadius,
                         boxShadow: design.shadow ? `inset 0 4px 32px 0 ${hexToRgba(design.shadowColor ?? '#222222', design.shadowIntensity ?? 0.2)}` : 'none',
                         overflow: 'hidden',
@@ -764,7 +764,7 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                         background: design.bgColor === 'transparent' ? 'none' : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
                         color: design.textColor,
                         minHeight: 320,
-                        border: design.border ? `${design.borderWidth ?? 2}px solid ${design.borderColor ?? '#cccccc'}` : 'none',
+                        border: design.border ? `${design.borderWidth ?? 2}px solid ${design.borderColor ?? '#cccccc'}` : '2px solid red',
                         borderRadius: design.borderRadius,
                         boxShadow: design.shadow ? `inset 0 4px 32px 0 ${hexToRgba(design.shadowColor ?? '#222222', design.shadowIntensity ?? 0.2)}` : 'none',
                       }}
@@ -976,7 +976,7 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
             >
               {reviews.map((review, index) => (
                 <SwiperSlide key={review.id || index}>
-                  <div className="relative w-full h-full">
+                  <div className="relative w-full">
                     <article
                       className="flex flex-col sm:flex-row items-stretch h-auto sm:h-[320px] bg-white rounded-3xl w-full px-0 md:px-0 justify-center flex-1 shadow"
                       style={{
@@ -985,7 +985,7 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                         minHeight: 320,
                         maxHeight: 320,
                         height: 320,
-                        border: design.border ? `${design.borderWidth ?? 2}px solid ${design.borderColor ?? '#cccccc'}` : 'none',
+                        border: design.border ? `${design.borderWidth ?? 2}px solid ${design.borderColor ?? '#cccccc'}` : '2px solid red',
                         borderRadius: design.borderRadius,
                         boxShadow: design.shadow ? `inset 0 4px 32px 0 ${hexToRgba(design.shadowColor ?? '#222222', design.shadowIntensity ?? 0.2)}` : 'none',
                         overflow: 'hidden',
