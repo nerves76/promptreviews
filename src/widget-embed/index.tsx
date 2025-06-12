@@ -1021,7 +1021,7 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
             >
               {reviews.map((review, index) => (
                 <SwiperSlide key={review.id || index}>
-                  <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                  <div className="relative w-full h-full">
                     <article
                       className="flex flex-col sm:flex-row items-stretch h-auto sm:h-[320px] bg-white rounded-3xl w-full px-0 md:px-0 justify-center flex-1 shadow"
                       style={{
@@ -1038,7 +1038,7 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                       itemScope
                       itemType="https://schema.org/Review"
                     >
-                      <div className="pr-widget-photo-img flex items-center justify-center w-2/5 bg-gray-50 rounded-l-2xl overflow-hidden" style={{ minHeight: 180, minWidth: 120 }}>
+                      <div className="flex items-center justify-center w-2/5 bg-gray-50 rounded-l-2xl overflow-hidden" style={{ minHeight: 180, minWidth: 120 }}>
                         {review.photo_url ? (
                           <img
                             src={review.photo_url}
@@ -1063,8 +1063,8 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                           </div>
                         )}
                       </div>
-                      <div className="pr-widget-photo-content flex flex-col justify-between h-full items-center" style={{ position: 'relative', height: '100%', paddingLeft: 32, paddingRight: 32, overflow: 'visible' }}>
-                        <div style={{ position: 'relative', width: '100%' }}>
+                      <div className="flex flex-col justify-between h-full items-center relative px-8 overflow-visible">
+                        <div className="relative w-full">
                           {/* Opening quote, absolutely positioned to the left, aligned with top of text */}
                           {design.showQuotes && (
                             <span style={{
@@ -1104,7 +1104,7 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                             </div>
                           </div>
                         </div>
-                        <div className="pr-widget-photo-author" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 'auto', gap: 0 }}>
+                        <div className="flex flex-col items-center mt-auto gap-0">
                           <span
                             className="font-semibold"
                             itemProp="author"
@@ -1128,7 +1128,7 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                             </span>
                           </span>
                           {design.showRelativeDate && review.created_at && (
-                            <span className="text-xs text-gray-400 mt-1" style={{ marginBottom: 0 }}>
+                            <span className="text-xs text-gray-400 mt-1 mb-0">
                               {getRelativeTime(review.created_at)}
                               {review.platform && review.platform !== 'custom' ? ` via ${review.platform}` : ''}
                             </span>
@@ -1161,7 +1161,7 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
           </button>
         </div>
       </div>
-      <div className="pr-widget-pagination flex justify-center mt-6" />
+      <div className="flex justify-center mt-6" />
     </>
   );
 };
