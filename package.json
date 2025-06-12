@@ -7,7 +7,7 @@
     "build": "npm run build:widget && next build",
     "start": "next start",
     "lint": "next lint",
-    "build:widget": "node build-widget.js"
+    "build:widget": "node build-widget.js && npx tailwindcss -i ./src/widget-embed/widget.css -o ./public/widget.css --minify"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.3",
