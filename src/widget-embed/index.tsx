@@ -610,38 +610,38 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                     <div className="flex items-center justify-center mb-2 mt-1" style={{ minHeight: 36, width: '100%' }}>
                       {typeof review.star_rating === 'number' && !isNaN(review.star_rating) && renderStars(review.star_rating, 18)}
                     </div>
-                    <div className="w-full text-center text-[14px] text-gray-800 mb-4 break-words whitespace-pre-line overflow-x-hidden" style={{ position: 'relative' }}>
+                    <div className="w-full text-center text-[14px] text-gray-800 mb-4 break-words whitespace-pre-line overflow-x-hidden relative overflow-visible" style={{ position: 'relative' }}>
                       {design.showQuotes && (
                         <span style={{
                           position: 'absolute',
                           left: -12,
-                          top: -16,
-                          fontSize: 48,
+                          top: -32,
+                          fontSize: 68,
                           color: lightenHex(design.accentColor, 0.7),
                           opacity: 0.4,
                           fontFamily: 'Georgia, Times, \'Times New Roman\', serif',
                           lineHeight: 1,
                           zIndex: 1,
                         }}>
-                          &ldquo;
+                          ”
                         </span>
                       )}
                       <p className="text-[14px] text-center" style={{ color: design.textColor }}>
-                        {review.review_content}
+                        "{review.review_content}"
                       </p>
                       {design.showQuotes && (
                         <span style={{
                           position: 'absolute',
                           right: -12,
-                          bottom: -48,
-                          fontSize: 48,
+                          bottom: -96,
+                          fontSize: 68,
                           color: lightenHex(design.accentColor, 0.7),
                           opacity: 0.4,
                           fontFamily: 'Georgia, Times, \'Times New Roman\', serif',
                           lineHeight: 1,
                           zIndex: 1,
                         }}>
-                          &rdquo;
+                          ”
                         </span>
                       )}
                     </div>
@@ -727,38 +727,38 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                 <div className="flex items-center justify-center mb-2 mt-1" style={{ minHeight: 36, width: '100%' }}>
                   {typeof review.star_rating === 'number' && !isNaN(review.star_rating) && renderStars(review.star_rating, 18)}
                 </div>
-                <div className="w-full text-center text-[14px] text-gray-800 mb-4 break-words whitespace-pre-line overflow-x-hidden" style={{ position: 'relative' }}>
+                <div className="w-full text-center text-[14px] text-gray-800 mb-4 break-words whitespace-pre-line overflow-x-hidden relative overflow-visible" style={{ position: 'relative' }}>
                   {design.showQuotes && (
                     <span style={{
                       position: 'absolute',
                       left: -12,
-                      top: -16,
-                      fontSize: 48,
+                      top: -32,
+                      fontSize: 68,
                       color: lightenHex(design.accentColor, 0.7),
                       opacity: 0.4,
                       fontFamily: 'Georgia, Times, \'Times New Roman\', serif',
                       lineHeight: 1,
                       zIndex: 1,
                     }}>
-                      &ldquo;
+                      “
                     </span>
                   )}
                   <p className="text-[14px] text-center" style={{ color: design.textColor }}>
-                    {review.review_content}
+                    "{review.review_content}"
                   </p>
                   {design.showQuotes && (
                     <span style={{
                       position: 'absolute',
                       right: -12,
-                      bottom: -48,
-                      fontSize: 48,
+                      bottom: -96,
+                      fontSize: 68,
                       color: lightenHex(design.accentColor, 0.7),
                       opacity: 0.4,
                       fontFamily: 'Georgia, Times, \'Times New Roman\', serif',
                       lineHeight: 1,
                       zIndex: 1,
                     }}>
-                      &rdquo;
+                      ”
                     </span>
                   )}
                 </div>
@@ -991,8 +991,8 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                               {renderStars(review.star_rating, 20)}
                             </div>
                             {/* Review content and quotes */}
-                            <div className="flex flex-col items-center justify-center w-full min-h-[120px] sm:min-h-[180px]">
-                              <div className="w-full text-center text-[14px] text-gray-800 mb-4 break-words whitespace-pre-line overflow-x-auto sm:overflow-x-visible max-w-2xl mx-auto" style={{ position: 'relative' }}>
+                            <div className="flex flex-col items-center justify-center w-full min-h-[120px] sm:min-h-[180px] pb-12" style={{ position: 'relative' }}>
+                              <div className="w-full text-center text-[14px] text-gray-800 mb-4 break-words whitespace-pre-line overflow-x-hidden relative overflow-visible" style={{ position: 'relative' }}>
                                 {design.showQuotes && (
                                   <span style={{
                                     position: 'absolute',
@@ -1005,7 +1005,7 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                                     lineHeight: 1,
                                     zIndex: 1,
                                   }}>
-                                    &ldquo;
+                                    “
                                   </span>
                                 )}
                                 <p className="text-[14px] text-center" style={{ color: design.textColor }}>
@@ -1023,7 +1023,7 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                                     lineHeight: 1,
                                     zIndex: 1,
                                   }}>
-                                    &rdquo;
+                                    ”
                                   </span>
                                 )}
                               </div>
@@ -1307,21 +1307,21 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                               {renderStars(review.star_rating, 20)}
                             </div>
                             {/* Review content and quotes */}
-                            <div className="flex flex-col items-center justify-center w-full min-h-[120px] sm:min-h-[180px]">
-                              <div className="w-full text-center text-[14px] text-gray-800 mb-4 break-words whitespace-pre-line overflow-x-hidden" style={{ position: 'relative' }}>
+                            <div className="flex flex-col items-center justify-center w-full min-h-[120px] sm:min-h-[180px] pb-20" style={{ position: 'relative' }}>
+                              <div className="w-full text-center text-[14px] text-gray-800 mb-4 break-words whitespace-pre-line overflow-x-hidden relative overflow-visible" style={{ position: 'relative' }}>
                                 {design.showQuotes && (
                                   <span style={{
                                     position: 'absolute',
-                                    left: -12,
-                                    top: -16,
-                                    fontSize: 68,
+                                    left: 8,
+                                    top: 8,
+                                    fontSize: 40,
                                     color: lightenHex(design.accentColor, 0.7),
                                     opacity: 0.4,
                                     fontFamily: 'Georgia, Times, \'Times New Roman\', serif',
                                     lineHeight: 1,
                                     zIndex: 1,
                                   }}>
-                                    &ldquo;
+                                    “
                                   </span>
                                 )}
                                 <p className="text-[14px] text-center" style={{ color: design.textColor }}>
@@ -1330,16 +1330,16 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                                 {design.showQuotes && (
                                   <span style={{
                                     position: 'absolute',
-                                    right: -12,
-                                    bottom: -96,
-                                    fontSize: 68,
+                                    right: 16,
+                                    bottom: 16,
+                                    fontSize: 32,
+                                    zIndex: 10,
                                     color: lightenHex(design.accentColor, 0.7),
                                     opacity: 0.4,
                                     fontFamily: 'Georgia, Times, \'Times New Roman\', serif',
                                     lineHeight: 1,
-                                    zIndex: 1,
                                   }}>
-                                    &rdquo;
+                                     ”
                                   </span>
                                 )}
                               </div>
@@ -1480,21 +1480,21 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                             {renderStars(review.star_rating, 20)}
                           </div>
                           {/* Review content and quotes */}
-                          <div className="flex flex-col items-center justify-center w-full min-h-[120px] sm:min-h-[180px]">
-                            <div className="w-full text-center text-[14px] text-gray-800 mb-4 break-words whitespace-pre-line overflow-x-hidden" style={{ position: 'relative' }}>
+                          <div className="flex flex-col items-center justify-center w-full min-h-[120px] sm:min-h-[180px] pb-20" style={{ position: 'relative' }}>
+                            <div className="w-full text-center text-[14px] text-gray-800 mb-4 break-words whitespace-pre-line overflow-x-hidden relative overflow-visible" style={{ position: 'relative' }}>
                               {design.showQuotes && (
                                 <span style={{
                                   position: 'absolute',
-                                  left: -12,
-                                  top: -16,
-                                  fontSize: 68,
+                                  left: 8,
+                                  top: 8,
+                                  fontSize: 40,
                                   color: lightenHex(design.accentColor, 0.7),
                                   opacity: 0.4,
                                   fontFamily: 'Georgia, Times, \'Times New Roman\', serif',
                                   lineHeight: 1,
                                   zIndex: 1,
                                 }}>
-                                  &ldquo;
+                                  “
                                 </span>
                               )}
                               <p className="text-[14px] text-center" style={{ color: design.textColor }}>
@@ -1503,16 +1503,16 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                               {design.showQuotes && (
                                 <span style={{
                                   position: 'absolute',
-                                  right: -12,
-                                  bottom: -96,
-                                  fontSize: 68,
+                                  right: 16,
+                                  bottom: 16,
+                                  fontSize: 32,
+                                  zIndex: 10,
                                   color: lightenHex(design.accentColor, 0.7),
                                   opacity: 0.4,
                                   fontFamily: 'Georgia, Times, \'Times New Roman\', serif',
                                   lineHeight: 1,
-                                  zIndex: 1,
                                 }}>
-                                  &rdquo;
+                                  ”
                                 </span>
                               )}
                             </div>
