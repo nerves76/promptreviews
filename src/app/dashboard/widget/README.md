@@ -235,4 +235,15 @@ The widget's CSS is optimized for performance:
 - Minimal CSS footprint
 - No unused styles
 - Efficient selectors
-- Hardware-accelerated animations 
+- Hardware-accelerated animations
+
+---
+
+## Widget Photo/Avatar Rendering Logic
+
+- **Photo/avatar areas (the `pr-widget-photo-img` block) should only appear in the PhotoWidget and MultiWidget.**
+- **The SingleWidget should never render a photo/avatar area, even if a `photo_url` is present in the review data.**
+- If you see a photo or placeholder avatar on the single card, check for and remove any `pr-widget-photo-img` block in the SingleWidget component (`src/widget-embed/index.tsx`).
+- This ensures visual consistency and matches the intended design for each widget type.
+- The code for rendering the photo/avatar is similar across widgets, so be careful not to copy/paste it into the SingleWidget.
+- For future changes, always verify that only the intended widgets display reviewer photos. 

@@ -104,37 +104,35 @@ export default function WidgetList({
   });
 
   // Widget design state (for editing)
-  const [design, setDesign] = useState(
-    parentDesign || {
-      bgType: "solid", // 'none' | 'solid'
-      bgColor: "#FDFBF2",
-      textColor: "#22223b",
-      accentColor: "slateblue",
-      bodyTextColor: "#22223b",
-      nameTextColor: "#1a237e",
-      roleTextColor: "#6b7280",
-      quoteFontSize: 18,
-      attributionFontSize: 15,
-      borderRadius: 16,
-      shadow: true,
-      bgOpacity: 1,
-      autoAdvance: false,
-      slideshowSpeed: 4,
-      border: true,
-      borderWidth: 2,
-      lineSpacing: 1.4,
-      showQuotes: false,
-      showRelativeDate: false,
-      showGrid: false,
-      width: 1000, // Set default width to 1000
-      sectionBgType: "none",
-      sectionBgColor: "#ffffff",
-      shadowIntensity: 0.2,
-      shadowColor: '#222222',
-      borderColor: '#cccccc',
-      showSubmitReviewButton: true,
-    },
-  );
+  const [design, setDesign] = useState(parentDesign || {
+    bgType: "solid", // 'none' | 'solid'
+    bgColor: "#FDFBF2",
+    textColor: "#22223b",
+    accentColor: "slateblue",
+    bodyTextColor: "#22223b",
+    nameTextColor: "#1a237e",
+    roleTextColor: "#6b7280",
+    quoteFontSize: 18,
+    attributionFontSize: 15,
+    borderRadius: 16,
+    shadow: true,
+    bgOpacity: 1,
+    autoAdvance: false,
+    slideshowSpeed: 4,
+    border: true,
+    borderWidth: 2,
+    lineSpacing: 1.4,
+    showQuotes: false,
+    showRelativeDate: false,
+    showGrid: false,
+    width: 1000, // Set default width to 1000
+    sectionBgType: "none",
+    sectionBgColor: "#ffffff",
+    shadowIntensity: 0.2,
+    shadowColor: '#222222',
+    borderColor: '#cccccc',
+    showSubmitReviewButton: true,
+  });
 
   // Draggable edit modal state
   const [editModalPos, setEditModalPos] = useState({ x: 0, y: 0 });
@@ -172,13 +170,35 @@ export default function WidgetList({
   useEffect(() => {
     if (selectedWidget) {
       const widget = widgets.find(w => w.id === selectedWidget);
-      if (widget?.theme) {
-        setDesign({
-          ...widget.theme,
-          showSubmitReviewButton:
-            widget.theme.showSubmitReviewButton ?? widget.theme.submit_reviews_enabled ?? false,
-        });
-      }
+      setDesign(widget?.theme || {
+        bgType: "solid",
+        bgColor: "#FDFBF2",
+        textColor: "#22223b",
+        accentColor: "slateblue",
+        bodyTextColor: "#22223b",
+        nameTextColor: "#1a237e",
+        roleTextColor: "#6b7280",
+        quoteFontSize: 18,
+        attributionFontSize: 15,
+        borderRadius: 16,
+        shadow: true,
+        bgOpacity: 1,
+        autoAdvance: false,
+        slideshowSpeed: 4,
+        border: true,
+        borderWidth: 2,
+        lineSpacing: 1.4,
+        showQuotes: false,
+        showRelativeDate: false,
+        showGrid: false,
+        width: 1000,
+        sectionBgType: "none",
+        sectionBgColor: "#ffffff",
+        shadowIntensity: 0.2,
+        shadowColor: '#222222',
+        borderColor: '#cccccc',
+        showSubmitReviewButton: true,
+      });
     }
   }, [selectedWidget, widgets]);
 
@@ -705,7 +725,6 @@ export default function WidgetList({
         .from("widgets")
         .update({
           theme: { ...design },
-          submit_reviews_enabled: design.showSubmitReviewButton,
         })
         .eq("id", selectedWidget);
       if (error) throw error;
@@ -1286,41 +1305,46 @@ export default function WidgetList({
                     <div className="font-semibold text-gray-700 mb-3 text-sm">Border</div>
                     <div className="space-y-4">
                       <div className="flex items-center gap-2">
-                    <input
+                        <input
                           type="checkbox"
                           checked={design.border}
                           onChange={(e) => handleDesignChange("border", e.target.checked)}
                           className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                    />
+                        />
                         <label className="text-sm font-medium text-gray-700">
                           Show Border
-                    </label>
-                  </div>
+                        </label>
+                      </div>
                       {design.border && (
                         <>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
                               Border Color
-                    </label>
-                    <input
-                      type="color"
+                            </label>
+                            <input
+                              type="color"
                               value={design.borderColor || "#cccccc"}
                               onChange={(e) => handleDesignChange("borderColor", e.target.value)}
-                      className="w-full h-10 rounded-md border border-gray-300"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                              className="w-full h-10 rounded-md border border-gray-300"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
                               Border Width
-                    </label>
-                    <input
+                            </label>
+                            <input
                               type="number"
                               value={design.borderWidth}
                               onChange={(e) => handleDesignChange("borderWidth", parseInt(e.target.value) || 2)}
                               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                    />
+                            />
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </div>
-                  <div>
+                  {/* Border Radius Section (always visible) */}
+                  <div className="border border-gray-200 rounded-lg p-4 mt-4">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Border Radius
                     </label>
@@ -1330,10 +1354,6 @@ export default function WidgetList({
                       onChange={(e) => handleDesignChange("borderRadius", parseInt(e.target.value) || 16)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                     />
-                  </div>
-                        </>
-                      )}
-                    </div>
                   </div>
 
                   {/* Text Settings */}
@@ -1380,6 +1400,15 @@ export default function WidgetList({
                           value={design.bgColor || "#ffffff"}
                           onChange={e => handleDesignChange("bgColor", e.target.value)}
                           className="w-full h-10 rounded-md border border-gray-300"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Name Color</label>
+                    <input
+                      type="color"
+                      value={design.nameTextColor || "slateblue"}
+                      onChange={e => handleDesignChange("nameTextColor", e.target.value)}
+                      className="w-full h-10 rounded-md border border-gray-300"
                     />
                   </div>
                 </div>
