@@ -218,10 +218,10 @@ function injectWidgetResponsiveCSS() {
       .pr-widget-root { max-width: 100%; margin: 0 auto; position: relative; }
       .pr-widget-card { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 24px 16px; position: relative; min-height: 320px; max-height: 320px; height: 320px; overflow: hidden; }
       .pr-widget-photo-card { display: flex; flex-direction: column; align-items: stretch; min-height: 320px; max-height: 320px; height: 320px; overflow: hidden; }
-      .pr-widget-photo-img { display: flex; align-items: center; justify-content: center; background-color: #f3f4f6; overflow: hidden; width: 100%; min-width: 200px; height: 192px; }
+      .pr-widget-photo-img { display: flex; align-items: center; justify-content: center; background-color: #f3f4f6; overflow: hidden; width: 100%; min-width: 200px; height: 220px; }
       .pr-widget-photo-content { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 16px; position: relative; }
       @media (min-width: 640px) {
-        .pr-widget-photo-card { flex-direction: row; height: 320px; }
+        .pr-widget-photo-card { flex-direction: row; height: 440px; }
         .pr-widget-photo-img { width: 33.333333%; height: 100%; }
         .pr-widget-photo-content { padding: 32px; }
       }
@@ -259,7 +259,7 @@ function injectWidgetResponsiveCSS() {
         height: 100% !important; 
       }
       .swiper-slide article { 
-        height: 320px !important;
+        height: 440px !important;
         transition: all 0.3s ease;
       }
       
@@ -600,7 +600,7 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
             >
               {reviews.map((review, index) => (
                 <SwiperSlide key={review.id || index}>
-                  <div className="flex flex-col items-center justify-between bg-white rounded-3xl w-full px-4 sm:px-0 py-6 shadow max-h-[320px] h-[320px] overflow-y-auto overflow-x-hidden mx-auto text-sm" style={{
+                  <div className="flex flex-col items-center justify-between bg-white rounded-3xl w-full px-6 sm:px-6 py-6 shadow max-h-[320px] h-[320px] overflow-y-auto overflow-x-hidden mx-auto text-sm" style={{
                     background: design.bgColor === 'transparent' ? 'none' : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
                     color: design.textColor,
                     border: design.border ? `${design.borderWidth ?? 2}px solid ${design.borderColor ?? '#cccccc'}` : 'none',
@@ -608,7 +608,7 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                     boxShadow: design.shadow ? `inset 0 4px 32px 0 ${hexToRgba(design.shadowColor ?? '#222222', design.shadowIntensity ?? 0.2)}` : 'none',
                   }}>
                     <div className="flex items-center justify-center mb-2 mt-1" style={{ minHeight: 36, width: '100%' }}>
-                      {typeof review.star_rating === 'number' && !isNaN(review.star_rating) && renderStars(review.star_rating, 24)}
+                      {typeof review.star_rating === 'number' && !isNaN(review.star_rating) && renderStars(review.star_rating, 18)}
                     </div>
                     <div className="w-full text-center text-[14px] text-gray-800 mb-4 break-words whitespace-pre-line overflow-x-hidden" style={{ position: 'relative' }}>
                       {design.showQuotes && (
@@ -655,11 +655,9 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                       {design.showRelativeDate && review.created_at && (
                         <span className="text-xs text-gray-400 mt-1">
                           {getRelativeTime(review.created_at)}
-                        </span>
-                      )}
-                      {review.platform && (
-                        <span className="text-xs text-gray-400 mt-1">
-                          {review.platform}
+                          {(review.platform && !/^custom$/i.test(review.platform.trim())) && (
+                            <> via {review.platform}</>
+                          )}
                         </span>
                       )}
                     </div>
@@ -719,7 +717,7 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
         >
           {reviews.map((review, index) => (
             <SwiperSlide key={review.id || index}>
-              <div className="flex flex-col items-center justify-between bg-white rounded-3xl w-full px-4 py-6 shadow max-h-[320px] h-[320px] overflow-y-auto overflow-x-hidden mx-auto text-sm" style={{
+              <div className="flex flex-col items-center justify-between bg-white rounded-3xl w-full px-6 py-6 shadow max-h-[320px] h-[320px] overflow-y-auto overflow-x-hidden mx-auto text-sm" style={{
                 background: design.bgColor === 'transparent' ? 'none' : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
                 color: design.textColor,
                 border: design.border ? `${design.borderWidth ?? 2}px solid ${design.borderColor ?? '#cccccc'}` : 'none',
@@ -727,7 +725,7 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                 boxShadow: design.shadow ? `inset 0 4px 32px 0 ${hexToRgba(design.shadowColor ?? '#222222', design.shadowIntensity ?? 0.2)}` : 'none',
               }}>
                 <div className="flex items-center justify-center mb-2 mt-1" style={{ minHeight: 36, width: '100%' }}>
-                  {typeof review.star_rating === 'number' && !isNaN(review.star_rating) && renderStars(review.star_rating, 24)}
+                  {typeof review.star_rating === 'number' && !isNaN(review.star_rating) && renderStars(review.star_rating, 18)}
                 </div>
                 <div className="w-full text-center text-[14px] text-gray-800 mb-4 break-words whitespace-pre-line overflow-x-hidden" style={{ position: 'relative' }}>
                   {design.showQuotes && (
@@ -774,30 +772,24 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                   {design.showRelativeDate && review.created_at && (
                     <span className="text-xs text-gray-400 mt-1">
                       {getRelativeTime(review.created_at)}
-                    </span>
-                  )}
-                  {review.platform && (
-                    <span className="text-xs text-gray-400 mt-1">
-                      {review.platform}
+                      {(review.platform && !/^custom$/i.test(review.platform.trim())) && (
+                        <> via {review.platform}</>
+                      )}
                     </span>
                   )}
                 </div>
               </div>
             </SwiperSlide>
           ))}
-          <div ref={paginationRefMobile} className="swiper-pagination m-12" />
         </Swiper>
-        <div className="flex flex-row items-center justify-center w-full px-4" style={{ height: 48, marginTop: -24 }}>
+        <div className="flex flex-row items-center justify-between w-full px-4" style={{ marginTop: 24 }}>
           <button
             ref={prevRefMobile}
             className="rounded-full border border-gray-200 w-10 h-10 min-w-10 min-h-10 flex items-center justify-center transition z-10 hover:bg-opacity-80 active:scale-95 flex-shrink-0"
             aria-label="Previous"
             style={{
               background: design.bgColor === 'transparent' ? 'rgba(255,255,255,0.4)' : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
-              boxShadow: design.shadow ? `
-                inset 0 0 8px 0 ${hexToRgba('#000', 0.18)},
-                inset 0 0 2px 0 ${hexToRgba('#fff', 0.12)}
-              ` : 'none',
+              boxShadow: design.shadow ? `inset 0 0 8px 0 ${hexToRgba('#000', 0.18)}, inset 0 0 2px 0 ${hexToRgba('#fff', 0.12)}` : 'none',
               border: `1.5px solid ${hexToRgba('#888', 0.22)}`,
             }}
           >
@@ -812,10 +804,7 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
             aria-label="Next"
             style={{
               background: design.bgColor === 'transparent' ? 'rgba(255,255,255,0.4)' : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
-              boxShadow: design.shadow ? `
-                inset 0 0 8px 0 ${hexToRgba('#000', 0.18)},
-                inset 0 0 2px 0 ${hexToRgba('#fff', 0.12)}
-              ` : 'none',
+              boxShadow: design.shadow ? `inset 0 0 8px 0 ${hexToRgba('#000', 0.18)}, inset 0 0 2px 0 ${hexToRgba('#fff', 0.12)}` : 'none',
               border: `1.5px solid ${hexToRgba('#888', 0.22)}`,
             }}
           >
@@ -974,13 +963,13 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                     <SwiperSlide key={review.id || index}>
                       <div className="w-full max-w-full" style={{ position: 'relative', height: '100%' }}>
                         <article
-                          className="flex flex-col sm:flex-row items-stretch bg-white rounded-3xl w-full px-0 md:px-0 justify-center flex-1 shadow max-h-[400px] overflow-y-auto sm:h-[400px] overflow-hidden overflow-x-hidden relative"
+                          className="flex flex-col sm:flex-row items-stretch bg-white rounded-3xl w-full px-0 md:px-0 justify-center flex-1 shadow max-h-[440px] overflow-y-auto sm:h-[440px] overflow-hidden relative"
                           style={{
                             background: design.bgColor === 'transparent' ? 'none' : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
                             color: design.textColor,
                             border: design.border ? `${design.borderWidth ?? 2}px solid ${design.borderColor ?? '#cccccc'}` : 'none',
                             borderRadius: design.borderRadius,
-                            boxShadow: 'none',
+                            boxShadow: design.shadow ? `inset 0 4px 32px 0 ${hexToRgba(design.shadowColor ?? '#222222', design.shadowIntensity ?? 0.2)}` : 'none',
                           }}
                           itemScope
                           itemType="https://schema.org/Review"
@@ -999,7 +988,7 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                           <div className="flex flex-col justify-between h-full items-center flex-1 px-8 py-4">
                             {/* Stars at the very top of the card */}
                             <div className="flex items-center justify-center mb-2 mt-4" style={{ minHeight: 36, width: '100%' }}>
-                              {renderStars(review.star_rating, 32)}
+                              {renderStars(review.star_rating, 20)}
                             </div>
                             {/* Review content and quotes */}
                             <div className="flex flex-col items-center justify-center w-full min-h-[120px] sm:min-h-[180px]">
@@ -1276,7 +1265,7 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                     <SwiperSlide key={review.id || index}>
                       <div style={{ position: 'relative', width: '100%', height: '100%' }}>
                         <article
-                          className="flex flex-col sm:flex-row items-stretch bg-white rounded-3xl w-full px-0 md:px-0 justify-center flex-1 shadow max-h-[400px] overflow-y-auto sm:h-[400px] overflow-hidden"
+                          className="flex flex-col sm:flex-row items-stretch bg-white rounded-3xl w-full px-0 md:px-0 justify-center flex-1 shadow max-h-[440px] overflow-y-auto sm:h-[440px] overflow-hidden relative"
                           style={{
                             background: design.bgColor === 'transparent' ? 'none' : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
                             color: design.textColor,
@@ -1287,7 +1276,7 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                           itemScope
                           itemType="https://schema.org/Review"
                         >
-                          <div className="pr-widget-photo-img flex items-center justify-center w-full sm:w-2/5 sm:h-full bg-gray-50">
+                          <div className="pr-widget-photo-img flex items-center justify-center w-full sm:w-2/5 bg-gray-50 h-[440px] sm:h-full min-h-[440px]">
                             {review.photo_url ? (
                               <img
                                 src={review.photo_url}
@@ -1315,7 +1304,7 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                           <div className="flex flex-col justify-between h-full items-center flex-1 px-6 py-4">
                             {/* Stars at the very top of the card */}
                             <div className="flex items-center justify-center mb-2 mt-4" style={{ minHeight: 36, width: '100%' }}>
-                              {renderStars(review.star_rating, 32)}
+                              {renderStars(review.star_rating, 20)}
                             </div>
                             {/* Review content and quotes */}
                             <div className="flex flex-col items-center justify-center w-full min-h-[120px] sm:min-h-[180px]">
@@ -1414,7 +1403,10 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
             </div>
 
             {/* Mobile: Swiper with pagination and navigation below */}
-            <div className="sm:hidden w-full">
+            <div className="sm:hidden w-full relative" style={{ minHeight: 420 }}>
+              <div className="absolute left-0 right-0 flex justify-center" style={{ bottom: 20, zIndex: 10 }}>
+                <div ref={paginationRefMobile} className="swiper-pagination" />
+              </div>
               <Swiper
                 key={String(design.autoAdvance) + '-' + String(paginationReady)}
                 onSwiper={setSwiperInstanceMobile}
@@ -1446,7 +1438,7 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                   <SwiperSlide key={review.id || index}>
                     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
                       <article
-                        className="flex flex-col sm:flex-row items-stretch bg-white rounded-3xl w-full px-0 md:px-0 justify-center flex-1 shadow max-h-[400px] overflow-y-auto sm:h-[400px] overflow-hidden"
+                        className="flex flex-col bg-white rounded-3xl w-full px-0 justify-center flex-1 shadow h-[600px] max-h-[600px] overflow-hidden"
                         style={{
                           background: design.bgColor === 'transparent' ? 'none' : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
                           color: design.textColor,
@@ -1457,7 +1449,7 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                         itemScope
                         itemType="https://schema.org/Review"
                       >
-                        <div className="pr-widget-photo-img flex items-center justify-center w-full sm:w-2/5 sm:h-full bg-gray-50">
+                        <div className="w-full h-[440px] bg-gray-50 flex items-center justify-center overflow-hidden">
                           {review.photo_url ? (
                             <img
                               src={review.photo_url}
@@ -1485,7 +1477,7 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                         <div className="flex flex-col justify-between h-full items-center flex-1 px-6 py-4">
                           {/* Stars at the very top of the card */}
                           <div className="flex items-center justify-center mb-2 mt-4" style={{ minHeight: 36, width: '100%' }}>
-                            {renderStars(review.star_rating, 32)}
+                            {renderStars(review.star_rating, 20)}
                           </div>
                           {/* Review content and quotes */}
                           <div className="flex flex-col items-center justify-center w-full min-h-[120px] sm:min-h-[180px]">
@@ -1554,19 +1546,15 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                     </div>
                   </SwiperSlide>
                 ))}
-                <div ref={paginationRefMobile} className="swiper-pagination m-12" />
               </Swiper>
-              <div className="flex flex-row items-center justify-center w-full px-4" style={{ height: 48, marginTop: -24 }}>
+              <div className="flex flex-row items-center justify-between w-full px-4" style={{ marginTop: 24, position: 'relative', zIndex: 20 }}>
                 <button
                   ref={prevRefMobile}
                   className="rounded-full border border-gray-200 w-10 h-10 min-w-10 min-h-10 flex items-center justify-center transition z-10 hover:bg-opacity-80 active:scale-95 flex-shrink-0"
                   aria-label="Previous"
                   style={{
-                    background: cardBg,
-                    boxShadow: design.shadow ? `
-                      inset 0 0 8px 0 ${hexToRgba('#000', 0.18)},
-                      inset 0 0 2px 0 ${hexToRgba('#fff', 0.12)}
-                    ` : 'none',
+                    background: design.bgColor === 'transparent' ? 'rgba(255,255,255,0.4)' : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
+                    boxShadow: design.shadow ? `inset 0 0 8px 0 ${hexToRgba('#000', 0.18)}, inset 0 0 2px 0 ${hexToRgba('#fff', 0.12)}` : 'none',
                     border: `1.5px solid ${hexToRgba('#888', 0.22)}`,
                   }}
                 >
@@ -1580,11 +1568,8 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                   className="rounded-full border border-gray-200 w-10 h-10 min-w-10 min-h-10 flex items-center justify-center transition z-10 hover:bg-opacity-80 active:scale-95 flex-shrink-0"
                   aria-label="Next"
                   style={{
-                    background: cardBg,
-                    boxShadow: design.shadow ? `
-                      inset 0 0 8px 0 ${hexToRgba('#000', 0.18)},
-                      inset 0 0 2px 0 ${hexToRgba('#fff', 0.12)}
-                    ` : 'none',
+                    background: design.bgColor === 'transparent' ? 'rgba(255,255,255,0.4)' : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
+                    boxShadow: design.shadow ? `inset 0 0 8px 0 ${hexToRgba('#000', 0.18)}, inset 0 0 2px 0 ${hexToRgba('#fff', 0.12)}` : 'none',
                     border: `1.5px solid ${hexToRgba('#888', 0.22)}`,
                   }}
                 >
