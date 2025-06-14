@@ -7,7 +7,7 @@ import FiveStarSpinner from "@/app/components/FiveStarSpinner";
 import { ChatBubbleLeftIcon } from "@heroicons/react/24/outline";
 import { CheckIcon, DocumentDuplicateIcon } from "@heroicons/react/24/outline";
 
-const WORD_LIMIT = 120;
+const WORD_LIMIT = 250;
 const MAX_WIDGET_REVIEWS = 8;
 
 type Widget = {
@@ -104,8 +104,8 @@ export default function WidgetList({
   });
 
   // Widget design state (for editing)
-  const [design, setDesign] = useState(parentDesign || {
-    bgType: "solid", // 'none' | 'solid'
+  const [design, setDesign] = useState({
+    bgType: "solid" as "none" | "solid", // Ensure bgType is correctly typed
     bgColor: "#FDFBF2",
     textColor: "#22223b",
     accentColor: "slateblue",
@@ -119,14 +119,14 @@ export default function WidgetList({
     bgOpacity: 1,
     autoAdvance: false,
     slideshowSpeed: 4,
-    border: true,
+    border: true, // Ensure border is always defined
     borderWidth: 2,
     lineSpacing: 1.4,
     showQuotes: false,
     showRelativeDate: false,
     showGrid: false,
-    width: 1000, // Set default width to 1000
-    sectionBgType: "none",
+    width: 1000,
+    sectionBgType: "none" as "none" | "custom", // Ensure sectionBgType is correctly typed
     sectionBgColor: "#ffffff",
     shadowIntensity: 0.2,
     shadowColor: '#222222',
@@ -170,37 +170,20 @@ export default function WidgetList({
   useEffect(() => {
     if (selectedWidget) {
       const widget = widgets.find(w => w.id === selectedWidget);
-      setDesign(widget?.theme || {
-        bgType: "solid",
-        bgColor: "#FDFBF2",
-        textColor: "#22223b",
-        accentColor: "slateblue",
-        bodyTextColor: "#22223b",
-        nameTextColor: "#1a237e",
-        roleTextColor: "#6b7280",
-        quoteFontSize: 18,
-        attributionFontSize: 15,
-        borderRadius: 16,
-        shadow: true,
-        bgOpacity: 1,
-        autoAdvance: false,
-        slideshowSpeed: 4,
-        border: true,
-        borderWidth: 2,
-        lineSpacing: 1.4,
-        showQuotes: false,
-        showRelativeDate: false,
-        showGrid: false,
-        width: 1000,
-        sectionBgType: "none",
-        sectionBgColor: "#ffffff",
-        shadowIntensity: 0.2,
-        shadowColor: '#222222',
-        borderColor: '#cccccc',
-        showSubmitReviewButton: true,
-      });
+      // Use widget.design instead of widget.theme for design state
+      setDesign(widget?.design || {});
     }
   }, [selectedWidget, widgets]);
+
+  // Add effect to ensure showSubmitReviewButton is preserved when saving
+  useEffect(() => {
+    if (design && typeof design.showSubmitReviewButton === 'undefined') {
+      setDesign((prev: DesignState) => ({
+        ...prev,
+        showSubmitReviewButton: true
+      }));
+    }
+  }, [design]);
 
   // Listen for openNewWidgetForm event from parent
   useEffect(() => {
@@ -305,113 +288,53 @@ export default function WidgetList({
 
   // Update state update functions with proper types
   const handleSave = async () => {
-    if (!form.name.trim()) {
-      alert("Please enter a widget name");
-      return;
-    }
-
     const supabase = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
-
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      alert("You must be signed in to save a widget");
+      return;
+    }
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        alert("You must be signed in to create a widget");
-        return;
-      }
+      const { data: accountData, error: accountError } = await supabase
+        .from('accounts')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+      if (accountError) throw accountError;
+      const accountId = accountData.id;
 
-      // Get all accounts for this user via account_users
-      let { data: accountLinks, error: accountLinksError } = await supabase
-        .from("account_users")
-        .select("account_id, accounts(*)")
-        .eq("user_id", user.id);
-
-      let account_id;
-      if (accountLinksError) {
-        alert("Could not fetch accounts for user.");
-        return;
-      }
-      if (accountLinks && accountLinks.length > 0) {
-        // Use the first account the user belongs to
-        account_id = accountLinks[0].account_id;
-      } else {
-        // No account found, create a new account and link user as owner
-        const { data: newAccount, error: createAccountError } = await supabase
-          .from("accounts")
-          .insert([{ name: `${user.email || "My Account"}` }])
-          .select()
-          .single();
-        if (createAccountError || !newAccount) {
-          alert("Could not create account for user.");
-          return;
-        }
-        // Link user to new account as owner
-        const { data: accountUser, error: accountUserError } = await supabase
-          .from("account_users")
-          .insert([
-            {
-              account_id: newAccount.id,
-              user_id: user.id,
-              role: "owner",
-            },
-          ])
-          .select()
-          .single();
-        if (accountUserError || !accountUser) {
-          alert("Could not link user to new account.");
-          return;
-        }
-        account_id = newAccount.id;
-      }
-
-      if (editing) {
+      if (selectedWidget) {
         // Update existing widget
-        const { error } = await supabase
-          .from("widgets")
+        const { error: updateError } = await supabase
+          .from('widgets')
           .update({
             name: form.name.trim(),
-            account_id: account_id,
-            widget_type: form.widgetType,
+            design: design, // Persist the full design object
+            updated_at: new Date().toISOString(),
           })
-          .eq("id", editing);
-
-        if (error) throw error;
-
-        setWidgets(widgets.map((w) =>
-          w.id === editing ? { ...w, name: form.name.trim(), account_id: account_id, widget_type: form.widgetType } : w
-        ));
+          .eq('id', selectedWidget)
+          .eq('account_id', accountId);
+        if (updateError) throw updateError;
       } else {
         // Create new widget
-        console.log("Creating widget with:", {
-          name: form.name.trim(),
-          account_id: account_id,
-          widget_type: form.widgetType,
-        });
-        const { data, error } = await supabase
-          .from("widgets")
-          .insert([
-            {
-              name: form.name.trim(),
-              account_id: account_id,
-              widget_type: form.widgetType,
-              id: `${account_id}_${form.widgetType}_${Date.now()}` // Generate unique ID based on account, type, and timestamp
-            },
-          ])
-          .select()
-          .single();
-
-        if (error) throw error;
-
-        setWidgets((prev: any[]) => [...prev, data]);
+        const { error: insertError } = await supabase
+          .from('widgets')
+          .insert({
+            account_id: accountId,
+            name: form.name.trim(),
+            design: design, // Persist the full design object
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          });
+        if (insertError) throw insertError;
       }
-
-      setShowForm(false);
-      setForm({ name: "", widgetType: "multi" });
-    } catch (error: any) {
-      console.error("Error creating widget:", error, error?.message, error?.details);
-      alert("Failed to create widget. Please try again.");
+      // Refresh widgets after save
+      setWidgets(prevWidgets => [...prevWidgets]);
+    } catch (error) {
+      console.error('Error saving widget:', error);
     }
   };
 
@@ -994,6 +917,41 @@ export default function WidgetList({
     { name: "Dark Brown", value: "#3E2723" },
   ];
 
+  // Add this function inside WidgetList
+  function handleResetDesign() {
+    if (window.confirm('Are you sure you want to reset all widget style settings to default? This cannot be undone.')) {
+      setDesign({
+        bgType: "solid",
+        bgColor: "#FDFBF2",
+        textColor: "#22223b",
+        accentColor: "slateblue",
+        bodyTextColor: "#22223b",
+        nameTextColor: "#1a237e",
+        roleTextColor: "#6b7280",
+        quoteFontSize: 18,
+        attributionFontSize: 15,
+        borderRadius: 16,
+        shadow: true,
+        bgOpacity: 1,
+        autoAdvance: false,
+        slideshowSpeed: 4,
+        border: true, // Ensure border is always defined
+        borderWidth: 2,
+        lineSpacing: 1.4,
+        showQuotes: false,
+        showRelativeDate: false,
+        showGrid: false,
+        width: 1000,
+        sectionBgType: "none",
+        sectionBgColor: "#ffffff",
+        shadowIntensity: 0.2,
+        shadowColor: '#222222',
+        borderColor: '#cccccc',
+        showSubmitReviewButton: true,
+      });
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Widget List */}
@@ -1089,7 +1047,7 @@ export default function WidgetList({
                           d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"
                         />
                       </svg>
-                      <span className="text-sm font-medium">Edit Style</span>
+                      <span className="text-sm font-medium">Edit</span>
                     </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); handleDeleteWidget(widget.id); }}
@@ -1239,18 +1197,27 @@ export default function WidgetList({
           >
             <div className="relative">
               <div className="p-4 border-b bg-blue-100 flex items-center justify-between relative select-none cursor-move rounded-t-2xl" onMouseDown={handleStyleModalMouseDown}>
-                <h2 className="text-2xl font-bold text-slate-blue mb-6 flex items-center gap-2">Edit Style</h2>
-                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none">
-                  <i className="fa-solid fa-up-down-left-right text-gray-400 w-5 h-5"></i>
-                  <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider">drag</span>
+                <h2 className="text-2xl font-bold text-slate-blue flex items-center gap-2">Edit Style</h2>
+                <div className="flex items-center ml-auto">
+                  <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none">
+                    <i className="fa-solid fa-up-down-left-right text-gray-400 w-5 h-5"></i>
+                    <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider">drag</span>
+                  </div>
+                  <button
+                    onClick={handleResetDesign}
+                    className="py-2 px-5 border border-slate-300 bg-white text-slate-blue rounded-lg font-semibold shadow hover:bg-slate-100 transition-colors mr-2"
+                    style={{ minWidth: 90 }}
+                  >
+                    Reset Styles
+                  </button>
+                  <button
+                    onClick={handleSaveDesign}
+                    className="py-2 px-5 bg-slate-blue text-white rounded-lg font-semibold hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue transition-colors shadow"
+                    style={{ minWidth: 90 }}
+                  >
+                    Save
+                  </button>
                 </div>
-                <button
-                  onClick={handleSaveDesign}
-                  className="py-2 px-5 bg-slate-blue text-white rounded-lg font-semibold hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue transition-colors shadow"
-                  style={{ minWidth: 90 }}
-                >
-                  Save
-                </button>
               </div>
               <button
                 onClick={e => { e.stopPropagation(); setShowEditModal(false); }}
@@ -1545,41 +1512,36 @@ export default function WidgetList({
               >
                 Save
               </button>
+              <button
+                onClick={handleResetDesign}
+                className="py-2 px-5 border border-slate-300 bg-white text-slate-blue rounded-lg font-semibold shadow hover:bg-slate-100 transition-colors ml-2"
+                style={{ minWidth: 90 }}
+              >
+                Reset Styles
+              </button>
             </div>
           </div>
         </div>
       )}
 
       {showReviewModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col"
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+          <div
             ref={reviewModalRef}
-            style={{
-              position: 'absolute',
-              left: reviewModalPos.x,
-              top: reviewModalPos.y,
-            }}
+            className="bg-white rounded-lg shadow-2xl max-w-4xl w-full relative border border-gray-200"
+            style={{ minHeight: 600, minWidth: 360, maxWidth: 900 }}
           >
-            <div className="relative">
-              <div className="p-4 border-b bg-blue-100 flex items-center justify-between relative select-none cursor-move rounded-t-2xl" onMouseDown={handleReviewModalMouseDown}>
-                <h2 className="text-2xl font-bold text-slate-blue mb-6 flex items-center gap-2">Manage Reviews</h2>
-                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none">
-                  <i className="fa-solid fa-up-down-left-right text-gray-400 w-5 h-5"></i>
-                  <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider">drag</span>
-                </div>
-              </div>
+            {/* Top blue area with Save button */}
+            <div className="flex items-center justify-between bg-slate-blue text-white rounded-t-lg px-6 py-4">
+              <h2 className="text-2xl font-bold">Manage Reviews</h2>
               <button
-                onClick={e => { e.stopPropagation(); setShowReviewModal(false); }}
-                className="absolute -top-4 -right-4 z-20 bg-white rounded-full shadow p-1 border border-gray-200 hover:bg-gray-50"
-                style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                aria-label="Close"
+                onClick={handleSaveReviews}
+                className="py-2 px-5 bg-white text-slate-blue rounded-lg font-semibold hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue transition-colors shadow"
+                style={{ minWidth: 90 }}
               >
-                <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                Save
               </button>
             </div>
-
             <div className="p-6 flex-1 overflow-y-auto">
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1727,16 +1689,16 @@ export default function WidgetList({
                               </label>
                               <textarea
                                 value={editedReviews[review.review_id] || ''}
-                                onChange={(e) => handleReviewEdit(review.review_id, e.target.value.slice(0, 120))}
+                                onChange={(e) => handleReviewEdit(review.review_id, e.target.value.slice(0, 250))}
                                 rows={3}
-                                maxLength={120}
-                                className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm ${((editedReviews[review.review_id] || '').length > 120) ? 'border-red-500 text-red-600' : ''}`}
+                                maxLength={250}
+                                className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm ${((editedReviews[review.review_id] || '').length > 250) ? 'border-red-500 text-red-600' : ''}`}
                               />
                               <div className="mt-1 text-sm flex justify-between">
-                                <span className={(editedReviews[review.review_id] || '').length > 120 ? 'text-red-600' : 'text-gray-500'}>
-                                  {(editedReviews[review.review_id] || '').length} / 120 characters
+                                <span className={(editedReviews[review.review_id] || '').length > 250 ? 'text-red-600' : 'text-gray-500'}>
+                                  {(editedReviews[review.review_id] || '').length} / 250 characters
                                 </span>
-                                {(editedReviews[review.review_id] || '').length > 120 && (
+                                {(editedReviews[review.review_id] || '').length > 250 && (
                                   <span className="text-red-600">
                                     Review is too long
                                   </span>
@@ -1779,25 +1741,28 @@ export default function WidgetList({
                                 Remove
                               </button>
                             </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700">Photo</label>
-                              <input
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) => {
-                                  const file = e.target.files?.[0];
-                                  if (file) {
-                                    handlePhotoUpload(review.review_id, file);
-                                  }
-                                }}
-                                className="w-full"
-                              />
-                              {photoUploadProgress[review.review_id] && <span className="text-xs text-blue-600">Uploading...</span>}
-                              {photoUploadErrors[review.review_id] && <span className="text-xs text-red-600">{photoUploadErrors[review.review_id]}</span>}
-                              {photoUploads[review.review_id] && (
-                                <img src={photoUploads[review.review_id]} alt="Uploaded" className="mt-2 h-20 w-20 object-cover" />
-                              )}
-                            </div>
+                            {/* Only show photo upload for photo widgets */}
+                            {selectedWidget && widgets.find(w => w.id === selectedWidget)?.widget_type === 'photo' && (
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700">Photo</label>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                      handlePhotoUpload(review.review_id, file);
+                                    }
+                                  }}
+                                  className="w-full"
+                                />
+                                {photoUploadProgress[review.review_id] && <span className="text-xs text-blue-600">Uploading...</span>}
+                                {photoUploadErrors[review.review_id] && <span className="text-xs text-red-600">{photoUploadErrors[review.review_id]}</span>}
+                                {photoUploads[review.review_id] && (
+                                  <img src={photoUploads[review.review_id]} alt="Uploaded" className="mt-2 h-20 w-20 object-cover" />
+                                )}
+                              </div>
+                            )}
                           </div>
                         </div>
                       ))}
@@ -1837,12 +1802,7 @@ export default function WidgetList({
               </div>
             </div>
             <div className="border-t p-4 flex justify-end">
-              <button
-                onClick={() => setShowReviewModal(false)}
-                className="py-2 px-5 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors shadow mr-2"
-              >
-                Cancel
-              </button>
+              {/* Removed Cancel button as requested */}
               <button
                 onClick={handleSaveReviews}
                 className="py-2 px-5 bg-slate-blue text-white rounded-lg font-semibold hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue transition-colors shadow mr-2"
