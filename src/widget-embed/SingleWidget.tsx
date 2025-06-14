@@ -267,7 +267,7 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
     <>
       <style>{styles}</style>
       <div className="flex flex-col items-center px-4" style={{ '--pr-accent-color': design.accentColor } as React.CSSProperties}>
-        <div className="flex flex-col items-center w-full max-w-4xl px-4">
+        <div className="flex flex-col items-center w-full max-w-2xl mx-auto px-4">
           <div className="flex flex-col items-center w-full justify-center relative">
             {/* Desktop: arrows and Swiper in a row */}
             <div className="hidden md:flex flex-row items-center justify-center w-full mt-2">
@@ -311,20 +311,22 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                     bulletClass: 'swiper-pagination-bullet',
                     bulletActiveClass: 'swiper-pagination-bullet-active',
                     renderBullet: function (index, className) {
-                      return '<span class="' + className + '"></span>';
+                      const isActive = className.includes('swiper-pagination-bullet-active');
+                      const color = isActive ? design.accentColor : lightenHex(design.accentColor, 0.7);
+                      return '<span class="' + className + '" style="background: ' + color + ';\"></span>';
                     }
                   }}
                   {...(design.autoAdvance ? { autoplay: {
                     delay: (design.slideshowSpeed ?? 4) * 1000,
                     disableOnInteraction: false,
                   }} : {})}
-                  className="max-w-4xl w-full"
+                  className="max-w-2xl mx-auto"
                 >
                   {reviews.map((review, index) => (
                     <SwiperSlide key={review.id || index}>
-                      <div className="w-full max-w-full" style={{ position: 'relative', height: '100%' }}>
+                      <div className="w-full max-w-2xl mx-auto" style={{ position: 'relative', height: 380 }}>
                         <article
-                          className="flex flex-col sm:flex-row items-stretch bg-white rounded-3xl w-full px-0 md:px-0 justify-center flex-1 sm:h-[440px] overflow-hidden relative"
+                          className="flex flex-col md:flex-row items-stretch bg-white rounded-3xl max-w-2xl w-full mx-auto px-0 md:px-0 justify-center flex-1 h-[380px] md:h-[380px] overflow-hidden relative"
                           style={{
                             background: design.bgColor === 'transparent' ? 'none' : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
                             color: design.textColor,
@@ -351,21 +353,22 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                             </div>
                             {/* Review content and quotes */}
                             <div className="flex flex-col items-center justify-center w-full min-h-[120px] sm:min-h-[180px] pb-12" style={{ position: 'relative' }}>
-                              <div className="w-full text-center text-[18px] text-gray-800 mb-4 break-words whitespace-pre-line overflow-x-hidden relative overflow-visible" style={{ position: 'relative' }}>
+                              <div className="w-full max-w-xl mx-auto text-center text-[18px] text-gray-800 mb-4 break-words whitespace-pre-line relative" style={{ position: 'relative', overflow: 'visible' }}>
                                 {design.showQuotes && (
                                   <span style={{
                                     position: 'absolute',
-                                    left: '-24px',
-                                    top: '-32px',
-                                    fontSize: '64px',
-                                    color: lightenHex(design.accentColor, 0.7),
-                                    opacity: 0.3,
-                                    fontFamily: 'Georgia, Times, "Times New Roman", serif',
+                                    left: '-16px',
+                                    top: '-24px',
+                                    fontSize: '72px',
+                                    color: lightenHex(design.accentColor, 0.6),
+                                    opacity: 0.6,
+                                    fontFamily: 'Georgia, serif',
                                     lineHeight: 1,
-                                    zIndex: 1,
-                                    transform: 'rotate(-5deg)',
+                                    zIndex: 2,
+                                    pointerEvents: 'none',
+                                    userSelect: 'none',
                                   }}>
-                                    "
+                                    “
                                   </span>
                                 )}
                                 <p className="mb-8 text-[18px] text-center" style={{ color: design.textColor }}>
@@ -374,17 +377,18 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                                 {design.showQuotes && (
                                   <span style={{
                                     position: 'absolute',
-                                    right: '-24px',
-                                    bottom: '-64px',
-                                    fontSize: '64px',
-                                    color: lightenHex(design.accentColor, 0.7),
-                                    opacity: 0.3,
-                                    fontFamily: 'Georgia, Times, "Times New Roman", serif',
+                                    right: '-16px',
+                                    bottom: '-48px',
+                                    fontSize: '72px',
+                                    color: lightenHex(design.accentColor, 0.6),
+                                    opacity: 0.6,
+                                    fontFamily: 'Georgia, serif',
                                     lineHeight: 1,
-                                    zIndex: 1,
-                                    transform: 'rotate(5deg)',
+                                    zIndex: 2,
+                                    pointerEvents: 'none',
+                                    userSelect: 'none',
                                   }}>
-                                    "
+                                    ”
                                   </span>
                                 )}
                               </div>
@@ -426,7 +430,6 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                       </div>
                     </SwiperSlide>
                   ))}
-                  <div ref={paginationRefDesktop} className="swiper-pagination flex-1" />
                 </Swiper>
               </div>
               <div className="flex items-center justify-center flex-shrink-0 ml-4">
@@ -453,6 +456,10 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                   </svg>
                 </button>
               </div>
+            </div>
+            {/* Move pagination below the entire desktop row */}
+            <div className="hidden md:flex w-full justify-center mt-12">
+              <div ref={paginationRefDesktop} className="swiper-pagination" />
             </div>
           </div>
         </div>
@@ -499,7 +506,9 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
               bulletClass: 'swiper-pagination-bullet',
               bulletActiveClass: 'swiper-pagination-bullet-active',
               renderBullet: function (index, className) {
-                return '<span class="' + className + '"></span>';
+                const isActive = className.includes('swiper-pagination-bullet-active');
+                const color = isActive ? design.accentColor : lightenHex(design.accentColor, 0.7);
+                return '<span class="' + className + '" style="background: ' + color + ';"></span>';
               }
             }}
             {...(design.autoAdvance ? { autoplay: {
@@ -537,21 +546,22 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                         {renderStars(review.star_rating, 20)}
                       </div>
                       <div className="flex flex-col items-center justify-center w-full min-h-[120px] pb-12" style={{ position: 'relative' }}>
-                        <div className="w-full text-center text-[18px] text-gray-800 mb-4 break-words whitespace-pre-line overflow-x-hidden relative overflow-visible" style={{ position: 'relative' }}>
+                        <div className="w-full max-w-xl mx-auto text-center text-[18px] text-gray-800 mb-4 break-words whitespace-pre-line relative" style={{ position: 'relative', overflow: 'visible' }}>
                           {design.showQuotes && (
                             <span style={{
                               position: 'absolute',
-                              left: '-24px',
-                              top: '-32px',
-                              fontSize: '64px',
-                              color: lightenHex(design.accentColor, 0.7),
-                              opacity: 0.3,
-                              fontFamily: 'Georgia, Times, \"Times New Roman\", serif',
+                              left: '-16px',
+                              top: '-24px',
+                              fontSize: '72px',
+                              color: lightenHex(design.accentColor, 0.6),
+                              opacity: 0.6,
+                              fontFamily: 'Georgia, serif',
                               lineHeight: 1,
-                              zIndex: 1,
-                              transform: 'rotate(-5deg)',
+                              zIndex: 2,
+                              pointerEvents: 'none',
+                              userSelect: 'none',
                             }}>
-                              "
+                              “
                             </span>
                           )}
                           <p className="mb-8 text-[18px] text-center" style={{ color: design.textColor }}>
@@ -560,17 +570,18 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                           {design.showQuotes && (
                             <span style={{
                               position: 'absolute',
-                              right: '-24px',
-                              bottom: '-64px',
-                              fontSize: '64px',
-                              color: lightenHex(design.accentColor, 0.7),
-                              opacity: 0.3,
-                              fontFamily: 'Georgia, Times, \"Times New Roman\", serif',
+                              right: '-16px',
+                              bottom: '-48px',
+                              fontSize: '72px',
+                              color: lightenHex(design.accentColor, 0.6),
+                              opacity: 0.6,
+                              fontFamily: 'Georgia, serif',
                               lineHeight: 1,
-                              zIndex: 1,
-                              transform: 'rotate(5deg)',
+                              zIndex: 2,
+                              pointerEvents: 'none',
+                              userSelect: 'none',
                             }}>
-                              "
+                              ”
                             </span>
                           )}
                         </div>
@@ -619,7 +630,7 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
           <div className="flex flex-row items-center justify-between w-full px-4" style={{ marginTop: 24, position: 'relative', zIndex: 20 }}>
             <button
               ref={prevRefMobile}
-              className="rounded-full border border-gray-200 w-10 h-10 min-w-10 min-h-10 flex items-center justify-center transition z-10 hover:bg-opacity-80 active:scale-95 flex-shrink-0"
+              className="rounded-full border border-gray-200 w-10 h-10 min-w-10 min-h-10 flex items-center justify-center transition z-10 hover:bg-opacity-80 active:scale-95 flex-shrink-0 self-center"
               aria-label="Previous"
               style={{
                 background: cardBg,
@@ -634,7 +645,7 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
             <div className="flex-1" />
             <button
               ref={nextRefMobile}
-              className="rounded-full border border-gray-200 w-10 h-10 min-w-10 min-h-10 flex items-center justify-center transition z-10 hover:bg-opacity-80 active:scale-95 flex-shrink-0"
+              className="rounded-full border border-gray-200 w-10 h-10 min-w-10 min-h-10 flex items-center justify-center transition z-10 hover:bg-opacity-80 active:scale-95 flex-shrink-0 self-center"
               aria-label="Next"
               style={{
                 background: cardBg,
