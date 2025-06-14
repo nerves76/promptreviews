@@ -446,7 +446,7 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
             onSwiper={setSwiperInstanceMobile}
             modules={[Navigation, Pagination, A11y, ...(design.autoAdvance ? [Autoplay] : [])]}
             slidesPerView={1}
-            centeredSlides={true}
+            centeredSlides={false}
             navigation={{ prevEl: prevRefMobile.current, nextEl: nextRefMobile.current }}
             pagination={{
               clickable: true,
@@ -467,8 +467,8 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
             className="w-full"
           >
             {reviews.map((review, index) => (
-              <SwiperSlide key={review.id || index} className="flex-1 min-w-0">
-                <div className="flex flex-col h-[380px] flex-1 items-center justify-between bg-white rounded-3xl overflow-hidden px-4 py-6 shadow mx-auto text-sm" style={{
+              <SwiperSlide key={review.id || index}>
+                <div className="flex flex-col h-[380px] flex-1 items-center justify-between bg-white rounded-3xl overflow-hidden px-2 py-6 shadow mx-auto text-sm" style={{
                   background: design.bgColor === 'transparent' ? 'none' : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
                   color: design.textColor,
                   border: design.border ? `${design.borderWidth ?? 2}px solid ${design.borderColor ?? '#cccccc'}` : 'none',
@@ -477,6 +477,21 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                 }}>
                   <div className="flex items-center justify-center mb-2 mt-1" style={{ minHeight: 36, width: '100%' }}>
                     {typeof review.star_rating === 'number' && !isNaN(review.star_rating) && renderStars(review.star_rating, 18)}
+                  </div>
+                  <div className="flex-1 min-h-0 w-full text-center text-[14px] md:text-[16px] text-gray-800 break-words whitespace-pre-line relative overflow-hidden line-clamp-5">
+                    {design.showQuotes && (
+                      <span className="absolute left-2 top-0 text-[48px] opacity-60 font-serif select-none pointer-events-none" style={{ color: lightenHex(design.accentColor, 0.6), lineHeight: 1, zIndex: 2 }}>
+                        “
+                      </span>
+                    )}
+                    <p className="mx-6 mt-6 text-[14px] md:text-[16px] text-center z-10 relative" style={{ color: design.textColor }}>
+                      {review.review_content}
+                    </p>
+                    {design.showQuotes && (
+                      <span className="absolute right-2 bottom-2 text-[48px] opacity-60 font-serif select-none pointer-events-none" style={{ color: lightenHex(design.accentColor, 0.6), lineHeight: 1, zIndex: 2 }}>
+                        ”
+                      </span>
+                    )}
                   </div>
                   <div className="flex flex-col items-center gap-1 w-full mt-auto mb-2">
                     <span
@@ -515,11 +530,11 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
             ))}
           </Swiper>
           {/* Single pagination element below cards on mobile */}
-          <div className="flex flex-row items-center justify-center w-full mt-6">
+          <div className="flex flex-row items-center justify-center w-full mt-2">
             <div ref={paginationRefMobile} className="swiper-pagination" />
           </div>
           {/* Navigation buttons for mobile */}
-          <div className="flex flex-row items-center justify-between w-full px-4 mt-4 gap-2">
+          <div className="flex flex-row items-center justify-between w-full px-2 mt-2 gap-2">
             <button
               ref={prevRefMobile}
               className="rounded-full border border-gray-200 w-10 h-10 min-w-10 min-h-10 flex items-center justify-center transition z-10 hover:bg-opacity-80 active:scale-95 flex-shrink-0"
