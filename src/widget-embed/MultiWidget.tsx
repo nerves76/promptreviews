@@ -250,14 +250,30 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
       }
     }, [swiperInstanceMobile, prevRefMobile, nextRefMobile, paginationRefMobile]);
   
+    // Ensure Swiper updates on window resize for responsive breakpoints
+    useEffect(() => {
+      if (!swiperInstanceDesktop) return;
+      const handleResize = () => swiperInstanceDesktop.update();
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }, [swiperInstanceDesktop]);
+  
+    useEffect(() => {
+      if (!swiperInstanceMobile) return;
+      const handleResize = () => swiperInstanceMobile.update();
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }, [swiperInstanceMobile]);
+  
     return (
       <div className="flex flex-col items-center px-4" style={{ '--pr-accent-color': design.accentColor } as React.CSSProperties}>
-        {/* Desktop: arrows and Swiper in a row */}
-        <div className="hidden md:flex flex-col items-center w-full max-w-5xl px-4">
-          <div className="flex flex-row items-center justify-center w-full mt-2">
+        {/* Desktop/tablet/large: Swiper in a centered, max-width container */}
+        <div className="hidden md:flex w-full justify-center">
+          <div className="relative w-full max-w-5xl mx-auto px-8">
+            {/* Left Arrow */}
             <button
               ref={prevRefDesktop}
-              className="rounded-full border border-gray-200 w-10 h-10 flex items-center justify-center transition z-10 hover:bg-opacity-80 active:scale-95 mr-4"
+              className="absolute -left-8 top-1/2 -translate-y-1/2 z-10 rounded-full border border-gray-200 w-10 h-10 flex items-center justify-center transition hover:bg-opacity-80 active:scale-95"
               aria-label="Previous"
               style={{
                 width: 40,
@@ -274,126 +290,10 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                 <polygon points="12.5,3 5.5,10 12.5,17" fill={design.accentColor || '#111'} />
               </svg>
             </button>
-            <div className="flex-1">
-              <Swiper
-                key={String(design.autoAdvance) + '-' + String(paginationReady)}
-                onSwiper={setSwiperInstanceDesktop}
-                modules={[Navigation, Pagination, A11y, ...(design.autoAdvance ? [Autoplay] : [])]}
-                spaceBetween={30}
-                slidesPerView={1}
-                breakpoints={{
-                  640: { slidesPerView: 2, spaceBetween: 20 },
-                  1024: { slidesPerView: 3, spaceBetween: 30 },
-                }}
-                navigation={{ prevEl: prevRefDesktop.current, nextEl: nextRefDesktop.current }}
-                pagination={{
-                  clickable: true,
-                  el: paginationRefDesktop.current,
-                  bulletClass: 'swiper-pagination-bullet',
-                  bulletActiveClass: 'swiper-pagination-bullet-active',
-                  renderBullet: function (index, className) {
-                    const isActive = className.includes('swiper-pagination-bullet-active');
-                    const color = isActive ? design.accentColor : lightenHex(design.accentColor, 0.7);
-                    return '<span class="' + className + '" style="background: ' + color + '; margin: 0 4px;"></span>';
-                  }
-                }}
-                {...(design.autoAdvance ? { autoplay: {
-                  delay: (design.slideshowSpeed ?? 4) * 1000,
-                  disableOnInteraction: false,
-                }} : {})}
-                className="max-w-5xl w-full"
-              >
-                {reviews.map((review, index) => (
-                  <SwiperSlide key={review.id || index}>
-                    <div className="flex flex-col items-center justify-between bg-white rounded-3xl w-full px-6 sm:px-6 py-6 shadow max-h-[320px] h-[320px] overflow-y-auto overflow-x-hidden mx-auto text-sm" style={{
-                      background: design.bgColor === 'transparent' ? 'none' : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
-                      color: design.textColor,
-                      border: design.border ? `${design.borderWidth ?? 2}px solid ${design.borderColor ?? '#cccccc'}` : 'none',
-                      borderRadius: design.borderRadius,
-                      boxShadow: design.shadow ? `inset 0 4px 32px 0 ${hexToRgba(design.shadowColor ?? '#222222', design.shadowIntensity ?? 0.2)}` : 'none',
-                    }}>
-                      <div className="flex items-center justify-center mb-2 mt-1" style={{ minHeight: 36, width: '100%' }}>
-                        {typeof review.star_rating === 'number' && !isNaN(review.star_rating) && renderStars(review.star_rating, 18)}
-                      </div>
-                      <div className="w-full text-center text-[14px] text-gray-800 mb-4 break-words whitespace-pre-line relative pb-12" style={{ position: 'relative', overflow: 'visible' }}>
-                        {design.showQuotes && (
-                          <span style={{
-                            position: 'absolute',
-                            left: '-16px',
-                            top: '-24px',
-                            fontSize: '72px',
-                            color: lightenHex(design.accentColor, 0.6),
-                            opacity: 0.6,
-                            fontFamily: 'Georgia, serif',
-                            lineHeight: 1,
-                            zIndex: 2,
-                            pointerEvents: 'none',
-                            userSelect: 'none',
-                          }}>
-                             “
-                          </span>
-                        )}
-                        <p className="mb-8 text-[14px] text-center" style={{ color: design.textColor }}>
-                          {review.review_content}
-                        </p>
-                        {design.showQuotes && (
-                          <span style={{
-                            position: 'absolute',
-                            right: '-16px',
-                            bottom: '-48px',
-                            fontSize: '72px',
-                            color: lightenHex(design.accentColor, 0.6),
-                            opacity: 0.6,
-                            fontFamily: 'Georgia, serif',
-                            lineHeight: 1,
-                            zIndex: 2,
-                            pointerEvents: 'none',
-                            userSelect: 'none',
-                          }}>
-                             ”
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex flex-col items-center gap-1 w-full mt-2 mb-8">
-                        <span
-                          className="font-semibold"
-                          itemProp="author"
-                          itemScope
-                          itemType="https://schema.org/Person"
-                          style={{ fontSize: design.attributionFontSize * 0.85, color: design.nameTextColor }}
-                        >
-                          <span itemProp="name">
-                            {review.first_name} {review.last_name}
-                          </span>
-                        </span>
-                        <span
-                          className="text-xs"
-                          itemProp="author"
-                          itemScope
-                          itemType="https://schema.org/Person"
-                          style={{ fontSize: design.attributionFontSize * 0.85, color: design.roleTextColor }}
-                        >
-                          <span itemProp="jobTitle">
-                            {review.reviewer_role}
-                          </span>
-                        </span>
-                        {design.showRelativeDate && review.created_at && (
-                          <span className="text-xs text-gray-400 mt-1">
-                            {getRelativeTime(review.created_at)}
-                            {review.platform && !/^custom$/i.test(review.platform.trim()) && (
-                              <> via {review.platform}</>
-                            )}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </SwiperSlide>
-                ))}
-              </Swiper>
-            </div>
+            {/* Right Arrow */}
             <button
               ref={nextRefDesktop}
-              className="rounded-full border border-gray-200 w-10 h-10 flex items-center justify-center transition z-10 hover:bg-opacity-80 active:scale-95 ml-4"
+              className="absolute -right-8 top-1/2 -translate-y-1/2 z-10 rounded-full border border-gray-200 w-10 h-10 flex items-center justify-center transition hover:bg-opacity-80 active:scale-95"
               aria-label="Next"
               style={{
                 width: 40,
@@ -410,30 +310,154 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                 <polygon points="7.5,3 14.5,10 7.5,17" fill={design.accentColor || '#111'} />
               </svg>
             </button>
-          </div>
-          {/* Pagination dots below cards on desktop */}
-          <div className="flex flex-row items-center justify-center w-full mt-4">
-            <div ref={paginationRefDesktop} className="swiper-pagination" />
+            <Swiper
+              key={String(design.autoAdvance) + '-' + String(paginationReady)}
+              onSwiper={setSwiperInstanceDesktop}
+              modules={[Navigation, Pagination, A11y, ...(design.autoAdvance ? [Autoplay] : [])]}
+              spaceBetween={24}
+              slidesPerView={1}
+              breakpoints={{
+                768: { slidesPerView: 2, spaceBetween: 24 },
+                1024: { slidesPerView: 3, spaceBetween: 24 },
+              }}
+              navigation={{ prevEl: prevRefDesktop.current, nextEl: nextRefDesktop.current }}
+              pagination={{
+                clickable: true,
+                el: paginationRefDesktop.current,
+                bulletClass: 'swiper-pagination-bullet',
+                bulletActiveClass: 'swiper-pagination-bullet-active',
+                renderBullet: function (index, className) {
+                  const isActive = className.includes('swiper-pagination-bullet-active');
+                  const color = isActive ? design.accentColor : lightenHex(design.accentColor, 0.7);
+                  return '<span class="' + className + '" style="background: ' + color + ';"></span>';
+                }
+              }}
+              {...(design.autoAdvance ? { autoplay: {
+                delay: (design.slideshowSpeed ?? 4) * 1000,
+                disableOnInteraction: false,
+              }} : {})}
+              className="w-full"
+            >
+              {reviews.map((review, index) => (
+                <SwiperSlide key={review.id || index}>
+                  <div className="w-full h-[380px] flex flex-col rounded-3xl overflow-hidden bg-white px-2 py-4 shadow text-sm" style={{
+                    background: design.bgColor === 'transparent' ? 'none' : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
+                    color: design.textColor,
+                    border: design.border ? `${design.borderWidth ?? 2}px solid ${design.borderColor ?? '#cccccc'}` : 'none',
+                    borderRadius: design.borderRadius,
+                    boxShadow: design.shadow ? `inset 0 4px 32px 0 ${hexToRgba(design.shadowColor ?? '#222222', design.shadowIntensity ?? 0.2)}` : 'none',
+                  }}>
+                    <div className="flex items-center justify-center mb-2 mt-1" style={{ minHeight: 36, width: '100%' }}>
+                      {typeof review.star_rating === 'number' && !isNaN(review.star_rating) && renderStars(review.star_rating, 18)}
+                    </div>
+                    <div className="flex-1 min-h-0 w-full text-center text-[14px] md:text-[16px] text-gray-800 break-words whitespace-pre-line relative overflow-hidden line-clamp-5">
+                      {design.showQuotes && (
+                        <span className="absolute left-2 top-0 text-[48px] opacity-60 font-serif select-none pointer-events-none" style={{ color: lightenHex(design.accentColor, 0.6), lineHeight: 1, zIndex: 2 }}>
+                          “
+                        </span>
+                      )}
+                      <p className="mx-6 mt-6 text-[14px] md:text-[16px] text-center z-10 relative" style={{ color: design.textColor }}>
+                        {review.review_content}
+                      </p>
+                      {design.showQuotes && (
+                        <span className="absolute right-2 bottom-2 text-[48px] opacity-60 font-serif select-none pointer-events-none" style={{ color: lightenHex(design.accentColor, 0.6), lineHeight: 1, zIndex: 2 }}>
+                          ”
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex flex-col items-center gap-1 w-full mt-auto mb-2">
+                      <span
+                        className="font-semibold"
+                        itemProp="author"
+                        itemScope
+                        itemType="https://schema.org/Person"
+                        style={{ fontSize: design.attributionFontSize * 0.85, color: design.nameTextColor }}
+                      >
+                        <span itemProp="name">
+                          {review.first_name} {review.last_name}
+                        </span>
+                      </span>
+                      <span
+                        className="text-xs"
+                        itemProp="author"
+                        itemScope
+                        itemType="https://schema.org/Person"
+                        style={{ fontSize: design.attributionFontSize * 0.85, color: design.roleTextColor }}
+                      >
+                        <span itemProp="jobTitle">
+                          {review.reviewer_role}
+                        </span>
+                      </span>
+                      {design.showRelativeDate && review.created_at && (
+                        <span className="text-xs text-gray-400 mt-1">
+                          {getRelativeTime(review.created_at)}
+                          {review.platform && !/^custom$/i.test(review.platform.trim()) && (
+                            <> via {review.platform}</>
+                          )}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </SwiperSlide>
+              ))}
+            </Swiper>
           </div>
         </div>
+        {/* Pagination dots below cards */}
+        <div className="flex flex-row items-center justify-center w-full mt-14">
+          <div ref={paginationRefDesktop} className="swiper-pagination" />
+        </div>
+        {design.showSubmitReviewButton && (
+          <div className="w-full flex justify-end mt-4">
+            <a
+              href={`/r/${data.universalPromptSlug}`}
+              style={{
+                display: 'inline-block',
+                background: design.bgColor === 'transparent' ? 'none' : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
+                color: design.accentColor,
+                borderRadius: design.borderRadius,
+                padding: '6px 18px',
+                fontWeight: 600,
+                fontSize: 16,
+                textDecoration: 'none',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                boxSizing: 'border-box',
+                boxShadow: design.shadow ? `inset 0 0 32px 0 ${hexToRgba(design.shadowColor ?? '#222222', design.shadowIntensity ?? 0.2)}` : 'none',
+                border: design.border ? `${design.borderWidth ?? 2}px solid ${design.borderColor ?? '#cccccc'}` : 'none',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = design.accentColor;
+                e.currentTarget.style.color = design.bgColor === 'transparent' ? '#fff' : design.bgColor;
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = design.bgColor === 'transparent' ? 'none' : hexToRgba(design.bgColor, design.bgOpacity ?? 1);
+                e.currentTarget.style.color = design.accentColor;
+              }}
+            >
+              Submit a review
+            </a>
+          </div>
+        )}
         {/* Mobile: Swiper with pagination and navigation below */}
         <div className="md:hidden w-full">
           <Swiper
             key={String(design.autoAdvance) + '-' + String(paginationReady)}
             onSwiper={setSwiperInstanceMobile}
             modules={[Navigation, Pagination, A11y, ...(design.autoAdvance ? [Autoplay] : [])]}
-            spaceBetween={30}
             slidesPerView={1}
+            centeredSlides={true}
             navigation={{ prevEl: prevRefMobile.current, nextEl: nextRefMobile.current }}
             pagination={{
               clickable: true,
               el: paginationRefMobile.current,
+              type: 'bullets',
               bulletClass: 'swiper-pagination-bullet',
               bulletActiveClass: 'swiper-pagination-bullet-active',
               renderBullet: function (index, className) {
                 const isActive = className.includes('swiper-pagination-bullet-active');
                 const color = isActive ? design.accentColor : lightenHex(design.accentColor, 0.7);
-                return '<span class="' + className + '" style="background: ' + color + '; margin: 0 4px;"></span>';
+                return '<span class="' + className + '" style="background: ' + color + '; margin: 0 2px; width: 6px; height: 6px;"></span>';
               }
             }}
             {...(design.autoAdvance ? { autoplay: {
@@ -443,8 +467,8 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
             className="w-full"
           >
             {reviews.map((review, index) => (
-              <SwiperSlide key={review.id || index}>
-                <div className="flex flex-col items-center justify-between bg-white rounded-3xl w-full px-6 py-6 shadow max-h-[320px] h-[320px] overflow-y-auto overflow-x-hidden mx-auto text-sm" style={{
+              <SwiperSlide key={review.id || index} className="flex-1 min-w-0">
+                <div className="flex flex-col h-[380px] flex-1 items-center justify-between bg-white rounded-3xl overflow-hidden px-4 py-6 shadow mx-auto text-sm" style={{
                   background: design.bgColor === 'transparent' ? 'none' : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
                   color: design.textColor,
                   border: design.border ? `${design.borderWidth ?? 2}px solid ${design.borderColor ?? '#cccccc'}` : 'none',
@@ -454,42 +478,7 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                   <div className="flex items-center justify-center mb-2 mt-1" style={{ minHeight: 36, width: '100%' }}>
                     {typeof review.star_rating === 'number' && !isNaN(review.star_rating) && renderStars(review.star_rating, 18)}
                   </div>
-                  <div className="w-full text-center text-[14px] text-gray-800 mb-4 break-words whitespace-pre-line relative pb-12" style={{ position: 'relative', overflow: 'visible' }}>
-                    {design.showQuotes && (
-                      <span style={{
-                        position: 'absolute',
-                        left: '-24px',
-                        top: '-32px',
-                        fontSize: '64px',
-                        color: lightenHex(design.accentColor, 0.7),
-                        opacity: 0.5,
-                        fontFamily: 'Georgia, Times, "Times New Roman", serif',
-                        lineHeight: 1,
-                        zIndex: 1,
-                      }}>
-                         “
-                      </span>
-                    )}
-                    <p className="mb-8 text-[14px] text-center" style={{ color: design.textColor }}>
-                      {review.review_content}
-                    </p>
-                    {design.showQuotes && (
-                      <span style={{
-                        position: 'absolute',
-                        right: '-24px',
-                        bottom: '-64px',
-                        fontSize: '64px',
-                        color: lightenHex(design.accentColor, 0.7),
-                        opacity: 0.5,
-                        fontFamily: 'Georgia, Times, "Times New Roman", serif',
-                        lineHeight: 1,
-                        zIndex: 1,
-                      }}>
-                         ”
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex flex-col items-center gap-1 w-full mt-2 mb-8">
+                  <div className="flex flex-col items-center gap-1 w-full mt-auto mb-2">
                     <span
                       className="font-semibold"
                       itemProp="author"
@@ -525,8 +514,12 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
               </SwiperSlide>
             ))}
           </Swiper>
-          {/* Navigation buttons and pagination dots in a single row */}
-          <div className="flex flex-row items-center w-full px-4 mt-12">
+          {/* Single pagination element below cards on mobile */}
+          <div className="flex flex-row items-center justify-center w-full mt-6">
+            <div ref={paginationRefMobile} className="swiper-pagination" />
+          </div>
+          {/* Navigation buttons for mobile */}
+          <div className="flex flex-row items-center justify-between w-full px-4 mt-4 gap-2">
             <button
               ref={prevRefMobile}
               className="rounded-full border border-gray-200 w-10 h-10 min-w-10 min-h-10 flex items-center justify-center transition z-10 hover:bg-opacity-80 active:scale-95 flex-shrink-0"
@@ -541,9 +534,7 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                 <polygon points="12.5,3 5.5,10 12.5,17" fill={design.accentColor || '#111'} />
               </svg>
             </button>
-            <div className="flex-1 flex justify-center">
-              <div ref={paginationRefMobile} className="swiper-pagination" />
-            </div>
+            <div className="flex-1" />
             <button
               ref={nextRefMobile}
               className="rounded-full border border-gray-200 w-10 h-10 min-w-10 min-h-10 flex items-center justify-center transition z-10 hover:bg-opacity-80 active:scale-95 flex-shrink-0"
@@ -559,39 +550,46 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
               </svg>
             </button>
           </div>
+          {design.showSubmitReviewButton && (
+            <div className="w-full flex justify-end mt-4 px-4">
+              <a
+                href={`/r/${data.universalPromptSlug}`}
+                style={{
+                  display: 'inline-block',
+                  background: design.bgColor === 'transparent' ? 'none' : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
+                  color: design.accentColor,
+                  borderRadius: design.borderRadius,
+                  padding: '6px 18px',
+                  fontWeight: 600,
+                  fontSize: 16,
+                  textDecoration: 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  boxSizing: 'border-box',
+                  boxShadow: design.shadow ? `inset 0 0 32px 0 ${hexToRgba(design.shadowColor ?? '#222222', design.shadowIntensity ?? 0.2)}` : 'none',
+                  border: design.border ? `${design.borderWidth ?? 2}px solid ${design.borderColor ?? '#cccccc'}` : 'none',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = design.accentColor;
+                  e.currentTarget.style.color = design.bgColor === 'transparent' ? '#fff' : design.bgColor;
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = design.bgColor === 'transparent' ? 'none' : hexToRgba(design.bgColor, design.bgOpacity ?? 1);
+                  e.currentTarget.style.color = design.accentColor;
+                }}
+              >
+                Submit a review
+              </a>
+            </div>
+          )}
         </div>
-        {design.showSubmitReviewButton && (
-          <div className="w-full max-w-5xl flex justify-end mt-2 mx-auto">
-            <a
-              href={`/r/${data.universalPromptSlug}`}
-              style={{
-                display: 'inline-block',
-                background: design.bgColor === 'transparent' ? 'none' : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
-                color: design.accentColor,
-                borderRadius: design.borderRadius,
-                padding: '6px 18px',
-                fontWeight: 600,
-                fontSize: 16,
-                textDecoration: 'none',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                boxSizing: 'border-box',
-                boxShadow: design.shadow ? `inset 0 0 32px 0 ${hexToRgba(design.shadowColor ?? '#222222', design.shadowIntensity ?? 0.2)}` : 'none',
-                border: design.border ? `${design.borderWidth ?? 2}px solid ${design.borderColor ?? '#cccccc'}` : 'none',
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.background = design.accentColor;
-                e.currentTarget.style.color = design.bgColor === 'transparent' ? '#fff' : design.bgColor;
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.background = design.bgColor === 'transparent' ? 'none' : hexToRgba(design.bgColor, design.bgOpacity ?? 1);
-                e.currentTarget.style.color = design.accentColor;
-              }}
-            >
-              Submit a review
-            </a>
-          </div>
-        )}
+        {/* Custom mobile pagination size */}
+        <style>{`
+          .swiper-pagination-bullet {
+            width: 10px !important;
+            height: 10px !important;
+          }
+        `}</style>
       </div>
     );
   };
