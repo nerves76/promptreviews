@@ -292,7 +292,9 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                   bulletClass: 'swiper-pagination-bullet',
                   bulletActiveClass: 'swiper-pagination-bullet-active',
                   renderBullet: function (index, className) {
-                    return '<span class="' + className + '" style="margin: 0 4px;"></span>';
+                    const isActive = className.includes('swiper-pagination-bullet-active');
+                    const color = isActive ? design.accentColor : lightenHex(design.accentColor, 0.7);
+                    return '<span class="' + className + '" style="background: ' + color + '; margin: 0 4px;"></span>';
                   }
                 }}
                 {...(design.autoAdvance ? { autoplay: {
@@ -313,21 +315,22 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                       <div className="flex items-center justify-center mb-2 mt-1" style={{ minHeight: 36, width: '100%' }}>
                         {typeof review.star_rating === 'number' && !isNaN(review.star_rating) && renderStars(review.star_rating, 18)}
                       </div>
-                      <div className="w-full text-center text-[14px] text-gray-800 mb-4 break-words whitespace-pre-line overflow-x-hidden relative overflow-visible pb-12" style={{ position: 'relative' }}>
+                      <div className="w-full text-center text-[14px] text-gray-800 mb-4 break-words whitespace-pre-line relative pb-12" style={{ position: 'relative', overflow: 'visible' }}>
                         {design.showQuotes && (
                           <span style={{
                             position: 'absolute',
-                            left: '-24px',
-                            top: '-32px',
-                            fontSize: '64px',
-                            color: lightenHex(design.accentColor, 0.7),
-                            opacity: 0.3,
-                            fontFamily: 'Georgia, Times, "Times New Roman", serif',
+                            left: '-16px',
+                            top: '-24px',
+                            fontSize: '72px',
+                            color: lightenHex(design.accentColor, 0.6),
+                            opacity: 0.6,
+                            fontFamily: 'Georgia, serif',
                             lineHeight: 1,
-                            zIndex: 1,
-                            transform: 'rotate(-5deg)',
+                            zIndex: 2,
+                            pointerEvents: 'none',
+                            userSelect: 'none',
                           }}>
-                            "
+                             “
                           </span>
                         )}
                         <p className="mb-8 text-[14px] text-center" style={{ color: design.textColor }}>
@@ -336,17 +339,18 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                         {design.showQuotes && (
                           <span style={{
                             position: 'absolute',
-                            right: '-24px',
-                            bottom: '-64px',
-                            fontSize: '64px',
-                            color: lightenHex(design.accentColor, 0.7),
-                            opacity: 0.3,
-                            fontFamily: 'Georgia, Times, "Times New Roman", serif',
+                            right: '-16px',
+                            bottom: '-48px',
+                            fontSize: '72px',
+                            color: lightenHex(design.accentColor, 0.6),
+                            opacity: 0.6,
+                            fontFamily: 'Georgia, serif',
                             lineHeight: 1,
-                            zIndex: 1,
-                            transform: 'rotate(5deg)',
+                            zIndex: 2,
+                            pointerEvents: 'none',
+                            userSelect: 'none',
                           }}>
-                            "
+                             ”
                           </span>
                         )}
                       </div>
@@ -427,7 +431,9 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
               bulletClass: 'swiper-pagination-bullet',
               bulletActiveClass: 'swiper-pagination-bullet-active',
               renderBullet: function (index, className) {
-                return '<span class="' + className + '" style="margin: 0 4px;"></span>';
+                const isActive = className.includes('swiper-pagination-bullet-active');
+                const color = isActive ? design.accentColor : lightenHex(design.accentColor, 0.7);
+                return '<span class="' + className + '" style="background: ' + color + '; margin: 0 4px;"></span>';
               }
             }}
             {...(design.autoAdvance ? { autoplay: {
@@ -448,7 +454,7 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                   <div className="flex items-center justify-center mb-2 mt-1" style={{ minHeight: 36, width: '100%' }}>
                     {typeof review.star_rating === 'number' && !isNaN(review.star_rating) && renderStars(review.star_rating, 18)}
                   </div>
-                  <div className="w-full text-center text-[14px] text-gray-800 mb-4 break-words whitespace-pre-line overflow-x-hidden relative overflow-visible pb-12" style={{ position: 'relative' }}>
+                  <div className="w-full text-center text-[14px] text-gray-800 mb-4 break-words whitespace-pre-line relative pb-12" style={{ position: 'relative', overflow: 'visible' }}>
                     {design.showQuotes && (
                       <span style={{
                         position: 'absolute',
@@ -456,13 +462,12 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                         top: '-32px',
                         fontSize: '64px',
                         color: lightenHex(design.accentColor, 0.7),
-                        opacity: 0.3,
+                        opacity: 0.5,
                         fontFamily: 'Georgia, Times, "Times New Roman", serif',
                         lineHeight: 1,
                         zIndex: 1,
-                        transform: 'rotate(-5deg)',
                       }}>
-                        "
+                         “
                       </span>
                     )}
                     <p className="mb-8 text-[14px] text-center" style={{ color: design.textColor }}>
@@ -475,13 +480,12 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                         bottom: '-64px',
                         fontSize: '64px',
                         color: lightenHex(design.accentColor, 0.7),
-                        opacity: 0.3,
+                        opacity: 0.5,
                         fontFamily: 'Georgia, Times, "Times New Roman", serif',
                         lineHeight: 1,
                         zIndex: 1,
-                        transform: 'rotate(5deg)',
                       }}>
-                        "
+                         ”
                       </span>
                     )}
                   </div>
