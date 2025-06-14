@@ -412,7 +412,7 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
             </button>
           </div>
           {/* Pagination dots below cards on desktop */}
-          <div className="flex flex-row items-center justify-center w-full mt-12">
+          <div className="flex flex-row items-center justify-center w-full mt-4">
             <div ref={paginationRefDesktop} className="swiper-pagination" />
           </div>
         </div>
@@ -525,10 +525,8 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
               </SwiperSlide>
             ))}
           </Swiper>
-          {/* Pagination dots below cards on mobile */}
-          <div ref={paginationRefMobile} className="swiper-pagination" />
-          {/* Navigation buttons */}
-          <div className="flex flex-row items-center justify-between w-full px-4" style={{ marginTop: 24 }}>
+          {/* Navigation buttons and pagination dots in a single row */}
+          <div className="flex flex-row items-center w-full px-4 mt-12">
             <button
               ref={prevRefMobile}
               className="rounded-full border border-gray-200 w-10 h-10 min-w-10 min-h-10 flex items-center justify-center transition z-10 hover:bg-opacity-80 active:scale-95 flex-shrink-0"
@@ -543,7 +541,9 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                 <polygon points="12.5,3 5.5,10 12.5,17" fill={design.accentColor || '#111'} />
               </svg>
             </button>
-            <div className="flex-1" />
+            <div className="flex-1 flex justify-center">
+              <div ref={paginationRefMobile} className="swiper-pagination" />
+            </div>
             <button
               ref={nextRefMobile}
               className="rounded-full border border-gray-200 w-10 h-10 min-w-10 min-h-10 flex items-center justify-center transition z-10 hover:bg-opacity-80 active:scale-95 flex-shrink-0"
@@ -560,6 +560,38 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
             </button>
           </div>
         </div>
+        {design.showSubmitReviewButton && (
+          <div className="w-full max-w-5xl flex justify-end mt-2 mx-auto">
+            <a
+              href={`/r/${data.universalPromptSlug}`}
+              style={{
+                display: 'inline-block',
+                background: design.bgColor === 'transparent' ? 'none' : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
+                color: design.accentColor,
+                borderRadius: design.borderRadius,
+                padding: '6px 18px',
+                fontWeight: 600,
+                fontSize: 16,
+                textDecoration: 'none',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                boxSizing: 'border-box',
+                boxShadow: design.shadow ? `inset 0 0 32px 0 ${hexToRgba(design.shadowColor ?? '#222222', design.shadowIntensity ?? 0.2)}` : 'none',
+                border: design.border ? `${design.borderWidth ?? 2}px solid ${design.borderColor ?? '#cccccc'}` : 'none',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = design.accentColor;
+                e.currentTarget.style.color = design.bgColor === 'transparent' ? '#fff' : design.bgColor;
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = design.bgColor === 'transparent' ? 'none' : hexToRgba(design.bgColor, design.bgOpacity ?? 1);
+                e.currentTarget.style.color = design.accentColor;
+              }}
+            >
+              Submit a review
+            </a>
+          </div>
+        )}
       </div>
     );
   };
