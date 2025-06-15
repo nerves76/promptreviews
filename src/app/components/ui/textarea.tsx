@@ -1,5 +1,5 @@
 import * as React from "react";
-import { cn } from "../../../lib/utils"; // Use relative import to avoid alias issues
+import { cn } from "../../../../lib/utils"; // Correct relative import
 
 export interface TextareaProps
   extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {}
