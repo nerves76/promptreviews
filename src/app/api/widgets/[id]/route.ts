@@ -22,7 +22,7 @@ export async function GET(
   req: Request,
   context: any
 ) {
-  const widgetId = context.params.id;
+  const { id: widgetId } = await context.params;
   if (!widgetId) {
     return NextResponse.json({ error: 'Missing widget ID' }, { status: 400 });
   }
