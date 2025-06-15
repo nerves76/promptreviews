@@ -90,8 +90,28 @@ const DEFAULT_DESIGN = {
   showSubmitReviewButton: true,
 };
 
-function getDesignWithDefaults(design: Partial<typeof DEFAULT_DESIGN> = {}) {
-  return { ...DEFAULT_DESIGN, ...design };
+// =========================
+// Widget Layout Safety Rules
+//
+// - Never use design-driven layout fields (width, padding, margin) in widget containers unless explicitly set in the widget's design object.
+// - Always use Tailwind responsive classes (max-w-4xl, w-full, mx-auto, etc.) for all widget containers.
+// - If you must use a design-driven layout field, only apply it if it is explicitly set in the widget's design object (never from defaults).
+// - Always use smartMergeDesign (see below) to merge design objects.
+// - Update smartMergeDesign if you add new layout-related fields to DEFAULT_DESIGN.
+// =========================
+
+// List of layout-related fields to protect (update if you add more to DEFAULT_DESIGN)
+const LAYOUT_FIELDS: (keyof typeof DEFAULT_DESIGN)[] = ['width'];
+
+// Smart merge: only apply layout fields if explicitly set in userDesign
+function smartMergeDesign(userDesign: Partial<typeof DEFAULT_DESIGN> = {}, defaultDesign = DEFAULT_DESIGN) {
+  const merged = { ...defaultDesign, ...userDesign };
+  for (const field of LAYOUT_FIELDS) {
+    if (!(field in userDesign)) {
+      delete merged[field];
+    }
+  }
+  return merged;
 }
 
 // hexToRgba
@@ -179,7 +199,8 @@ function getRelativeTime(dateString: string) {
 const styles = "";
 
 const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
-  const design = getDesignWithDefaults(data.design);
+  // Use smartMergeDesign instead of getDesignWithDefaults
+  const design = smartMergeDesign(data.design);
   const { reviews } = data;
   // Debug output
   console.log('[SingleWidget] Rendered', { reviews, data });
@@ -227,6 +248,21 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
       swiperInstanceDesktop.pagination.update();
     }
   }, [swiperInstanceDesktop, prevRefDesktop, nextRefDesktop, paginationRefDesktop]);
+
+  // Ensure Swiper pagination is updated after ref is attached (fixes missing nav dots)
+  React.useEffect(() => {
+    if (swiperInstanceDesktop && paginationRefDesktop.current) {
+      setTimeout(() => {
+        try {
+          swiperInstanceDesktop.pagination.init();
+          swiperInstanceDesktop.pagination.render();
+          swiperInstanceDesktop.pagination.update();
+        } catch (e) {
+          // ignore
+        }
+      }, 50);
+    }
+  }, [swiperInstanceDesktop, paginationRefDesktop]);
 
   // Mobile navigation/pagination
   React.useEffect(() => {
@@ -457,40 +493,50 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                 </button>
               </div>
             </div>
-            {/* Move pagination below the entire desktop row */}
-            <div className="hidden md:flex w-full justify-center mt-12">
+            {/* Move pagination below the entire desktop row, with larger positive margin to sit further below the card */}
+            <div className="hidden md:flex w-full justify-center mt-14">
               <div ref={paginationRefDesktop} className="swiper-pagination" />
             </div>
+            {/* Desktop/tablet: Submit a review button absolutely positioned just below the card, nudged up by 20px */}
+            {design.showSubmitReviewButton && data.universalPromptSlug && (
+              <div className="hidden md:block relative w-full max-w-2xl mx-auto" style={{ height: 0 }}>
+                <a
+                  href={`/r/${data.universalPromptSlug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    position: 'absolute',
+                    left: 'unset',
+                    right: '-18px',
+                    top: 'calc(100% - 36px)',
+                    border: `1.5px solid ${hexToRgba('#888', 0.22)}`,
+                    background: cardBg,
+                    color: accent,
+                    borderRadius: design.borderRadius,
+                    padding: '8px 20px',
+                    fontWeight: 500,
+                    fontSize: 15,
+                    textDecoration: 'none',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    boxSizing: 'border-box',
+                    boxShadow: design.shadow ? `inset 0 0 8px 0 ${hexToRgba('#000', 0.18)}, inset 0 0 2px 0 ${hexToRgba('#fff', 0.12)}` : 'none',
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = design.accentColor;
+                    e.currentTarget.style.color = design.bgColor === 'transparent' ? '#fff' : design.bgColor;
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = cardBg;
+                    e.currentTarget.style.color = accent;
+                  }}
+                >
+                  Submit a review
+                </a>
+              </div>
+            )}
           </div>
         </div>
-        {design.showSubmitReviewButton && data.universalPromptSlug && (
-          <div className="w-full max-w-4xl flex justify-end mt-6">
-            <a
-              href={`/r/${data.universalPromptSlug}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: 'inline-block',
-                border: `1.5px solid ${hexToRgba('#888', 0.22)}`,
-                background: cardBg,
-                color: accent,
-                borderRadius: design.borderRadius,
-                padding: '8px 20px',
-                fontWeight: 500,
-                fontSize: 15,
-                textDecoration: 'none',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                boxSizing: 'border-box',
-                boxShadow: design.shadow ? `inset 0 0 8px 0 ${hexToRgba('#000', 0.18)}, inset 0 0 2px 0 ${hexToRgba('#fff', 0.12)}` : 'none',
-              }}
-              onMouseEnter={() => setSubmitHover(true)}
-              onMouseLeave={() => setSubmitHover(false)}
-            >
-              Submit a review
-            </a>
-          </div>
-        )}
         {/* Mobile: Swiper with pagination and navigation below */}
         <div className="md:hidden w-full">
           <Swiper
@@ -624,13 +670,11 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
               </SwiperSlide>
             ))}
           </Swiper>
-          {/* Pagination dots below cards on mobile */}
-          <div ref={paginationRefMobile} className="swiper-pagination" />
-          {/* Navigation buttons */}
+          {/* Navigation buttons and nav dots row (mobile) */}
           <div className="flex flex-row items-center justify-between w-full px-4" style={{ marginTop: 24, position: 'relative', zIndex: 20 }}>
             <button
               ref={prevRefMobile}
-              className="rounded-full border border-gray-200 w-10 h-10 min-w-10 min-h-10 flex items-center justify-center transition z-10 hover:bg-opacity-80 active:scale-95 flex-shrink-0 self-center"
+              className="group rounded-full border border-gray-200 w-10 h-10 min-w-10 min-h-10 flex items-center justify-center transition z-10 hover:bg-opacity-80 active:scale-95 flex-shrink-0"
               aria-label="Previous"
               style={{
                 background: cardBg,
@@ -642,10 +686,12 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                 <polygon points="12.5,3 5.5,10 12.5,17" fill={design.accentColor || '#111'} />
               </svg>
             </button>
-            <div className="flex-1" />
+            <div className="flex-1 flex justify-center items-center">
+              <div ref={paginationRefMobile} className="swiper-pagination" style={{ position: 'relative', bottom: 'auto', display: 'flex', justifyContent: 'center', width: 'auto' }} />
+            </div>
             <button
               ref={nextRefMobile}
-              className="rounded-full border border-gray-200 w-10 h-10 min-w-10 min-h-10 flex items-center justify-center transition z-10 hover:bg-opacity-80 active:scale-95 flex-shrink-0 self-center"
+              className="group rounded-full border border-gray-200 w-10 h-10 min-w-10 min-h-10 flex items-center justify-center transition z-10 hover:bg-opacity-80 active:scale-95 flex-shrink-0"
               aria-label="Next"
               style={{
                 background: cardBg,
@@ -658,6 +704,41 @@ const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
               </svg>
             </button>
           </div>
+          {/* Mobile: Submit a review button in its own row below Swiper and navigation, inside max-w-2xl */}
+          {design.showSubmitReviewButton && data.universalPromptSlug && (
+            <div className="flex w-full px-4 justify-end mt-4 md:hidden">
+              <a
+                href={`/r/${data.universalPromptSlug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'inline-block',
+                  border: `1.5px solid ${hexToRgba('#888', 0.22)}`,
+                  background: cardBg,
+                  color: accent,
+                  borderRadius: design.borderRadius,
+                  padding: '8px 20px',
+                  fontWeight: 500,
+                  fontSize: 15,
+                  textDecoration: 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  boxSizing: 'border-box',
+                  boxShadow: design.shadow ? `inset 0 0 8px 0 ${hexToRgba('#000', 0.18)}, inset 0 0 2px 0 ${hexToRgba('#fff', 0.12)}` : 'none',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = design.accentColor;
+                  e.currentTarget.style.color = design.bgColor === 'transparent' ? '#fff' : design.bgColor;
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = cardBg;
+                  e.currentTarget.style.color = accent;
+                }}
+              >
+                Submit a review
+              </a>
+            </div>
+          )}
         </div>
       </div>
     </>
