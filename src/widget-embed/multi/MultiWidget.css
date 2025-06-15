@@ -23,7 +23,7 @@
   padding: 2rem;
   box-shadow: var(--shadow, 0 4px 6px rgba(0, 0, 0, 0.1));
   border: var(--border-width, 2px) solid var(--border-color, #cccccc);
-  margin: 0 auto 2rem auto;
+  margin: 0 auto;
   width: 100%;
   max-width: 800px;
   opacity: 1;
@@ -68,6 +68,19 @@
   gap: 1rem;
 }
 
+.reviewer-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: var(--accent-color, slateblue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 1.2rem;
+}
+
 .reviewer-details {
   display: flex;
   flex-direction: column;
@@ -84,8 +97,92 @@
   font-size: var(--attribution-font-size, 15px);
 }
 
-.star-rating {
+.navigation-buttons {
   display: flex;
-  gap: 0.25rem;
-  margin-top: 0.5rem;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.nav-button {
+  background: var(--accent-color, slateblue);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.nav-button:hover {
+  background-color: var(--accent-color-hover, #4a3f8c);
+}
+
+.nav-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* Swiper custom styles */
+.swiper {
+  width: 100%;
+  padding: 2rem 0;
+}
+
+.swiper-slide {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.swiper-pagination {
+  position: relative;
+  margin-top: 1rem;
+}
+
+.swiper-pagination-bullet {
+  width: 8px;
+  height: 8px;
+  background: #ccc;
+  opacity: 0.5;
+}
+
+.swiper-pagination-bullet-active {
+  background: var(--accent-color, slateblue);
+  opacity: 1;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .widget-container {
+    padding: 1rem;
+  }
+
+  .review-card {
+    padding: 1.5rem;
+  }
+
+  .review-content {
+    font-size: calc(var(--quote-font-size, 18px) * 0.9);
+  }
+}
+
+@media (max-width: 480px) {
+  .review-card {
+    padding: 1rem;
+  }
+
+  .review-content {
+    font-size: calc(var(--quote-font-size, 18px) * 0.8);
+  }
+
+  .reviewer-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
 } 

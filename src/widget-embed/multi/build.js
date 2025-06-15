@@ -1,36 +1,51 @@
-const fs = require('fs');
+const esbuild = require('esbuild');
 const path = require('path');
-const { minify } = require('terser');
+const { execSync } = require('child_process');
+const fs = require('fs');
 const CleanCSS = require('clean-css');
 
 async function build() {
     try {
-        // Read source files
-        const js = fs.readFileSync(path.join(__dirname, 'widget.js'), 'utf8');
-        const css = fs.readFileSync(path.join(__dirname, 'MultiWidget.css'), 'utf8');
+        // Read custom CSS and Tailwind CSS
+        const customCss = fs.readFileSync(path.join(__dirname, 'MultiWidget.css'), 'utf8');
+        const tailwindInput = path.join(__dirname, 'tailwind.css');
+        const tailwindConfig = path.join(__dirname, '../../..', 'tailwind.config.js');
+        const tailwindOut = path.join(__dirname, 'dist', 'tailwind.out.css');
 
-        // Minify JS
-        const minifiedJs = await minify(js, {
-            compress: true,
-            mangle: true
-        });
-
-        // Minify CSS
-        const minifiedCss = new CleanCSS().minify(css);
-
-        // Create dist directory if it doesn't exist
+        // Ensure dist directory exists
         const distDir = path.join(__dirname, 'dist');
         if (!fs.existsSync(distDir)) {
             fs.mkdirSync(distDir);
         }
 
-        // Write minified files
-        fs.writeFileSync(path.join(distDir, 'widget.min.js'), minifiedJs.code);
+        // Run Tailwind CLI to generate CSS
+        execSync(`npx tailwindcss -c ${tailwindConfig} -i ${tailwindInput} -o ${tailwindOut} --minify`, { stdio: 'inherit' });
+
+        // Read generated Tailwind CSS
+        const tailwindCss = fs.readFileSync(tailwindOut, 'utf8');
+
+        // Combine Tailwind output with custom CSS
+        const combinedCss = tailwindCss + '\n' + customCss;
+
+        // Minify CSS
+        const minifiedCss = new CleanCSS().minify(combinedCss);
         fs.writeFileSync(path.join(distDir, 'widget.min.css'), minifiedCss.styles);
+
+        // Use esbuild to bundle and minify JS (including Swiper)
+        await esbuild.build({
+            entryPoints: [path.join(__dirname, 'widget.js')],
+            bundle: true,
+            minify: true,
+            outfile: path.join(distDir, 'widget.min.js'),
+            platform: 'browser',
+            target: ['es2015'],
+            format: 'iife',
+            sourcemap: false,
+            external: [], // bundle everything
+        });
 
         // Create embed code template
         const embedCode = `<!-- PromptReviews Multi Widget -->\n<link rel=\"stylesheet\" href=\"https://app.promptreviews.app/widgets/multi/widget.min.css\">\n<div class=\"promptreviews-widget\" data-widget=\"WIDGET_ID\" data-widget-type=\"multi\"></div>\n<script src=\"https://app.promptreviews.app/widgets/multi/widget.min.js\" async></script>`;
-
         fs.writeFileSync(path.join(distDir, 'embed-code.html'), embedCode);
 
         console.log('Build completed successfully!');
