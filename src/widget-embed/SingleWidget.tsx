@@ -4,6 +4,7 @@ import { Navigation, Pagination, A11y, Autoplay } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
+import { WidgetData } from './index';
 // Shared types and helpers (import or copy as needed)
 // ... WidgetData, getDesignWithDefaults, renderStars, hexToRgba, lightenHex, getRelativeTime ...
 
@@ -11,53 +12,6 @@ import 'swiper/css/pagination';
 
 // WidgetType and WidgetData
 type WidgetType = 'single' | 'multi' | 'photo';
-
-interface WidgetData {
-  id: string;
-  name: string;
-  widget_type: WidgetType;
-  design: {
-    bgColor: string;
-    textColor: string;
-    accentColor: string;
-    bodyTextColor: string;
-    nameTextColor: string;
-    roleTextColor: string;
-    quoteFontSize: number;
-    attributionFontSize: number;
-    borderRadius: number;
-    shadow: boolean;
-    bgOpacity: number;
-    autoAdvance: boolean;
-    slideshowSpeed: number;
-    border: boolean;
-    borderWidth: number;
-    lineSpacing: number;
-    showQuotes: boolean;
-    showRelativeDate: boolean;
-    showGrid: boolean;
-    width: number;
-    sectionBgType?: 'none' | 'custom';
-    sectionBgColor?: string;
-    shadowIntensity?: number;
-    shadowColor?: string;
-    borderColor: string;
-    showSubmitReviewButton: boolean;
-  };
-  reviews: Array<{
-    id: string;
-    review_content: string;
-    first_name: string;
-    last_name: string;
-    reviewer_role: string;
-    platform: string;
-    created_at: string;
-    star_rating: number;
-    photo_url?: string;
-  }>;
-  slug?: string;
-  universalPromptSlug?: string;
-}
 
 // getDesignWithDefaults
 const DEFAULT_DESIGN = {
@@ -198,7 +152,11 @@ function getRelativeTime(dateString: string) {
 // Placeholder for styles (define or import as needed)
 const styles = "";
 
-const SingleWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
+interface SingleWidgetProps {
+  data: WidgetData;
+}
+
+const SingleWidget: React.FC<SingleWidgetProps> = ({ data }) => {
   // Use smartMergeDesign instead of getDesignWithDefaults
   const design = smartMergeDesign(data.design);
   const { reviews } = data;

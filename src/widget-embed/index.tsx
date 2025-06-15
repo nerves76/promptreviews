@@ -15,7 +15,7 @@ import PhotoWidget from './PhotoWidget';
 type WidgetType = 'single' | 'multi' | 'photo';
 
 // Define the widget data structure
-interface WidgetData {
+export interface WidgetData {
   id: string;
   name: string;
   widget_type: WidgetType;
