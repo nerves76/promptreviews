@@ -67,7 +67,7 @@ const DEFAULT_DESIGN = {
   bgType: "solid",
   bgColor: "#ffffff",
   textColor: "#22223b",
-  accentColor: "slateblue",
+  accentColor: "#6A5ACD",
   bodyTextColor: "#22223b",
   nameTextColor: "#1a237e",
   roleTextColor: "#6b7280",
