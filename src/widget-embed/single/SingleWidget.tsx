@@ -46,8 +46,6 @@ export interface SingleWidgetProps {
   };
 }
 
-export type { SingleWidgetProps };
-
 const SingleWidget: React.FC<SingleWidgetProps> = ({ data }) => {
   const { reviews, design } = data;
   const review = reviews[0]; // SingleWidget only shows the first review
