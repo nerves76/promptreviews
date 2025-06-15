@@ -31,12 +31,12 @@ async function build() {
         const minifiedCss = new CleanCSS().minify(combinedCss);
         fs.writeFileSync(path.join(distDir, 'widget.min.css'), minifiedCss.styles);
 
-        // Use esbuild to bundle and minify JS (including Swiper)
+        // Use esbuild to bundle and minify JS (including React, ReactDOM, MultiWidget)
         await esbuild.build({
-            entryPoints: [path.join(__dirname, 'widget.js')],
+            entryPoints: [path.join(__dirname, 'embed-multi.jsx')],
             bundle: true,
             minify: true,
-            outfile: path.join(distDir, 'widget.min.js'),
+            outfile: path.join(distDir, 'widget-embed.min.js'),
             platform: 'browser',
             target: ['es2015'],
             format: 'iife',

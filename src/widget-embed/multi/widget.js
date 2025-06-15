@@ -1,3 +1,12 @@
+// Multi Widget Embeddable Implementation
+// This file is the vanilla JS Swiper-based implementation for the embeddable Multi widget.
+// The dashboard preview version is rendered in src/app/dashboard/widget/page.tsx using the React MultiWidget component.
+// Related files:
+// - src/widget-embed/multi/MultiWidget.css (styles)
+// - src/widget-embed/multi/embed-multi.jsx (embed entry point)
+// - src/widget-embed/multi/dist/widget-embed.min.js (bundled JS)
+// - src/widget-embed/multi/dist/widget.min.css (bundled CSS)
+
 // Import Swiper and its CSS
 import Swiper from 'swiper';
 import 'swiper/css';
@@ -76,260 +85,323 @@ import 'swiper/css';
         return (f + l).toUpperCase();
     }
 
+    // Generate scoped CSS for the widget
+    function generateScopedCSS(widgetClass) {
+        return `
+            @import url('https://fonts.googleapis.com/css?family=Inter:100,200,300,400,500,600,700,800,900&display=swap');
+            @font-face { 
+                font-family:'Inter Fallback'; 
+                src:local("Arial"); 
+                ascent-override:90.44%; 
+                descent-override:22.52%; 
+                line-gap-override:0.00%; 
+                size-adjust:107.12%; 
+            }
+
+            /* Base styles */
+            .${widgetClass} {
+                font-family: 'Inter', 'Inter Fallback', system-ui, -apple-system, sans-serif;
+                --pr-accent-color: slateblue;
+                --pr-accent-hover: #4a3f8c;
+                --pr-text-primary: #22223b;
+                --pr-text-secondary: #6b7280;
+                --pr-border-color: #cccccc;
+                --pr-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                --pr-card-bg: #ffffff;
+                --pr-card-border: 2px solid var(--pr-border-color);
+                --pr-card-radius: 16px;
+                --pr-card-shadow: 0 4px 32px rgba(34, 34, 34, 0.2) inset;
+            }
+
+            /* Layout */
+            .${widgetClass} .widget-container {
+                width: 100%;
+                max-width: 1000px;
+                margin: 0 auto;
+                padding: 2rem;
+                box-sizing: border-box;
+            }
+
+            .${widgetClass} .widget-content {
+                position: relative;
+                width: 100%;
+                min-height: 320px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                transition: min-height 0.3s;
+            }
+
+            /* Review Card */
+            .${widgetClass} .review-card {
+                background: var(--pr-card-bg);
+                border-radius: var(--pr-card-radius);
+                padding: 2rem;
+                box-shadow: var(--pr-shadow);
+                border: var(--pr-card-border);
+                margin: 0 auto;
+                width: 100%;
+                max-width: 800px;
+                opacity: 1;
+                transition: opacity 0.3s ease-in-out;
+            }
+
+            .${widgetClass} .review-card.fade-out {
+                opacity: 0;
+            }
+
+            /* Review Content */
+            .${widgetClass} .review-content {
+                font-size: 18px;
+                line-height: 1.4;
+                color: var(--pr-text-primary);
+                margin-bottom: 1.5rem;
+                position: relative;
+            }
+
+            .${widgetClass} .review-content::before,
+            .${widgetClass} .review-content::after {
+                content: '"';
+                position: absolute;
+                font-size: 2em;
+                color: var(--pr-accent-color);
+                opacity: 0.3;
+            }
+
+            .${widgetClass} .review-content::before {
+                left: -1rem;
+                top: -0.5rem;
+            }
+
+            .${widgetClass} .review-content::after {
+                right: -1rem;
+                bottom: -0.5rem;
+            }
+
+            /* Reviewer Info */
+            .${widgetClass} .reviewer-info {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+            }
+
+            .${widgetClass} .reviewer-avatar {
+                width: 48px;
+                height: 48px;
+                border-radius: 50%;
+                background-color: var(--pr-accent-color);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-weight: 600;
+                font-size: 1.2rem;
+            }
+
+            .${widgetClass} .reviewer-details {
+                display: flex;
+                flex-direction: column;
+            }
+
+            .${widgetClass} .reviewer-name {
+                font-weight: 600;
+                color: var(--pr-text-primary);
+                font-size: 15px;
+            }
+
+            .${widgetClass} .reviewer-role {
+                color: var(--pr-text-secondary);
+                font-size: 15px;
+            }
+
+            /* Navigation */
+            .${widgetClass} .navigation-buttons {
+                display: flex;
+                justify-content: center;
+                gap: 1rem;
+                margin-top: 2rem;
+            }
+
+            .${widgetClass} .nav-button {
+                background: var(--pr-accent-color);
+                color: white;
+                border: none;
+                border-radius: 50%;
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: background-color 0.3s;
+            }
+
+            .${widgetClass} .nav-button:hover {
+                background-color: var(--pr-accent-hover);
+            }
+
+            .${widgetClass} .nav-button:disabled {
+                background-color: #ccc;
+                cursor: not-allowed;
+            }
+
+            /* Swiper Styles */
+            .${widgetClass} .swiper {
+                width: 100%;
+                padding: 2rem 0;
+            }
+
+            .${widgetClass} .swiper-slide {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+
+            .${widgetClass} .swiper-pagination {
+                position: relative;
+                margin-top: 1rem;
+            }
+
+            .${widgetClass} .swiper-pagination-bullet {
+                width: 8px;
+                height: 8px;
+                background: #ccc;
+                opacity: 0.5;
+            }
+
+            .${widgetClass} .swiper-pagination-bullet-active {
+                background: var(--pr-accent-color);
+                opacity: 1;
+            }
+
+            /* Responsive */
+            @media (max-width: 768px) {
+                .${widgetClass} .widget-container {
+                    padding: 1rem;
+                }
+
+                .${widgetClass} .review-card {
+                    padding: 1.5rem;
+                }
+
+                .${widgetClass} .review-content {
+                    font-size: 16px;
+                }
+            }
+
+            @media (max-width: 480px) {
+                .${widgetClass} .review-card {
+                    padding: 1rem;
+                }
+
+                .${widgetClass} .review-content {
+                    font-size: 14px;
+                }
+
+                .${widgetClass} .reviewer-avatar {
+                    width: 40px;
+                    height: 40px;
+                    font-size: 1rem;
+                }
+            }
+        `;
+    }
+
+    // Render the multi widget
     function renderMultiWidget(container, widgetData) {
         container.innerHTML = '';
         const design = widgetData.design || {};
         const reviews = widgetData.reviews || [];
-        const accentColor = design.accentColor || 'slateblue';
-        const shadow = design.shadow ? `0 4px 24px 0 ${hexToRgba(design.shadowColor || '#222222', design.shadowIntensity ?? 0.2)}` : 'none';
-        const border = design.border ? `${design.borderWidth ?? 2}px solid ${design.borderColor ?? '#cccccc'}` : 'none';
+        
+        // Add a unique class to the container for scoping
+        const widgetClass = `pr-widget-${Math.random().toString(36).substr(2, 9)}`;
+        container.classList.add(widgetClass);
+        
+        // Generate scoped CSS
+        const scopedCSS = generateScopedCSS(widgetClass);
 
-        // Widget container
-        const widget = document.createElement('div');
-        widget.className = 'widget-container';
-        widget.style.setProperty('--bg-color', design.bgColor || '#fff');
-        widget.style.setProperty('--text-color', design.textColor || '#22223b');
-        widget.style.setProperty('--accent-color', accentColor);
-        widget.style.setProperty('--body-text-color', design.bodyTextColor || '#22223b');
-        widget.style.setProperty('--name-text-color', design.nameTextColor || '#1a237e');
-        widget.style.setProperty('--role-text-color', design.roleTextColor || '#6b7280');
-        widget.style.setProperty('--quote-font-size', `${design.quoteFontSize || 18}px`);
-        widget.style.setProperty('--attribution-font-size', `${design.attributionFontSize || 15}px`);
-        widget.style.setProperty('--border-radius', `${design.borderRadius || 16}px`);
-        widget.style.setProperty('--line-spacing', design.lineSpacing || 1.4);
-        widget.style.setProperty('--border-width', `${design.borderWidth || 2}px`);
-        widget.style.setProperty('--border-color', design.borderColor || '#cccccc');
-        widget.style.setProperty('--shadow', shadow);
-        widget.style.setProperty('--shadow-color', design.shadowColor || '#222222');
-        widget.style.setProperty('--shadow-intensity', design.shadowIntensity || 0.2);
-        widget.style.setProperty('--accent-color-hover', lightenHex(accentColor, 0.2));
+        // Inject the CSS into <head> if not already present for this widget instance
+        if (!document.getElementById(`style-${widgetClass}`)) {
+            const styleTag = document.createElement('style');
+            styleTag.id = `style-${widgetClass}`;
+            styleTag.textContent = scopedCSS;
+            document.head.appendChild(styleTag);
+        }
 
-        // Inject Inter font and critical CSS for pixel-perfect match
-        widget.innerHTML = `
-            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-            <style>
-                .widget-container, .widget-container * { font-family: 'Inter', sans-serif !important; }
-                .widget-content {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    justify-content: center;
-                    width: 100%;
-                }
-                .swiper {
-                    width: 100%;
-                    padding: 2rem 0;
-                }
-                .swiper-wrapper {
-                    display: flex;
-                    align-items: center;
-                }
-                .swiper-slide {
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                }
-                .review-card {
-                    background: var(--bg-color, #fff);
-                    border-radius: var(--border-radius, 16px);
-                    padding: 2rem;
-                    box-shadow: 0 4px 24px 0 rgba(0,0,0,0.08);
-                    border: none;
-                    margin: 0 1rem;
-                    width: 340px;
-                    max-width: 100%;
-                    min-height: 340px;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    justify-content: center;
-                    opacity: 1;
-                    transition: opacity 0.3s ease-in-out;
-                }
-                .star-rating {
-                    display: flex;
-                    justify-content: center;
-                    margin-bottom: 1rem;
-                }
-                .review-content {
-                    font-size: 1.15rem;
-                    line-height: 1.6;
-                    color: var(--body-text-color, #22223b);
-                    text-align: center;
-                    margin-bottom: 2rem;
-                    min-height: 80px;
-                    position: relative;
-                }
-                .review-content.show-quotes::before, .review-content.show-quotes::after {
-                    content: '"';
-                    position: absolute;
-                    font-size: 2em;
-                    color: var(--accent-color, slateblue);
-                    opacity: 0.3;
-                }
-                .review-content.show-quotes::before {
-                    left: -1rem;
-                    top: -0.5rem;
-                }
-                .review-content.show-quotes::after {
-                    right: -1rem;
-                    bottom: -0.5rem;
-                }
-                .reviewer-info {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    gap: 0.25rem;
-                }
-                .reviewer-name {
-                    font-weight: 700;
-                    color: #2d3be7;
-                    font-size: 1rem;
-                    text-align: center;
-                }
-                .reviewer-role {
-                    color: #888;
-                    font-size: 0.95rem;
-                    text-align: center;
-                }
-                .review-date {
-                    color: #aaa;
-                    font-size: 0.85rem;
-                    text-align: center;
-                }
-                .navigation-buttons {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    width: 100%;
-                    max-width: 1100px;
-                    margin: 0 auto 1.5rem auto;
-                    position: relative;
-                    top: 0;
-                }
-                .nav-button {
-                    background: #fff;
-                    color: #6c4ee6;
-                    border: none;
-                    border-radius: 50%;
-                    width: 48px;
-                    height: 48px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-                    cursor: pointer;
-                    transition: background 0.2s, color 0.2s;
-                    font-size: 1.5rem;
-                }
-                .nav-button:hover {
-                    background: #f3f0ff;
-                    color: #4a3f8c;
-                }
-                .swiper-pagination {
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    margin-top: 1.5rem;
-                    gap: 0.5rem;
-                }
-                .swiper-pagination-bullet {
-                    width: 10px;
-                    height: 10px;
-                    background: #ccc;
-                    opacity: 0.5;
-                    border-radius: 50%;
-                    margin: 0 3px;
-                }
-                .swiper-pagination-bullet-active {
-                    background: #6c4ee6;
-                    opacity: 1;
-                }
-                .submit-review-btn {
-                    background: #6c4ee6;
-                    color: #fff;
-                    border-radius: 999px;
-                    padding: 0.7rem 2.2rem;
-                    font-weight: 600;
-                    font-size: 1.1rem;
-                    text-decoration: none;
-                    cursor: pointer;
-                    transition: background 0.2s;
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-                    margin-top: 2.5rem;
-                    margin-bottom: 0.5rem;
-                    display: inline-block;
-                }
-                .submit-review-btn:hover {
-                    background: #4a3f8c;
-                }
-                @media (max-width: 1100px) {
-                    .navigation-buttons { max-width: 100%; }
-                }
-                @media (max-width: 900px) {
-                    .review-card { width: 90vw; min-width: 0; }
-                }
-                @media (max-width: 600px) {
-                    .review-card { padding: 1rem; width: 98vw; }
-                    .widget-content { padding: 0; }
-                }
-            </style>
-            <div class="widget-content">
-                <div class="navigation-buttons">
-                    <button class="nav-button prev-btn" aria-label="Previous">
-                        <svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="white"/><polygon points="14,7 9,12 14,17" fill="#6c4ee6"/></svg>
-                    </button>
-                    <button class="nav-button next-btn" aria-label="Next">
-                        <svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="white"/><polygon points="10,7 15,12 10,17" fill="#6c4ee6"/></svg>
-                    </button>
-                </div>
-                <div class="swiper">
-                    <div class="swiper-wrapper">
-                        ${reviews.map(review => `
-                        <div class="swiper-slide">
-                            <div class="review-card">
-                                <div class="star-rating">${typeof review.star_rating === 'number' && !isNaN(review.star_rating) ? renderStars(review.star_rating, 22) : ''}</div>
-                                <div class="review-content${design.showQuotes ? ' show-quotes' : ''}">${review.review_content}</div>
-                                <div class="reviewer-info">
-                                    <div class="reviewer-name">${review.first_name} ${review.last_name}</div>
-                                    <div class="reviewer-role">${review.reviewer_role || ''}</div>
-                                    ${design.showRelativeDate && review.created_at ? `<div class="review-date">${getRelativeTime(review.created_at)}${review.platform && !/^custom$/i.test(review.platform.trim()) ? ` via ${review.platform}` : ''}</div>` : ''}
-                                </div>
-                            </div>
-                        </div>
-                        `).join('')}
+        // Build the HTML for the widget
+        const slidesHtml = reviews.map((review, i) => `
+            <div class="swiper-slide${i === 0 ? ' swiper-slide-active' : ''}" role="group" aria-label="${i + 1} / ${reviews.length}">
+                <div class="review-card">
+                    <div class="flex items-center justify-center mb-4">
+                        ${typeof review.star_rating === 'number' && !isNaN(review.star_rating) ? renderStars(review.star_rating, 18) : ''}
                     </div>
-                    <div class="swiper-pagination"></div>
+                    <div class="review-content">
+                        ${review.review_content}
+                    </div>
+                    <div class="reviewer-info">
+                        <div class="reviewer-avatar">
+                            ${getInitials(review.first_name, review.last_name)}
+                        </div>
+                        <div class="reviewer-details">
+                            <span class="reviewer-name">${review.first_name} ${review.last_name}</span>
+                            <span class="reviewer-role">${review.reviewer_role || ''}</span>
+                        </div>
+                    </div>
                 </div>
-                ${design.showSubmitReviewButton ? `<div style="display:flex;justify-content:flex-end;width:100%;max-width:1100px;"><a href="/r/${widgetData.universalPromptSlug}" class="submit-review-btn">Submit a review</a></div>` : ''}
+            </div>
+        `).join('');
+
+        // Widget HTML template
+        const widgetHtml = `
+            <div class="widget-container">
+                <div class="widget-content">
+                    <div class="swiper">
+                        <div class="swiper-wrapper">
+                            ${slidesHtml}
+                        </div>
+                        <div class="navigation-buttons">
+                            <button class="nav-button swiper-button-prev" aria-label="Previous slide">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                    <polygon points="12.5,3 5.5,10 12.5,17" fill="currentColor"/>
+                                </svg>
+                            </button>
+                            <button class="nav-button swiper-button-next" aria-label="Next slide">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                    <polygon points="7.5,3 14.5,10 7.5,17" fill="currentColor"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         `;
 
-        container.appendChild(widget);
+        // Insert the widget HTML into the container
+        container.innerHTML = widgetHtml;
 
-        // Swiper initialization: 3 cards on desktop, 1 on mobile
-        const swiper = new Swiper(widget.querySelector('.swiper'), {
+        // Initialize Swiper
+        const swiper = new Swiper(container.querySelector('.swiper'), {
             loop: true,
             navigation: {
-                nextEl: widget.querySelector('.next-btn'),
-                prevEl: widget.querySelector('.prev-btn'),
+                nextEl: container.querySelector('.swiper-button-next'),
+                prevEl: container.querySelector('.swiper-button-prev'),
             },
             pagination: {
-                el: widget.querySelector('.swiper-pagination'),
-                clickable: true,
+                el: null,
             },
             autoplay: design.autoAdvance ? { delay: (design.slideshowSpeed || 4) * 1000 } : false,
             slidesPerView: 3,
-            spaceBetween: 32,
+            spaceBetween: 24,
             breakpoints: {
                 0: { slidesPerView: 1, spaceBetween: 8 },
                 600: { slidesPerView: 1, spaceBetween: 8 },
                 900: { slidesPerView: 2, spaceBetween: 16 },
-                1200: { slidesPerView: 3, spaceBetween: 32 },
+                1200: { slidesPerView: 3, spaceBetween: 24 },
             },
         });
     }
 
+    // Load all multi widgets on the page
     async function loadMultiWidgets() {
         const widgets = document.querySelectorAll('.promptreviews-widget[data-widget-type="multi"]');
         for (const widget of widgets) {
@@ -348,5 +420,9 @@ import 'swiper/css';
         }
     }
 
+    // Initialize widgets when DOM is ready
     document.addEventListener('DOMContentLoaded', loadMultiWidgets);
+
+    // Expose renderMultiWidget globally for embedding
+    window.renderMultiWidget = renderMultiWidget;
 })(); 

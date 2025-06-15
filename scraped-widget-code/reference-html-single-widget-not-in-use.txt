@@ -1,0 +1,138 @@
+scraped single widget css for reference. not in use:
+
+<div class="flex flex-col items-center px-4 snipcss-e4iBs style-FSNMK" id="style-FSNMK">
+    <div class="flex flex-col items-center w-full max-w-2xl mx-auto px-4">
+        <div class="flex flex-col items-center w-full justify-center relative">
+            <div class="hidden md:flex flex-row items-center justify-center w-full mt-2">
+                <div class="flex items-center justify-center flex-shrink-0 mr-4"><button class="rounded-full border border-gray-200 w-10 h-10 flex items-center justify-center transition z-10 hover:bg-opacity-80 active:scale-95 swiper-button-disabled style-y9G4b" aria-label="Previous slide" disabled="" tabindex="-1" aria-controls="swiper-wrapper-6210106164a43efefc" aria-disabled="true" id="style-y9G4b"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="display: block; margin: auto;">
+                            <polygon points="12.5,3 5.5,10 12.5,17" fill="slateblue"></polygon>
+                        </svg></button></div>
+                <div class="flex-1">
+                    <div class="swiper swiper-initialized swiper-horizontal swiper-backface-hidden max-w-2xl mx-auto">
+                        <div class="swiper-wrapper style-Wqypc" id="swiper-wrapper-6210106164a43efefc" aria-live="polite">
+                            <div class="swiper-slide swiper-slide-active style-p37fM" role="group" aria-label="1 / 3" id="style-p37fM">
+                                <div class="w-full max-w-2xl mx-auto style-gGKHE" id="style-gGKHE">
+                                    <article class="flex flex-col md:flex-row items-stretch bg-white rounded-3xl max-w-2xl w-full mx-auto px-0 md:px-0 justify-center flex-1 h-[380px] md:h-[380px] overflow-hidden relative style-FQvOo" itemscope="" itemtype="https://schema.org/Review" id="style-FQvOo">
+                                        <div class="pointer-events-none absolute inset-0 rounded-3xl style-S7qfO" id="style-S7qfO"></div>
+                                        <div class="flex flex-col justify-between h-full items-center flex-1 px-8 py-4">
+                                            <div class="flex items-center justify-center mb-2 mt-4 style-rTdWO" id="style-rTdWO"><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">☆</span></div>
+                                            <div class="flex flex-col items-center justify-center w-full min-h-[120px] sm:min-h-[180px] pb-12 style-j8PH4" id="style-j8PH4">
+                                                <div class="w-full max-w-xl mx-auto text-center text-[18px] text-gray-800 mb-4 break-words whitespace-pre-line relative style-EX8zm" id="style-EX8zm">
+                                                    <p class="mb-8 text-[18px] text-center style-byYSK" id="style-byYSK">On both the signle card and multi card widgets i would like to remove the number that displays next to the stars (exampl</p>
+                                                </div>
+                                            </div>
+                                            <div class="flex flex-col items-center gap-1 w-full mt-2 mb-4"><span class="font-semibold style-BA9ao" itemprop="author" itemscope="" itemtype="https://schema.org/Person" id="style-BA9ao"><span itemprop="name">che johmson</span></span><span class="text-xs style-8kKiJ" itemprop="author" itemscope="" itemtype="https://schema.org/Person" id="style-8kKiJ"><span itemprop="jobTitle">practical</span></span></div>
+                                        </div>
+                                    </article>
+                                </div>
+                            </div>
+                            <div class="swiper-slide swiper-slide-next style-csGWi" role="group" aria-label="2 / 3" id="style-csGWi">
+                                <div class="w-full max-w-2xl mx-auto style-a1chS" id="style-a1chS">
+                                    <article class="flex flex-col md:flex-row items-stretch bg-white rounded-3xl max-w-2xl w-full mx-auto px-0 md:px-0 justify-center flex-1 h-[380px] md:h-[380px] overflow-hidden relative style-9LDVB" itemscope="" itemtype="https://schema.org/Review" id="style-9LDVB">
+                                        <div class="pointer-events-none absolute inset-0 rounded-3xl style-t48yR" id="style-t48yR"></div>
+                                        <div class="flex flex-col justify-between h-full items-center flex-1 px-8 py-4">
+                                            <div class="flex items-center justify-center mb-2 mt-4 style-k7zFs" id="style-k7zFs"><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">☆</span></div>
+                                            <div class="flex flex-col items-center justify-center w-full min-h-[120px] sm:min-h-[180px] pb-12 style-SAkdM" id="style-SAkdM">
+                                                <div class="w-full max-w-xl mx-auto text-center text-[18px] text-gray-800 mb-4 break-words whitespace-pre-line relative style-ApFhi" id="style-ApFhi">
+                                                    <p class="mb-8 text-[18px] text-center style-Xjorp" id="style-Xjorp">On both the signle card and multi card widgets i would like to remove the number that displays next to the stars (exampl</p>
+                                                </div>
+                                            </div>
+                                            <div class="flex flex-col items-center gap-1 w-full mt-2 mb-4"><span class="font-semibold style-ligEU" itemprop="author" itemscope="" itemtype="https://schema.org/Person" id="style-ligEU"><span itemprop="name">ddd ddd</span></span><span class="text-xs style-AoTHm" itemprop="author" itemscope="" itemtype="https://schema.org/Person" id="style-AoTHm"><span itemprop="jobTitle">pulla</span></span></div>
+                                        </div>
+                                    </article>
+                                </div>
+                            </div>
+                            <div class="swiper-slide style-3gs1x" role="group" aria-label="3 / 3" id="style-3gs1x">
+                                <div class="w-full max-w-2xl mx-auto style-wPEKw" id="style-wPEKw">
+                                    <article class="flex flex-col md:flex-row items-stretch bg-white rounded-3xl max-w-2xl w-full mx-auto px-0 md:px-0 justify-center flex-1 h-[380px] md:h-[380px] overflow-hidden relative style-LxSpL" itemscope="" itemtype="https://schema.org/Review" id="style-LxSpL">
+                                        <div class="pointer-events-none absolute inset-0 rounded-3xl style-R2XBT" id="style-R2XBT"></div>
+                                        <div class="flex flex-col justify-between h-full items-center flex-1 px-8 py-4">
+                                            <div class="flex items-center justify-center mb-2 mt-4 style-K7DkY" id="style-K7DkY"><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span></div>
+                                            <div class="flex flex-col items-center justify-center w-full min-h-[120px] sm:min-h-[180px] pb-12 style-vAbxr" id="style-vAbxr">
+                                                <div class="w-full max-w-xl mx-auto text-center text-[18px] text-gray-800 mb-4 break-words whitespace-pre-line relative style-ET1yi" id="style-ET1yi">
+                                                    <p class="mb-8 text-[18px] text-center style-GnjwV" id="style-GnjwV">On both the signle card and multi card widgets i would like to remove the number that displays next to the stars (exampl</p>
+                                                </div>
+                                            </div>
+                                            <div class="flex flex-col items-center gap-1 w-full mt-2 mb-4"><span class="font-semibold style-5WjXS" itemprop="author" itemscope="" itemtype="https://schema.org/Person" id="style-5WjXS"><span itemprop="name">Test User</span></span><span class="text-xs style-qagWI" itemprop="author" itemscope="" itemtype="https://schema.org/Person" id="style-qagWI"><span itemprop="jobTitle">preepa</span></span></div>
+                                        </div>
+                                    </article>
+                                </div>
+                            </div>
+                        </div><span class="swiper-notification" aria-live="assertive" aria-atomic="true"></span>
+                    </div>
+                </div>
+                <div class="flex items-center justify-center flex-shrink-0 ml-4"><button class="rounded-full border border-gray-200 w-10 h-10 flex items-center justify-center transition z-10 hover:bg-opacity-80 active:scale-95 style-F9mqM" aria-label="Next slide" tabindex="0" aria-controls="swiper-wrapper-6210106164a43efefc" aria-disabled="false" id="style-F9mqM"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="display: block; margin: auto;">
+                            <polygon points="7.5,3 14.5,10 7.5,17" fill="slateblue"></polygon>
+                        </svg></button></div>
+            </div>
+            <div class="hidden md:flex w-full justify-center mt-14">
+                <div class="swiper-pagination swiper-pagination-clickable swiper-pagination-bullets swiper-pagination-horizontal"><span class="swiper-pagination-bullet swiper-pagination-bullet-active style-4MBHx" tabindex="0" aria-current="true" id="style-4MBHx"></span><span class="swiper-pagination-bullet style-6WMlU" tabindex="0" id="style-6WMlU"></span><span class="swiper-pagination-bullet style-tMYTA" tabindex="0" id="style-tMYTA"></span></div>
+            </div>
+            <div class="hidden md:block relative w-full max-w-2xl mx-auto style-s4wBU" id="style-s4wBU"><a href="/r/diviner-chris-bolton-1748755260762-cg8kl3" target="_blank" rel="noopener noreferrer" id="style-gpRSd" class="style-gpRSd">Submit a review</a></div>
+        </div>
+    </div>
+    <div class="md:hidden w-full">
+        <div class="swiper swiper-initialized swiper-horizontal w-full">
+            <div class="swiper-wrapper style-21ONQ" id="swiper-wrapper-95d58d4ebc20da1d" aria-live="polite">
+                <div class="swiper-slide">
+                    <div class="w-full max-w-full style-woLyI" id="style-woLyI">
+                        <article class="flex flex-col items-stretch bg-white rounded-3xl w-full px-0 justify-center flex-1 h-[420px] overflow-hidden relative style-zt7Ym" itemscope="" itemtype="https://schema.org/Review" id="style-zt7Ym">
+                            <div class="pointer-events-none absolute inset-0 rounded-3xl style-GxwcH" id="style-GxwcH"></div>
+                            <div class="flex flex-col justify-between h-full items-center flex-1 px-4 py-4">
+                                <div class="flex items-center justify-center mb-2 mt-4 style-xRM73" id="style-xRM73"><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">☆</span></div>
+                                <div class="flex flex-col items-center justify-center w-full min-h-[120px] pb-12 style-ozgnU" id="style-ozgnU">
+                                    <div class="w-full max-w-xl mx-auto text-center text-[18px] text-gray-800 mb-4 break-words whitespace-pre-line relative style-kosyU" id="style-kosyU">
+                                        <p class="mb-8 text-[18px] text-center style-zdUBK" id="style-zdUBK">On both the signle card and multi card widgets i would like to remove the number that displays next to the stars (exampl</p>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col items-center gap-1 w-full mt-2 mb-4"><span class="font-semibold style-HRmgz" itemprop="author" itemscope="" itemtype="https://schema.org/Person" id="style-HRmgz"><span itemprop="name">che johmson</span></span><span class="text-xs style-xFV5s" itemprop="author" itemscope="" itemtype="https://schema.org/Person" id="style-xFV5s"><span itemprop="jobTitle">practical</span></span></div>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="w-full max-w-full style-fdtDz" id="style-fdtDz">
+                        <article class="flex flex-col items-stretch bg-white rounded-3xl w-full px-0 justify-center flex-1 h-[420px] overflow-hidden relative style-s5AAl" itemscope="" itemtype="https://schema.org/Review" id="style-s5AAl">
+                            <div class="pointer-events-none absolute inset-0 rounded-3xl style-pFjwq" id="style-pFjwq"></div>
+                            <div class="flex flex-col justify-between h-full items-center flex-1 px-4 py-4">
+                                <div class="flex items-center justify-center mb-2 mt-4 style-apELQ" id="style-apELQ"><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">☆</span></div>
+                                <div class="flex flex-col items-center justify-center w-full min-h-[120px] pb-12 style-wackw" id="style-wackw">
+                                    <div class="w-full max-w-xl mx-auto text-center text-[18px] text-gray-800 mb-4 break-words whitespace-pre-line relative style-Fa6f4" id="style-Fa6f4">
+                                        <p class="mb-8 text-[18px] text-center style-EoSr2" id="style-EoSr2">On both the signle card and multi card widgets i would like to remove the number that displays next to the stars (exampl</p>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col items-center gap-1 w-full mt-2 mb-4"><span class="font-semibold style-49Gys" itemprop="author" itemscope="" itemtype="https://schema.org/Person" id="style-49Gys"><span itemprop="name">ddd ddd</span></span><span class="text-xs style-nb5gr" itemprop="author" itemscope="" itemtype="https://schema.org/Person" id="style-nb5gr"><span itemprop="jobTitle">pulla</span></span></div>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="w-full max-w-full style-zJCsk" id="style-zJCsk">
+                        <article class="flex flex-col items-stretch bg-white rounded-3xl w-full px-0 justify-center flex-1 h-[420px] overflow-hidden relative style-j6qHv" itemscope="" itemtype="https://schema.org/Review" id="style-j6qHv">
+                            <div class="pointer-events-none absolute inset-0 rounded-3xl style-wo43Y" id="style-wo43Y"></div>
+                            <div class="flex flex-col justify-between h-full items-center flex-1 px-4 py-4">
+                                <div class="flex items-center justify-center mb-2 mt-4 style-LW6U2" id="style-LW6U2"><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span></div>
+                                <div class="flex flex-col items-center justify-center w-full min-h-[120px] pb-12 style-Bko85" id="style-Bko85">
+                                    <div class="w-full max-w-xl mx-auto text-center text-[18px] text-gray-800 mb-4 break-words whitespace-pre-line relative style-jxSgz" id="style-jxSgz">
+                                        <p class="mb-8 text-[18px] text-center style-Uihy8" id="style-Uihy8">On both the signle card and multi card widgets i would like to remove the number that displays next to the stars (exampl</p>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col items-center gap-1 w-full mt-2 mb-4"><span class="font-semibold style-XI6sL" itemprop="author" itemscope="" itemtype="https://schema.org/Person" id="style-XI6sL"><span itemprop="name">Test User</span></span><span class="text-xs style-eZ8aG" itemprop="author" itemscope="" itemtype="https://schema.org/Person" id="style-eZ8aG"><span itemprop="jobTitle">preepa</span></span></div>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+            </div><span class="swiper-notification" aria-live="assertive" aria-atomic="true"></span>
+        </div>
+        <div class="flex flex-row items-center justify-between w-full px-4 style-bVy2h" id="style-bVy2h"><button class="group rounded-full border border-gray-200 w-10 h-10 min-w-10 min-h-10 flex items-center justify-center transition z-10 hover:bg-opacity-80 active:scale-95 flex-shrink-0 style-j1S8N" aria-label="Previous slide" tabindex="0" aria-controls="swiper-wrapper-95d58d4ebc20da1d" aria-disabled="false" id="style-j1S8N"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" style="display: block; margin: auto;">
+                    <polygon points="12.5,3 5.5,10 12.5,17" fill="slateblue"></polygon>
+                </svg></button>
+            <div class="flex-1 flex justify-center items-center">
+                <div class="swiper-pagination swiper-pagination-clickable swiper-pagination-bullets swiper-pagination-horizontal style-tPX42" id="style-tPX42"></div>
+            </div><button class="group rounded-full border border-gray-200 w-10 h-10 min-w-10 min-h-10 flex items-center justify-center transition z-10 hover:bg-opacity-80 active:scale-95 flex-shrink-0 style-My3Qn" aria-label="Next slide" tabindex="0" aria-controls="swiper-wrapper-95d58d4ebc20da1d" aria-disabled="false" id="style-My3Qn"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" style="display: block; margin: auto;">
+                    <polygon points="7.5,3 14.5,10 7.5,17" fill="slateblue"></polygon>
+                </svg></button>
+        </div>
+        <div class="flex w-full px-4 justify-end mt-4 md:hidden"><a href="/r/diviner-chris-bolton-1748755260762-cg8kl3" target="_blank" rel="noopener noreferrer" id="style-3zrkv" class="style-3zrkv">Submit a review</a></div>
+    </div>
+</div>
