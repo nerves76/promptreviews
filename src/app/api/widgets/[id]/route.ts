@@ -52,7 +52,8 @@ export async function GET(
 
     // Compose the response object
     const response = {
-      ...widget, // includes type, design, etc.
+      ...widget,
+      design: widget.design || widget.theme, // ensure 'design' is present for widget script compatibility
       reviews: reviews || [],
     };
 
