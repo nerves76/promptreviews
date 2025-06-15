@@ -38,13 +38,15 @@ interface DesignState {
   font: string;
 }
 
-interface SingleWidgetProps {
+export interface SingleWidgetProps {
   data: {
     reviews: Review[];
     design: DesignState;
     universalPromptSlug?: string | null;
   };
 }
+
+export type { SingleWidgetProps };
 
 const SingleWidget: React.FC<SingleWidgetProps> = ({ data }) => {
   const { reviews, design } = data;
