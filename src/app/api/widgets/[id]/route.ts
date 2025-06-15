@@ -51,9 +51,10 @@ export async function GET(
     }
 
     // Compose the response object
+    const { theme, ...rest } = widget;
     const response = {
-      ...widget,
-      design: widget.design || widget.theme, // ensure 'design' is present for widget script compatibility
+      ...rest,
+      design: widget.design || theme, // only 'design', not 'theme'
       reviews: reviews || [],
     };
 
