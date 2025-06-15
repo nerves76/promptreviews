@@ -4,6 +4,7 @@ import { Navigation, Pagination, A11y, Autoplay } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
+import { WidgetData } from './index';
 // Import any shared helpers from widget-embed/index.tsx as needed
 // ...
 // --- Shared types and helpers ---
@@ -14,26 +15,6 @@ import 'swiper/css/pagination';
 // WidgetType and WidgetData
 // Defines the types for the widget and its data structure, including reviews and design settings
 type WidgetType = 'single' | 'multi' | 'photo';
-
-interface WidgetData {
-  id: string;
-  name: string;
-  widget_type: WidgetType;
-  design: typeof DEFAULT_DESIGN;
-  reviews: Array<{
-    id: string;
-    review_content: string;
-    first_name: string;
-    last_name: string;
-    reviewer_role: string;
-    platform: string;
-    created_at: string;
-    star_rating: number;
-    photo_url?: string;
-  }>;
-  slug?: string;
-  universalPromptSlug?: string;
-}
 
 // getDesignWithDefaults
 // Returns a design object with all defaults filled in for any missing properties

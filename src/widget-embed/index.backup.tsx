@@ -1,3 +1,6 @@
+// NOTE: This file is no longer used. It is kept as a backup reference only.
+// All widget types now import WidgetData and shared helpers from 'src/widget-embed/index.tsx'.
+
 import React, { useRef, useEffect, useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserClient } from '@supabase/ssr';
