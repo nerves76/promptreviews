@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 // Initialize Supabase client with public credentials
@@ -16,11 +16,11 @@ const supabase = createClient(
  *
  * Returns 404 if widget not found, or 500 on server error.
  *
- * Note: The context argument must be typed as 'any' or use the correct Next.js type for dynamic API routes.
+ * Note: The context argument must be typed as 'any' for compatibility with Next.js App Router API routes.
  */
 export async function GET(
-  req: NextRequest,
-  context: { params: { id: string } }
+  req: Request,
+  context: any
 ) {
   const widgetId = context.params.id;
   if (!widgetId) {
