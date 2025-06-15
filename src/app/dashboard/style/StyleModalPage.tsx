@@ -154,6 +154,23 @@ export default function StylePage() {
     }
   }
 
+  function handleReset() {
+    if (window.confirm('Are you sure you want to reset all style settings to default? This cannot be undone.')) {
+      setSettings({
+        primary_font: "Inter",
+        secondary_font: "Roboto",
+        primary_color: "#4F46E5",
+        secondary_color: "#818CF8",
+        background_type: "gradient",
+        background_color: "#FFFFFF",
+        gradient_start: "#3B82F6",
+        gradient_end: "#c026d3",
+        card_bg: "#FFFFFF",
+        card_text: "#1A1A1A",
+      });
+    }
+  }
+
   return (
     <div className="bg-white p-8 rounded-2xl shadow max-w-2xl w-full overflow-y-auto relative" style={{ maxHeight: '80vh' }}>
       {success && (
@@ -168,6 +185,14 @@ export default function StylePage() {
         disabled={saving}
       >
         {saving ? "Saving..." : "Save"}
+      </button>
+      <button
+        className="absolute top-6 right-32 px-5 py-2 border border-slate-300 bg-white text-slate-blue rounded font-semibold shadow hover:bg-slate-100 transition z-10"
+        style={{ minWidth: 90 }}
+        onClick={handleReset}
+        disabled={saving}
+      >
+        Reset Styles
       </button>
       <h2 className="text-2xl font-bold text-slate-blue mb-4">Prompt page style</h2>
       <p className="text-gray-600 mb-6">

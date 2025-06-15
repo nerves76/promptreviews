@@ -17,41 +17,76 @@ import { useRouter } from "next/navigation";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { MultiWidget, SingleWidget, PhotoWidget, getDesignWithDefaults, hexToRgba, getRelativeTime, renderStars, lightenHex, injectWidgetNavCSS } from '../../../widget-embed/index';
 
+// Add DesignState type definition
+type DesignState = {
+  bgType: "none" | "solid";
+  bgColor: string;
+  textColor: string;
+  accentColor: string;
+  bodyTextColor: string;
+  nameTextColor: string;
+  roleTextColor: string;
+  quoteFontSize: number;
+  attributionFontSize: number;
+  borderRadius: number;
+  shadow: boolean;
+  bgOpacity: number;
+  autoAdvance: boolean;
+  slideshowSpeed: number;
+  border: boolean;
+  borderWidth: number;
+  lineSpacing: number;
+  showQuotes: boolean;
+  showRelativeDate: boolean;
+  showGrid: boolean;
+  width: number;
+  sectionBgType: "none" | "custom";
+  sectionBgColor: string;
+  shadowIntensity: number;
+  shadowColor: string;
+  borderColor: string;
+  font: string;
+  showSubmitReviewButton: boolean;
+};
+
 export default function WidgetPage() {
   const [current, setCurrent] = useState(0);
   const [fadeIn, setFadeIn] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [showMaxWidgetsModal, setShowMaxWidgetsModal] = useState(false);
   const carouselRef = useRef<HTMLDivElement>(null);
   const [selectedWidget, setSelectedWidget] = useState<any>(null);
   const [widgetReviews, setWidgetReviews] = useState<any[]>([]);
   const [loadingWidget, setLoadingWidget] = useState(false);
-  const [design, setDesign] = useState({
+  const [design, setDesign] = useState<DesignState>({
+    bgType: "solid",
     bgColor: "#ffffff",
     textColor: "#22223b",
     accentColor: "slateblue",
-    fontSize: 16,
+    bodyTextColor: "#22223b",
+    nameTextColor: "#1a237e",
+    roleTextColor: "#6b7280",
+    quoteFontSize: 18,
+    attributionFontSize: 15,
     borderRadius: 16,
     shadow: true,
     bgOpacity: 1,
-    autoAdvance: true,
+    autoAdvance: false,
     slideshowSpeed: 4,
     border: true,
     borderWidth: 2,
-    lineSpacing: 1.5,
-    showQuotes: true,
-    quoteFontSize: 16,
-    attributionFontSize: 16,
-    showRelativeDate: true,
+    lineSpacing: 1.4,
+    showQuotes: false,
+    showRelativeDate: false,
     showGrid: false,
-    bodyTextColor: "#22223b",
-    nameTextColor: "#22223b",
-    roleTextColor: "#22223b",
-    sectionBgType: "inherit",
+    width: 1000,
+    sectionBgType: "none",
     sectionBgColor: "#ffffff",
     shadowIntensity: 0.2,
     shadowColor: "#222222",
     borderColor: "#cccccc",
-    showSubmitReviewButton: false,
+    font: "Inter",
+    showSubmitReviewButton: true,
   });
   const [currentGroup, setCurrentGroup] = useState(0);
   const [isClient, setIsClient] = useState(false);
@@ -235,19 +270,44 @@ export default function WidgetPage() {
 
   return (
     <>
+      {showMaxWidgetsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4 relative">
+            <button
+              onClick={() => setShowMaxWidgetsModal(false)}
+              className="absolute -top-3 -right-3 w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center text-red-500 hover:text-red-600 transition-colors"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <h2 className="text-2xl font-bold text-[#1A237E] mb-4">Max widgets reached!</h2>
+            <p className="text-gray-600 mb-6">You must really love widgets. Contact us and we may be able to help!</p>
+            <div className="flex justify-end gap-4">
+              <button
+                onClick={() => window.location.href = 'https://promptreviews.app/contact'}
+                className="px-4 py-2 bg-dustyPlum text-pureWhite rounded hover:bg-lavenderHaze hover:text-dustyPlum transition-colors font-semibold"
+              >
+                Contact Us
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Widget Preview on Gradient */}
       <div
-        className="w-full max-w-full mx-auto mb-12 mt-10 px-2 sm:px-0"
+        className="w-full max-w-full mx-auto mb-0 mt-12 px-2 sm:px-0"
         style={{
           boxSizing: 'border-box',
-          minHeight: 400,
+          minHeight: 320,
           background: design.sectionBgType === 'custom'
             ? design.sectionBgColor
             : 'none',
           transition: 'background 0.3s',
         }}
       >
-        <h2 className="text-2xl font-bold text-white mb-10 text-center">
+        <h2 className="text-lg font-semibold text-white mb-4 text-center">
           Live widget preview
         </h2>
         <section
@@ -255,12 +315,13 @@ export default function WidgetPage() {
           aria-label="Review carousel preview"
           style={{
             background: design.sectionBgType === "custom" ? design.sectionBgColor : "none",
-                  color: design.textColor,
-                  border: 'none',
-                  boxShadow: 'none',
-                  padding: 0,
-                  minHeight: 320,
-                  margin: '0 auto',
+            color: design.textColor,
+            border: 'none',
+            boxShadow: 'none',
+            padding: 0,
+            minHeight: 320,
+            margin: '0 auto',
+            transition: 'min-height 0.3s',
           }}
         >
           {loading ? (
@@ -281,28 +342,34 @@ export default function WidgetPage() {
             <SingleWidget data={{ ...selectedWidget, reviews, design, universalPromptSlug }} />
           ) : selectedWidget?.widget_type === 'photo' ? (
             <PhotoWidget data={{ ...selectedWidget, reviews, design, universalPromptSlug }} />
-                      ) : null}
+          ) : null}
           <div id="carousel-live" className="sr-only" aria-live="polite" />
         </section>
       </div>
       {/* Main Card Below */}
       <PageCard icon={<FaCode className="w-9 h-9 text-[#1A237E]" />}>
-        <div className="flex justify-between items-center mb-2">
-          <h1 className="text-4xl font-bold text-[#1A237E]">Your widgets</h1>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-2">
+          <div>
+            <h1 className="text-4xl font-bold text-[#1A237E]">Your widgets</h1>
+            <p className="mt-2 text-gray-500 text-sm max-w-md">
+              Create up to 3 different widgets to showcase your reviews. Style to match your brand.
+            </p>
+          </div>
           <button
-            className="px-4 py-2 bg-dustyPlum text-pureWhite rounded hover:bg-lavenderHaze hover:text-dustyPlum transition-colors font-semibold"
+            className="px-4 py-2 bg-[#1A237E] text-white rounded hover:bg-opacity-90 transition-colors font-semibold whitespace-nowrap"
             onClick={() => {
-              // Open the new widget form in WidgetList via a custom event
-              const event = new CustomEvent("openNewWidgetForm");
-              window.dispatchEvent(event);
+              if (widgets.length >= 3) {
+                setShowMaxWidgetsModal(true);
+              } else {
+                // Open the new widget form in WidgetList via a custom event
+                const event = new CustomEvent("openNewWidgetForm");
+                window.dispatchEvent(event);
+              }
             }}
           >
             + New widget
           </button>
         </div>
-        <p className="mt-2 text-gray-500 text-sm max-w-md mb-8">
-          Create up to 3 widgets.  Choose which reviews you want to add and select the most impactful lines to include in your widget. Use "Style" to change look and feel.
-        </p>
         {/* Widget Management Section */}
         <WidgetList
           onSelectWidget={setSelectedWidget}
@@ -328,7 +395,6 @@ export default function WidgetPage() {
               });
           }}
         />
-        <hr className="my-10" />
         {/* JSON-LD for SEO */}
         <script
           type="application/ld+json"

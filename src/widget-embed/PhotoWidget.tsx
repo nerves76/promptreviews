@@ -376,7 +376,7 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                       <div style={{ position: 'relative', width: '100%', height: '100%' }} className="relative">
                         {/* Review card layout: photo on left, content on right (desktop) */}
                         <article
-                          className="flex flex-col md:flex-row items-stretch bg-white rounded-3xl w-full px-0 md:px-0 justify-center flex-1 md:h-[440px] overflow-hidden relative"
+                          className="flex flex-col md:flex-row items-stretch bg-white rounded-3xl w-full px-0 md:px-0 justify-center flex-1 md:h-[320px] overflow-hidden relative"
                           style={{
                             background: design.bgColor === 'transparent' ? 'none' : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
                             color: design.textColor,
@@ -398,7 +398,7 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                             />
                           )}
                           {/* Photo section (left on desktop, top on mobile) */}
-                          <div className="pr-widget-photo-img flex items-center justify-center w-full md:w-2/5 h-[440px] md:h-full min-h-[440px] relative" style={{ background: '#f3f4f6', boxShadow: 'none', zIndex: 2 }}>
+                          <div className="pr-widget-photo-img flex items-center justify-center w-full md:w-2/5 h-[320px] md:h-full min-h-[320px] relative" style={{ background: '#f3f4f6', boxShadow: 'none', zIndex: 2 }}>
                             {review.photo_url ? (
                               <img
                                 src={review.photo_url}
@@ -515,40 +515,6 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                             </div>
                           </div>
                         </article>
-                        {/* Submit a review button (desktop/tablet) inside the card context */}
-                        {design.showSubmitReviewButton && data.universalPromptSlug && (
-                          <div className="hidden md:flex w-full justify-end mt-6">
-                            <a
-                              href={`/r/${data.universalPromptSlug}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              style={{
-                                border: `1.5px solid ${hexToRgba('#888', 0.22)}`,
-                                background: cardBg,
-                                color: accent,
-                                borderRadius: design.borderRadius,
-                                padding: '8px 20px',
-                                fontWeight: 500,
-                                fontSize: 15,
-                                textDecoration: 'none',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s',
-                                boxSizing: 'border-box',
-                                boxShadow: design.shadow ? `inset 0 0 8px 0 ${hexToRgba('#000', 0.18)}, inset 0 0 2px 0 ${hexToRgba('#fff', 0.12)}` : 'none',
-                              }}
-                              onMouseEnter={e => {
-                                e.currentTarget.style.background = design.accentColor;
-                                e.currentTarget.style.color = design.bgColor === 'transparent' ? '#fff' : design.bgColor;
-                              }}
-                              onMouseLeave={e => {
-                                e.currentTarget.style.background = cardBg;
-                                e.currentTarget.style.color = accent;
-                              }}
-                            >
-                              Submit a review
-                            </a>
-                          </div>
-                        )}
                       </div>
                     </SwiperSlide>
                   ))}
@@ -595,6 +561,40 @@ const PhotoWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
             <div className="hidden md:flex flex-row items-center justify-center max-w-[400px] mx-auto w-full mt-0">
               <div ref={paginationRefDesktop} className="swiper-pagination" />
             </div>
+            {/* Desktop: Submit a review button below the Swiper, not inside the slide */}
+            {design.showSubmitReviewButton && data.universalPromptSlug && (
+              <div className="hidden md:flex w-full justify-end mt-6">
+                <a
+                  href={`/r/${data.universalPromptSlug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    border: `1.5px solid ${hexToRgba('#888', 0.22)}`,
+                    background: cardBg,
+                    color: accent,
+                    borderRadius: design.borderRadius,
+                    padding: '8px 20px',
+                    fontWeight: 500,
+                    fontSize: 15,
+                    textDecoration: 'none',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    boxSizing: 'border-box',
+                    boxShadow: design.shadow ? `inset 0 0 8px 0 ${hexToRgba('#000', 0.18)}, inset 0 0 2px 0 ${hexToRgba('#fff', 0.12)}` : 'none',
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = design.accentColor;
+                    e.currentTarget.style.color = design.bgColor === 'transparent' ? '#fff' : design.bgColor;
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = cardBg;
+                    e.currentTarget.style.color = accent;
+                  }}
+                >
+                  Submit a review
+                </a>
+              </div>
+            )}
 
             {/* Mobile: Swiper with pagination and navigation below */}
             <div className="md:hidden w-full">

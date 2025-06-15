@@ -6,6 +6,7 @@ import { getUserOrMock } from "@/utils/supabase";
 import FiveStarSpinner from "@/app/components/FiveStarSpinner";
 import { ChatBubbleLeftIcon } from "@heroicons/react/24/outline";
 import { CheckIcon, DocumentDuplicateIcon } from "@heroicons/react/24/outline";
+import { smartMergeDesign } from '../utils/smartMergeDesign';
 
 const WORD_LIMIT = 250;
 const MAX_WIDGET_REVIEWS = 8;
@@ -23,7 +24,7 @@ function wordCount(str: string) {
 }
 
 // Add type for design state
-type DesignState = {
+export type DesignState = {
   bgType: "none" | "solid";
   bgColor: string;
   textColor: string;
@@ -45,12 +46,12 @@ type DesignState = {
   showRelativeDate: boolean;
   showGrid: boolean;
   width: number;
-  sectionBgType?: "none" | "custom";
-  sectionBgColor?: string;
-  shadowIntensity?: number;
-  shadowColor?: string;
+  sectionBgType: "none" | "custom";
+  sectionBgColor: string;
+  shadowIntensity: number;
+  shadowColor: string;
   borderColor: string;
-  font?: string;
+  font: string;
   showSubmitReviewButton: boolean;
 };
 
@@ -63,8 +64,8 @@ export default function WidgetList({
 }: {
   onSelectWidget?: (widget: any) => void;
   selectedWidgetId?: string;
-  onDesignChange?: (design: any) => void;
-  design?: any;
+  onDesignChange?: (design: DesignState) => void;
+  design: DesignState; // Make design required
   onWidgetReviewsChange?: () => void;
 }) {
   const [widgets, setWidgets] = useState<any[]>([]);
@@ -74,6 +75,56 @@ export default function WidgetList({
     name: "",
     widgetType: "multi",
   });
+
+  // Remove local design state and use parentDesign directly
+  const design = parentDesign;
+
+  // Update design state handlers with proper types
+  const handleDesignChange = (field: keyof DesignState, value: any) => {
+    if (onDesignChange) {
+      const newDesign = {
+        ...design,
+        [field]: value,
+      };
+      onDesignChange(newDesign);
+    }
+  };
+
+  // Update handleResetDesign to use onDesignChange
+  const handleResetDesign = () => {
+    if (onDesignChange) {
+      onDesignChange({
+        bgType: "solid",
+        bgColor: "#FDFBF2",
+        textColor: "#22223b",
+        accentColor: "slateblue",
+        bodyTextColor: "#22223b",
+        nameTextColor: "#1a237e",
+        roleTextColor: "#6b7280",
+        quoteFontSize: 18,
+        attributionFontSize: 15,
+        borderRadius: 16,
+        shadow: true,
+        bgOpacity: 1,
+        autoAdvance: false,
+        slideshowSpeed: 4,
+        border: true,
+        borderWidth: 2,
+        lineSpacing: 1.4,
+        showQuotes: false,
+        showRelativeDate: false,
+        showGrid: false,
+        width: 1000,
+        sectionBgType: "none",
+        sectionBgColor: "#ffffff",
+        shadowIntensity: 0.2,
+        shadowColor: '#222222',
+        borderColor: '#cccccc',
+        font: "Inter",
+        showSubmitReviewButton: true,
+      });
+    }
+  };
 
   // Review management state
   const [showReviewModal, setShowReviewModal] = useState(false);
@@ -101,37 +152,6 @@ export default function WidgetList({
     last_name: "",
     reviewer_role: "",
     star_rating: null,
-  });
-
-  // Widget design state (for editing)
-  const [design, setDesign] = useState({
-    bgType: "solid" as "none" | "solid", // Ensure bgType is correctly typed
-    bgColor: "#FDFBF2",
-    textColor: "#22223b",
-    accentColor: "slateblue",
-    bodyTextColor: "#22223b",
-    nameTextColor: "#1a237e",
-    roleTextColor: "#6b7280",
-    quoteFontSize: 18,
-    attributionFontSize: 15,
-    borderRadius: 16,
-    shadow: true,
-    bgOpacity: 1,
-    autoAdvance: false,
-    slideshowSpeed: 4,
-    border: true, // Ensure border is always defined
-    borderWidth: 2,
-    lineSpacing: 1.4,
-    showQuotes: false,
-    showRelativeDate: false,
-    showGrid: false,
-    width: 1000,
-    sectionBgType: "none" as "none" | "custom", // Ensure sectionBgType is correctly typed
-    sectionBgColor: "#ffffff",
-    shadowIntensity: 0.2,
-    shadowColor: '#222222',
-    borderColor: '#cccccc',
-    showSubmitReviewButton: true,
   });
 
   // Draggable edit modal state
@@ -170,20 +190,21 @@ export default function WidgetList({
   useEffect(() => {
     if (selectedWidget) {
       const widget = widgets.find(w => w.id === selectedWidget);
-      // Use widget.design instead of widget.theme for design state
-      setDesign(widget?.design || {});
+      if (widget?.design && onDesignChange) {
+        onDesignChange(widget.design);
+      }
     }
-  }, [selectedWidget, widgets]);
+  }, [selectedWidget, widgets, onDesignChange]);
 
   // Add effect to ensure showSubmitReviewButton is preserved when saving
   useEffect(() => {
-    if (design && typeof design.showSubmitReviewButton === 'undefined') {
-      setDesign((prev: DesignState) => ({
-        ...prev,
+    if (design && typeof design.showSubmitReviewButton === 'undefined' && onDesignChange) {
+      onDesignChange({
+        ...design,
         showSubmitReviewButton: true
-      }));
+      });
     }
-  }, [design]);
+  }, [design, onDesignChange]);
 
   // Listen for openNewWidgetForm event from parent
   useEffect(() => {
@@ -563,7 +584,10 @@ export default function WidgetList({
   const handleCopyEmbed = async (widgetId: string) => {
     const widget = widgets.find(w => w.id === widgetId);
     const widgetType = widget?.widget_type || '';
-    const code = `<!-- PromptReviews Widget Type: ${widgetType} -->\n<div class="promptreviews-widget" data-widget="${widgetId}" data-widget-type="${widgetType}"></div>\n<script src="https://app.promptreviews.app/widget.js" async></script>`;
+    // Use the correct script src for each widget type
+    let scriptSrc = `https://app.promptreviews.app/widgets/${widgetType}/widget.min.js`;
+    // Compose the correct embed code for the widget type
+    const code = `<!-- PromptReviews Widget Type: ${widgetType} -->\n<div class=\"promptreviews-widget\" data-widget=\"${widgetId}\" data-widget-type=\"${widgetType}\"></div>\n<script src=\"${scriptSrc}\" async></script>`;
     try {
       await navigator.clipboard.writeText(code);
     } catch (err) {
@@ -659,14 +683,6 @@ export default function WidgetList({
       console.error("Error updating widget theme:", error);
       alert("Failed to update widget theme. Please try again.");
     }
-  };
-
-  // Update design state handlers with proper types
-  const handleDesignChange = (field: keyof DesignState, value: any) => {
-    setDesign((prev: DesignState) => ({
-      ...prev,
-      [field]: value,
-    }));
   };
 
   // Update the getFilteredAndSortedReviews function to include pagination
@@ -917,55 +933,84 @@ export default function WidgetList({
     { name: "Dark Brown", value: "#3E2723" },
   ];
 
-  // Add this function inside WidgetList
-  function handleResetDesign() {
-    if (window.confirm('Are you sure you want to reset all widget style settings to default? This cannot be undone.')) {
-      setDesign({
-        bgType: "solid",
-        bgColor: "#FDFBF2",
-        textColor: "#22223b",
-        accentColor: "slateblue",
-        bodyTextColor: "#22223b",
-        nameTextColor: "#1a237e",
-        roleTextColor: "#6b7280",
-        quoteFontSize: 18,
-        attributionFontSize: 15,
-        borderRadius: 16,
-        shadow: true,
-        bgOpacity: 1,
-        autoAdvance: false,
-        slideshowSpeed: 4,
-        border: true, // Ensure border is always defined
-        borderWidth: 2,
-        lineSpacing: 1.4,
-        showQuotes: false,
-        showRelativeDate: false,
-        showGrid: false,
-        width: 1000,
-        sectionBgType: "none",
-        sectionBgColor: "#ffffff",
-        shadowIntensity: 0.2,
-        shadowColor: '#222222',
-        borderColor: '#cccccc',
-        showSubmitReviewButton: true,
-      });
-    }
-  }
-
   return (
     <div className="space-y-6">
       {/* Widget List */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="grid grid-cols-1 gap-6">
-          {widgets.map((widget) => (
-            <div
-              key={widget.id}
-              className={`bg-white rounded-lg shadow-md overflow-hidden cursor-pointer border-2 transition-all ${selectedWidgetId === widget.id ? 'border-indigo-500 ring-2 ring-indigo-200' : 'border-transparent'}`}
-              onClick={() => onSelectWidget?.(widget)}
-            >
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-2">
+      <div>
+        <div className="grid grid-cols-1 gap-8">
+          {widgets.map((widget) => {
+            let shadowColor = 'rgba(30, 41, 59, 0.18)';
+            let borderColor = 'transparent';
+            let accentColor = '#4F46E5';
+            if (widget.widget_type === 'single') {
+              shadowColor = 'rgba(59, 130, 246, 0.18)'; // blue-500
+              borderColor = '#3B82F6'; // blue-500
+              accentColor = '#3B82F6';
+            } else if (widget.widget_type === 'multi') {
+              shadowColor = 'rgba(16, 185, 129, 0.18)'; // green-500
+              borderColor = '#10B981'; // green-500
+              accentColor = '#10B981';
+            } else if (widget.widget_type === 'photo') {
+              shadowColor = 'rgba(139, 92, 246, 0.18)'; // purple-500
+              borderColor = '#8B5CF6'; // purple-500
+              accentColor = '#8B5CF6';
+            }
+
+            const isSelected = selectedWidgetId === widget.id;
+
+            return (
+              <div
+                key={widget.id}
+                className={`bg-white rounded-lg shadow-lg overflow-hidden cursor-pointer border-2 transition-all relative ${isSelected ? '' : ''}`}
+                style={{
+                  boxShadow: isSelected
+                    ? `0 4px 24px 0 ${shadowColor}, 0 0 0 2px ${borderColor}`
+                    : `0 4px 24px 0 ${shadowColor}`,
+                  borderColor: isSelected ? borderColor : 'transparent',
+                  borderWidth: '2px',
+                  boxSizing: 'border-box',
+                  transition: 'border-color 0.2s, box-shadow 0.2s',
+                }}
+                onClick={() => onSelectWidget?.(widget)}
+              >
+                {/* Top right: Select to view button */}
+                <button
+                  className="absolute top-3 right-3 flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium transition-colors select-to-view-btn"
+                  style={{
+                    background: isSelected ? accentColor : 'rgba(100,116,255,0.08)',
+                    color: isSelected ? '#fff' : accentColor,
+                    border: 'none',
+                    outline: 'none',
+                    zIndex: 10,
+                    fontWeight: 600,
+                    boxShadow: isSelected ? `0 2px 8px ${shadowColor}` : 'none',
+                    cursor: 'pointer',
+                  }}
+                  onClick={e => { e.stopPropagation(); onSelectWidget?.(widget); }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = accentColor;
+                    e.currentTarget.style.color = '#fff';
+                  }}
+                  onMouseLeave={e => {
+                    if (isSelected) {
+                      e.currentTarget.style.background = accentColor;
+                      e.currentTarget.style.color = '#fff';
+                    } else {
+                      e.currentTarget.style.background = 'rgba(100,116,255,0.08)';
+                      e.currentTarget.style.color = accentColor;
+                    }
+                  }}
+                  aria-label="Select to view"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4" style={{ display: 'inline-block' }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12C3.5 7.5 7.5 4.5 12 4.5c4.5 0 8.5 3 9.75 7.5-1.25 4.5-5.25 7.5-9.75 7.5-4.5 0-8.5-3-9.75-7.5z" />
+                    <circle cx="12" cy="12" r="3" fill="currentColor" />
+                  </svg>
+                  <span className="ml-1">Select to view</span>
+                </button>
+                <div className="py-3 px-4">
+                  {/* Widget title on its own line */}
+                  <div className="mb-2">
                     {editingNameId === widget.id ? (
                       <input
                         type="text"
@@ -989,7 +1034,7 @@ export default function WidgetList({
                       />
                     ) : (
                       <span
-                        className="text-xl font-semibold text-gray-900 cursor-pointer hover:underline flex items-center gap-1"
+                        className="text-xl font-semibold text-gray-900 cursor-pointer hover:underline"
                         onClick={e => {
                           e.stopPropagation();
                           setEditingNameId(widget.id);
@@ -997,111 +1042,115 @@ export default function WidgetList({
                         }}
                       >
                         {widget.name}
-                        {/* Widget type label */}
-                        <span className={`ml-2 px-2 py-0.5 rounded text-xs font-semibold ${
-                          widget.widget_type === 'single' ? 'bg-blue-100 text-blue-700' :
-                          widget.widget_type === 'multi' ? 'bg-green-100 text-green-700' :
-                          widget.widget_type === 'photo' ? 'bg-purple-100 text-purple-700' :
-                          'bg-gray-100 text-gray-500'
-                        }`}>
-                          {widget.widget_type === 'single' ? 'Single' :
-                           widget.widget_type === 'multi' ? 'Multi' :
-                           widget.widget_type === 'photo' ? 'Photo' :
-                           widget.widget_type}
-                        </span>
-                        <i className="fa-solid fa-up-down-left-right text-gray-400 w-5 h-5"></i>
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={e => { e.stopPropagation(); handleCopyEmbed(widget.id); }}
-                      className="px-3 py-1 rounded bg-gray-100 text-gray-700 hover:bg-gray-200 text-xs font-medium border border-gray-200"
-                      title="Copy embed code"
-                    >
-                      {copiedWidgetId === widget.id ? 'Copied!' : 'Copy Embed Code'}
-                    </button>
-                    <button
-                      onClick={async (e) => { e.stopPropagation(); await handleOpenReviewModal(widget.id); }}
-                      className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                      title="Manage Reviews"
-                    >
-                      <ChatBubbleLeftIcon className="h-5 w-5 text-gray-500" />
-                      <span className="text-sm font-medium">Manage Reviews</span>
-                    </button>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handleEditStyle(widget.id); }}
-                      className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                      title="Edit Style"
-                    >
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+                  {/* Buttons and tag row */}
+                  <div className="flex items-center justify-between mb-6">
+                    <span className="flex items-center gap-2">
+                      <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
+                        widget.widget_type === 'single' ? 'bg-blue-100 text-blue-700' :
+                        widget.widget_type === 'multi' ? 'bg-green-100 text-green-700' :
+                        widget.widget_type === 'photo' ? 'bg-purple-100 text-purple-700' :
+                        'bg-gray-100 text-gray-500'
+                      }`}>
+                        {widget.widget_type === 'single' ? 'Single' :
+                         widget.widget_type === 'multi' ? 'Multi' :
+                         widget.widget_type === 'photo' ? 'Photo' :
+                         widget.widget_type}
+                      </span>
+                      <i className="fa-solid fa-up-down-left-right text-gray-400 w-5 h-5"></i>
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={e => { e.stopPropagation(); handleCopyEmbed(widget.id); }}
+                        className="px-3 py-1 rounded bg-gray-100 text-gray-700 hover:bg-gray-200 text-xs font-medium border border-gray-200"
+                        title="Copy embed code"
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"
-                        />
-                      </svg>
-                      <span className="text-sm font-medium">Edit</span>
-                    </button>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handleDeleteWidget(widget.id); }}
-                      className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
-                      title="Delete Widget"
-                    >
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                        />
-                      </svg>
-                      <span className="text-sm font-medium">Delete</span>
-                    </button>
-                  </div>
-                </div>
-                <div className="space-y-4">
-                  {widget.reviews?.slice(0, 3).map((review: any) => (
-                    <div
-                      key={review.review_id}
-                      className="bg-gray-50 rounded-lg p-4 text-sm"
-                    >
-                      <div className="font-medium text-gray-900">
-                        {`${review.first_name} ${review.last_name}`}
-                      </div>
-                      <div className="text-gray-500 text-xs mb-2">
-                        {review.reviewer_role}
-                      </div>
-                      <div className="text-gray-600 line-clamp-3">
-                        {review.review_content}
-                      </div>
-                    </div>
-                  ))}
-                  {widget.reviews && widget.reviews.length > 3 && (
-                    <div className="text-center">
+                        {copiedWidgetId === widget.id ? 'Copied!' : 'Copy Embed Code'}
+                      </button>
                       <button
                         onClick={async (e) => { e.stopPropagation(); await handleOpenReviewModal(widget.id); }}
-                        className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                        className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                        title="Manage Reviews"
                       >
-                        +{widget.reviews.length - 3} more reviews
+                        <ChatBubbleLeftIcon className="h-5 w-5 text-gray-500" />
+                        <span className="text-sm font-medium">Manage Reviews</span>
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleEditStyle(widget.id); }}
+                        className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                        title="Edit Style"
+                      >
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"
+                          />
+                        </svg>
+                        <span className="text-sm font-medium">Edit</span>
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleDeleteWidget(widget.id); }}
+                        className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
+                        title="Delete Widget"
+                      >
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
+                        </svg>
+                        <span className="text-sm font-medium">Delete</span>
                       </button>
                     </div>
-                  )}
+                  </div>
+                  <div className="space-y-4">
+                    {widget.reviews?.slice(0, 3).map((review: any) => (
+                      <div
+                        key={review.review_id}
+                        className="bg-gray-50 rounded-lg p-4 text-sm"
+                      >
+                        <div className="font-medium text-gray-900">
+                          {`${review.first_name} ${review.last_name}`}
+                        </div>
+                        <div className="text-gray-500 text-xs mb-2">
+                          {review.reviewer_role}
+                        </div>
+                        <div className="text-gray-600 line-clamp-3">
+                          {review.review_content}
+                        </div>
+                      </div>
+                    ))}
+                    {widget.reviews && widget.reviews.length > 3 && (
+                      <div className="text-center">
+                        <button
+                          onClick={async (e) => { e.stopPropagation(); await handleOpenReviewModal(widget.id); }}
+                          className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                        >
+                          +{widget.reviews.length - 3} more reviews
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
