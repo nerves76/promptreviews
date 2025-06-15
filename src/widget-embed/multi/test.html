@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MultiWidget Test</title>
-    <link rel="stylesheet" href="./MultiWidget.css">
+    <!-- <link rel="stylesheet" href="./MultiWidget.css"> -->
 </head>
 <body>
     <div id="promptreviews-widget" class="promptreviews-widget" data-widget="test-multi" data-widget-type="multi"></div>
@@ -72,6 +72,6 @@
             return window.originalFetch ? window.originalFetch(url) : Promise.reject('No fetch');
         };
     </script>
-    <script src="./widget.js"></script>
+    <script src="./dist/widget-embed.min.js"></script>
 </body>
 </html> 
