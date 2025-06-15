@@ -343,7 +343,11 @@ const SingleWidget: React.FC<SingleWidgetProps> = ({ data }) => {
                           <div className="flex flex-col justify-between h-full items-center flex-1 px-8 py-4">
                             {/* Stars at the very top of the card */}
                             <div className="flex items-center justify-center mb-2 mt-4" style={{ minHeight: 36, width: '100%' }}>
-                              {renderStars(review.star_rating, 20)}
+                              {[...Array(5)].map((_, i) => (
+                                <span key={i} className="star">
+                                  {i < (review.star_rating ?? 0) ? '★' : '☆'}
+                                </span>
+                              ))}
                             </div>
                             {/* Review content and quotes */}
                             <div className="flex flex-col items-center justify-center w-full min-h-[120px] sm:min-h-[180px] pb-12" style={{ position: 'relative' }}>
@@ -547,7 +551,11 @@ const SingleWidget: React.FC<SingleWidgetProps> = ({ data }) => {
                     )}
                     <div className="flex flex-col justify-between h-full items-center flex-1 px-4 py-4">
                       <div className="flex items-center justify-center mb-2 mt-4" style={{ minHeight: 36, width: '100%' }}>
-                        {renderStars(review.star_rating, 20)}
+                        {[...Array(5)].map((_, i) => (
+                          <span key={i} className="star">
+                            {i < (review.star_rating ?? 0) ? '★' : '☆'}
+                          </span>
+                        ))}
                       </div>
                       <div className="flex flex-col items-center justify-center w-full min-h-[120px] pb-12" style={{ position: 'relative' }}>
                         <div className="w-full max-w-xl mx-auto text-center text-[18px] text-gray-800 mb-4 break-words whitespace-pre-line relative" style={{ position: 'relative', overflow: 'visible' }}>
