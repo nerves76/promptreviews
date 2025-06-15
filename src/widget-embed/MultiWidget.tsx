@@ -90,8 +90,28 @@ const DEFAULT_DESIGN = {
   showSubmitReviewButton: true,
 };
 
-function getDesignWithDefaults(design: Partial<typeof DEFAULT_DESIGN> = {}) {
-  return { ...DEFAULT_DESIGN, ...design };
+// =========================
+// Widget Layout Safety Rules
+//
+// - Never use design-driven layout fields (width, padding, margin) in widget containers unless explicitly set in the widget's design object.
+// - Always use Tailwind responsive classes (max-w-4xl, w-full, mx-auto, etc.) for all widget containers.
+// - If you must use a design-driven layout field, only apply it if it is explicitly set in the widget's design object (never from defaults).
+// - Always use smartMergeDesign (see below) to merge design objects.
+// - Update smartMergeDesign if you add new layout-related fields to DEFAULT_DESIGN.
+// =========================
+
+// List of layout-related fields to protect (update if you add more to DEFAULT_DESIGN)
+const LAYOUT_FIELDS: (keyof typeof DEFAULT_DESIGN)[] = ['width'];
+
+// Smart merge: only apply layout fields if explicitly set in userDesign
+function smartMergeDesign(userDesign: Partial<typeof DEFAULT_DESIGN> = {}, defaultDesign = DEFAULT_DESIGN) {
+  const merged = { ...defaultDesign, ...userDesign };
+  for (const field of LAYOUT_FIELDS) {
+    if (!(field in userDesign)) {
+      delete merged[field];
+    }
+  }
+  return merged;
 }
 
 // hexToRgba
@@ -178,11 +198,30 @@ function getRelativeTime(dateString: string) {
 // Placeholder for styles (define or import as needed)
 const styles = "";
 
-// --- MultiWidget component ---
-// (Paste the full MultiWidget component here)
+// =========================
+// MultiWidget Responsive Carousel
+//
+// - Responsive layout: 1 card (mobile), 2 (tablet), 3 (desktop)
+// - On single-card/tablet, all elements (card, arrows, nav dots, submit button) are visually contained within 400px
+// - Arrows use an invert effect on hover, active, and focus: accent color becomes background, arrow becomes card background/white
+// - Nav dots and submit button are always aligned with the card area, never past the edge
+//
+// Accessibility notes:
+// - Arrow buttons have aria-labels for screen readers
+// - Consider adding better focus outlines for keyboard users
+// - Consider aria-live="polite" on Swiper for announcing slide changes
+// - Consider keyboard navigation for arrows (left/right arrow keys)
+// =========================
+
+// Accessibility: add focus-visible outline to arrow buttons
+const focusOutline = {
+  outline: '2px solid ' + (typeof window !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--pr-accent-color') || 'slateblue' : 'slateblue'),
+  outlineOffset: '2px',
+};
 
 const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
-    const design = getDesignWithDefaults(data.design);
+    // Use smartMergeDesign instead of getDesignWithDefaults
+    const design = smartMergeDesign(data.design);
     const { reviews } = data;
     const prevRefDesktop = useRef(null);
     const nextRefDesktop = useRef(null);
@@ -265,6 +304,17 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
       return () => window.removeEventListener('resize', handleResize);
     }, [swiperInstanceMobile]);
   
+    // Keyboard navigation for arrow buttons
+    const handleArrowKey = (e: React.KeyboardEvent, direction: 'prev' | 'next') => {
+      if (e.key === 'ArrowLeft' && direction === 'prev') {
+        swiperInstanceDesktop?.slidePrev?.();
+        swiperInstanceMobile?.slidePrev?.();
+      } else if (e.key === 'ArrowRight' && direction === 'next') {
+        swiperInstanceDesktop?.slideNext?.();
+        swiperInstanceMobile?.slideNext?.();
+      }
+    };
+  
     return (
       <div className="flex flex-col items-center px-4" style={{ '--pr-accent-color': design.accentColor } as React.CSSProperties}>
         {/* Desktop/tablet/large: Swiper in a centered, max-width container */}
@@ -273,42 +323,58 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
             {/* Left Arrow */}
             <button
               ref={prevRefDesktop}
-              className="absolute -left-8 top-1/2 -translate-y-1/2 z-10 rounded-full border border-gray-200 w-10 h-10 flex items-center justify-center transition hover:bg-opacity-80 active:scale-95"
+              className="group absolute -left-8 top-1/2 -translate-y-1/2 z-10 rounded-full border border-gray-200 w-10 h-10 flex items-center justify-center transition hover:bg-opacity-80 active:scale-95 focus:scale-95 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--pr-accent-color)] focus-visible:outline-offset-2 hidden md:flex"
               aria-label="Previous"
+              tabIndex={0}
               style={{
-                width: 40,
-                height: 40,
-                minWidth: 40,
-                minHeight: 40,
-                aspectRatio: '1 / 1',
-                background: design.bgColor === 'transparent' ? 'rgba(255,255,255,0.4)' : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
+                background: design.bgColor === 'transparent' ? 'none' : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
                 boxShadow: design.shadow ? `inset 0 0 8px 0 ${hexToRgba('#000', 0.18)}, inset 0 0 2px 0 ${hexToRgba('#fff', 0.12)}` : 'none',
                 border: `1.5px solid ${hexToRgba('#888', 0.22)}`,
               }}
             >
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{ display: 'block', margin: 'auto' }}>
-                <polygon points="12.5,3 5.5,10 12.5,17" fill={design.accentColor || '#111'} />
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{ display: 'block', margin: 'auto', transition: 'fill 0.2s' }}>
+                <polygon
+                  points="12.5,3 5.5,10 12.5,17"
+                  fill={design.accentColor || '#111'}
+                  className="group-hover:fill-white group-active:fill-white group-focus:fill-white"
+                  style={{
+                    transition: 'fill 0.2s',
+                    fill: design.accentColor || '#111',
+                  }}
+                />
               </svg>
+              <style>{`
+                .group:hover, .group:active, .group:focus { background: ${design.accentColor} !important; }
+                .group:hover polygon, .group:active polygon, .group:focus polygon { fill: ${design.bgColor === 'transparent' ? '#fff' : design.bgColor} !important; }
+              `}</style>
             </button>
             {/* Right Arrow */}
             <button
               ref={nextRefDesktop}
-              className="absolute -right-8 top-1/2 -translate-y-1/2 z-10 rounded-full border border-gray-200 w-10 h-10 flex items-center justify-center transition hover:bg-opacity-80 active:scale-95"
+              className="group absolute -right-8 top-1/2 -translate-y-1/2 z-10 rounded-full border border-gray-200 w-10 h-10 flex items-center justify-center transition hover:bg-opacity-80 active:scale-95 focus:scale-95 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--pr-accent-color)] focus-visible:outline-offset-2 hidden md:flex"
               aria-label="Next"
+              tabIndex={0}
               style={{
-                width: 40,
-                height: 40,
-                minWidth: 40,
-                minHeight: 40,
-                aspectRatio: '1 / 1',
-                background: design.bgColor === 'transparent' ? 'rgba(255,255,255,0.4)' : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
+                background: design.bgColor === 'transparent' ? 'none' : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
                 boxShadow: design.shadow ? `inset 0 0 8px 0 ${hexToRgba('#000', 0.18)}, inset 0 0 2px 0 ${hexToRgba('#fff', 0.12)}` : 'none',
                 border: `1.5px solid ${hexToRgba('#888', 0.22)}`,
               }}
             >
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{ display: 'block', margin: 'auto' }}>
-                <polygon points="7.5,3 14.5,10 7.5,17" fill={design.accentColor || '#111'} />
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{ display: 'block', margin: 'auto', transition: 'fill 0.2s' }}>
+                <polygon
+                  points="7.5,3 14.5,10 7.5,17"
+                  fill={design.accentColor || '#111'}
+                  className="group-hover:fill-white group-active:fill-white group-focus:fill-white"
+                  style={{
+                    transition: 'fill 0.2s',
+                    fill: design.accentColor || '#111',
+                  }}
+                />
               </svg>
+              <style>{`
+                .group:hover, .group:active, .group:focus { background: ${design.accentColor} !important; }
+                .group:hover polygon, .group:active polygon, .group:focus polygon { fill: ${design.bgColor === 'transparent' ? '#fff' : design.bgColor} !important; }
+              `}</style>
             </button>
             <Swiper
               key={String(design.autoAdvance) + '-' + String(paginationReady)}
@@ -347,21 +413,21 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                     borderRadius: design.borderRadius,
                     boxShadow: design.shadow ? `inset 0 4px 32px 0 ${hexToRgba(design.shadowColor ?? '#222222', design.shadowIntensity ?? 0.2)}` : 'none',
                   }}>
-                    <div className="flex items-center justify-center mb-2 mt-1" style={{ minHeight: 36, width: '100%' }}>
+                    <div className="flex items-center justify-center mb-2 mt-0" style={{ minHeight: 36, width: '100%' }}>
                       {typeof review.star_rating === 'number' && !isNaN(review.star_rating) && renderStars(review.star_rating, 18)}
                     </div>
-                    <div className="flex-1 min-h-0 w-full text-center text-[14px] md:text-[16px] text-gray-800 break-words whitespace-pre-line relative overflow-hidden line-clamp-5">
+                    <div className="flex-1 min-h-0 w-full flex flex-col justify-center text-center text-[14px] md:text-[16px] text-gray-800 break-words whitespace-pre-line relative overflow-hidden line-clamp-5">
                       {design.showQuotes && (
-                        <span className="absolute left-2 top-0 text-[48px] opacity-60 font-serif select-none pointer-events-none" style={{ color: lightenHex(design.accentColor, 0.6), lineHeight: 1, zIndex: 2 }}>
-                          “
+                        <span className="absolute left-2 top-0 text-[72px] lg:text-[48px] opacity-60 font-serif select-none pointer-events-none" style={{ color: lightenHex(design.accentColor, 0.6), lineHeight: 1, zIndex: 2 }}>
+                          &ldquo;
                         </span>
                       )}
-                      <p className="mx-6 mt-6 text-[14px] md:text-[16px] text-center z-10 relative" style={{ color: design.textColor }}>
+                      <p className="mx-6 md:mt-0 text-[14px] md:text-[16px] text-center z-10 relative leading-relaxed" style={{ color: design.textColor }}>
                         {review.review_content}
                       </p>
                       {design.showQuotes && (
-                        <span className="absolute right-2 bottom-2 text-[48px] opacity-60 font-serif select-none pointer-events-none" style={{ color: lightenHex(design.accentColor, 0.6), lineHeight: 1, zIndex: 2 }}>
-                          ”
+                        <span className="absolute right-2 bottom-2 text-[72px] lg:text-[48px] opacity-60 font-serif select-none pointer-events-none" style={{ color: lightenHex(design.accentColor, 0.6), lineHeight: 1, zIndex: 2 }}>
+                          &rdquo;
                         </span>
                       )}
                     </div>
@@ -403,12 +469,13 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
             </Swiper>
           </div>
         </div>
-        {/* Pagination dots below cards */}
-        <div className="flex flex-row items-center justify-center w-full mt-14">
+        {/* Desktop/tablet nav dots: mt-0 ensures the dots are as close as possible to the cards for a tight, visually connected look. */}
+        <div className="hidden md:flex flex-row items-center justify-center max-w-5xl mx-auto w-full mt-0">
           <div ref={paginationRefDesktop} className="swiper-pagination" />
         </div>
+        {/* Desktop/tablet submit button: pr-8 nudges the button further left. */}
         {design.showSubmitReviewButton && (
-          <div className="w-full flex justify-end mt-4">
+          <div className="hidden md:flex max-w-5xl mx-auto w-full justify-end mt-4 pr-8">
             <a
               href={`/r/${data.universalPromptSlug}`}
               style={{
@@ -441,168 +508,193 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
         )}
         {/* Mobile: Swiper with pagination and navigation below */}
         <div className="md:hidden w-full">
-          <Swiper
-            key={String(design.autoAdvance) + '-' + String(paginationReady)}
-            onSwiper={setSwiperInstanceMobile}
-            modules={[Navigation, Pagination, A11y, ...(design.autoAdvance ? [Autoplay] : [])]}
-            slidesPerView={1}
-            centeredSlides={false}
-            navigation={{ prevEl: prevRefMobile.current, nextEl: nextRefMobile.current }}
-            pagination={{
-              clickable: true,
-              el: paginationRefMobile.current,
-              type: 'bullets',
-              bulletClass: 'swiper-pagination-bullet',
-              bulletActiveClass: 'swiper-pagination-bullet-active',
-              renderBullet: function (index, className) {
-                const isActive = className.includes('swiper-pagination-bullet-active');
-                const color = isActive ? design.accentColor : lightenHex(design.accentColor, 0.7);
-                return '<span class="' + className + '" style="background: ' + color + '; margin: 0 2px; width: 6px; height: 6px;"></span>';
-              }
-            }}
-            {...(design.autoAdvance ? { autoplay: {
-              delay: (design.slideshowSpeed ?? 4) * 1000,
-              disableOnInteraction: false,
-            }} : {})}
-            className="w-full"
-          >
-            {reviews.map((review, index) => (
-              <SwiperSlide key={review.id || index}>
-                <div className="flex flex-col h-[380px] flex-1 items-center justify-between bg-white rounded-3xl overflow-hidden px-2 py-6 shadow mx-auto text-sm" style={{
-                  background: design.bgColor === 'transparent' ? 'none' : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
-                  color: design.textColor,
-                  border: design.border ? `${design.borderWidth ?? 2}px solid ${design.borderColor ?? '#cccccc'}` : 'none',
-                  borderRadius: design.borderRadius,
-                  boxShadow: design.shadow ? `inset 0 4px 32px 0 ${hexToRgba(design.shadowColor ?? '#222222', design.shadowIntensity ?? 0.2)}` : 'none',
-                }}>
-                  <div className="flex items-center justify-center mb-2 mt-1" style={{ minHeight: 36, width: '100%' }}>
-                    {typeof review.star_rating === 'number' && !isNaN(review.star_rating) && renderStars(review.star_rating, 18)}
-                  </div>
-                  <div className="flex-1 min-h-0 w-full text-center text-[14px] md:text-[16px] text-gray-800 break-words whitespace-pre-line relative overflow-hidden line-clamp-5">
-                    {design.showQuotes && (
-                      <span className="absolute left-2 top-0 text-[48px] opacity-60 font-serif select-none pointer-events-none" style={{ color: lightenHex(design.accentColor, 0.6), lineHeight: 1, zIndex: 2 }}>
-                        “
-                      </span>
-                    )}
-                    <p className="mx-6 mt-6 text-[14px] md:text-[16px] text-center z-10 relative" style={{ color: design.textColor }}>
-                      {review.review_content}
-                    </p>
-                    {design.showQuotes && (
-                      <span className="absolute right-2 bottom-2 text-[48px] opacity-60 font-serif select-none pointer-events-none" style={{ color: lightenHex(design.accentColor, 0.6), lineHeight: 1, zIndex: 2 }}>
-                        ”
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex flex-col items-center gap-1 w-full mt-auto mb-2">
-                    <span
-                      className="font-semibold"
-                      itemProp="author"
-                      itemScope
-                      itemType="https://schema.org/Person"
-                      style={{ fontSize: design.attributionFontSize * 0.85, color: design.nameTextColor }}
-                    >
-                      <span itemProp="name">
-                        {review.first_name} {review.last_name}
-                      </span>
-                    </span>
-                    <span
-                      className="text-xs"
-                      itemProp="author"
-                      itemScope
-                      itemType="https://schema.org/Person"
-                      style={{ fontSize: design.attributionFontSize * 0.85, color: design.roleTextColor }}
-                    >
-                      <span itemProp="jobTitle">
-                        {review.reviewer_role}
-                      </span>
-                    </span>
-                    {design.showRelativeDate && review.created_at && (
-                      <span className="text-xs text-gray-400 mt-1">
-                        {getRelativeTime(review.created_at)}
-                        {review.platform && !/^custom$/i.test(review.platform.trim()) && (
-                          <> via {review.platform}</>
-                        )}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </SwiperSlide>
-            ))}
-          </Swiper>
-          {/* Single pagination element below cards on mobile */}
-          <div className="flex flex-row items-center justify-center w-full mt-2">
-            <div ref={paginationRefMobile} className="swiper-pagination" />
-          </div>
-          {/* Navigation buttons for mobile */}
-          <div className="flex flex-row items-center justify-between w-full px-2 mt-2 gap-2">
-            <button
-              ref={prevRefMobile}
-              className="rounded-full border border-gray-200 w-10 h-10 min-w-10 min-h-10 flex items-center justify-center transition z-10 hover:bg-opacity-80 active:scale-95 flex-shrink-0"
-              aria-label="Previous"
-              style={{
-                background: design.bgColor === 'transparent' ? 'rgba(255,255,255,0.4)' : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
-                boxShadow: design.shadow ? `inset 0 0 8px 0 ${hexToRgba('#000', 0.18)}, inset 0 0 2px 0 ${hexToRgba('#fff', 0.12)}` : 'none',
-                border: `1.5px solid ${hexToRgba('#888', 0.22)}`,
-              }}
-            >
-              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" style={{ display: 'block', margin: 'auto' }}>
-                <polygon points="12.5,3 5.5,10 12.5,17" fill={design.accentColor || '#111'} />
-              </svg>
-            </button>
-            <div className="flex-1" />
-            <button
-              ref={nextRefMobile}
-              className="rounded-full border border-gray-200 w-10 h-10 min-w-10 min-h-10 flex items-center justify-center transition z-10 hover:bg-opacity-80 active:scale-95 flex-shrink-0"
-              aria-label="Next"
-              style={{
-                background: design.bgColor === 'transparent' ? 'rgba(255,255,255,0.4)' : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
-                boxShadow: design.shadow ? `inset 0 0 8px 0 ${hexToRgba('#000', 0.18)}, inset 0 0 2px 0 ${hexToRgba('#fff', 0.12)}` : 'none',
-                border: `1.5px solid ${hexToRgba('#888', 0.22)}`,
-              }}
-            >
-              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" style={{ display: 'block', margin: 'auto' }}>
-                <polygon points="7.5,3 14.5,10 7.5,17" fill={design.accentColor || '#111'} />
-              </svg>
-            </button>
-          </div>
-          {design.showSubmitReviewButton && (
-            <div className="w-full flex justify-end mt-4 px-4">
-              <a
-                href={`/r/${data.universalPromptSlug}`}
-                style={{
-                  display: 'inline-block',
-                  background: design.bgColor === 'transparent' ? 'none' : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
-                  color: design.accentColor,
-                  borderRadius: design.borderRadius,
-                  padding: '6px 18px',
-                  fontWeight: 600,
-                  fontSize: 16,
-                  textDecoration: 'none',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  boxSizing: 'border-box',
-                  boxShadow: design.shadow ? `inset 0 0 32px 0 ${hexToRgba(design.shadowColor ?? '#222222', design.shadowIntensity ?? 0.2)}` : 'none',
-                  border: design.border ? `${design.borderWidth ?? 2}px solid ${design.borderColor ?? '#cccccc'}` : 'none',
+          {/* Tablet/mobile: constrain all elements to 400px and center */}
+          <div className="max-w-[400px] mx-auto relative">
+            {/* aria-live for announcing slide changes */}
+            <div aria-live="polite">
+              <Swiper
+                key={String(design.autoAdvance) + '-' + String(paginationReady)}
+                onSwiper={setSwiperInstanceMobile}
+                modules={[Navigation, Pagination, A11y, ...(design.autoAdvance ? [Autoplay] : [])]}
+                slidesPerView={1}
+                centeredSlides={false}
+                navigation={{ prevEl: prevRefMobile.current, nextEl: nextRefMobile.current }}
+                pagination={{
+                  clickable: true,
+                  el: paginationRefMobile.current,
+                  type: 'bullets',
+                  bulletClass: 'swiper-pagination-bullet',
+                  bulletActiveClass: 'swiper-pagination-bullet-active',
+                  renderBullet: function (index, className) {
+                    const isActive = className.includes('swiper-pagination-bullet-active');
+                    const color = isActive ? design.accentColor : lightenHex(design.accentColor, 0.7);
+                    return '<span class="' + className + '" style="background: ' + color + '; margin: 0 2px; width: 6px; height: 6px;"></span>';
+                  }
                 }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.background = design.accentColor;
-                  e.currentTarget.style.color = design.bgColor === 'transparent' ? '#fff' : design.bgColor;
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.background = design.bgColor === 'transparent' ? 'none' : hexToRgba(design.bgColor, design.bgOpacity ?? 1);
-                  e.currentTarget.style.color = design.accentColor;
-                }}
+                {...(design.autoAdvance ? { autoplay: {
+                  delay: (design.slideshowSpeed ?? 4) * 1000,
+                  disableOnInteraction: false,
+                }} : {})}
+                className="w-full"
               >
-                Submit a review
-              </a>
+                {reviews.map((review, index) => (
+                  <SwiperSlide key={review.id || index}>
+                    <div className="flex flex-col h-[380px] items-center justify-between bg-white rounded-3xl overflow-hidden px-2 py-6 shadow mx-auto text-sm max-w-[400px]" style={{
+                      background: design.bgColor === 'transparent' ? 'none' : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
+                      color: design.textColor,
+                      border: design.border ? `${design.borderWidth ?? 2}px solid ${design.borderColor ?? '#cccccc'}` : 'none',
+                      borderRadius: design.borderRadius,
+                      boxShadow: design.shadow ? `inset 0 4px 32px 0 ${hexToRgba(design.shadowColor ?? '#222222', design.shadowIntensity ?? 0.2)}` : 'none',
+                    }}>
+                      <div className="flex items-center justify-center mb-2 mt-0" style={{ minHeight: 36, width: '100%' }}>
+                        {typeof review.star_rating === 'number' && !isNaN(review.star_rating) && renderStars(review.star_rating, 18)}
+                      </div>
+                      <div className="flex-1 min-h-0 w-full flex flex-col justify-center text-center text-[14px] md:text-[16px] text-gray-800 break-words whitespace-pre-line relative overflow-hidden line-clamp-5">
+                        {design.showQuotes && (
+                          <span className="absolute left-2 top-0 text-[72px] lg:text-[48px] opacity-60 font-serif select-none pointer-events-none" style={{ color: lightenHex(design.accentColor, 0.6), lineHeight: 1, zIndex: 2 }}>
+                            &ldquo;
+                          </span>
+                        )}
+                        <p className="mx-6 md:mt-0 text-[14px] md:text-[16px] text-center z-10 relative leading-relaxed" style={{ color: design.textColor }}>
+                          {review.review_content}
+                        </p>
+                        {design.showQuotes && (
+                          <span className="absolute right-2 bottom-2 text-[72px] lg:text-[48px] opacity-60 font-serif select-none pointer-events-none" style={{ color: lightenHex(design.accentColor, 0.6), lineHeight: 1, zIndex: 2 }}>
+                            &rdquo;
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex flex-col items-center gap-1 w-full mt-auto mb-2">
+                        <span
+                          className="font-semibold"
+                          itemProp="author"
+                          itemScope
+                          itemType="https://schema.org/Person"
+                          style={{ fontSize: design.attributionFontSize * 0.85, color: design.nameTextColor }}
+                        >
+                          <span itemProp="name">
+                            {review.first_name} {review.last_name}
+                          </span>
+                        </span>
+                        <span
+                          className="text-xs"
+                          itemProp="author"
+                          itemScope
+                          itemType="https://schema.org/Person"
+                          style={{ fontSize: design.attributionFontSize * 0.85, color: design.roleTextColor }}
+                        >
+                          <span itemProp="jobTitle">
+                            {review.reviewer_role}
+                          </span>
+                        </span>
+                        {design.showRelativeDate && review.created_at && (
+                          <span className="text-xs text-gray-400 mt-1">
+                            {getRelativeTime(review.created_at)}
+                            {review.platform && !/^custom$/i.test(review.platform.trim()) && (
+                              <> via {review.platform}</>
+                            )}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </SwiperSlide>
+                ))}
+              </Swiper>
             </div>
-          )}
+            {/* On mobile/tablet, nav arrows are at the edges of the card and nav dots are centered between them, all within 400px */}
+            <div className="flex w-full relative mt-4" style={{ minHeight: 48 }}>
+              <button
+                ref={prevRefMobile}
+                className="group absolute left-0 top-1/2 -translate-y-1/2 rounded-full border border-gray-200 w-10 h-10 min-w-10 min-h-10 flex items-center justify-center transition hover:bg-opacity-80 active:scale-95 focus:scale-95 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--pr-accent-color)] focus-visible:outline-offset-2 flex-shrink-0"
+                aria-label="Previous"
+                tabIndex={0}
+                style={{
+                  background: design.bgColor === 'transparent' ? 'rgba(255,255,255,0.4)' : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
+                  boxShadow: design.shadow ? `inset 0 0 8px 0 ${hexToRgba('#000', 0.18)}, inset 0 0 2px 0 ${hexToRgba('#fff', 0.12)}` : 'none',
+                  border: `1.5px solid ${hexToRgba('#888', 0.22)}`,
+                }}
+                onKeyDown={e => handleArrowKey(e, 'prev')}
+              >
+                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" style={{ display: 'block', margin: 'auto', transition: 'fill 0.2s' }}>
+                  <polygon
+                    points="12.5,3 5.5,10 12.5,17"
+                    fill={design.accentColor || '#111'}
+                    className="group-hover:fill-white group-active:fill-white group-focus:fill-white"
+                    style={{
+                      transition: 'fill 0.2s',
+                      fill: design.accentColor || '#111',
+                    }}
+                  />
+                </svg>
+              </button>
+              <div className="flex justify-center items-center w-full">
+                <div ref={paginationRefMobile} className="swiper-pagination" />
+              </div>
+              <button
+                ref={nextRefMobile}
+                className="group absolute right-0 top-1/2 -translate-y-1/2 rounded-full border border-gray-200 w-10 h-10 min-w-10 min-h-10 flex items-center justify-center transition hover:bg-opacity-80 active:scale-95 focus:scale-95 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--pr-accent-color)] focus-visible:outline-offset-2 flex-shrink-0"
+                aria-label="Next"
+                tabIndex={0}
+                style={{
+                  background: design.bgColor === 'transparent' ? 'rgba(255,255,255,0.4)' : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
+                  boxShadow: design.shadow ? `inset 0 0 8px 0 ${hexToRgba('#000', 0.18)}, inset 0 0 2px 0 ${hexToRgba('#fff', 0.12)}` : 'none',
+                  border: `1.5px solid ${hexToRgba('#888', 0.22)}`,
+                }}
+                onKeyDown={e => handleArrowKey(e, 'next')}
+              >
+                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" style={{ display: 'block', margin: 'auto', transition: 'fill 0.2s' }}>
+                  <polygon
+                    points="7.5,3 14.5,10 7.5,17"
+                    fill={design.accentColor || '#111'}
+                    className="group-hover:fill-white group-active:fill-white group-focus:fill-white"
+                    style={{
+                      transition: 'fill 0.2s',
+                      fill: design.accentColor || '#111',
+                    }}
+                  />
+                </svg>
+              </button>
+            </div>
+            {/* Mobile/tablet submit button (below md only) */}
+            {design.showSubmitReviewButton && (
+              <div className="flex max-w-[400px] mx-auto w-full justify-end mt-4" style={{ marginRight: '20px' }}>
+                <a
+                  href={`/r/${data.universalPromptSlug}`}
+                  style={{
+                    display: 'inline-block',
+                    background: design.bgColor === 'transparent' ? 'none' : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
+                    color: design.accentColor,
+                    borderRadius: design.borderRadius,
+                    padding: '6px 18px',
+                    fontWeight: 600,
+                    fontSize: 16,
+                    textDecoration: 'none',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    boxSizing: 'border-box',
+                    boxShadow: design.shadow ? `inset 0 0 32px 0 ${hexToRgba(design.shadowColor ?? '#222222', design.shadowIntensity ?? 0.2)}` : 'none',
+                    border: design.border ? `${design.borderWidth ?? 2}px solid ${design.borderColor ?? '#cccccc'}` : 'none',
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = design.accentColor;
+                    e.currentTarget.style.color = design.bgColor === 'transparent' ? '#fff' : design.bgColor;
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = design.bgColor === 'transparent' ? 'none' : hexToRgba(design.bgColor, design.bgOpacity ?? 1);
+                    e.currentTarget.style.color = design.accentColor;
+                  }}
+                >
+                  Submit a review
+                </a>
+              </div>
+            )}
+          </div>
         </div>
-        {/* Custom mobile pagination size */}
+        {/* Custom pagination size for all breakpoints */}
         <style>{`
           .swiper-pagination-bullet {
-            width: 10px !important;
-            height: 10px !important;
+            width: 8px !important;
+            height: 8px !important;
           }
         `}</style>
       </div>
