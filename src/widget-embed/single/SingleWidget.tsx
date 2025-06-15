@@ -93,7 +93,7 @@ const SingleWidget: React.FC<SingleWidgetProps> = ({ data }) => {
                 <div className="star-rating">
                   {[...Array(5)].map((_, i) => (
                     <span key={i} className="star">
-                      {i < review.star_rating ? '★' : '☆'}
+                      {i < (review.star_rating ?? 0) ? '★' : '☆'}
                     </span>
                   ))}
                 </div>
