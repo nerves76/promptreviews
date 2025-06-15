@@ -15,12 +15,14 @@ const supabase = createClient(
  *   - Any other relevant settings
  *
  * Returns 404 if widget not found, or 500 on server error.
+ *
+ * Note: The context argument must be typed as 'any' or use the correct Next.js type for dynamic API routes.
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
-  const widgetId = params.id;
+  const widgetId = context.params.id;
   if (!widgetId) {
     return NextResponse.json({ error: 'Missing widget ID' }, { status: 400 });
   }
