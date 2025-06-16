@@ -505,6 +505,14 @@ console.log('Widget script starting... Build time:', buildTimestamp);
             reviewerContainer.appendChild(name);
             reviewerContainer.appendChild(role);
 
+            // Optional published date and platform
+            if (review.publishedDate && review.platform) {
+                const dateLine = document.createElement('span');
+                dateLine.className = 'reviewer-date';
+                dateLine.textContent = `${getRelativeTime(review.publishedDate)} via ${review.platform}`;
+                reviewerContainer.appendChild(dateLine);
+            }
+
             // Assemble card
             card.appendChild(starsContainer);
             card.appendChild(contentContainer);

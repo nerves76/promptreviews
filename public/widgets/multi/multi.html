@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi Widget Test</title>
+    <!-- Load Swiper CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <!-- Load widget CSS -->
+    <link rel="stylesheet" href="widget-embed.css" />
+    <!-- Load Swiper JS -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <!-- Load our widget -->
+    <script src="widget-embed.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #ffb3b3;
+        }
+        #widget-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .diagnostic-message {
+            font-size: 2rem;
+            color: white;
+            background: #222;
+            padding: 1rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="diagnostic-message">IF YOU SEE THIS HOT PINK BACKGROUND, YOU ARE VIEWING THE LATEST multi.html</div>
+    <div id="widget-container"></div>
+    <script>
+        console.log('Script starting...');
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM Content Loaded');
+            const container = document.getElementById('widget-container');
+            console.log('Container found:', container);
+            console.log('PromptReviews available:', typeof PromptReviews !== 'undefined');
+            const widgetData = {
+                reviews: [
+                    {
+                        rating: 5,
+                        content: "This was the best experience ever. Highly recommend!",
+                        reviewer: {
+                            name: "John Doe",
+                            role: "Customer"
+                        }
+                    },
+                    {
+                        rating: 4,
+                        content: "Very satisfied with the quality and service.",
+                        reviewer: {
+                            name: "Jane Smith",
+                            role: "Client"
+                        }
+                    },
+                    {
+                        rating: 5,
+                        content: "The customer service team was incredibly helpful.",
+                        reviewer: {
+                            name: "Mike Johnson",
+                            role: "User"
+                        }
+                    }
+                ],
+                design: {
+                    accentColor: "slateblue",
+                    accentHover: "#4a3f8c"
+                }
+            };
+            console.log('Widget data:', widgetData);
+            if (typeof PromptReviews !== 'undefined' && PromptReviews.renderMultiWidget) {
+                console.log('Calling renderMultiWidget...');
+                PromptReviews.renderMultiWidget(container, widgetData);
+            } else {
+                console.error('PromptReviews or renderMultiWidget not available');
+            }
+        });
+    </script>
+</body>
+</html> 
