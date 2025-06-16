@@ -1,54 +1,56 @@
-const esbuild = require('esbuild');
-const path = require('path');
-const { execSync } = require('child_process');
 const fs = require('fs');
+const path = require('path');
+const esbuild = require('esbuild');
 const CleanCSS = require('clean-css');
 
+// Paths
+const sourceDir = __dirname;
+const distDir = path.join(__dirname, 'dist');
+const publicDir = path.join(__dirname, '../../../public/widgets/multi');
+
+// Ensure dist directory exists
+if (!fs.existsSync(distDir)) {
+    fs.mkdirSync(distDir, { recursive: true });
+}
+
+// Ensure public directory exists
+if (!fs.existsSync(publicDir)) {
+    fs.mkdirSync(publicDir, { recursive: true });
+}
+
+// Read source files
+const widgetJs = fs.readFileSync(path.join(sourceDir, 'widget.js'), 'utf8');
+const referenceCss = fs.readFileSync(path.join(__dirname, '../../../scraped-widget-code/reference-css-multi-widget-not-in-use.txt'), 'utf8');
+const testHtmlSource = fs.readFileSync(path.join(sourceDir, 'test.html'), 'utf8');
+
+// Minify JavaScript
 async function build() {
     try {
-        // Read custom CSS and Tailwind CSS
-        const customCss = fs.readFileSync(path.join(__dirname, 'MultiWidget.css'), 'utf8');
-        const tailwindInput = path.join(__dirname, 'tailwind.css');
-        const tailwindConfig = path.join(__dirname, '../../..', 'tailwind.config.js');
-        const tailwindOut = path.join(__dirname, 'dist', 'tailwind.out.css');
-
-        // Ensure dist directory exists
-        const distDir = path.join(__dirname, 'dist');
-        if (!fs.existsSync(distDir)) {
-            fs.mkdirSync(distDir);
-        }
-
-        // Run Tailwind CLI to generate CSS
-        execSync(`npx tailwindcss -c ${tailwindConfig} -i ${tailwindInput} -o ${tailwindOut} --minify`, { stdio: 'inherit' });
-
-        // Read generated Tailwind CSS
-        const tailwindCss = fs.readFileSync(tailwindOut, 'utf8');
-
-        // Combine Tailwind output with custom CSS
-        const combinedCss = tailwindCss + '\n' + customCss;
-
-        // Minify CSS
-        const minifiedCss = new CleanCSS().minify(combinedCss);
-        fs.writeFileSync(path.join(distDir, 'widget.min.css'), minifiedCss.styles);
-
-        // Use esbuild to bundle and minify JS (including React, ReactDOM, MultiWidget)
+        // Bundle and minify JS with esbuild
         await esbuild.build({
-            entryPoints: [path.join(__dirname, 'embed-multi.jsx')],
+            entryPoints: [path.join(sourceDir, 'widget.js')],
             bundle: true,
             minify: true,
-            outfile: path.join(distDir, 'widget-embed.min.js'),
-            platform: 'browser',
-            target: ['es2015'],
             format: 'iife',
-            sourcemap: false,
-            external: [], // bundle everything
+            globalName: 'PromptReviewsWidget',
+            outfile: path.join(distDir, 'widget-embed.min.js'),
+            target: ['es2017'],
         });
 
-        // Create embed code template
-        const embedCode = `<!-- PromptReviews Multi Widget -->\n<link rel=\"stylesheet\" href=\"https://app.promptreviews.app/widgets/multi/widget.min.css\">\n<div class=\"promptreviews-widget\" data-widget=\"WIDGET_ID\" data-widget-type=\"multi\"></div>\n<script src=\"https://app.promptreviews.app/widgets/multi/widget.min.js\" async></script>`;
-        fs.writeFileSync(path.join(distDir, 'embed-code.html'), embedCode);
+        // Minify CSS
+        const cssMinified = new CleanCSS().minify(referenceCss).styles;
 
-        console.log('Build completed successfully!');
+        // Write minified files
+        fs.writeFileSync(path.join(distDir, 'widget-embed.min.css'), cssMinified);
+
+        // Copy minified files to public
+        fs.copyFileSync(path.join(distDir, 'widget-embed.min.js'), path.join(publicDir, 'widget-embed.min.js'));
+        fs.copyFileSync(path.join(distDir, 'widget-embed.min.css'), path.join(publicDir, 'widget-embed.min.css'));
+
+        // Copy test.html to public
+        fs.writeFileSync(path.join(publicDir, 'test.html'), testHtmlSource);
+
+        console.log('Build completed successfully');
     } catch (error) {
         console.error('Build failed:', error);
         process.exit(1);

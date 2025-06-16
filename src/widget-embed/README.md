@@ -30,11 +30,20 @@ PromptReviews allows users to create, customize, and manage review widgets from 
 - **Shadow:** Card shadow intensity/color
 - **Section Background:** Widget section background color
 
-## File Architecture
+## Accessibility & Keyboard Navigation
+- All widgets use semantic HTML and ARIA roles for accessibility.
+- The multi widget carousel uses `role="region"` and `aria-label` for the main container, `aria-roledescription="carousel"` for Swiper, and `role="list"`/`role="listitem"` for reviews.
+- Navigation buttons have `aria-label` and are fully keyboard accessible (Tab, Enter, Space). Focus states are visible using `:focus-visible`.
+- A `.skip-link` is provided for keyboard users to jump directly to the reviews.
+- The submit review button is accessible and labeled.
+- All interactive elements are accessible by keyboard and screen reader.
+
+## File Architecture (updated)
 ```
 src/widget-embed/
   multi/           # Multi-review widget implementation
-    widget.js      # Main vanilla JS embeddable widget logic
+    widget.js      # Main vanilla JS embeddable widget logic (custom class-based, accessible)
+    MultiWidget.css# Custom CSS for multi widget (scoped, accessible, focus-visible, skip-link)
     test.html      # Standalone test page for local development
     ...
   single/          # Single-review widget implementation
@@ -42,8 +51,8 @@ src/widget-embed/
   widget.css       # Source CSS for widgets (compiled by Tailwind)
   README.md        # (this file)
 ```
-- **widget.js:** Handles rendering, data fetching, and style injection for the multi widget.
-- **widget.css:** Source for all widget styles (compiled to `public/widget.css` for production).
+- **widget.js:** Handles rendering, data fetching, style injection, accessibility, and keyboard nav for the multi widget.
+- **MultiWidget.css:** Custom, accessible, and scoped styles for the multi widget.
 - **test.html:** Local test page for development and pixel-perfect checks.
 
 ## How to Update Widgets
@@ -67,7 +76,8 @@ src/widget-embed/
 - **Pixel-Perfect Checks:** Compare widget output to design references.
 - **Cross-Browser:** Test in Chrome, Firefox, Safari, and Edge.
 
-## Best Practices for Embeddable Widgets
+## Best Practices for Embeddable Widgets (updated)
+- **Accessibility:** All widgets are accessible by keyboard and screen reader, with ARIA roles, skip links, and visible focus states.
 - **Style Isolation:** All CSS is injected into `<head>` and scoped with a unique class to prevent conflicts.
 - **No Global Leakage:** Never use unscoped selectors or global styles.
 - **No External Dependencies:** All required CSS and fonts are loaded by the widget script.

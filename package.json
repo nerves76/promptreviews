@@ -4,10 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npm run build:widget && next build",
+    "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "build:widget": "node build-widget.js"
+    "lint": "next lint"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.3",
@@ -60,6 +59,7 @@
     "eslint": "^8.57.0",
     "postcss": "^8.4.31",
     "supabase": "^2.22.12",
-    "tailwindcss": "^3.3.0"
+    "tailwindcss": "^3.3.0",
+    "terser": "^5.29.2"
   }
 }

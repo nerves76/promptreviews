@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PromptReviews Widget Test</title>
+    <!-- Use local test CSS file -->
+    <link rel="stylesheet" href="test-widget.css">
+    <!-- Swiper CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+    <!-- Swiper JS -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <!-- Widget JS -->
+    <script src="../widgets/multi/widget-embed.min.js"></script>
+</head>
+<body class="pr-widget-section-bg">
+    <div id="prompt-reviews-widget"></div>
+    <script>
+        // Sample widget data
+        const widgetData = {
+            reviews: [
+                {
+                    rating: 5,
+                    content: "This is an amazing product! I've been using it for months and it's been a game-changer for my workflow.",
+                    reviewer: {
+                        name: "John Doe",
+                        role: "Product Manager"
+                    }
+                },
+                {
+                    rating: 4,
+                    content: "Great product with excellent features. The customer support is also top-notch.",
+                    reviewer: {
+                        name: "Jane Smith",
+                        role: "Software Engineer"
+                    }
+                },
+                {
+                    rating: 5,
+                    content: "I can't imagine working without this tool anymore. It's become an essential part of my daily routine.",
+                    reviewer: {
+                        name: "Mike Johnson",
+                        role: "Designer"
+                    }
+                }
+            ],
+            design: {
+                accentColor: "slateblue",
+                accentHover: "#4a3f8c"
+            }
+        };
+
+        // Initialize widget
+        document.addEventListener('DOMContentLoaded', function() {
+            const container = document.getElementById('prompt-reviews-widget');
+            if (container && window.PromptReviews && window.PromptReviews.renderMultiWidget) {
+                window.PromptReviews.renderMultiWidget(container, widgetData);
+            } else {
+                console.error('Widget initialization failed:', {
+                    container: !!container,
+                    PromptReviews: !!window.PromptReviews,
+                    renderMultiWidget: !!(window.PromptReviews && window.PromptReviews.renderMultiWidget)
+                });
+            }
+        });
+    </script>
+</body>
+</html> 
