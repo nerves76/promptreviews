@@ -1,8 +1,45 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# PromptReviews Project
+
+This is a vanilla JavaScript project for creating and managing prompt pages that account holders can use to collect reviews. The project uses vanilla JavaScript, HTML, and CSS, with no framework dependencies.
 
 Public url is https://app.promptpages.app
 
 It's main function is to create landing pages "prompt pages" that account holders can use to collect reviews. There are different kinds of prompt pages with different purposes.
+
+This project is currently focused on developing a standalone widget for collecting reviews. The widget is being developed as a vanilla JavaScript component first, before being integrated into the larger Next.js application.
+
+## Development Strategy
+
+### Phase 1: Widget Development (Current)
+- Focus on widget design and functionality
+- Develop as a standalone vanilla JavaScript component
+- Test and refine user experience
+- Ensure cross-browser compatibility
+- Optimize performance and loading times
+
+### Phase 2: Integration (Future)
+- Integrate widget with Next.js application
+- Connect to backend services
+- Implement authentication and data persistence
+- Add analytics and monitoring
+
+## Widget Development
+
+The widget is currently being developed as a standalone component in the `public/widgets/multi/` directory:
+
+```
+public/widgets/multi/
+├── widget-embed.js    # Main widget JavaScript
+├── widget-embed.css   # Widget styles
+└── multi.html        # Example implementation
+```
+
+To test the widget:
+1. Open `public/widgets/multi/multi.html` in your browser
+2. Make changes to the JavaScript and CSS files
+3. Refresh to see your changes
+
+No build step is required during widget development.
 
 ---
 
@@ -14,7 +51,7 @@ Keys include supabase, Stripe, Resend
 
 ## **Project Overview**
 
-- **Stack:** Next.js (App Router), React, TypeScript, Supabase (DB, Auth, Storage), Tailwind CSS.
+- **Stack:** Vanilla JavaScript, HTML, CSS, Supabase (DB, Auth, Storage), Tailwind CSS.
 - **Purpose:** Business onboarding, authentication, and review management platform with custom prompt pages, AI-generated reviews, and media uploads.
 
 ---
@@ -198,32 +235,55 @@ First, run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
 ```
 
 Open [http://localhost:3001](http://localhost:3001) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+You can start editing the page by modifying the HTML, CSS, and JavaScript files in the project. The page auto-updates as you edit the files.
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+## Project Structure
+
+- `public/` - Contains all static assets and widget files
+  - `widgets/` - Contains the widget implementation files
+    - `multi/` - Multi-widget implementation
+      - `widget-embed.js` - Main widget JavaScript
+      - `widget-embed.css` - Widget styles
+      - `multi.html` - Example implementation
+- `src/` - Source files for the project
+  - `widget-embed/` - Widget source files
+    - `widget.css` - Source CSS for widgets
+    - `widget.js` - Source JavaScript for widgets
+
+## Development
+
+The project uses a simple development server that serves static files. No framework or build step is required for development.
+
+To modify widget styles:
+1. Edit the CSS files directly
+2. Test your changes locally
+3. Commit and push the changes
+4. Deploy to update the live widget styles
 
 ## Learn More
 
-To learn more about Next.js, take a look at the following resources:
+To learn more about the technologies used in this project:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- [Supabase Documentation](https://supabase.com/docs) - learn about Supabase features and API
+- [Tailwind CSS Documentation](https://tailwindcss.com/docs) - learn about Tailwind CSS features
+- [Vanilla JavaScript Guide](https://developer.mozilla.org/en-US/docs/Web/JavaScript) - learn about JavaScript
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+## Deployment
 
-## Deploy on Vercel
+The project can be deployed to any static hosting service that supports serving static files. Some recommended options:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- [Vercel](https://vercel.com) - Simple deployment with automatic HTTPS
+- [Netlify](https://netlify.com) - Great for static sites with form handling
+- [GitHub Pages](https://pages.github.com) - Free hosting for static sites
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+To deploy:
+1. Build your static files
+2. Upload to your chosen hosting service
+3. Configure your domain and SSL certificate
 
 ## Prompt Page UI Component Library
 

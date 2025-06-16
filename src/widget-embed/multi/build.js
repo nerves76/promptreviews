@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const esbuild = require('esbuild');
 const CleanCSS = require('clean-css');
+const { execSync } = require('child_process');
 
 // Paths
 const sourceDir = __dirname;
@@ -20,7 +21,6 @@ if (!fs.existsSync(publicDir)) {
 
 // Read source files
 const widgetJs = fs.readFileSync(path.join(sourceDir, 'widget.js'), 'utf8');
-const referenceCss = fs.readFileSync(path.join(__dirname, '../../../scraped-widget-code/reference-css-multi-widget-not-in-use.txt'), 'utf8');
 const testHtmlSource = fs.readFileSync(path.join(sourceDir, 'test.html'), 'utf8');
 
 // Minify JavaScript
@@ -37,10 +37,15 @@ async function build() {
             target: ['es2017'],
         });
 
-        // Minify CSS
-        const cssMinified = new CleanCSS().minify(referenceCss).styles;
+        // Run Tailwind on the widget's CSS
+        console.log('Running Tailwind on widget CSS...');
+        execSync('npx tailwindcss -i ./tailwind.css -c ../../../tailwind.config.js -o ./dist/widget-embed.css --minify', { stdio: 'inherit' });
 
-        // Write minified files
+        // Minify the Tailwind output CSS
+        const tailwindOutput = fs.readFileSync(path.join(distDir, 'widget-embed.css'), 'utf8');
+        const cssMinified = new CleanCSS().minify(tailwindOutput).styles;
+
+        // Write minified CSS
         fs.writeFileSync(path.join(distDir, 'widget-embed.min.css'), cssMinified);
 
         // Copy minified files to public

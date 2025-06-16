@@ -1,4 +1,4 @@
-import { DesignState } from '../widget/WidgetList';
+import type { DesignState } from '../widget/WidgetList';
 
 /**
  * Smartly merges design changes while protecting layout fields

@@ -4,9 +4,9 @@ import { useEffect, useState } from 'react';
 
 declare global {
     interface Window {
-        PromptReviews: {
-            renderMultiWidget: (container: HTMLElement, data: any) => void;
-        };
+        Swiper?: any;
+        PromptReviews?: any;
+        renderMultiWidget: (container: HTMLElement, data: any) => void;
     }
 }
 
