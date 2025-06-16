@@ -14,7 +14,6 @@ import PageCard from "@/app/components/PageCard";
 import AppLoader from "@/app/components/AppLoader";
 import TopLoaderOverlay from "@/app/components/TopLoaderOverlay";
 import { useRouter } from "next/navigation";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { MultiWidget, SingleWidget, PhotoWidget, getDesignWithDefaults, hexToRgba, getRelativeTime, renderStars, lightenHex, injectWidgetNavCSS } from '../../../widget-embed/index';
 
 // Add DesignState type definition

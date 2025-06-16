@@ -886,13 +886,6 @@ export default function PromptPage() {
 
   // Show modal on load if enabled
   useEffect(() => {
-    console.log(
-      "PromptPage.emoji_sentiment_enabled:",
-      promptPage?.emoji_sentiment_enabled,
-      "PromptPage.emoji_sentiment_question:",
-      promptPage?.emoji_sentiment_question,
-    );
-    debugger;
     if (promptPage?.emoji_sentiment_enabled) {
       setShowSentimentModal(true);
       setSentiment("love");

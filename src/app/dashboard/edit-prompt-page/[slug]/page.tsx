@@ -467,17 +467,13 @@ export default function EditPromptPage() {
   }, [params.slug, supabase]);
 
   useEffect(() => {
-    const logCurrentUserUid = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (session && session.user) {
-        console.log("[DEBUG] Current user UID:", session.user.id);
-      } else {
-        console.log("[DEBUG] No user session found");
+    const checkUserSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        console.error("No user session found");
       }
     };
-    logCurrentUserUid();
+    checkUserSession();
   }, [supabase]);
 
   const handleAddPlatform = () => {
@@ -725,20 +721,14 @@ export default function EditPromptPage() {
         ),
       );
 
-      console.log("[DEBUG] Payload sent to Supabase:", payload);
-
       const { data: updateDataResult, error: updateError } = await supabase
         .from("prompt_pages")
         .update(payload)
         .eq("id", promptPage.id);
 
-      // Log the full response for debugging
-      console.log("[DEBUG] Supabase update response:", {
-        updateDataResult,
-        updateError,
-      });
       if (updateError) {
-        console.error("[DEBUG] Update error object:", updateError);
+        console.error("Error updating prompt page:", updateError);
+        throw updateError;
       }
 
       setShowShareModal(true);
@@ -855,20 +845,14 @@ export default function EditPromptPage() {
           validColumns.includes(key),
         ),
       );
-      // Debug logs for troubleshooting
-      console.log(
-        "[DEBUG] Service Save review_platforms:",
-        formState.reviewPlatforms,
-      );
-      console.log("[DEBUG] Service Save payload:", payload);
+      
       // Update the prompt page
       const { error: updateError } = await supabase
         .from("prompt_pages")
         .update(payload)
         .eq("id", promptPage.id);
-      // Debug log for Supabase response
-      console.log("[DEBUG] Supabase update error:", updateError);
       if (updateError) {
+        console.error("Error updating prompt page:", updateError);
         setError(updateError.message);
         return;
       }

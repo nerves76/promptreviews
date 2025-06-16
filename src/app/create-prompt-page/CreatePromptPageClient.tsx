@@ -642,31 +642,28 @@ export default function CreatePromptPageClient() {
         reviewType = 'product';
       }
       let updateData = mapToDbColumns({ ...formData, account_id: user.id, review_type: reviewType });
-      console.log("[DEBUG] handleStep2Submit updateData:", updateData);
+      
       const { data, error } = await supabase
         .from("prompt_pages")
         .update(updateData)
         .eq("slug", createdSlug)
         .select()
         .single();
-      console.log("[DEBUG] handleStep2Submit Supabase response:", {
-        data,
-        error,
-      });
+        
       if (error) throw error;
+      
       if (data && data.slug) {
         setSavedPromptPageUrl(`/r/${data.slug}`);
         localStorage.setItem(
           "showPostSaveModal",
           JSON.stringify({ url: `/r/${data.slug}` }),
         );
-        console.log("[DEBUG] handleStep2Submit redirecting to /dashboard");
         router.push("/dashboard");
         return;
       }
       setSaveSuccess("Prompt page updated successfully!");
     } catch (error) {
-      console.error("[DEBUG] handleStep2Submit error:", error);
+      console.error("Error in handleStep2Submit:", error);
       setSaveError(
         error instanceof Error
           ? error.message

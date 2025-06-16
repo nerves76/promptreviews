@@ -209,7 +209,6 @@ export default function WidgetList({
   // Listen for openNewWidgetForm event from parent
   useEffect(() => {
     const handler = () => {
-      console.log("[DEBUG] New widget event received");
       handleOpenForm();
     };
     window.addEventListener("openNewWidgetForm", handler);
@@ -224,7 +223,6 @@ export default function WidgetList({
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     );
-    console.log('[DEBUG] Fetching reviews for widget:', selectedWidget);
     
     // Fetch all available reviews from review_submissions (no prompt_page_id filter)
     supabase
@@ -232,17 +230,13 @@ export default function WidgetList({
       .select('id, first_name, last_name, reviewer_role, review_content, platform, created_at')
       .order('created_at', { ascending: false })
       .then(({ data, error }) => {
-        console.log('[DEBUG] Raw review_submissions data:', data);
-        console.log('[DEBUG] review_submissions error:', error);
-        
         if (error) {
-          console.error('[DEBUG] Error fetching review_submissions:', error);
+          console.error('Error fetching review_submissions:', error);
           setLoadingReviews(false);
           return;
         }
         
         if (!data || data.length === 0) {
-          console.log('[DEBUG] No reviews found in review_submissions');
           setAllReviews([]);
           setLoadingReviews(false);
           return;
@@ -258,7 +252,6 @@ export default function WidgetList({
           created_at: r.created_at
         }));
         
-        console.log('[DEBUG] Mapped reviews:', mappedReviews);
         setAllReviews(mappedReviews);
         setLoadingReviews(false);
       });
@@ -270,8 +263,9 @@ export default function WidgetList({
       .eq('widget_id', selectedWidget)
       .order('order_index', { ascending: true })
       .then(({ data, error }) => {
-        console.log('[DEBUG] widget_reviews data:', data);
-        console.log('[DEBUG] widget_reviews error:', error);
+        if (error) {
+          console.error('Error fetching widget_reviews:', error);
+        }
         setSelectedReviews(data || []);
       });
   }, [showReviewModal, selectedWidget]);
@@ -361,7 +355,6 @@ export default function WidgetList({
 
   // Review management handlers
   const handleOpenReviewModal = async (widgetId: string) => {
-    console.log("[DEBUG] Opening review modal for widgetId:", widgetId);
     setSelectedWidget(widgetId);
     setShowReviewModal(true);
     setReviewError("");
@@ -386,13 +379,9 @@ export default function WidgetList({
       )
       .eq("widget_id", widgetId)
       .order("order_index", { ascending: true });
-    console.log(
-      "[DEBUG] widgetReviews fetched:",
-      widgetReviews,
-      "error:",
-      error,
-    );
+      
     if (error) {
+      console.error('Error fetching widget reviews:', error);
       setSelectedReviews([]);
       setEditedReviews({});
       setEditedNames({});
@@ -403,7 +392,6 @@ export default function WidgetList({
     }
     // Set selectedReviews to the reviews in the widget
     setSelectedReviews(widgetReviews || []);
-    console.log("[DEBUG] selectedReviews set:", widgetReviews);
     // Set edited fields to match the widget's current reviews
     const editedReviewsObj: { [id: string]: string } = {};
     const editedNamesObj: { [id: string]: string } = {};
@@ -636,7 +624,7 @@ export default function WidgetList({
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     );
-    console.log("[DEBUG] Fetching widget reviews for widget:", selectedWidget);
+    
     supabase
       .from("widget_reviews")
       .select(
@@ -645,10 +633,8 @@ export default function WidgetList({
       .eq("widget_id", selectedWidget!)
       .order("order_index", { ascending: true })
       .then(({ data, error }) => {
-        console.log("[DEBUG] Widget reviews fetched:", data);
-        console.log("[DEBUG] Error if any:", error);
         if (error) {
-          console.error("[DEBUG] Detailed error:", error.message, error.details, error.hint);
+          console.error('Error fetching widget reviews:', error);
         }
         setCurrentWidgetReviews(data || []);
         setLoadingReviews(false);
@@ -656,7 +642,6 @@ export default function WidgetList({
   }, [selectedWidget]);
 
   const handleEditStyle = (widgetId: string) => {
-    console.log("[DEBUG] Opening style editor for widget:", widgetId);
     setSelectedWidget(widgetId);
     setShowEditModal(true);
   };

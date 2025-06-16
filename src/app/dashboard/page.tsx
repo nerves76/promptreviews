@@ -185,8 +185,6 @@ export default function Dashboard() {
           .eq("id", user.id)
           .single();
         setAccount(accountData);
-        // Logging for debug
-        console.log("Fetched accountData after payment:", accountData);
       };
       fetchAccount();
     }
@@ -213,13 +211,6 @@ export default function Dashboard() {
       return;
     }
     if (!account?.plan || planExpired || (isOnPaidPlan && !isActive)) {
-      console.log("[DASHBOARD REDIRECT DEBUG]", {
-        account,
-        plan: account?.plan,
-        isActive,
-        planExpired,
-        isOnPaidPlan,
-      });
       router.replace("/dashboard/plan");
       return;
     }
@@ -228,11 +219,6 @@ export default function Dashboard() {
       return;
     }
   }, [user, account, business, router, isLoading]);
-
-  useEffect(() => {
-    // Debug log for account and pendingAccountUpdate
-    console.log("Dashboard debug:", { account, pendingAccountUpdate });
-  }, [account, pendingAccountUpdate]);
 
   useEffect(() => {
     const fetchStats = async () => {
