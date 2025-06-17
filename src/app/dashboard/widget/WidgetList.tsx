@@ -333,6 +333,7 @@ export default function WidgetList({
           .from('widgets')
           .update({
             name: form.name.trim(),
+            widget_type: form.widgetType, // Add this line to update widget type
             design: design, // Persist the full design object
             updated_at: new Date().toISOString(),
           })
