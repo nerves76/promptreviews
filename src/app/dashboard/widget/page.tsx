@@ -317,6 +317,17 @@ export default function WidgetPage() {
       >
         <h2 className="text-lg font-semibold text-white mb-4 text-center">
           Live widget preview
+          {/* Temporary debug button */}
+          <button 
+            onClick={() => {
+              console.log("🔥 FORCE RENDER DEBUG: Forcing MultiWidget render");
+              setSelectedWidget((prev: any) => prev ? { ...prev, widget_type: 'multi' } : null);
+            }}
+            className="ml-4 px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600"
+            title="Force render as MultiWidget (debug)"
+          >
+            Force Multi
+          </button>
         </h2>
         <section
           className="flex flex-col justify-center relative bg-transparent"
@@ -348,6 +359,12 @@ export default function WidgetPage() {
             console.log("📊 [WIDGET RENDER DEBUG] Loading:", loading);
             console.log("📊 [WIDGET RENDER DEBUG] Selected widget:", selectedWidget);
             console.log("📊 [WIDGET RENDER DEBUG] Widget type:", selectedWidget?.widget_type);
+            console.log("📊 [WIDGET RENDER DEBUG] Widget type comparison:");
+            console.log("📊 [WIDGET RENDER DEBUG] - widget_type === 'multi':", selectedWidget?.widget_type === 'multi');
+            console.log("📊 [WIDGET RENDER DEBUG] - widget_type === 'single':", selectedWidget?.widget_type === 'single');
+            console.log("📊 [WIDGET RENDER DEBUG] - widget_type === 'photo':", selectedWidget?.widget_type === 'photo');
+            console.log("📊 [WIDGET RENDER DEBUG] - typeof widget_type:", typeof selectedWidget?.widget_type);
+            console.log("📊 [WIDGET RENDER DEBUG] - widget_type length:", selectedWidget?.widget_type?.length);
             console.log("📊 [WIDGET RENDER DEBUG] Reviews:", reviews);
             console.log("📊 [WIDGET RENDER DEBUG] Design:", design);
             console.log("📊 [WIDGET RENDER DEBUG] Universal prompt slug:", universalPromptSlug);
