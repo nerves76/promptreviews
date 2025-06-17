@@ -72,7 +72,7 @@ export default function WidgetList({
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null as null | string);
   const [form, setForm] = useState({
-    name: "",
+    name: "New Widget",
     widgetType: "multi",
   });
 
@@ -315,6 +315,7 @@ export default function WidgetList({
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
     const { data: { user } } = await supabase.auth.getUser();
+    console.log("DEBUG: handleSave user:", user);
     if (!user) {
       alert("You must be signed in to save a widget");
       return;
@@ -326,22 +327,52 @@ export default function WidgetList({
         throw new Error("Widget name is required");
       }
 
-      const { data: accountData, error: accountError } = await supabase
+      // First try to get existing account
+      let { data: accountData, error: accountError } = await supabase
         .from('accounts')
         .select('id')
         .eq('user_id', user.id)
         .single();
 
-      if (accountError) {
-        console.error("Error fetching account:", accountError);
-        throw new Error("Failed to fetch account information");
+      console.log("DEBUG: Existing account check:", { accountData, accountError });
+
+      // If no account exists, create one
+      if (!accountData?.id) {
+        console.log("DEBUG: Creating new account for user:", user.id);
+        const { data: newAccount, error: createError } = await supabase
+          .from('accounts')
+          .insert({
+            user_id: user.id
+          })
+          .select('id')
+          .single();
+
+        console.log("DEBUG: Account creation result:", { newAccount, createError });
+
+        if (createError) {
+          console.error("Error creating account:", createError);
+          // If it's a unique constraint violation, try fetching the account again
+          if (createError.code === '23505') { // PostgreSQL unique violation code
+            const { data: existingAccount } = await supabase
+              .from('accounts')
+              .select('id')
+              .eq('user_id', user.id)
+              .single();
+            accountData = existingAccount;
+          } else {
+            throw new Error(`Failed to create account: ${createError.message}`);
+          }
+        } else {
+          accountData = newAccount;
+        }
       }
 
       if (!accountData?.id) {
-        throw new Error("No account found for user");
+        throw new Error("No account found or created for user");
       }
 
       const accountId = accountData.id;
+      console.log("DEBUG: Using account ID:", accountId);
 
       if (selectedWidget) {
         // Update existing widget
@@ -382,6 +413,8 @@ export default function WidgetList({
       setWidgets(prevWidgets => [...prevWidgets]);
       setShowForm(false);
       setEditing(null);
+      setSelectedWidget(null);
+      setForm({ name: "", widgetType: "multi" });
     } catch (error: any) {
       console.error('Error saving widget:', error);
       alert(error.message || "An error occurred while saving the widget");
