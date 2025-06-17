@@ -44,11 +44,15 @@ console.log('Widget script starting... Build time:', buildTimestamp);
 
     // Helper: Render star rating as SVGs (no React, just HTML)
     function renderStars(rating) {
+        if (typeof rating !== 'number' || isNaN(rating)) return '';
         let stars = '';
         for (let i = 1; i <= 5; i++) {
-            stars += `<svg width="18" height="18" viewBox="0 0 20 20" fill="${i <= rating ? '#FBBF24' : '#E5E7EB'}" stroke="#FBBF24" style="display: inline-block; margin-right: 2px;"><polygon points="10,1 12.59,7.36 19.51,7.64 14,12.14 15.82,18.99 10,15.27 4.18,18.99 6,12.14 0.49,7.64 7.41,7.36"></polygon></svg>`;
+            const full = i <= Math.floor(rating);
+            const half = !full && i - 0.5 <= rating;
+            const gradientId = `half-star-gradient-${i}-${Math.random()}`;
+            stars += `<svg width="18" height="18" viewBox="0 0 20 20" fill="${full ? '#FBBF24' : half ? `url(#${gradientId})` : '#E5E7EB'}" stroke="#FBBF24" style="display: inline-block; margin-right: 2px;">${half ? `<defs><linearGradient id="${gradientId}"><stop offset="50%" stopColor="#FBBF24" /><stop offset="50%" stopColor="#E5E7EB" /></linearGradient></defs>` : ''}<polygon points="10,1 12.59,7.36 19.51,7.64 14,12.14 15.82,18.99 10,15.27 4.18,18.99 6,12.14 0.49,7.64 7.41,7.36" /></svg>`;
         }
-        return stars;
+        return `<span style="display: inline-flex; align-items: center; margin-bottom: 4px;">${stars}</span>`;
     }
 
     // Helper: Get relative time string (e.g., '2 days ago')
@@ -129,6 +133,7 @@ console.log('Widget script starting... Build time:', buildTimestamp);
                 gap: 8px;
                 margin-top: 24px;
                 width: auto !important;
+                z-index: 10;
             }
 
             .${widgetClass} .swiper-pagination-bullet {
@@ -447,6 +452,36 @@ console.log('Widget script starting... Build time:', buildTimestamp);
         const inner = document.createElement("div");
         inner.className = "relative w-full max-w-5xl mx-auto px-8 flex flex-col items-center";
 
+        // --- DESKTOP ARROWS (absolute, sides) ---
+        const leftArrow = document.createElement("button");
+        leftArrow.className = "group absolute -left-8 top-1/2 -translate-y-1/2 z-10 rounded-full border border-gray-200 w-10 h-10 flex items-center justify-center transition hover:bg-opacity-80 active:scale-95 focus:scale-95 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--pr-accent-color)] focus-visible:outline-offset-2 hidden md:flex";
+        leftArrow.setAttribute("aria-label", "Previous slide");
+        leftArrow.setAttribute("tabindex", "0");
+        leftArrow.innerHTML = `<svg width="16" height="16" viewBox="0 0 20 20" fill="none" style="display: block; margin: auto;"><polygon points="12.5,3 5.5,10 12.5,17" fill="currentColor"/></svg>`;
+
+        const rightArrow = document.createElement("button");
+        rightArrow.className = "group absolute -right-8 top-1/2 -translate-y-1/2 z-10 rounded-full border border-gray-200 w-10 h-10 flex items-center justify-center transition hover:bg-opacity-80 active:scale-95 focus:scale-95 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--pr-accent-color)] focus-visible:outline-offset-2 hidden md:flex";
+        rightArrow.setAttribute("aria-label", "Next slide");
+        rightArrow.setAttribute("tabindex", "0");
+        rightArrow.innerHTML = `<svg width="16" height="16" viewBox="0 0 20 20" fill="none" style="display: block; margin: auto;"><polygon points="7.5,3 14.5,10 7.5,17" fill="currentColor"/></svg>`;
+
+        // --- MOBILE ARROWS (for nav row) ---
+        const leftArrowMobile = document.createElement("button");
+        leftArrowMobile.className = "group rounded-full border border-gray-200 w-10 h-10 flex items-center justify-center transition hover:bg-opacity-80 active:scale-95 focus:scale-95 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--pr-accent-color)] focus-visible:outline-offset-2 md:hidden";
+        leftArrowMobile.setAttribute("aria-label", "Previous slide");
+        leftArrowMobile.setAttribute("tabindex", "0");
+        leftArrowMobile.innerHTML = `<svg width="16" height="16" viewBox="0 0 20 20" fill="none" style="display: block; margin: auto;"><polygon points="12.5,3 5.5,10 12.5,17" fill="currentColor"/></svg>`;
+
+        const rightArrowMobile = document.createElement("button");
+        rightArrowMobile.className = "group rounded-full border border-gray-200 w-10 h-10 flex items-center justify-center transition hover:bg-opacity-80 active:scale-95 focus:scale-95 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--pr-accent-color)] focus-visible:outline-offset-2 md:hidden";
+        rightArrowMobile.setAttribute("aria-label", "Next slide");
+        rightArrowMobile.setAttribute("tabindex", "0");
+        rightArrowMobile.innerHTML = `<svg width="16" height="16" viewBox="0 0 20 20" fill="none" style="display: block; margin: auto;"><polygon points="7.5,3 14.5,10 7.5,17" fill="currentColor"/></svg>`;
+
+        // --- Append navigation elements before Swiper initialization ---
+        inner.appendChild(leftArrow);
+        inner.appendChild(rightArrow);
+
         // SWIPER CONTAINER
         const swiperContainer = document.createElement("div");
         swiperContainer.className = "swiper w-full";
@@ -458,36 +493,87 @@ console.log('Widget script starting... Build time:', buildTimestamp);
         swiperWrapper.className = "swiper-wrapper";
         swiperWrapper.setAttribute("role", "list");
 
-        // Slides
+        // --- Define accentColor before card creation loop ---
+        const accentColor = widgetData.design?.accentColor || 'slateblue';
+
+        // --- Define cardBg before card creation loop ---
+        const cardBg = widgetData.design?.cardBackground || 'white';
+
+        // --- Define cardRadius before card creation loop ---
+        const cardRadius = widgetData.design?.cardRadius || '3xl';
+
+        // --- Define cardShadow before card creation loop ---
+        const cardShadow = (widgetData.design && widgetData.design.cardShadow) ? widgetData.design.cardShadow : 'lg';
+
+        // --- Slides ---
         (widgetData.reviews || []).forEach((review, idx) => {
             const slide = document.createElement("div");
-            slide.className = "swiper-slide flex flex-col items-center w-full h-[380px] rounded-3xl overflow-hidden bg-white shadow-lg p-8";
+            slide.className = `swiper-slide flex flex-col items-center w-full h-[420px] rounded-${cardRadius} overflow-hidden bg-${cardBg} p-8`;
             slide.setAttribute('role', 'group');
-            slide.setAttribute('aria-label', `${idx + 1} / ${widgetData.reviews.length}`);
+            slide.setAttribute('aria-label', `Slide ${idx + 1} of ${widgetData.reviews.length}`);
             slide.id = idx === 0 ? 'style-UiHWZ' : idx === 1 ? 'style-ppbHr' : 'style-RwrbB';
 
+            // CARD
             const card = document.createElement('div');
-            card.className = 'w-full h-[380px] flex flex-col rounded-3xl overflow-hidden bg-white px-2 py-4 shadow text-sm style-UmL5Y';
+            card.className = 'w-full h-[420px] flex flex-col justify-between rounded-3xl overflow-hidden bg-white px-2 py-4 text-sm style-UmL5Y';
             card.id = 'style-UmL5Y';
+            card.style.height = '420px';
+            card.style.minHeight = '420px';
+            card.style.maxHeight = '420px';
+            card.style.position = 'relative';
+            card.style.display = 'flex';
+            card.style.flexDirection = 'column';
+            card.style.justifyContent = 'space-between';
+            card.style.padding = '2rem';
+            card.style.boxShadow = '0 6px 32px 0 rgba(34,34,34,0.10)';
+            // Remove debug border/bg
+            card.style.border = '';
+            card.style.backgroundColor = '';
+            card.style.zIndex = '';
+            card.style.opacity = '1';
+            // Responsive padding
+            function setCardPadding() {
+                if (window.innerWidth <= 900) {
+                    card.style.padding = '1rem';
+                } else {
+                    card.style.padding = '2rem';
+                }
+            }
+            setCardPadding();
+            window.addEventListener('resize', setCardPadding);
 
-            // Stars
+            // --- INNER SHADOW ---
+            const innerShadow = document.createElement('div');
+            innerShadow.style.position = 'absolute';
+            innerShadow.style.inset = '0';
+            innerShadow.style.pointerEvents = 'none';
+            innerShadow.style.borderRadius = '1.5rem';
+            innerShadow.style.boxShadow = 'rgba(34,34,34,0.2) 0px 4px 32px 0px inset';
+            innerShadow.style.zIndex = '1';
+            card.appendChild(innerShadow);
+
+            // --- STARS ROW ---
             const starsContainer = document.createElement('div');
             starsContainer.className = 'flex items-center justify-center mb-2 mt-0 style-JwAMc';
             starsContainer.id = 'style-JwAMc';
+            starsContainer.style.zIndex = '2';
             starsContainer.innerHTML = `<span id="style-peIpo" class="style-peIpo">${renderStars(review.rating)}</span>`;
 
-            // Review content
+            // --- REVIEW CONTENT WITH DECORATIVE QUOTES ---
             const contentContainer = document.createElement('div');
             contentContainer.className = 'flex-1 min-h-0 w-full flex flex-col justify-center text-center text-[14px] md:text-[16px] text-gray-800 break-words whitespace-pre-line relative overflow-hidden line-clamp-5';
+            contentContainer.style.zIndex = '2';
             const content = document.createElement('p');
             content.className = 'mx-6 md:mt-0 text-[14px] md:text-[16px] text-center z-10 relative leading-relaxed style-M7nAj';
             content.id = 'style-M7nAj';
-            content.textContent = review.content;
+            // Add smart quotes
+            content.innerHTML = `<span style="font-size:2rem;vertical-align:top;color:#b3b3b3;">" </span>${review.content}<span style="font-size:2rem;vertical-align:bottom;color:#b3b3b3;"> "</span>`;
             contentContainer.appendChild(content);
 
-            // Reviewer info
+            // --- ATTRIBUTION (BOTTOM) ---
             const reviewerContainer = document.createElement('div');
             reviewerContainer.className = 'flex flex-col items-center gap-1 w-full mt-auto mb-2';
+            reviewerContainer.style.zIndex = '2';
             const name = document.createElement('span');
             name.className = 'font-semibold style-1eDJP';
             name.setAttribute('itemprop', 'author');
@@ -504,16 +590,15 @@ console.log('Widget script starting... Build time:', buildTimestamp);
             role.innerHTML = `<span itemprop="jobTitle">${review.reviewer.role}</span>`;
             reviewerContainer.appendChild(name);
             reviewerContainer.appendChild(role);
-
-            // Optional published date and platform
+            // Date/platform
             if (review.publishedDate && review.platform) {
                 const dateLine = document.createElement('span');
-                dateLine.className = 'reviewer-date';
+                dateLine.className = 'reviewer-date text-xs text-gray-400';
                 dateLine.textContent = `${getRelativeTime(review.publishedDate)} via ${review.platform}`;
                 reviewerContainer.appendChild(dateLine);
             }
 
-            // Assemble card
+            // --- ASSEMBLE CARD ---
             card.appendChild(starsContainer);
             card.appendChild(contentContainer);
             card.appendChild(reviewerContainer);
@@ -522,181 +607,95 @@ console.log('Widget script starting... Build time:', buildTimestamp);
         });
         swiperContainer.appendChild(swiperWrapper);
 
-        // PAGINATION (single persistent element)
+        // --- PAGINATION (always visible, styled) ---
         const pagination = document.createElement("div");
-        pagination.className = "swiper-pagination flex items-center justify-center mt-6";
-        pagination.setAttribute("role", "tablist");
-
-        // Helper to get accent color
-        const accentColor = widgetData.design?.accentColor || 'slateblue';
-        const accentHover = widgetData.design?.accentHover || '#4a3f8c';
-        const cardBg = '#fff';
-        const cardShadow = '0 6px 32px 0 rgba(34,34,34,0.10), 0 1px 3px 0 rgb(0 0 0 / 0.1)';
-        const cardRadius = '1.5rem';
-
-        // Add card inner shadow variable
-        const cardInnerShadow = 'inset 0 4px 32px rgba(34,34,34,0.08)';
-
-        // DESKTOP ARROWS (absolute, sides)
-        const leftArrow = document.createElement("button");
-        leftArrow.className = "group absolute -left-8 top-1/2 -translate-y-1/2 z-10 rounded-full border border-gray-200 w-10 h-10 flex items-center justify-center transition hover:bg-opacity-80 active:scale-95 focus:scale-95 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--pr-accent-color)] focus-visible:outline-offset-2 hidden md:flex";
-        leftArrow.setAttribute("aria-label", "Previous slide");
-        leftArrow.setAttribute("tabindex", "0");
-        leftArrow.innerHTML = `<svg width=\"16\" height=\"16\" viewBox=\"0 0 20 20\" fill=\"none\" style=\"display: block; margin: auto;\"><polygon points=\"12.5,3 5.5,10 12.5,17\" fill=\"currentColor\"/></svg>`;
-
-        const rightArrow = document.createElement("button");
-        rightArrow.className = "group absolute -right-8 top-1/2 -translate-y-1/2 z-10 rounded-full border border-gray-200 w-10 h-10 flex items-center justify-center transition hover:bg-opacity-80 active:scale-95 focus:scale-95 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--pr-accent-color)] focus-visible:outline-offset-2 hidden md:flex";
-        rightArrow.setAttribute("aria-label", "Next slide");
-        rightArrow.setAttribute("tabindex", "0");
-        rightArrow.innerHTML = `<svg width=\"16\" height=\"16\" viewBox=\"0 0 20 20\" fill=\"none\" style=\"display: block; margin: auto;\"><polygon points=\"7.5,3 14.5,10 7.5,17\" fill=\"currentColor\"/></svg>`;
-
-        // MOBILE ARROWS (for nav row)
-        const leftArrowMobile = document.createElement("button");
-        leftArrowMobile.className = "group rounded-full border border-gray-200 w-10 h-10 flex items-center justify-center transition hover:bg-opacity-80 active:scale-95 focus:scale-95 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--pr-accent-color)] focus-visible:outline-offset-2 md:hidden";
-        leftArrowMobile.setAttribute("aria-label", "Previous slide");
-        leftArrowMobile.setAttribute("tabindex", "0");
-        leftArrowMobile.innerHTML = `<svg width=\"16\" height=\"16\" viewBox=\"0 0 20 20\" fill=\"none\" style=\"display: block; margin: auto;\"><polygon points=\"12.5,3 5.5,10 12.5,17\" fill=\"currentColor\"/></svg>`;
-
-        const rightArrowMobile = document.createElement("button");
-        rightArrowMobile.className = "group rounded-full border border-gray-200 w-10 h-10 flex items-center justify-center transition hover:bg-opacity-80 active:scale-95 focus:scale-95 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--pr-accent-color)] focus-visible:outline-offset-2 md:hidden";
-        rightArrowMobile.setAttribute("aria-label", "Next slide");
-        rightArrowMobile.setAttribute("tabindex", "0");
-        rightArrowMobile.innerHTML = `<svg width=\"16\" height=\"16\" viewBox=\"0 0 20 20\" fill=\"none\" style=\"display: block; margin: auto;\"><polygon points=\"7.5,3 14.5,10 7.5,17\" fill=\"currentColor\"/></svg>`;
-
-        // SUBMIT REVIEW BUTTONS (separate for mobile and desktop)
-        function createSubmitBtn() {
-            const btn = document.createElement('button');
-            btn.className = 'submit-review-btn font-semibold transition focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--pr-accent-color)] focus-visible:outline-offset-2';
-            btn.textContent = 'Submit a Review';
-            btn.style.background = cardBg;
-            btn.style.color = accentColor;
-            btn.style.borderRadius = cardRadius;
-            btn.style.boxShadow = cardShadow;
-            btn.style.padding = '0.6em 2em';
-            btn.style.fontSize = '1.08rem';
-            btn.style.border = '1.5px solid #e5e7eb';
-            btn.style.marginLeft = '1rem';
-            btn.style.marginRight = '1rem';
-            btn.addEventListener('mouseenter', () => {
-                btn.style.background = accentColor;
-                btn.style.color = '#fff';
-            });
-            btn.addEventListener('mouseleave', () => {
-                btn.style.background = cardBg;
-                btn.style.color = accentColor;
-            });
-            btn.addEventListener('focus', () => {
-                btn.style.background = accentColor;
-                btn.style.color = '#fff';
-            });
-            btn.addEventListener('blur', () => {
-                btn.style.background = cardBg;
-                btn.style.color = accentColor;
-            });
-            return btn;
-        }
-        const submitBtnMobile = createSubmitBtn();
-        submitBtnMobile.className += ' md:hidden';
-        const submitBtnDesktop = createSubmitBtn();
-        submitBtnDesktop.className += ' hidden md:inline-flex';
-
-        // Dedicated container for nav dots (pagination)
-        const paginationContainer = document.createElement('div');
-        paginationContainer.className = 'pr-pagination-row w-full flex justify-center mt-6 mb-2';
-        paginationContainer.appendChild(pagination);
-
-        // NAV ROW: contains both mobile and desktop elements, use responsive classes to show/hide
-        const navRow = document.createElement('div');
-        navRow.className = 'pr-nav-row w-full flex items-center justify-center gap-2 mt-8 mb-2';
-        navRow.appendChild(leftArrowMobile);
-        navRow.appendChild(rightArrowMobile);
-        navRow.appendChild(submitBtnMobile);
-
-        // Add nav row and pagination container after swiperContainer
+        pagination.className = "swiper-pagination flex items-center justify-center mt-6 md:mt-4";
+        pagination.style.display = 'flex';
+        pagination.style.position = 'relative';
+        pagination.style.bottom = 'auto';
+        pagination.style.justifyContent = 'center';
+        pagination.style.alignItems = 'center';
+        pagination.style.gap = '8px';
+        pagination.style.marginTop = '24px';
+        pagination.style.width = 'auto';
+        pagination.style.zIndex = '10';
+        swiperContainer.appendChild(pagination);
         inner.appendChild(swiperContainer);
-        inner.appendChild(navRow);
-        inner.appendChild(paginationContainer);
 
-        // Add desktop arrows to inner (absolute, sides)
-        inner.appendChild(leftArrow);
-        inner.appendChild(rightArrow);
-        outer.appendChild(inner);
-
-        // Add to container
-        container.appendChild(outer);
-
-        // Swiper init
-        const swiper = new Swiper(swiperContainer, {
-            slidesPerView: 1,
-            spaceBetween: 24,
-            navigation: {
-                nextEl: [rightArrow, rightArrowMobile],
-                prevEl: [leftArrow, leftArrowMobile],
-                disabledClass: 'swiper-button-disabled',
-                lockClass: 'swiper-button-lock',
-                hiddenClass: 'swiper-button-hidden',
-            },
-            pagination: {
-                el: pagination,
-                clickable: true,
-                bulletClass: 'swiper-pagination-bullet',
-                bulletActiveClass: 'swiper-pagination-bullet-active',
-                renderBullet: function (index, className) {
-                    const isActive = className.includes('swiper-pagination-bullet-active');
-                    const color = isActive ? widgetData.design?.accentColor || 'slateblue' : lightenHex(widgetData.design?.accentColor || 'slateblue', 0.7);
-                    return '<span class="' + className + '" style="background: ' + color + ';"></span>';
+        // --- Swiper Initialization ---
+        if (typeof Swiper !== 'undefined') {
+            const swiper = new Swiper(swiperContainer, {
+                slidesPerView: 1,
+                spaceBetween: 20,
+                navigation: {
+                    nextEl: '.swiper-button-next',
+                    prevEl: '.swiper-button-prev',
+                },
+                pagination: {
+                    el: pagination,
+                    clickable: true,
+                    type: 'bullets',
+                    renderBullet: function (index, className) {
+                        return '<span class="' + className + '"></span>';
+                    },
+                },
+                watchOverflow: false,
+                breakpoints: {
+                    640: {
+                        slidesPerView: 2,
+                    },
+                    1024: {
+                        slidesPerView: 2.99,
+                    }
+                },
+                on: {
+                    init: function () {
+                        this.pagination.render();
+                        this.pagination.update();
+                    },
+                    slideChange: function () {
+                        this.pagination.render();
+                        this.pagination.update();
+                    }
                 }
-            },
-            breakpoints: {
-                768: {
-                    slidesPerView: 2,
-                },
-                1024: {
-                    slidesPerView: 3,
-                },
-            },
-            on: {
-                init: function() {
-                    this.navigation.update();
-                },
-                slideChange: function() {
-                    this.navigation.update();
-                }
+            });
+            swiper.update && swiper.update();
+
+            // --- DEBUG LOGGING ---
+            const paginationEl = swiperContainer.querySelector('.swiper-pagination');
+            console.log('Swiper pagination element:', paginationEl);
+            if (paginationEl) {
+                console.log('Pagination element children:', paginationEl.children);
+                console.log('Pagination element innerHTML:', paginationEl.innerHTML);
+            } else {
+                console.warn('No .swiper-pagination element found in DOM!');
             }
-        });
+            console.log('Swiper instance pagination state:', swiper.pagination);
+        } else {
+            console.error('Swiper is not loaded!');
+        }
 
-        // Keyboard and mouse event listeners for all arrows
-        [leftArrow, rightArrow, leftArrowMobile, rightArrowMobile].forEach(btn => {
-            btn.style.background = cardBg;
-            btn.style.borderRadius = cardRadius;
-            btn.style.boxShadow = cardShadow;
-            btn.style.color = accentColor;
-            btn.querySelector('polygon').style.fill = accentColor;
-            btn.addEventListener('mouseenter', () => {
-                btn.style.background = accentColor;
-                btn.style.color = '#fff';
-                btn.querySelector('polygon').style.fill = '#fff';
-            });
-            btn.addEventListener('mouseleave', () => {
-                btn.style.background = cardBg;
-                btn.style.color = accentColor;
-                btn.querySelector('polygon').style.fill = accentColor;
-            });
-            btn.addEventListener('focus', () => {
-                btn.style.background = accentColor;
-                btn.style.color = '#fff';
-                btn.querySelector('polygon').style.fill = '#fff';
-            });
-            btn.addEventListener('blur', () => {
-                btn.style.background = cardBg;
-                btn.style.color = accentColor;
-                btn.querySelector('polygon').style.fill = accentColor;
-            });
-        });
+        // --- Submit Review Row (flex for desktop, block for mobile) ---
+        const submitReviewRow = document.createElement('div');
+        submitReviewRow.className = 'submit-review-row w-full flex justify-end items-center mt-4';
 
-        console.log('Swiper initialized:', swiper);
-        swiper.update && swiper.update();
-        return swiper;
+        const submitBtnDesktop = document.createElement("a");
+        submitBtnDesktop.href = widgetData.submitReviewUrl || "#";
+        submitBtnDesktop.className = "submit-review-btn bg-[var(--pr-accent-color)] text-white px-4 py-2 rounded-lg hover:bg-opacity-80 transition hidden md:inline-block";
+        submitBtnDesktop.textContent = "Submit a Review";
+        submitReviewRow.appendChild(submitBtnDesktop);
+
+        const submitBtnMobile = document.createElement("a");
+        submitBtnMobile.href = widgetData.submitReviewUrl || "#";
+        submitBtnMobile.className = "submit-review-btn bg-[var(--pr-accent-color)] text-white px-4 py-2 rounded-lg hover:bg-opacity-80 transition block md:hidden w-full mt-2";
+        submitBtnMobile.textContent = "Submit a Review";
+        submitReviewRow.appendChild(submitBtnMobile);
+
+        inner.appendChild(submitReviewRow);
+
+        // --- Append everything to DOM ---
+        outer.appendChild(inner);
+        container.appendChild(outer);
     }
 
     // Load all multi widgets on the page

@@ -62,6 +62,7 @@
   align-items: center;
   margin-bottom: 1rem;
   margin-top: 0.5rem;
+  align-self: flex-start;
 }
 
 /* Review card layout */
@@ -80,6 +81,8 @@
   align-items: center;
   justify-content: flex-start;
   transition: box-shadow 0.2s;
+  height: 340px;
+  position: relative;
 }
 
 .review-card.fade-out {
@@ -94,6 +97,10 @@
   margin-top: 0.2rem;
   text-align: center;
   min-height: 90px;
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .review-content::before {
@@ -120,8 +127,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 0.5rem;
+  margin-top: auto;
   gap: 0.1rem;
+  align-self: flex-end;
 }
 
 .reviewer-name {
@@ -156,8 +164,8 @@
 }
 
 .nav-button {
-  background: var(--bg-color, #fff);
-  color: white;
+  background: var(--bg-color, #fff) !important;
+  color: var(--accent-color, slateblue) !important;
   border: none;
   border-radius: var(--border-radius, 20px);
   width: 48px;
@@ -177,39 +185,61 @@
 }
 
 .nav-button:hover {
-  background-color: var(--accent-color-hover, #4a3f8c);
-  color: #fff;
+  background-color: var(--accent-color-hover, #4a3f8c) !important;
+  color: #fff !important;
 }
 
 .nav-button:disabled,
 .nav-button[aria-disabled="true"] {
-  background-color: #ccc;
+  background-color: #ccc !important;
   cursor: not-allowed;
 }
 
 /* Swiper pagination dots below cards */
 .swiper-pagination {
-  position: relative;
-  margin-top: 1.5rem;
-  margin-bottom: 0.5rem;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  position: absolute !important;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  margin-top: 0 !important;
+  width: 100% !important;
+  height: 32px !important;
+  z-index: 9999 !important;
 }
 
 .swiper-pagination-bullet {
-  width: 10px;
-  height: 10px;
-  background: #d1d5db;
-  border-radius: 50%;
-  margin: 0 4px;
-  opacity: 1;
-  transition: background 0.3s, transform 0.3s;
+  width: 10px !important;
+  height: 10px !important;
+  background: #ccc !important;
+  opacity: 0.6 !important;
+  margin: 0 6px !important;
+  display: inline-block !important;
+  border-radius: 50% !important;
+  cursor: pointer !important;
+  transition: all 0.3s cubic-bezier(0.4,0,0.2,1) !important;
 }
 
 .swiper-pagination-bullet-active {
-  background: var(--accent-color, slateblue);
-  transform: scale(1.2);
+  background: var(--accent-color, slateblue) !important;
+  opacity: 1 !important;
+  transform: scale(1.2) !important;
+}
+
+.swiper-pagination-bullet:hover {
+  opacity: 0.85 !important;
+  transform: scale(1.1) !important;
+}
+
+/* Ensure pagination is visible at all breakpoints */
+@media (min-width: 1024px) {
+  .swiper-pagination {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
 }
 
 .submit-review-row {
@@ -221,8 +251,8 @@
 }
 
 .submit-review-btn {
-  background: var(--bg-color, #fff);
-  color: var(--accent-color, slateblue);
+  background: var(--bg-color, #fff) !important;
+  color: var(--accent-color, slateblue) !important;
   border-radius: var(--border-radius, 20px);
   box-shadow: 0 6px 32px 0 rgba(34,34,34,0.10), var(--pr-card-inner-shadow);
   padding: 0.6em 2em;
@@ -241,13 +271,15 @@
 }
 
 .submit-review-btn:hover {
-  background: var(--accent-color-hover, #4a3f8c);
-  color: #fff;
+  background: var(--accent-color-hover, #4a3f8c) !important;
+  color: #fff !important;
 }
 
 .swiper {
   width: 100%;
   padding: 2rem 0;
+  position: relative !important;
+  padding-bottom: 48px !important;
 }
 
 .swiper-slide {
@@ -273,6 +305,7 @@
     max-width: 320px;
     min-height: 280px;
     padding: 1.5rem 1rem 1rem 1rem;
+    height: 280px;
   }
   .swiper-nav-abs, .swiper-nav-abs.right {
     display: none;
@@ -284,6 +317,7 @@
     max-width: 98vw;
     min-height: 180px;
     padding: 1rem 0.5rem 0.5rem 0.5rem;
+    height: 180px;
   }
   .submit-review-btn {
     padding: 0.5em 1.2em;
