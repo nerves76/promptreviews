@@ -108,10 +108,13 @@ export default function WidgetPage() {
       .select("*")
       .order("created_at", { ascending: false })
       .then(({ data, error }) => {
+        console.log("📊 [WIDGET DEBUG] Fetched widgets:", data);
+        console.log("📊 [WIDGET DEBUG] Widget fetch error:", error);
         if (data) {
           setWidgets(data);
           // Select first widget if none is selected
           if (!selectedWidget && data.length > 0) {
+            console.log("📊 [WIDGET DEBUG] Auto-selecting first widget:", data[0]);
             setSelectedWidget(data[0]);
           }
         }
@@ -128,7 +131,11 @@ export default function WidgetPage() {
 
   // Fetch reviews for selected widget
   useEffect(() => {
-    if (!selectedWidget) return;
+    if (!selectedWidget) {
+      console.log("📊 [REVIEWS DEBUG] No selected widget, skipping review fetch");
+      return;
+    }
+    console.log("📊 [REVIEWS DEBUG] Fetching reviews for widget:", selectedWidget.id);
     setLoadingWidget(true);
     const supabase = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -142,6 +149,8 @@ export default function WidgetPage() {
       .eq("widget_id", selectedWidget.id)
       .order("order_index", { ascending: true })
       .then(({ data, error }) => {
+        console.log("📊 [REVIEWS DEBUG] Fetched reviews:", data);
+        console.log("📊 [REVIEWS DEBUG] Reviews fetch error:", error);
         if (data) setReviews(data);
         setLoadingWidget(false);
       });
@@ -335,13 +344,43 @@ export default function WidgetPage() {
             >
               <AppLoader />
             </div>
-          ) : selectedWidget?.widget_type === 'multi' ? (
-            <MultiWidget data={{ ...selectedWidget, reviews, design, universalPromptSlug }} />
-          ) : selectedWidget?.widget_type === 'single' ? (
-            <SingleWidget data={{ ...selectedWidget, reviews, design, universalPromptSlug }} />
-          ) : selectedWidget?.widget_type === 'photo' ? (
-            <PhotoWidget data={{ ...selectedWidget, reviews, design, universalPromptSlug }} />
-          ) : null}
+          ) : (() => {
+            console.log("📊 [WIDGET RENDER DEBUG] Loading:", loading);
+            console.log("📊 [WIDGET RENDER DEBUG] Selected widget:", selectedWidget);
+            console.log("📊 [WIDGET RENDER DEBUG] Widget type:", selectedWidget?.widget_type);
+            console.log("📊 [WIDGET RENDER DEBUG] Reviews:", reviews);
+            console.log("📊 [WIDGET RENDER DEBUG] Design:", design);
+            console.log("📊 [WIDGET RENDER DEBUG] Universal prompt slug:", universalPromptSlug);
+            
+            if (!selectedWidget) {
+              console.log("📊 [WIDGET RENDER DEBUG] No selected widget");
+              return (
+                <div className="text-center py-12">
+                  <p className="text-white text-lg">No widget selected</p>
+                  <p className="text-gray-300 text-sm mt-2">Create a widget to see the preview</p>
+                </div>
+              );
+            }
+            
+            if (selectedWidget?.widget_type === 'multi') {
+              console.log("📊 [WIDGET RENDER DEBUG] Rendering MultiWidget");
+              return <MultiWidget data={{ ...selectedWidget, reviews: reviews || [], design, universalPromptSlug }} />;
+            } else if (selectedWidget?.widget_type === 'single') {
+              console.log("📊 [WIDGET RENDER DEBUG] Rendering SingleWidget");
+              return <SingleWidget data={{ ...selectedWidget, reviews: reviews || [], design, universalPromptSlug }} />;
+            } else if (selectedWidget?.widget_type === 'photo') {
+              console.log("📊 [WIDGET RENDER DEBUG] Rendering PhotoWidget");
+              return <PhotoWidget data={{ ...selectedWidget, reviews: reviews || [], design, universalPromptSlug }} />;
+            } else {
+              console.log("📊 [WIDGET RENDER DEBUG] No matching widget type, rendering fallback");
+              return (
+                <div className="text-center py-12">
+                  <p className="text-white text-lg">Unknown widget type: {selectedWidget?.widget_type || 'undefined'}</p>
+                  <p className="text-gray-300 text-sm mt-2">Please check your widget configuration</p>
+                </div>
+              );
+            }
+          })()}
           <div id="carousel-live" className="sr-only" aria-live="polite" />
         </section>
       </div>

@@ -174,9 +174,54 @@ const focusOutline = {
 };
 
 const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
+    console.log("🔥 [MULTIWIDGET DEBUG] Rendering MultiWidget with data:", data);
+    console.log("🔥 [MULTIWIDGET DEBUG] Reviews length:", data.reviews?.length || 0);
+    console.log("🔥 [MULTIWIDGET DEBUG] Design:", data.design);
+    
     // Use smartMergeDesign instead of getDesignWithDefaults
     const design = smartMergeDesign(data.design);
     const { reviews } = data;
+    
+    console.log("🔥 [MULTIWIDGET DEBUG] Merged design:", design);
+    console.log("🔥 [MULTIWIDGET DEBUG] Processing reviews:", reviews);
+    
+    // Add fallback sample data if no reviews
+    const sampleReviews = [
+      {
+        id: 'sample-1',
+        review_content: 'This is a sample review to show how the multi-widget looks. Great service and excellent quality!',
+        first_name: 'John',
+        last_name: 'Doe',
+        reviewer_role: 'Customer',
+        platform: 'Google',
+        created_at: new Date().toISOString(),
+        star_rating: 5,
+      },
+      {
+        id: 'sample-2',
+        review_content: 'Another sample review for the carousel. The team was professional and delivered exactly what we needed.',
+        first_name: 'Jane',
+        last_name: 'Smith',
+        reviewer_role: 'Business Owner',
+        platform: 'Yelp',
+        created_at: new Date().toISOString(),
+        star_rating: 4.5,
+      },
+      {
+        id: 'sample-3',
+        review_content: 'Third sample review to demonstrate the multi-widget functionality. Highly recommended!',
+        first_name: 'Mike',
+        last_name: 'Johnson',
+        reviewer_role: 'Manager',
+        platform: 'Facebook',
+        created_at: new Date().toISOString(),
+        star_rating: 5,
+      },
+    ];
+    
+    const displayReviews = reviews && reviews.length > 0 ? reviews : sampleReviews;
+    console.log("🔥 [MULTIWIDGET DEBUG] Display reviews:", displayReviews);
+    
     const prevRefDesktop = useRef(null);
     const nextRefDesktop = useRef(null);
     const paginationRefDesktop = useRef(null);
@@ -187,7 +232,10 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
     const [swiperInstanceMobile, setSwiperInstanceMobile] = useState<any>(null);
     const [paginationReady, setPaginationReady] = useState(false);
   
-    useEffect(() => { setPaginationReady(true); }, []);
+    useEffect(() => { 
+      console.log("🔥 [MULTIWIDGET DEBUG] Setting pagination ready");
+      setPaginationReady(true); 
+    }, []);
   
     // Desktop navigation/pagination
     useEffect(() => {
@@ -358,7 +406,7 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
               }} : {})}
               className="w-full"
             >
-              {reviews.map((review, index) => (
+              {displayReviews.map((review, index) => (
                 <SwiperSlide key={review.id || index}>
                   <div className="w-full h-[380px] flex flex-col rounded-3xl overflow-hidden bg-white px-2 py-4 shadow text-sm" style={{
                     background: design.bgColor === 'transparent' ? 'none' : hexToRgba(design.bgColor, design.bgOpacity ?? 1),
@@ -491,7 +539,7 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
                 }} : {})}
                 className="w-full"
               >
-                {reviews.map((review, index) => (
+                {displayReviews.map((review, index) => (
                   <SwiperSlide key={review.id || index}>
                     <div className="flex flex-col h-[380px] items-center justify-between bg-white rounded-3xl overflow-hidden px-2 py-6 shadow mx-auto text-sm max-w-[400px]" style={{
                       background: design.bgColor === 'transparent' ? 'none' : hexToRgba(design.bgColor, design.bgOpacity ?? 1),

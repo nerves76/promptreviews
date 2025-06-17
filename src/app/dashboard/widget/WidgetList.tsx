@@ -303,6 +303,11 @@ export default function WidgetList({
 
   // Update state update functions with proper types
   const handleSave = async () => {
+    console.log("🔧 [WIDGET SAVE DEBUG] Starting widget save process");
+    console.log("🔧 [WIDGET SAVE DEBUG] Form data:", form);
+    console.log("🔧 [WIDGET SAVE DEBUG] Selected widget:", selectedWidget);
+    console.log("🔧 [WIDGET SAVE DEBUG] Design data:", design);
+    
     const supabase = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -322,6 +327,7 @@ export default function WidgetList({
       const accountId = accountData.id;
 
       if (selectedWidget) {
+        console.log("🔧 [WIDGET SAVE DEBUG] Updating existing widget");
         // Update existing widget
         const { error: updateError } = await supabase
           .from('widgets')
@@ -333,23 +339,37 @@ export default function WidgetList({
           .eq('id', selectedWidget)
           .eq('account_id', accountId);
         if (updateError) throw updateError;
+        console.log("🔧 [WIDGET SAVE DEBUG] Widget updated successfully");
       } else {
+        console.log("🔧 [WIDGET SAVE DEBUG] Creating new widget");
+        const newWidgetData = {
+          account_id: accountId,
+          name: form.name.trim(),
+          widget_type: form.widgetType, // Make sure this is set correctly
+          design: design, // Persist the full design object
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        console.log("🔧 [WIDGET SAVE DEBUG] New widget data:", newWidgetData);
+        
         // Create new widget
-        const { error: insertError } = await supabase
+        const { error: insertError, data: insertData } = await supabase
           .from('widgets')
-          .insert({
-            account_id: accountId,
-            name: form.name.trim(),
-            design: design, // Persist the full design object
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          });
+          .insert(newWidgetData)
+          .select();
         if (insertError) throw insertError;
+        console.log("🔧 [WIDGET SAVE DEBUG] Widget created successfully:", insertData);
       }
       // Refresh widgets after save
-      setWidgets(prevWidgets => [...prevWidgets]);
+      const { data: refreshedWidgets } = await supabase
+        .from("widgets")
+        .select("*")
+        .order("created_at", { ascending: false });
+      console.log("🔧 [WIDGET SAVE DEBUG] Refreshed widgets:", refreshedWidgets);
+      setWidgets(refreshedWidgets || []);
+      setShowForm(false);
     } catch (error) {
-      console.error('Error saving widget:', error);
+      console.error('🔧 [WIDGET SAVE DEBUG] Error saving widget:', error);
     }
   };
 
