@@ -326,7 +326,7 @@ export default function WidgetList({
       if (accountError) throw accountError;
       const accountId = accountData.id;
 
-      if (selectedWidget) {
+      if (editing) {
         console.log("🔧 [WIDGET SAVE DEBUG] Updating existing widget");
         // Update existing widget
         const { error: updateError } = await supabase
@@ -337,7 +337,7 @@ export default function WidgetList({
             design: design, // Persist the full design object
             updated_at: new Date().toISOString(),
           })
-          .eq('id', selectedWidget)
+          .eq('id', editing)
           .eq('account_id', accountId);
         if (updateError) throw updateError;
         console.log("🔧 [WIDGET SAVE DEBUG] Widget updated successfully");
@@ -1082,6 +1082,26 @@ export default function WidgetList({
                       >
                         <ChatBubbleLeftIcon className="h-5 w-5 text-gray-500" />
                         <span className="text-sm font-medium">Manage Reviews</span>
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleOpenForm(widget); }}
+                        className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                        title="Edit Widget"
+                      >
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                          />
+                        </svg>
+                        <span className="text-sm font-medium">Edit Widget</span>
                       </button>
                       <button
                         onClick={(e) => { e.stopPropagation(); handleEditStyle(widget.id); }}
