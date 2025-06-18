@@ -224,4 +224,11 @@ public/
 4. Document new features
 5. Update this README as needed
 
+## [2024-06-08] Dashboard Widget Preview: Swiper Global Loading Fix
+
+- The dashboard widget preview now waits for the Swiper script to be available globally (`window.Swiper`) before rendering the vanilla JS multi-widget.
+- This ensures that design changes (such as color) made in the editor are reflected live in the widget preview.
+- Previously, if Swiper was not available on the global scope, the widget would not update visually after design changes.
+- This fix resolves the issue and improves reliability of the live preview.
+
 Last updated: March 19, 2024 

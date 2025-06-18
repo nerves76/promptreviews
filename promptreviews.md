@@ -505,3 +505,12 @@ See `DESIGN_GUIDELINES.md` for:
 - If in doubt, check DESIGN_GUIDELINES.md or ask for a design/code review.
 
 ---
+
+## [2024-06-08] Dashboard Widget Preview: Swiper Global Loading Fix
+
+- The dashboard widget preview now waits for the Swiper script to be available globally (`window.Swiper`) before rendering the vanilla JS multi-widget.
+- This ensures that design changes (such as color) made in the editor are reflected live in the widget preview.
+- Previously, if Swiper was not available on the global scope, the widget would not update visually after design changes.
+- This fix resolves the issue and improves reliability of the live preview.
+
+---

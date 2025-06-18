@@ -86,6 +86,7 @@ export default function WidgetList({
         ...design,
         [field]: value,
       };
+      console.log('handleDesignChange:', field, value, newDesign);
       onDesignChange(newDesign);
     }
   };
@@ -97,7 +98,7 @@ export default function WidgetList({
         bgType: "solid",
         bgColor: "#FDFBF2",
         textColor: "#22223b",
-        accentColor: "slateblue",
+        accentColor: "#6a5acd",
         bodyTextColor: "#22223b",
         nameTextColor: "#1a237e",
         roleTextColor: "#6b7280",

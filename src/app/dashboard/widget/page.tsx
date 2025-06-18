@@ -103,7 +103,7 @@ export default function WidgetPage() {
     bgType: "solid",
     bgColor: "#ffffff",
     textColor: "#22223b",
-    accentColor: "slateblue",
+    accentColor: "#6a5acd",
     bodyTextColor: "#22223b",
     nameTextColor: "#1a237e",
     roleTextColor: "#6b7280",
@@ -137,6 +137,10 @@ export default function WidgetPage() {
   const [widgets, setWidgets] = useState<any[]>([]);
   const [universalPromptSlug, setUniversalPromptSlug] = useState<string | null>(null);
   const previewContainerRef = useRef<HTMLDivElement>(null);
+
+  // Add refs to track script load state
+  const swiperLoadedRef = useRef(false);
+  const widgetScriptLoadedRef = useRef(false);
 
   useEffect(() => setIsClient(true), []);
 
@@ -312,147 +316,138 @@ export default function WidgetPage() {
     }
   };
 
-  // Initialize vanilla JS widget when selected widget changes
+  // Helper to wait for Swiper to be available globally
+  function waitForGlobalSwiper(callback: () => void, maxAttempts = 20) {
+    let attempts = 0;
+    function check() {
+      if (typeof window !== 'undefined' && typeof window.Swiper !== 'undefined') {
+        callback();
+      } else if (attempts < maxAttempts) {
+        attempts++;
+        setTimeout(check, 100);
+      } else {
+        console.error('Swiper failed to load globally after maximum attempts');
+      }
+    }
+    check();
+  }
+
+  // Initialize vanilla JS widget when selected widget or design changes
   useEffect(() => {
-    if (!selectedWidget || !reviews.length) return;
+    if (!selectedWidget) return;
 
-    // Function to check if Swiper is loaded
-    const isSwiperLoaded = () => {
-      return typeof window !== 'undefined' && window.Swiper;
-    };
+    // Only load Swiper and widget scripts once
+    if (!swiperLoadedRef.current) {
+      const swiperCSS = document.createElement('link');
+      swiperCSS.rel = 'stylesheet';
+      swiperCSS.href = 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css';
+      document.head.appendChild(swiperCSS);
 
-    // Function to wait for Swiper to load
-    const waitForSwiper = () => {
-      return new Promise((resolve) => {
-        if (isSwiperLoaded()) {
-          resolve(true);
-          return;
-        }
+      const widgetCSS = document.createElement('link');
+      widgetCSS.rel = 'stylesheet';
+      widgetCSS.href = '/widgets/multi/widget-embed.css';
+      document.head.appendChild(widgetCSS);
 
-        const checkSwiper = setInterval(() => {
-          if (isSwiperLoaded()) {
-            clearInterval(checkSwiper);
-            resolve(true);
-          }
-        }, 100);
-      });
-    };
-
-    // Load Swiper script if not already loaded
-    if (!document.getElementById('swiper-script')) {
       const swiperScript = document.createElement('script');
-      swiperScript.id = 'swiper-script';
       swiperScript.src = 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js';
       swiperScript.async = true;
       swiperScript.onload = () => {
-        waitForSwiper().then(() => {
-          loadWidgetScript();
-        });
+        swiperLoadedRef.current = true;
+        maybeLoadWidgetScript();
       };
       document.body.appendChild(swiperScript);
+
+      // Cleanup scripts and CSS on unmount
+      return () => {
+        swiperCSS.remove();
+        widgetCSS.remove();
+        swiperLoadedRef.current = false;
+        widgetScriptLoadedRef.current = false;
+      };
     } else {
-      // Swiper script exists, check if it's loaded
-      waitForSwiper().then(() => {
-        loadWidgetScript();
-      });
+      maybeLoadWidgetScript();
     }
 
-    function loadWidgetScript() {
-      // Cleanup any existing widget
-      cleanupWidget();
-
-      // Load widget script if not already loaded
-      if (!document.getElementById('pr-multi-widget-script')) {
-        const script = document.createElement('script');
-        script.id = 'pr-multi-widget-script';
-        script.src = '/widgets/multi/widget-embed.js';
-        script.async = true;
-        script.onload = () => {
-          if (window.PromptReviews && window.PromptReviews.renderMultiWidget) {
-            // Create a container for the widget
-            const widgetContainer = document.createElement('div');
-            widgetContainer.className = 'promptreviews-widget';
-            widgetContainer.setAttribute('data-widget-type', 'multi');
-            widgetContainer.setAttribute('data-widget', selectedWidget.id);
-            previewContainerRef.current?.appendChild(widgetContainer);
-
-            // Map reviews to expected shape for vanilla widget
-            const mappedReviews = (reviews || [])
-              .filter(r => r && (r.reviewer_name || r.name || (r.reviewer && r.reviewer.name)) && (r.review_content || r.content))
-              .map(r => ({
-                ...r,
-                name: r.name || r.reviewer_name || (r.reviewer && r.reviewer.name) || 'Anonymous',
-                content: r.content || r.review_content || '',
-                // add other mappings as needed
-              }));
-
-            // Wait for next tick to ensure DOM is updated
-            requestAnimationFrame(() => {
-              try {
-                window.PromptReviews.renderMultiWidget(widgetContainer, {
-                  ...selectedWidget,
-                  design,
-                  reviews: mappedReviews,
-                  universalPromptSlug
-                });
-              } catch (error: unknown) {
-                console.error('Error rendering widget:', error);
-                widgetContainer.innerHTML = `
-                  <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
-                    <h3 class="text-red-800 font-semibold">Widget Error</h3>
-                    <p class="text-red-600 text-sm mt-2">${error instanceof Error ? error.message : 'An unknown error occurred'}</p>
-                  </div>
-                `;
-              }
-            });
-          }
-        };
-        document.body.appendChild(script);
-      } else {
-        // Script already loaded, just initialize
-        if (window.PromptReviews && window.PromptReviews.renderMultiWidget) {
-          // Create a container for the widget
-          const widgetContainer = document.createElement('div');
-          widgetContainer.className = 'promptreviews-widget';
-          widgetContainer.setAttribute('data-widget-type', 'multi');
-          widgetContainer.setAttribute('data-widget', selectedWidget.id);
-          previewContainerRef.current?.appendChild(widgetContainer);
-
-          // Map reviews to expected shape for vanilla widget
-          const mappedReviews = (reviews || [])
-            .filter(r => r && (r.reviewer_name || r.name || (r.reviewer && r.reviewer.name)) && (r.review_content || r.content))
-            .map(r => ({
-              ...r,
-              name: r.name || r.reviewer_name || (r.reviewer && r.reviewer.name) || 'Anonymous',
-              content: r.content || r.review_content || '',
-              // add other mappings as needed
-            }));
-
-          // Wait for next tick to ensure DOM is updated
-          requestAnimationFrame(() => {
-            try {
-              window.PromptReviews.renderMultiWidget(widgetContainer, {
-                ...selectedWidget,
-                design,
-                reviews: mappedReviews,
-                universalPromptSlug
-              });
-            } catch (error: unknown) {
-              console.error('Error rendering widget:', error);
-              widgetContainer.innerHTML = `
-                <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <h3 class="text-red-800 font-semibold">Widget Error</h3>
-                  <p class="text-red-600 text-sm mt-2">${error instanceof Error ? error.message : 'An unknown error occurred'}</p>
-                </div>
-              `;
-            }
-          });
+    function maybeLoadWidgetScript() {
+      if (!widgetScriptLoadedRef.current) {
+        if (!document.getElementById('pr-multi-widget-script')) {
+          const script = document.createElement('script');
+          script.id = 'pr-multi-widget-script';
+          script.src = '/widgets/multi/widget-embed.js';
+          script.async = true;
+          script.onload = () => {
+            widgetScriptLoadedRef.current = true;
+            waitForGlobalSwiper(renderWidget);
+          };
+          document.body.appendChild(script);
+        } else {
+          widgetScriptLoadedRef.current = true;
+          waitForGlobalSwiper(renderWidget);
         }
+      } else {
+        waitForGlobalSwiper(renderWidget);
       }
     }
 
-    // Cleanup function
-    return cleanupWidget;
+    function renderWidget() {
+      // Force full cleanup of the preview container before every render
+      if (previewContainerRef.current) {
+        previewContainerRef.current.innerHTML = '';
+      }
+      // Cleanup any existing widget
+      cleanupWidget();
+      // Create a container for the widget
+      const widgetContainer = document.createElement('div');
+      widgetContainer.className = 'promptreviews-widget';
+      widgetContainer.setAttribute('data-widget-type', 'multi');
+      widgetContainer.setAttribute('data-widget', selectedWidget.id);
+      previewContainerRef.current?.appendChild(widgetContainer);
+
+      // Map reviews to expected shape for vanilla widget
+      const mappedReviews = (reviews || [])
+        .filter(r => r && ((r.reviewer_name || r.name || r.first_name || r.last_name || (r.reviewer && (r.reviewer.name || r.reviewer.first_name || r.reviewer.last_name))) && (r.review_content || r.content)))
+        .map(r => ({
+          ...r,
+          name: r.name || r.reviewer_name ||
+            ((r.first_name || r.reviewer_first_name || '') +
+             ((r.last_name || r.reviewer_last_name) ? ' ' + (r.last_name || r.reviewer_last_name) : '')) ||
+            (r.reviewer && (r.reviewer.name || ((r.reviewer.first_name || '') + ((r.reviewer.last_name) ? ' ' + r.reviewer.last_name : '')))) ||
+            'Anonymous',
+          content: r.content || r.review_content || '',
+          rating: r.rating || r.star_rating || 5,
+          role: r.role || r.reviewer_role || '',
+          date: r.date || r.created_at || new Date().toISOString()
+        }));
+      // Handle empty reviews gracefully
+      if (!mappedReviews.length) {
+        widgetContainer.innerHTML = '<div class="text-center text-gray-400 py-12">No reviews to display.</div>';
+        return;
+      }
+      // Log the design object before rendering
+      console.log('Calling renderMultiWidget with design:', design);
+      // Wait for next tick to ensure DOM is updated
+      requestAnimationFrame(() => {
+        try {
+          window.PromptReviews.renderMultiWidget(widgetContainer, {
+            ...selectedWidget,
+            design,
+            reviews: mappedReviews,
+            universalPromptSlug
+          });
+        } catch (error: unknown) {
+          console.error('Error rendering widget:', error);
+          widgetContainer.innerHTML = `
+            <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
+              <h3 class="text-red-800 font-semibold">Widget Error</h3>
+              <p class="text-red-600 text-sm mt-2">${error instanceof Error ? error.message : 'An unknown error occurred'}</p>
+            </div>
+          `;
+        }
+      });
+    }
+
+    // For design/review changes, just re-render the widget
+    // (scripts are only loaded once)
   }, [selectedWidget, design, reviews, universalPromptSlug]);
 
   const renderWidgetPreview = () => {
@@ -486,11 +481,18 @@ export default function WidgetPage() {
   if (!isClient) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       {/* Widget Preview Area */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div ref={previewContainerRef} id="promptreviews-widget-preview" className="w-full" />
+      <div className="relative w-full min-h-[600px] flex flex-col items-center justify-center py-12">
+        {/* Site signature gradient background behind the widget preview */}
+        <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
+          <div className="w-full h-full bg-gradient-to-br from-[#6a5acd] via-indigo-400 to-blue-400 opacity-30 blur-2xl" />
+        </div>
+        <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col items-center">
+          {/* Widget preview label above the widget, now smaller and white */}
+          <div className="mb-4 text-base font-normal text-white">Widget preview</div>
+          {/* Widget preview container */}
+          <div ref={previewContainerRef} className="w-full flex justify-center items-center min-h-[400px]" />
         </div>
       </div>
 
@@ -521,51 +523,6 @@ export default function WidgetPage() {
           </div>
         )}
 
-        {/* Widget Preview on Gradient */}
-        <div
-          className="w-full max-w-full mx-auto mb-0 mt-12 px-2 sm:px-0"
-          style={{
-            boxSizing: 'border-box',
-            minHeight: 320,
-            background: design.sectionBgType === 'custom'
-              ? design.sectionBgColor
-              : 'none',
-            transition: 'background 0.3s',
-          }}
-        >
-          <h2 className="text-lg font-semibold text-white mb-4 text-center">
-            Live widget preview
-          </h2>
-          <section
-            className="flex flex-col justify-center relative bg-transparent"
-            aria-label="Review carousel preview"
-            style={{
-              background: design.sectionBgType === "custom" ? design.sectionBgColor : "none",
-              color: design.textColor,
-              border: 'none',
-              boxShadow: 'none',
-              padding: 0,
-              minHeight: 320,
-              margin: '0 auto',
-              transition: 'min-height 0.3s',
-            }}
-          >
-            {loading ? (
-              <div
-                style={{
-                  position: "fixed",
-                  top: -190,
-                  left: 0,
-                  width: "100%",
-                  zIndex: 9999,
-                }}
-              >
-                <AppLoader />
-              </div>
-            ) : null}
-            <div id="carousel-live" className="sr-only" aria-live="polite" />
-          </section>
-        </div>
         {/* Main Card Below */}
         <PageCard icon={<FaCode className="w-9 h-9 text-[#1A237E]" />}>
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-2">
@@ -624,6 +581,42 @@ export default function WidgetPage() {
         <div className="mt-8">
           {renderWidgetPreview()}
         </div>
+      </div>
+
+      {/* Move the old React widget preview to the bottom of the page */}
+      <div className="w-full max-w-full mx-auto mb-0 mt-12 px-2 sm:px-0">
+        <h2 className="text-lg font-semibold text-white mb-4 text-center">
+          Live widget preview
+        </h2>
+        <section
+          className="flex flex-col justify-center relative bg-transparent"
+          aria-label="Review carousel preview"
+          style={{
+            background: design.sectionBgType === "custom" ? design.sectionBgColor : "none",
+            color: design.textColor,
+            border: 'none',
+            boxShadow: 'none',
+            padding: 0,
+            minHeight: 320,
+            margin: '0 auto',
+            transition: 'min-height 0.3s',
+          }}
+        >
+          {loading ? (
+            <div
+              style={{
+                position: "fixed",
+                top: -190,
+                left: 0,
+                width: "100%",
+                zIndex: 9999,
+              }}
+            >
+              <AppLoader />
+            </div>
+          ) : null}
+          <div id="carousel-live" className="sr-only" aria-live="polite" />
+        </section>
       </div>
     </div>
   );
