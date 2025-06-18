@@ -184,7 +184,7 @@
   display: flex !important;
   justify-content: center !important;
   align-items: center !important;
-  margin-top: 1rem !important;
+  margin-top: -24px !important;
   width: 100% !important;
   height: 32px !important;
   z-index: 9999 !important;
@@ -222,12 +222,13 @@
   }
 }
 
+/* Ensure the submit review button is always visible and aligned right */
 .submit-review-row {
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
   align-items: center;
   margin-top: 1.5rem;
-  gap: 1rem;
+  width: 100%;
 }
 
 .submit-review-btn {
@@ -253,6 +254,24 @@
 .submit-review-btn:hover {
   background: var(--accent-color-hover, #4a3f8c) !important;
   color: #fff !important;
+}
+
+/* Ensure the arrow buttons drop below the carousel on smaller screens */
+@media (max-width: 768px) {
+  .swiper-button-next,
+  .swiper-button-prev {
+    position: static;
+    margin-top: 1rem;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .swiper-button-next {
+    margin-left: 1rem;
+  }
+  .swiper-button-prev {
+    margin-right: 1rem;
+  }
 }
 
 .swiper {
@@ -401,4 +420,67 @@ body, .pr-widget-section-bg {
 .review-content::after {
   content: none !important;
   display: none !important;
+}
+
+/* Mobile nav row for arrows + dots */
+.mobile-nav-row {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-nav-row {
+    display: flex !important;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 0;
+    margin-bottom: 0;
+    position: relative;
+    top: -40px;
+  }
+  .mobile-nav-row .flex-1 {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    position: relative;
+    top: 0;
+  }
+  .mobile-nav-row .swiper-pagination {
+    position: relative !important;
+    top: -35px !important;
+    margin-top: 0 !important;
+  }
+  .swiper-pagination {
+    position: static !important;
+    margin: 0 !important;
+    width: auto !important;
+    flex: 1 1 0%;
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    height: 40px;
+  }
+  /* Hide desktop nav arrows above carousel */
+  .swiper-container .swiper-button-next,
+  .swiper-container .swiper-button-prev {
+    display: none !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .mobile-nav-row {
+    display: none !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .mobile-nav-row {
+    top: -60px !important;
+  }
+  .mobile-nav-row .swiper-pagination {
+    top: -50px !important;
+  }
 }
