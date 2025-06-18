@@ -444,6 +444,14 @@ console.log('Widget script starting... Build time:', buildTimestamp);
         timestampDiv.textContent = `Build: ${buildTimestamp}`;
         container.appendChild(timestampDiv);
 
+        // Create widget container
+        const widgetContainer = document.createElement('div');
+        widgetContainer.className = 'prompt-reviews-widget multi-widget';
+        // Use cardBg variable for both CSS and card background
+        const cardBg = widgetData.design?.cardBackground || 'white';
+        widgetContainer.style.setProperty('--bg-color', cardBg);
+        container.appendChild(widgetContainer);
+
         // OUTER: w-full flex flex-col items-center justify-center
         const outer = document.createElement("div");
         outer.className = "w-full flex flex-col items-center justify-center";
@@ -454,16 +462,18 @@ console.log('Widget script starting... Build time:', buildTimestamp);
 
         // --- DESKTOP ARROWS (absolute, sides) ---
         const leftArrow = document.createElement("button");
-        leftArrow.className = "group absolute -left-8 top-1/2 -translate-y-1/2 z-10 rounded-full border border-gray-200 w-10 h-10 flex items-center justify-center transition hover:bg-opacity-80 active:scale-95 focus:scale-95 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--pr-accent-color)] focus-visible:outline-offset-2 hidden md:flex";
+        leftArrow.className = "swiper-button-prev group absolute -left-8 top-[45%] -translate-y-1/2 z-10 rounded-full border border-gray-200 w-10 h-10 flex items-center justify-center transition hover:bg-opacity-80 active:scale-95 focus:scale-95 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--pr-accent-color)] focus-visible:outline-offset-2 hidden md:flex";
         leftArrow.setAttribute("aria-label", "Previous slide");
         leftArrow.setAttribute("tabindex", "0");
-        leftArrow.innerHTML = `<svg width="16" height="16" viewBox="0 0 20 20" fill="none" style="display: block; margin: auto;"><polygon points="12.5,3 5.5,10 12.5,17" fill="currentColor"/></svg>`;
+        leftArrow.innerHTML = `<svg width=\"18\" height=\"18\" viewBox=\"0 0 18 18\" fill=\"none\" style=\"display: block; margin: auto;\"><polygon points=\"14,3 6,9 14,15\" fill=\"currentColor\"/></svg>`;
+        leftArrow.style.top = '45%';
 
         const rightArrow = document.createElement("button");
-        rightArrow.className = "group absolute -right-8 top-1/2 -translate-y-1/2 z-10 rounded-full border border-gray-200 w-10 h-10 flex items-center justify-center transition hover:bg-opacity-80 active:scale-95 focus:scale-95 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--pr-accent-color)] focus-visible:outline-offset-2 hidden md:flex";
+        rightArrow.className = "swiper-button-next group absolute -right-8 top-[45%] -translate-y-1/2 z-10 rounded-full border border-gray-200 w-10 h-10 flex items-center justify-center transition hover:bg-opacity-80 active:scale-95 focus:scale-95 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--pr-accent-color)] focus-visible:outline-offset-2 hidden md:flex";
         rightArrow.setAttribute("aria-label", "Next slide");
         rightArrow.setAttribute("tabindex", "0");
-        rightArrow.innerHTML = `<svg width="16" height="16" viewBox="0 0 20 20" fill="none" style="display: block; margin: auto;"><polygon points="7.5,3 14.5,10 7.5,17" fill="currentColor"/></svg>`;
+        rightArrow.innerHTML = `<svg width=\"18\" height=\"18\" viewBox=\"0 0 18 18\" fill=\"none\" style=\"display: block; margin: auto;\"><polygon points=\"4,3 12,9 4,15\" fill=\"currentColor\"/></svg>`;
+        rightArrow.style.top = '45%';
 
         // --- MOBILE ARROWS (for nav row) ---
         const leftArrowMobile = document.createElement("button");
@@ -495,9 +505,6 @@ console.log('Widget script starting... Build time:', buildTimestamp);
 
         // --- Define accentColor before card creation loop ---
         const accentColor = widgetData.design?.accentColor || 'slateblue';
-
-        // --- Define cardBg before card creation loop ---
-        const cardBg = widgetData.design?.cardBackground || 'white';
 
         // --- Define cardRadius before card creation loop ---
         const cardRadius = widgetData.design?.cardRadius || '3xl';
@@ -559,16 +566,25 @@ console.log('Widget script starting... Build time:', buildTimestamp);
             starsContainer.style.zIndex = '2';
             starsContainer.innerHTML = `<span id="style-peIpo" class="style-peIpo">${renderStars(review.rating)}</span>`;
 
-            // --- REVIEW CONTENT WITH DECORATIVE QUOTES ---
+            // --- OPENING CURLY QUOTE ---
+            const openingQuote = document.createElement('div');
+            openingQuote.className = 'decorative-quote decorative-quote-open';
+            openingQuote.innerHTML = '“';
+
+            // --- REVIEW CONTENT (NO QUOTES) ---
             const contentContainer = document.createElement('div');
             contentContainer.className = 'flex-1 min-h-0 w-full flex flex-col justify-center text-center text-[14px] md:text-[16px] text-gray-800 break-words whitespace-pre-line relative overflow-hidden line-clamp-5';
             contentContainer.style.zIndex = '2';
             const content = document.createElement('p');
             content.className = 'mx-6 md:mt-0 text-[14px] md:text-[16px] text-center z-10 relative leading-relaxed style-M7nAj';
             content.id = 'style-M7nAj';
-            // Add smart quotes
-            content.innerHTML = `<span style="font-size:2rem;vertical-align:top;color:#b3b3b3;">" </span>${review.content}<span style="font-size:2rem;vertical-align:bottom;color:#b3b3b3;"> "</span>`;
+            content.innerHTML = review.content;
             contentContainer.appendChild(content);
+
+            // --- CLOSING CURLY QUOTE ---
+            const closingQuote = document.createElement('div');
+            closingQuote.className = 'decorative-quote decorative-quote-close';
+            closingQuote.innerHTML = '”';
 
             // --- ATTRIBUTION (BOTTOM) ---
             const reviewerContainer = document.createElement('div');
@@ -590,7 +606,6 @@ console.log('Widget script starting... Build time:', buildTimestamp);
             role.innerHTML = `<span itemprop="jobTitle">${review.reviewer.role}</span>`;
             reviewerContainer.appendChild(name);
             reviewerContainer.appendChild(role);
-            // Date/platform
             if (review.publishedDate && review.platform) {
                 const dateLine = document.createElement('span');
                 dateLine.className = 'reviewer-date text-xs text-gray-400';
@@ -600,7 +615,9 @@ console.log('Widget script starting... Build time:', buildTimestamp);
 
             // --- ASSEMBLE CARD ---
             card.appendChild(starsContainer);
+            card.appendChild(openingQuote);
             card.appendChild(contentContainer);
+            card.appendChild(closingQuote);
             card.appendChild(reviewerContainer);
             slide.appendChild(card);
             swiperWrapper.appendChild(slide);
