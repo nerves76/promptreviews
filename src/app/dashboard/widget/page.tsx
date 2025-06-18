@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, Component, ErrorInfo, ReactNode } from "react";
 import { FaChevronLeft, FaChevronRight, FaCopy, FaCode } from "react-icons/fa";
 import { MdArrowBack, MdArrowForward } from "react-icons/md";
 import WidgetList from "./WidgetList";
@@ -15,7 +15,8 @@ import AppLoader from "@/app/components/AppLoader";
 import TopLoaderOverlay from "@/app/components/TopLoaderOverlay";
 import { useRouter } from "next/navigation";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-import { MultiWidget, SingleWidget, PhotoWidget, getDesignWithDefaults, hexToRgba, getRelativeTime, renderStars, lightenHex, injectWidgetNavCSS } from '../../../widget-embed/index';
+import SingleWidget from "./components/widgets/single/SingleWidget";
+import PhotoWidget from "./components/widgets/photo/PhotoWidget";
 
 // Add DesignState type definition
 type DesignState = {
@@ -48,6 +49,46 @@ type DesignState = {
   font: string;
   showSubmitReviewButton: boolean;
 };
+
+// Error boundary component
+interface ErrorBoundaryProps {
+  children: ReactNode;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class WidgetErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
+    console.error('Widget Error:', error, errorInfo);
+  }
+
+  render(): ReactNode {
+    if (this.state.hasError) {
+      return (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+          <h3 className="text-red-800 font-semibold">Widget Error</h3>
+          <p className="text-red-600 text-sm mt-2">
+            {this.state.error?.message || 'An error occurred while loading the widget'}
+          </p>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 export default function WidgetPage() {
   const [current, setCurrent] = useState(0);
@@ -95,6 +136,7 @@ export default function WidgetPage() {
   const [loading, setLoading] = useState(true);
   const [widgets, setWidgets] = useState<any[]>([]);
   const [universalPromptSlug, setUniversalPromptSlug] = useState<string | null>(null);
+  const previewContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => setIsClient(true), []);
 
@@ -238,10 +280,6 @@ export default function WidgetPage() {
     };
   }, [design.bgColor]);
 
-  useEffect(() => {
-    injectWidgetNavCSS();
-  }, []);
-
   // Fetch universal prompt page slug when selectedWidget changes
   useEffect(() => {
     async function fetchUniversalPromptSlug() {
@@ -262,6 +300,185 @@ export default function WidgetPage() {
     fetchUniversalPromptSlug();
   }, [selectedWidget]);
 
+  // Cleanup function for widget
+  const cleanupWidget = () => {
+    if (previewContainerRef.current) {
+      previewContainerRef.current.innerHTML = '';
+    }
+    // Remove any existing widget scripts
+    const widgetScript = document.getElementById('pr-multi-widget-script');
+    if (widgetScript) {
+      widgetScript.remove();
+    }
+  };
+
+  // Initialize vanilla JS widget when selected widget changes
+  useEffect(() => {
+    if (!selectedWidget || !reviews.length) return;
+
+    // Function to check if Swiper is loaded
+    const isSwiperLoaded = () => {
+      return typeof window !== 'undefined' && window.Swiper;
+    };
+
+    // Function to wait for Swiper to load
+    const waitForSwiper = () => {
+      return new Promise((resolve) => {
+        if (isSwiperLoaded()) {
+          resolve(true);
+          return;
+        }
+
+        const checkSwiper = setInterval(() => {
+          if (isSwiperLoaded()) {
+            clearInterval(checkSwiper);
+            resolve(true);
+          }
+        }, 100);
+      });
+    };
+
+    // Load Swiper script if not already loaded
+    if (!document.getElementById('swiper-script')) {
+      const swiperScript = document.createElement('script');
+      swiperScript.id = 'swiper-script';
+      swiperScript.src = 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js';
+      swiperScript.async = true;
+      swiperScript.onload = () => {
+        waitForSwiper().then(() => {
+          loadWidgetScript();
+        });
+      };
+      document.body.appendChild(swiperScript);
+    } else {
+      // Swiper script exists, check if it's loaded
+      waitForSwiper().then(() => {
+        loadWidgetScript();
+      });
+    }
+
+    function loadWidgetScript() {
+      // Cleanup any existing widget
+      cleanupWidget();
+
+      // Load widget script if not already loaded
+      if (!document.getElementById('pr-multi-widget-script')) {
+        const script = document.createElement('script');
+        script.id = 'pr-multi-widget-script';
+        script.src = '/widgets/multi/widget-embed.js';
+        script.async = true;
+        script.onload = () => {
+          if (window.PromptReviews && window.PromptReviews.renderMultiWidget) {
+            // Create a container for the widget
+            const widgetContainer = document.createElement('div');
+            widgetContainer.className = 'promptreviews-widget';
+            widgetContainer.setAttribute('data-widget-type', 'multi');
+            widgetContainer.setAttribute('data-widget', selectedWidget.id);
+            previewContainerRef.current?.appendChild(widgetContainer);
+
+            // Map reviews to expected shape for vanilla widget
+            const mappedReviews = (reviews || [])
+              .filter(r => r && (r.reviewer_name || r.name || (r.reviewer && r.reviewer.name)) && (r.review_content || r.content))
+              .map(r => ({
+                ...r,
+                name: r.name || r.reviewer_name || (r.reviewer && r.reviewer.name) || 'Anonymous',
+                content: r.content || r.review_content || '',
+                // add other mappings as needed
+              }));
+
+            // Wait for next tick to ensure DOM is updated
+            requestAnimationFrame(() => {
+              try {
+                window.PromptReviews.renderMultiWidget(widgetContainer, {
+                  ...selectedWidget,
+                  design,
+                  reviews: mappedReviews,
+                  universalPromptSlug
+                });
+              } catch (error: unknown) {
+                console.error('Error rendering widget:', error);
+                widgetContainer.innerHTML = `
+                  <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <h3 class="text-red-800 font-semibold">Widget Error</h3>
+                    <p class="text-red-600 text-sm mt-2">${error instanceof Error ? error.message : 'An unknown error occurred'}</p>
+                  </div>
+                `;
+              }
+            });
+          }
+        };
+        document.body.appendChild(script);
+      } else {
+        // Script already loaded, just initialize
+        if (window.PromptReviews && window.PromptReviews.renderMultiWidget) {
+          // Create a container for the widget
+          const widgetContainer = document.createElement('div');
+          widgetContainer.className = 'promptreviews-widget';
+          widgetContainer.setAttribute('data-widget-type', 'multi');
+          widgetContainer.setAttribute('data-widget', selectedWidget.id);
+          previewContainerRef.current?.appendChild(widgetContainer);
+
+          // Map reviews to expected shape for vanilla widget
+          const mappedReviews = (reviews || [])
+            .filter(r => r && (r.reviewer_name || r.name || (r.reviewer && r.reviewer.name)) && (r.review_content || r.content))
+            .map(r => ({
+              ...r,
+              name: r.name || r.reviewer_name || (r.reviewer && r.reviewer.name) || 'Anonymous',
+              content: r.content || r.review_content || '',
+              // add other mappings as needed
+            }));
+
+          // Wait for next tick to ensure DOM is updated
+          requestAnimationFrame(() => {
+            try {
+              window.PromptReviews.renderMultiWidget(widgetContainer, {
+                ...selectedWidget,
+                design,
+                reviews: mappedReviews,
+                universalPromptSlug
+              });
+            } catch (error: unknown) {
+              console.error('Error rendering widget:', error);
+              widgetContainer.innerHTML = `
+                <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <h3 class="text-red-800 font-semibold">Widget Error</h3>
+                  <p class="text-red-600 text-sm mt-2">${error instanceof Error ? error.message : 'An unknown error occurred'}</p>
+                </div>
+              `;
+            }
+          });
+        }
+      }
+    }
+
+    // Cleanup function
+    return cleanupWidget;
+  }, [selectedWidget, design, reviews, universalPromptSlug]);
+
+  const renderWidgetPreview = () => {
+    if (!selectedWidget || !reviews.length) return null;
+
+    const widgetData = {
+      reviews,
+      design
+    };
+
+    return (
+      <WidgetErrorBoundary>
+        {selectedWidget.widget_type === 'single' && <SingleWidget data={widgetData} />}
+        {selectedWidget.widget_type === 'photo' && <PhotoWidget data={widgetData} />}
+        {selectedWidget.widget_type === 'multi' && (
+          <div 
+            id="promptreviews-widget" 
+            data-reviews={JSON.stringify(reviews)}
+            data-design={JSON.stringify(design)}
+            className="w-full h-full"
+          />
+        )}
+      </WidgetErrorBoundary>
+    );
+  };
+
   if (loading) {
     return <TopLoaderOverlay />;
   }
@@ -269,138 +486,146 @@ export default function WidgetPage() {
   if (!isClient) return null;
 
   return (
-    <>
-      {showMaxWidgetsModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4 relative">
-            <button
-              onClick={() => setShowMaxWidgetsModal(false)}
-              className="absolute -top-3 -right-3 w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center text-red-500 hover:text-red-600 transition-colors"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <h2 className="text-2xl font-bold text-[#1A237E] mb-4">Max widgets reached!</h2>
-            <p className="text-gray-600 mb-6">You must really love widgets. Contact us and we may be able to help!</p>
-            <div className="flex justify-end gap-4">
+    <div className="min-h-screen bg-gray-50">
+      {/* Widget Preview Area */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div ref={previewContainerRef} id="promptreviews-widget-preview" className="w-full" />
+        </div>
+      </div>
+
+      {/* Rest of your dashboard UI */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {showMaxWidgetsModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4 relative">
               <button
-                onClick={() => window.location.href = 'https://promptreviews.app/contact'}
-                className="px-4 py-2 bg-dustyPlum text-pureWhite rounded hover:bg-lavenderHaze hover:text-dustyPlum transition-colors font-semibold"
+                onClick={() => setShowMaxWidgetsModal(false)}
+                className="absolute -top-3 -right-3 w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center text-red-500 hover:text-red-600 transition-colors"
               >
-                Contact Us
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
+              <h2 className="text-2xl font-bold text-[#1A237E] mb-4">Max widgets reached!</h2>
+              <p className="text-gray-600 mb-6">You must really love widgets. Contact us and we may be able to help!</p>
+              <div className="flex justify-end gap-4">
+                <button
+                  onClick={() => window.location.href = 'https://promptreviews.app/contact'}
+                  className="px-4 py-2 bg-dustyPlum text-pureWhite rounded hover:bg-lavenderHaze hover:text-dustyPlum transition-colors font-semibold"
+                >
+                  Contact Us
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Widget Preview on Gradient */}
-      <div
-        className="w-full max-w-full mx-auto mb-0 mt-12 px-2 sm:px-0"
-        style={{
-          boxSizing: 'border-box',
-          minHeight: 320,
-          background: design.sectionBgType === 'custom'
-            ? design.sectionBgColor
-            : 'none',
-          transition: 'background 0.3s',
-        }}
-      >
-        <h2 className="text-lg font-semibold text-white mb-4 text-center">
-          Live widget preview
-        </h2>
-        <section
-          className="flex flex-col justify-center relative bg-transparent"
-          aria-label="Review carousel preview"
+        {/* Widget Preview on Gradient */}
+        <div
+          className="w-full max-w-full mx-auto mb-0 mt-12 px-2 sm:px-0"
           style={{
-            background: design.sectionBgType === "custom" ? design.sectionBgColor : "none",
-            color: design.textColor,
-            border: 'none',
-            boxShadow: 'none',
-            padding: 0,
+            boxSizing: 'border-box',
             minHeight: 320,
-            margin: '0 auto',
-            transition: 'min-height 0.3s',
+            background: design.sectionBgType === 'custom'
+              ? design.sectionBgColor
+              : 'none',
+            transition: 'background 0.3s',
           }}
         >
-          {loading ? (
-            <div
-              style={{
-                position: "fixed",
-                top: -190,
-                left: 0,
-                width: "100%",
-                zIndex: 9999,
-              }}
-            >
-              <AppLoader />
-            </div>
-          ) : selectedWidget?.widget_type === 'multi' ? (
-            <MultiWidget data={{ ...selectedWidget, reviews, design, universalPromptSlug }} />
-          ) : selectedWidget?.widget_type === 'single' ? (
-            <SingleWidget data={{ ...selectedWidget, reviews, design, universalPromptSlug }} />
-          ) : selectedWidget?.widget_type === 'photo' ? (
-            <PhotoWidget data={{ ...selectedWidget, reviews, design, universalPromptSlug }} />
-          ) : null}
-          <div id="carousel-live" className="sr-only" aria-live="polite" />
-        </section>
-      </div>
-      {/* Main Card Below */}
-      <PageCard icon={<FaCode className="w-9 h-9 text-[#1A237E]" />}>
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-2">
-          <div>
-            <h1 className="text-4xl font-bold text-[#1A237E]">Your widgets</h1>
-            <p className="mt-2 text-gray-500 text-sm max-w-md">
-              Create up to 3 different widgets to showcase your reviews. Style to match your brand.
-            </p>
-          </div>
-          <button
-            className="px-4 py-2 bg-[#1A237E] text-white rounded hover:bg-opacity-90 transition-colors font-semibold whitespace-nowrap"
-            onClick={() => {
-              if (widgets.length >= 3) {
-                setShowMaxWidgetsModal(true);
-              } else {
-                // Open the new widget form in WidgetList via a custom event
-                const event = new CustomEvent("openNewWidgetForm");
-                window.dispatchEvent(event);
-              }
+          <h2 className="text-lg font-semibold text-white mb-4 text-center">
+            Live widget preview
+          </h2>
+          <section
+            className="flex flex-col justify-center relative bg-transparent"
+            aria-label="Review carousel preview"
+            style={{
+              background: design.sectionBgType === "custom" ? design.sectionBgColor : "none",
+              color: design.textColor,
+              border: 'none',
+              boxShadow: 'none',
+              padding: 0,
+              minHeight: 320,
+              margin: '0 auto',
+              transition: 'min-height 0.3s',
             }}
           >
-            + New widget
-          </button>
+            {loading ? (
+              <div
+                style={{
+                  position: "fixed",
+                  top: -190,
+                  left: 0,
+                  width: "100%",
+                  zIndex: 9999,
+                }}
+              >
+                <AppLoader />
+              </div>
+            ) : null}
+            <div id="carousel-live" className="sr-only" aria-live="polite" />
+          </section>
         </div>
-        {/* Widget Management Section */}
-        <WidgetList
-          onSelectWidget={setSelectedWidget}
-          selectedWidgetId={selectedWidget?.id}
-          onDesignChange={setDesign}
-          design={design}
-          onWidgetReviewsChange={() => {
-            if (!selectedWidget) return;
-            const supabase = createBrowserClient(
-              process.env.NEXT_PUBLIC_SUPABASE_URL!,
-              process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-            );
-            supabase
-              .from("widget_reviews")
-              .select(
-                "id, review_content, first_name, last_name, reviewer_role, platform, created_at, order_index, star_rating, photo_url",
-              )
-              .eq("widget_id", selectedWidget.id)
-              .order("order_index", { ascending: true })
-              .then(({ data, error }) => {
-                if (data) setReviews(data);
-                setLoading(false);
-              });
-          }}
-        />
-        {/* JSON-LD for SEO */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
-      </PageCard>
-    </>
+        {/* Main Card Below */}
+        <PageCard icon={<FaCode className="w-9 h-9 text-[#1A237E]" />}>
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-2">
+            <div>
+              <h1 className="text-4xl font-bold text-[#1A237E]">Your widgets</h1>
+              <p className="mt-2 text-gray-500 text-sm max-w-md">
+                Create up to 3 different widgets to showcase your reviews. Style to match your brand.
+              </p>
+            </div>
+            <button
+              className="px-4 py-2 bg-[#1A237E] text-white rounded hover:bg-opacity-90 transition-colors font-semibold whitespace-nowrap"
+              onClick={() => {
+                if (widgets.length >= 3) {
+                  setShowMaxWidgetsModal(true);
+                } else {
+                  // Open the new widget form in WidgetList via a custom event
+                  const event = new CustomEvent("openNewWidgetForm");
+                  window.dispatchEvent(event);
+                }
+              }}
+            >
+              + New widget
+            </button>
+          </div>
+          {/* Widget Management Section */}
+          <WidgetList
+            onSelectWidget={setSelectedWidget}
+            selectedWidgetId={selectedWidget?.id}
+            onDesignChange={setDesign}
+            design={design}
+            onWidgetReviewsChange={() => {
+              if (!selectedWidget) return;
+              const supabase = createBrowserClient(
+                process.env.NEXT_PUBLIC_SUPABASE_URL!,
+                process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+              );
+              supabase
+                .from("widget_reviews")
+                .select(
+                  "id, review_content, first_name, last_name, reviewer_role, platform, created_at, order_index, star_rating, photo_url",
+                )
+                .eq("widget_id", selectedWidget.id)
+                .order("order_index", { ascending: true })
+                .then(({ data, error }) => {
+                  if (data) setReviews(data);
+                  setLoading(false);
+                });
+            }}
+          />
+          {/* JSON-LD for SEO */}
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          />
+        </PageCard>
+        <div className="mt-8">
+          {renderWidgetPreview()}
+        </div>
+      </div>
+    </div>
   );
 }
+

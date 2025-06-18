@@ -7,11 +7,12 @@
 // - src/widget-embed/multi/dist/widget-embed.min.js (bundled JS)
 // - src/widget-embed/multi/dist/widget.min.css (bundled CSS)
 
-// Add build timestamp
-const buildTimestamp = new Date().toLocaleString();
-console.log('Widget script starting... Build time:', buildTimestamp);
+if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
+  // Add build timestamp
+  const buildTimestamp = new Date().toLocaleString();
+  console.log('Widget script starting... Build time:', buildTimestamp);
 
-(function() {
+  (function() {
     console.log('IIFE starting...');
     // Create global namespace
     window.PromptReviews = window.PromptReviews || {};
@@ -471,13 +472,28 @@ console.log('Widget script starting... Build time:', buildTimestamp);
         swiperWrapper.className = 'swiper-wrapper';
         swiperContainer.appendChild(swiperWrapper);
 
-        // Add review slides
-        widgetData.reviews.forEach(review => {
+        // Before rendering reviews, map fields to expected names
+        const mappedReviews = (widgetData.reviews || [])
+            .map((review) => ({
+                ...review,
+                content: review.content || review.review_content,
+                name: review.name || review.reviewer_name,
+                role: review.role || review.reviewer_role,
+            }))
+            .filter((review) => review && typeof review === 'object' && typeof review.name !== 'undefined');
+
+        // Use mappedReviews in the rendering loop
+        mappedReviews.forEach((review) => {
+            if (!review || typeof review !== 'object') {
+                console.warn('Skipping invalid review:', review);
+                return;
+            }
+            console.log('Review object:', review);
             const slide = document.createElement('div');
             slide.className = 'swiper-slide';
             
             const card = document.createElement('div');
-            card.className = 'review-card';
+            card.className = 'pr-review-card';
             
             // Add stars
             card.innerHTML = renderStars(review.rating);
@@ -486,9 +502,9 @@ console.log('Widget script starting... Build time:', buildTimestamp);
             const content = document.createElement('div');
             content.className = 'review-content';
             content.innerHTML = `
-                <div class="decorative-quote decorative-quote-open">"</div>
+                <div class="decorative-quote decorative-quote-open">\u201C</div>
                 <div class="review-text">${review.content}</div>
-                <div class="decorative-quote decorative-quote-close">"</div>
+                <div class="decorative-quote decorative-quote-close">\u201D</div>
             `;
             card.appendChild(content);
             
@@ -496,15 +512,22 @@ console.log('Widget script starting... Build time:', buildTimestamp);
             const details = document.createElement('div');
             details.className = 'reviewer-details';
             
+            console.log('At reviewerName assignment:', review, 'name:', review && review.name);
+            const reviewerName =
+                (review.first_name && review.last_name && `${review.first_name} ${review.last_name}`) ||
+                review.name ||
+                (typeof review.reviewer === 'object' && review.reviewer && review.reviewer.name) ||
+                "";
+
             const name = document.createElement('div');
             name.className = 'reviewer-name';
-            name.textContent = review.reviewer.name;
+            name.textContent = reviewerName;
             details.appendChild(name);
             
-            if (review.reviewer.role) {
+            if (review.role) {
                 const role = document.createElement('div');
                 role.className = 'reviewer-role';
-                role.textContent = review.reviewer.role;
+                role.textContent = review.role;
                 details.appendChild(role);
             }
             
@@ -553,35 +576,40 @@ console.log('Widget script starting... Build time:', buildTimestamp);
 
         // Insert mobile nav row after the swiper container
         const swiperEl = document.querySelector('.swiper');
-        swiperEl.parentNode.insertBefore(mobileNavRow, swiperEl.nextSibling);
+        if (swiperEl && swiperEl.parentNode) {
+          swiperEl.parentNode.insertBefore(mobileNavRow, swiperEl.nextSibling);
+        } else {
+          console.warn('renderMultiWidget: .swiper element not found or has no parentNode. Skipping mobile nav row insertion.');
+          return; // Prevent further execution if swiperEl is missing
+        }
 
         // Initialize Swiper with only desktop pagination
         const swiper = new Swiper('.swiper', {
-            slidesPerView: 1,
+                slidesPerView: 1,
             spaceBetween: 24,
             centeredSlides: true,
             loop: true,
-            pagination: {
+                pagination: {
                 el: '.desktop-pagination',
-                clickable: true,
-                type: 'bullets',
+                    clickable: true,
+                    type: 'bullets',
                 bulletClass: 'swiper-pagination-bullet',
                 bulletActiveClass: 'swiper-pagination-bullet-active',
-                renderBullet: function (index, className) {
-                    return '<span class="' + className + '"></span>';
+                    renderBullet: function (index, className) {
+                        return '<span class="' + className + '"></span>';
+                    },
                 },
-            },
             navigation: {
                 nextEl: '.swiper-button-next',
                 prevEl: '.swiper-button-prev',
             },
-            breakpoints: {
-                600: {
+                breakpoints: {
+                900: {
                     slidesPerView: 2,
                     spaceBetween: 24,
                     centeredSlides: false,
                 },
-                900: {
+                1200: {
                     slidesPerView: 3,
                     spaceBetween: 24,
                     centeredSlides: true,
@@ -622,7 +650,7 @@ console.log('Widget script starting... Build time:', buildTimestamp);
                 desktopNav.forEach(nav => nav.style.display = 'none');
                 if (desktopPagination) desktopPagination.style.display = 'none';
                 if (mobilePagination) mobilePagination.style.display = 'flex';
-            } else {
+        } else {
                 mobileNav.style.display = 'none';
                 desktopNav.forEach(nav => nav.style.display = 'flex');
                 if (desktopPagination) desktopPagination.style.display = 'flex';
@@ -683,4 +711,120 @@ console.log('Widget script starting... Build time:', buildTimestamp);
     window.PromptReviews.renderMultiWidget = renderMultiWidget;
 
     console.log('Widget script loaded successfully');
-})(); 
+  })();
+}
+
+// Function to fetch widget data from Supabase
+async function fetchWidgetData(widgetId) {
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  );
+
+  const { data, error } = await supabase
+    .from('widgets')
+    .select('*')
+    .eq('id', widgetId)
+    .single();
+
+  if (error || !data) {
+    console.error('Error fetching widget data:', error);
+    return null;
+  }
+
+  return data;
+}
+
+// Function to get design with defaults
+function getDesignWithDefaults(userDesign = {}, widgetType = 'multi') {
+  const defaultDesign = {
+    multi: {
+      font: 'Inter, system-ui, -apple-system, sans-serif',
+      accentColor: 'slateblue',
+      bgColor: 'white',
+      bgOpacity: 1,
+      textColor: '#333333',
+      nameTextColor: '#111111',
+      roleTextColor: '#666666',
+      border: false,
+      borderWidth: 2,
+      borderColor: '#cccccc',
+      borderRadius: '1.5rem',
+      shadow: true,
+      shadowColor: '#222222',
+      shadowIntensity: 0.2,
+      showQuotes: true,
+      showRelativeDate: true,
+      showSubmitReviewButton: true,
+      autoAdvance: false,
+      slideshowSpeed: 4,
+      attributionFontSize: 14
+    }
+  };
+
+  return { ...defaultDesign[widgetType], ...userDesign };
+}
+
+// Initialize widget
+async function initializeWidget(widgetId) {
+  const data = await fetchWidgetData(widgetId);
+  if (!data) {
+    console.error('Failed to fetch widget data');
+    return;
+  }
+
+  const design = getDesignWithDefaults(data.design, data.widget_type);
+  const container = document.getElementById('promptreviews-widget');
+  if (!container) {
+    console.error('Widget container not found');
+    return;
+  }
+
+  // Set CSS variables for design
+  container.style.setProperty('--pr-accent-color', design.accentColor);
+  container.style.setProperty('--pr-bg-color', design.bgColor);
+  container.style.setProperty('--pr-bg-opacity', design.bgOpacity);
+  container.style.setProperty('--pr-text-color', design.textColor);
+  container.style.setProperty('--pr-name-text-color', design.nameTextColor);
+  container.style.setProperty('--pr-role-text-color', design.roleTextColor);
+  container.style.setProperty('--pr-border-width', `${design.borderWidth}px`);
+  container.style.setProperty('--pr-border-color', design.borderColor);
+  container.style.setProperty('--pr-border-radius', design.borderRadius);
+  container.style.setProperty('--pr-shadow-color', design.shadowColor);
+  container.style.setProperty('--pr-shadow-intensity', design.shadowIntensity);
+  container.style.setProperty('--pr-attribution-font-size', `${design.attributionFontSize}px`);
+
+  // Initialize Swiper with design options
+  const swiperOptions = {
+    modules: [Navigation, Pagination, A11y, ...(design.autoAdvance ? [Autoplay] : [])],
+    spaceBetween: 24,
+    slidesPerView: 1,
+    breakpoints: {
+      768: { slidesPerView: 2, spaceBetween: 24 },
+      1024: { slidesPerView: 3, spaceBetween: 24 },
+    },
+    navigation: {
+      prevEl: '.swiper-button-prev',
+      nextEl: '.swiper-button-next',
+    },
+    pagination: {
+      clickable: true,
+      el: '.swiper-pagination',
+      bulletClass: 'swiper-pagination-bullet',
+      bulletActiveClass: 'swiper-pagination-bullet-active',
+      renderBullet: function (index, className) {
+        const isActive = className.includes('swiper-pagination-bullet-active');
+        const color = isActive ? design.accentColor : lightenHex(design.accentColor, 0.7);
+        return '<span class="' + className + '" style="background: ' + color + ';"></span>';
+      }
+    },
+    ...(design.autoAdvance ? {
+      autoplay: {
+        delay: (design.slideshowSpeed ?? 4) * 1000,
+        disableOnInteraction: false,
+      }
+    } : {})
+  };
+
+  // ... rest of the existing initialization code ...
+} 
