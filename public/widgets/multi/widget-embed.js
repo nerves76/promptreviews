@@ -14,7 +14,24 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
     console.log('IIFE starting...');
     // Create global namespace
     window.PromptReviews = window.PromptReviews || {};
-    console.log('Swiper available:', typeof Swiper !== 'undefined');
+
+    // Wait for Swiper to be available
+    function waitForSwiper(callback, maxAttempts = 10) {
+      let attempts = 0;
+      const checkSwiper = () => {
+        if (typeof Swiper !== 'undefined') {
+          console.log('Swiper is available');
+          callback();
+        } else if (attempts < maxAttempts) {
+          attempts++;
+          console.log(`Waiting for Swiper... Attempt ${attempts}`);
+          setTimeout(checkSwiper, 100);
+        } else {
+          console.error('Swiper failed to load after maximum attempts');
+        }
+      };
+      checkSwiper();
+    }
 
     // Helper: Convert hex color to rgba
     function hexToRgba(hex, alpha = 1) {
@@ -96,561 +113,558 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
 
             /* Base styles */
             .${widgetClass} {
-                font-family: 'Inter', 'Inter Fallback', system-ui, -apple-system, sans-serif;
-                --pr-accent-color: slateblue;
+                font-family: var(--pr-font, 'Inter'), 'Inter Fallback', system-ui, -apple-system, sans-serif;
+                --pr-accent-color: #6a5acd;
                 --pr-accent-hover: #4a3f8c;
                 --pr-text-primary: #22223b;
                 --pr-text-secondary: #6b7280;
                 --pr-border-color: #cccccc;
                 --pr-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-                --pr-card-bg: #ffffff;
-                --pr-card-border: 2px solid var(--pr-border-color);
-                --pr-card-radius: 16px;
-                --pr-card-shadow: 0 4px 32px rgba(34, 34, 34, 0.2) inset;
-            }
-
-
-
-
-
-            .${widgetClass} .swiper-pagination-bullet {
-                width: 8px !important;
-                height: 8px !important;
-                background: #d1d5db !important;
-                opacity: 1 !important;
-                transition: all 0.3s ease;
-                margin: 0 4px !important;
-            }
-
-            .${widgetClass} .swiper-pagination-bullet-active {
-                background: var(--pr-accent-color, slateblue) !important;
-                transform: scale(1.2);
-            }
-
-            /* Layout */
-            .${widgetClass} .hidden {
-                display: none;
-            }
-
-            @media (min-width: 768px) {
-                .${widgetClass} .md\\:flex {
-                    display: flex;
-                }
-            }
-
-            .${widgetClass} .w-full {
+                --pr-card-bg: var(--pr-bg-color, #ffffff);
+                --pr-card-border: var(--pr-border-width, 2px) solid var(--pr-border-color, #cccccc);
+                --pr-card-radius: var(--pr-border-radius, 16px);
+                --pr-card-shadow: 0 4px 32px rgba(34, 34, 34, var(--pr-shadow-intensity, 0.2)) inset;
                 width: 100%;
+                max-width: 100%;
+                margin: 0 auto;
+                padding: 1rem;
+                box-sizing: border-box;
             }
 
-            .${widgetClass} .justify-center {
-                justify-content: center;
+            /* Widget Content */
+            .${widgetClass} .widget-content {
+                width: 100%;
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 1rem;
             }
 
-            .${widgetClass} .relative {
+            /* Carousel Container */
+            .${widgetClass} .widget-carousel-container {
                 position: relative;
+                width: 100%;
+                margin: 0 auto;
+                padding: 0 2rem;
             }
 
-            .${widgetClass} .max-w-5xl {
-                max-width: 64rem;
-            }
-
-            .${widgetClass} .mx-auto {
-                margin-left: auto;
-                margin-right: auto;
-            }
-
-            .${widgetClass} .px-8 {
-                padding-left: 2rem;
-                padding-right: 2rem;
-            }
-
-            /* Navigation Buttons */
-            .${widgetClass} .group {
-                position: relative;
-            }
-
-            .${widgetClass} .absolute {
-                position: absolute;
-            }
-
-            .${widgetClass} .-left-8 {
-                left: -2rem;
-            }
-
-            .${widgetClass} .-right-8 {
-                right: -2rem;
-            }
-
-            .${widgetClass} .top-1\\/2 {
-                top: 50%;
-            }
-
-            .${widgetClass} .-translate-y-1\\/2 {
-                transform: translateY(-50%);
-            }
-
-            .${widgetClass} .z-10 {
-                z-index: 10;
-            }
-
-            .${widgetClass} .rounded-full {
-                border-radius: 9999px;
-            }
-
-            .${widgetClass} .border {
-                border-width: 1px;
-            }
-
-            .${widgetClass} .border-gray-200 {
-                border-color: #e5e7eb;
-            }
-
-            .${widgetClass} .w-10 {
-                width: 2.5rem;
-            }
-
-            .${widgetClass} .h-10 {
-                height: 2.5rem;
-            }
-
-            .${widgetClass} .flex {
-                display: flex;
-            }
-
-            .${widgetClass} .items-center {
-                align-items: center;
-            }
-
-            .${widgetClass} .transition {
-                transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
-                transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-                transition-duration: 150ms;
-            }
-
-            .${widgetClass} .hover\\:bg-opacity-80:hover {
-                --tw-bg-opacity: 0.8;
-            }
-
-            .${widgetClass} .active\\:scale-95:active {
-                transform: scale(0.95);
-            }
-
-            .${widgetClass} .focus\\:scale-95:focus {
-                transform: scale(0.95);
-            }
-
-            .${widgetClass} .focus\\:outline-none:focus {
-                outline: 2px solid transparent;
-                outline-offset: 2px;
-            }
-
-            .${widgetClass} .focus-visible\\:outline:focus-visible {
-                outline-style: solid;
-            }
-
-            .${widgetClass} .focus-visible\\:outline-2:focus-visible {
-                outline-width: 2px;
-            }
-
-            .${widgetClass} .focus-visible\\:outline-\\[var\\(--pr-accent-color\\)\\]:focus-visible {
-                outline-color: var(--pr-accent-color);
-            }
-
-            .${widgetClass} .focus-visible\\:outline-offset-2:focus-visible {
-                outline-offset: 2px;
-            }
-
-            /* Swiper Styles */
+            /* Swiper Container */
             .${widgetClass} .swiper {
                 width: 100%;
                 padding: 2rem 0;
+                overflow: hidden;
             }
 
+            /* Swiper Slides */
             .${widgetClass} .swiper-slide {
                 display: flex;
                 justify-content: center;
-                align-items: center;
+                align-items: stretch;
+                height: auto;
             }
 
             .${widgetClass} .swiper-slide-active {
                 z-index: 1;
             }
 
-            /* Card Styles */
-            .${widgetClass} .w-full {
-                width: 100%;
-            }
-
-            .${widgetClass} .h-\\[380px\\] {
-                height: 380px;
-            }
-
-            .${widgetClass} .flex-col {
+            /* Review Cards */
+            .${widgetClass} .pr-review-card {
+                background: var(--pr-card-bg, #fff);
+                border: var(--pr-card-border, 2px solid #cccccc);
+                border-radius: var(--pr-card-radius, 16px);
+                box-shadow: var(--pr-card-shadow, 0 4px 32px rgba(34,34,34,0.2) inset);
+                padding: 2rem;
+                height: 100%;
+                display: flex;
                 flex-direction: column;
+                gap: 1rem;
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+                width: 100%;
+                min-width: 320px;
+                max-width: 420px;
+                margin: 0 auto;
             }
 
-            .${widgetClass} .rounded-3xl {
-                border-radius: 1.5rem;
+            .${widgetClass} .pr-review-card:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 8px 32px rgba(34, 34, 34, 0.15);
             }
 
-            .${widgetClass} .overflow-hidden {
-                overflow: hidden;
-            }
-
-            .${widgetClass} .bg-white {
-                background-color: #ffffff;
-            }
-
-            .${widgetClass} .px-2 {
-                padding-left: 0.5rem;
-                padding-right: 0.5rem;
-            }
-
-            .${widgetClass} .py-4 {
-                padding-top: 1rem;
-                padding-bottom: 1rem;
-            }
-
-            .${widgetClass} .shadow {
-                box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-            }
-
-            .${widgetClass} .text-sm {
-                font-size: 0.875rem;
-                line-height: 1.25rem;
-            }
-
-            /* Star Rating */
-            .${widgetClass} .mb-2 {
+            /* Stars */
+            .${widgetClass} .stars-row {
+                display: flex;
+                gap: 0.25rem;
                 margin-bottom: 0.5rem;
             }
 
-            .${widgetClass} .mt-0 {
+            /* Review Content */
+            .${widgetClass} .review-content {
+                position: relative;
+                flex-grow: 1;
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .${widgetClass} .review-text {
+                font-size: 1.125rem;
+                line-height: 1.75;
+                color: var(--pr-text-primary, #22223b);
+                margin: 0.5rem 0;
+            }
+
+            .${widgetClass} .decorative-quote {
+                font-size: 3rem;
+                line-height: 1;
+                color: var(--pr-accent-color, #6a5acd);
+                opacity: 0.2;
+                font-family: Georgia, serif;
+            }
+
+            .${widgetClass} .decorative-quote-open {
+                margin-bottom: -1rem;
+            }
+
+            .${widgetClass} .decorative-quote-close {
+                margin-top: -1rem;
+                align-self: flex-end;
+            }
+
+            /* Reviewer Details */
+            .${widgetClass} .reviewer-details {
+                margin-top: auto;
+                padding-top: 1rem;
+                border-top: 1px solid var(--pr-border-color, #cccccc);
+            }
+
+            .${widgetClass} .reviewer-name {
+                font-weight: 600;
+                color: var(--pr-name-text-color, #111111);
+                margin-bottom: 0.25rem;
+            }
+
+            .${widgetClass} .reviewer-role {
+                font-size: 0.875rem;
+                color: var(--pr-role-text-color, #666666);
+                margin-bottom: 0.25rem;
+            }
+
+            .${widgetClass} .reviewer-date {
+                font-size: 0.75rem;
+                color: var(--pr-text-secondary, #6b7280);
+            }
+
+            /* Submit Review Button */
+            .${widgetClass} .submit-review-row {
+                display: flex;
+                justify-content: flex-end;
                 margin-top: 0;
             }
 
-            /* Review Content */
-            .${widgetClass} .flex-1 {
-                flex: 1 1 0%;
+            .${widgetClass} .submit-review-btn {
+                background: var(--pr-accent-color, #6a5acd);
+                color: #fff;
+                padding: 0.75rem 1.5rem;
+                border-radius: 0.5rem;
+                font-weight: 500;
+                transition: all 0.3s ease;
+                border: none;
+                cursor: pointer;
             }
 
-            .${widgetClass} .min-h-0 {
-                min-height: 0;
+            .${widgetClass} .submit-review-btn:hover {
+                background: var(--pr-accent-hover, #4a3f8c);
+                transform: translateY(-2px);
             }
 
-            .${widgetClass} .text-center {
-                text-align: center;
-            }
-
-            .${widgetClass} .text-gray-800 {
-                color: #1f2937;
-            }
-
-            .${widgetClass} .break-words {
-                word-break: break-word;
-            }
-
-            .${widgetClass} .whitespace-pre-line {
-                white-space: pre-line;
-            }
-
-            .${widgetClass} .relative {
+            /* Pagination */
+            .${widgetClass} .swiper-pagination {
                 position: relative;
+                margin-top: 4rem;
             }
 
-            .${widgetClass} .overflow-hidden {
-                overflow: hidden;
+            .${widgetClass} .swiper-pagination-bullet {
+                width: 8px !important;
+                height: 8px !important;
+                background: var(--pr-border-color, #d1d5db) !important;
+                opacity: 1 !important;
+                transition: all 0.3s ease;
+                margin: 0 4px !important;
             }
 
-            .${widgetClass} .line-clamp-5 {
-                display: -webkit-box;
-                -webkit-line-clamp: 5;
-                -webkit-box-orient: vertical;
+            .${widgetClass} .swiper-pagination-bullet-active {
+                background: var(--pr-accent-color, #6a5acd) !important;
+                transform: scale(1.2);
             }
 
-            .${widgetClass} .mx-6 {
-                margin-left: 1.5rem;
-                margin-right: 1.5rem;
+            /* Navigation */
+            .${widgetClass} .swiper-button-next,
+            .${widgetClass} .swiper-button-prev {
+                color: var(--pr-accent-color, #6a5acd);
+                background: var(--pr-card-bg, #fff);
+                width: 2.5rem;
+                height: 2.5rem;
+                border-radius: 50%;
+                box-shadow: var(--pr-shadow, 0 4px 6px rgba(0, 0, 0, 0.1));
+                transition: all 0.3s ease;
+                position: absolute;
+                top: 50%;
+                transform: translateY(-50%);
+                z-index: 50;
+                border: 1px solid var(--pr-border-color, #cccccc);
             }
 
-            .${widgetClass} .text-\\[14px\\] {
-                font-size: 14px;
+            .${widgetClass} .swiper-button-next {
+                right: -3rem;
             }
 
-            .${widgetClass} .md\\:text-\\[16px\\] {
-                font-size: 16px;
+            .${widgetClass} .swiper-button-prev {
+                left: -3rem;
             }
 
-            .${widgetClass} .z-10 {
-                z-index: 10;
+            .${widgetClass} .swiper-button-next:hover,
+            .${widgetClass} .swiper-button-prev:hover {
+                background: var(--pr-accent-color, #6a5acd);
+                color: #fff;
             }
 
-            .${widgetClass} .leading-relaxed {
-                line-height: 1.625;
+            /* Responsive Styles */
+            @media (max-width: 768px) {
+                .${widgetClass} .widget-carousel-container {
+                    padding: 0 1rem;
+                }
+
+                .${widgetClass} .pr-review-card {
+                    padding: 1.5rem;
+                }
+
+                .${widgetClass} .review-text {
+                    font-size: 1rem;
+                }
+
+                .${widgetClass} .swiper-button-next,
+                .${widgetClass} .swiper-button-prev {
+                    display: none;
+                }
             }
 
-            /* Reviewer Info */
-            .${widgetClass} .gap-1 {
-                gap: 0.25rem;
-            }
-
-            .${widgetClass} .mt-auto {
-                margin-top: auto;
-            }
-
-            .${widgetClass} .font-semibold {
-                font-weight: 600;
-            }
-
-            .${widgetClass} .text-xs {
-                font-size: 0.75rem;
-                line-height: 1rem;
+            @media (max-width: 900px) {
+                .${widgetClass} .pr-review-card {
+                    min-width: 90vw;
+                    max-width: 98vw;
+                    width: 100%;
+                }
             }
         `;
     }
 
     // Main widget rendering function
     function renderMultiWidget(container, widgetData) {
+        console.log('renderMultiWidget called', widgetData);
         if (!container || !widgetData || !widgetData.reviews) {
             console.error('Invalid container or widget data');
+            console.log('renderMultiWidget: returning early due to invalid data');
             return;
         }
 
-        // Create widget container
-        const widgetClass = 'pr-multi-widget';
-        const widgetContainer = document.createElement('div');
-        widgetContainer.className = widgetClass;
-        container.appendChild(widgetContainer);
+        // Wait for Swiper before initializing
+        waitForSwiper(() => {
+            try {
+                console.log('Inside renderMultiWidget try block');
+                // Create widget container with unique class
+                const widgetClass = `pr-multi-widget-${Math.random().toString(36).substr(2, 9)}`;
+                const widgetContainer = document.createElement('div');
+                widgetContainer.className = widgetClass;
+                container.appendChild(widgetContainer);
+                console.log('Widget container created:', widgetContainer);
 
-        // Create widget content
-        const widgetContent = document.createElement('div');
-        widgetContent.className = 'widget-content';
-        widgetContainer.appendChild(widgetContent);
+                // Inject scoped CSS
+                const styleElement = document.createElement('style');
+                styleElement.textContent = generateScopedCSS(widgetClass);
+                document.head.appendChild(styleElement);
 
-        // Create carousel container
-        const carouselContainer = document.createElement('div');
-        carouselContainer.className = 'widget-carousel-container';
-        widgetContent.appendChild(carouselContainer);
+                // Create widget content
+                const widgetContent = document.createElement('div');
+                widgetContent.className = 'widget-content';
+                widgetContainer.appendChild(widgetContent);
 
-        // Create Swiper container
-        const swiperContainer = document.createElement('div');
-        swiperContainer.className = 'swiper';
-        carouselContainer.appendChild(swiperContainer);
+                // Create carousel container
+                let carouselContainer = document.createElement('div');
+                carouselContainer.className = 'widget-carousel-container';
+                widgetContent.appendChild(carouselContainer);
 
-        // Create Swiper wrapper
-        const swiperWrapper = document.createElement('div');
-        swiperWrapper.className = 'swiper-wrapper';
-        swiperContainer.appendChild(swiperWrapper);
+                // Create Swiper container with unique class
+                const swiperContainer = document.createElement('div');
+                swiperContainer.className = `swiper ${widgetClass}-swiper`;
+                carouselContainer.appendChild(swiperContainer);
 
-        // Before rendering reviews, map fields to expected names
-        const mappedReviews = (widgetData.reviews || [])
-            .map((review) => ({
-                ...review,
-                content: review.content || review.review_content,
-                name: review.name || review.reviewer_name,
-                role: review.role || review.reviewer_role,
-            }))
-            .filter((review) => review && typeof review === 'object' && typeof review.name !== 'undefined');
+                // Create Swiper wrapper
+                const swiperWrapper = document.createElement('div');
+                swiperWrapper.className = 'swiper-wrapper';
+                swiperContainer.appendChild(swiperWrapper);
 
-        // Use mappedReviews in the rendering loop
-        mappedReviews.forEach((review) => {
-            if (!review || typeof review !== 'object') {
-                console.warn('Skipping invalid review:', review);
-                return;
-            }
-            console.log('Review object:', review);
-            const slide = document.createElement('div');
-            slide.className = 'swiper-slide';
-            
-            const card = document.createElement('div');
-            card.className = 'pr-review-card';
-            
-            // Add stars
-            card.innerHTML = renderStars(review.rating);
-            
-            // Add review content with decorative quotes
-            const content = document.createElement('div');
-            content.className = 'review-content';
-            content.innerHTML = `
-                <div class="decorative-quote decorative-quote-open">\u201C</div>
-                <div class="review-text">${review.content}</div>
-                <div class="decorative-quote decorative-quote-close">\u201D</div>
-            `;
-            card.appendChild(content);
-            
-            // Add reviewer details
-            const details = document.createElement('div');
-            details.className = 'reviewer-details';
-            
-            console.log('At reviewerName assignment:', review, 'name:', review && review.name);
-            const reviewerName =
-                (review.first_name && review.last_name && `${review.first_name} ${review.last_name}`) ||
-                review.name ||
-                (typeof review.reviewer === 'object' && review.reviewer && review.reviewer.name) ||
-                "";
+                // Create pagination
+                const pagination = document.createElement('div');
+                pagination.className = 'swiper-pagination';
+                swiperContainer.appendChild(pagination);
 
-            const name = document.createElement('div');
-            name.className = 'reviewer-name';
-            name.textContent = reviewerName;
-            details.appendChild(name);
-            
-            if (review.role) {
-                const role = document.createElement('div');
-                role.className = 'reviewer-role';
-                role.textContent = review.role;
-                details.appendChild(role);
-            }
-            
-            if (review.date) {
-                const date = document.createElement('div');
-                date.className = 'reviewer-date';
-                date.textContent = getRelativeTime(review.date);
-                details.appendChild(date);
-            }
-            
-            card.appendChild(details);
-            slide.appendChild(card);
-            swiperWrapper.appendChild(slide);
-        });
+                // Create navigation buttons
+                const prevButton = document.createElement('div');
+                prevButton.className = 'swiper-button-prev nav-button desktop-nav';
+                prevButton.setAttribute('aria-label', 'Previous');
+                prevButton.innerHTML = '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 16L8 10L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
-        // Create desktop navigation buttons
-        const desktopPrevButton = document.createElement('button');
-        desktopPrevButton.className = 'nav-button swiper-button-prev desktop-nav';
-        desktopPrevButton.setAttribute('aria-label', 'Previous review');
-        desktopPrevButton.innerHTML = '<svg width="18" height="18" viewBox="0 0 18 18" fill="none" style="display: block; margin: auto;"><polygon points="14,3 6,9 14,15" fill="currentColor"/></svg>';
-        carouselContainer.appendChild(desktopPrevButton);
+                const nextButton = document.createElement('div');
+                nextButton.className = 'swiper-button-next nav-button desktop-nav';
+                nextButton.setAttribute('aria-label', 'Next');
+                nextButton.innerHTML = '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 4L12 10L7 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
-        const desktopNextButton = document.createElement('button');
-        desktopNextButton.className = 'nav-button swiper-button-next desktop-nav';
-        desktopNextButton.setAttribute('aria-label', 'Next review');
-        desktopNextButton.innerHTML = '<svg width="18" height="18" viewBox="0 0 18 18" fill="none" style="display: block; margin: auto;"><polygon points="4,3 12,9 4,15" fill="currentColor"/></svg>';
-        carouselContainer.appendChild(desktopNextButton);
+                // Desktop: arrows beside cards, vertically centered
+                carouselContainer.appendChild(prevButton);
+                carouselContainer.appendChild(nextButton);
 
-        // Create desktop pagination
-        const desktopPagination = document.createElement('div');
-        desktopPagination.className = 'swiper-pagination desktop-pagination';
-        carouselContainer.appendChild(desktopPagination);
+                // Mobile: arrows and dots in a row (reference structure, sibling of Swiper container)
+                const navRow = document.createElement('div');
+                navRow.className = 'mobile-nav-row';
+                navRow.style.background = 'rgba(255,255,0,0.15)'; // debug background
+                const prevMobile = document.createElement('div');
+                prevMobile.className = 'swiper-button-prev nav-button mobile-nav';
+                prevMobile.setAttribute('aria-label', 'Previous');
+                prevMobile.innerHTML = '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 16L8 10L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                const nextMobile = document.createElement('div');
+                nextMobile.className = 'swiper-button-next nav-button mobile-nav';
+                nextMobile.setAttribute('aria-label', 'Next');
+                nextMobile.innerHTML = '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 4L12 10L7 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                const mobilePagination = document.createElement('div');
+                mobilePagination.className = 'swiper-pagination';
+                navRow.appendChild(prevMobile);
+                navRow.appendChild(mobilePagination);
+                navRow.appendChild(nextMobile);
+                widgetContent.appendChild(navRow);
 
-        // Create mobile navigation row that appears below cards
-        const mobileNavRow = document.createElement('div');
-        mobileNavRow.className = 'mobile-nav-row';
-        mobileNavRow.innerHTML = `
-            <button class="nav-button swiper-button-prev mobile-nav" aria-label="Previous review">
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style="display: block; margin: auto;"><polygon points="14,3 6,9 14,15" fill="currentColor"/></svg>
-            </button>
-            <div class="swiper-pagination mobile-pagination"></div>
-            <button class="nav-button swiper-button-next mobile-nav" aria-label="Next review">
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style="display: block; margin: auto;"><polygon points="4,3 12,9 4,15" fill="currentColor"/></svg>
-            </button>
-        `;
-
-        // Insert mobile nav row after the swiper container
-        const swiperEl = document.querySelector('.swiper');
-        if (swiperEl && swiperEl.parentNode) {
-          swiperEl.parentNode.insertBefore(mobileNavRow, swiperEl.nextSibling);
-        } else {
-          console.warn('renderMultiWidget: .swiper element not found or has no parentNode. Skipping mobile nav row insertion.');
-          return; // Prevent further execution if swiperEl is missing
-        }
-
-        // Initialize Swiper with only desktop pagination
-        const swiper = new Swiper('.swiper', {
-                slidesPerView: 1,
-            spaceBetween: 24,
-            centeredSlides: true,
-            loop: true,
-                pagination: {
-                el: '.desktop-pagination',
-                    clickable: true,
-                    type: 'bullets',
-                bulletClass: 'swiper-pagination-bullet',
-                bulletActiveClass: 'swiper-pagination-bullet-active',
-                    renderBullet: function (index, className) {
-                        return '<span class="' + className + '"></span>';
-                    },
-                },
-            navigation: {
-                nextEl: '.swiper-button-next',
-                prevEl: '.swiper-button-prev',
-            },
-                breakpoints: {
-                900: {
-                    slidesPerView: 2,
-                    spaceBetween: 24,
-                    centeredSlides: false,
-                },
-                1200: {
-                    slidesPerView: 3,
-                    spaceBetween: 24,
-                    centeredSlides: true,
-                }
-            }
-        });
-
-        // --- Dual Pagination Sync Logic ---
-        const mobilePagination = mobileNavRow.querySelector('.mobile-pagination');
-        function renderMobilePagination() {
-            // Remove all children
-            while (mobilePagination.firstChild) mobilePagination.removeChild(mobilePagination.firstChild);
-            // Get number of bullets from Swiper
-            const numBullets = swiper.pagination.bullets.length;
-            for (let i = 0; i < numBullets; i++) {
-                const bullet = document.createElement('span');
-                bullet.className = 'swiper-pagination-bullet' + (i === swiper.realIndex ? ' swiper-pagination-bullet-active' : '');
-                bullet.addEventListener('click', () => {
-                    swiper.slideToLoop(i);
+                // Submit review row (always after navRow)
+                const submitRow = document.createElement('div');
+                submitRow.className = 'submit-review-row';
+                submitRow.style.background = 'rgba(255,165,0,0.1)';
+                const submitButton = document.createElement('button');
+                submitButton.className = 'submit-review-btn';
+                submitButton.textContent = 'Submit a Review';
+                submitButton.addEventListener('click', () => {
+                    console.log('Submit review clicked');
                 });
-                mobilePagination.appendChild(bullet);
-            }
-        }
-        swiper.on('paginationUpdate slideChange', renderMobilePagination);
-        // Initial render
-        renderMobilePagination();
+                submitRow.appendChild(submitButton);
+                widgetContent.appendChild(submitRow);
 
-        // Function to update navigation visibility
-        function updateNavigationVisibility() {
-            const isMobile = window.innerWidth < 900;
-            const mobileNav = document.querySelector('.mobile-nav-row');
-            const desktopNav = document.querySelectorAll('.desktop-nav');
-            const desktopPagination = document.querySelector('.desktop-pagination');
-            const mobilePagination = document.querySelector('.mobile-pagination');
-            
-            if (isMobile) {
-                mobileNav.style.display = 'flex';
-                desktopNav.forEach(nav => nav.style.display = 'none');
-                if (desktopPagination) desktopPagination.style.display = 'none';
-                if (mobilePagination) mobilePagination.style.display = 'flex';
-        } else {
-                mobileNav.style.display = 'none';
-                desktopNav.forEach(nav => nav.style.display = 'flex');
-                if (desktopPagination) desktopPagination.style.display = 'flex';
-                if (mobilePagination) mobilePagination.style.display = 'none';
-            }
-        }
+                // Add debug background to widgetContent
+                widgetContent.style.background = 'rgba(0,255,0,0.05)';
 
-        // Initial call and window resize listener
-        updateNavigationVisibility();
-        window.addEventListener('resize', updateNavigationVisibility);
+                // Before rendering reviews, map fields to expected names
+                const mappedReviews = (widgetData.reviews || [])
+                    .map((review) => ({
+                        ...review,
+                        content: review.content || review.review_content || '',
+                        name: review.name || review.reviewer_name ||
+                          ((review.first_name || review.reviewer_first_name || '') +
+                           ((review.last_name || review.reviewer_last_name) ? ' ' + (review.last_name || review.reviewer_last_name) : '')) ||
+                          (review.reviewer && (review.reviewer.name || ((review.reviewer.first_name || '') + ((review.reviewer.last_name) ? ' ' + review.reviewer.last_name : '')))) ||
+                          'Anonymous',
+                        role: review.role || review.reviewer_role || '',
+                        rating: review.rating || review.star_rating || 5,
+                        date: review.date || review.created_at || new Date().toISOString()
+                    }))
+                    .filter((review) => review && typeof review === 'object' && review.content && review.name);
 
-        // Add submit review button
-        const submitRow = document.createElement('div');
-        submitRow.className = 'submit-review-row';
-        const submitButton = document.createElement('button');
-        submitButton.className = 'submit-review-btn';
-        submitButton.textContent = 'Submit a Review';
-        submitButton.addEventListener('click', () => {
-            // Handle submit review click
-            console.log('Submit review clicked');
-        });
-        submitRow.appendChild(submitButton);
-        widgetContent.appendChild(submitRow);
+                // Handle empty reviews gracefully
+                if (!mappedReviews.length) {
+                    widgetContainer.innerHTML = '<div class="text-center text-gray-400 py-12">No reviews to display.</div>';
+                    console.log('renderMultiWidget: returning early due to no reviews');
+                    return;
+                }
 
-        // Add keyboard navigation
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft') {
-                swiper.slidePrev();
-            } else if (e.key === 'ArrowRight') {
-                swiper.slideNext();
+                // Use mappedReviews in the rendering loop
+                mappedReviews.forEach((review) => {
+                    const slide = document.createElement('div');
+                    slide.className = 'swiper-slide';
+                    
+                    const card = document.createElement('div');
+                    card.className = 'pr-review-card';
+                    
+                    // Add stars
+                    card.innerHTML = renderStars(review.rating);
+                    
+                    // Add review content with decorative quotes
+                    const content = document.createElement('div');
+                    content.className = 'review-content';
+                    content.innerHTML = `
+                        <div class="decorative-quote decorative-quote-open">\u201C</div>
+                        <div class="review-text">${review.content}</div>
+                        <div class="decorative-quote decorative-quote-close">\u201D</div>
+                    `;
+                    card.appendChild(content);
+                    
+                    // Add reviewer details
+                    const details = document.createElement('div');
+                    details.className = 'reviewer-details';
+                    
+                    const name = document.createElement('div');
+                    name.className = 'reviewer-name';
+                    name.textContent = review.name;
+                    details.appendChild(name);
+                    
+                    if (review.role) {
+                        const role = document.createElement('div');
+                        role.className = 'reviewer-role';
+                        role.textContent = review.role;
+                        details.appendChild(role);
+                    }
+                    
+                    if (review.date) {
+                        const date = document.createElement('div');
+                        date.className = 'reviewer-date';
+                        date.textContent = getRelativeTime(review.date);
+                        details.appendChild(date);
+                    }
+                    
+                    card.appendChild(details);
+                    slide.appendChild(card);
+                    swiperWrapper.appendChild(slide);
+                });
+
+                // Place navRow after swiperContainer
+                carouselContainer.appendChild(navRow);
+
+                // Find the current, visible widget container
+                const liveWidgetContainer = carouselContainer.closest('.widget-container') || widgetContainer;
+                console.log('Setting CSS variables on element:', liveWidgetContainer, 'classList:', liveWidgetContainer.classList);
+                // Set CSS variables from design (after CSS injection)
+                if (widgetData.design) {
+                  const d = widgetData.design;
+                  if (d.accentColor) liveWidgetContainer.style.setProperty('--pr-accent-color', d.accentColor);
+                  if (d.bgColor) liveWidgetContainer.style.setProperty('--pr-bg-color', d.bgColor);
+                  if (d.bgOpacity !== undefined) liveWidgetContainer.style.setProperty('--pr-bg-opacity', d.bgOpacity);
+                  if (d.textColor) liveWidgetContainer.style.setProperty('--pr-text-color', d.textColor);
+                  if (d.bodyTextColor) liveWidgetContainer.style.setProperty('--pr-body-text-color', d.bodyTextColor);
+                  if (d.nameTextColor) liveWidgetContainer.style.setProperty('--pr-name-text-color', d.nameTextColor);
+                  if (d.roleTextColor) liveWidgetContainer.style.setProperty('--pr-role-text-color', d.roleTextColor);
+                  if (d.borderWidth !== undefined) liveWidgetContainer.style.setProperty('--pr-border-width', `${d.borderWidth}px`);
+                  if (d.borderColor) liveWidgetContainer.style.setProperty('--pr-border-color', d.borderColor);
+                  if (d.borderRadius) liveWidgetContainer.style.setProperty('--pr-border-radius', `${d.borderRadius}px`);
+                  if (d.shadowColor) {
+                    const hex = d.shadowColor.replace('#', '');
+                    const r = parseInt(hex.substr(0, 2), 16);
+                    const g = parseInt(hex.substr(2, 2), 16);
+                    const b = parseInt(hex.substr(4, 2), 16);
+                    liveWidgetContainer.style.setProperty('--pr-shadow-color', `${r}, ${g}, ${b}`);
+                  }
+                  if (d.shadowIntensity !== undefined) liveWidgetContainer.style.setProperty('--pr-shadow-intensity', d.shadowIntensity);
+                  if (d.attributionFontSize !== undefined) liveWidgetContainer.style.setProperty('--pr-attribution-font-size', `${d.attributionFontSize}px`);
+                  if (d.quoteFontSize !== undefined) liveWidgetContainer.style.setProperty('--pr-quote-font-size', `${d.quoteFontSize}px`);
+                  if (d.lineSpacing !== undefined) liveWidgetContainer.style.setProperty('--pr-line-spacing', d.lineSpacing);
+                  if (d.font) {
+                    liveWidgetContainer.style.fontFamily = d.font;
+                    liveWidgetContainer.style.setProperty('--pr-font', d.font);
+                  }
+                }
+
+                // Ensure we have a valid Swiper container element
+                // Use the already declared carouselContainer if it exists, otherwise assign
+                carouselContainer = widgetContainer.querySelector('.swiper');
+                console.log('carouselContainer:', carouselContainer);
+                if (!carouselContainer) {
+                  console.error('Swiper container not found!');
+                  return;
+                }
+                // Swiper navigation config
+                const isMobile = window.matchMedia('(max-width: 900px)').matches;
+                const swiperOptions = {
+                  slidesPerView: 1,
+                  spaceBetween: 30,
+                  centeredSlides: true,
+                  loop: true,
+                  navigation: isMobile ? {
+                    nextEl: '.mobile-nav-row .swiper-button-next',
+                    prevEl: '.mobile-nav-row .swiper-button-prev',
+                  } : {
+                    nextEl: '.swiper-button-next.nav-button.desktop-nav',
+                    prevEl: '.swiper-button-prev.nav-button.desktop-nav',
+                  },
+                  pagination: {
+                    el: isMobile ? '.mobile-nav-row .swiper-pagination' : '.swiper-pagination',
+                    clickable: true,
+                    bulletClass: 'swiper-pagination-bullet',
+                    bulletActiveClass: 'swiper-pagination-bullet-active',
+                    renderBullet: function (index, className) {
+                      return '<span class="' + className + '"></span>';
+                    }
+                  },
+                  breakpoints: {
+                    0: {
+                      slidesPerView: 1,
+                      spaceBetween: 12,
+                      centeredSlides: false,
+                    },
+                    640: {
+                      slidesPerView: 1,
+                      spaceBetween: 16,
+                      centeredSlides: false,
+                    },
+                    900: {
+                      slidesPerView: 2,
+                      spaceBetween: 20,
+                      centeredSlides: false,
+                    },
+                    1200: {
+                      slidesPerView: 3,
+                      spaceBetween: 24,
+                      centeredSlides: true,
+                    }
+                  },
+                  autoplay: widgetData.design?.autoAdvance ? {
+                    delay: (widgetData.design?.slideshowSpeed || 4) * 1000,
+                    disableOnInteraction: false,
+                  } : false,
+                };
+
+                const swiper = new Swiper(carouselContainer, swiperOptions);
+
+                // Add error handling for Swiper initialization
+                if (!swiper) {
+                    throw new Error('Failed to initialize Swiper');
+                }
+
+                // Add keyboard navigation
+                const handleKeyDown = (e) => {
+                    if (e.key === 'ArrowLeft') {
+                        swiper.slidePrev();
+                    } else if (e.key === 'ArrowRight') {
+                        swiper.slideNext();
+                    }
+                };
+                document.addEventListener('keydown', handleKeyDown);
+
+                // Cleanup function
+                const cleanup = () => {
+                    document.removeEventListener('keydown', handleKeyDown);
+                    styleElement.remove();
+                    if (swiper && swiper.destroy) {
+                        swiper.destroy(true, true);
+                    }
+                };
+
+                // Store cleanup function on container
+                widgetContainer._cleanup = cleanup;
+
+                // Debug log: confirm class and style
+                console.log('Widget container class:', widgetContainer.className, 'style:', widgetContainer.style.cssText);
+
+            } catch (error) {
+                console.error('Error rendering widget:', error);
+                container.innerHTML = `
+                    <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
+                        <h3 class="text-red-800 font-semibold">Widget Error</h3>
+                        <p class="text-red-600 text-sm mt-2">${error.message}</p>
+                    </div>
+                `;
+                console.log('renderMultiWidget: returning early due to error');
             }
         });
     }
@@ -710,7 +724,7 @@ function getDesignWithDefaults(userDesign = {}, widgetType = 'multi') {
   const defaultDesign = {
     multi: {
       font: 'Inter, system-ui, -apple-system, sans-serif',
-      accentColor: 'slateblue',
+      accentColor: '#6a5acd',
       bgColor: 'white',
       bgOpacity: 1,
       textColor: '#333333',
@@ -760,40 +774,57 @@ async function initializeWidget(widgetId) {
   container.style.setProperty('--pr-border-width', `${design.borderWidth}px`);
   container.style.setProperty('--pr-border-color', design.borderColor);
   container.style.setProperty('--pr-border-radius', design.borderRadius);
-  container.style.setProperty('--pr-shadow-color', design.shadowColor);
-  container.style.setProperty('--pr-shadow-intensity', design.shadowIntensity);
-  container.style.setProperty('--pr-attribution-font-size', `${design.attributionFontSize}px`);
+  if (design.shadowColor) {
+    // Convert hex to RGB values
+    const hex = design.shadowColor.replace('#', '');
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    container.style.setProperty('--pr-shadow-color', `${r}, ${g}, ${b}`);
+  }
+  if (design.shadowIntensity !== undefined) container.style.setProperty('--pr-shadow-intensity', design.shadowIntensity);
+  if (design.attributionFontSize !== undefined) container.style.setProperty('--pr-attribution-font-size', `${design.attributionFontSize}px`);
 
   // Initialize Swiper with design options
   const swiperOptions = {
-    modules: [Navigation, Pagination, A11y, ...(design.autoAdvance ? [Autoplay] : [])],
-    spaceBetween: 24,
     slidesPerView: 1,
-    breakpoints: {
-      768: { slidesPerView: 2, spaceBetween: 24 },
-      1024: { slidesPerView: 3, spaceBetween: 24 },
-    },
+    spaceBetween: 30,
+    centeredSlides: true,
+    loop: true,
     navigation: {
-      prevEl: '.swiper-button-prev',
       nextEl: '.swiper-button-next',
+      prevEl: '.swiper-button-prev',
     },
     pagination: {
-      clickable: true,
       el: '.swiper-pagination',
-      bulletClass: 'swiper-pagination-bullet',
-      bulletActiveClass: 'swiper-pagination-bullet-active',
-      renderBullet: function (index, className) {
-        const isActive = className.includes('swiper-pagination-bullet-active');
-        const color = isActive ? design.accentColor : lightenHex(design.accentColor, 0.7);
-        return '<span class="' + className + '" style="background: ' + color + ';"></span>';
+      clickable: true,
+    },
+    breakpoints: {
+      0: {
+        slidesPerView: 1,
+        spaceBetween: 12,
+        centeredSlides: false,
+      },
+      640: {
+        slidesPerView: 1,
+        spaceBetween: 16,
+        centeredSlides: false,
+      },
+      900: {
+        slidesPerView: 2,
+        spaceBetween: 20,
+        centeredSlides: false,
+      },
+      1200: {
+        slidesPerView: 3,
+        spaceBetween: 24,
+        centeredSlides: true,
       }
     },
-    ...(design.autoAdvance ? {
-      autoplay: {
-        delay: (design.slideshowSpeed ?? 4) * 1000,
-        disableOnInteraction: false,
-      }
-    } : {})
+    autoplay: design.autoAdvance ? {
+      delay: (design.slideshowSpeed || 4) * 1000,
+      disableOnInteraction: false,
+    } : false,
   };
 
   // ... rest of the existing initialization code ...
