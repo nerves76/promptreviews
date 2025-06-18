@@ -8,9 +8,7 @@
 // - src/widget-embed/multi/dist/widget.min.css (bundled CSS)
 
 if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
-  // Add build timestamp
-  const buildTimestamp = new Date().toLocaleString();
-  console.log('Widget script starting... Build time:', buildTimestamp);
+
 
   (function() {
     console.log('IIFE starting...');
@@ -111,31 +109,9 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
                 --pr-card-shadow: 0 4px 32px rgba(34, 34, 34, 0.2) inset;
             }
 
-            /* Build timestamp */
-            .${widgetClass} .build-timestamp {
-                position: fixed;
-                bottom: 0;
-                right: 0;
-                background: rgba(0, 0, 0, 0.7);
-                color: white;
-                padding: 4px 8px;
-                font-size: 12px;
-                z-index: 9999;
-                border-top-left-radius: 4px;
-            }
 
-            /* Swiper pagination styles */
-            .${widgetClass} .swiper-pagination {
-                position: relative !important;
-                bottom: auto !important;
-                display: flex !important;
-                justify-content: center;
-                align-items: center;
-                gap: 8px;
-                margin-top: 24px;
-                width: auto !important;
-                z-index: 10;
-            }
+
+
 
             .${widgetClass} .swiper-pagination-bullet {
                 width: 8px !important;
@@ -445,12 +421,6 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
         const widgetContainer = document.createElement('div');
         widgetContainer.className = widgetClass;
         container.appendChild(widgetContainer);
-
-        // Add build timestamp
-        const timestamp = document.createElement('div');
-        timestamp.className = 'build-timestamp';
-        timestamp.textContent = `Build: ${buildTimestamp}`;
-        widgetContainer.appendChild(timestamp);
 
         // Create widget content
         const widgetContent = document.createElement('div');
