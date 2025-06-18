@@ -9,18 +9,6 @@
   padding: 2rem;
   box-sizing: border-box;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  --pr-accent-color: slateblue;
-  --pr-bg-color: white;
-  --pr-bg-opacity: 1;
-  --pr-text-color: #333333;
-  --pr-name-text-color: #111111;
-  --pr-role-text-color: #666666;
-  --pr-border-width: 2px;
-  --pr-border-color: #cccccc;
-  --pr-border-radius: 1.5rem;
-  --pr-shadow-color: #222222;
-  --pr-shadow-intensity: 0.2;
-  --pr-attribution-font-size: 14px;
 }
 
 /* Skip link for accessibility */
@@ -92,11 +80,10 @@
 
 /* Review card layout */
 .pr-review-card {
-  background: var(--pr-bg-color);
-  color: var(--pr-text-color);
-  border: var(--pr-border-width) solid var(--pr-border-color);
-  border-radius: var(--pr-border-radius);
-  box-shadow: inset 0 0 32px 0 rgba(var(--pr-shadow-color), var(--pr-shadow-intensity));
+  background: #ffffff !important;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 12px rgba(34, 34, 34, 0.08), var(--pr-card-inner-shadow);
   height: 100%;
   min-height: 200px;
   display: flex;
@@ -119,7 +106,7 @@
 .review-content {
   font-size: 14px;
   line-height: 1.6;
-  color: var(--pr-text-color);
+  color: #22223b;
   margin-bottom: 2rem;
   margin-top: 1.5rem;
   text-align: center;
@@ -171,14 +158,14 @@
 
 .reviewer-name {
   font-weight: 600;
-  color: var(--pr-name-text-color);
-  font-size: calc(var(--pr-attribution-font-size) * 0.85);
+  color: #2d2d6a;
+  font-size: 0.95rem;
   line-height: 1.3;
 }
 
 .reviewer-role {
-  color: var(--pr-role-text-color);
-  font-size: calc(var(--pr-attribution-font-size) * 0.85);
+  color: #6b7280;
+  font-size: 0.85rem;
   line-height: 1.3;
 }
 
@@ -191,9 +178,9 @@
 
 /* Desktop navigation */
 .nav-button.desktop-nav {
-  background: var(--pr-bg-color);
-  color: var(--pr-accent-color);
-  border: var(--pr-border-width) solid var(--pr-border-color);
+  background: #ffffff !important;
+  color: slateblue !important;
+  border: 1px solid #e5e7eb;
   border-radius: 50%;
   width: 48px;
   height: 48px;
@@ -218,13 +205,13 @@
 }
 
 .nav-button.desktop-nav:hover {
-  background: var(--pr-accent-color);
-  color: var(--pr-bg-color);
+  background: slateblue !important;
+  color: #ffffff !important;
   transform: translateY(-50%) scale(1.05);
 }
 
 .nav-button.desktop-nav:focus-visible {
-  outline: 2px solid var(--pr-accent-color);
+  outline: 2px solid slateblue;
   outline-offset: 2px;
 }
 
@@ -250,9 +237,9 @@
 }
 
 .nav-button.mobile-nav {
-  background: var(--pr-bg-color);
-  color: var(--pr-accent-color);
-  border: var(--pr-border-width) solid var(--pr-border-color);
+  background: #ffffff !important;
+  color: slateblue !important;
+  border: 1px solid #e5e7eb;
   border-radius: 50%;
   width: 40px;
   height: 40px;
@@ -268,13 +255,13 @@
 }
 
 .nav-button.mobile-nav:hover {
-  background: var(--pr-accent-color);
-  color: var(--pr-bg-color);
+  background: slateblue !important;
+  color: #ffffff !important;
   transform: scale(1.05);
 }
 
 .nav-button.mobile-nav:focus-visible {
-  outline: 2px solid var(--pr-accent-color);
+  outline: 2px solid slateblue;
   outline-offset: 2px;
 }
 
@@ -329,7 +316,7 @@
 }
 
 .swiper-pagination-bullet-active {
-  background: var(--pr-accent-color) !important;
+  background: slateblue !important;
   opacity: 1 !important;
   transform: scale(1.2) !important;
 }
@@ -350,27 +337,27 @@
 }
 
 .submit-review-btn {
-  background: var(--pr-bg-color);
-  color: var(--pr-accent-color);
-  border: var(--pr-border-width) solid var(--pr-border-color);
-  border-radius: var(--pr-border-radius);
+  background: #ffffff !important;
+  color: slateblue !important;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
   padding: 0.75rem 1.5rem;
   font-size: 1rem;
   font-weight: 600;
   transition: all 0.3s ease;
-  box-shadow: inset 0 0 32px 0 rgba(var(--pr-shadow-color), var(--pr-shadow-intensity));
+  box-shadow: 0 4px 12px rgba(34, 34, 34, 0.08), var(--pr-card-inner-shadow);
   cursor: pointer;
   margin-right: 1.1rem !important;
 }
 
 .submit-review-btn:hover {
-  background: var(--pr-accent-color);
-  color: var(--pr-bg-color);
+  background: slateblue !important;
+  color: #ffffff !important;
   transform: translateY(-2px);
 }
 
 .submit-review-btn:focus-visible {
-  outline: 2px solid var(--pr-accent-color);
+  outline: 2px solid slateblue;
   outline-offset: 2px;
 }
 

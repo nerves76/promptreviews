@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 import { FaCopy, FaArrowsAlt } from "react-icons/fa";
 import { getUserOrMock } from "@/utils/supabase";
@@ -170,6 +170,10 @@ export default function WidgetList({
   const [photoUploadProgress, setPhotoUploadProgress] = useState<{ [id: string]: boolean }>({});
   const [photoUploadErrors, setPhotoUploadErrors] = useState<{ [id: string]: string }>({});
 
+  // Add state for name error and input ref
+  const [nameError, setNameError] = useState("");
+  const nameInputRef = useRef<HTMLInputElement>(null);
+
   // Center edit modal after mount
   useEffect(() => {
     if (showForm) {
@@ -275,25 +279,34 @@ export default function WidgetList({
       });
   }, [showReviewModal, selectedWidget]);
 
-  // On mount, fetch widgets from Supabase
-  useEffect(() => {
-    const fetchWidgets = async () => {
-      const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      );
-      const { data, error } = await supabase
-        .from("widgets")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (error) {
-        console.error("Error fetching widgets:", error);
-      } else {
-        setWidgets(data || []);
-      }
-    };
-    fetchWidgets();
+  // Move fetchWidgets to the top level and use useCallback
+  const fetchWidgets = useCallback(async () => {
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    );
+    // Get the current user
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setWidgets([]);
+      return;
+    }
+    // Only fetch widgets for the current user
+    const { data, error } = await supabase
+      .from("widgets")
+      .select("*")
+      .eq("account_id", user.id)
+      .order("created_at", { ascending: false });
+    if (error) {
+      console.error("Error fetching widgets:", error);
+    } else {
+      setWidgets(data || []);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchWidgets();
+  }, [fetchWidgets]);
 
   const handleOpenForm = (widget?: Widget) => {
     if (widget) {
@@ -303,9 +316,13 @@ export default function WidgetList({
     } else {
       setEditing(null);
       setSelectedWidget(null);
-      setForm({ name: "New Widget", widgetType: "multi" });
+      setForm({ name: "", widgetType: "multi" });
+      setTimeout(() => {
+        nameInputRef.current?.focus();
+      }, 100);
     }
     setShowForm(true);
+    setNameError("");
   };
 
   // Update state update functions with proper types
@@ -320,18 +337,20 @@ export default function WidgetList({
       alert("You must be signed in to save a widget");
       return;
     }
-
     try {
       // Validate required fields
-      if (!form.name.trim()) {
+      if (!form.name.trim() || form.name.trim().toLowerCase() === "new widget") {
+        setNameError("Please enter a unique widget name");
+        nameInputRef.current?.focus();
         throw new Error("Widget name is required");
       }
+      setNameError("");
 
       // First try to get existing account
       let { data: accountData, error: accountError } = await supabase
         .from('accounts')
         .select('id')
-        .eq('user_id', user.id)
+        .eq('id', user.id) // CHANGED: use 'id' for accounts table
         .single();
 
       console.log("DEBUG: Existing account check:", { accountData, accountError });
@@ -341,9 +360,7 @@ export default function WidgetList({
         console.log("DEBUG: Creating new account for user:", user.id);
         const { data: newAccount, error: createError } = await supabase
           .from('accounts')
-          .insert({
-            user_id: user.id
-          })
+          .insert({ id: user.id }) // CHANGED: use 'id' for accounts table
           .select('id')
           .single();
 
@@ -356,7 +373,7 @@ export default function WidgetList({
             const { data: existingAccount } = await supabase
               .from('accounts')
               .select('id')
-              .eq('user_id', user.id)
+              .eq('id', user.id) // CHANGED: use 'id' for accounts table
               .single();
             accountData = existingAccount;
           } else {
@@ -380,24 +397,25 @@ export default function WidgetList({
           .from('widgets')
           .update({
             name: form.name.trim(),
-            design: design,
+            theme: design, // CHANGED: use 'theme' instead of 'design'
             updated_at: new Date().toISOString(),
           })
           .eq('id', selectedWidget)
-          .eq('account_id', accountId);
+          .eq('account_id', accountId); // use 'account_id' for widgets table
 
         if (updateError) {
           console.error("Error updating widget:", updateError);
           throw new Error("Failed to update widget");
         }
+        await fetchWidgets(); // Refresh after update
       } else {
         // Create new widget
         const { error: insertError } = await supabase
           .from('widgets')
           .insert({
-            account_id: accountId,
+            account_id: accountId, // use 'account_id' for widgets table
             name: form.name.trim(),
-            design: design,
+            theme: design, // CHANGED: use 'theme' instead of 'design'
             widget_type: form.widgetType || 'multi',
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
@@ -407,6 +425,7 @@ export default function WidgetList({
           console.error("Error creating widget:", insertError);
           throw new Error("Failed to create widget");
         }
+        await fetchWidgets(); // Refresh after insert
       }
 
       // Refresh widgets after save
@@ -416,8 +435,9 @@ export default function WidgetList({
       setSelectedWidget(null);
       setForm({ name: "", widgetType: "multi" });
     } catch (error: any) {
-      console.error('Error saving widget:', error);
-      alert(error.message || "An error occurred while saving the widget");
+      if (!error.message.includes("Widget name is required")) {
+        alert(error.message || "An error occurred while saving the widget");
+      }
     }
   };
 
@@ -665,8 +685,15 @@ export default function WidgetList({
   const [showEditModal, setShowEditModal] = useState(false);
   const [currentWidgetReviews, setCurrentWidgetReviews] = useState<any[]>([]);
 
-  const handleEditWidget = (widget: any) => {
-    handleOpenReviewModal(widget.id);
+  // Edit button handler: always pass the full widget object to handleOpenForm
+  const handleEditWidget = (widgetId: string) => {
+    const widget = widgets.find(w => w.id === widgetId);
+    if (widget) {
+      setEditing(widget.id);
+      setSelectedWidget(widget.id);
+      setForm({ name: widget.name, widgetType: widget.widget_type || "multi" });
+      setShowForm(true);
+    }
   };
 
   const handleDeleteWidget = async (widgetId: string) => {
@@ -718,14 +745,37 @@ export default function WidgetList({
   }, [selectedWidget]);
 
   const handleEditStyle = (widgetId: string) => {
-    console.log("[DEBUG] Opening style editor for widget:", widgetId);
+    const widget = widgets.find(w => w.id === widgetId);
+    if (widget) {
+      setForm({ name: widget.name, widgetType: widget.widget_type || "multi" });
+    }
     setSelectedWidget(widgetId);
     setShowEditModal(true);
   };
 
+  // Move handleSaveDesign inside the WidgetList component so it can access fetchWidgets
   const handleSaveDesign = async () => {
-    await handleSave();
-    setShowEditModal(false); // Optionally close the modal after saving
+    if (!selectedWidget) return;
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+    const { error } = await supabase
+      .from('widgets')
+      .update({
+        theme: design,
+        name: form.name.trim(), // Ensure the name is trimmed
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', selectedWidget);
+    if (error) {
+      console.error("Error saving design:", error);
+      alert("Failed to save design");
+      return;
+    }
+    // Refresh the widgets list to reflect changes
+    await fetchWidgets();
+    setShowEditModal(false);
   };
 
   // Update the getFilteredAndSortedReviews function to include pagination
@@ -1054,39 +1104,9 @@ export default function WidgetList({
                 <div className="py-3 px-4">
                   {/* Widget title on its own line */}
                   <div className="mb-2">
-                    {editingNameId === widget.id ? (
-                      <input
-                        type="text"
-                        value={editingNameValue}
-                        autoFocus
-                        onChange={e => setEditingNameValue(e.target.value)}
-                        onBlur={async () => {
-                          await handleSaveWidgetName(widget.id, editingNameValue);
-                          setEditingNameId(null);
-                        }}
-                        onKeyDown={async (e) => {
-                          if (e.key === 'Enter') {
-                            await handleSaveWidgetName(widget.id, editingNameValue);
-                            setEditingNameId(null);
-                          } else if (e.key === 'Escape') {
-                            setEditingNameId(null);
-                          }
-                        }}
-                        className="text-xl font-semibold text-gray-900 border-b border-indigo-300 focus:outline-none focus:border-indigo-500 bg-transparent px-1"
-                        style={{ minWidth: 80 }}
-                      />
-                    ) : (
-                      <span
-                        className="text-xl font-semibold text-gray-900 cursor-pointer hover:underline"
-                        onClick={e => {
-                          e.stopPropagation();
-                          setEditingNameId(widget.id);
-                          setEditingNameValue(widget.name);
-                        }}
-                      >
-                        {widget.name}
-                      </span>
-                    )}
+                    <span className="text-xl font-semibold text-gray-900">
+                      {widget.name}
+                    </span>
                   </div>
                   {/* Buttons and tag row */}
                   <div className="flex items-center justify-between mb-6">
@@ -1228,20 +1248,24 @@ export default function WidgetList({
             </div>
             <div className="p-4">
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Widget Name
-                  </label>
+                {/* Widget Name Section */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Widget Name</label>
                   <input
                     type="text"
                     value={form.name}
-                    onChange={(e) =>
-                      setForm((prev) => ({ ...prev, name: e.target.value }))
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                    onChange={(e) => {
+                      setForm((prev) => ({ ...prev, name: e.target.value }));
+                      setNameError("");
+                    }}
+                    className={`block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${nameError ? 'border-red-500' : 'border-gray-300'}`}
                     placeholder="Enter widget name"
+                    ref={nameInputRef}
+                    autoFocus
                   />
+                  {nameError && <div className="text-red-500 text-sm mt-1">{nameError}</div>}
                 </div>
+                {/* Widget Type Section */}
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-2">Widget Type</label>
                   <select
@@ -1267,6 +1291,7 @@ export default function WidgetList({
                 onClick={handleSave}
                 className="py-2 px-5 bg-slate-blue text-white rounded-lg font-semibold hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue transition-colors shadow mr-2"
                 style={{ minWidth: 90 }}
+                disabled={!form.name.trim() || form.name.trim().toLowerCase() === "new widget"}
               >
                 Save
               </button>
@@ -1326,39 +1351,54 @@ export default function WidgetList({
               <div className="grid grid-cols-2 gap-6">
                 {/* Left Column - Main Controls */}
                 <div className="space-y-6">
+                  {/* Widget Name Section */}
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <div className="font-semibold text-gray-700 mb-3 text-sm">Widget Name</div>
+                    <input
+                      type="text"
+                      value={form.name}
+                      onChange={(e) => {
+                        setForm((prev) => ({ ...prev, name: e.target.value }));
+                        setNameError("");
+                      }}
+                      className={`w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 ${nameError ? 'border-red-500' : ''}`}
+                      placeholder="Enter widget name"
+                      ref={nameInputRef}
+                    />
+                    {nameError && <div className="text-red-500 text-sm mt-1">{nameError}</div>}
+                  </div>
                   {/* Background Section */}
                   <div className="border border-gray-200 rounded-lg p-4">
                     <div className="font-semibold text-gray-700 mb-3 text-sm">Background</div>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
                           Section Background Type
-                    </label>
-                    <select
+                        </label>
+                        <select
                           value={design.sectionBgType || "none"}
                           onChange={(e) => handleDesignChange("sectionBgType", e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                    >
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                        >
                           <option value="none">None</option>
                           <option value="custom">Custom Color</option>
-                    </select>
-                  </div>
+                        </select>
+                      </div>
                       {design.sectionBgType === "custom" && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
                             Section Background Color
-                      </label>
-                      <input
-                        type="color"
+                          </label>
+                          <input
+                            type="color"
                             value={design.sectionBgColor || "#ffffff"}
                             onChange={(e) => handleDesignChange("sectionBgColor", e.target.value)}
-                        className="w-full h-10 rounded-md border border-gray-300"
-                      />
-                    </div>
-                  )}
+                            className="w-full h-10 rounded-md border border-gray-300"
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
-
                   {/* Border Section */}
                   <div className="border border-gray-200 rounded-lg p-4">
                     <div className="font-semibold text-gray-700 mb-3 text-sm">Border</div>
@@ -1414,17 +1454,16 @@ export default function WidgetList({
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                     />
                   </div>
-
                   {/* Text Settings */}
                   <div className="border border-gray-200 rounded-lg p-4">
                     <div className="font-semibold text-gray-700 mb-3 text-sm">Font & Colors</div>
                     <div className="space-y-4">
-                  <div>
+                      <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Font</label>
                         <select
                           value={design.font || "Inter"}
                           onChange={e => handleDesignChange("font", e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                         >
                           {fontOptions.map(font => (
                             <option key={font.name} value={font.name}>{font.name}</option>
@@ -1450,55 +1489,45 @@ export default function WidgetList({
                           value={design.accentColor || "#4F46E5"}
                           onChange={e => handleDesignChange("accentColor", e.target.value)}
                           className="w-full h-10 rounded-md border border-gray-300"
-                    />
-                  </div>
-                  <div>
+                        />
+                      </div>
+                      <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Card Background Color</label>
-                    <input
+                        <input
                           type="color"
                           value={design.bgColor || "#ffffff"}
                           onChange={e => handleDesignChange("bgColor", e.target.value)}
                           className="w-full h-10 rounded-md border border-gray-300"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Name Color</label>
-                    <input
-                      type="color"
-                      value={design.nameTextColor || "slateblue"}
-                      onChange={e => handleDesignChange("nameTextColor", e.target.value)}
-                      className="w-full h-10 rounded-md border border-gray-300"
-                    />
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-                </div>
-
                 {/* Right Column - Additional Controls */}
                 <div className="space-y-6">
                   {/* Vignette Shadow Section */}
                   <div className="border border-gray-200 rounded-lg p-4">
                     <div className="font-semibold text-gray-700 mb-3 text-sm">Vignette Shadow</div>
                     <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={design.shadow}
-                      onChange={(e) => handleDesignChange("shadow", e.target.checked)}
-                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                    />
-                    <label className="text-sm font-medium text-gray-700">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={design.shadow}
+                          onChange={(e) => handleDesignChange("shadow", e.target.checked)}
+                          className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                        />
+                        <label className="text-sm font-medium text-gray-700">
                           Show Vignette Shadow
-                    </label>
-                  </div>
+                        </label>
+                      </div>
                       {design.shadow && (
                         <>
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                               Vignette Intensity
                             </label>
-                  <div className="flex items-center gap-2">
-                    <input
+                            <div className="flex items-center gap-2">
+                              <input
                                 type="range"
                                 min={0}
                                 max={1}
@@ -1515,14 +1544,14 @@ export default function WidgetList({
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                               Vignette Color
-                    </label>
+                            </label>
                             <input
                               type="color"
                               value={design.shadowColor || "#222222"}
                               onChange={e => handleDesignChange("shadowColor", e.target.value)}
                               className="w-full h-10 rounded-md border border-gray-300"
                             />
-                  </div>
+                          </div>
                         </>
                       )}
                     </div>
@@ -1532,54 +1561,54 @@ export default function WidgetList({
                   <div className="border border-gray-200 rounded-lg p-4">
                     <div className="font-semibold text-gray-700 mb-3 text-sm">Display Options</div>
                     <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={design.showQuotes}
-                      onChange={(e) => handleDesignChange("showQuotes", e.target.checked)}
-                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                    />
-                    <label className="text-sm font-medium text-gray-700">
-                      Show Quotes
-                    </label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={design.showRelativeDate}
-                      onChange={(e) => handleDesignChange("showRelativeDate", e.target.checked)}
-                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                    />
-                    <label className="text-sm font-medium text-gray-700">
-                      Show Relative Date
-                    </label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={design.autoAdvance}
-                      onChange={(e) => handleDesignChange("autoAdvance", e.target.checked)}
-                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                    />
-                    <label className="text-sm font-medium text-gray-700">
-                      Auto Advance
-                    </label>
-                </div>
-                {design.autoAdvance && (
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={design.showQuotes}
+                          onChange={(e) => handleDesignChange("showQuotes", e.target.checked)}
+                          className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                        />
+                        <label className="text-sm font-medium text-gray-700">
+                          Show Quotes
+                        </label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={design.showRelativeDate}
+                          onChange={(e) => handleDesignChange("showRelativeDate", e.target.checked)}
+                          className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                        />
+                        <label className="text-sm font-medium text-gray-700">
+                          Show Relative Date
+                        </label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={design.autoAdvance}
+                          onChange={(e) => handleDesignChange("autoAdvance", e.target.checked)}
+                          className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                        />
+                        <label className="text-sm font-medium text-gray-700">
+                          Auto Advance
+                        </label>
+                      </div>
+                      {design.autoAdvance && (
                         <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Slideshow Speed (seconds)
-                    </label>
-                    <input
-                      type="number"
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Slideshow Speed (seconds)
+                          </label>
+                          <input
+                            type="number"
                             min={1}
                             max={10}
-                      value={design.slideshowSpeed}
-                      onChange={(e) => handleDesignChange("slideshowSpeed", parseInt(e.target.value) || 4)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                    />
-                  </div>
-                )}
+                            value={design.slideshowSpeed}
+                            onChange={(e) => handleDesignChange("slideshowSpeed", parseInt(e.target.value) || 4)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                          />
+                        </div>
+                      )}
                       <div className="flex items-center gap-2">
                         <input
                           type="checkbox"
@@ -1909,3 +1938,4 @@ export default function WidgetList({
     </div>
   );
 }
+

@@ -14,60 +14,66 @@
     <script src="widget-embed.js"></script>
     <style>
         body {
+            background: #4666e5;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
             margin: 0;
-            padding: 20px;
-            font-family: system-ui, -apple-system, sans-serif;
-            background: #ffb3b3;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
         }
         #widget-container {
+            width: 100%;
             max-width: 1200px;
             margin: 0 auto;
-        }
-        .diagnostic-message {
-            font-size: 2rem;
-            color: white;
-            background: #222;
-            padding: 1rem;
-            text-align: center;
-            margin-bottom: 2rem;
         }
     </style>
 </head>
 <body>
-    <div class="diagnostic-message">IF YOU SEE THIS HOT PINK BACKGROUND, YOU ARE VIEWING THE LATEST multi.html</div>
     <div id="widget-container"></div>
+
     <script>
-        console.log('Script starting...');
+        // Widget test data and rendering
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM Content Loaded');
             const container = document.getElementById('widget-container');
-            console.log('Container found:', container);
-            console.log('PromptReviews available:', typeof PromptReviews !== 'undefined');
             const widgetData = {
                 reviews: [
                     {
                         rating: 5,
-                        content: "This was the best experience ever. Highly recommend!",
+                        content: "This was the best experience ever. The team went above and beyond to ensure everything was perfect. Highly recommend!",
                         reviewer: {
                             name: "John Doe",
                             role: "Customer"
-                        }
+                        },
+                        date: "2024-03-15"
                     },
                     {
                         rating: 4,
-                        content: "Very satisfied with the quality and service.",
+                        content: "Very satisfied with the quality and service. The attention to detail was impressive, and the results exceeded my expectations.",
                         reviewer: {
                             name: "Jane Smith",
                             role: "Client"
-                        }
+                        },
+                        date: "2024-03-10"
                     },
                     {
                         rating: 5,
-                        content: "The customer service team was incredibly helpful.",
+                        content: "The customer service team was incredibly helpful and responsive. They made the entire process smooth and enjoyable.",
                         reviewer: {
                             name: "Mike Johnson",
                             role: "User"
-                        }
+                        },
+                        date: "2024-03-05"
+                    },
+                    {
+                        rating: 5,
+                        content: "Outstanding experience from start to finish. The team's expertise and professionalism were evident throughout.",
+                        reviewer: {
+                            name: "Sarah Williams",
+                            role: "Client"
+                        },
+                        date: "2024-03-01"
                     }
                 ],
                 design: {
@@ -75,9 +81,7 @@
                     accentHover: "#4a3f8c"
                 }
             };
-            console.log('Widget data:', widgetData);
             if (typeof PromptReviews !== 'undefined' && PromptReviews.renderMultiWidget) {
-                console.log('Calling renderMultiWidget...');
                 PromptReviews.renderMultiWidget(container, widgetData);
             } else {
                 console.error('PromptReviews or renderMultiWidget not available');

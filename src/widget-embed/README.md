@@ -1,103 +1,89 @@
-# PromptReviews Embeddable Widget System
+# Widget Embed System
 
-## Overview & Goals
-PromptReviews allows users to create, customize, and manage review widgets from their account dashboard. These widgets can be embedded on any website, enabling users to showcase reviews with pixel-perfect, customizable designs. Key goals:
+This folder contains the client-side implementation of the review widgets. These files are specifically designed for embedding reviews on external websites, not for use in the dashboard.
 
-- **Self-serve:** Users can create widgets, add/edit reviews, and change widget design from their PromptReviews account.
-- **Live updates:** Any changes made in the dashboard (reviews, design, settings) are reflected on all sites where the widget is embedded—no need to generate a new widget or update embed code.
-- **Isolation:** Widget styles and scripts are fully scoped to prevent conflicts with host pages.
-- **Simplicity:** Embedding a widget is as easy as copy-pasting a snippet.
+## Purpose
 
-## User Workflow
-1. **Create a Widget:** In the dashboard, users create a new widget (multi, single, or photo style).
-2. **Add/Edit Reviews:** Users can add, edit, or remove reviews associated with the widget. Each review can have a star rating, reviewer name, role, and content.
-3. **Customize Design:** Users can adjust design settings (colors, fonts, border radius, etc.) in the Edit Widget menu.
-4. **Embed:** Users copy the provided embed code and paste it into their website.
-5. **Live Updates:** Any changes made in the dashboard are automatically reflected in all embeds.
+The widget-embed system provides a lightweight, standalone version of the review widgets that can be embedded on any website. It's designed to be:
+- Self-contained
+- Lightweight
+- Easy to integrate
+- Independent of the dashboard
 
-## Widget Variables (Edit Widget Menu)
-- **Widget Type:** multi, single, or photo
-- **Accent Color:** Main color for highlights and navigation
-- **Card Background:** Background color of review cards
-- **Border Radius:** Card corner roundness
-- **Border Color/Width:** Card border styling
-- **Text Color:** Main review text color
-- **Reviewer Name/Role Color:** Styling for reviewer info
-- **Star Rating:** Per-review, 1–5 stars
-- **Auto-advance:** Enable/disable slideshow auto-advance
-- **Slideshow Speed:** Time between slides (if auto-advance enabled)
-- **Font:** Main font family (default: Inter)
-- **Shadow:** Card shadow intensity/color
-- **Section Background:** Widget section background color
+## Structure
 
-## Accessibility & Keyboard Navigation
-- All widgets use semantic HTML and ARIA roles for accessibility.
-- The multi widget carousel uses `role="region"` and `aria-label` for the main container, `aria-roledescription="carousel"` for Swiper, and `role="list"`/`role="listitem"` for reviews.
-- Navigation buttons have `aria-label` and are fully keyboard accessible (Tab, Enter, Space). Focus states are visible using `:focus-visible`.
-- A `.skip-link` is provided for keyboard users to jump directly to the reviews.
-- The submit review button is accessible and labeled.
-- All interactive elements are accessible by keyboard and screen reader.
-
-## File Architecture (updated)
 ```
-src/widget-embed/
-  multi/           # Multi-review widget implementation
-    widget.js      # Main vanilla JS embeddable widget logic (custom class-based, accessible)
-    MultiWidget.css# Custom CSS for multi widget (scoped, accessible, focus-visible, skip-link)
-    test.html      # Standalone test page for local development
-    ...
-  single/          # Single-review widget implementation
-  photo/           # Photo widget implementation
-  widget.css       # Source CSS for widgets (compiled by Tailwind)
-  README.md        # (this file)
+widget-embed/
+├── index.tsx           # Main entry point and initialization
+├── MultiWidget.tsx     # Multi-review carousel implementation
+├── PhotoWidget.tsx     # Photo-focused review implementation
+└── SingleWidget.tsx    # Single review implementation
 ```
-- **widget.js:** Handles rendering, data fetching, style injection, accessibility, and keyboard nav for the multi widget.
-- **MultiWidget.css:** Custom, accessible, and scoped styles for the multi widget.
-- **test.html:** Local test page for development and pixel-perfect checks.
 
-## How to Update Widgets
-1. **Edit Widget Logic/Styles:**
-   - Update `widget.js` for logic or markup changes.
-   - Update `widget.css` for style changes (use Tailwind classes where possible).
-2. **Build CSS:**
-   - Run: `npx tailwindcss -i ./src/widget-embed/widget.css -o ./public/widget.css --minify`
-   - Or: `npm run build:widget:css` (if script is in package.json)
-3. **Build Project:**
-   - Run: `npm run build` to rebuild the widget and app.
-4. **Test:**
-   - Open `src/widget-embed/multi/test.html` in your browser (e.g., http://localhost:3001/test/multi.html) to verify changes.
-5. **Deploy:**
-   - Commit and push changes, then deploy as usual.
+## Usage
 
-## How We Are Testing
-- **Local Test Pages:** Each widget type has a `test.html` for local, isolated testing.
-- **Dashboard Preview:** The dashboard uses the same widget code for live previews.
-- **Embed Simulation:** Paste the embed code into a blank HTML file to simulate real-world usage.
-- **Pixel-Perfect Checks:** Compare widget output to design references.
-- **Cross-Browser:** Test in Chrome, Firefox, Safari, and Edge.
+1. **Include the Widget Script**
+   ```html
+   <script src="https://your-domain.com/widgets/multi/widget-embed.js"></script>
+   ```
 
-## Best Practices for Embeddable Widgets (updated)
-- **Accessibility:** All widgets are accessible by keyboard and screen reader, with ARIA roles, skip links, and visible focus states.
-- **Style Isolation:** All CSS is injected into `<head>` and scoped with a unique class to prevent conflicts.
-- **No Global Leakage:** Never use unscoped selectors or global styles.
-- **No External Dependencies:** All required CSS and fonts are loaded by the widget script.
-- **Live Data:** Widget fetches latest settings and reviews from the backend using the widget ID.
-- **Backward Compatibility:** When adding new settings, always provide sensible defaults.
+2. **Initialize the Widget**
+   ```html
+   <div id="review-widget"></div>
+   <script>
+     window.ReviewWidget.init({
+       widgetId: 'your-widget-id',
+       type: 'multi', // or 'photo' or 'single'
+       container: '#review-widget'
+     });
+   </script>
+   ```
 
-## Live Update Mechanism
-- When a user edits a widget (reviews, design, etc.) and saves changes in the dashboard, the backend updates the widget config.
-- The embeddable widget script always fetches the latest config and reviews using the widget ID, so changes are reflected instantly on all sites.
-- No need to re-embed or update the script after making changes in the dashboard.
+## Implementation Details
 
-## Troubleshooting
-- **Widget not updating?**
-  - Clear browser cache or use a private window.
-  - Ensure the widget ID in the embed code matches the one in your dashboard.
-  - Check browser console for errors.
-- **Style issues?**
-  - Make sure all CSS is properly scoped and injected into `<head>`.
-  - Test in an isolated HTML file to rule out host page conflicts.
+1. **Widget Types**
+   - `multi`: Carousel of multiple reviews
+   - `photo`: Grid of photo reviews
+   - `single`: Single featured review
 
----
+2. **Design Customization**
+   - Colors
+   - Typography
+   - Layout
+   - All settings are managed through the dashboard
 
-For more details, see the main project README and the dashboard widget README. 
+3. **Data Flow**
+   - Widgets fetch data from the API
+   - Updates are pushed through WebSocket
+   - Caching is handled automatically
+
+## Development Notes
+
+1. **Keep it Lightweight**
+   - Minimize dependencies
+   - Use vanilla JavaScript where possible
+   - Avoid framework-specific code
+
+2. **Browser Compatibility**
+   - Support modern browsers
+   - Graceful degradation
+   - Mobile-friendly
+
+3. **Performance**
+   - Lazy load images
+   - Minimize DOM operations
+   - Cache API responses
+
+4. **Security**
+   - Sanitize all data
+   - Validate inputs
+   - Use HTTPS
+
+## Important Notes
+
+1. This folder is separate from the dashboard implementation
+2. Changes here don't affect the dashboard
+3. Keep widget-specific code in the dashboard components
+4. This is for client-side embedding only
+
+Last updated: March 19, 2024 

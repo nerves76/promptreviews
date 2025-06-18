@@ -57,7 +57,8 @@ export type ReviewSubmission = {
   user_agent: string | null;
   ip_address: string | null;
   created_at: string;
-  reviewer_name: string;
+  first_name: string;
+  last_name: string;
   reviewer_role: string | null;
   review_content: string | null;
   review_group_id: string;
