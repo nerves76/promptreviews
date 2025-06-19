@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Widget Test - Mobile Navigation</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+        }
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .widget-test-area {
+            min-height: 400px;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .responsive-test {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .test-button {
+            padding: 8px 16px;
+            background: #2196f3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .test-button:hover {
+            background: #1976d2;
+        }
+        .current-size {
+            background: #4caf50;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Widget Mobile Navigation Test</h1>
+        
+        <div class="test-info">
+            <h3>Test Instructions:</h3>
+            <ul>
+                <li>Resize your browser window to test different screen sizes</li>
+                <li>On mobile/tablet: Navigation buttons should appear below the carousel</li>
+                <li>On desktop: Navigation buttons should appear on the sides</li>
+                <li>Check that buttons are properly aligned and not pushed out of view</li>
+            </ul>
+        </div>
+
+        <div class="responsive-test">
+            <span class="current-size" id="current-size">Current: Desktop</span>
+            <button class="test-button" onclick="resizeTo(375, 667)">Mobile (375px)</button>
+            <button class="test-button" onclick="resizeTo(768, 1024)">Tablet (768px)</button>
+            <button class="test-button" onclick="resizeTo(1200, 800)">Desktop (1200px)</button>
+            <button class="test-button" onclick="resizeTo(1920, 1080)">Large Desktop (1920px)</button>
+        </div>
+
+        <div class="widget-test-area" id="widget-container">
+            <!-- Widget will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Load Swiper CSS and JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    
+    <!-- Load our widget -->
+    <link rel="stylesheet" href="widget-embed.css" />
+    <script src="widget-embed.js"></script>
+
+    <script>
+        // Sample data for testing
+        const testData = {
+            reviews: [
+                {
+                    content: "This is an amazing product! I've been using it for months and it has completely transformed my workflow. The customer service is outstanding and the quality is top-notch.",
+                    name: "Sarah Johnson",
+                    role: "Marketing Manager",
+                    rating: 5,
+                    date: "2024-01-15"
+                },
+                {
+                    content: "Excellent service and great value for money. The team was very responsive and helped me with all my questions. Highly recommend!",
+                    name: "Michael Chen",
+                    role: "Business Owner",
+                    rating: 5,
+                    date: "2024-01-10"
+                },
+                {
+                    content: "Outstanding experience from start to finish. The product exceeded my expectations and the support team was incredibly helpful.",
+                    name: "Emily Rodriguez",
+                    role: "Product Manager",
+                    rating: 5,
+                    date: "2024-01-05"
+                },
+                {
+                    content: "Great product with excellent features. The interface is intuitive and the performance is outstanding. Will definitely use again!",
+                    name: "David Thompson",
+                    role: "Software Engineer",
+                    rating: 5,
+                    date: "2024-01-01"
+                }
+            ],
+            design: {
+                accentColor: "#6a5acd",
+                bgColor: "#ffffff",
+                textColor: "#22223b",
+                nameTextColor: "#111111",
+                roleTextColor: "#666666",
+                borderWidth: 2,
+                borderColor: "#cccccc",
+                borderRadius: 16,
+                shadowIntensity: 0.2,
+                shadowColor: "#222222",
+                font: "Inter",
+                showSubmitReviewButton: true
+            }
+        };
+
+        // Function to resize window for testing
+        function resizeTo(width, height) {
+            window.resizeTo(width, height);
+            updateCurrentSize();
+        }
+
+        // Update current size display
+        function updateCurrentSize() {
+            const width = window.innerWidth;
+            let size = "Desktop";
+            if (width <= 900) size = "Mobile/Tablet";
+            if (width <= 480) size = "Mobile";
+            
+            document.getElementById('current-size').textContent = `Current: ${size} (${width}px)`;
+        }
+
+        // Initialize widget when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            updateCurrentSize();
+            
+            // Wait a bit for scripts to load
+            setTimeout(() => {
+                if (window.PromptReviews && window.PromptReviews.renderMultiWidget) {
+                    const container = document.getElementById('widget-container');
+                    window.PromptReviews.renderMultiWidget(container, testData);
+                } else {
+                    console.error('Widget not loaded');
+                    document.getElementById('widget-container').innerHTML = 
+                        '<div style="color: red; text-align: center; padding: 40px;">Widget failed to load. Check console for errors.</div>';
+                }
+            }, 1000);
+        });
+
+        // Update size display on window resize
+        window.addEventListener('resize', updateCurrentSize);
+    </script>
+</body>
+</html> 

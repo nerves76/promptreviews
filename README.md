@@ -232,3 +232,160 @@ public/
 - This fix resolves the issue and improves reliability of the live preview.
 
 Last updated: March 19, 2024 
+
+## Recent Updates
+
+### Widget Mobile & Tablet Navigation Fixes (Latest)
+
+**Date:** January 2025
+
+**Issues Fixed:**
+- Mobile and tablet navigation buttons were not aligning correctly
+- Desktop navigation buttons were being pushed out of view on smaller screens
+- Navigation structure was duplicated causing layout conflicts
+- Breakpoint logic wasn't properly aligned with CSS media queries
+
+**Changes Made:**
+
+1. **JavaScript Structure (`public/widgets/multi/widget-embed.js`):**
+   - Restructured navigation element creation to prevent duplication
+   - Separated desktop and mobile navigation with clear class names
+   - Fixed Swiper configuration to properly target navigation elements
+   - Removed debug code and cleaned up implementation
+   - Added proper pagination targeting for different screen sizes
+
+2. **CSS Layout (`public/widgets/multi/widget-embed.css`):**
+   - Added proper container padding to accommodate desktop navigation buttons
+   - Fixed mobile navigation row layout and positioning
+   - Improved responsive behavior across all breakpoints
+   - Updated media queries to properly hide/show navigation elements
+   - Fixed button positioning to prevent overflow issues
+
+3. **Responsive Behavior:**
+   - **Mobile (≤900px):** Navigation buttons appear below carousel in a centered row
+   - **Tablet (901px-1200px):** Desktop navigation with adjusted positioning
+   - **Desktop (>1200px):** Full desktop navigation with side buttons
+
+**Testing:**
+- Created test file `public/widgets/multi/test.html` for easy testing
+- Test covers mobile (375px), tablet (768px), desktop (1200px), and large desktop (1920px)
+- Navigation buttons now properly align and remain visible on all screen sizes
+
+## Features
+
+### Core Functionality
+- **Review Collection:** AI-powered review request generation
+- **Widget System:** Customizable embeddable review widgets
+- **Business Management:** Complete business profile and review management
+- **Analytics:** Review performance tracking and insights
+
+### Widget Types
+- **Multi Widget:** Carousel-style review display with Swiper.js
+- **Single Widget:** Individual review showcase
+- **Photo Widget:** Review display with customer photos
+
+### Technical Stack
+- **Frontend:** Next.js 14, React, TypeScript, Tailwind CSS
+- **Backend:** Supabase (Database, Auth, Storage)
+- **AI:** OpenAI GPT-4 for review generation
+- **Payments:** Stripe integration
+- **Email:** Resend for transactional emails
+
+## Development
+
+### Prerequisites
+- Node.js 18+
+- npm or yarn
+- Supabase account
+- Stripe account (for payments)
+- Resend account (for emails)
+
+### Environment Setup
+```bash
+# Clone the repository
+git clone <repository-url>
+cd promptreviews
+
+# Install dependencies
+npm install
+
+# Set up environment variables
+cp .env.example .env.local
+# Edit .env.local with your API keys
+
+# Run development server
+npm run dev
+```
+
+### Environment Variables
+```env
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+
+# Stripe
+STRIPE_SECRET_KEY=your_stripe_secret_key
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
+STRIPE_WEBHOOK_SECRET=your_webhook_secret
+
+# Resend
+RESEND_API_KEY=your_resend_api_key
+
+# OpenAI
+OPENAI_API_KEY=your_openai_api_key
+```
+
+### Widget Development
+The widget system is built with vanilla JavaScript for maximum compatibility:
+
+```bash
+# Widget files location
+public/widgets/multi/
+├── widget-embed.js    # Main widget JavaScript
+├── widget-embed.css   # Widget styles
+├── test.html         # Test file for development
+└── multi.html        # Example implementation
+```
+
+**Testing Widget Changes:**
+1. Open `public/widgets/multi/test.html` in your browser
+2. Use the responsive test buttons to check different screen sizes
+3. Verify navigation buttons align correctly on mobile and tablet
+4. Check that desktop navigation doesn't overflow
+
+### Database Schema
+See `databaseschema.md` for complete database structure.
+
+### Key Files
+- `src/app/dashboard/widget/page.tsx` - Widget management interface
+- `public/widgets/multi/widget-embed.js` - Main widget JavaScript
+- `public/widgets/multi/widget-embed.css` - Widget styles
+- `src/app/api/widgets/[id]/route.ts` - Widget API endpoints
+
+## Deployment
+
+### Vercel (Recommended)
+```bash
+# Deploy to Vercel
+vercel --prod
+```
+
+### Environment Variables
+Ensure all environment variables are set in your deployment platform.
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly, especially widget responsiveness
+5. Submit a pull request
+
+## Support
+
+For support or questions, please contact the development team.
+
+---
+
+**Note:** This project uses a toggle script for environment variables. Run `./toggle-supabase-keys.sh` to switch between development and production keys. 

@@ -46,19 +46,19 @@
 
 /* Widget carousel container for layout */
 .widget-carousel-container {
+  position: relative;
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 2rem;
-  position: relative;
-  box-sizing: border-box;
+  overflow: visible;
+  padding: 0 4rem; /* Add padding to accommodate desktop navigation buttons */
 }
 
 .swiper {
   width: 100%;
   max-width: 1000px;
   margin: 0 auto;
-  padding: 1rem 2rem;
+  padding: 1rem 0;
   position: relative !important;
   margin-bottom: 3rem;
 }
@@ -82,7 +82,7 @@
 /* Review card layout */
 .pr-review-card {
   background: #ffffff !important;
-  border-radius: 16px;
+  border-radius: 16px !important;
   padding: 2rem;
   box-shadow: 0 4px 12px rgba(34, 34, 34, 0.08), var(--pr-card-inner-shadow);
   height: 100%;
@@ -99,6 +99,7 @@
   margin: 0 0.5rem;
   box-sizing: border-box;
   z-index: 1;
+  overflow: visible !important;
 }
 
 .pr-review-card:hover {
@@ -211,11 +212,11 @@
 }
 
 .nav-button.desktop-nav.swiper-button-prev {
-  left: -24px;
+  left: -2rem;
 }
 
 .nav-button.desktop-nav.swiper-button-next {
-  right: -24px;
+  right: -2rem;
 }
 
 .nav-button.desktop-nav:focus-visible {
@@ -225,27 +226,25 @@
 
 /* Mobile navigation */
 .mobile-nav-row {
-  display: flex !important;
-  flex-direction: row;
+  display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   width: 100%;
-  max-width: 320px;
-  margin: 0 auto;
-  margin-top: 2rem;
-  margin-bottom: 1rem;
-  position: relative;
-  top: 0;
+  max-width: 400px;
+  margin: 1.5rem auto 0 auto;
+  gap: 1rem;
 }
 
 .nav-button.mobile-nav {
+  flex-shrink: 0;
+  min-width: 40px;
+  width: 40px;
+  max-width: 48px;
   display: flex;
   background: #ffffff !important;
   color: slateblue !important;
   border: 1px solid #e5e7eb;
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
   align-items: center;
   justify-content: center;
   cursor: pointer;
@@ -253,7 +252,7 @@
   box-shadow: 0 4px 12px rgba(34, 34, 34, 0.08);
   position: static;
   transform: none;
-  margin: 0 2px;
+  margin: 0;
 }
 
 .nav-button.mobile-nav:hover {
@@ -285,11 +284,14 @@
   width: 100% !important;
   height: 20px !important;
   z-index: 10 !important;
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: visible;
 }
 
 /* Desktop pagination */
 .desktop-pagination {
-  margin-top: -1.1rem !important;
+  margin-top: 2rem !important;
   display: flex !important;
   visibility: visible !important;
   opacity: 1 !important;
@@ -297,7 +299,7 @@
 
 /* Mobile pagination */
 .mobile-pagination {
-  margin-top: -0.5rem !important;
+  margin-top: 0 !important;
   width: auto !important;
   flex: 1 1 0%;
   display: flex !important;
@@ -363,70 +365,84 @@
   outline-offset: 2px;
 }
 
+/* Mobile and Tablet Styles */
 @media (max-width: 900px) {
-  .nav-button.desktop-nav {
-    display: none !important;
+  /* Synchronize all widget elements to same width and centering */
+  .widget-carousel-container {
+    max-width: 400px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 1rem; /* Reduce padding for mobile */
   }
+  
+  .swiper {
+    padding: 1rem 0;
+    margin: 0;
+    margin-bottom: 2rem;
+    max-width: 400px;
+    width: 100%;
+  }
+  
+  .pr-review-card {
+    max-width: 400px;
+    width: 100%;
+    margin: 0 auto;
+  }
+  
+  /* Robust nav row layout */
   .mobile-nav-row {
     display: flex !important;
     flex-direction: row;
     align-items: center;
-    justify-content: center;
-    gap: 0;
-    margin-top: 1.25rem;
-    width: 100%;
-    position: static;
-    top: auto;
-  }
-  .mobile-nav-row .nav-button.mobile-nav {
-    margin: 0 2px;
-  }
-  .mobile-nav-row .swiper-pagination {
-    margin: 0 1rem !important;
-    align-self: center;
-  }
-  .swiper-pagination {
-    margin-top: 0 !important;
-    margin-bottom: 0 !important;
-    position: static !important;
-  }
-  .pr-review-card {
+    justify-content: space-between;
+    min-width: 0;
+    flex-wrap: nowrap;
+    overflow: visible;
     max-width: 400px;
-    width: 90vw;
-    margin: 0 auto;
+    width: 100%;
+    margin: 1.5rem auto 0 auto;
   }
-  .widget-carousel-container {
-    padding: 0 1rem;
+  
+  .swiper-pagination.mobile-pagination {
+    flex: 1 1 0;
+    min-width: 0;
+    width: auto;
+    margin: 0 1rem !important;
   }
-  .swiper {
-    padding: 1rem 1vw;
-    margin: 0 -1vw;
-    margin-bottom: 3.5rem;
+  
+  .nav-button.mobile-nav {
+    flex: 0 0 40px;
+    min-width: 40px;
+    max-width: 48px;
+    width: 40px;
+    margin: 0;
   }
-  .pr-review-card {
-    margin: 0 1vw;
-    min-width: 300px;
-  }
+  
   .submit-review-row {
-    justify-content: center;
+    max-width: 400px;
     width: 100%;
     margin: 1.5rem auto 0 auto !important;
-    border: 2px dashed orange;
+    justify-content: center;
+    display: flex;
+    overflow: visible;
   }
-  .submit-review-btn {
-    margin-right: 0 !important;
+  
+  .nav-button.desktop-nav {
+    display: none !important;
   }
+  
   .desktop-pagination {
     display: none !important;
   }
+  
   .mobile-pagination {
     display: flex !important;
     visibility: visible !important;
     opacity: 1 !important;
-    margin-top: calc(1rem + 15px) !important;
   }
-  .swiper-pagination {
-    margin-top: calc(1rem + 15px) !important;
+  
+  .submit-review-btn {
+    margin-right: 0 !important;
   }
 }
 
@@ -434,22 +450,31 @@
   .widget-nav-row {
     display: none !important;
   }
+  
   .nav-button.mobile-nav {
     display: none !important;
   }
+  
+  .mobile-nav-row {
+    display: none !important;
+  }
+  
   .desktop-nav {
     display: flex !important;
   }
+  
   .desktop-pagination {
     display: flex !important;
     visibility: visible !important;
     opacity: 1 !important;
   }
+  
   .mobile-pagination {
     display: none !important;
   }
+  
   .submit-review-row {
-    margin-top: -1.25rem !important;
+    margin-top: 0 !important;
     margin-right: 0 !important;
   }
 }
@@ -457,21 +482,30 @@
 @media (max-width: 480px) {
   .mobile-nav-row {
     margin-top: 1.5rem;
+    gap: 0.5rem;
   }
+  
   .pr-review-card {
     margin: 0 0.5rem;
+  }
+  
+  .widget-carousel-container {
+    padding: 0 0.5rem;
   }
 }
 
 @media (max-width: 1200px) {
   .widget-carousel-container {
     max-width: 1000px;
+    padding: 0 3rem; /* Adjust padding for medium screens */
   }
-  .swiper-nav-abs {
-    left: -40px;
+  
+  .nav-button.desktop-nav.swiper-button-prev {
+    left: -1.5rem;
   }
-  .swiper-nav-abs.right {
-    right: -40px;
+  
+  .nav-button.desktop-nav.swiper-button-next {
+    right: -1.5rem;
   }
 }
 
@@ -498,6 +532,7 @@ body, .pr-widget-section-bg {
   cursor: pointer;
   transition: background-color 0.3s;
 }
+
 .swiper-button-next:hover,
 .swiper-button-prev:hover {
   background: var(--accent-color-hover, #4a3f8c) !important;
@@ -524,6 +559,7 @@ body, .pr-widget-section-bg {
 .swiper-button-prev svg {
   transform: translateX(-2px);
 }
+
 .swiper-button-next svg {
   transform: translateX(2px);
 }
