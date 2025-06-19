@@ -257,7 +257,7 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
             .${widgetClass} .submit-review-row {
                 display: flex;
                 justify-content: flex-end;
-                margin-top: 0;
+                margin-top: 2rem;
             }
 
             .${widgetClass} .submit-review-btn {
@@ -279,7 +279,10 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
             /* Pagination */
             .${widgetClass} .swiper-pagination {
                 position: relative;
-                margin-top: 4rem;
+                margin-top: 2rem;
+                display: flex;
+                justify-content: center;
+                align-items: center;
             }
 
             .${widgetClass} .swiper-pagination-bullet {
@@ -327,6 +330,46 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
                 color: #fff;
             }
 
+            /* Mobile Navigation Row */
+            .${widgetClass} .mobile-nav-row {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+                width: 100%;
+                max-width: 400px;
+                margin: 2rem auto 0;
+                padding: 0 1rem;
+                min-width: 0;
+                flex-wrap: nowrap;
+                overflow: visible;
+            }
+
+            .${widgetClass} .mobile-nav-row .swiper-pagination {
+                flex: 1 1 0;
+                min-width: 0;
+                width: auto;
+                margin: 0;
+                justify-content: center;
+            }
+
+            .${widgetClass} .nav-button.mobile-nav {
+                flex: 0 0 40px;
+                min-width: 40px;
+                max-width: 48px;
+                width: 40px;
+                height: 40px;
+                position: relative;
+                top: auto;
+                transform: none;
+                right: auto;
+                left: auto;
+                margin: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
             /* Responsive Styles */
             @media (max-width: 768px) {
                 .${widgetClass} .widget-carousel-container {
@@ -341,17 +384,60 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
                     font-size: 1rem;
                 }
 
-                .${widgetClass} .swiper-button-next,
-                .${widgetClass} .swiper-button-prev {
+                .${widgetClass} .swiper-button-next.desktop-nav,
+                .${widgetClass} .swiper-button-prev.desktop-nav {
                     display: none;
+                }
+
+                /* Mobile Layout Synchronization */
+                .${widgetClass} .widget-carousel-container,
+                .${widgetClass} .swiper,
+                .${widgetClass} .pr-review-card,
+                .${widgetClass} .mobile-nav-row {
+                    max-width: 400px;
+                    width: 100%;
+                    margin-left: auto;
+                    margin-right: auto;
+                }
+
+                .${widgetClass} .pr-review-card {
+                    min-width: 320px;
+                    max-width: 400px;
                 }
             }
 
             @media (max-width: 900px) {
                 .${widgetClass} .pr-review-card {
-                    min-width: 90vw;
-                    max-width: 98vw;
+                    min-width: 320px;
+                    max-width: 400px;
                     width: 100%;
+                }
+
+                .${widgetClass} .widget-carousel-container {
+                    max-width: 400px;
+                }
+
+                .${widgetClass} .swiper {
+                    max-width: 400px;
+                }
+            }
+
+            @media (max-width: 400px) {
+                .${widgetClass} .widget-carousel-container,
+                .${widgetClass} .swiper,
+                .${widgetClass} .pr-review-card,
+                .${widgetClass} .mobile-nav-row {
+                    max-width: 100%;
+                    width: 100%;
+                }
+
+                .${widgetClass} .pr-review-card {
+                    min-width: 280px;
+                    max-width: 100%;
+                }
+
+                .${widgetClass} .mobile-nav-row {
+                    padding: 0 0.5rem;
                 }
             }
         `;
@@ -388,7 +474,7 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
                 widgetContainer.appendChild(widgetContent);
 
                 // Create carousel container
-                const carouselContainer = document.createElement('div');
+                let carouselContainer = document.createElement('div');
                 carouselContainer.className = 'widget-carousel-container';
                 widgetContent.appendChild(carouselContainer);
 
@@ -402,12 +488,12 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
                 swiperWrapper.className = 'swiper-wrapper';
                 swiperContainer.appendChild(swiperWrapper);
 
-                // Create desktop pagination
-                const desktopPagination = document.createElement('div');
-                desktopPagination.className = 'swiper-pagination desktop-pagination';
-                swiperContainer.appendChild(desktopPagination);
+                // Create pagination for desktop
+                const pagination = document.createElement('div');
+                pagination.className = 'swiper-pagination';
+                swiperContainer.appendChild(pagination);
 
-                // Create desktop navigation buttons
+                // Create navigation buttons for desktop
                 const prevButton = document.createElement('div');
                 prevButton.className = 'swiper-button-prev nav-button desktop-nav';
                 prevButton.setAttribute('aria-label', 'Previous');
@@ -418,33 +504,29 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
                 nextButton.setAttribute('aria-label', 'Next');
                 nextButton.innerHTML = '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 4L12 10L7 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
-                // Add desktop navigation buttons to carousel container
+                // Desktop: arrows beside cards, vertically centered
                 carouselContainer.appendChild(prevButton);
                 carouselContainer.appendChild(nextButton);
 
-                // Create mobile navigation row
-                const mobileNavRow = document.createElement('div');
-                mobileNavRow.className = 'mobile-nav-row';
-                
+                // Mobile: arrows and dots in a row (positioned within carousel container)
+                const navRow = document.createElement('div');
+                navRow.className = 'mobile-nav-row';
                 const prevMobile = document.createElement('div');
                 prevMobile.className = 'swiper-button-prev nav-button mobile-nav';
                 prevMobile.setAttribute('aria-label', 'Previous');
                 prevMobile.innerHTML = '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 16L8 10L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-                
                 const nextMobile = document.createElement('div');
                 nextMobile.className = 'swiper-button-next nav-button mobile-nav';
                 nextMobile.setAttribute('aria-label', 'Next');
                 nextMobile.innerHTML = '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 4L12 10L7 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-                
                 const mobilePagination = document.createElement('div');
-                mobilePagination.className = 'swiper-pagination mobile-pagination';
-                
-                mobileNavRow.appendChild(prevMobile);
-                mobileNavRow.appendChild(mobilePagination);
-                mobileNavRow.appendChild(nextMobile);
-                widgetContent.appendChild(mobileNavRow);
+                mobilePagination.className = 'swiper-pagination';
+                navRow.appendChild(prevMobile);
+                navRow.appendChild(mobilePagination);
+                navRow.appendChild(nextMobile);
+                carouselContainer.appendChild(navRow);
 
-                // Create submit review row
+                // Submit review row (positioned after carousel container)
                 const submitRow = document.createElement('div');
                 submitRow.className = 'submit-review-row';
                 const submitButton = document.createElement('button');
@@ -531,7 +613,6 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
                 // Find the current, visible widget container
                 const liveWidgetContainer = carouselContainer.closest('.widget-container') || widgetContainer;
                 console.log('Setting CSS variables on element:', liveWidgetContainer, 'classList:', liveWidgetContainer.classList);
-                
                 // Set CSS variables from design (after CSS injection)
                 if (widgetData.design) {
                   const d = widgetData.design;
@@ -562,6 +643,14 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
                   }
                 }
 
+                // Ensure we have a valid Swiper container element
+                // Use the already declared carouselContainer if it exists, otherwise assign
+                carouselContainer = widgetContainer.querySelector('.swiper');
+                console.log('carouselContainer:', carouselContainer);
+                if (!carouselContainer) {
+                  console.error('Swiper container not found!');
+                  return;
+                }
                 // Swiper navigation config
                 const swiperOptions = {
                   slidesPerView: 1,
@@ -598,7 +687,7 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
                         prevEl: '.swiper-button-prev.nav-button.desktop-nav',
                       },
                       pagination: {
-                        el: '.swiper-pagination.desktop-pagination',
+                        el: '.swiper-pagination',
                         clickable: true,
                         bulletClass: 'swiper-pagination-bullet',
                         bulletActiveClass: 'swiper-pagination-bullet-active',
@@ -616,7 +705,7 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
                         prevEl: '.swiper-button-prev.nav-button.desktop-nav',
                       },
                       pagination: {
-                        el: '.swiper-pagination.desktop-pagination',
+                        el: '.swiper-pagination',
                         clickable: true,
                         bulletClass: 'swiper-pagination-bullet',
                         bulletActiveClass: 'swiper-pagination-bullet-active',
@@ -632,7 +721,7 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
                   } : false,
                 };
 
-                const swiper = new Swiper(swiperContainer, swiperOptions);
+                const swiper = new Swiper(carouselContainer, swiperOptions);
 
                 // Add error handling for Swiper initialization
                 if (!swiper) {
