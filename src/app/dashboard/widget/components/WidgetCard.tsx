@@ -76,7 +76,7 @@ export function WidgetCard({
             ) : (
               <>
                 <DocumentDuplicateIcon className="w-4 h-4" />
-                <span>Copy</span>
+                <span>Embed</span>
               </>
             )}
           </button>
@@ -117,25 +117,27 @@ export function WidgetCard({
             <ChatBubbleLeftIcon className="w-4 h-4" />
             <span>Reviews</span>
           </button>
-          
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete();
-            }}
-            className="px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center gap-1.5"
-            title="Delete Widget"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-            <span>Delete</span>
-          </button>
         </div>
       </div>
       
-      {/* Select Button */}
-      <div className="flex justify-end items-center mt-auto pt-4 min-h-[56px]">
+      {/* Footer Buttons */}
+      <div className="flex justify-between items-center mt-auto pt-4 min-h-[56px]">
+        {/* Delete Button */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
+          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center gap-1.5"
+          title="Delete Widget"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+          <span>Delete</span>
+        </button>
+
+        {/* Select Button */}
         <button
           onClick={onSelect}
           className={`w-40 h-10 px-4 py-2 rounded-lg font-semibold text-sm transition-colors flex items-center justify-center border-2 ${
