@@ -50,6 +50,10 @@ type DesignState = {
   showSubmitReviewButton: boolean;
 };
 
+interface WidgetContainer extends HTMLDivElement {
+  _cleanup?: () => void;
+}
+
 // Error boundary component
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -136,7 +140,8 @@ export default function WidgetPage() {
   const [loading, setLoading] = useState(true);
   const [widgets, setWidgets] = useState<any[]>([]);
   const [universalPromptSlug, setUniversalPromptSlug] = useState<string | null>(null);
-  const previewContainerRef = useRef<HTMLDivElement>(null);
+  const previewContainerRef = useRef<WidgetContainer>(null);
+  const [widgetVersion, setWidgetVersion] = useState(1);
 
   // Add refs to track script load state
   const swiperLoadedRef = useRef(false);
@@ -360,7 +365,6 @@ export default function WidgetPage() {
       // Cleanup scripts and CSS on unmount
       return () => {
         swiperCSS.remove();
-        widgetCSS.remove();
         swiperLoadedRef.current = false;
         widgetScriptLoadedRef.current = false;
       };
@@ -423,32 +427,110 @@ export default function WidgetPage() {
         widgetContainer.innerHTML = '<div class="text-center text-gray-400 py-12">No reviews to display.</div>';
         return;
       }
-      // Log the design object before rendering
-      console.log('Calling renderMultiWidget with design:', design);
+
       // Wait for next tick to ensure DOM is updated
-      requestAnimationFrame(() => {
-        try {
-          window.PromptReviews.renderMultiWidget(widgetContainer, {
-            ...selectedWidget,
-            design,
-            reviews: mappedReviews,
-            universalPromptSlug
-          });
-        } catch (error: unknown) {
-          console.error('Error rendering widget:', error);
-          widgetContainer.innerHTML = `
-            <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
-              <h3 class="text-red-800 font-semibold">Widget Error</h3>
-              <p class="text-red-600 text-sm mt-2">${error instanceof Error ? error.message : 'An unknown error occurred'}</p>
-            </div>
-          `;
-        }
-      });
+      try {
+        window.PromptReviews.renderMultiWidget(widgetContainer, {
+          ...selectedWidget,
+          design,
+          reviews: mappedReviews,
+          businessSlug: universalPromptSlug
+        });
+      } catch (error: unknown) {
+        console.error('Error rendering widget:', error);
+        widgetContainer.innerHTML = `
+          <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
+            <h3 class="text-red-800 font-semibold">Widget Error</h3>
+            <p class="text-red-600 text-sm mt-2">${error instanceof Error ? error.message : 'An unknown error occurred'}</p>
+          </div>
+        `;
+      }
     }
 
     // For design/review changes, just re-render the widget
     // (scripts are only loaded once)
   }, [selectedWidget, design, reviews, universalPromptSlug]);
+
+  // This effect handles the rendering of the multi-widget preview
+  useEffect(() => {
+    console.log("Multi-widget render effect triggered. WidgetVersion:", widgetVersion);
+    if (selectedWidget?.widget_type !== 'multi' || !previewContainerRef.current) {
+      console.log("Condition not met, aborting render.");
+      return;
+    }
+
+    const container = previewContainerRef.current;
+    
+    // Ensure container is empty before rendering
+    if (container) {
+      container.innerHTML = '';
+    }
+
+    let isCancelled = false;
+    
+    console.log("Proceeding with widget render...");
+
+    // Dynamically load the widget script
+    const scriptId = 'multi-widget-script';
+    let script = document.getElementById(scriptId) as HTMLScriptElement;
+    
+    const onScriptLoad = () => {
+      if (isCancelled) return;
+      console.log("Widget script loaded/exists.");
+
+      if (window.PromptReviews && typeof window.PromptReviews.renderMultiWidget === 'function') {
+        console.log("renderMultiWidget function found. Preparing data...");
+        const widgetData = {
+          reviews: reviews.map(r => ({
+            content: r.review_content,
+            name: r.first_name ? `${r.first_name} ${r.last_name || ''}`.trim() : r.reviewer_name,
+            role: r.reviewer_role,
+            date: r.created_at,
+            rating: r.star_rating
+          })),
+          design: { ...design },
+          businessSlug: universalPromptSlug
+        };
+        console.log("Calling renderMultiWidget with data:", widgetData);
+        window.PromptReviews.renderMultiWidget(container, widgetData);
+        console.log("renderMultiWidget called.");
+      } else {
+        console.error('renderMultiWidget function not found on window.PromptReviews after script load.');
+      }
+    };
+
+    if (!script) {
+      console.log("Script not found, creating new script element.");
+      script = document.createElement('script');
+      script.id = scriptId;
+      // Add a cache-busting query parameter using the widgetVersion
+      script.src = `/widgets/multi/widget-embed.js?v=${widgetVersion}`;
+      script.async = true;
+      script.onload = onScriptLoad;
+      script.onerror = () => console.error('Failed to load multi-widget script.');
+      document.body.appendChild(script);
+    } else {
+      console.log("Script found, reloading.");
+      // If script exists, remove and re-add to force re-execution
+      script.remove();
+      const newScript = document.createElement('script');
+      newScript.id = scriptId;
+      newScript.src = `/widgets/multi/widget-embed.js?v=${widgetVersion}`;
+      newScript.async = true;
+      newScript.onload = onScriptLoad;
+      newScript.onerror = () => console.error('Failed to re-load multi-widget script.');
+      document.body.appendChild(newScript);
+    }
+
+    return () => {
+      isCancelled = true;
+      console.log("Cleanup function for multi-widget effect.");
+      if (container && typeof container._cleanup === 'function') {
+        console.log("Calling container-specific cleanup.");
+        container._cleanup();
+      }
+    };
+  }, [selectedWidget, reviews, design, universalPromptSlug, widgetVersion]);
 
   const renderWidgetPreview = () => {
     if (!selectedWidget || !reviews.length) return null;

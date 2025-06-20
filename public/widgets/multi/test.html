@@ -31,6 +31,7 @@
             border-radius: 8px;
             padding: 20px;
             margin: 20px 0;
+            overflow: hidden;
         }
         .responsive-test {
             display: flex;
@@ -56,6 +57,20 @@
             border-radius: 4px;
             font-weight: bold;
         }
+        
+        /* Responsive simulation styles */
+        .mobile-view .test-container {
+            max-width: 375px;
+        }
+        .tablet-view .test-container {
+            max-width: 768px;
+        }
+        .desktop-view .test-container {
+            max-width: 1200px;
+        }
+        .large-desktop-view .test-container {
+            max-width: 1920px;
+        }
     </style>
 </head>
 <body>
@@ -65,19 +80,19 @@
         <div class="test-info">
             <h3>Test Instructions:</h3>
             <ul>
-                <li>Resize your browser window to test different screen sizes</li>
-                <li>On mobile/tablet: Navigation buttons should appear below the carousel</li>
-                <li>On desktop: Navigation buttons should appear on the sides</li>
-                <li>Check that buttons are properly aligned and not pushed out of view</li>
+                <li>Use the buttons below to test different screen sizes</li>
+                <li>Navigation arrows should adjust position automatically</li>
+                <li>Cards should not overlap at any screen size</li>
+                <li>Pagination dots should always be visible and centered</li>
             </ul>
         </div>
 
         <div class="responsive-test">
             <span class="current-size" id="current-size">Current: Desktop</span>
-            <button class="test-button" onclick="resizeTo(375, 667)">Mobile (375px)</button>
-            <button class="test-button" onclick="resizeTo(768, 1024)">Tablet (768px)</button>
-            <button class="test-button" onclick="resizeTo(1200, 800)">Desktop (1200px)</button>
-            <button class="test-button" onclick="resizeTo(1920, 1080)">Large Desktop (1920px)</button>
+            <button class="test-button" onclick="resizeTo(375)">Mobile (375px)</button>
+            <button class="test-button" onclick="resizeTo(768)">Tablet (768px)</button>
+            <button class="test-button" onclick="resizeTo(1200)">Desktop (1200px)</button>
+            <button class="test-button" onclick="resizeTo(1920)">Large Desktop (1920px)</button>
         </div>
 
         <div class="widget-test-area" id="widget-container">
@@ -90,7 +105,6 @@
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     
     <!-- Load our widget -->
-    <link rel="stylesheet" href="widget-embed.css" />
     <script src="widget-embed.js"></script>
 
     <script>
@@ -142,18 +156,35 @@
             }
         };
 
-        // Function to resize window for testing
-        function resizeTo(width, height) {
-            window.resizeTo(width, height);
+        // Function to resize container for testing
+        function resizeTo(width) {
+            // Remove any existing responsive classes
+            document.body.classList.remove('mobile-view', 'tablet-view', 'desktop-view', 'large-desktop-view');
+            
+            // Add appropriate class based on width
+            if (width <= 480) {
+                document.body.classList.add('mobile-view');
+            } else if (width <= 1024) {
+                document.body.classList.add('tablet-view');
+            } else if (width <= 1200) {
+                document.body.classList.add('desktop-view');
+            } else {
+                document.body.classList.add('large-desktop-view');
+            }
+            
             updateCurrentSize();
         }
 
         // Update current size display
         function updateCurrentSize() {
-            const width = window.innerWidth;
+            const container = document.querySelector('.test-container');
+            const width = container.offsetWidth;
             let size = "Desktop";
-            if (width <= 900) size = "Mobile/Tablet";
+            
             if (width <= 480) size = "Mobile";
+            else if (width <= 1024) size = "Tablet";
+            else if (width <= 1200) size = "Desktop";
+            else size = "Large Desktop";
             
             document.getElementById('current-size').textContent = `Current: ${size} (${width}px)`;
         }
