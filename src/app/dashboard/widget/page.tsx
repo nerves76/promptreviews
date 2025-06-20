@@ -398,7 +398,7 @@ export default function WidgetPage() {
             </button>
           }
         >
-          <div className="text-left mb-2">
+          <div className="text-left pt-4 mb-6">
             <h1 className="text-4xl font-bold text-[#1A237E]">Your widgets</h1>
             <p className="mt-2 text-gray-500 text-sm max-w-md">
               Create up to 3 different widgets to showcase your reviews. Style to match your brand.
