@@ -116,6 +116,28 @@ export default function WidgetList({
     return () => window.removeEventListener("openNewWidgetForm", handler);
   }, []);
 
+  // Listen for openStyleModal event from parent
+  useEffect(() => {
+    const handler = () => {
+      if (selectedWidgetId) {
+        handleEditStyle(selectedWidgetId);
+      }
+    };
+    window.addEventListener("openStyleModal", handler);
+    return () => window.removeEventListener("openStyleModal", handler);
+  }, [selectedWidgetId]);
+
+  // Listen for openReviewModal event from parent
+  useEffect(() => {
+    const handler = () => {
+      if (selectedWidgetId) {
+        handleManageReviews(selectedWidgetId);
+      }
+    };
+    window.addEventListener("openReviewModal", handler);
+    return () => window.removeEventListener("openReviewModal", handler);
+  }, [selectedWidgetId]);
+
   const handleCopyEmbed = async (widgetId: string) => {
     const widget = widgets.find(w => w.id === widgetId);
     if (!widget) return;
