@@ -336,12 +336,12 @@ if (!window.PromptReviews || !window.PromptReviews.renderSingleWidget) {
           <div class="swiper-slide">
             <div class="pr-review-card">
               <div class="stars-row">
-                <span style="color: #FFD700; font-size: 18px;">${renderStars(review.star_rating || 5)}</span>
+                <span style="color: #FFD700; font-size: 36px;">${renderStars(review.star_rating || 5)}</span>
               </div>
               <div class="review-content">
-                ${design.showQuotes ? `<span class="decorative-quote decorative-quote-open">"</span>` : ''}
+                ${design.showQuotes ? `<span class="decorative-quote decorative-quote-open">“</span>` : ''}
                 <div class="review-text">${review.review_content}</div>
-                ${design.showQuotes ? `<span class="decorative-quote decorative-quote-close">"</span>` : ''}
+                ${design.showQuotes ? `<span class="decorative-quote decorative-quote-close">”</span>` : ''}
               </div>
               <div class="reviewer-details">
                 <div class="reviewer-name">${review.first_name} ${review.last_name}</div>
