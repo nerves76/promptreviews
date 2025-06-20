@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { FaChevronLeft, FaChevronRight, FaCopy, FaCode } from "react-icons/fa";
 import { MdArrowBack, MdArrowForward } from "react-icons/md";
+import { ChatBubbleLeftIcon } from "@heroicons/react/24/outline";
 import WidgetList from "./WidgetList";
 import { createBrowserClient } from "@supabase/ssr";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -429,20 +430,7 @@ export default function WidgetPage() {
                     className="p-2 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     title="Manage Reviews"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.5}
-                      stroke="currentColor"
-                      className="w-5 h-5 text-white"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M8.25 7.5V6.108c0-1.135.845-2.098 1.976-2.192.373-.03.748-.057 1.123-.08M15.75 18H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08M15.75 18.75v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5A3.375 3.375 0 006.375 7.5H5.25a2.25 2.25 0 00-2.25 2.25v4.125c0 1.282.908 2.37 2.175 2.493a48.016 48.016 0 013.473.218"
-                      />
-                    </svg>
+                    <ChatBubbleLeftIcon className="w-5 h-5 text-white" />
                   </button>
                 </div>
               </>
