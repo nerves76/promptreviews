@@ -65,13 +65,19 @@ export function WidgetCard({
               e.stopPropagation();
               onCopyEmbed();
             }}
-            className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors"
+            className="px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-1.5"
             title="Copy Embed Code"
           >
             {isCopied ? (
-              <CheckIcon className="w-4 h-4 text-green-600" />
+              <>
+                <CheckIcon className="w-4 h-4 text-green-600" />
+                <span className="text-green-600">Copied!</span>
+              </>
             ) : (
-              <DocumentDuplicateIcon className="w-4 h-4" />
+              <>
+                <DocumentDuplicateIcon className="w-4 h-4" />
+                <span>Copy</span>
+              </>
             )}
           </button>
           
@@ -80,7 +86,7 @@ export function WidgetCard({
               e.stopPropagation();
               onEditStyle();
             }}
-            className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors"
+            className="px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-1.5"
             title="Edit Style"
           >
             <svg
@@ -97,6 +103,7 @@ export function WidgetCard({
                 d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.043-.025a15.994 15.994 0 011.622-3.395m3.42 3.42a15.995 15.995 0 004.764-4.648l3.876-5.814a1.151 1.151 0 00-1.597-1.597L14.146 6.32a15.996 15.996 0 00-4.649 4.763m3.42 3.42a6.776 6.776 0 00-3.42-3.42"
               />
             </svg>
+            <span>Style</span>
           </button>
           
           <button
@@ -104,10 +111,11 @@ export function WidgetCard({
               e.stopPropagation();
               onManageReviews();
             }}
-            className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors"
+            className="px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-1.5"
             title="Manage Reviews"
           >
             <ChatBubbleLeftIcon className="w-4 h-4" />
+            <span>Reviews</span>
           </button>
           
           <button
@@ -115,12 +123,13 @@ export function WidgetCard({
               e.stopPropagation();
               onDelete();
             }}
-            className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
+            className="px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center gap-1.5"
             title="Delete Widget"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
+            <span>Delete</span>
           </button>
         </div>
       </div>
