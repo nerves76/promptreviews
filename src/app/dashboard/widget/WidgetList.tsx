@@ -174,6 +174,9 @@ export default function WidgetList({
   const [nameError, setNameError] = useState("");
   const nameInputRef = useRef<HTMLInputElement>(null);
 
+  // Add state for save message
+  const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+
   // Center edit modal after mount
   useEffect(() => {
     if (showForm) {
@@ -763,7 +766,8 @@ export default function WidgetList({
     console.log('parentDesign:', parentDesign);
     
     if (!widgetId) {
-      alert('No widget selected');
+      setSaveMessage({ type: 'error', text: 'No widget selected' });
+      setTimeout(() => setSaveMessage(null), 3000);
       return;
     }
     
@@ -780,10 +784,12 @@ export default function WidgetList({
 
     if (error) {
         console.error('Supabase error:', error);
-        alert('Error saving design: ' + error.message);
+        setSaveMessage({ type: 'error', text: 'Error saving design: ' + error.message });
+        setTimeout(() => setSaveMessage(null), 3000);
     } else {
         console.log('Design saved successfully');
-        alert('Design saved successfully!');
+        setSaveMessage({ type: 'success', text: 'Design saved successfully!' });
+        setTimeout(() => setSaveMessage(null), 3000);
         setEditing(null);
         fetchWidgets();
     }
@@ -1359,6 +1365,33 @@ export default function WidgetList({
                 </svg>
               </button>
             </div>
+            
+            {/* Save Message */}
+            {saveMessage && (
+              <div className={`px-4 py-3 mx-4 mt-2 rounded-md border ${
+                saveMessage.type === 'success' 
+                  ? 'bg-green-50 border-green-200 text-green-800' 
+                  : 'bg-red-50 border-red-200 text-red-800'
+              }`}>
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    {saveMessage.type === 'success' ? (
+                      <svg className="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                    ) : (
+                      <svg className="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                      </svg>
+                    )}
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm font-medium">{saveMessage.text}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             <div className="flex-1 overflow-y-auto p-6">
               <div className="grid grid-cols-2 gap-6">
                 {/* Left Column - Main Controls */}
