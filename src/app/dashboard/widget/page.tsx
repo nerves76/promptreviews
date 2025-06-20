@@ -15,6 +15,7 @@ import AppLoader from "@/app/components/AppLoader";
 import TopLoaderOverlay from "@/app/components/TopLoaderOverlay";
 import { useRouter } from "next/navigation";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import MultiWidget from "./components/widgets/multi/backup/MultiWidget";
 
 // Add DesignState type definition
 type DesignState = {
@@ -25,7 +26,6 @@ type DesignState = {
   bodyTextColor: string;
   nameTextColor: string;
   roleTextColor: string;
-  quoteFontSize: number;
   attributionFontSize: number;
   borderRadius: number;
   shadow: boolean;
@@ -48,10 +48,6 @@ type DesignState = {
   showSubmitReviewButton: boolean;
 };
 
-interface WidgetContainer extends HTMLDivElement {
-  _cleanup?: () => void;
-}
-
 export default function WidgetPage() {
   const [current, setCurrent] = useState(0);
   const [fadeIn, setFadeIn] = useState(true);
@@ -69,7 +65,6 @@ export default function WidgetPage() {
     bodyTextColor: "#22223b",
     nameTextColor: "#1a237e",
     roleTextColor: "#6b7280",
-    quoteFontSize: 18,
     attributionFontSize: 15,
     borderRadius: 16,
     shadow: true,
@@ -98,14 +93,41 @@ export default function WidgetPage() {
   const [loading, setLoading] = useState(true);
   const [widgets, setWidgets] = useState<any[]>([]);
   const [universalPromptSlug, setUniversalPromptSlug] = useState<string | null>(null);
-  const previewContainerRef = useRef<WidgetContainer>(null);
-  const [widgetVersion, setWidgetVersion] = useState(1);
-
-  // Add refs to track script load state
-  const swiperLoadedRef = useRef(false);
-  const widgetScriptLoadedRef = useRef(false);
+  const previewContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => setIsClient(true), []);
+
+  // Effect to load the embed script once
+  useEffect(() => {
+    const scriptId = 'promptreviews-embed-script';
+    if (document.getElementById(scriptId)) return;
+
+    const script = document.createElement('script');
+    script.id = scriptId;
+    script.src = `/widgets/multi/widget-embed.js`;
+    script.async = true;
+    document.body.appendChild(script);
+  }, []);
+
+  // Effect to render/re-render the widget when data changes
+  useEffect(() => {
+    const container = previewContainerRef.current;
+    if (!container || !selectedWidget) return;
+
+    const render = () => {
+      if (window.PromptReviews?.renderMultiWidget) {
+        const widgetData = {
+          reviews,
+          design,
+          businessSlug: universalPromptSlug || undefined
+        };
+        window.PromptReviews.renderMultiWidget(container, widgetData);
+      } else {
+        setTimeout(render, 100);
+      }
+    };
+    render();
+  }, [selectedWidget?.id, reviews, design, universalPromptSlug]);
 
   // Fetch widgets
   useEffect(() => {
@@ -270,228 +292,10 @@ export default function WidgetPage() {
     fetchUniversalPromptSlug();
   }, [selectedWidget]);
 
-  // Cleanup function for widget
-  const cleanupWidget = () => {
-    if (previewContainerRef.current) {
-      previewContainerRef.current.innerHTML = '';
-    }
-    // Remove any existing widget scripts
-    const widgetScript = document.getElementById('pr-multi-widget-script');
-    if (widgetScript) {
-      widgetScript.remove();
-    }
-  };
-
-  // Helper to wait for Swiper to be available globally
-  function waitForGlobalSwiper(callback: () => void, maxAttempts = 20) {
-    let attempts = 0;
-    function check() {
-      if (typeof window !== 'undefined' && typeof window.Swiper !== 'undefined') {
-        callback();
-      } else if (attempts < maxAttempts) {
-        attempts++;
-        setTimeout(check, 100);
-      } else {
-        console.error('Swiper failed to load globally after maximum attempts');
-      }
-    }
-    check();
-  }
-
-  // Initialize vanilla JS widget when selected widget or design changes
+  // Add debugging for design state changes
   useEffect(() => {
-    if (!selectedWidget) return;
-
-    // Only load Swiper and widget scripts once
-    if (!swiperLoadedRef.current) {
-      const swiperCSS = document.createElement('link');
-      swiperCSS.rel = 'stylesheet';
-      swiperCSS.href = 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css';
-      document.head.appendChild(swiperCSS);
-
-      const widgetCSS = document.createElement('link');
-      widgetCSS.rel = 'stylesheet';
-      widgetCSS.href = '/widgets/multi/widget-embed.css';
-      document.head.appendChild(widgetCSS);
-
-      const swiperScript = document.createElement('script');
-      swiperScript.src = 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js';
-      swiperScript.async = true;
-      swiperScript.onload = () => {
-        swiperLoadedRef.current = true;
-        maybeLoadWidgetScript();
-      };
-      document.body.appendChild(swiperScript);
-
-      // Cleanup scripts and CSS on unmount
-      return () => {
-        swiperCSS.remove();
-        swiperLoadedRef.current = false;
-        widgetScriptLoadedRef.current = false;
-      };
-    } else {
-      maybeLoadWidgetScript();
-    }
-
-    function maybeLoadWidgetScript() {
-      if (!widgetScriptLoadedRef.current) {
-        if (!document.getElementById('pr-multi-widget-script')) {
-          const script = document.createElement('script');
-          script.id = 'pr-multi-widget-script';
-          script.src = '/widgets/multi/widget-embed.js';
-          script.async = true;
-          script.onload = () => {
-            widgetScriptLoadedRef.current = true;
-            waitForGlobalSwiper(renderWidget);
-          };
-          document.body.appendChild(script);
-        } else {
-          widgetScriptLoadedRef.current = true;
-          waitForGlobalSwiper(renderWidget);
-        }
-      } else {
-        waitForGlobalSwiper(renderWidget);
-      }
-    }
-
-    function renderWidget() {
-      // Force full cleanup of the preview container before every render
-      if (previewContainerRef.current) {
-        previewContainerRef.current.innerHTML = '';
-      }
-      // Cleanup any existing widget
-      cleanupWidget();
-      // Create a container for the widget
-      const widgetContainer = document.createElement('div');
-      widgetContainer.className = 'promptreviews-widget';
-      widgetContainer.setAttribute('data-widget-type', 'multi');
-      widgetContainer.setAttribute('data-widget', selectedWidget.id);
-      previewContainerRef.current?.appendChild(widgetContainer);
-
-      // Map reviews to expected shape for vanilla widget
-      const mappedReviews = (reviews || [])
-        .filter(r => r && ((r.reviewer_name || r.name || r.first_name || r.last_name || (r.reviewer && (r.reviewer.name || r.reviewer.first_name || r.reviewer.last_name))) && (r.review_content || r.content)))
-        .map(r => ({
-          ...r,
-          name: r.name || r.reviewer_name ||
-            ((r.first_name || r.reviewer_first_name || '') +
-             ((r.last_name || r.reviewer_last_name) ? ' ' + (r.last_name || r.reviewer_last_name) : '')) ||
-            (r.reviewer && (r.reviewer.name || ((r.reviewer.first_name || '') + ((r.reviewer.last_name) ? ' ' + r.reviewer.last_name : '')))) ||
-            'Anonymous',
-          content: r.content || r.review_content || '',
-          rating: r.rating || r.star_rating || 5,
-          role: r.role || r.reviewer_role || '',
-          date: r.date || r.created_at || new Date().toISOString()
-        }));
-      // Handle empty reviews gracefully
-      if (!mappedReviews.length) {
-        widgetContainer.innerHTML = '<div class="text-center text-gray-400 py-12">No reviews to display.</div>';
-        return;
-      }
-
-      // Wait for next tick to ensure DOM is updated
-      try {
-        window.PromptReviews.renderMultiWidget(widgetContainer, {
-          ...selectedWidget,
-          design,
-          reviews: mappedReviews,
-          businessSlug: universalPromptSlug
-        });
-      } catch (error: unknown) {
-        console.error('Error rendering widget:', error);
-        widgetContainer.innerHTML = `
-          <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
-            <h3 class="text-red-800 font-semibold">Widget Error</h3>
-            <p class="text-red-600 text-sm mt-2">${error instanceof Error ? error.message : 'An unknown error occurred'}</p>
-          </div>
-        `;
-      }
-    }
-
-    // For design/review changes, just re-render the widget
-    // (scripts are only loaded once)
-  }, [selectedWidget, design, reviews, universalPromptSlug]);
-
-  // This effect handles the rendering of the multi-widget preview
-  useEffect(() => {
-    console.log("Multi-widget render effect triggered. WidgetVersion:", widgetVersion);
-    if (selectedWidget?.widget_type !== 'multi' || !previewContainerRef.current) {
-      console.log("Condition not met, aborting render.");
-      return;
-    }
-
-    const container = previewContainerRef.current;
-    
-    // Ensure container is empty before rendering
-    if (container) {
-      container.innerHTML = '';
-    }
-
-    let isCancelled = false;
-    
-    console.log("Proceeding with widget render...");
-
-    // Dynamically load the widget script
-    const scriptId = 'multi-widget-script';
-    let script = document.getElementById(scriptId) as HTMLScriptElement;
-    
-    const onScriptLoad = () => {
-      if (isCancelled) return;
-      console.log("Widget script loaded/exists.");
-
-      if (window.PromptReviews && typeof window.PromptReviews.renderMultiWidget === 'function') {
-        console.log("renderMultiWidget function found. Preparing data...");
-        const widgetData = {
-          reviews: reviews.map(r => ({
-            content: r.review_content,
-            name: r.first_name ? `${r.first_name} ${r.last_name || ''}`.trim() : r.reviewer_name,
-            role: r.reviewer_role,
-            date: r.created_at,
-            rating: r.star_rating
-          })),
-          design: { ...design },
-          businessSlug: universalPromptSlug
-        };
-        console.log("Calling renderMultiWidget with data:", widgetData);
-        window.PromptReviews.renderMultiWidget(container, widgetData);
-        console.log("renderMultiWidget called.");
-      } else {
-        console.error('renderMultiWidget function not found on window.PromptReviews after script load.');
-      }
-    };
-
-    if (!script) {
-      console.log("Script not found, creating new script element.");
-      script = document.createElement('script');
-      script.id = scriptId;
-      // Add a cache-busting query parameter using the widgetVersion
-      script.src = `/widgets/multi/widget-embed.js?v=${widgetVersion}`;
-      script.async = true;
-      script.onload = onScriptLoad;
-      script.onerror = () => console.error('Failed to load multi-widget script.');
-      document.body.appendChild(script);
-    } else {
-      console.log("Script found, reloading.");
-      // If script exists, remove and re-add to force re-execution
-      script.remove();
-      const newScript = document.createElement('script');
-      newScript.id = scriptId;
-      newScript.src = `/widgets/multi/widget-embed.js?v=${widgetVersion}`;
-      newScript.async = true;
-      newScript.onload = onScriptLoad;
-      newScript.onerror = () => console.error('Failed to re-load multi-widget script.');
-      document.body.appendChild(newScript);
-    }
-
-    return () => {
-      isCancelled = true;
-      console.log("Cleanup function for multi-widget effect.");
-      if (container && typeof container._cleanup === 'function') {
-        console.log("Calling container-specific cleanup.");
-        container._cleanup();
-      }
-    };
-  }, [selectedWidget, reviews, design, universalPromptSlug, widgetVersion]);
+    console.log("Dashboard design state changed:", design);
+  }, [design]);
 
   if (loading) {
     return <TopLoaderOverlay />;
@@ -511,7 +315,9 @@ export default function WidgetPage() {
           {/* Widget preview label above the widget, now smaller and white */}
           <div className="mb-4 text-base font-normal text-white">Widget preview</div>
           {/* Widget preview container */}
-          <div ref={previewContainerRef} className="w-full flex justify-center items-center min-h-[400px]" />
+          <div ref={previewContainerRef} className="w-full max-w-5xl flex justify-center items-center min-h-[400px]">
+            {/* The embedded widget will be rendered here by a useEffect hook */}
+          </div>
         </div>
       </div>
 

@@ -1,0 +1,577 @@
+/* 
+  Canonical CSS for the Multi-Widget.
+  This file is the single source of truth for styling the multi-widget,
+  used by both the dashboard preview and the live embeddable widget.
+*/
+
+.pr-multi-widget {
+    font-family: var(--pr-font, 'Inter'), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    --pr-accent-color: #6a5acd;
+    --pr-accent-hover: #4a3f8c;
+    --pr-text-primary: #22223b;
+    --pr-text-secondary: #6b7280;
+    --pr-border-color: #cccccc;
+    --pr-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --pr-card-bg: var(--pr-bg-color, #ffffff);
+    --pr-card-border: var(--pr-border-width, 2px) solid var(--pr-border-color, #cccccc);
+    --pr-card-radius: var(--pr-border-radius, 16px);
+    --pr-card-shadow: 0 4px 32px rgba(34, 34, 34, var(--pr-shadow-intensity, 0.2)) inset;
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0;
+    box-sizing: border-box;
+    position: relative;
+}
+
+.pr-multi-widget .widget-mobile {
+    display: none;
+}
+
+.pr-multi-widget .widget-desktop {
+    display: block;
+}
+
+.pr-multi-widget .widget-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    width: 100%;
+    padding: 2rem 0;
+}
+
+.pr-multi-widget .widget-outer-container {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.pr-multi-widget .widget-carousel-container {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0 clamp(20px, 5vw, 60px);
+    overflow: hidden;
+}
+
+.pr-multi-widget .swiper {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    overflow: hidden;
+    padding-top: 10px;
+    padding-bottom: 24px;
+}
+
+.pr-multi-widget .swiper-wrapper {
+    display: flex;
+    align-items: stretch; /* Ensure all slides have the same height */
+    overflow: visible;
+}
+
+.pr-multi-widget .swiper-slide {
+    display: flex;
+    justify-content: center;
+    align-items: stretch; /* Make all slides stretch to same height */
+    height: auto;
+    transition: opacity 0.3s ease;
+    padding-bottom: 1rem; /* Add padding for shadow */
+}
+
+.pr-multi-widget .swiper-slide-active {
+    z-index: 1;
+}
+
+/* This rule was causing the inconsistent fade and is now removed */
+/*
+.pr-multi-widget .swiper-slide-next,
+.pr-multi-widget .swiper-slide-prev {
+    opacity: 0.7;
+}
+*/
+
+.pr-multi-widget .pr-review-card {
+    background: var(--pr-card-bg, #fff);
+    border: var(--pr-card-border, 2px solid #cccccc);
+    border-radius: var(--pr-card-radius, 16px);
+    box-shadow: var(--pr-card-shadow, 0 4px 32px rgba(34,34,34,0.2) inset);
+    padding: 1.5rem 2rem 1.5rem;
+    min-height: 350px;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    width: 100%;
+    min-width: 280px;
+    max-width: 420px;
+    margin: 0 auto;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+.pr-multi-widget .pr-review-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 32px rgba(34, 34, 34, 0.15);
+}
+
+.pr-multi-widget .stars-row {
+    display: flex;
+    gap: 0.25rem;
+    margin-bottom: 0.5rem;
+    justify-content: center;
+    flex-shrink: 0; /* Prevent shrinking */
+}
+
+.pr-multi-widget .review-content {
+    position: relative;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    align-items: center;
+    justify-content: center; /* Center content vertically */
+    min-height: 0; /* Allow shrinking */
+}
+
+.pr-multi-widget .review-text {
+    font-size: 1rem; /* Standardized to 16px */
+    line-height: var(--pr-line-spacing, 1.75);
+    color: var(--pr-text-primary, #22223b);
+    margin: 0;
+    text-align: center;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pr-multi-widget .decorative-quote {
+    font-size: 3.5rem;
+    line-height: 1;
+    color: var(--pr-accent-color, #6a5acd);
+    opacity: 0.2;
+    font-family: Georgia, serif;
+}
+
+.pr-multi-widget .decorative-quote-open {
+    margin-bottom: -1.5rem;
+    margin-left: -1rem;
+    align-self: flex-start;
+}
+
+.pr-multi-widget .decorative-quote-close {
+    margin-top: -1.5rem;
+    margin-right: -1rem;
+    align-self: flex-end;
+}
+
+.pr-multi-widget .submit-review-button-container {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 0.25rem; /* Further reduced vertical padding */
+    padding-bottom: 0;
+}
+
+.pr-multi-widget .submit-review-button {
+    background-color: var(--pr-card-bg, #ffffff);
+    color: var(--pr-text-primary, #22223b);
+    border: 1px solid var(--pr-border-color, #cccccc);
+    padding: 0.75rem 1.5rem;
+    border-radius: 9999px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.pr-multi-widget .submit-review-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.pr-multi-widget .reviewer-details {
+    margin-top: auto;
+    padding-top: 1rem;
+    border-top: 1px solid var(--pr-border-color, #cccccc);
+    flex-shrink: 0; /* Prevent shrinking */
+}
+
+.pr-multi-widget .reviewer-name {
+    font-weight: 600;
+    font-size: var(--pr-attribution-font-size, 1rem);
+    color: var(--pr-name-text-color, #111111);
+    margin-bottom: 0.75rem;
+    line-height: 1.2;
+}
+
+.pr-multi-widget .reviewer-role {
+    font-size: calc(var(--pr-attribution-font-size, 1rem) * 0.875);
+    color: var(--pr-role-text-color, #666666);
+    margin-bottom: 0.25rem;
+}
+
+.pr-multi-widget .reviewer-date {
+    font-size: 0.75rem;
+    color: var(--pr-text-secondary, #6b7280);
+}
+
+.pr-multi-widget .swiper-button-next,
+.pr-multi-widget .swiper-button-prev {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    margin: 0;
+    padding: 0;
+    background: white;
+    border: 2px solid var(--pr-accent-color, #6a5acd);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 100;
+    display: none; /* Hidden by default */
+    align-items: center;
+    justify-content: center;
+    color: var(--pr-accent-color, #6a5acd);
+    font-size: 24px;
+    font-weight: bold;
+    line-height: 1;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.pr-multi-widget .swiper-button-next {
+    right: -50px;
+}
+
+.pr-multi-widget .swiper-button-prev {
+    left: -50px;
+}
+
+.pr-multi-widget .swiper-button-next:hover,
+.pr-multi-widget .swiper-button-prev:hover {
+    background: var(--pr-accent-color, #6a5acd);
+    color: white;
+}
+
+.pr-multi-widget .swiper-button-next::after,
+.pr-multi-widget .swiper-button-prev::after {
+    display: none;
+}
+
+/* Custom button styling to match React widget */
+.pr-multi-widget button[aria-label="Previous"],
+.pr-multi-widget button[aria-label="Next"] {
+    background: var(--pr-card-bg, #ffffff);
+    border: 1.5px solid rgba(136, 136, 136, 0.22);
+    transition: all 0.3s ease;
+}
+
+.pr-multi-widget button[aria-label="Previous"]:hover,
+.pr-multi-widget button[aria-label="Next"]:hover,
+.pr-multi-widget button[aria-label="Previous"]:active,
+.pr-multi-widget button[aria-label="Next"]:active,
+.pr-multi-widget button[aria-label="Previous"]:focus,
+.pr-multi-widget button[aria-label="Next"]:focus {
+    background: var(--pr-accent-color, #6a5acd) !important;
+}
+
+.pr-multi-widget button[aria-label="Previous"]:hover polygon,
+.pr-multi-widget button[aria-label="Next"]:hover polygon,
+.pr-multi-widget button[aria-label="Previous"]:active polygon,
+.pr-multi-widget button[aria-label="Next"]:active polygon,
+.pr-multi-widget button[aria-label="Previous"]:focus polygon,
+.pr-multi-widget button[aria-label="Next"]:focus polygon {
+    fill: var(--pr-card-bg, #ffffff) !important;
+}
+
+/* Mobile button styling */
+.pr-multi-widget .widget-mobile button[aria-label="Previous"],
+.pr-multi-widget .widget-mobile button[aria-label="Next"] {
+    background: var(--pr-card-bg, #ffffff);
+    border: 1.5px solid rgba(136, 136, 136, 0.22);
+    box-shadow: var(--pr-card-shadow, none);
+}
+
+.pr-multi-widget .widget-mobile button[aria-label="Previous"]:hover,
+.pr-multi-widget .widget-mobile button[aria-label="Next"]:hover {
+    background: var(--pr-accent-color, #6a5acd) !important;
+}
+
+.pr-multi-widget .widget-mobile button[aria-label="Previous"]:hover polygon,
+.pr-multi-widget .widget-mobile button[aria-label="Next"]:hover polygon {
+    fill: var(--pr-card-bg, #ffffff) !important;
+}
+
+.pr-multi-widget .mobile-nav-row {
+    width: 100%;
+    display: flex; /* Was hidden on desktop before, now controlled by parent */
+    justify-content: center;
+    align-items: center;
+    margin-top: -1.5rem; /* Further reduced margin to pull navigation up */
+    padding: 0 1rem;
+    gap: 1rem;
+    position: relative; /* Ensure it stacks correctly */
+    z-index: 10;
+}
+
+.pr-multi-widget .mobile-nav-row .swiper-pagination {
+    flex: 1;
+    margin: 0 1rem;
+}
+
+.pr-multi-widget .mobile-nav-row .swiper-button-next,
+.pr-multi-widget .mobile-nav-row .swiper-button-prev {
+    display: flex;
+    position: relative;
+    top: auto;
+    left: auto;
+    right: auto;
+    transform: none;
+    width: 36px;
+    height: 36px;
+    margin: 0;
+    background: white;
+    border: 2px solid var(--pr-accent-color, #6a5acd);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    color: var(--pr-accent-color, #6a5acd);
+    font-size: 20px;
+    font-weight: bold;
+    line-height: 1;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.pr-multi-widget .mobile-nav-row .swiper-button-next:hover,
+.pr-multi-widget .mobile-nav-row .swiper-button-prev:hover {
+    background: var(--pr-accent-color, #6a5acd);
+    color: white;
+}
+
+.pr-multi-widget .mobile-nav-row .swiper-button-next::after,
+.pr-multi-widget .mobile-nav-row .swiper-button-prev::after {
+    display: none;
+}
+
+.pr-multi-widget .swiper-pagination {
+    position: relative;
+    bottom: auto;
+    left: auto;
+    width: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.pr-multi-widget .swiper-pagination-bullet {
+    width: 8px;
+    height: 8px;
+    background: #d1d5db;
+    opacity: 1;
+    transition: all 0.3s ease;
+    margin: 0;
+    display: block;
+}
+
+.pr-multi-widget .swiper-pagination-bullet-active {
+    background: var(--pr-accent-color, #6a5acd);
+    transform: scale(1.2);
+}
+
+@media screen and (min-width: 768px) {
+    .pr-multi-widget .widget-desktop {
+        display: flex !important;
+    }
+    
+    .pr-multi-widget .widget-mobile {
+        display: none !important;
+    }
+    
+    .pr-multi-widget .swiper-button-next,
+    .pr-multi-widget .swiper-button-prev {
+        display: flex; /* Show arrows on md and up */
+    }
+    
+    .pr-multi-widget .widget-outer-container {
+        padding: 0; /* Ensure no conflicting padding */
+    }
+
+    .pr-multi-widget .swiper-button-next {
+        right: -50px;
+    }
+
+    .pr-multi-widget .swiper-button-prev {
+        left: -50px;
+    }
+
+    .pr-multi-widget .pr-review-card {
+        padding: 1.5rem;
+    }
+    
+    .pr-multi-widget .mobile-nav-row {
+        display: none; /* Hide mobile nav on desktop */
+    }
+}
+
+@media screen and (max-width: 767px) {
+    .pr-multi-widget .widget-desktop {
+        display: none;
+    }
+    
+    .pr-multi-widget .widget-mobile {
+        display: block;
+    }
+    
+    .pr-multi-widget .widget-outer-container {
+        padding: 0;
+    }
+
+    .pr-multi-widget .swiper-button-next,
+    .pr-multi-widget .swiper-button-prev {
+        display: none;
+    }
+
+    .pr-multi-widget .mobile-nav-row {
+        display: flex;
+    }
+
+    .pr-multi-widget .mobile-nav-row .swiper-button-next,
+    .pr-multi-widget .mobile-nav-row .swiper-button-prev {
+        display: flex;
+        position: relative;
+        top: auto;
+        left: auto;
+        right: auto;
+        transform: none;
+        width: 36px;
+        height: 36px;
+        margin: 0;
+    }
+
+    .pr-multi-widget .pr-review-card {
+        min-width: 300px;
+        max-width: 100%;
+        margin: 0 1rem;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .pr-multi-widget .mobile-nav-row {
+        max-width: 320px;
+        padding: 0 0.5rem;
+    }
+
+    .pr-multi-widget .mobile-nav-row .swiper-button-next,
+    .pr-multi-widget .mobile-nav-row .swiper-button-prev {
+        width: 32px;
+        height: 32px;
+        font-size: 20px;
+    }
+
+    .pr-multi-widget .pr-review-card {
+        min-width: 280px;
+        padding: 1.25rem;
+        margin: 0 0.5rem;
+    }
+
+    .pr-multi-widget .review-text {
+        font-size: 1rem;
+    }
+}
+
+/* NAVIGATION (Desktop) - These now only apply within .widget-desktop */
+.pr-multi-widget .widget-desktop .swiper-button-prev,
+.pr-multi-widget .widget-desktop .swiper-button-next {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    width: 40px;
+    height: 40px;
+    display: flex; /* Kept as flex */
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+    color: #333;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 20px;
+}
+
+.pr-multi-widget .widget-desktop .swiper-button-prev:hover,
+.pr-multi-widget .widget-desktop .swiper-button-next:hover {
+    background-color: #f0f0f0;
+}
+
+.pr-multi-widget .widget-desktop .swiper-button-prev {
+    left: 0;
+}
+
+.pr-multi-widget .widget-desktop .swiper-button-next {
+    right: 0;
+}
+
+.pr-multi-widget .widget-desktop .swiper-pagination {
+    position: static; /* No longer absolute */
+    margin-top: -1rem; /* Negative margin to pull dots up */
+    width: 100%;
+    bottom: 0;
+    z-index: 10;
+}
+
+/* NAVIGATION (Mobile) - Styles for the mobile-only nav row */
+.pr-multi-widget .mobile-nav-row {
+    width: 100%;
+    display: flex; /* Was hidden on desktop before, now controlled by parent */
+    justify-content: center;
+    align-items: center;
+    margin-top: -1.5rem; /* Further reduced margin to pull navigation up */
+    padding: 0 1rem;
+    gap: 1rem;
+    position: relative; /* Ensure it stacks correctly */
+    z-index: 10;
+}
+
+.pr-multi-widget .mobile-nav-row .swiper-button-prev,
+.pr-multi-widget .mobile-nav-row .swiper-button-next {
+    position: static;
+    transform: none;
+    width: 40px;
+    height: 40px;
+    background: #eee;
+    color: #555;
+    border-radius: 50%;
+    box-shadow: none;
+    font-size: 20px;
+    margin: 0;
+}
+
+.pr-multi-widget .mobile-nav-row .swiper-pagination {
+    position: static;
+    width: auto;
+    flex-grow: 1;
+}
+
+/* Hiding arrows when disabled */
+.pr-multi-widget .swiper-button-disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+} 

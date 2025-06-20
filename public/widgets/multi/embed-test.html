@@ -82,12 +82,12 @@
         <div class="test-section">
             <h3>Test 1: Basic Embed</h3>
             <div class="info">
-                <strong>Current Widget ID:</strong> <code id="current-widget-id">YOUR_WIDGET_ID</code><br>
+                <strong>Current Widget ID:</strong> <code id="current-widget-id">e5caf82f-0c50-4296-b57f-4bd878288dc4</code><br>
                 <strong>Script URL:</strong> <code id="script-url">/widgets/multi/widget-embed.js</code>
             </div>
             <div class="widget-container">
-                <!-- Replace YOUR_WIDGET_ID with an actual widget ID from your dashboard -->
-                <div class="promptreviews-widget" data-widget="YOUR_WIDGET_ID" data-widget-type="multi"></div>
+                <!-- Real widget ID for testing -->
+                <div class="promptreviews-widget" data-widget="e5caf82f-0c50-4296-b57f-4bd878288dc4" data-widget-type="multi"></div>
             </div>
             <div id="status-message"></div>
         </div>
@@ -115,8 +115,13 @@
         </div>
     </div>
 
-    <!-- Load the widget script -->
-    <script src="/widgets/multi/widget-embed.js" async></script>
+    <!-- Load the widget script with a cache-busting parameter -->
+    <script>
+        const script = document.createElement('script');
+        script.src = `widget-embed.js?v=${new Date().getTime()}`;
+        script.async = true;
+        document.body.appendChild(script);
+    </script>
 
     <script>
         // Update display with current script URL
