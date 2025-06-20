@@ -519,15 +519,15 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
 
     // Main render function
     function renderMultiWidget(container, data) {
+      // Add CSS and fonts right away
+      loadWidgetCSS();
+      addSwiperCSS();
+      loadGoogleFonts();
+      
       console.log('🎯 renderMultiWidget called. Full data from API:', data);
 
       // Ensure Swiper is loaded before proceeding
       loadSwiperJS().then(() => {
-        // Add CSS and fonts
-        loadWidgetCSS();
-        addSwiperCSS();
-        loadGoogleFonts();
-
         // Clear container
         container.innerHTML = '';
 
