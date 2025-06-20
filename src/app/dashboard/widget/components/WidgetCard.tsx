@@ -54,7 +54,7 @@ export function WidgetCard({
           >
             {widget.widget_type === 'single' && 'Single Card'}
             {widget.widget_type === 'multi' && 'Multi Card'}
-            {widget.widget_type === 'photo' && 'Photo Widget'}
+            {widget.widget_type === 'photo' && 'Photo'}
           </span>
         </div>
         
