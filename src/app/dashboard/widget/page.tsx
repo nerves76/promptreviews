@@ -20,6 +20,7 @@ import MultiWidget from "./components/widgets/multi/backup/MultiWidget";
 // Add DesignState type definition
 type DesignState = {
   bgType: "none" | "solid";
+  bgColor: string;
   textColor: string;
   accentColor: string;
   bodyTextColor: string;
@@ -38,6 +39,8 @@ type DesignState = {
   showRelativeDate: boolean;
   showGrid: boolean;
   width: number;
+  sectionBgType: "none" | "custom";
+  sectionBgColor: string;
   shadowIntensity: number;
   shadowColor: string;
   borderColor: string;
@@ -56,6 +59,7 @@ export default function WidgetPage() {
   const [loadingWidget, setLoadingWidget] = useState(false);
   const [design, setDesign] = useState<DesignState>({
     bgType: "solid",
+    bgColor: "#ffffff",
     textColor: "#22223b",
     accentColor: "#6a5acd",
     bodyTextColor: "#22223b",
@@ -74,6 +78,8 @@ export default function WidgetPage() {
     showRelativeDate: false,
     showGrid: false,
     width: 1000,
+    sectionBgType: "none",
+    sectionBgColor: "#ffffff",
     shadowIntensity: 0.2,
     shadowColor: "#222222",
     borderColor: "#cccccc",
@@ -380,19 +386,66 @@ export default function WidgetPage() {
               Widget preview
             </h2>
             {selectedWidget && (
-              <span
-                className="capitalize inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-slate-500 rounded-full"
-                style={{
-                  backgroundColor:
-                    selectedWidget.widget_type === "multi"
-                      ? "#34D399"
-                      : selectedWidget.widget_type === "single"
-                      ? "#60A5FA"
-                      : "#A78BFA",
-                }}
-              >
-                {selectedWidget.widget_type}
-              </span>
+              <>
+                <span
+                  className="capitalize inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-slate-500 rounded-full"
+                  style={{
+                    backgroundColor:
+                      selectedWidget.widget_type === "multi"
+                        ? "#34D399"
+                        : selectedWidget.widget_type === "single"
+                        ? "#60A5FA"
+                        : "#A78BFA",
+                  }}
+                >
+                  {selectedWidget.widget_type}
+                </span>
+                {/* Edit Buttons */}
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => window.dispatchEvent(new CustomEvent("openStyleModal"))}
+                    disabled={!selectedWidget}
+                    className="p-2 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    title="Edit Style"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.5}
+                      stroke="currentColor"
+                      className="w-5 h-5 text-white"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.043-.025a15.994 15.994 0 011.622-3.395m3.42 3.42a15.995 15.995 0 004.764-4.648l3.876-5.814a1.151 1.151 0 00-1.597-1.597L14.146 6.32a15.996 15.996 0 00-4.649 4.763m3.42 3.42a6.776 6.776 0 00-3.42-3.42"
+                      />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => window.dispatchEvent(new CustomEvent("openReviewModal"))}
+                    disabled={!selectedWidget}
+                    className="p-2 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    title="Manage Reviews"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.5}
+                      stroke="currentColor"
+                      className="w-5 h-5 text-white"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193l-3.722.28c-.44.034-.88.172-1.284.43l-1.928.964A4.5 4.5 0 0112 18.75c-2.485 0-4.5-2.015-4.5-4.5v-4.5c0-.969.616-1.813 1.5-2.097m6.5-1.506-1.928-.964A4.5 4.5 0 0012 4.25c-2.485 0-4.5 2.015-4.5 4.5v4.5c0 .969.616 1.813 1.5 2.097"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </>
             )}
           </div>
           {/* Widget preview container */}
