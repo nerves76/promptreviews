@@ -381,7 +381,26 @@ export default function WidgetPage() {
         </div>
         <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col items-center">
           {/* Widget preview label above the widget, now smaller and white */}
-          <div className="mb-4 text-base font-normal text-white">Widget preview</div>
+          <div className="flex items-center space-x-3 mb-4">
+            <h2 className="text-2xl font-bold text-white">
+              Widget preview
+            </h2>
+            {selectedWidget && (
+              <span
+                className="capitalize inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-slate-500 rounded-full"
+                style={{
+                  backgroundColor:
+                    selectedWidget.widget_type === "multi"
+                      ? "#34D399"
+                      : selectedWidget.widget_type === "single"
+                      ? "#60A5FA"
+                      : "#A78BFA",
+                }}
+              >
+                {selectedWidget.widget_type}
+              </span>
+            )}
+          </div>
           {/* Widget preview container */}
           <div ref={previewContainerRef} className="w-full max-w-5xl flex justify-center items-center min-h-[400px]">
             {/* The embedded widget will be rendered here by a useEffect hook */}

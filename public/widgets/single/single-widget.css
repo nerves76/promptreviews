@@ -195,13 +195,13 @@
     font-weight: 600;
     font-size: var(--pr-attribution-font-size, 1rem);
     color: var(--pr-name-text-color, #111111);
-    margin-bottom: 0.125rem;
+    margin-bottom: 0;
 }
 
 .pr-single-widget .reviewer-role {
     font-size: 0.875rem;
     color: var(--pr-role-text-color, #666666);
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
 }
 
 .pr-single-widget .reviewer-date {
@@ -263,11 +263,11 @@
 }
 
 .pr-single-widget .swiper-button-next {
-    right: 0px;
+    right: -40px;
 }
 
 .pr-single-widget .swiper-button-prev {
-    left: 0px;
+    left: -40px;
 }
 
 .pr-single-widget .swiper-button-next:hover,
@@ -318,7 +318,7 @@
 /* Responsive Design */
 @media screen and (min-width: 768px) {
     .pr-single-widget .submit-review-button-container {
-        margin-top: -1rem;
+        margin-top: 2rem;
     }
     
     .pr-single-widget .widget-desktop {
@@ -344,11 +344,11 @@
     }
     
     .pr-single-widget .swiper-button-next {
-        right: 0px;
+        right: 105px;
     }
     
     .pr-single-widget .swiper-button-prev {
-        left: 0px;
+        left: 105px;
     }
     
     .pr-single-widget .pr-review-card {
