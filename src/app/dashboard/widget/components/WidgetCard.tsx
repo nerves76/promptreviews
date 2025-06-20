@@ -37,8 +37,21 @@ export function WidgetCard({
       <div className="flex justify-between items-start mb-4">
         {/* Widget Name and Type */}
         <div className="flex-1">
-          <h3 className="text-lg font-semibold text-gray-900 mb-1">{widget.name}</h3>
-          <div className="text-sm text-gray-500 capitalize">{widget.widget_type} Widget</div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">{widget.name}</h3>
+          <span
+            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+            style={{
+              backgroundColor: 
+                widget.widget_type === 'single' ? '#60A5FA' :
+                widget.widget_type === 'multi' ? '#34D399' :
+                widget.widget_type === 'photo' ? '#A78BFA' : '#6B7280',
+              color: 'white'
+            }}
+          >
+            {widget.widget_type === 'single' && 'Single Card'}
+            {widget.widget_type === 'multi' && 'Multi Card'}
+            {widget.widget_type === 'photo' && 'Photo Widget'}
+          </span>
         </div>
         
         {/* Action Buttons */}
@@ -109,10 +122,7 @@ export function WidgetCard({
       </div>
       
       {/* Select Button */}
-      <div className="flex justify-between items-center">
-        <div className="text-sm text-gray-500">
-          {widget.widget_type} Widget
-        </div>
+      <div className="flex justify-end">
         <button
           onClick={onSelect}
           className={`px-4 py-2 rounded-lg font-semibold text-sm transition-colors ${
