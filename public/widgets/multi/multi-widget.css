@@ -4,7 +4,9 @@
   used by both the dashboard preview and the live embeddable widget.
 */
 
+/* CSS Isolation: Reset all inherited styles to prevent host website interference */
 .pr-multi-widget {
+    all: revert;
     font-family: var(--pr-font, 'Inter'), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     --pr-bg-color: #ffffff;
     --pr-text-primary: #22223b;

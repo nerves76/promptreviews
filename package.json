@@ -6,7 +6,11 @@
     "dev": "next dev -p 3001",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "build:widget": "terser public/widgets/multi/widget-embed.js -o public/widgets/multi/widget-embed.min.js --compress --mangle && terser public/widgets/single/widget-embed.js -o public/widgets/single/widget-embed.min.js --compress --mangle",
+    "build:multi-widget": "terser public/widgets/multi/widget-embed.js -o public/widgets/multi/widget-embed.min.js --compress --mangle",
+    "build:single-widget": "terser public/widgets/single/widget-embed.js -o public/widgets/single/widget-embed.min.js --compress --mangle",
+    "watch:widget": "nodemon --watch public/widgets/multi/widget-embed.js --watch public/widgets/single/widget-embed.js --exec 'npm run build:widget'"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.3",
@@ -57,6 +61,7 @@
     "dotenv": "^16.0.3",
     "esbuild": "^0.25.5",
     "eslint": "^8.57.0",
+    "nodemon": "^3.1.10",
     "postcss": "^8.4.31",
     "supabase": "^2.22.12",
     "tailwindcss": "^3.3.0",

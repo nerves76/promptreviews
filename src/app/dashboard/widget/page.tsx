@@ -97,37 +97,76 @@ export default function WidgetPage() {
 
   useEffect(() => setIsClient(true), []);
 
-  // Effect to load the embed script once
+  // Effect to load the embed script based on widget type
   useEffect(() => {
-    const scriptId = 'promptreviews-embed-script';
+    if (!selectedWidget) return;
+    
+    const widgetType = selectedWidget.widget_type || 'multi';
+    const scriptId = `promptreviews-embed-script-${widgetType}`;
+    
+    // Remove any existing scripts for other widget types
+    const existingScripts = document.querySelectorAll('[id^="promptreviews-embed-script-"]');
+    existingScripts.forEach(script => {
+      if (script.id !== scriptId) {
+        script.remove();
+      }
+    });
+    
+    // Check if the correct script is already loaded
     if (document.getElementById(scriptId)) return;
 
     const script = document.createElement('script');
     script.id = scriptId;
-    script.src = `/widgets/multi/widget-embed.js`;
+    script.src = `/widgets/${widgetType}/widget-embed.js`;
     script.async = true;
+    script.onload = () => {
+      console.log(`Loaded ${widgetType} widget script`);
+    };
+    script.onerror = () => {
+      console.error(`Failed to load ${widgetType} widget script`);
+    };
     document.body.appendChild(script);
-  }, []);
+  }, [selectedWidget?.widget_type]);
 
   // Effect to render/re-render the widget when data changes
   useEffect(() => {
     const container = previewContainerRef.current;
     if (!container || !selectedWidget || typeof window === 'undefined') return;
 
+    console.log('Widget rendering effect triggered:', {
+      selectedWidget,
+      widgetType: selectedWidget.widget_type,
+      reviewsCount: reviews.length,
+      design
+    });
+
     const render = () => {
-      if (window.PromptReviews?.renderMultiWidget) {
+      const widgetType = selectedWidget.widget_type || 'multi';
+      const renderFunction = widgetType === 'single' ? 
+        window.PromptReviews?.renderSingleWidget : 
+        window.PromptReviews?.renderMultiWidget;
+      
+      console.log('Render function check:', {
+        widgetType,
+        renderFunction: !!renderFunction,
+        PromptReviews: !!window.PromptReviews
+      });
+      
+      if (renderFunction) {
         const widgetData = {
           reviews,
           design,
           businessSlug: universalPromptSlug || undefined
         };
-        window.PromptReviews.renderMultiWidget(container, widgetData);
+        console.log('Calling render function with data:', widgetData);
+        renderFunction(container, widgetData);
       } else {
+        console.log('Render function not available, retrying in 100ms...');
         setTimeout(render, 100);
       }
     };
     render();
-  }, [selectedWidget?.id, reviews, design, universalPromptSlug]);
+  }, [selectedWidget?.id, selectedWidget?.widget_type, reviews, design, universalPromptSlug]);
 
   // Fetch widgets
   useEffect(() => {
@@ -248,9 +287,12 @@ export default function WidgetPage() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      const widgetType = selectedWidget?.widget_type || 'multi';
+      // Use minified version for production embeds (better performance)
+      const scriptUrl = `${window.location.origin}/widgets/${widgetType}/widget-embed.min.js`;
       const code = selectedWidget 
-        ? `<!-- PromptReviews Widget -->\n<div class="promptreviews-widget" data-widget="${selectedWidget.id}" data-widget-type="multi"></div>\n<script src="${window.location.origin}/widgets/multi/widget-embed.js" async></script>`
-        : `<!-- PromptReviews Widget -->\n<div class="promptreviews-widget" data-widget="YOUR_WIDGET_ID" data-widget-type="multi"></div>\n<script src="${window.location.origin}/widgets/multi/widget-embed.js" async></script>`;
+        ? `<!-- PromptReviews.app Widget Type: ${widgetType} -->\n<div class="promptreviews-widget" data-widget="${selectedWidget.id}" data-widget-type="${widgetType}"></div>\n<script src="${scriptUrl}" async></script>`
+        : `<!-- PromptReviews.app Widget Type: ${widgetType} -->\n<div class="promptreviews-widget" data-widget="YOUR_WIDGET_ID" data-widget-type="${widgetType}"></div>\n<script src="${scriptUrl}" async></script>`;
       setEmbedCode(code);
     }
   }, [selectedWidget]);
