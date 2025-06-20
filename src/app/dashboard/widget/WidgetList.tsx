@@ -200,7 +200,7 @@ export default function WidgetList({
     <div className="space-y-6">
       {/* Widget List */}
       <div>
-        <div className="grid grid-cols-1 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {widgets.map((widget) => {
             const isSelected = selectedWidgetId === widget.id;
 
@@ -237,29 +237,30 @@ export default function WidgetList({
       </div>
 
       {/* Widget Editor Modal */}
-      <WidgetEditorForm
-        isOpen={isEditorOpen}
-        onClose={() => {
-          setIsEditorOpen(false);
-          setWidgetToEdit(null);
-        }}
-        widgetToEdit={widgetToEdit}
-        onSave={async (name, widgetType, theme) => {
-          try {
-            if (widgetToEdit) {
-              await saveWidgetDesign(widgetToEdit.id, theme);
-            } else {
-              await createWidget(name, widgetType, theme);
-            }
+      {isEditorOpen && (
+        <DraggableModal
+          isOpen={isEditorOpen}
+          onClose={() => {
             setIsEditorOpen(false);
             setWidgetToEdit(null);
-            if (onWidgetReviewsChange) onWidgetReviewsChange();
-          } catch (error) {
-            console.error('Error saving widget:', error);
-            alert('Failed to save widget. Please try again.');
-          }
-        }}
-      />
+          }}
+          title={widgetToEdit ? "Edit Widget" : "Create New Widget"}
+        >
+          <WidgetEditorForm
+            onSaveSuccess={() => {
+              setIsEditorOpen(false);
+              setWidgetToEdit(null);
+              if (onWidgetReviewsChange) onWidgetReviewsChange();
+            }}
+            onCancel={() => {
+              setIsEditorOpen(false);
+              setWidgetToEdit(null);
+            }}
+            widgetToEdit={widgetToEdit}
+            design={design}
+          />
+        </DraggableModal>
+      )}
 
       {/* Review Management Modal */}
       <ReviewManagementModal
