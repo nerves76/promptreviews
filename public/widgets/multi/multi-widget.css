@@ -220,14 +220,14 @@
     font-weight: 600;
     font-size: var(--pr-attribution-font-size, 1rem);
     color: var(--pr-name-text-color, #111111);
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.25rem;
     line-height: 1.2;
 }
 
 .pr-multi-widget .reviewer-role {
     font-size: calc(var(--pr-attribution-font-size, 1rem) * 0.875);
     color: var(--pr-role-text-color, #666666);
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.75rem;
 }
 
 .pr-multi-widget .reviewer-date {
