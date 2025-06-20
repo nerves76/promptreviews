@@ -337,77 +337,68 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
 
     // Create widget HTML
     function createWidgetHTML(reviews, design, businessSlug) {
-      const widgetClass = `pr-multi-widget`;
-      
-      // Map reviews to a consistent format
-      const mappedReviews = reviews.map(review => ({
-                        content: review.content || review.review_content || '',
-                        name: review.name || review.reviewer_name ||
-          ((review.first_name || '') + (review.last_name ? ' ' + review.last_name : '')) ||
-                          'Anonymous',
-                        role: review.role || review.reviewer_role || '',
-                        rating: review.rating || review.star_rating || 5,
-                        date: review.date || review.created_at || new Date().toISOString()
-      }));
+      // Use bgType to decide background style
+      const backgroundStyle = design.bgType === 'solid'
+        ? `background-color: ${hexToRgba(design.bgColor, design.bgOpacity)};`
+        : 'background: transparent;';
 
-      const slidesHTML = mappedReviews.map(review => `
-        <div class="swiper-slide" style="padding-left: 0.75rem; padding-right: 0.75rem;">
-          <div class="pr-review-card">
-            <div class="stars-row">${renderStars(review.rating)}</div>
-            <div class="review-content">
-              ${design.showQuotes ? '<div class="decorative-quote decorative-quote-open">“</div>' : ''}
-              <div class="review-text">${review.content}</div>
-              ${design.showQuotes ? '<div class="decorative-quote decorative-quote-close">”</div>' : ''}
-            </div>
-            <div class="reviewer-details">
-              <div class="reviewer-name">${review.name}</div>
-              ${review.role ? `<div class="reviewer-role">${review.role}</div>` : ''}
-              ${design.showRelativeDate && review.date ? `<div class="reviewer-date">${getRelativeTime(review.date)}</div>` : ''}
-            </div>
-          </div>
-        </div>
-      `).join('');
+      const font = design.font || 'Inter';
 
-      const submitButtonHTML = (design.showSubmitReviewButton !== false) && businessSlug ? `
-        <div class="submit-review-button-container">
-            <a href="/r/${businessSlug}" target="_blank" class="submit-review-button">
-                <span class="relative z-10">Submit a Review</span>
-            </a>
-        </div>
-      ` : '';
+      const showSubmitButton = design.showSubmitReviewButton !== false && businessSlug;
 
       return `
-        <div class="${widgetClass}">
-          <!-- Desktop/Tablet view -->
-          <div class="widget-desktop">
-            <div class="widget-content">
-              <div class="widget-outer-container">
-                <div class="widget-carousel-container">
-                  <div class="swiper swiper-desktop">
-                    <div class="swiper-wrapper">${slidesHTML}</div>
+        <div 
+          class="pr-widget-container" 
+          style="
+            ${backgroundStyle}
+            color: ${design.textColor}; 
+            border-radius: ${design.borderRadius}px; 
+            font-family: '${font}', sans-serif;
+            ${design.border ? `border: ${design.borderWidth}px solid ${design.borderColor};` : ''}
+            ${design.shadow ? `box-shadow: inset 0 0 70px 35px ${hexToRgba(design.shadowColor, design.shadowIntensity)};` : ''}
+          "
+        >
+          <div class="pr-widget-inner">
+            <div class="swiper">
+              <div class="swiper-wrapper">
+                ${reviews.map(review => `
+                  <div class="swiper-slide">
+                    <div class="review-card">
+                      <div class="stars-row">${renderStars(review.star_rating)}</div>
+                      <div class="review-content" style="line-height: ${design.lineSpacing || 1.4};">
+                        ${design.showQuotes ? '<div class="decorative-quote decorative-quote-open">“</div>' : ''}
+                        <div class="review-text">${review.review_content}</div>
+                        ${design.showQuotes ? '<div class="decorative-quote decorative-quote-close">”</div>' : ''}
+                      </div>
+                      <div class="reviewer-details">
+                        <div class="reviewer-photo">
+                          <div class="reviewer-info">
+                            <div class="reviewer-name" style="color: ${design.nameTextColor};">${review.first_name || ''} ${review.last_name || ''}</div>
+                            <div class="reviewer-role" style="color: ${design.roleTextColor};">${review.reviewer_role || ''}</div>
+                          </div>
+                        </div>
+                      </div>
+                      ${design.showRelativeDate !== false ? `<div class="review-date">${getRelativeTime(review.created_at)}</div>` : ''}
+                    </div>
                   </div>
-                  <div class="swiper-button-prev">‹</div>
-                  <div class="swiper-button-next">›</div>
-                </div>
-                <div class="swiper-pagination"></div>
+                `).join('')}
               </div>
             </div>
-          </div>
 
-          <!-- Mobile view -->
-          <div class="widget-mobile">
-             <div class="swiper swiper-mobile">
-               <div class="swiper-wrapper">${slidesHTML}</div>
-             </div>
-             <div class="mobile-nav-row">
-               <div class="swiper-button-prev">‹</div>
-               <div class="swiper-pagination"></div>
-               <div class="swiper-button-next">›</div>
-             </div>
+            <div class="swiper-navigation">
+              <div class="swiper-button-prev"></div>
+              <div class="swiper-pagination"></div>
+              <div class="swiper-button-next"></div>
+            </div>
+            
+            ${showSubmitButton ? `
+              <div class="submit-review-button-container">
+                  <a href="/r/${businessSlug}" target="_blank" class="submit-review-button" style="background-color: ${design.accentColor};">
+                    Submit a review
+                  </a>
+              </div>
+            ` : ''}
           </div>
-
-          <!-- Submit Button (outside main content) -->
-          ${submitButtonHTML}
         </div>
       `;
     }

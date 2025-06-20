@@ -54,4 +54,17 @@ export function getAccessibleColor(hex: string, minContrast: number = 4.5): stri
     tries++;
   }
   return color;
+}
+
+// Convert hex color to an RGBA string
+export function hexToRgba(hex: string, alpha: number): string {
+  hex = hex.replace(/^#/, "");
+  if (hex.length === 3) {
+    hex = hex.split("").map(c => c + c).join("");
+  }
+  const bigint = parseInt(hex, 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 } 
