@@ -38,9 +38,9 @@ export function WidgetCard({
         ? 'border-slate-blue border-2' 
         : 'border-gray-200 hover:border-slate-blue'
     }`}>
-      <div className="flex justify-between items-start mb-4 flex-1">
+      <div className="flex-1">
         {/* Widget Name and Type */}
-        <div className="flex-1 min-w-0 mr-4">
+        <div className="min-w-0">
           <h3 className="text-lg font-semibold text-gray-900 mb-2 break-words leading-tight">{widget.name}</h3>
           <span
             className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
@@ -59,7 +59,7 @@ export function WidgetCard({
         </div>
         
         {/* Action Buttons */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-end gap-2 mt-4">
           <button
             onClick={(e) => {
               e.stopPropagation();
