@@ -252,11 +252,21 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
         // e.g., "https://host.com/.../widget-embed.js" -> "https://host.com/.../multi-widget.css?v=123456789"
         const cssHref = scriptSrc.replace('widget-embed.js', 'multi-widget.css') + cacheBuster;
         
+        console.log('PromptReviews Widget: Attempting to load CSS from:', cssHref); // DEBUG
+
         const link = document.createElement('link');
         link.id = cssId;
         link.rel = 'stylesheet';
         link.type = 'text/css';
         link.href = cssHref;
+
+        link.onload = () => {
+          console.log('PromptReviews Widget: CSS loaded successfully.'); // DEBUG
+        };
+        link.onerror = () => {
+          console.error('PromptReviews Widget: FAILED to load CSS.'); // DEBUG
+        };
+
         document.head.appendChild(link);
     }
 
