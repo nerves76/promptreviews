@@ -450,9 +450,9 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
               // The dashboard ONLY uses an inset shadow. There is no outer box-shadow.
               widgetContainer.style.setProperty('--pr-card-shadow', `0 4px 32px ${rgba} inset`);
               
-              // Also set button shadow with the same color but lower intensity
+              // Also set button shadow with the same color but lower intensity and smaller blur for pill shapes
               const buttonRgba = hexToRgba(shadowColor, shadowIntensity * 0.75); // 75% of card intensity
-              widgetContainer.style.setProperty('--pr-button-shadow', `0 2px 8px ${buttonRgba} inset`);
+              widgetContainer.style.setProperty('--pr-button-shadow', `0 1px 4px ${buttonRgba} inset`);
           } else {
               widgetContainer.style.setProperty('--pr-card-shadow', 'none');
               widgetContainer.style.setProperty('--pr-button-shadow', 'none');
