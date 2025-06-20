@@ -17,6 +17,7 @@ type Widget = {
   user_id: string;
   created_at: string;
   widget_type: string;
+  theme: DesignState;
 };
 
 function wordCount(str: string) {
@@ -32,7 +33,6 @@ export type DesignState = {
   bodyTextColor: string;
   nameTextColor: string;
   roleTextColor: string;
-  quoteFontSize: number;
   attributionFontSize: number;
   borderRadius: number;
   shadow: boolean;
@@ -102,7 +102,6 @@ export default function WidgetList({
         bodyTextColor: "#22223b",
         nameTextColor: "#1a237e",
         roleTextColor: "#6b7280",
-        quoteFontSize: 18,
         attributionFontSize: 15,
         borderRadius: 16,
         shadow: true,
@@ -193,13 +192,16 @@ export default function WidgetList({
 
   // Add effect to update design when selected widget changes
   useEffect(() => {
-    if (selectedWidget) {
-      const widget = widgets.find(w => w.id === selectedWidget);
-      if (widget?.design && onDesignChange) {
-        onDesignChange(widget.design);
+    if (selectedWidgetId) {
+      const widget = widgets.find(w => w.id === selectedWidgetId);
+      console.log("Selected widget:", widget);
+      console.log("Widget theme:", widget?.theme);
+      if (widget?.theme && onDesignChange) {
+        console.log("Updating design with theme:", widget.theme);
+        onDesignChange(widget.theme);
       }
     }
-  }, [selectedWidget, widgets, onDesignChange]);
+  }, [selectedWidgetId, widgets, onDesignChange]);
 
   // Add effect to ensure showSubmitReviewButton is preserved when saving
   useEffect(() => {
@@ -222,13 +224,13 @@ export default function WidgetList({
 
   // Update the useEffect for showReviewModal to fetch from review_submissions for allReviews, and widget_reviews for selectedReviews.
   useEffect(() => {
-    if (!showReviewModal || !selectedWidget) return;
+    if (!showReviewModal || !selectedWidgetId) return;
     setLoadingReviews(true);
     const supabase = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     );
-    console.log('[DEBUG] Fetching reviews for widget:', selectedWidget);
+    console.log('[DEBUG] Fetching reviews for widget:', selectedWidgetId);
     
     // Fetch all available reviews from review_submissions (no prompt_page_id filter)
     supabase
@@ -271,14 +273,14 @@ export default function WidgetList({
     supabase
       .from('widget_reviews')
       .select('id, review_id, review_content, first_name, last_name, reviewer_role, platform, created_at, star_rating, order_index')
-      .eq('widget_id', selectedWidget)
+      .eq('widget_id', selectedWidgetId)
       .order('order_index', { ascending: true })
       .then(({ data, error }) => {
         console.log('[DEBUG] widget_reviews data:', data);
         console.log('[DEBUG] widget_reviews error:', error);
         setSelectedReviews(data || []);
       });
-  }, [showReviewModal, selectedWidget]);
+  }, [showReviewModal, selectedWidgetId]);
 
   // Move fetchWidgets to the top level and use useCallback
   const fetchWidgets = useCallback(async () => {
@@ -301,6 +303,7 @@ export default function WidgetList({
     if (error) {
       console.error("Error fetching widgets:", error);
     } else {
+      console.log("Fetched widgets data:", data);
       setWidgets(data || []);
     }
   }, []);
@@ -755,28 +758,35 @@ export default function WidgetList({
   };
 
   // Move handleSaveDesign inside the WidgetList component so it can access fetchWidgets
-  const handleSaveDesign = async () => {
-    if (!selectedWidget) return;
-    const supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
-    const { error } = await supabase
-      .from('widgets')
-      .update({
-        theme: design,
-        name: form.name.trim(), // Ensure the name is trimmed
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', selectedWidget);
-    if (error) {
-      console.error("Error saving design:", error);
-      alert("Failed to save design");
+  const handleSaveDesign = (widgetId: string) => async () => {
+    console.log('handleSaveDesign called with widgetId:', widgetId);
+    console.log('parentDesign:', parentDesign);
+    
+    if (!widgetId) {
+      alert('No widget selected');
       return;
     }
-    // Refresh the widgets list to reflect changes
-    await fetchWidgets();
-    setShowEditModal(false);
+    
+    const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+    
+    console.log('Updating widget with theme:', parentDesign);
+    const { data, error } = await supabase
+        .from('widgets')
+        .update({ theme: parentDesign })
+        .eq('id', widgetId);
+
+    if (error) {
+        console.error('Supabase error:', error);
+        alert('Error saving design: ' + error.message);
+    } else {
+        console.log('Design saved successfully');
+        alert('Design saved successfully!');
+        setEditing(null);
+        fetchWidgets();
+    }
   };
 
   // Update the getFilteredAndSortedReviews function to include pagination
@@ -1329,8 +1339,9 @@ export default function WidgetList({
                     Reset Styles
                   </button>
                   <button
-                    onClick={handleSaveDesign}
-                    className="py-2 px-5 bg-slate-blue text-white rounded-lg font-semibold hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue transition-colors shadow"
+                    onClick={selectedWidgetId ? handleSaveDesign(selectedWidgetId) : undefined}
+                    disabled={!selectedWidgetId}
+                    className="py-2 px-5 bg-slate-blue text-white rounded-lg font-semibold hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue transition-colors shadow disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{ minWidth: 90 }}
                   >
                     Save
@@ -1626,21 +1637,22 @@ export default function WidgetList({
                 </div>
               </div>
             </div>
-            <div className="border-t p-4 flex justify-end">
-              <button
-                onClick={handleSaveDesign}
-                className="py-2 px-5 bg-slate-blue text-white rounded-lg font-semibold hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue transition-colors shadow mr-2"
-                style={{ minWidth: 90 }}
-              >
-                Save
-              </button>
-              <button
-                onClick={handleResetDesign}
-                className="py-2 px-5 border border-slate-300 bg-white text-slate-blue rounded-lg font-semibold shadow hover:bg-slate-100 transition-colors ml-2"
-                style={{ minWidth: 90 }}
-              >
-                Reset Styles
-              </button>
+            <div className="sticky bottom-0 bg-white p-4 border-t flex justify-end gap-2">
+                <button
+                    type="button"
+                    onClick={() => setEditing(null)}
+                    className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 font-semibold"
+                >
+                    Cancel
+                </button>
+                <button
+                    type="button"
+                    onClick={editing && selectedWidgetId ? handleSaveDesign(selectedWidgetId) : undefined}
+                    disabled={!editing || !selectedWidgetId}
+                    className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    Save Changes
+                </button>
             </div>
           </div>
         </div>

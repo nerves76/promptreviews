@@ -19,13 +19,143 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
 
     // Add Swiper CSS if not already present
     function addSwiperCSS() {
-      if (!document.querySelector('link[href*="swiper.min.css"]')) {
-        const swiperCSS = document.createElement('link');
-        swiperCSS.rel = 'stylesheet';
-        swiperCSS.href = 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css';
-        document.head.appendChild(swiperCSS);
-        console.log('Swiper CSS added to page');
-      }
+      if (document.getElementById('swiper-css')) return;
+      
+      const style = document.createElement('style');
+      style.id = 'swiper-css';
+      style.textContent = `
+        .swiper-button-next,
+        .swiper-button-prev {
+          position: absolute;
+          top: 50%;
+          width: 27px;
+          height: 44px;
+          margin-top: calc(0px - (44px / 2));
+          z-index: 10;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: var(--swiper-navigation-color, var(--swiper-theme-color));
+        }
+        .swiper-button-next.swiper-button-disabled,
+        .swiper-button-prev.swiper-button-disabled {
+          opacity: 0.35;
+          cursor: auto;
+          pointer-events: none;
+        }
+        .swiper-button-next:after,
+        .swiper-button-prev:after {
+          font-family: swiper-icons;
+          font-size: 44px;
+          text-transform: none !important;
+          letter-spacing: 0;
+          text-transform: none;
+          font-variant: initial;
+          line-height: 1;
+        }
+        .swiper-button-prev,
+        .swiper-rtl .swiper-button-next {
+          left: 10px;
+          right: auto;
+        }
+        .swiper-button-prev:after,
+        .swiper-rtl .swiper-button-next:after {
+          content: 'prev';
+        }
+        .swiper-button-next,
+        .swiper-rtl .swiper-button-prev {
+          right: 10px;
+          left: auto;
+        }
+        .swiper-button-next:after,
+        .swiper-rtl .swiper-button-prev:after {
+          content: 'next';
+        }
+        .swiper-button-lock {
+          display: none;
+        }
+        .swiper-pagination {
+          position: relative;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          margin-top: 16px;
+        }
+        .swiper-pagination.swiper-pagination-hidden {
+          opacity: 0;
+        }
+        .swiper-pagination-disabled > .swiper-pagination,
+        .swiper-pagination.swiper-pagination-disabled {
+          display: none !important;
+        }
+        .swiper-pagination-bullet {
+          width: 8px !important;
+          height: 8px !important;
+          background: #ccc;
+          opacity: 1;
+          margin: 0 4px;
+          transition: all 0.2s ease;
+          border-radius: 50%;
+          display: inline-block;
+        }
+        .swiper-pagination-bullet-active {
+          transform: scale(1.2);
+          background: var(--swiper-pagination-color, var(--swiper-theme-color));
+        }
+        .swiper-button-disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+        
+        /* Responsive classes for embedded widget */
+        .hidden { display: none !important; }
+        .block { display: block !important; }
+        .flex { display: flex !important; }
+        .flex-col { flex-direction: column !important; }
+        .items-center { align-items: center !important; }
+        .justify-center { justify-content: center !important; }
+        .justify-end { justify-content: flex-end !important; }
+        .w-full { width: 100% !important; }
+        .max-w-5xl { max-width: 64rem !important; }
+        .max-w-\\[400px\\] { max-width: 400px !important; }
+        .mx-auto { margin-left: auto !important; margin-right: auto !important; }
+        .px-4 { padding-left: 1rem !important; padding-right: 1rem !important; }
+        .px-8 { padding-left: 2rem !important; padding-right: 2rem !important; }
+        .mt-4 { margin-top: 1rem !important; }
+        .pr-8 { padding-right: 2rem !important; }
+        .relative { position: relative !important; }
+        .absolute { position: absolute !important; }
+        .top-1\\/2 { top: 50% !important; }
+        .-translate-y-1\\/2 { transform: translateY(-50%) !important; }
+        .-left-8 { left: -2rem !important; }
+        .-right-8 { right: -2rem !important; }
+        .left-0 { left: 0 !important; }
+        .right-0 { right: 0 !important; }
+        .z-10 { z-index: 10 !important; }
+        .rounded-full { border-radius: 9999px !important; }
+        .w-10 { width: 2.5rem !important; }
+        .h-10 { height: 2.5rem !important; }
+        .min-w-10 { min-width: 2.5rem !important; }
+        .min-h-10 { min-height: 2.5rem !important; }
+        .border { border-width: 1px !important; }
+        .border-gray-200 { border-color: #e5e7eb !important; }
+        .transition { transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter !important; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important; transition-duration: 150ms !important; }
+        .hover\\:bg-opacity-80:hover { --tw-bg-opacity: 0.8 !important; }
+        .md\\:block { display: none; }
+        .md\\:hidden { display: block; }
+        
+        @media (min-width: 768px) {
+          .md\\:block { display: block !important; }
+          .md\\:hidden { display: none !important; }
+        }
+        .group:focus .group-focus\\:fill-white { fill: white !important; }
+        .overflow-hidden { overflow: hidden !important; }
+        
+        .md\\:block { display: none; }
+        .md\\:flex { display: none; }
+      `;
+      document.head.appendChild(style);
     }
 
     // Load Google Fonts if not already present
@@ -37,6 +167,40 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
         document.head.appendChild(fontLink);
         console.log('Google Fonts (Inter) added to page');
       }
+    }
+
+    // Load Swiper JS if not already present
+    function loadSwiperJS() {
+      return new Promise((resolve, reject) => {
+        // Check if Swiper is already loaded
+        if (typeof Swiper !== 'undefined') {
+          console.log('Swiper already loaded');
+          resolve();
+          return;
+        }
+
+        // Check if Swiper script is already being loaded
+        if (document.querySelector('script[src*="swiper"]')) {
+          console.log('Swiper script already loading, waiting...');
+          waitForSwiper(resolve, 20);
+          return;
+        }
+
+        // Load Swiper script
+        console.log('Loading Swiper script...');
+        const swiperScript = document.createElement('script');
+        swiperScript.src = 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js';
+        swiperScript.async = true;
+        swiperScript.onload = () => {
+          console.log('Swiper script loaded successfully');
+          resolve();
+        };
+        swiperScript.onerror = () => {
+          console.error('Failed to load Swiper script');
+          reject(new Error('Failed to load Swiper'));
+        };
+        document.head.appendChild(swiperScript);
+      });
     }
 
     // Wait for Swiper to be available
@@ -54,9 +218,43 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
           setTimeout(checkSwiper, 100);
         } else {
           console.error('Swiper failed to load after maximum attempts');
+          callback(); // Call callback anyway to show error in widget
         }
       };
       checkSwiper();
+    }
+
+    // Helper: Find the script's own URL to load assets relative to it
+    function getScriptURL() {
+        const scripts = document.getElementsByTagName('script');
+        for (let i = 0; i < scripts.length; i++) {
+            if (scripts[i].src && scripts[i].src.includes('widget-embed.js')) {
+                return scripts[i].src;
+            }
+        }
+        return null;
+    }
+
+    // Helper: Dynamically load the widget's CSS file
+    function loadWidgetCSS() {
+        const cssId = 'pr-multi-widget-css';
+        if (document.getElementById(cssId)) return; // CSS already loaded
+
+        const scriptSrc = getScriptURL();
+        if (!scriptSrc) {
+            console.error('PromptReviews Widget: Could not determine script URL to load styles.');
+            return;
+        }
+
+        // e.g., "https://host.com/.../widget-embed.js" -> "https://host.com/.../multi-widget.css"
+        const cssHref = scriptSrc.replace('widget-embed.js', 'multi-widget.css');
+
+        const link = document.createElement('link');
+        link.id = cssId;
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = cssHref;
+        document.head.appendChild(link);
     }
 
     // Helper: Convert hex color to rgba
@@ -124,765 +322,276 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
         return (f + l).toUpperCase();
     }
 
-    // Generate scoped CSS for the widget
-    function generateScopedCSS(widgetClass) {
-        return `
-            /* Base styles */
-            .${widgetClass} {
-                font-family: var(--pr-font, 'Inter'), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-                --pr-accent-color: #6a5acd;
-                --pr-accent-hover: #4a3f8c;
-                --pr-text-primary: #22223b;
-                --pr-text-secondary: #6b7280;
-                --pr-border-color: #cccccc;
-                --pr-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-                --pr-card-bg: var(--pr-bg-color, #ffffff);
-                --pr-card-border: var(--pr-border-width, 2px) solid var(--pr-border-color, #cccccc);
-                --pr-card-radius: var(--pr-border-radius, 16px);
-                --pr-card-shadow: 0 4px 32px rgba(34, 34, 34, var(--pr-shadow-intensity, 0.2)) inset;
-                width: 100%;
-                max-width: 100%;
-                margin: 0 auto;
-                padding: 0;
-                box-sizing: border-box;
-                position: relative;
-            }
-
-            /* Widget Content */
-            .${widgetClass} .widget-content {
-                width: 100%;
-                max-width: 1200px;
-                margin: 0 auto;
-                padding: 0;
-                position: relative;
-            }
-
-            /* Outer Container */
-            .${widgetClass} .widget-outer-container {
-                position: relative;
-                width: 100%;
-                max-width: 100%;
-                margin: 0 auto;
-                padding: 0 60px;
-                box-sizing: border-box;
-            }
-
-            /* Carousel Container */
-            .${widgetClass} .widget-carousel-container {
-                position: relative;
-                width: 100%;
-                max-width: 100%;
-                margin: 0 auto;
-                padding: 0;
-                overflow: visible;
-            }
-
-            /* Swiper Container */
-            .${widgetClass} .swiper {
-                width: 100%;
-                padding: 2rem 0;
-                overflow: visible;
-            }
-
-            /* Swiper Slides */
-            .${widgetClass} .swiper-slide {
-                display: flex;
-                justify-content: center;
-                align-items: stretch;
-                height: auto;
-                opacity: 0.4;
-                transition: opacity 0.3s ease;
-            }
-
-            .${widgetClass} .swiper-slide-active {
-                z-index: 1;
-                opacity: 1;
-            }
-
-            .${widgetClass} .swiper-slide-next,
-            .${widgetClass} .swiper-slide-prev {
-                opacity: 0.7;
-            }
-
-            /* Review Cards */
-            .${widgetClass} .pr-review-card {
-                background: var(--pr-card-bg, #fff);
-                border: var(--pr-card-border, 2px solid #cccccc);
-                border-radius: var(--pr-card-radius, 16px);
-                box-shadow: var(--pr-card-shadow, 0 4px 32px rgba(34,34,34,0.2) inset);
-                padding: 2rem 2rem 2.5rem;
-                height: 100%;
-                min-height: 280px;
-                display: flex;
-                flex-direction: column;
-                gap: 1rem;
-                transition: transform 0.3s ease, box-shadow 0.3s ease;
-                width: 100%;
-                min-width: 280px;
-                max-width: 420px;
-                margin: 0 auto;
-                box-sizing: border-box;
-                text-align: center;
-            }
-
-            .${widgetClass} .pr-review-card:hover {
-                transform: translateY(-4px);
-                box-shadow: 0 8px 32px rgba(34, 34, 34, 0.15);
-            }
-
-            /* Stars */
-            .${widgetClass} .stars-row {
-                display: flex;
-                gap: 0.25rem;
-                margin-bottom: 0.5rem;
-                justify-content: center;
-            }
-
-            /* Review Content */
-            .${widgetClass} .review-content {
-                position: relative;
-                flex-grow: 1;
-                display: flex;
-                flex-direction: column;
-                gap: 1rem;
-                align-items: center;
-            }
-
-            .${widgetClass} .review-text {
-                font-size: 1.125rem;
-                line-height: 1.75;
-                color: var(--pr-text-primary, #22223b);
-                margin: 0.5rem 0;
-                text-align: center;
-            }
-
-            .${widgetClass} .decorative-quote {
-                font-size: 3rem;
-                line-height: 1;
-                color: var(--pr-accent-color, #6a5acd);
-                opacity: 0.2;
-                font-family: Georgia, serif;
-            }
-
-            .${widgetClass} .decorative-quote-open {
-                margin-bottom: -1rem;
-            }
-
-            .${widgetClass} .decorative-quote-close {
-                margin-top: -1rem;
-                align-self: flex-end;
-            }
-
-            /* Reviewer Details */
-            .${widgetClass} .reviewer-details {
-                margin-top: auto;
-                padding-top: 1rem;
-                border-top: 1px solid var(--pr-border-color, #cccccc);
-            }
-
-            .${widgetClass} .reviewer-name {
-                font-weight: 600;
-                color: var(--pr-name-text-color, #111111);
-                margin-bottom: 1.5rem;
-                line-height: 1.2;
-            }
-
-            .${widgetClass} .reviewer-role {
-                font-size: 0.875rem;
-                color: var(--pr-role-text-color, #666666);
-                margin-bottom: 0.25rem;
-            }
-
-            .${widgetClass} .reviewer-date {
-                font-size: 0.75rem;
-                color: var(--pr-text-secondary, #6b7280);
-            }
-
-            /* Navigation Controls - Desktop */
-            .${widgetClass} .swiper-button-next,
-            .${widgetClass} .swiper-button-prev {
-                position: absolute;
-                top: 50%;
-                transform: translateY(-50%);
-                width: 40px;
-                height: 40px;
-                margin: 0;
-                padding: 0;
-                background: white;
-                border: 2px solid var(--pr-accent-color, #6a5acd);
-                border-radius: 50%;
-                cursor: pointer;
-                z-index: 100;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: var(--pr-accent-color, #6a5acd);
-                font-size: 24px;
-                font-weight: bold;
-                line-height: 1;
-                text-align: center;
-                transition: all 0.3s ease;
-            }
-
-            .${widgetClass} .swiper-button-next {
-                right: -50px;
-            }
-
-            .${widgetClass} .swiper-button-prev {
-                left: -50px;
-            }
-
-            .${widgetClass} .swiper-button-next:hover,
-            .${widgetClass} .swiper-button-prev:hover {
-                background: var(--pr-accent-color, #6a5acd);
-                color: white;
-            }
-
-            .${widgetClass} .swiper-button-next::after,
-            .${widgetClass} .swiper-button-prev::after {
-                display: none;
-            }
-
-            /* Mobile Navigation Row */
-            .${widgetClass} .mobile-nav-row {
-                display: none;
-                flex-direction: row;
-                align-items: center;
-                justify-content: space-between;
-                width: 100%;
-                max-width: 400px;
-                margin: 1rem auto 0;
-                padding: 0;
-                position: relative;
-                z-index: 10;
-            }
-
-            .${widgetClass} .mobile-nav-row .swiper-pagination {
-                flex: 1;
-                margin: 0 1rem;
-            }
-
-            /* Pagination */
-            .${widgetClass} .swiper-pagination {
-                position: relative;
-                bottom: auto;
-                left: auto;
-                width: auto;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                gap: 0.5rem;
-                margin-top: 1rem;
-            }
-
-            .${widgetClass} .swiper-pagination-bullet {
-                width: 8px;
-                height: 8px;
-                background: #d1d5db;
-                opacity: 1;
-                transition: all 0.3s ease;
-                margin: 0;
-                display: block;
-            }
-
-            .${widgetClass} .swiper-pagination-bullet-active {
-                background: var(--pr-accent-color, #6a5acd);
-                transform: scale(1.2);
-            }
-
-            /* Responsive Styles */
-            @media screen and (max-width: 1024px) {
-                .${widgetClass} .widget-outer-container {
-                    padding: 0 45px;
-                }
-
-                .${widgetClass} .swiper-button-next {
-                    right: -45px;
-                }
-
-                .${widgetClass} .swiper-button-prev {
-                    left: -45px;
-                }
-
-                .${widgetClass} .pr-review-card {
-                    padding: 1.5rem;
-                }
-            }
-
-            @media screen and (max-width: 900px) {
-                .${widgetClass} .widget-outer-container {
-                    padding: 0;
-                }
-
-                .${widgetClass} .swiper-button-next,
-                .${widgetClass} .swiper-button-prev {
-                    display: none;
-                }
-
-                .${widgetClass} .mobile-nav-row {
-                    display: flex;
-                }
-
-                .${widgetClass} .mobile-nav-row .swiper-button-next,
-                .${widgetClass} .mobile-nav-row .swiper-button-prev {
-                    display: flex;
-                    position: relative;
-                    top: auto;
-                    left: auto;
-                    right: auto;
-                    transform: none;
-                    width: 36px;
-                    height: 36px;
-                    margin: 0;
-                }
-
-                .${widgetClass} .pr-review-card {
-                    min-width: 300px;
-                    max-width: 100%;
-                    margin: 0 1rem;
-                }
-            }
-
-            @media screen and (max-width: 480px) {
-                .${widgetClass} .mobile-nav-row {
-                    max-width: 320px;
-                    padding: 0 0.5rem;
-                }
-
-                .${widgetClass} .mobile-nav-row .swiper-button-next,
-                .${widgetClass} .mobile-nav-row .swiper-button-prev {
-                    width: 32px;
-                    height: 32px;
-                    font-size: 20px;
-                }
-
-                .${widgetClass} .pr-review-card {
-                    min-width: 280px;
-                    padding: 1.25rem;
-                    margin: 0 0.5rem;
-                }
-
-                .${widgetClass} .review-text {
-                    font-size: 1rem;
-                }
-            }
-        `;
-    }
-
-    // Helper: Add widget CSS to page
-    function addWidgetCSS(widgetClass, cssContent) {
-      const styleId = `pr-widget-style-${widgetClass}`;
-      if (!document.getElementById(styleId)) {
-        const styleElement = document.createElement('style');
-        styleElement.id = styleId;
-        styleElement.textContent = cssContent;
-        document.head.appendChild(styleElement);
-        console.log(`Widget CSS added to page for class: ${widgetClass}`);
-      }
-    }
-
-    // Main widget rendering function
-    function renderMultiWidget(container, widgetData) {
-        console.log('🎯 renderMultiWidget called with data:', widgetData);
-        console.log('🎯 Container:', container);
-        console.log('🎯 Container parent:', container.parentElement);
-        console.log('🎯 Container classes:', container.className);
-        if (!container || !widgetData || !widgetData.reviews) {
-            console.error('Invalid container or widget data');
-            return;
-        }
-
-        // Wait for Swiper before initializing
-        waitForSwiper(() => {
-            try {
-                console.log('Inside renderMultiWidget try block');
-                // Create widget container with unique class
-                const widgetClass = `pr-multi-widget-${Math.random().toString(36).substr(2, 9)}`;
-                const widgetContainer = document.createElement('div');
-                widgetContainer.className = widgetClass;
-                container.appendChild(widgetContainer);
-                console.log('Widget container created with class:', widgetClass);
-
-                // Generate and inject scoped CSS
-                const cssContent = generateScopedCSS(widgetClass);
-                addWidgetCSS(widgetClass, cssContent);
-
-                // Create widget content
-                const widgetContent = document.createElement('div');
-                widgetContent.className = 'widget-content';
-                widgetContainer.appendChild(widgetContent);
-
-                // Create outer container with overflow hidden to constrain navigation
-                const outerContainer = document.createElement('div');
-                outerContainer.className = 'widget-outer-container';
-                widgetContent.appendChild(outerContainer);
-
-                // Create carousel container
-                const carouselContainer = document.createElement('div');
-                carouselContainer.className = 'widget-carousel-container';
-                outerContainer.appendChild(carouselContainer);
-
-                // Create Swiper container with unique class
-                const swiperContainer = document.createElement('div');
-                swiperContainer.className = `swiper ${widgetClass}-swiper`;
-                carouselContainer.appendChild(swiperContainer);
-
-                // Create Swiper wrapper
-                const swiperWrapper = document.createElement('div');
-                swiperWrapper.className = 'swiper-wrapper';
-                swiperContainer.appendChild(swiperWrapper);
-
-                // Create basic navigation elements
-                const prevButton = document.createElement('div');
-                prevButton.className = 'swiper-button-prev';
-                prevButton.setAttribute('aria-label', 'Previous slide');
-                prevButton.innerHTML = '‹';
-
-                const nextButton = document.createElement('div');
-                nextButton.className = 'swiper-button-next';
-                nextButton.setAttribute('aria-label', 'Next slide');
-                nextButton.innerHTML = '›';
-
-                // Create desktop pagination
-                const pagination = document.createElement('div');
-                pagination.className = 'swiper-pagination';
-
-                // Create mobile navigation row
-                const mobileNavRow = document.createElement('div');
-                mobileNavRow.className = 'mobile-nav-row';
-
-                const mobilePrevButton = document.createElement('div');
-                mobilePrevButton.className = 'swiper-button-prev';
-                mobilePrevButton.setAttribute('aria-label', 'Previous slide');
-                mobilePrevButton.innerHTML = '‹';
-
-                const mobileNextButton = document.createElement('div');
-                mobileNextButton.className = 'swiper-button-next';
-                mobileNextButton.setAttribute('aria-label', 'Next slide');
-                mobileNextButton.innerHTML = '›';
-
-                const mobilePagination = document.createElement('div');
-                mobilePagination.className = 'swiper-pagination';
-
-                // Append mobile navigation elements
-                mobileNavRow.appendChild(mobilePrevButton);
-                mobileNavRow.appendChild(mobilePagination);
-                mobileNavRow.appendChild(mobileNextButton);
-
-                // Append all navigation elements
-                carouselContainer.appendChild(prevButton);
-                carouselContainer.appendChild(nextButton);
-                carouselContainer.appendChild(pagination);
-                carouselContainer.appendChild(mobileNavRow);
-                
-                console.log('Basic navigation elements created:');
-                console.log('Navigation buttons:', prevButton, nextButton);
-                console.log('Pagination:', pagination);
-                console.log('Swiper container:', swiperContainer);
-                console.log('Swiper container children:', swiperContainer.children);
-                console.log('Widget container:', widgetContainer);
-                console.log('Widget container children:', widgetContainer.children);
-
-                // Before rendering reviews, map fields to expected names
-                const mappedReviews = (widgetData.reviews || [])
-                    .map((review) => ({
-                        ...review,
+    // Create widget HTML
+    function createWidgetHTML(reviews, design, businessSlug) {
+      const widgetClass = `pr-multi-widget`;
+      
+      // Map reviews to a consistent format
+      const mappedReviews = reviews.map(review => ({
                         content: review.content || review.review_content || '',
                         name: review.name || review.reviewer_name ||
-                          ((review.first_name || review.reviewer_first_name || '') +
-                           ((review.last_name || review.reviewer_last_name) ? ' ' + (review.last_name || review.reviewer_last_name) : '')) ||
-                          (review.reviewer && (review.reviewer.name || ((review.reviewer.first_name || '') + ((review.reviewer.last_name) ? ' ' + review.reviewer.last_name : '')))) ||
+          ((review.first_name || '') + (review.last_name ? ' ' + review.last_name : '')) ||
                           'Anonymous',
                         role: review.role || review.reviewer_role || '',
                         rating: review.rating || review.star_rating || 5,
                         date: review.date || review.created_at || new Date().toISOString()
-                    }))
-                    .filter((review) => review && typeof review === 'object' && review.content && review.name);
+      }));
 
-                // Handle empty reviews gracefully
-                if (!mappedReviews.length) {
-                    widgetContainer.innerHTML = '<div class="text-center text-gray-400 py-12">No reviews to display.</div>';
-                    console.log('renderMultiWidget: returning early due to no reviews');
-                    return;
-                }
+      const slidesHTML = mappedReviews.map(review => `
+        <div class="swiper-slide" style="padding-left: 0.75rem; padding-right: 0.75rem;">
+          <div class="pr-review-card">
+            <div class="stars-row">${renderStars(review.rating)}</div>
+            <div class="review-content">
+              ${design.showQuotes ? '<div class="decorative-quote decorative-quote-open">“</div>' : ''}
+              <div class="review-text">${review.content}</div>
+              ${design.showQuotes ? '<div class="decorative-quote decorative-quote-close">”</div>' : ''}
+            </div>
+            <div class="reviewer-details">
+              <div class="reviewer-name">${review.name}</div>
+              ${review.role ? `<div class="reviewer-role">${review.role}</div>` : ''}
+              ${design.showRelativeDate && review.date ? `<div class="reviewer-date">${getRelativeTime(review.date)}</div>` : ''}
+            </div>
+          </div>
+        </div>
+      `).join('');
 
-                // Use mappedReviews in the rendering loop
-                mappedReviews.forEach((review) => {
-                    const slide = document.createElement('div');
-                    slide.className = 'swiper-slide';
-                    
-                    const card = document.createElement('div');
-                    card.className = 'pr-review-card';
-                    
-                    // Add stars
-                    card.innerHTML = renderStars(review.rating);
-                    
-                    // Add review content with decorative quotes
-                    const content = document.createElement('div');
-                    content.className = 'review-content';
-                    content.innerHTML = `
-                        <div class="decorative-quote decorative-quote-open">\u201C</div>
-                        <div class="review-text">${review.content}</div>
-                        <div class="decorative-quote decorative-quote-close">\u201D</div>
-                    `;
-                    card.appendChild(content);
-                    
-                    // Add reviewer details
-                    const details = document.createElement('div');
-                    details.className = 'reviewer-details';
-                    
-                    const name = document.createElement('div');
-                    name.className = 'reviewer-name';
-                    name.textContent = review.name;
-                    details.appendChild(name);
-                    
-                    if (review.role) {
-                        const role = document.createElement('div');
-                        role.className = 'reviewer-role';
-                        role.textContent = review.role;
-                        details.appendChild(role);
-                    }
-                    
-                    if (review.date) {
-                        const date = document.createElement('div');
-                        date.className = 'reviewer-date';
-                        date.textContent = getRelativeTime(review.date);
-                        details.appendChild(date);
-                    }
-                    
-                    card.appendChild(details);
-                    slide.appendChild(card);
-                    swiperWrapper.appendChild(slide);
-                });
+      const submitButtonHTML = (design.showSubmitReviewButton !== false) && businessSlug ? `
+        <div class="submit-review-button-container">
+            <a href="/r/${businessSlug}" target="_blank" class="submit-review-button" style="
+              background: ${design.bgColor || '#ffffff'};
+              color: ${design.accentColor || '#6a5acd'};
+              border-radius: ${design.borderRadius || 16}px;
+              box-shadow: inset 0 0 32px 0 ${hexToRgba(design.shadowColor || '#222222', design.shadowIntensity || 0.2)};
+              border: 1px solid ${hexToRgba('#888', 0.22)};
+            ">
+                <span class="relative z-10">Submit a Review</span>
+            </a>
+        </div>
+      ` : '';
 
-                // Set CSS variables from design (after CSS injection)
-                if (widgetData.design) {
-                  const d = widgetData.design;
-                  if (d.accentColor) widgetContainer.style.setProperty('--pr-accent-color', d.accentColor);
-                  if (d.bgColor) widgetContainer.style.setProperty('--pr-bg-color', d.bgColor);
-                  if (d.bgOpacity !== undefined) widgetContainer.style.setProperty('--pr-bg-opacity', d.bgOpacity);
-                  if (d.textColor) widgetContainer.style.setProperty('--pr-text-color', d.textColor);
-                  if (d.bodyTextColor) widgetContainer.style.setProperty('--pr-body-text-color', d.bodyTextColor);
-                  if (d.nameTextColor) widgetContainer.style.setProperty('--pr-name-text-color', d.nameTextColor);
-                  if (d.roleTextColor) widgetContainer.style.setProperty('--pr-role-text-color', d.roleTextColor);
-                  if (d.borderWidth !== undefined) widgetContainer.style.setProperty('--pr-border-width', `${d.borderWidth}px`);
-                  if (d.borderColor) widgetContainer.style.setProperty('--pr-border-color', d.borderColor);
-                  if (d.borderRadius) widgetContainer.style.setProperty('--pr-border-radius', `${d.borderRadius}px`);
-                  if (d.shadowColor) {
-                    const hex = d.shadowColor.replace('#', '');
-                    const r = parseInt(hex.substr(0, 2), 16);
-                    const g = parseInt(hex.substr(2, 2), 16);
-                    const b = parseInt(hex.substr(4, 2), 16);
-                    widgetContainer.style.setProperty('--pr-shadow-color', `${r}, ${g}, ${b}`);
-                  }
-                  if (d.shadowIntensity !== undefined) widgetContainer.style.setProperty('--pr-shadow-intensity', d.shadowIntensity);
-                  if (d.attributionFontSize !== undefined) widgetContainer.style.setProperty('--pr-attribution-font-size', `${d.attributionFontSize}px`);
-                  if (d.quoteFontSize !== undefined) widgetContainer.style.setProperty('--pr-quote-font-size', `${d.quoteFontSize}px`);
-                  if (d.lineSpacing !== undefined) widgetContainer.style.setProperty('--pr-line-spacing', d.lineSpacing);
-                  if (d.font) {
-                    widgetContainer.style.fontFamily = d.font;
-                    widgetContainer.style.setProperty('--pr-font', d.font);
-                  }
-                }
+      return `
+        <div class="${widgetClass}">
+          <!-- Desktop/Tablet view -->
+          <div class="widget-desktop">
+            <div class="widget-content">
+              <div class="widget-outer-container">
+                <div class="widget-carousel-container">
+                  <div class="swiper swiper-desktop">
+                    <div class="swiper-wrapper">${slidesHTML}</div>
+                  </div>
+                  <div class="swiper-button-prev">‹</div>
+                  <div class="swiper-button-next">›</div>
+                </div>
+                <div class="swiper-pagination"></div>
+              </div>
+            </div>
+          </div>
 
-                // Swiper navigation config
-                const swiperOptions = {
+          <!-- Mobile view -->
+          <div class="widget-mobile">
+             <div class="swiper swiper-mobile">
+               <div class="swiper-wrapper">${slidesHTML}</div>
+             </div>
+             <div class="mobile-nav-row">
+               <div class="swiper-button-prev">‹</div>
+               <div class="swiper-pagination"></div>
+               <div class="swiper-button-next">›</div>
+             </div>
+          </div>
+
+          <!-- Submit Button (outside main content) -->
+          ${submitButtonHTML}
+        </div>
+      `;
+    }
+
+    // Initialize Swiper with the widget
+    function initializeSwiper(container, design) {
+      const widgetContainer = container.querySelector('.pr-multi-widget');
+      if (widgetContainer && design) {
+          console.log('%cApplying design settings:', 'color: blue; font-weight: bold;', design);
+          const d = design;
+          
+          // Set the raw values first
+          widgetContainer.style.setProperty('--pr-accent-color', d.accentColor || '#6a5acd');
+          widgetContainer.style.setProperty('--pr-bg-color', d.bgColor || '#ffffff');
+          widgetContainer.style.setProperty('--pr-text-primary', d.textColor || '#22223b');
+          widgetContainer.style.setProperty('--pr-name-text-color', d.nameTextColor || '#1a237e');
+          widgetContainer.style.setProperty('--pr-role-text-color', d.roleTextColor || '#6b7280');
+          widgetContainer.style.setProperty('--pr-border-width', `${d.borderWidth || 2}px`);
+          widgetContainer.style.setProperty('--pr-border-color', d.borderColor || '#cccccc');
+          widgetContainer.style.setProperty('--pr-border-radius', `${d.borderRadius || 16}px`);
+          widgetContainer.style.setProperty('--pr-attribution-font-size', `${d.attributionFontSize || 15}px`);
+          widgetContainer.style.setProperty('--pr-line-spacing', d.lineSpacing || 1.4);
+          widgetContainer.style.setProperty('--pr-shadow-intensity', d.shadowIntensity || 0.2);
+          widgetContainer.style.setProperty('--pr-shadow-color-raw', d.shadowColor || '#222222');
+          widgetContainer.style.setProperty('--pr-font', d.font || 'Inter');
+
+          // Construct composite properties for the card
+          if (d.border !== false) {
+              const borderWidth = d.borderWidth || 2;
+              const borderColor = d.borderColor || '#cccccc';
+              widgetContainer.style.setProperty('--pr-card-border', `${borderWidth}px solid ${borderColor}`);
+          } else {
+              widgetContainer.style.setProperty('--pr-card-border', 'none');
+          }
+
+          if (d.shadow !== false) {
+              const shadowColor = d.shadowColor || '#222222';
+              const shadowIntensity = d.shadowIntensity || 0.2;
+              const rgba = hexToRgba(shadowColor, shadowIntensity);
+              // The dashboard ONLY uses an inset shadow. There is no outer box-shadow.
+              widgetContainer.style.setProperty('--pr-card-shadow', `0 4px 32px ${rgba} inset`);
+          } else {
+              widgetContainer.style.setProperty('--pr-card-shadow', 'none');
+          }
+
+          // Apply background color for the entire widget section, exactly like the dashboard component
+          if (d.sectionBgType === 'custom' && d.sectionBgColor) {
+              const sectionContainer = widgetContainer.parentElement; // The .promptreviews-widget div
+              if(sectionContainer) {
+                  sectionContainer.style.backgroundColor = d.sectionBgColor;
+                  sectionContainer.style.padding = '2rem 0'; // Add padding only when bg is set
+              }
+          }
+      }
+
+      // Desktop Swiper
+      const desktopSwiperContainer = container.querySelector('.swiper-desktop');
+      if (desktopSwiperContainer) {
+        new Swiper(desktopSwiperContainer, {
                     slidesPerView: 1,
-                    spaceBetween: 24,
-                    loop: true,
+          spaceBetween: 0,
                     observer: true,
                     observeParents: true,
-                    watchOverflow: true,
-                    resizeObserver: true,
-                    effect: 'slide',
-                    speed: 400,
                     navigation: {
-                        nextEl: `.${widgetClass} .swiper-button-next`,
-                        prevEl: `.${widgetClass} .swiper-button-prev`,
-                        disabledClass: 'swiper-button-disabled',
-                        hiddenClass: 'swiper-button-hidden',
-                        lockClass: 'swiper-button-lock'
+            nextEl: '.widget-desktop .swiper-button-next',
+            prevEl: '.widget-desktop .swiper-button-prev',
                     },
                     pagination: {
-                        el: `.${widgetClass} .swiper-pagination`,
+            el: '.widget-desktop .swiper-pagination',
                         clickable: true,
-                        type: 'bullets',
-                        bulletClass: 'swiper-pagination-bullet',
-                        bulletActiveClass: 'swiper-pagination-bullet-active'
                     },
                     breakpoints: {
-                        0: {
+            768: { slidesPerView: 2, spaceBetween: 0 },
+            1280: { slidesPerView: 3, spaceBetween: 0 }
+          }
+        });
+      }
+
+      // Mobile Swiper
+      const mobileSwiperContainer = container.querySelector('.swiper-mobile');
+      if (mobileSwiperContainer) {
+        new Swiper(mobileSwiperContainer, {
                             slidesPerView: 1,
-                            spaceBetween: 16,
-                            centeredSlides: true
-                        },
-                        480: {
-                            slidesPerView: 1,
-                            spaceBetween: 20,
-                            centeredSlides: true
-                        },
-                        900: {
-                            slidesPerView: 2,
-                            spaceBetween: 24,
-                            centeredSlides: false
-                        },
-                        1200: {
-                            slidesPerView: 3,
-                            spaceBetween: 32,
-                            centeredSlides: false
-                        }
-                    }
-                };
+          spaceBetween: 0,
+          centeredSlides: true,
+          observer: true,
+          observeParents: true,
+          pagination: {
+            el: '.widget-mobile .swiper-pagination',
+            clickable: true,
+          },
+          navigation: {
+            nextEl: '.widget-mobile .swiper-button-next',
+            prevEl: '.widget-mobile .swiper-button-prev',
+          },
+          breakpoints: {
+            768: { slidesPerView: 2, spaceBetween: 0 },
+            1280: { slidesPerView: 3, spaceBetween: 0 }
+          }
+        });
+      }
+    }
 
-                const swiper = new Swiper(swiperContainer, swiperOptions);
-                console.log('SWIPER INITIALIZED:', swiper, 'swiperOptions:', swiperOptions);
-                console.log('Swiper navigation elements found:', {
-                    nextEl: swiperContainer.querySelector('.swiper-button-next'),
-                    prevEl: swiperContainer.querySelector('.swiper-button-prev'),
-                    paginationEl: swiperContainer.querySelector('.swiper-pagination')
-                });
-                console.log('All navigation elements in widget:', {
-                    desktopNav: widgetContainer.querySelectorAll('.desktop-nav'),
-                    mobileNav: widgetContainer.querySelectorAll('.mobile-nav'),
-                    pagination: widgetContainer.querySelectorAll('.swiper-pagination')
-                });
-                console.log('Swiper container HTML:', swiperContainer.innerHTML);
-                console.log('Widget container HTML:', widgetContainer.innerHTML);
-                
-                // Debug navigation element styles
-                setTimeout(() => {
-                    const nextButton = swiperContainer.querySelector('.swiper-button-next');
-                    const prevButton = swiperContainer.querySelector('.swiper-button-prev');
-                    const pagination = swiperContainer.querySelector('.swiper-pagination');
-                    
-                    console.log('=== NAVIGATION DEBUG ===');
-                    console.log('Next button element:', nextButton);
-                    console.log('Prev button element:', prevButton);
-                    console.log('Pagination element:', pagination);
-                    
-                    if (nextButton) {
-                        const styles = window.getComputedStyle(nextButton);
-                        console.log('Next button computed styles:', {
-                            display: styles.display,
-                            visibility: styles.visibility,
-                            opacity: styles.opacity,
-                            position: styles.position,
-                            zIndex: styles.zIndex,
-                            left: styles.left,
-                            right: styles.right,
-                            top: styles.top,
-                            bottom: styles.bottom,
-                            width: styles.width,
-                            height: styles.height,
-                            backgroundColor: styles.backgroundColor,
-                            color: styles.color
-                        });
-                        
-                        // Force make it visible for testing
-                        nextButton.style.display = 'flex';
-                        nextButton.style.visibility = 'visible';
-                        nextButton.style.opacity = '1';
-                        nextButton.style.zIndex = '9999';
-                        console.log('Forced next button to be visible');
-                    }
-                    
-                    if (prevButton) {
-                        const styles = window.getComputedStyle(prevButton);
-                        console.log('Prev button computed styles:', {
-                            display: styles.display,
-                            visibility: styles.visibility,
-                            opacity: styles.opacity,
-                            position: styles.position,
-                            zIndex: styles.zIndex,
-                            left: styles.left,
-                            right: styles.right,
-                            top: styles.top,
-                            bottom: styles.bottom,
-                            width: styles.width,
-                            height: styles.height,
-                            backgroundColor: styles.backgroundColor,
-                            color: styles.color
-                        });
-                        
-                        // Force make it visible for testing
-                        prevButton.style.display = 'flex';
-                        prevButton.style.visibility = 'visible';
-                        prevButton.style.opacity = '1';
-                        prevButton.style.zIndex = '9999';
-                        console.log('Forced prev button to be visible');
-                    }
-                    
-                    if (pagination) {
-                        const styles = window.getComputedStyle(pagination);
-                        console.log('Pagination computed styles:', {
-                            display: styles.display,
-                            visibility: styles.visibility,
-                            opacity: styles.opacity,
-                            position: styles.position,
-                            zIndex: styles.zIndex
-                        });
-                    }
-                    
-                    console.log('=== END NAVIGATION DEBUG ===');
-                }, 100);
+    // Main render function
+    function renderMultiWidget(container, data) {
+      console.log('🎯 renderMultiWidget called. Full data from API:', data);
 
-                // Add error handling for Swiper initialization
-                if (!swiper) {
-                    throw new Error('Failed to initialize Swiper');
-                }
+      // Ensure Swiper is loaded before proceeding
+      loadSwiperJS().then(() => {
+        // Add CSS and fonts
+        loadWidgetCSS();
+        addSwiperCSS();
+        loadGoogleFonts();
 
-                // Add keyboard navigation
-                const handleKeyDown = (e) => {
-                    if (e.key === 'ArrowLeft') {
-                        swiper.slidePrev();
-                    } else if (e.key === 'ArrowRight') {
-                        swiper.slideNext();
-                    }
-                };
-                document.addEventListener('keydown', handleKeyDown);
+        // Clear container
+        container.innerHTML = '';
 
-                // Cleanup function
-                const cleanup = () => {
-                    document.removeEventListener('keydown', handleKeyDown);
-                    const styleElement = document.getElementById(`pr-widget-style-${widgetClass}`);
-                    if (styleElement) {
-                        styleElement.remove();
-                    }
-                    if (swiper && swiper.destroy) {
-                        swiper.destroy(true, true);
-                    }
-                };
+        // --- Define default design settings ---
+        const defaultDesign = {
+          bgColor: "#ffffff",
+          textColor: "#22223b",
+          accentColor: "#6a5acd",
+          bodyTextColor: "#22223b",
+          nameTextColor: "#1a237e",
+          roleTextColor: "#6b7280",
+          borderColor: "#cccccc",
+          font: "Inter",
+          showSubmitReviewButton: true,
+        };
 
-                // Store cleanup function on container
-                widgetContainer._cleanup = cleanup;
+        // Extract data and merge design with defaults
+        const { reviews = [], design: userDesign = {}, businessSlug } = data;
+        console.log('%cUser design from data:', 'color: green; font-weight: bold;', userDesign);
+        const design = { ...defaultDesign, ...userDesign };
+        console.log('%cFinal merged design:', 'color: purple; font-weight: bold;', design);
+        
+        if (!reviews || reviews.length === 0) {
+          container.innerHTML = '<div class="text-center text-gray-400 py-8">No reviews available</div>';
+          return;
+        }
 
-                // Debug log: confirm class and style
-                console.log('Widget container class:', widgetContainer.className, 'style:', widgetContainer.style.cssText);
+        // Create widget HTML
+        const widgetHTML = createWidgetHTML(reviews, design, businessSlug);
+        container.innerHTML = widgetHTML;
 
-            } catch (error) {
-                console.error('Error rendering widget:', error);
+        // Initialize Swiper after a short delay to ensure DOM is ready
+        setTimeout(() => {
+          initializeSwiper(container, design);
+          
+          // Update Swiper after a brief delay to ensure all content is rendered and heights are calculated
+          setTimeout(() => {
+            const swiper = container.querySelector('.swiper')?.swiper;
+            if (swiper) {
+              swiper.update();
+              swiper.updateSize();
+              swiper.updateSlides();
+              console.log('Swiper updated after content render');
+            }
+          }, 200);
+        }, 100);
+      }).catch(error => {
+        console.error('Failed to load Swiper:', error);
                 container.innerHTML = `
-                    <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
-                        <h3 class="text-red-800 font-semibold">Widget Error</h3>
-                        <p class="text-red-600 text-sm mt-2">${error.message}</p>
+          <div class="text-center text-gray-400 py-8">
+            <p>Widget loading failed</p>
+            <p class="text-sm">${error.message}</p>
                     </div>
                 `;
-                console.log('renderMultiWidget: returning early due to error');
-            }
         });
     }
 
     // Load all multi widgets on the page
     async function loadMultiWidgets() {
+        console.log('🔍 loadMultiWidgets called - searching for widgets...');
         const widgets = document.querySelectorAll('.promptreviews-widget[data-widget-type="multi"]');
+        console.log('Found widgets:', widgets.length, widgets);
+        
         for (const widget of widgets) {
             const widgetId = widget.getAttribute('data-widget');
-            if (!widgetId) continue;
+            console.log('Processing widget with ID:', widgetId);
+            if (!widgetId) {
+                console.log('No widget ID found, skipping...');
+                continue;
+            }
 
             try {
+                console.log('Fetching data for widget:', widgetId);
                 const response = await fetch(`/api/widgets/${widgetId}`);
                 if (!response.ok) throw new Error('Failed to load widget data');
                 const data = await response.json();
+                console.log('Widget data received:', data);
                 renderMultiWidget(widget, data);
             } catch (error) {
                 console.error('Error loading widget:', error);
@@ -892,7 +601,19 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
     }
 
     // Initialize widgets when DOM is ready
-    document.addEventListener('DOMContentLoaded', loadMultiWidgets);
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('📅 DOMContentLoaded event fired');
+        loadMultiWidgets();
+    });
+    
+    // Also try on window load as a fallback
+    window.addEventListener('load', () => {
+        console.log('🌐 Window load event fired');
+        // Only load if not already loaded
+        if (!document.querySelector('.promptreviews-widget[data-widget-type="multi"] .widget-content')) {
+            loadMultiWidgets();
+        }
+    });
 
     // Expose renderMultiWidget globally for embedding
     window.PromptReviews.renderMultiWidget = renderMultiWidget;
@@ -908,143 +629,3 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
     console.log('Widget script loaded successfully');
   })();
 }
-
-// Function to fetch widget data from Supabase
-async function fetchWidgetData(widgetId) {
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  );
-
-  const { data, error } = await supabase
-    .from('widgets')
-    .select('*')
-    .eq('id', widgetId)
-    .single();
-
-  if (error || !data) {
-    console.error('Error fetching widget data:', error);
-    return null;
-  }
-
-  return data;
-}
-
-// Function to get design with defaults
-function getDesignWithDefaults(userDesign = {}, widgetType = 'multi') {
-  const defaultDesign = {
-    multi: {
-      font: 'Inter, system-ui, -apple-system, sans-serif',
-      accentColor: '#6a5acd',
-      bgColor: 'white',
-      bgOpacity: 1,
-      textColor: '#333333',
-      nameTextColor: '#111111',
-      roleTextColor: '#666666',
-      border: false,
-      borderWidth: 2,
-      borderColor: '#cccccc',
-      borderRadius: '1.5rem',
-      shadow: true,
-      shadowColor: '#222222',
-      shadowIntensity: 0.2,
-      showQuotes: true,
-      showRelativeDate: true,
-      showSubmitReviewButton: true,
-      autoAdvance: false,
-      slideshowSpeed: 4,
-      attributionFontSize: 14
-    }
-  };
-
-  return { ...defaultDesign[widgetType], ...userDesign };
-}
-
-// Initialize widget
-async function initializeWidget(widgetId) {
-  const data = await fetchWidgetData(widgetId);
-  if (!data) {
-    console.error('Failed to fetch widget data');
-    return;
-  }
-
-  const design = getDesignWithDefaults(data.design, data.widget_type);
-  const container = document.getElementById('promptreviews-widget');
-  if (!container) {
-    console.error('Widget container not found');
-    return;
-  }
-
-  // Set CSS variables for design
-  container.style.setProperty('--pr-accent-color', design.accentColor);
-  container.style.setProperty('--pr-bg-color', design.bgColor);
-  container.style.setProperty('--pr-bg-opacity', design.bgOpacity);
-  container.style.setProperty('--pr-text-color', design.textColor);
-  container.style.setProperty('--pr-name-text-color', design.nameTextColor);
-  container.style.setProperty('--pr-role-text-color', design.roleTextColor);
-  container.style.setProperty('--pr-border-width', `${design.borderWidth}px`);
-  container.style.setProperty('--pr-border-color', design.borderColor);
-  container.style.setProperty('--pr-border-radius', design.borderRadius);
-  if (design.shadowColor) {
-    // Convert hex to RGB values
-    const hex = design.shadowColor.replace('#', '');
-    const r = parseInt(hex.substr(0, 2), 16);
-    const g = parseInt(hex.substr(2, 2), 16);
-    const b = parseInt(hex.substr(4, 2), 16);
-    container.style.setProperty('--pr-shadow-color', `${r}, ${g}, ${b}`);
-  }
-  if (design.shadowIntensity !== undefined) container.style.setProperty('--pr-shadow-intensity', design.shadowIntensity);
-  if (design.attributionFontSize !== undefined) container.style.setProperty('--pr-attribution-font-size', `${design.attributionFontSize}px`);
-
-  // Initialize Swiper with design options
-  const swiperOptions = {
-    slidesPerView: 1,
-    spaceBetween: 30,
-    loop: true,
-    observer: true,
-    observeParents: true,
-    breakpoints: {
-      0: {
-        slidesPerView: 1,
-        spaceBetween: 16,
-        centeredSlides: true,
-        navigation: {
-          nextEl: '.mobile-nav-row .swiper-button-next',
-          prevEl: '.mobile-nav-row .swiper-button-prev',
-        },
-        pagination: {
-          el: '.mobile-nav-row .swiper-pagination',
-          clickable: true,
-        }
-      },
-      1025: {
-        slidesPerView: 2,
-        spaceBetween: 24,
-        centeredSlides: false,
-        navigation: {
-          nextEl: '.swiper-button-next.nav-button.desktop-nav',
-          prevEl: '.swiper-button-prev.nav-button.desktop-nav',
-        },
-        pagination: {
-          el: '.swiper-pagination.desktop-pagination',
-          clickable: true,
-        }
-      },
-      1200: {
-        slidesPerView: 3,
-        spaceBetween: 24,
-        centeredSlides: true,
-        navigation: {
-          nextEl: '.swiper-button-next.nav-button.desktop-nav',
-          prevEl: '.swiper-button-prev.nav-button.desktop-nav',
-        },
-        pagination: {
-          el: '.swiper-pagination.desktop-pagination',
-          clickable: true,
-        }
-      }
-    }
-  };
-
-  // ... rest of the existing initialization code ...
-} 

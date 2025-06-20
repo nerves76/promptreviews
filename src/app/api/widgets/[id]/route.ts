@@ -50,12 +50,29 @@ export async function GET(
       return NextResponse.json({ error: 'Failed to fetch reviews' }, { status: 500 });
     }
 
+    // Fetch the universal prompt page slug for the business
+    let businessSlug = null;
+    if (widget.account_id) {
+        const { data: promptPageData, error: slugError } = await supabase
+            .from('prompt_pages')
+            .select('slug')
+            .eq('account_id', widget.account_id)
+            .eq('is_universal', true)
+            .single();
+
+        if (slugError) {
+            console.error('Error fetching business slug:', slugError.message);
+        } else if (promptPageData) {
+            businessSlug = promptPageData.slug;
+        }
+    }
+
     // Compose the response object
-    const { theme, ...rest } = widget;
     const response = {
-      ...rest,
-      design: widget.design || theme, // only 'design', not 'theme'
+      ...widget,
+      design: widget.theme, // Map theme to design for backward compatibility
       reviews: reviews || [],
+      businessSlug: businessSlug,
     };
 
     return NextResponse.json(response);

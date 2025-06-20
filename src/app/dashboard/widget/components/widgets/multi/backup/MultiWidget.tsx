@@ -4,8 +4,8 @@ import { Navigation, Pagination, A11y, Autoplay } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
-import StarRating from '../../shared/StarRating';
-import { getDesignWithDefaults, DEFAULT_DESIGN, hexToRgba, lightenHex, getRelativeTime } from '../../shared/utils';
+import StarRating from '../../../shared/StarRating';
+import { getDesignWithDefaults, DEFAULT_DESIGN, hexToRgba, lightenHex, getRelativeTime } from '../../../shared/utils';
 // Import any shared helpers from widget-embed/index.tsx as needed
 // ...
 // --- Shared types and helpers ---
@@ -13,6 +13,57 @@ import { getDesignWithDefaults, DEFAULT_DESIGN, hexToRgba, lightenHex, getRelati
 
 // WidgetType and WidgetData
 type WidgetType = 'single' | 'multi' | 'photo';
+
+// Define the design state type
+interface DesignState {
+  bgType: "none" | "solid";
+  bgColor: string;
+  textColor: string;
+  accentColor: string;
+  bodyTextColor: string;
+  nameTextColor: string;
+  roleTextColor: string;
+  quoteFontSize: number;
+  attributionFontSize: number;
+  borderRadius: number;
+  shadow: boolean;
+  bgOpacity: number;
+  autoAdvance: boolean;
+  slideshowSpeed: number;
+  border: boolean;
+  borderWidth: number;
+  lineSpacing: number;
+  showQuotes: boolean;
+  showRelativeDate: boolean;
+  showGrid: boolean;
+  width: number;
+  sectionBgType: "none" | "custom";
+  sectionBgColor: string;
+  shadowIntensity: number;
+  shadowColor: string;
+  borderColor: string;
+  font: string;
+  showSubmitReviewButton: boolean;
+}
+
+// Define the widget data structure
+interface WidgetData {
+  id: string;
+  widget_type: 'multi' | 'single' | 'photo';
+  design: DesignState;
+  reviews: Array<{
+    id: string;
+    review_content: string;
+    first_name: string;
+    last_name: string;
+    reviewer_role: string;
+    platform: string;
+    created_at: string;
+    star_rating: number;
+    photo_url?: string;
+  }>;
+  universalPromptSlug?: string;
+}
 
 // =========================
 // Widget Layout Safety Rules
