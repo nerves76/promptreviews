@@ -35,8 +35,8 @@ export function WidgetCard({
   return (
     <div className={`bg-white rounded-lg shadow-md p-4 border transition-colors flex flex-col h-full ${
       isSelected 
-        ? 'border-slateblue' 
-        : 'border-gray-200 hover:border-slateblue'
+        ? 'border-slate-blue border-2' 
+        : 'border-gray-200 hover:border-slate-blue'
     }`}>
       <div className="flex justify-between items-start mb-4 flex-1">
         {/* Widget Name and Type */}
@@ -126,10 +126,10 @@ export function WidgetCard({
       </div>
       
       {/* Select Button / Selected Indicator */}
-      <div className="flex justify-end mt-auto pt-4">
+      <div className="flex justify-end items-center mt-auto pt-4 min-h-[56px]">
         {isSelected ? (
           <div 
-            className="w-40 h-10 rounded-lg border-2 border-slateblue"
+            className="w-40 h-10 rounded-lg border-2 border-slate-blue"
             aria-label="Selected widget indicator"
           ></div>
         ) : (
@@ -144,7 +144,7 @@ export function WidgetCard({
               viewBox="0 0 24 24"
               strokeWidth={1.5}
               stroke="currentColor"
-              className="w-4 h-4 mr-2"
+              className="w-5 h-5 mr-2"
             >
               <path
                 strokeLinecap="round"
