@@ -192,7 +192,7 @@
     font-size: 0.875rem;
     text-decoration: none;
     transition: all 0.2s ease-in-out;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    box-shadow: var(--pr-card-shadow, 0 4px 32px rgba(34,34,34,0.2) inset);
 }
 
 .pr-multi-widget .submit-review-button:hover {
@@ -277,6 +277,7 @@
     background: var(--pr-card-bg, #ffffff);
     border: 1.5px solid rgba(136, 136, 136, 0.22);
     transition: all 0.3s ease;
+    box-shadow: var(--pr-card-shadow, 0 4px 32px rgba(34,34,34,0.2) inset);
 }
 
 .pr-multi-widget button[aria-label="Previous"]:hover,
@@ -344,7 +345,7 @@
     height: 36px;
     margin: 0;
     background: white;
-    border: 2px solid var(--pr-accent-color, #6a5acd);
+    border: var(--pr-border-width, 2px) solid var(--pr-border-color, #cccccc);
     border-radius: 50%;
     cursor: pointer;
     z-index: 100;
@@ -356,6 +357,7 @@
     line-height: 1;
     text-align: center;
     transition: all 0.3s ease;
+    box-shadow: var(--pr-card-shadow, 0 4px 32px rgba(34,34,34,0.2) inset);
 }
 
 .pr-multi-widget .mobile-nav-row .swiper-button-next:hover,
@@ -517,7 +519,7 @@
     background-color: white;
     color: #333;
     border-radius: 50%;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    box-shadow: var(--pr-card-shadow, 0 4px 32px rgba(34,34,34,0.2) inset);
     cursor: pointer;
     transition: all 0.2s ease;
     font-size: 20px;
@@ -566,7 +568,7 @@
     background: #eee;
     color: #555;
     border-radius: 50%;
-    box-shadow: none;
+    box-shadow: var(--pr-card-shadow, 0 4px 32px rgba(34,34,34,0.2) inset);
     font-size: 20px;
     margin: 0;
 }
