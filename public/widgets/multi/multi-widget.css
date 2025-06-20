@@ -487,6 +487,11 @@
         max-width: 100%;
         margin: 0 1rem;
     }
+    
+    .pr-multi-widget .submit-review-button-container {
+        margin-right: 1rem;
+        margin-top: 1rem;
+    }
 }
 
 @media screen and (max-width: 480px) {
