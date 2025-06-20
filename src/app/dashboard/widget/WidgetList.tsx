@@ -8,6 +8,7 @@ import { WidgetEditorForm } from './components/WidgetEditorForm';
 import { ReviewManagementModal } from './components/ReviewManagementModal';
 import { WidgetCard } from './components/WidgetCard';
 import { useWidgets } from './hooks/useWidgets';
+import { StyleModal } from './components/StyleModal';
 
 // Add type for design state
 export type DesignState = {
@@ -71,6 +72,8 @@ export default function WidgetList({
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [selectedWidgetForReviews, setSelectedWidgetForReviews] = useState<string | null>(null);
+  const [showStyleModal, setShowStyleModal] = useState(false);
+  const [selectedWidgetForStyle, setSelectedWidgetForStyle] = useState<string | null>(null);
 
   // Remove local design state and use parentDesign directly
   const design = parentDesign;
@@ -142,11 +145,8 @@ export default function WidgetList({
   };
 
   const handleEditStyle = (widgetId: string) => {
-    const widget = widgets.find(w => w.id === widgetId);
-    if (widget) {
-      setWidgetToEdit(widget);
-      setIsEditorOpen(true);
-    }
+    setSelectedWidgetForStyle(widgetId);
+    setShowStyleModal(true);
   };
 
   const handleSaveDesign = (widgetId: string) => async (newDesign: DesignState) => {
@@ -271,6 +271,31 @@ export default function WidgetList({
         }}
         widgetId={selectedWidgetForReviews}
         onReviewsChange={onWidgetReviewsChange}
+      />
+
+      {/* Style Modal */}
+      <StyleModal
+        isOpen={showStyleModal}
+        onClose={() => {
+          setShowStyleModal(false);
+          setSelectedWidgetForStyle(null);
+        }}
+        selectedWidget={selectedWidgetForStyle}
+        design={design}
+        onDesignChange={onDesignChange || (() => {})}
+        onSaveDesign={async () => {
+          if (selectedWidgetForStyle && onDesignChange) {
+            try {
+              await saveWidgetDesign(selectedWidgetForStyle, design);
+              setShowStyleModal(false);
+              setSelectedWidgetForStyle(null);
+              if (onWidgetReviewsChange) onWidgetReviewsChange();
+            } catch (error) {
+              console.error('Error saving design:', error);
+              alert('Failed to save design. Please try again.');
+            }
+          }
+        }}
       />
     </div>
   );

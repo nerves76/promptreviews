@@ -8,6 +8,7 @@ interface StyleModalProps {
   onClose: () => void;
   selectedWidget: string | null;
   design: DesignState;
+  onDesignChange: (design: DesignState) => void;
   onSaveDesign: () => void;
 }
 
@@ -16,6 +17,7 @@ export const StyleModal: React.FC<StyleModalProps> = ({
   onClose,
   selectedWidget,
   design,
+  onDesignChange,
   onSaveDesign,
 }) => {
   return (
@@ -25,7 +27,7 @@ export const StyleModal: React.FC<StyleModalProps> = ({
       title="Edit Style"
       onSave={onSaveDesign}
     >
-      <StyleForm design={design} />
+      <StyleForm design={design} onDesignChange={onDesignChange} />
     </DraggableModal>
   );
 }; 
