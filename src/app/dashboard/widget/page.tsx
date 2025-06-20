@@ -377,9 +377,9 @@ export default function WidgetPage() {
         )}
 
         {/* Main Card Below */}
-        <PageCard icon={<FaCode className="w-9 h-9 text-[#1A237E]" />}>
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-2">
-            <div>
+        <PageCard icon={<FaCode className="w-12 h-12 text-[#1A237E]" />}>
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-2">
+            <div className="text-left">
               <h1 className="text-4xl font-bold text-[#1A237E]">Your widgets</h1>
               <p className="mt-2 text-gray-500 text-sm max-w-md">
                 Create up to 3 different widgets to showcase your reviews. Style to match your brand.
