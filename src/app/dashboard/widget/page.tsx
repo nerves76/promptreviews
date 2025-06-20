@@ -377,14 +377,9 @@ export default function WidgetPage() {
         )}
 
         {/* Main Card Below */}
-        <PageCard icon={<FaCode className="w-12 h-12 text-[#1A237E]" />}>
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-2">
-            <div className="text-left">
-              <h1 className="text-4xl font-bold text-[#1A237E]">Your widgets</h1>
-              <p className="mt-2 text-gray-500 text-sm max-w-md">
-                Create up to 3 different widgets to showcase your reviews. Style to match your brand.
-              </p>
-            </div>
+        <PageCard 
+          icon={<FaCode className="w-12 h-12 text-[#1A237E]" />}
+          topRightAction={
             <button
               className="px-4 py-2 bg-[#1A237E] text-white rounded hover:bg-opacity-90 transition-colors font-semibold whitespace-nowrap"
               onClick={() => {
@@ -401,6 +396,13 @@ export default function WidgetPage() {
             >
               + New widget
             </button>
+          }
+        >
+          <div className="text-left mb-2">
+            <h1 className="text-4xl font-bold text-[#1A237E]">Your widgets</h1>
+            <p className="mt-2 text-gray-500 text-sm max-w-md">
+              Create up to 3 different widgets to showcase your reviews. Style to match your brand.
+            </p>
           </div>
           {/* Widget Management Section */}
           <WidgetList
