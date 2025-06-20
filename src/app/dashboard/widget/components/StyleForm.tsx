@@ -72,59 +72,44 @@ export const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange }) 
 
       {/* Background Settings */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Background Type</label>
-        <select
-          value={design.bgType || 'solid'}
-          onChange={(e) => updateDesign({ bgType: e.target.value as 'none' | 'solid' })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="none">Transparent</option>
-          <option value="solid">Solid Color</option>
-        </select>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Background Color</label>
+        <input
+          type="color"
+          value={design.bgColor || '#ffffff'}
+          onChange={(e) => updateDesign({ bgColor: e.target.value })}
+          className="w-full h-10 border border-gray-300 rounded-md"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Background Transparency</label>
+        <input
+          type="range"
+          min="0"
+          max="1"
+          step="0.1"
+          value={design.bgOpacity || 1}
+          onChange={(e) => updateDesign({ bgOpacity: parseFloat(e.target.value) })}
+          className="w-full"
+        />
+        <span className="text-xs text-gray-500">{Math.round((design.bgOpacity || 1) * 100)}%</span>
       </div>
 
-      {design.bgType === 'solid' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Background Color</label>
-            <input
-              type="color"
-              value={design.bgColor || '#ffffff'}
-              onChange={(e) => updateDesign({ bgColor: e.target.value })}
-              className="w-full h-10 border border-gray-300 rounded-md"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Background Opacity</label>
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.1"
-              value={design.bgOpacity || 1}
-              onChange={(e) => updateDesign({ bgOpacity: parseFloat(e.target.value) })}
-              className="w-full"
-            />
-            <span className="text-xs text-gray-500">{Math.round((design.bgOpacity || 1) * 100)}%</span>
-          </div>
-        </div>
-      )}
-
       {/* Border Settings */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Border</label>
-          <select
-            value={design.border ? 'true' : 'false'}
-            onChange={(e) => updateDesign({ border: e.target.value === 'true' })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="false">No Border</option>
-            <option value="true">Show Border</option>
-          </select>
+      <div className="space-y-3">
+        <div className="flex items-center">
+          <input
+            type="checkbox"
+            id="showBorder"
+            checked={design.border || false}
+            onChange={(e) => updateDesign({ border: e.target.checked })}
+            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+          />
+          <label htmlFor="showBorder" className="ml-2 block text-sm text-gray-700">
+            Show border
+          </label>
         </div>
         {design.border && (
-          <>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Border Width (px)</label>
               <input
@@ -145,7 +130,7 @@ export const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange }) 
                 className="w-full h-10 border border-gray-300 rounded-md"
               />
             </div>
-          </>
+          </div>
         )}
       </div>
 
