@@ -60,7 +60,7 @@ export const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange }) 
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Name Text Color</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Reviewer's name color</label>
           <input
             type="color"
             value={design.nameTextColor || '#1a237e'}
