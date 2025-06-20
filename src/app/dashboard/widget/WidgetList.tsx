@@ -7,7 +7,8 @@ import FiveStarSpinner from "@/app/components/FiveStarSpinner";
 import { ChatBubbleLeftIcon } from "@heroicons/react/24/outline";
 import { CheckIcon, DocumentDuplicateIcon } from "@heroicons/react/24/outline";
 import { smartMergeDesign } from '../utils/smartMergeDesign';
-
+import { DraggableModal } from './components/DraggableModal';
+import { WidgetEditorForm } from './components/WidgetEditorForm';
 const WORD_LIMIT = 250;
 const MAX_WIDGET_REVIEWS = 8;
 
@@ -68,17 +69,23 @@ export default function WidgetList({
   design: DesignState; // Make design required
   onWidgetReviewsChange?: () => void;
 }) {
-  const [widgets, setWidgets] = useState<any[]>([]);
-  const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState(null as null | string);
-  const [form, setForm] = useState({
-    name: "New Widget",
-    widgetType: "multi",
-  });
+
 
   // Remove local design state and use parentDesign directly
-  const design = parentDesign;
+ const design = parentDesign;
+ // New state to control the editor modal
+ const [isEditorOpen, setIsEditorOpen] = useState(false);
+ const [widgetToEdit, setWidgetToEdit] = useState<any | null>(null);
 
+ // New handlers to open the modal
+ const handleOpenNew = () => {
+   setWidgetToEdit(null);
+   setIsEditorOpen(true);
+ };
+ const handleOpenEdit = (widget: any) => {
+  setWidgetToEdit(widget);
+  setIsEditorOpen(true);
+};
   // Update design state handlers with proper types
   const handleDesignChange = (field: keyof DesignState, value: any) => {
     if (onDesignChange) {
@@ -155,10 +162,7 @@ export default function WidgetList({
   });
 
   // Draggable edit modal state
-  const [editModalPos, setEditModalPos] = useState({ x: 0, y: 0 });
-  const [editDragging, setEditDragging] = useState(false);
-  const editDragStart = useRef<{ x: number; y: number } | null>(null);
-  const editModalRef = useRef<HTMLDivElement>(null);
+  
 
   // Copy embed code state
   const [copiedWidgetId, setCopiedWidgetId] = useState<string | null>(null);
@@ -171,8 +175,7 @@ export default function WidgetList({
   const [photoUploadErrors, setPhotoUploadErrors] = useState<{ [id: string]: string }>({});
 
   // Add state for name error and input ref
-  const [nameError, setNameError] = useState("");
-  const nameInputRef = useRef<HTMLInputElement>(null);
+ 
 
   // Add state for save message
   const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
@@ -219,7 +222,7 @@ export default function WidgetList({
   // Listen for openNewWidgetForm event from parent
   useEffect(() => {
     const handler = () => {
-      handleOpenForm();
+      handleOpenNew();
     };
     window.addEventListener("openNewWidgetForm", handler);
     return () => window.removeEventListener("openNewWidgetForm", handler);
@@ -693,15 +696,6 @@ export default function WidgetList({
   const [currentWidgetReviews, setCurrentWidgetReviews] = useState<any[]>([]);
 
   // Edit button handler: always pass the full widget object to handleOpenForm
-  const handleEditWidget = (widgetId: string) => {
-    const widget = widgets.find(w => w.id === widgetId);
-    if (widget) {
-      setEditing(widget.id);
-      setSelectedWidget(widget.id);
-      setForm({ name: widget.name, widgetType: widget.widget_type || "multi" });
-      setShowForm(true);
-    }
-  };
 
   const handleDeleteWidget = async (widgetId: string) => {
     if (confirm("Are you sure you want to delete this widget?")) {
@@ -1043,6 +1037,21 @@ export default function WidgetList({
     { name: "Dark Brown", value: "#3E2723" },
   ];
 
+  // At the top of the component, replace old state with new state
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [widgetToEdit, setWidgetToEdit] = useState<Widget | null>(null);
+
+  // The click handlers for 'New' and 'Edit' buttons will now just set state
+  const handleOpenNew = () => {
+      setWidgetToEdit(null);
+      setIsEditorOpen(true);
+  }
+
+  const handleOpenEdit = (widget: Widget) => {
+      setWidgetToEdit(widget);
+      setIsEditorOpen(true);
+  }
+
   return (
     <div className="space-y-6">
       {/* Widget List */}
@@ -1234,88 +1243,6 @@ export default function WidgetList({
         </div>
       </div>
 
-      {/* Add New/Edit Widget Form Modal */}
-      {showForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div
-            className="bg-white rounded-lg shadow-xl w-full max-w-md"
-            style={{
-              position: "absolute",
-              left: editModalPos.x,
-              top: editModalPos.y,
-            }}
-            ref={editModalRef}
-          >
-            <div
-              className="p-4 border-b cursor-move flex items-center justify-between bg-blue-100 rounded-t-2xl"
-              onMouseDown={handleEditMouseDown}
-            >
-              <div className="flex-1 flex justify-center items-center gap-2">
-                <i className="fa-solid fa-up-down-left-right text-gray-400 w-5 h-5"></i>
-                <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider">drag</span>
-              </div>
-              <button
-                onClick={() => setShowForm(false)}
-                className="text-gray-400 hover:text-gray-500 ml-2"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className="p-4">
-              <div className="space-y-4">
-                {/* Widget Name Section */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Widget Name</label>
-                  <input
-                    type="text"
-                    value={form.name}
-                    onChange={(e) => {
-                      setForm((prev) => ({ ...prev, name: e.target.value }));
-                      setNameError("");
-                    }}
-                    className={`block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${nameError ? 'border-red-500' : 'border-gray-300'}`}
-                    placeholder="Enter widget name"
-                    ref={nameInputRef}
-                    autoFocus
-                  />
-                  {nameError && <div className="text-red-500 text-sm mt-1">{nameError}</div>}
-                </div>
-                {/* Widget Type Section */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Widget Type</label>
-                  <select
-                    value={form.widgetType}
-                    onChange={(e) => setForm({ ...form, widgetType: e.target.value })}
-                    className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring shadow-inner"
-                  >
-                    <option value="single">Single Card</option>
-                    <option value="multi">Multi Card</option>
-                    <option value="photo">Photo (with image + testimonial)</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-            <div className="border-t p-4 flex justify-end">
-              <button
-                onClick={() => setShowForm(false)}
-                className="py-2 px-5 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors shadow mr-2"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSave}
-                className="py-2 px-5 bg-slate-blue text-white rounded-lg font-semibold hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue transition-colors shadow mr-2"
-                style={{ minWidth: 90 }}
-                disabled={!form.name.trim() || form.name.trim().toLowerCase() === "new widget"}
-              >
-                Save
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Edit Style Modal */}
       {showEditModal && selectedWidget && (
@@ -1981,6 +1908,22 @@ export default function WidgetList({
           </div>
         </div>
       )}
+
+<DraggableModal
+  isOpen={isEditorOpen}
+  onClose={() => setIsEditorOpen(false)}
+  title={widgetToEdit ? 'Edit Widget' : 'Create New Widget'}
+>
+  <WidgetEditorForm
+    onSaveSuccess={() => {
+      fetchWidgets();
+      setIsEditorOpen(false);
+    }}
+    onCancel={() => setIsEditorOpen(false)}
+    widgetToEdit={widgetToEdit}
+    design={design}
+  />
+</DraggableModal>
     </div>
   );
 }
