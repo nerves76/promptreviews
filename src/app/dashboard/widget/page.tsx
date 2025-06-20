@@ -378,7 +378,7 @@ export default function WidgetPage() {
 
         {/* Main Card Below */}
         <PageCard 
-          icon={<FaCode className="w-12 h-12 text-[#1A237E]" />}
+          icon={<FaCode className="w-9 h-9 text-[#1A237E]" />}
           topRightAction={
             <button
               className="px-4 py-2 bg-[#1A237E] text-white rounded hover:bg-opacity-90 transition-colors font-semibold whitespace-nowrap"
