@@ -68,9 +68,9 @@ export const DraggableModal: React.FC<DraggableModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
       <div
-        className="bg-white rounded-lg shadow-xl w-full max-w-2xl"
+        className="bg-white rounded-lg shadow-xl w-full max-w-2xl pointer-events-auto"
         style={{
           position: 'absolute',
           left: modalPos.x,
