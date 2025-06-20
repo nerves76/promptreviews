@@ -186,9 +186,10 @@
     background-color: var(--pr-card-bg, #ffffff);
     color: var(--pr-text-primary, #22223b);
     border: 1px solid var(--pr-border-color, #cccccc);
-    padding: 0.75rem 1.5rem;
+    padding: 0.5rem 1.25rem;
     border-radius: 9999px;
-    font-weight: 600;
+    font-weight: 500;
+    font-size: 0.875rem;
     text-decoration: none;
     transition: all 0.2s ease-in-out;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
