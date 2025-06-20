@@ -15,6 +15,7 @@
     --pr-border-radius: 16px;
     --pr-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     --pr-shadow-intensity: 0.2;
+    --pr-shadow-color: rgba(34, 34, 34, 1);
     --pr-line-spacing: 1.75;
     --pr-attribution-font-size: 1rem;
     --pr-name-text-color: #111111;
@@ -22,8 +23,8 @@
     --pr-card-bg: var(--pr-bg-color, #ffffff);
     --pr-card-border: var(--pr-border-width, 2px) solid var(--pr-border-color, #cccccc);
     --pr-card-radius: var(--pr-border-radius, 16px);
-    --pr-card-shadow: 0 4px 32px rgba(34, 34, 34, var(--pr-shadow-intensity, 0.2)) inset;
-    --pr-button-shadow: 0 2px 8px rgba(34, 34, 34, var(--pr-shadow-intensity, 0.15)) inset;
+    --pr-card-shadow: 0 4px 32px color-mix(in srgb, var(--pr-shadow-color) var(--pr-shadow-intensity, 0.2), transparent) inset;
+    --pr-button-shadow: 0 2px 8px color-mix(in srgb, var(--pr-shadow-color) var(--pr-shadow-intensity, 0.15), transparent) inset;
     width: 100%;
     max-width: 100%;
     margin: 0 auto;
