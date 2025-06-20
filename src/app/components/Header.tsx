@@ -34,6 +34,11 @@ export default function Header() {
     getUser();
   }, [supabase]);
 
+  // Add debugging for navigation visibility
+  useEffect(() => {
+    console.log("Header component rendered, user:", user);
+  }, [user]);
+
   // Fetch recent reviews as notifications
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -151,7 +156,7 @@ export default function Header() {
               </Link>
             </div>
             {/* Desktop Nav */}
-            <div className="hidden md:ml-10 md:flex md:space-x-8">
+            <div className="flex ml-10 space-x-8">
               <Link
                 href="/dashboard"
                 className={`${

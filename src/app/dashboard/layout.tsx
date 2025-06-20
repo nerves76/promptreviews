@@ -86,7 +86,7 @@ export default function DashboardLayout({
     router.push("/auth/sign-in");
   };
 
-  if (loading) return null;
+  if (loading) return <div>{children}</div>;
 
   return (
     <div className="w-full bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 pb-16 md:pb-24 lg:pb-32">

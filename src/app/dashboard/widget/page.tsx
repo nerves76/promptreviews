@@ -297,14 +297,31 @@ export default function WidgetPage() {
     console.log("Dashboard design state changed:", design);
   }, [design]);
 
+  // Add debugging for loading states
+  useEffect(() => {
+    console.log("Widget page loading states:", { loading, isClient });
+  }, [loading, isClient]);
+
   if (loading) {
-    return <TopLoaderOverlay />;
+    console.log("Widget page: showing loading state");
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <AppLoader />
+      </div>
+    );
   }
 
-  if (!isClient) return null;
+  if (!isClient) {
+    console.log("Widget page: showing client loading state");
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <div>Loading...</div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen">
+    <div>
       {/* Widget Preview Area */}
       <div className="relative w-full min-h-[600px] flex flex-col items-center justify-center py-12">
         {/* Site signature gradient background behind the widget preview */}
