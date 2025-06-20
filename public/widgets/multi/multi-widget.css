@@ -6,16 +6,24 @@
 
 .pr-multi-widget {
     font-family: var(--pr-font, 'Inter'), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    --pr-accent-color: #6a5acd;
-    --pr-accent-hover: #4a3f8c;
+    --pr-bg-color: #ffffff;
     --pr-text-primary: #22223b;
     --pr-text-secondary: #6b7280;
+    --pr-accent-color: #6a5acd;
     --pr-border-color: #cccccc;
+    --pr-border-width: 2px;
+    --pr-border-radius: 16px;
     --pr-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --pr-shadow-intensity: 0.2;
+    --pr-line-spacing: 1.75;
+    --pr-attribution-font-size: 1rem;
+    --pr-name-text-color: #111111;
+    --pr-role-text-color: #666666;
     --pr-card-bg: var(--pr-bg-color, #ffffff);
     --pr-card-border: var(--pr-border-width, 2px) solid var(--pr-border-color, #cccccc);
     --pr-card-radius: var(--pr-border-radius, 16px);
     --pr-card-shadow: 0 4px 32px rgba(34, 34, 34, var(--pr-shadow-intensity, 0.2)) inset;
+    --pr-button-shadow: 0 2px 8px rgba(34, 34, 34, var(--pr-shadow-intensity, 0.15)) inset;
     width: 100%;
     max-width: 100%;
     margin: 0 auto;
@@ -192,7 +200,7 @@
     font-size: 0.875rem;
     text-decoration: none;
     transition: all 0.2s ease-in-out;
-    box-shadow: var(--pr-card-shadow, 0 4px 32px rgba(34,34,34,0.2) inset);
+    box-shadow: var(--pr-button-shadow, 0 2px 8px rgba(34,34,34,0.15) inset);
 }
 
 .pr-multi-widget .submit-review-button:hover {
@@ -238,7 +246,7 @@
     background: var(--pr-card-bg);
     border: var(--pr-card-border);
     border-radius: 50%;
-    box-shadow: var(--pr-card-shadow);
+    box-shadow: var(--pr-button-shadow, 0 2px 8px rgba(34,34,34,0.15) inset);
     cursor: pointer;
     z-index: 100;
     display: none; /* Hidden by default */
@@ -277,7 +285,7 @@
     background: var(--pr-card-bg, #ffffff);
     border: 1.5px solid rgba(136, 136, 136, 0.22);
     transition: all 0.3s ease;
-    box-shadow: var(--pr-card-shadow, 0 4px 32px rgba(34,34,34,0.2) inset);
+    box-shadow: var(--pr-button-shadow, 0 2px 8px rgba(34,34,34,0.15) inset);
 }
 
 .pr-multi-widget button[aria-label="Previous"]:hover,
@@ -303,7 +311,7 @@
 .pr-multi-widget .widget-mobile button[aria-label="Next"] {
     background: var(--pr-card-bg, #ffffff);
     border: 1.5px solid rgba(136, 136, 136, 0.22);
-    box-shadow: var(--pr-card-shadow, none);
+    box-shadow: var(--pr-button-shadow, 0 2px 8px rgba(34,34,34,0.15) inset);
 }
 
 .pr-multi-widget .widget-mobile button[aria-label="Previous"]:hover,
@@ -357,7 +365,7 @@
     line-height: 1;
     text-align: center;
     transition: all 0.3s ease;
-    box-shadow: var(--pr-card-shadow, 0 4px 32px rgba(34,34,34,0.2) inset);
+    box-shadow: var(--pr-button-shadow, 0 2px 8px rgba(34,34,34,0.15) inset);
 }
 
 .pr-multi-widget .mobile-nav-row .swiper-button-next:hover,
@@ -519,7 +527,7 @@
     background-color: white;
     color: #333;
     border-radius: 50%;
-    box-shadow: var(--pr-card-shadow, 0 4px 32px rgba(34,34,34,0.2) inset);
+    box-shadow: var(--pr-button-shadow, 0 2px 8px rgba(34,34,34,0.15) inset);
     cursor: pointer;
     transition: all 0.2s ease;
     font-size: 20px;
@@ -568,7 +576,7 @@
     background: #eee;
     color: #555;
     border-radius: 50%;
-    box-shadow: var(--pr-card-shadow, 0 4px 32px rgba(34,34,34,0.2) inset);
+    box-shadow: var(--pr-button-shadow, 0 2px 8px rgba(34,34,34,0.15) inset);
     font-size: 20px;
     margin: 0;
 }
