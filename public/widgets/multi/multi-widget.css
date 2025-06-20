@@ -235,9 +235,10 @@
     height: 40px;
     margin: 0;
     padding: 0;
-    background: white;
-    border: 2px solid var(--pr-accent-color, #6a5acd);
+    background: var(--pr-card-bg);
+    border: var(--pr-card-border);
     border-radius: 50%;
+    box-shadow: var(--pr-card-shadow);
     cursor: pointer;
     z-index: 100;
     display: none; /* Hidden by default */
