@@ -190,17 +190,18 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
                 justify-content: center;
                 align-items: stretch;
                 height: auto;
-                opacity: 1;
-                transition: transform 0.3s ease;
+                opacity: 0.4;
+                transition: opacity 0.3s ease;
             }
 
             .${widgetClass} .swiper-slide-active {
                 z-index: 1;
+                opacity: 1;
             }
 
             .${widgetClass} .swiper-slide-next,
             .${widgetClass} .swiper-slide-prev {
-                z-index: 0;
+                opacity: 0.7;
             }
 
             /* Review Cards */
@@ -209,8 +210,9 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
                 border: var(--pr-card-border, 2px solid #cccccc);
                 border-radius: var(--pr-card-radius, 16px);
                 box-shadow: var(--pr-card-shadow, 0 4px 32px rgba(34,34,34,0.2) inset);
-                padding: 2rem;
+                padding: 2rem 2rem 2.5rem;
                 height: 100%;
+                min-height: 280px;
                 display: flex;
                 flex-direction: column;
                 gap: 1rem;
@@ -281,7 +283,8 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
             .${widgetClass} .reviewer-name {
                 font-weight: 600;
                 color: var(--pr-name-text-color, #111111);
-                margin-bottom: 0.25rem;
+                margin-bottom: 1.5rem;
+                line-height: 1.2;
             }
 
             .${widgetClass} .reviewer-role {
@@ -322,11 +325,11 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
             }
 
             .${widgetClass} .swiper-button-next {
-                right: 10px;
+                right: -50px;
             }
 
             .${widgetClass} .swiper-button-prev {
-                left: 10px;
+                left: -50px;
             }
 
             .${widgetClass} .swiper-button-next:hover,
@@ -342,47 +345,21 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
 
             /* Mobile Navigation Row */
             .${widgetClass} .mobile-nav-row {
-                display: flex;
+                display: none;
                 flex-direction: row;
                 align-items: center;
                 justify-content: space-between;
                 width: 100%;
-                max-width: 280px;
-                margin: -24px auto 0;
+                max-width: 400px;
+                margin: 1rem auto 0;
                 padding: 0;
                 position: relative;
                 z-index: 10;
             }
 
             .${widgetClass} .mobile-nav-row .swiper-pagination {
-                flex: 0 1 auto;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                gap: 0.5rem;
-            }
-
-            .${widgetClass} .mobile-nav-row .swiper-button-next,
-            .${widgetClass} .mobile-nav-row .swiper-button-prev {
-                display: flex !important;
-                visibility: visible !important;
-                opacity: 1 !important;
-                position: relative;
-                top: auto;
-                left: auto;
-                right: auto;
-                transform: none;
-                width: 40px;
-                height: 40px;
-                margin: 0;
-                font-size: 24px;
-                flex: 0 0 auto;
-            }
-
-            .${widgetClass} .mobile-nav-row .swiper-button-next:hover,
-            .${widgetClass} .mobile-nav-row .swiper-button-prev:hover {
-                background: var(--pr-accent-color, #6a5acd);
-                color: white;
+                flex: 1;
+                margin: 0 1rem;
             }
 
             /* Pagination */
@@ -414,64 +391,75 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
             }
 
             /* Responsive Styles */
-            @media screen and (max-width: 1200px) {
+            @media screen and (max-width: 1024px) {
                 .${widgetClass} .widget-outer-container {
-                    padding: 0 50px;
+                    padding: 0 45px;
                 }
 
                 .${widgetClass} .swiper-button-next {
-                    right: 5px;
+                    right: -45px;
                 }
 
                 .${widgetClass} .swiper-button-prev {
-                    left: 5px;
+                    left: -45px;
+                }
+
+                .${widgetClass} .pr-review-card {
+                    padding: 1.5rem;
                 }
             }
 
-            @media screen and (max-width: 1024px) {
+            @media screen and (max-width: 900px) {
                 .${widgetClass} .widget-outer-container {
-                    padding: 0 20px;
+                    padding: 0;
                 }
 
                 .${widgetClass} .swiper-button-next,
                 .${widgetClass} .swiper-button-prev {
-                    display: none !important;
-                    visibility: hidden !important;
-                    opacity: 0 !important;
+                    display: none;
                 }
 
                 .${widgetClass} .mobile-nav-row {
                     display: flex;
                 }
 
+                .${widgetClass} .mobile-nav-row .swiper-button-next,
+                .${widgetClass} .mobile-nav-row .swiper-button-prev {
+                    display: flex;
+                    position: relative;
+                    top: auto;
+                    left: auto;
+                    right: auto;
+                    transform: none;
+                    width: 36px;
+                    height: 36px;
+                    margin: 0;
+                }
+
                 .${widgetClass} .pr-review-card {
-                    padding: 1.5rem;
                     min-width: 300px;
                     max-width: 100%;
                     margin: 0 1rem;
                 }
             }
 
-            @media screen and (max-width: 880px) and (min-width: 651px) {
-                .${widgetClass} .pr-review-card {
-                    margin: 0 2rem;
-                }
-            }
-
             @media screen and (max-width: 480px) {
-                .${widgetClass} .widget-outer-container {
-                    padding: 0 16px;
-                }
-
                 .${widgetClass} .mobile-nav-row {
                     max-width: 320px;
                     padding: 0 0.5rem;
                 }
 
+                .${widgetClass} .mobile-nav-row .swiper-button-next,
+                .${widgetClass} .mobile-nav-row .swiper-button-prev {
+                    width: 32px;
+                    height: 32px;
+                    font-size: 20px;
+                }
+
                 .${widgetClass} .pr-review-card {
                     min-width: 280px;
                     padding: 1.25rem;
-                    margin: 0 1.5rem;
+                    margin: 0 0.5rem;
                 }
 
                 .${widgetClass} .review-text {
@@ -497,7 +485,8 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
     function renderMultiWidget(container, widgetData) {
         console.log('🎯 renderMultiWidget called with data:', widgetData);
         console.log('🎯 Container:', container);
-        
+        console.log('🎯 Container parent:', container.parentElement);
+        console.log('🎯 Container classes:', container.className);
         if (!container || !widgetData || !widgetData.reviews) {
             console.error('Invalid container or widget data');
             return;
@@ -507,19 +496,21 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
         waitForSwiper(() => {
             try {
                 console.log('Inside renderMultiWidget try block');
-                
                 // Create widget container with unique class
                 const widgetClass = `pr-multi-widget-${Math.random().toString(36).substr(2, 9)}`;
-                container.className = `${container.className} ${widgetClass}`;
-                
+                const widgetContainer = document.createElement('div');
+                widgetContainer.className = widgetClass;
+                container.appendChild(widgetContainer);
+                console.log('Widget container created with class:', widgetClass);
+
                 // Generate and inject scoped CSS
                 const cssContent = generateScopedCSS(widgetClass);
                 addWidgetCSS(widgetClass, cssContent);
-                
+
                 // Create widget content
                 const widgetContent = document.createElement('div');
                 widgetContent.className = 'widget-content';
-                container.appendChild(widgetContent);
+                widgetContainer.appendChild(widgetContent);
 
                 // Create outer container with overflow hidden to constrain navigation
                 const outerContainer = document.createElement('div');
@@ -531,9 +522,9 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
                 carouselContainer.className = 'widget-carousel-container';
                 outerContainer.appendChild(carouselContainer);
 
-                // Create Swiper container
+                // Create Swiper container with unique class
                 const swiperContainer = document.createElement('div');
-                swiperContainer.className = 'swiper';
+                swiperContainer.className = `swiper ${widgetClass}-swiper`;
                 carouselContainer.appendChild(swiperContainer);
 
                 // Create Swiper wrapper
@@ -541,7 +532,7 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
                 swiperWrapper.className = 'swiper-wrapper';
                 swiperContainer.appendChild(swiperWrapper);
 
-                // Create navigation elements
+                // Create basic navigation elements
                 const prevButton = document.createElement('div');
                 prevButton.className = 'swiper-button-prev';
                 prevButton.setAttribute('aria-label', 'Previous slide');
@@ -552,6 +543,7 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
                 nextButton.setAttribute('aria-label', 'Next slide');
                 nextButton.innerHTML = '›';
 
+                // Create desktop pagination
                 const pagination = document.createElement('div');
                 pagination.className = 'swiper-pagination';
 
@@ -577,40 +569,45 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
                 mobileNavRow.appendChild(mobilePagination);
                 mobileNavRow.appendChild(mobileNextButton);
 
-                // Append navigation elements to the outer container (not carousel container)
-                outerContainer.appendChild(prevButton);
-                outerContainer.appendChild(nextButton);
-                outerContainer.appendChild(pagination);
-                outerContainer.appendChild(mobileNavRow);
+                // Append all navigation elements
+                carouselContainer.appendChild(prevButton);
+                carouselContainer.appendChild(nextButton);
+                carouselContainer.appendChild(pagination);
+                carouselContainer.appendChild(mobileNavRow);
+                
+                console.log('Basic navigation elements created:');
+                console.log('Navigation buttons:', prevButton, nextButton);
+                console.log('Pagination:', pagination);
+                console.log('Swiper container:', swiperContainer);
+                console.log('Swiper container children:', swiperContainer.children);
+                console.log('Widget container:', widgetContainer);
+                console.log('Widget container children:', widgetContainer.children);
 
-                // Debug: Force navigation buttons to be visible
-                setTimeout(() => {
-                    console.log('Navigation buttons created:', {
-                        prevButton: prevButton,
-                        nextButton: nextButton,
-                        outerContainer: outerContainer
-                    });
-                    
-                    // Force visibility for debugging
-                    prevButton.style.display = 'flex';
-                    prevButton.style.visibility = 'visible';
-                    prevButton.style.opacity = '1';
-                    prevButton.style.zIndex = '9999';
-                    prevButton.style.backgroundColor = 'white';
-                    prevButton.style.border = '2px solid #6a5acd';
-                    
-                    nextButton.style.display = 'flex';
-                    nextButton.style.visibility = 'visible';
-                    nextButton.style.opacity = '1';
-                    nextButton.style.zIndex = '9999';
-                    nextButton.style.backgroundColor = 'white';
-                    nextButton.style.border = '2px solid #6a5acd';
-                    
-                    console.log('Forced navigation buttons to be visible');
-                }, 100);
+                // Before rendering reviews, map fields to expected names
+                const mappedReviews = (widgetData.reviews || [])
+                    .map((review) => ({
+                        ...review,
+                        content: review.content || review.review_content || '',
+                        name: review.name || review.reviewer_name ||
+                          ((review.first_name || review.reviewer_first_name || '') +
+                           ((review.last_name || review.reviewer_last_name) ? ' ' + (review.last_name || review.reviewer_last_name) : '')) ||
+                          (review.reviewer && (review.reviewer.name || ((review.reviewer.first_name || '') + ((review.reviewer.last_name) ? ' ' + review.reviewer.last_name : '')))) ||
+                          'Anonymous',
+                        role: review.role || review.reviewer_role || '',
+                        rating: review.rating || review.star_rating || 5,
+                        date: review.date || review.created_at || new Date().toISOString()
+                    }))
+                    .filter((review) => review && typeof review === 'object' && review.content && review.name);
+
+                // Handle empty reviews gracefully
+                if (!mappedReviews.length) {
+                    widgetContainer.innerHTML = '<div class="text-center text-gray-400 py-12">No reviews to display.</div>';
+                    console.log('renderMultiWidget: returning early due to no reviews');
+                    return;
+                }
 
                 // Use mappedReviews in the rendering loop
-                widgetData.reviews.forEach((review) => {
+                mappedReviews.forEach((review) => {
                     const slide = document.createElement('div');
                     slide.className = 'swiper-slide';
                     
@@ -624,9 +621,9 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
                     const content = document.createElement('div');
                     content.className = 'review-content';
                     content.innerHTML = `
-                        <div class="decorative-quote decorative-quote-open">"</div>
+                        <div class="decorative-quote decorative-quote-open">\u201C</div>
                         <div class="review-text">${review.content}</div>
-                        <div class="decorative-quote decorative-quote-close">"</div>
+                        <div class="decorative-quote decorative-quote-close">\u201D</div>
                     `;
                     card.appendChild(content);
                     
@@ -658,56 +655,56 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
                     swiperWrapper.appendChild(slide);
                 });
 
-                // Set CSS variables from design
+                // Set CSS variables from design (after CSS injection)
                 if (widgetData.design) {
-                    const d = widgetData.design;
-                    if (d.accentColor) container.style.setProperty('--pr-accent-color', d.accentColor);
-                    if (d.bgColor) container.style.setProperty('--pr-bg-color', d.bgColor);
-                    if (d.bgOpacity !== undefined) container.style.setProperty('--pr-bg-opacity', d.bgOpacity);
-                    if (d.textColor) container.style.setProperty('--pr-text-color', d.textColor);
-                    if (d.bodyTextColor) container.style.setProperty('--pr-body-text-color', d.bodyTextColor);
-                    if (d.nameTextColor) container.style.setProperty('--pr-name-text-color', d.nameTextColor);
-                    if (d.roleTextColor) container.style.setProperty('--pr-role-text-color', d.roleTextColor);
-                    if (d.borderWidth !== undefined) container.style.setProperty('--pr-border-width', `${d.borderWidth}px`);
-                    if (d.borderColor) container.style.setProperty('--pr-border-color', d.borderColor);
-                    if (d.borderRadius) container.style.setProperty('--pr-border-radius', `${d.borderRadius}px`);
-                    if (d.shadowColor) {
-                        const hex = d.shadowColor.replace('#', '');
-                        const r = parseInt(hex.substr(0, 2), 16);
-                        const g = parseInt(hex.substr(2, 2), 16);
-                        const b = parseInt(hex.substr(4, 2), 16);
-                        container.style.setProperty('--pr-shadow-color', `${r}, ${g}, ${b}`);
-                    }
-                    if (d.shadowIntensity !== undefined) container.style.setProperty('--pr-shadow-intensity', d.shadowIntensity);
-                    if (d.font) {
-                        container.style.fontFamily = d.font;
-                        container.style.setProperty('--pr-font', d.font);
-                    }
+                  const d = widgetData.design;
+                  if (d.accentColor) widgetContainer.style.setProperty('--pr-accent-color', d.accentColor);
+                  if (d.bgColor) widgetContainer.style.setProperty('--pr-bg-color', d.bgColor);
+                  if (d.bgOpacity !== undefined) widgetContainer.style.setProperty('--pr-bg-opacity', d.bgOpacity);
+                  if (d.textColor) widgetContainer.style.setProperty('--pr-text-color', d.textColor);
+                  if (d.bodyTextColor) widgetContainer.style.setProperty('--pr-body-text-color', d.bodyTextColor);
+                  if (d.nameTextColor) widgetContainer.style.setProperty('--pr-name-text-color', d.nameTextColor);
+                  if (d.roleTextColor) widgetContainer.style.setProperty('--pr-role-text-color', d.roleTextColor);
+                  if (d.borderWidth !== undefined) widgetContainer.style.setProperty('--pr-border-width', `${d.borderWidth}px`);
+                  if (d.borderColor) widgetContainer.style.setProperty('--pr-border-color', d.borderColor);
+                  if (d.borderRadius) widgetContainer.style.setProperty('--pr-border-radius', `${d.borderRadius}px`);
+                  if (d.shadowColor) {
+                    const hex = d.shadowColor.replace('#', '');
+                    const r = parseInt(hex.substr(0, 2), 16);
+                    const g = parseInt(hex.substr(2, 2), 16);
+                    const b = parseInt(hex.substr(4, 2), 16);
+                    widgetContainer.style.setProperty('--pr-shadow-color', `${r}, ${g}, ${b}`);
+                  }
+                  if (d.shadowIntensity !== undefined) widgetContainer.style.setProperty('--pr-shadow-intensity', d.shadowIntensity);
+                  if (d.attributionFontSize !== undefined) widgetContainer.style.setProperty('--pr-attribution-font-size', `${d.attributionFontSize}px`);
+                  if (d.quoteFontSize !== undefined) widgetContainer.style.setProperty('--pr-quote-font-size', `${d.quoteFontSize}px`);
+                  if (d.lineSpacing !== undefined) widgetContainer.style.setProperty('--pr-line-spacing', d.lineSpacing);
+                  if (d.font) {
+                    widgetContainer.style.fontFamily = d.font;
+                    widgetContainer.style.setProperty('--pr-font', d.font);
+                  }
                 }
 
-                // Initialize Swiper
-                const swiper = new Swiper(swiperContainer, {
-                    slidesPerView: 'auto',
+                // Swiper navigation config
+                const swiperOptions = {
+                    slidesPerView: 1,
                     spaceBetween: 24,
-                    loop: false,
+                    loop: true,
                     observer: true,
                     observeParents: true,
                     watchOverflow: true,
                     resizeObserver: true,
                     effect: 'slide',
                     speed: 400,
-                    preventInteractionOnTransition: true,
-                    slideVisibleClass: 'swiper-slide-visible',
-                    watchSlidesProgress: true,
                     navigation: {
-                        nextEl: nextButton,
-                        prevEl: prevButton,
+                        nextEl: `.${widgetClass} .swiper-button-next`,
+                        prevEl: `.${widgetClass} .swiper-button-prev`,
                         disabledClass: 'swiper-button-disabled',
                         hiddenClass: 'swiper-button-hidden',
                         lockClass: 'swiper-button-lock'
                     },
                     pagination: {
-                        el: pagination,
+                        el: `.${widgetClass} .swiper-pagination`,
                         clickable: true,
                         type: 'bullets',
                         bulletClass: 'swiper-pagination-bullet',
@@ -717,12 +714,12 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
                         0: {
                             slidesPerView: 1,
                             spaceBetween: 16,
-                            centeredSlides: false
+                            centeredSlides: true
                         },
                         480: {
                             slidesPerView: 1,
                             spaceBetween: 20,
-                            centeredSlides: false
+                            centeredSlides: true
                         },
                         900: {
                             slidesPerView: 2,
@@ -735,15 +732,104 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
                             centeredSlides: false
                         }
                     }
-                });
+                };
 
-                // Add overflow hidden to prevent extra card from showing
-                swiperContainer.style.overflow = 'hidden';
+                const swiper = new Swiper(swiperContainer, swiperOptions);
+                console.log('SWIPER INITIALIZED:', swiper, 'swiperOptions:', swiperOptions);
+                console.log('Swiper navigation elements found:', {
+                    nextEl: swiperContainer.querySelector('.swiper-button-next'),
+                    prevEl: swiperContainer.querySelector('.swiper-button-prev'),
+                    paginationEl: swiperContainer.querySelector('.swiper-pagination')
+                });
+                console.log('All navigation elements in widget:', {
+                    desktopNav: widgetContainer.querySelectorAll('.desktop-nav'),
+                    mobileNav: widgetContainer.querySelectorAll('.mobile-nav'),
+                    pagination: widgetContainer.querySelectorAll('.swiper-pagination')
+                });
+                console.log('Swiper container HTML:', swiperContainer.innerHTML);
+                console.log('Widget container HTML:', widgetContainer.innerHTML);
                 
-                // Force update after initialization
+                // Debug navigation element styles
                 setTimeout(() => {
-                    swiper.update();
+                    const nextButton = swiperContainer.querySelector('.swiper-button-next');
+                    const prevButton = swiperContainer.querySelector('.swiper-button-prev');
+                    const pagination = swiperContainer.querySelector('.swiper-pagination');
+                    
+                    console.log('=== NAVIGATION DEBUG ===');
+                    console.log('Next button element:', nextButton);
+                    console.log('Prev button element:', prevButton);
+                    console.log('Pagination element:', pagination);
+                    
+                    if (nextButton) {
+                        const styles = window.getComputedStyle(nextButton);
+                        console.log('Next button computed styles:', {
+                            display: styles.display,
+                            visibility: styles.visibility,
+                            opacity: styles.opacity,
+                            position: styles.position,
+                            zIndex: styles.zIndex,
+                            left: styles.left,
+                            right: styles.right,
+                            top: styles.top,
+                            bottom: styles.bottom,
+                            width: styles.width,
+                            height: styles.height,
+                            backgroundColor: styles.backgroundColor,
+                            color: styles.color
+                        });
+                        
+                        // Force make it visible for testing
+                        nextButton.style.display = 'flex';
+                        nextButton.style.visibility = 'visible';
+                        nextButton.style.opacity = '1';
+                        nextButton.style.zIndex = '9999';
+                        console.log('Forced next button to be visible');
+                    }
+                    
+                    if (prevButton) {
+                        const styles = window.getComputedStyle(prevButton);
+                        console.log('Prev button computed styles:', {
+                            display: styles.display,
+                            visibility: styles.visibility,
+                            opacity: styles.opacity,
+                            position: styles.position,
+                            zIndex: styles.zIndex,
+                            left: styles.left,
+                            right: styles.right,
+                            top: styles.top,
+                            bottom: styles.bottom,
+                            width: styles.width,
+                            height: styles.height,
+                            backgroundColor: styles.backgroundColor,
+                            color: styles.color
+                        });
+                        
+                        // Force make it visible for testing
+                        prevButton.style.display = 'flex';
+                        prevButton.style.visibility = 'visible';
+                        prevButton.style.opacity = '1';
+                        prevButton.style.zIndex = '9999';
+                        console.log('Forced prev button to be visible');
+                    }
+                    
+                    if (pagination) {
+                        const styles = window.getComputedStyle(pagination);
+                        console.log('Pagination computed styles:', {
+                            display: styles.display,
+                            visibility: styles.visibility,
+                            opacity: styles.opacity,
+                            position: styles.position,
+                            zIndex: styles.zIndex
+                        });
+                    }
+                    
+                    console.log('=== END NAVIGATION DEBUG ===');
                 }, 100);
+
+                // Add error handling for Swiper initialization
+                if (!swiper) {
+                    throw new Error('Failed to initialize Swiper');
+                }
 
                 // Add keyboard navigation
                 const handleKeyDown = (e) => {
@@ -755,8 +841,8 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
                 };
                 document.addEventListener('keydown', handleKeyDown);
 
-                // Store cleanup function
-                container._cleanup = () => {
+                // Cleanup function
+                const cleanup = () => {
                     document.removeEventListener('keydown', handleKeyDown);
                     const styleElement = document.getElementById(`pr-widget-style-${widgetClass}`);
                     if (styleElement) {
@@ -767,6 +853,12 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
                     }
                 };
 
+                // Store cleanup function on container
+                widgetContainer._cleanup = cleanup;
+
+                // Debug log: confirm class and style
+                console.log('Widget container class:', widgetContainer.className, 'style:', widgetContainer.style.cssText);
+
             } catch (error) {
                 console.error('Error rendering widget:', error);
                 container.innerHTML = `
@@ -775,6 +867,7 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
                         <p class="text-red-600 text-sm mt-2">${error.message}</p>
                     </div>
                 `;
+                console.log('renderMultiWidget: returning early due to error');
             }
         });
     }
