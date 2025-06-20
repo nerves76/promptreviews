@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Widget Debug - Find Your Widget IDs</title>
+    <style>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .widget-list {
+            margin: 20px 0;
+        }
+        .widget-item {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+        .widget-id {
+            font-family: monospace;
+            background: #e3f2fd;
+            padding: 5px 10px;
+            border-radius: 4px;
+            color: #1976d2;
+            font-weight: bold;
+        }
+        .copy-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .copy-btn:hover {
+            background: #45a049;
+        }
+        .error {
+            color: #d32f2f;
+            background: #ffebee;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success {
+            color: #2e7d32;
+            background: #e8f5e8;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .info {
+            background: #fff3e0;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .test-section {
+            margin-top: 30px;
+            padding: 20px;
+            border: 2px dashed #e0e0e0;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Widget Debug - Find Your Widget IDs</h1>
+        
+        <div class="info">
+            <h3>Instructions:</h3>
+            <ol>
+                <li>Click "Load Widgets" to fetch your widgets from the database</li>
+                <li>Copy a widget ID from the list below</li>
+                <li>Use that ID in the embed test page</li>
+            </ol>
+        </div>
+
+        <button onclick="loadWidgets()" style="padding: 10px 20px; background: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer;">
+            Load Widgets
+        </button>
+
+        <div id="widget-list" class="widget-list"></div>
+        <div id="status"></div>
+
+        <div class="test-section">
+            <h3>Quick Test</h3>
+            <p>Enter a widget ID below to test it immediately:</p>
+            <input type="text" id="quick-test-id" placeholder="Enter widget ID" style="padding: 8px; width: 300px; margin-right: 10px;">
+            <button onclick="quickTest()" style="padding: 8px 16px; background: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                Test Widget
+            </button>
+            <div id="quick-test-result" style="margin-top: 15px;"></div>
+        </div>
+    </div>
+
+    <script>
+        async function loadWidgets() {
+            const statusDiv = document.getElementById('status');
+            const widgetListDiv = document.getElementById('widget-list');
+            
+            statusDiv.innerHTML = '<div class="info">Loading widgets...</div>';
+            
+            try {
+                // First, let's try to get the current user's widgets
+                const response = await fetch('/api/widgets/debug', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    displayWidgets(data.widgets || []);
+                    statusDiv.innerHTML = '<div class="success">✅ Widgets loaded successfully</div>';
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+            } catch (error) {
+                console.error('Error loading widgets:', error);
+                statusDiv.innerHTML = '<div class="error">❌ Error loading widgets: ' + error.message + '</div>';
+                
+                // Fallback: show some sample widget IDs for testing
+                displaySampleWidgets();
+            }
+        }
+
+        function displayWidgets(widgets) {
+            const widgetListDiv = document.getElementById('widget-list');
+            
+            if (widgets.length === 0) {
+                widgetListDiv.innerHTML = '<div class="info">No widgets found. Create a widget in your dashboard first.</div>';
+                return;
+            }
+            
+            let html = '<h3>Your Widgets:</h3>';
+            
+            widgets.forEach(widget => {
+                html += `
+                    <div class="widget-item">
+                        <h4>${widget.name || 'Unnamed Widget'}</h4>
+                        <p><strong>Type:</strong> ${widget.widget_type || 'multi'}</p>
+                        <p><strong>ID:</strong> <span class="widget-id">${widget.id}</span>
+                            <button class="copy-btn" onclick="copyToClipboard('${widget.id}')">Copy ID</button>
+                        </p>
+                        <p><strong>Created:</strong> ${new Date(widget.created_at).toLocaleDateString()}</p>
+                        <p><strong>Reviews:</strong> ${widget.review_count || 0}</p>
+                    </div>
+                `;
+            });
+            
+            widgetListDiv.innerHTML = html;
+        }
+
+        function displaySampleWidgets() {
+            const widgetListDiv = document.getElementById('widget-list');
+            widgetListDiv.innerHTML = `
+                <div class="info">
+                    <h3>Sample Widget IDs for Testing:</h3>
+                    <p>Since we couldn't load your widgets, here are some sample IDs you can try:</p>
+                    <ul>
+                        <li><span class="widget-id">sample-widget-1</span> <button class="copy-btn" onclick="copyToClipboard('sample-widget-1')">Copy</button></li>
+                        <li><span class="widget-id">test-multi-widget</span> <button class="copy-btn" onclick="copyToClipboard('test-multi-widget')">Copy</button></li>
+                        <li><span class="widget-id">demo-widget-123</span> <button class="copy-btn" onclick="copyToClipboard('demo-widget-123')">Copy</button></li>
+                    </ul>
+                    <p><strong>Note:</strong> These are sample IDs and won't work unless you have widgets with these exact IDs in your database.</p>
+                </div>
+            `;
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                // Show a brief success message
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = 'Copied!';
+                btn.style.background = '#4caf50';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = '#4caf50';
+                }, 1000);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                alert('Failed to copy to clipboard. Please copy manually: ' + text);
+            });
+        }
+
+        async function quickTest() {
+            const widgetId = document.getElementById('quick-test-id').value.trim();
+            const resultDiv = document.getElementById('quick-test-result');
+            
+            if (!widgetId) {
+                resultDiv.innerHTML = '<div class="error">Please enter a widget ID</div>';
+                return;
+            }
+            
+            resultDiv.innerHTML = '<div class="info">Testing widget...</div>';
+            
+            try {
+                const response = await fetch(`/api/widgets/${widgetId}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h4>✅ Widget Found!</h4>
+                            <p><strong>Name:</strong> ${data.name || 'Unnamed'}</p>
+                            <p><strong>Type:</strong> ${data.widget_type || 'multi'}</p>
+                            <p><strong>Reviews:</strong> ${data.reviews ? data.reviews.length : 0}</p>
+                            <p><strong>Design:</strong> ${data.design ? 'Custom design' : 'Default design'}</p>
+                            <p>This widget should work in the embed test!</p>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <h4>❌ Widget Not Found</h4>
+                            <p>Error: ${data.error || 'Unknown error'}</p>
+                            <p>Make sure you're using a valid widget ID from your dashboard.</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ Network Error</h4>
+                        <p>Error: ${error.message}</p>
+                        <p>Check your connection and try again.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Auto-load widgets when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Wait a moment for any auth to settle
+            setTimeout(loadWidgets, 500);
+        });
+    </script>
+</body>
+</html> 
