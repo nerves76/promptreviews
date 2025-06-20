@@ -33,12 +33,12 @@ export function WidgetCard({
   const isCopied = copiedWidgetId === widget.id;
 
   return (
-    <div className={`bg-white rounded-lg shadow-md p-4 border transition-colors ${
+    <div className={`bg-white rounded-lg shadow-md p-4 border transition-colors flex flex-col h-full ${
       isSelected 
         ? 'border-slateblue border-2' 
         : 'border-gray-200 hover:border-slateblue'
     }`}>
-      <div className="flex justify-between items-start mb-4">
+      <div className="flex justify-between items-start mb-4 flex-1">
         {/* Widget Name and Type */}
         <div className="flex-1 min-w-0 mr-4">
           <h3 className="text-lg font-semibold text-gray-900 mb-2 break-words leading-tight">{widget.name}</h3>
@@ -125,8 +125,8 @@ export function WidgetCard({
         </div>
       </div>
       
-      {/* Select Button */}
-      <div className="flex justify-end">
+      {/* Select Button - Always visible and anchored to bottom right */}
+      <div className="flex justify-end mt-auto">
         <button
           onClick={onSelect}
           className={`px-4 py-2 rounded-lg font-semibold text-sm transition-colors ${
