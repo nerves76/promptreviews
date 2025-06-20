@@ -185,9 +185,7 @@
 .pr-multi-widget .submit-review-button {
     background-color: var(--pr-card-bg, #ffffff);
     color: var(--pr-text-primary, #22223b);
-    border: inherit;
-    border-width: var(--pr-border-width, 2px);
-    border-color: var(--pr-border-color, #cccccc);
+    border: var(--pr-border-width, 2px) solid var(--pr-border-color, #cccccc);
     padding: 0.5rem 1.25rem;
     border-radius: 9999px;
     font-weight: 500;
