@@ -36,20 +36,6 @@ export const StyleForm: React.FC<StyleFormProps> = ({ design }) => {
         </select>
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700">Background Color</label>
-        <select
-          value={design.backgroundColor}
-          onChange={(e) => design.onBackgroundColorChange(e.target.value)}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-        >
-          <option value="white">White</option>
-          <option value="gray-50">Light Gray</option>
-          <option value="gray-100">Medium Gray</option>
-          <option value="gray-200">Dark Gray</option>
-          <option value="black">Black</option>
-        </select>
-      </div>
-      <div>
         <label className="block text-sm font-medium text-gray-700">Border Radius</label>
         <select
           value={design.borderRadius}

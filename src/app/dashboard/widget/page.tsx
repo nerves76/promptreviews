@@ -20,7 +20,6 @@ import MultiWidget from "./components/widgets/multi/backup/MultiWidget";
 // Add DesignState type definition
 type DesignState = {
   bgType: "none" | "solid";
-  bgColor: string;
   textColor: string;
   accentColor: string;
   bodyTextColor: string;
@@ -39,8 +38,6 @@ type DesignState = {
   showRelativeDate: boolean;
   showGrid: boolean;
   width: number;
-  sectionBgType: "none" | "custom";
-  sectionBgColor: string;
   shadowIntensity: number;
   shadowColor: string;
   borderColor: string;
@@ -59,7 +56,6 @@ export default function WidgetPage() {
   const [loadingWidget, setLoadingWidget] = useState(false);
   const [design, setDesign] = useState<DesignState>({
     bgType: "solid",
-    bgColor: "#ffffff",
     textColor: "#22223b",
     accentColor: "#6a5acd",
     bodyTextColor: "#22223b",
@@ -78,8 +74,6 @@ export default function WidgetPage() {
     showRelativeDate: false,
     showGrid: false,
     width: 1000,
-    sectionBgType: "none",
-    sectionBgColor: "#ffffff",
     shadowIntensity: 0.2,
     shadowColor: "#222222",
     borderColor: "#cccccc",
@@ -315,11 +309,11 @@ export default function WidgetPage() {
       styleTag.id = styleId;
       document.head.appendChild(styleTag);
     }
-    styleTag.innerHTML = `.my-custom-swiper-pagination .swiper-pagination-bullet-active { background: ${design.bgColor} !important; }`;
+    styleTag.innerHTML = ``;
     return () => {
       if (styleTag) styleTag.remove();
     };
-  }, [design.bgColor]);
+  }, []);
 
   // Fetch universal prompt page slug when selectedWidget changes
   useEffect(() => {
