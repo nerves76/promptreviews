@@ -439,8 +439,10 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
               const borderWidth = d.borderWidth || 2;
               const borderColor = d.borderColor || '#cccccc';
               widgetContainer.style.setProperty('--pr-card-border', `${borderWidth}px solid ${borderColor}`);
+              widgetContainer.style.setProperty('--pr-button-border', `${borderWidth}px solid ${borderColor}`);
           } else {
               widgetContainer.style.setProperty('--pr-card-border', 'none');
+              widgetContainer.style.setProperty('--pr-button-border', 'none');
           }
 
           if (d.shadow !== false) {
