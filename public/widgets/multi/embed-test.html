@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Widget Embed Test</title>
+    <style>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .test-section {
+            margin-bottom: 40px;
+            padding: 20px;
+            border: 2px dashed #e0e0e0;
+            border-radius: 8px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .instructions {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .widget-container {
+            min-height: 300px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            background: #fafafa;
+        }
+        .error {
+            color: #d32f2f;
+            background: #ffebee;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success {
+            color: #2e7d32;
+            background: #e8f5e8;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .info {
+            background: #fff3e0;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Widget Embed Test</h1>
+        
+        <div class="instructions">
+            <h3>Test Instructions:</h3>
+            <ol>
+                <li>Replace <code>YOUR_WIDGET_ID</code> below with an actual widget ID from your dashboard</li>
+                <li>Save the file and refresh the page</li>
+                <li>The widget should load automatically if the ID is valid</li>
+                <li>Check the browser console for any errors</li>
+            </ol>
+        </div>
+
+        <div class="test-section">
+            <h3>Test 1: Basic Embed</h3>
+            <div class="info">
+                <strong>Current Widget ID:</strong> <code id="current-widget-id">YOUR_WIDGET_ID</code><br>
+                <strong>Script URL:</strong> <code id="script-url">/widgets/multi/widget-embed.js</code>
+            </div>
+            <div class="widget-container">
+                <!-- Replace YOUR_WIDGET_ID with an actual widget ID from your dashboard -->
+                <div class="promptreviews-widget" data-widget="YOUR_WIDGET_ID" data-widget-type="multi"></div>
+            </div>
+            <div id="status-message"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Test 2: Manual Widget ID Input</h3>
+            <div class="info">
+                <label for="widget-id-input">Enter Widget ID:</label>
+                <input type="text" id="widget-id-input" placeholder="Enter widget ID here" style="margin-left: 10px; padding: 5px; width: 200px;">
+                <button onclick="loadWidget()" style="margin-left: 10px; padding: 5px 10px;">Load Widget</button>
+            </div>
+            <div class="widget-container">
+                <div id="manual-widget-container"></div>
+            </div>
+            <div id="manual-status-message"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Test 3: API Endpoint Test</h3>
+            <div class="info">
+                <button onclick="testAPI()" style="padding: 5px 10px;">Test API Endpoint</button>
+                <span id="api-status"></span>
+            </div>
+            <div id="api-response" style="background: #f5f5f5; padding: 10px; border-radius: 4px; font-family: monospace; font-size: 12px; max-height: 200px; overflow-y: auto;"></div>
+        </div>
+    </div>
+
+    <!-- Load the widget script -->
+    <script src="/widgets/multi/widget-embed.js" async></script>
+
+    <script>
+        // Update display with current script URL
+        document.getElementById('script-url').textContent = window.location.origin + '/widgets/multi/widget-embed.js';
+
+        // Function to load widget with manual ID
+        function loadWidget() {
+            const widgetId = document.getElementById('widget-id-input').value.trim();
+            const container = document.getElementById('manual-widget-container');
+            const statusDiv = document.getElementById('manual-status-message');
+            
+            if (!widgetId) {
+                statusDiv.innerHTML = '<div class="error">Please enter a widget ID</div>';
+                return;
+            }
+
+            // Clear previous widget
+            container.innerHTML = '';
+            
+            // Create new widget element
+            const widgetElement = document.createElement('div');
+            widgetElement.className = 'promptreviews-widget';
+            widgetElement.setAttribute('data-widget', widgetId);
+            widgetElement.setAttribute('data-widget-type', 'multi');
+            
+            container.appendChild(widgetElement);
+            
+            statusDiv.innerHTML = '<div class="info">Loading widget with ID: ' + widgetId + '</div>';
+            
+            // Trigger widget loading
+            if (window.PromptReviews && window.PromptReviews.renderMultiWidget) {
+                // The widget should load automatically via the DOMContentLoaded event
+                statusDiv.innerHTML = '<div class="success">Widget element created. Check if it loads automatically.</div>';
+            } else {
+                statusDiv.innerHTML = '<div class="error">Widget script not loaded yet. Please wait and try again.</div>';
+            }
+        }
+
+        // Function to test API endpoint
+        async function testAPI() {
+            const widgetId = document.getElementById('widget-id-input').value.trim() || 'test';
+            const statusSpan = document.getElementById('api-status');
+            const responseDiv = document.getElementById('api-response');
+            
+            statusSpan.textContent = 'Testing...';
+            
+            try {
+                const response = await fetch(`/api/widgets/${widgetId}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    statusSpan.innerHTML = '<span style="color: green;">✅ Success</span>';
+                    responseDiv.textContent = JSON.stringify(data, null, 2);
+                } else {
+                    statusSpan.innerHTML = '<span style="color: red;">❌ Error: ' + response.status + '</span>';
+                    responseDiv.textContent = JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                statusSpan.innerHTML = '<span style="color: red;">❌ Network Error</span>';
+                responseDiv.textContent = 'Error: ' + error.message;
+            }
+        }
+
+        // Monitor widget loading
+        document.addEventListener('DOMContentLoaded', function() {
+            const statusDiv = document.getElementById('status-message');
+            
+            // Check if widget script loaded
+            setTimeout(() => {
+                if (window.PromptReviews && window.PromptReviews.renderMultiWidget) {
+                    statusDiv.innerHTML = '<div class="success">✅ Widget script loaded successfully</div>';
+                } else {
+                    statusDiv.innerHTML = '<div class="error">❌ Widget script failed to load</div>';
+                }
+            }, 1000);
+        });
+
+        // Monitor for widget errors
+        window.addEventListener('error', function(e) {
+            console.error('Widget error:', e.error);
+            const statusDiv = document.getElementById('status-message');
+            statusDiv.innerHTML = '<div class="error">❌ Widget error: ' + e.error.message + '</div>';
+        });
+    </script>
+</body>
+</html> 

@@ -666,11 +666,11 @@ export default function WidgetList({
 
   const handleCopyEmbed = async (widgetId: string) => {
     const widget = widgets.find(w => w.id === widgetId);
-    const widgetType = widget?.widget_type || '';
-    // Use the correct script src for each widget type
-    let scriptSrc = `https://app.promptreviews.app/widgets/${widgetType}/widget.min.js`;
+    const widgetType = widget?.widget_type || 'multi';
+    // Use the current domain for the script src
+    const scriptSrc = `${window.location.origin}/widgets/${widgetType}/widget-embed.js`;
     // Compose the correct embed code for the widget type
-    const code = `<!-- PromptReviews Widget Type: ${widgetType} -->\n<div class=\"promptreviews-widget\" data-widget=\"${widgetId}\" data-widget-type=\"${widgetType}\"></div>\n<script src=\"${scriptSrc}\" async></script>`;
+    const code = `<!-- PromptReviews Widget Type: ${widgetType} -->\n<div class="promptreviews-widget" data-widget="${widgetId}" data-widget-type="${widgetType}"></div>\n<script src="${scriptSrc}" async></script>`;
     try {
       await navigator.clipboard.writeText(code);
     } catch (err) {

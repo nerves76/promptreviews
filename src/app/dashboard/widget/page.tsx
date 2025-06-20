@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useEffect, Component, ErrorInfo, ReactNode } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { FaChevronLeft, FaChevronRight, FaCopy, FaCode } from "react-icons/fa";
 import { MdArrowBack, MdArrowForward } from "react-icons/md";
 import WidgetList from "./WidgetList";
@@ -15,8 +15,6 @@ import AppLoader from "@/app/components/AppLoader";
 import TopLoaderOverlay from "@/app/components/TopLoaderOverlay";
 import { useRouter } from "next/navigation";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-import SingleWidget from "./components/widgets/single/SingleWidget";
-import PhotoWidget from "./components/widgets/photo/PhotoWidget";
 
 // Add DesignState type definition
 type DesignState = {
@@ -52,46 +50,6 @@ type DesignState = {
 
 interface WidgetContainer extends HTMLDivElement {
   _cleanup?: () => void;
-}
-
-// Error boundary component
-interface ErrorBoundaryProps {
-  children: ReactNode;
-}
-
-interface ErrorBoundaryState {
-  hasError: boolean;
-  error: Error | null;
-}
-
-class WidgetErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  constructor(props: ErrorBoundaryProps) {
-    super(props);
-    this.state = { hasError: false, error: null };
-  }
-
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    return { hasError: true, error };
-  }
-
-  componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    console.error('Widget Error:', error, errorInfo);
-  }
-
-  render(): ReactNode {
-    if (this.state.hasError) {
-      return (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-          <h3 className="text-red-800 font-semibold">Widget Error</h3>
-          <p className="text-red-600 text-sm mt-2">
-            {this.state.error?.message || 'An error occurred while loading the widget'}
-          </p>
-        </div>
-      );
-    }
-
-    return this.props.children;
-  }
 }
 
 export default function WidgetPage() {
@@ -241,18 +199,6 @@ export default function WidgetPage() {
     return () => clearTimeout(t);
   }, [current]);
 
-  const embedCode = `<div id="promptreviews-widget" data-client="YOUR_CLIENT_ID"></div>\n<script src="https://yourdomain.com/widget.js" async></script>`;
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(embedCode);
-    } catch (err) {
-      alert("Could not copy to clipboard. Please copy manually.");
-    }
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  };
-
   // Schema.org JSON-LD
   const jsonLd = {
     "@context": "https://schema.org",
@@ -274,6 +220,21 @@ export default function WidgetPage() {
   for (let i = 0; i < reviews.length; i += 3) {
     reviewGroups.push(reviews.slice(i, i + 3));
   }
+
+  // Generate proper embed code with actual widget ID
+  const embedCode = selectedWidget 
+    ? `<!-- PromptReviews Widget -->\n<div class="promptreviews-widget" data-widget="${selectedWidget.id}" data-widget-type="multi"></div>\n<script src="${window.location.origin}/widgets/multi/widget-embed.js" async></script>`
+    : `<!-- PromptReviews Widget -->\n<div class="promptreviews-widget" data-widget="YOUR_WIDGET_ID" data-widget-type="multi"></div>\n<script src="${window.location.origin}/widgets/multi/widget-embed.js" async></script>`;
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(embedCode);
+    } catch (err) {
+      alert("Could not copy to clipboard. Please copy manually.");
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
 
   useEffect(() => {
     const styleId = 'custom-swiper-dot-style';
@@ -532,30 +493,6 @@ export default function WidgetPage() {
     };
   }, [selectedWidget, reviews, design, universalPromptSlug, widgetVersion]);
 
-  const renderWidgetPreview = () => {
-    if (!selectedWidget || !reviews.length) return null;
-
-    const widgetData = {
-      reviews,
-      design
-    };
-
-    return (
-      <WidgetErrorBoundary>
-        {selectedWidget.widget_type === 'single' && <SingleWidget data={widgetData} />}
-        {selectedWidget.widget_type === 'photo' && <PhotoWidget data={widgetData} />}
-        {selectedWidget.widget_type === 'multi' && (
-          <div 
-            id="promptreviews-widget" 
-            data-reviews={JSON.stringify(reviews)}
-            data-design={JSON.stringify(design)}
-            className="w-full h-full"
-          />
-        )}
-      </WidgetErrorBoundary>
-    );
-  };
-
   if (loading) {
     return <TopLoaderOverlay />;
   }
@@ -660,45 +597,6 @@ export default function WidgetPage() {
             dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
           />
         </PageCard>
-        <div className="mt-8">
-          {renderWidgetPreview()}
-        </div>
-      </div>
-
-      {/* Move the old React widget preview to the bottom of the page */}
-      <div className="w-full max-w-full mx-auto mb-0 mt-12 px-2 sm:px-0">
-        <h2 className="text-lg font-semibold text-white mb-4 text-center">
-          Live widget preview
-        </h2>
-        <section
-          className="flex flex-col justify-center relative bg-transparent"
-          aria-label="Review carousel preview"
-          style={{
-            background: design.sectionBgType === "custom" ? design.sectionBgColor : "none",
-            color: design.textColor,
-            border: 'none',
-            boxShadow: 'none',
-            padding: 0,
-            minHeight: 320,
-            margin: '0 auto',
-            transition: 'min-height 0.3s',
-          }}
-        >
-          {loading ? (
-            <div
-              style={{
-                position: "fixed",
-                top: -190,
-                left: 0,
-                width: "100%",
-                zIndex: 9999,
-              }}
-            >
-              <AppLoader />
-            </div>
-          ) : null}
-          <div id="carousel-live" className="sr-only" aria-live="polite" />
-        </section>
       </div>
     </div>
   );
