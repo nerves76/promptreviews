@@ -370,13 +370,7 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
 
       const submitButtonHTML = (design.showSubmitReviewButton !== false) && businessSlug ? `
         <div class="submit-review-button-container">
-            <a href="/r/${businessSlug}" target="_blank" class="submit-review-button" style="
-              background: ${design.bgColor || '#ffffff'};
-              color: ${design.accentColor || '#6a5acd'};
-              border-radius: ${design.borderRadius || 16}px;
-              box-shadow: inset 0 0 32px 0 ${hexToRgba(design.shadowColor || '#222222', design.shadowIntensity || 0.2)};
-              border: 1px solid ${hexToRgba('#888', 0.22)};
-            ">
+            <a href="/r/${businessSlug}" target="_blank" class="submit-review-button">
                 <span class="relative z-10">Submit a Review</span>
             </a>
         </div>
