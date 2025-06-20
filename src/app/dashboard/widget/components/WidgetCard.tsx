@@ -30,114 +30,100 @@ export function WidgetCard({
   onDelete,
   copiedWidgetId
 }: WidgetCardProps) {
-  // Determine colors based on widget type
-  let shadowColor = 'rgba(59, 130, 246, 0.18)'; // blue-500
-  let borderColor = '#3B82F6'; // blue-500
-  let accentColor = '#3B82F6';
-
-  if (widget.widget_type === 'multi') {
-    shadowColor = 'rgba(16, 185, 129, 0.18)'; // green-500
-    borderColor = '#10B981'; // green-500
-    accentColor = '#10B981';
-  } else if (widget.widget_type === 'photo') {
-    shadowColor = 'rgba(139, 92, 246, 0.18)'; // purple-500
-    borderColor = '#8B5CF6'; // purple-500
-    accentColor = '#8B5CF6';
-  }
-
   const isCopied = copiedWidgetId === widget.id;
 
   return (
-    <div
-      className={`bg-white rounded-lg shadow-lg overflow-hidden cursor-pointer border-2 transition-all relative ${isSelected ? '' : ''}`}
-      style={{
-        boxShadow: isSelected
-          ? `0 4px 24px 0 ${shadowColor}, 0 0 0 2px ${borderColor}`
-          : `0 4px 24px 0 ${shadowColor}`,
-        borderColor: isSelected ? borderColor : 'transparent',
-      }}
-      onClick={onSelect}
-    >
-      {/* Widget Type Badge */}
-      <div className="absolute top-3 left-3 z-10">
-        <span
-          className="px-2 py-1 text-xs font-medium rounded-full text-white"
-          style={{ backgroundColor: accentColor }}
-        >
-          {widget.widget_type === 'single' && 'Single Card'}
-          {widget.widget_type === 'multi' && 'Multi Card'}
-          {widget.widget_type === 'photo' && 'Photo Widget'}
-        </span>
-      </div>
-
-      {/* Widget Preview */}
-      <div className="relative h-48 bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 mx-auto mb-3 rounded-full flex items-center justify-center" style={{ backgroundColor: accentColor }}>
-            <ChatBubbleLeftIcon className="w-8 h-8 text-white" />
-          </div>
-          <div className="text-sm font-medium text-gray-700">{widget.name}</div>
-          <div className="text-xs text-gray-500 capitalize">{widget.widget_type} Widget</div>
+    <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200 hover:border-slateblue transition-colors">
+      <div className="flex justify-between items-start mb-4">
+        {/* Widget Name and Type */}
+        <div className="flex-1">
+          <h3 className="text-lg font-semibold text-gray-900 mb-1">{widget.name}</h3>
+          <div className="text-sm text-gray-500 capitalize">{widget.widget_type} Widget</div>
         </div>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="p-4 space-y-3">
-        <div className="flex items-center justify-between">
+        
+        {/* Action Buttons */}
+        <div className="flex items-center gap-2">
           <button
             onClick={(e) => {
               e.stopPropagation();
               onCopyEmbed();
             }}
-            className="flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded transition-colors"
+            className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors"
+            title="Copy Embed Code"
           >
             {isCopied ? (
-              <>
-                <CheckIcon className="w-4 h-4 text-green-600" />
-                <span className="text-green-600">Copied!</span>
-              </>
+              <CheckIcon className="w-4 h-4 text-green-600" />
             ) : (
-              <>
-                <DocumentDuplicateIcon className="w-4 h-4" />
-                <span>Copy Embed</span>
-              </>
+              <DocumentDuplicateIcon className="w-4 h-4" />
             )}
           </button>
           
-          <div className="flex items-center gap-1">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onEditStyle();
-              }}
-              className="p-1.5 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors"
-              title="Edit Style"
-            >
-              <FaArrowsAlt className="w-4 h-4" />
-            </button>
-            
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onManageReviews();
-              }}
-              className="p-1.5 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors"
-              title="Manage Reviews"
-            >
-              <ChatBubbleLeftIcon className="w-4 h-4" />
-            </button>
-          </div>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onEditStyle();
+            }}
+            className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors"
+            title="Edit Style"
+          >
+            <FaArrowsAlt className="w-4 h-4" />
+          </button>
+          
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onManageReviews();
+            }}
+            className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors"
+            title="Manage Reviews"
+          >
+            <ChatBubbleLeftIcon className="w-4 h-4" />
+          </button>
+          
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete();
+            }}
+            className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
+            title="Delete Widget"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
         </div>
-
-        {/* Delete Button */}
+      </div>
+      
+      {/* Select Button */}
+      <div className="flex justify-between items-center">
+        <div className="text-sm text-gray-500">
+          {widget.widget_type} Widget
+        </div>
         <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete();
-          }}
-          className="w-full px-3 py-1.5 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
+          onClick={onSelect}
+          className={`px-4 py-2 rounded-lg font-semibold text-sm transition-colors ${
+            isSelected
+              ? 'bg-slateblue text-white'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+          aria-label="Select to view"
         >
-          Delete Widget
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="w-4 h-4 inline-block"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M2.25 12C3.5 7.5 7.5 4.5 12 4.5c4.5 0 8.5 3 9.75 7.5-1.25 4.5-5.25 7.5-9.75 7.5-4.5 0-8.5-3-9.75-7.5z"
+            />
+          </svg>
+          {isSelected ? 'Selected' : 'Select to view'}
         </button>
       </div>
     </div>
