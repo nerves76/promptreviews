@@ -167,30 +167,41 @@ export const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange }) 
       {/* Shadow Settings */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Shadow</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Inner Shadow Vignette</label>
           <select
             value={design.shadow ? 'true' : 'false'}
             onChange={(e) => updateDesign({ shadow: e.target.value === 'true' })}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="false">No Shadow</option>
-            <option value="true">Show Shadow</option>
+            <option value="false">No Vignette</option>
+            <option value="true">Show Vignette</option>
           </select>
         </div>
         {design.shadow && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Shadow Intensity</label>
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.1"
-              value={design.shadowIntensity || 0.2}
-              onChange={(e) => updateDesign({ shadowIntensity: parseFloat(e.target.value) })}
-              className="w-full"
-            />
-            <span className="text-xs text-gray-500">{Math.round((design.shadowIntensity || 0.2) * 100)}%</span>
-          </div>
+          <>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Vignette Color</label>
+              <input
+                type="color"
+                value={design.shadowColor || '#222222'}
+                onChange={(e) => updateDesign({ shadowColor: e.target.value })}
+                className="w-full h-10 border border-gray-300 rounded-md"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Vignette Intensity</label>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.1"
+                value={design.shadowIntensity || 0.2}
+                onChange={(e) => updateDesign({ shadowIntensity: parseFloat(e.target.value) })}
+                className="w-full"
+              />
+              <span className="text-xs text-gray-500">{Math.round((design.shadowIntensity || 0.2) * 100)}%</span>
+            </div>
+          </>
         )}
       </div>
 
