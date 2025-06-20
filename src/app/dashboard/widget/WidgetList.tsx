@@ -69,75 +69,23 @@ export default function WidgetList({
   design: DesignState; // Make design required
   onWidgetReviewsChange?: () => void;
 }) {
-
+  const [widgets, setWidgets] = useState<Widget[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [copiedWidgetId, setCopiedWidgetId] = useState<string | null>(null);
+  const [widgetToEdit, setWidgetToEdit] = useState<Widget | null>(null);
+  const [isNewWidget, setIsNewWidget] = useState(false);
+  const [name, setName] = useState('');
+  const [widgetType, setWidgetType] = useState('single');
 
   // Remove local design state and use parentDesign directly
- const design = parentDesign;
- // New state to control the editor modal
- const [isEditorOpen, setIsEditorOpen] = useState(false);
- const [widgetToEdit, setWidgetToEdit] = useState<any | null>(null);
-
- // New handlers to open the modal
- const handleOpenNew = () => {
-   setWidgetToEdit(null);
-   setIsEditorOpen(true);
- };
- const handleOpenEdit = (widget: any) => {
-  setWidgetToEdit(widget);
-  setIsEditorOpen(true);
-};
-  // Update design state handlers with proper types
-  const handleDesignChange = (field: keyof DesignState, value: any) => {
-    if (onDesignChange) {
-      const newDesign = {
-        ...design,
-        [field]: value,
-      };
-      console.log('handleDesignChange:', field, value, newDesign);
-      onDesignChange(newDesign);
-    }
-  };
-
-  // Update handleResetDesign to use onDesignChange
-  const handleResetDesign = () => {
-    if (onDesignChange) {
-      onDesignChange({
-        bgType: "solid",
-        bgColor: "#FDFBF2",
-        textColor: "#22223b",
-        accentColor: "#6a5acd",
-        bodyTextColor: "#22223b",
-        nameTextColor: "#1a237e",
-        roleTextColor: "#6b7280",
-        attributionFontSize: 15,
-        borderRadius: 16,
-        shadow: true,
-        bgOpacity: 1,
-        autoAdvance: false,
-        slideshowSpeed: 4,
-        border: true,
-        borderWidth: 2,
-        lineSpacing: 1.4,
-        showQuotes: false,
-        showRelativeDate: false,
-        showGrid: false,
-        width: 1000,
-        sectionBgType: "none",
-        sectionBgColor: "#ffffff",
-        shadowIntensity: 0.2,
-        shadowColor: '#222222',
-        borderColor: '#cccccc',
-        font: "Inter",
-        showSubmitReviewButton: true,
-      });
-    }
-  };
-
-  // Review management state
-  const [showReviewModal, setShowReviewModal] = useState(false);
+  const design = parentDesign;
+  // New state to control the editor modal
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [selectedWidget, setSelectedWidget] = useState<null | string>(null);
   const [allReviews, setAllReviews] = useState<any[]>([]);
   const [loadingReviews, setLoadingReviews] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
   const [selectedReviews, setSelectedReviews] = useState<any[]>([]);
   const [editedReviews, setEditedReviews] = useState<{ [id: string]: string }>({});
   const [editedNames, setEditedNames] = useState<{ [id: string]: string }>({});
@@ -164,9 +112,6 @@ export default function WidgetList({
   // Draggable edit modal state
   
 
-  // Copy embed code state
-  const [copiedWidgetId, setCopiedWidgetId] = useState<string | null>(null);
-
   // Add a new state for photo uploads
   const [photoUploads, setPhotoUploads] = useState<{ [id: string]: string }>({});
 
@@ -180,18 +125,8 @@ export default function WidgetList({
   // Add state for save message
   const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
-  // Center edit modal after mount
-  useEffect(() => {
-    if (showForm) {
-      const width = 500;
-      const height = 500;
-      const x = Math.max((window.innerWidth - width) / 2, 0);
-      const y = Math.max((window.innerHeight - height) / 2, 0);
-      setEditModalPos({ x, y });
-    }
-  }, [showForm]);
-
-  // Update this effect to only depend on showForm:
+ 
+  // Update this effect to only depend on isEditorOpen:
   useEffect(() => {
     if (onDesignChange) onDesignChange(design);
   }, [design, onDesignChange]);
@@ -222,7 +157,8 @@ export default function WidgetList({
   // Listen for openNewWidgetForm event from parent
   useEffect(() => {
     const handler = () => {
-      handleOpenNew();
+      setWidgetToEdit(null);
+      setIsEditorOpen(true);
     };
     window.addEventListener("openNewWidgetForm", handler);
     return () => window.removeEventListener("openNewWidgetForm", handler);
@@ -286,7 +222,8 @@ export default function WidgetList({
         console.log('[DEBUG] widget_reviews error:', error);
         setSelectedReviews(data || []);
       });
-  }, [showReviewModal, selectedWidgetId]);
+
+  }, [selectedWidgetId]);
 
   // Move fetchWidgets to the top level and use useCallback
   const fetchWidgets = useCallback(async () => {
@@ -317,139 +254,6 @@ export default function WidgetList({
   useEffect(() => {
     fetchWidgets();
   }, [fetchWidgets]);
-
-  const handleOpenForm = (widget?: Widget) => {
-    if (widget) {
-      setEditing(widget.id);
-      setSelectedWidget(widget.id);
-      setForm({ name: widget.name, widgetType: widget.widget_type || "multi" });
-    } else {
-      setEditing(null);
-      setSelectedWidget(null);
-      setForm({ name: "", widgetType: "multi" });
-      setTimeout(() => {
-        nameInputRef.current?.focus();
-      }, 100);
-    }
-    setShowForm(true);
-    setNameError("");
-  };
-
-  // Update state update functions with proper types
-  const handleSave = async () => {
-    const supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
-    const { data: { user } } = await supabase.auth.getUser();
-    console.log("DEBUG: handleSave user:", user);
-    if (!user) {
-      alert("You must be signed in to save a widget");
-      return;
-    }
-    try {
-      // Validate required fields
-      if (!form.name.trim() || form.name.trim().toLowerCase() === "new widget") {
-        setNameError("Please enter a unique widget name");
-        nameInputRef.current?.focus();
-        throw new Error("Widget name is required");
-      }
-      setNameError("");
-
-      // First try to get existing account
-      let { data: accountData, error: accountError } = await supabase
-        .from('accounts')
-        .select('id')
-        .eq('id', user.id) // CHANGED: use 'id' for accounts table
-        .single();
-
-      console.log("DEBUG: Existing account check:", { accountData, accountError });
-
-      // If no account exists, create one
-      if (!accountData?.id) {
-        console.log("DEBUG: Creating new account for user:", user.id);
-        const { data: newAccount, error: createError } = await supabase
-          .from('accounts')
-          .insert({ id: user.id }) // CHANGED: use 'id' for accounts table
-          .select('id')
-          .single();
-
-        console.log("DEBUG: Account creation result:", { newAccount, createError });
-
-        if (createError) {
-          console.error("Error creating account:", createError);
-          // If it's a unique constraint violation, try fetching the account again
-          if (createError.code === '23505') { // PostgreSQL unique violation code
-            const { data: existingAccount } = await supabase
-              .from('accounts')
-              .select('id')
-              .eq('id', user.id) // CHANGED: use 'id' for accounts table
-              .single();
-            accountData = existingAccount;
-          } else {
-            throw new Error(`Failed to create account: ${createError.message}`);
-          }
-        } else {
-          accountData = newAccount;
-        }
-      }
-
-      if (!accountData?.id) {
-        throw new Error("No account found or created for user");
-      }
-
-      const accountId = accountData.id;
-      console.log("DEBUG: Using account ID:", accountId);
-
-      if (selectedWidget) {
-        // Update existing widget
-        const { error: updateError } = await supabase
-          .from('widgets')
-          .update({
-            name: form.name.trim(),
-            theme: design, // CHANGED: use 'theme' instead of 'design'
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', selectedWidget)
-          .eq('account_id', accountId); // use 'account_id' for widgets table
-
-        if (updateError) {
-          console.error("Error updating widget:", updateError);
-          throw new Error("Failed to update widget");
-        }
-        await fetchWidgets(); // Refresh after update
-      } else {
-        // Create new widget
-        const { error: insertError } = await supabase
-          .from('widgets')
-          .insert({
-            account_id: accountId, // use 'account_id' for widgets table
-            name: form.name.trim(),
-            theme: design, // CHANGED: use 'theme' instead of 'design'
-            widget_type: form.widgetType || 'multi',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          });
-
-        if (insertError) {
-          console.error("Error creating widget:", insertError);
-          throw new Error("Failed to create widget");
-        }
-        await fetchWidgets(); // Refresh after insert
-      }
-
-      // Refresh widgets after save
-      setWidgets(prevWidgets => [...prevWidgets]);
-      setShowForm(false);
-      setEditing(null);
-      setSelectedWidget(null);
-      setForm({ name: "", widgetType: "multi" });
-    } catch (error: any) {
-      if (!error.message.includes("Widget name is required")) {
-        alert(error.message || "An error occurred while saving the widget");
-      }
-    }
-  };
 
   // Review management handlers
   const handleOpenReviewModal = async (widgetId: string) => {
@@ -638,40 +442,7 @@ export default function WidgetList({
     if (onWidgetReviewsChange) onWidgetReviewsChange();
   };
 
-  const handleEditMouseDown = (e: React.MouseEvent) => {
-    if (!editModalRef.current) return;
-    setEditDragging(true);
-    editDragStart.current = {
-      x: e.clientX - editModalRef.current.getBoundingClientRect().left,
-      y: e.clientY - editModalRef.current.getBoundingClientRect().top,
-    };
-    document.body.style.userSelect = "none";
-  };
-  const handleEditMouseUp = () => {
-    setEditDragging(false);
-    editDragStart.current = null;
-    document.body.style.userSelect = "";
-  };
-  const handleEditMouseMove = (e: MouseEvent) => {
-    if (!editDragging || !editDragStart.current) return;
-    setEditModalPos({
-      x: e.clientX - editDragStart.current.x,
-      y: e.clientY - editDragStart.current.y,
-    });
-  };
-  useEffect(() => {
-    if (editDragging) {
-      window.addEventListener("mousemove", handleEditMouseMove);
-      window.addEventListener("mouseup", handleEditMouseUp);
-    } else {
-      window.removeEventListener("mousemove", handleEditMouseMove);
-      window.removeEventListener("mouseup", handleEditMouseUp);
-    }
-    return () => {
-      window.removeEventListener("mousemove", handleEditMouseMove);
-      window.removeEventListener("mouseup", handleEditMouseUp);
-    };
-  }, [editDragging]);
+  
 
   const handleCopyEmbed = async (widgetId: string) => {
     const widget = widgets.find(w => w.id === widgetId);
@@ -1037,20 +808,6 @@ export default function WidgetList({
     { name: "Dark Brown", value: "#3E2723" },
   ];
 
-  // At the top of the component, replace old state with new state
-  const [isEditorOpen, setIsEditorOpen] = useState(false);
-  const [widgetToEdit, setWidgetToEdit] = useState<Widget | null>(null);
-
-  // The click handlers for 'New' and 'Edit' buttons will now just set state
-  const handleOpenNew = () => {
-      setWidgetToEdit(null);
-      setIsEditorOpen(true);
-  }
-
-  const handleOpenEdit = (widget: Widget) => {
-      setWidgetToEdit(widget);
-      setIsEditorOpen(true);
-  }
 
   return (
     <div className="space-y-6">
