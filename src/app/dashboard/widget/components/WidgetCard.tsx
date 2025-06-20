@@ -36,8 +36,8 @@ export function WidgetCard({
     <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200 hover:border-slateblue transition-colors">
       <div className="flex justify-between items-start mb-4">
         {/* Widget Name and Type */}
-        <div className="flex-1">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">{widget.name}</h3>
+        <div className="flex-1 min-w-0 mr-4">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2 break-words leading-tight">{widget.name}</h3>
           <span
             className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
             style={{
