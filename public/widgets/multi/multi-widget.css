@@ -395,8 +395,13 @@
 }
 
 @media screen and (min-width: 768px) {
+    .pr-multi-widget .submit-review-button-container {
+        margin-top: -1rem;
+        padding-top: 0;
+    }
+
     .pr-multi-widget .widget-desktop {
-        display: flex !important;
+        display: block;
     }
     
     .pr-multi-widget .widget-mobile {
