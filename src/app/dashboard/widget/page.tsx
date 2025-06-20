@@ -112,7 +112,7 @@ export default function WidgetPage() {
   // Effect to render/re-render the widget when data changes
   useEffect(() => {
     const container = previewContainerRef.current;
-    if (!container || !selectedWidget) return;
+    if (!container || !selectedWidget || typeof window === 'undefined') return;
 
     const render = () => {
       if (window.PromptReviews?.renderMultiWidget) {
@@ -243,10 +243,17 @@ export default function WidgetPage() {
     reviewGroups.push(reviews.slice(i, i + 3));
   }
 
-  // Generate proper embed code with actual widget ID
-  const embedCode = selectedWidget 
-    ? `<!-- PromptReviews Widget -->\n<div class="promptreviews-widget" data-widget="${selectedWidget.id}" data-widget-type="multi"></div>\n<script src="${window.location.origin}/widgets/multi/widget-embed.js" async></script>`
-    : `<!-- PromptReviews Widget -->\n<div class="promptreviews-widget" data-widget="YOUR_WIDGET_ID" data-widget-type="multi"></div>\n<script src="${window.location.origin}/widgets/multi/widget-embed.js" async></script>`;
+  // Generate proper embed code with actual widget ID - moved to useEffect to avoid SSR issues
+  const [embedCode, setEmbedCode] = useState<string>("");
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const code = selectedWidget 
+        ? `<!-- PromptReviews Widget -->\n<div class="promptreviews-widget" data-widget="${selectedWidget.id}" data-widget-type="multi"></div>\n<script src="${window.location.origin}/widgets/multi/widget-embed.js" async></script>`
+        : `<!-- PromptReviews Widget -->\n<div class="promptreviews-widget" data-widget="YOUR_WIDGET_ID" data-widget-type="multi"></div>\n<script src="${window.location.origin}/widgets/multi/widget-embed.js" async></script>`;
+      setEmbedCode(code);
+    }
+  }, [selectedWidget]);
 
   const handleCopy = async () => {
     try {
@@ -355,7 +362,11 @@ export default function WidgetPage() {
               <p className="text-gray-600 mb-6">You must really love widgets. Contact us and we may be able to help!</p>
               <div className="flex justify-end gap-4">
                 <button
-                  onClick={() => window.location.href = 'https://promptreviews.app/contact'}
+                  onClick={() => {
+                    if (typeof window !== 'undefined') {
+                      window.location.href = 'https://promptreviews.app/contact';
+                    }
+                  }}
                   className="px-4 py-2 bg-dustyPlum text-pureWhite rounded hover:bg-lavenderHaze hover:text-dustyPlum transition-colors font-semibold"
                 >
                   Contact Us
@@ -381,8 +392,10 @@ export default function WidgetPage() {
                   setShowMaxWidgetsModal(true);
                 } else {
                   // Open the new widget form in WidgetList via a custom event
-                  const event = new CustomEvent("openNewWidgetForm");
-                  window.dispatchEvent(event);
+                  if (typeof window !== 'undefined') {
+                    const event = new CustomEvent("openNewWidgetForm");
+                    window.dispatchEvent(event);
+                  }
                 }
               }}
             >
