@@ -307,26 +307,20 @@ if (!window.PromptReviews || !window.PromptReviews.renderSingleWidget) {
     }
 
     // Create widget HTML
-    function createWidgetHTML(reviews, design, businessSlug) {
-      const widgetId = 'promptreviews-single-widget-' + Math.random().toString(36).substr(2, 9);
-      
-      // Generate CSS variables for dynamic styling
+    function createWidgetHTML(widgetId, reviews, design, businessSlug) {
       const cssVars = `
         --pr-bg-color: ${design.bgColor || '#ffffff'};
         --pr-text-primary: ${design.textColor || '#22223b'};
-        --pr-text-secondary: ${design.bodyTextColor || '#6b7280'};
-        --pr-accent-color: ${design.accentColor || '#6a5acd'};
-        --pr-border-color: ${design.borderColor || '#cccccc'};
-        --pr-border-width: ${design.borderWidth || 2}px;
-        --pr-border-radius: ${design.borderRadius || 16}px;
-        --pr-shadow-intensity: ${design.shadowIntensity || 0.2};
-        --pr-shadow-color: ${design.shadowColor || '#222222'};
-        --pr-line-spacing: ${design.lineSpacing || 1.75};
-        --pr-attribution-font-size: ${design.attributionFontSize || 16}px;
+        --pr-body-text-color: ${design.bodyTextColor || '#666666'};
         --pr-name-text-color: ${design.nameTextColor || '#111111'};
         --pr-role-text-color: ${design.roleTextColor || '#666666'};
+        --pr-border-radius: ${design.borderRadius}px;
+        --pr-border-color: ${design.borderColor};
+        --pr-border-width: ${design.border ? `${design.borderWidth}px` : '0px'};
         --pr-font: ${design.font || 'Inter'};
       `;
+      
+      const showSubmitButton = design.showSubmitReviewButton !== false && businessSlug;
 
       const reviewCards = reviews.map((review, index) => {
         const initials = getInitials(review.first_name, review.last_name);
@@ -339,9 +333,9 @@ if (!window.PromptReviews || !window.PromptReviews.renderSingleWidget) {
                 <span style="color: #FFD700; font-size: 36px;">${renderStars(review.star_rating || 5)}</span>
               </div>
               <div class="review-content">
-                ${design.showQuotes ? `<span class="decorative-quote decorative-quote-open">“</span>` : ''}
+                ${design.showQuotes ? `<span class="decorative-quote decorative-quote-open">"</span>` : ''}
                 <div class="review-text">${review.review_content}</div>
-                ${design.showQuotes ? `<span class="decorative-quote decorative-quote-close">”</span>` : ''}
+                ${design.showQuotes ? `<span class="decorative-quote decorative-quote-close">"</span>` : ''}
               </div>
               <div class="reviewer-details">
                 <div class="reviewer-name">${review.first_name} ${review.last_name}</div>
@@ -354,24 +348,24 @@ if (!window.PromptReviews || !window.PromptReviews.renderSingleWidget) {
       }).join('');
 
       return `
-        <div id="${widgetId}" class="pr-single-widget" style="${cssVars}">
+        <div id="${widgetId}" class="pr-single-widget" style="background-color: ${hexToRgba(design.bgColor, design.bgOpacity || 1)}; ${cssVars}">
           <div class="widget-carousel-container">
             <div class="swiper">
               <div class="swiper-wrapper">
                 ${reviewCards}
               </div>
-              <div class="swiper-pagination"></div>
             </div>
+          </div>
+          <div class="swiper-navigation">
             <div class="swiper-button-prev">‹</div>
             <div class="swiper-button-next">›</div>
           </div>
-          ${design.showSubmitReviewButton && businessSlug ? `
+          ${showSubmitButton ? `
             <div class="submit-review-button-container">
               <a href="https://promptreviews.app/r/${businessSlug}"
-                 class="submit-review-button"
                  target="_blank"
-                 rel="noopener noreferrer">
-                Submit a review
+                 class="submit-review-button">
+                <span class="relative z-10">Submit a Review</span>
               </a>
             </div>
           ` : ''}
