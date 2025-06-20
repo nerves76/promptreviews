@@ -351,6 +351,8 @@ export default function WidgetPage() {
     console.log("Widget page loading states:", { loading, isClient });
   }, [loading, isClient]);
 
+  const router = useRouter();
+
   if (loading) {
     console.log("Widget page: showing loading state");
     return (
