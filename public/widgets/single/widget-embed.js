@@ -328,15 +328,6 @@ if (!window.PromptReviews || !window.PromptReviews.renderSingleWidget) {
         --pr-font: ${design.font || 'Inter'};
       `;
 
-      // Generate button shadow color (75% intensity of card shadow)
-      const shadowColor = design.shadowColor || '#222222';
-      const buttonShadowColor = hexToRgba(shadowColor, (design.shadowIntensity || 0.2) * 0.75);
-      
-      const additionalVars = `
-        --pr-button-shadow: 0 1px 4px ${buttonShadowColor};
-        --pr-button-border: ${design.border ? `${design.borderWidth || 2}px solid ${design.borderColor || '#cccccc'}` : 'none'};
-      `;
-
       const reviewCards = reviews.map((review, index) => {
         const initials = getInitials(review.first_name, review.last_name);
         const relativeDate = design.showRelativeDate ? getRelativeTime(review.created_at) : new Date(review.created_at).toLocaleDateString();
@@ -347,89 +338,70 @@ if (!window.PromptReviews || !window.PromptReviews.renderSingleWidget) {
               <div class="stars-row">
                 <span style="color: #FFD700; font-size: 18px;">${renderStars(review.star_rating || 5)}</span>
               </div>
-              
               <div class="review-content">
                 ${design.showQuotes ? `<span class="decorative-quote decorative-quote-open">"</span>` : ''}
                 <div class="review-text">${review.review_content}</div>
                 ${design.showQuotes ? `<span class="decorative-quote decorative-quote-close">"</span>` : ''}
               </div>
-              
               <div class="reviewer-details">
                 <div class="reviewer-name">${review.first_name} ${review.last_name}</div>
                 ${review.reviewer_role ? `<div class="reviewer-role">${review.reviewer_role}</div>` : ''}
                 <div class="reviewer-date">${relativeDate}</div>
               </div>
-
-              ${design.showSubmitReviewButton && businessSlug ? `
-                <div class="submit-review-button-container">
-                  <a href="https://promptreviews.app/r/${businessSlug}"
-                     class="submit-review-button"
-                     target="_blank"
-                     rel="noopener noreferrer">
-                    Submit a review
-                  </a>
-                </div>
-              ` : ''}
             </div>
           </div>
         `;
       }).join('');
 
       return `
-        <div id="${widgetId}" class="pr-single-widget" style="${cssVars} ${additionalVars}">
-          <div class="widget-content">
-            <div class="widget-outer-container">
-              <div class="widget-carousel-container">
-                <div class="swiper">
-                  <div class="swiper-wrapper">
-                    ${reviewCards}
-                  </div>
-                </div>
+        <div id="${widgetId}" class="pr-single-widget" style="${cssVars}">
+          <div class="widget-carousel-container">
+            <div class="swiper">
+              <div class="swiper-wrapper">
+                ${reviewCards}
               </div>
+              <div class="swiper-pagination"></div>
             </div>
+            <div class="swiper-button-prev">‹</div>
+            <div class="swiper-button-next">›</div>
           </div>
+          ${design.showSubmitReviewButton && businessSlug ? `
+            <div class="submit-review-button-container">
+              <a href="https://promptreviews.app/r/${businessSlug}"
+                 class="submit-review-button"
+                 target="_blank"
+                 rel="noopener noreferrer">
+                Submit a review
+              </a>
+            </div>
+          ` : ''}
         </div>
       `;
     }
 
-    // Initialize Swiper
+    // Initialize Swiper with the widget
     function initializeSwiper(container, design) {
-      if (typeof Swiper === 'undefined') {
-        console.error('Swiper not available');
-        return;
+      const swiperEl = container.querySelector('.swiper');
+
+      if (swiperEl) {
+        new Swiper(swiperEl, {
+          slidesPerView: 1,
+          spaceBetween: 16,
+          loop: design.loop !== false,
+          observer: true,
+          observeParents: true,
+          navigation: {
+            nextEl: '.swiper-button-next',
+            prevEl: '.swiper-button-prev',
+          },
+          pagination: {
+            el: '.swiper-pagination',
+            clickable: true,
+          },
+        });
+      } else {
+          console.error('Swiper container .swiper not found');
       }
-
-      const swiperContainer = container.querySelector('.swiper');
-      if (!swiperContainer) {
-        console.error('Swiper container not found');
-        return;
-      }
-
-      const swiper = new Swiper(swiperContainer, {
-        slidesPerView: 1,
-        spaceBetween: 30,
-        loop: false,
-        autoplay: design.autoAdvance ? {
-          delay: (design.slideshowSpeed || 4) * 1000,
-          disableOnInteraction: false,
-        } : false,
-        pagination: {
-          el: '.swiper-pagination',
-          clickable: true,
-        },
-        navigation: {
-          nextEl: '.swiper-button-next',
-          prevEl: '.swiper-button-prev',
-        },
-        breakpoints: {
-          768: {
-            slidesPerView: 1,
-            spaceBetween: 30,
-          }
-        }
-      });
-
-      return swiper;
     }
 
     // Main render function

@@ -33,6 +33,7 @@
     padding: 0;
     box-sizing: border-box;
     position: relative;
+    overflow: visible;
 }
 
 .pr-single-widget .widget-mobile {
@@ -65,10 +66,10 @@
 .pr-single-widget .widget-carousel-container {
     position: relative;
     width: 100%;
-    max-width: 100%;
     margin: 0 auto;
-    padding: 0 clamp(20px, 5vw, 60px);
     overflow: hidden;
+    padding: 0 20px;
+    box-sizing: border-box;
 }
 
 .pr-single-widget .swiper {
@@ -77,13 +78,15 @@
     display: flex;
     overflow: hidden;
     padding-top: 10px;
-    padding-bottom: 24px;
+    padding-bottom: 30px;
 }
 
 .pr-single-widget .swiper-wrapper {
     display: flex;
     align-items: stretch; /* Ensure all slides have the same height */
     overflow: visible;
+    box-sizing: border-box;
+    text-align: center;
 }
 
 .pr-single-widget .swiper-slide {
@@ -122,6 +125,7 @@
 .pr-single-widget .pr-review-card:hover {
     transform: translateY(-4px);
     box-shadow: 0 8px 32px rgba(34, 34, 34, 0.15);
+    color: var(--pr-text-secondary, #6b7280);
 }
 
 .pr-single-widget .stars-row {
@@ -207,11 +211,9 @@
 
 .pr-single-widget .submit-review-button-container {
     display: flex;
-    justify-content: flex-end;
-    padding-top: 1rem;
-    padding-bottom: 0;
-    margin-top: auto; /* Push to bottom */
-    flex-shrink: 0; /* Prevent shrinking */
+    justify-content: center;
+    padding-top: 0;
+    margin-top: 4.1rem;
 }
 
 .pr-single-widget .submit-review-button {
@@ -220,7 +222,7 @@
     border: var(--pr-button-border, var(--pr-border-width, 2px) solid var(--pr-border-color, #cccccc));
     padding: 0.75rem 1.5rem;
     border-radius: 9999px;
-    font-weight: 500;
+    font-weight: bold;
     font-size: 0.875rem;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -240,172 +242,77 @@
 .pr-single-widget .swiper-button-prev {
     position: absolute;
     top: 50%;
-    width: 40px;
-    height: 40px;
-    margin-top: -20px;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    margin-top: -15px;
+    padding: 0;
+    background: var(--pr-card-bg);
+    border: var(--pr-card-border);
+    border-radius: 50%;
     z-index: 10;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--pr-card-bg, #ffffff);
-    border: var(--pr-border-width, 2px) solid var(--pr-border-color, #cccccc);
-    border-radius: 50%;
+    box-shadow: var(--pr-shadow);
     transition: all 0.2s ease;
-    box-shadow: var(--pr-button-shadow, 0 2px 8px rgba(34, 34, 34, 0.15) inset);
+    color: var(--pr-accent-color);
+    font-size: 24px;
+    font-weight: 500;
 }
 
 .pr-single-widget .swiper-button-next {
-    right: -20px;
+    right: 0px;
 }
 
 .pr-single-widget .swiper-button-prev {
-    left: -20px;
+    left: 0px;
 }
 
 .pr-single-widget .swiper-button-next:hover,
 .pr-single-widget .swiper-button-prev:hover {
-    transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(34, 34, 34, 0.2) inset;
+    transform: translateY(-50%) scale(1.05);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
 }
 
 .pr-single-widget .swiper-button-next::after,
 .pr-single-widget .swiper-button-prev::after {
-    font-size: 16px;
-    color: var(--pr-accent-color, #6a5acd);
-    font-weight: bold;
-}
-
-.pr-single-widget button[aria-label="Previous"],
-.pr-single-widget button[aria-label="Next"] {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 40px;
-    height: 40px;
-    background: var(--pr-card-bg, #ffffff);
-    border: var(--pr-border-width, 2px) solid var(--pr-border-color, #cccccc);
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-    box-shadow: var(--pr-button-shadow, 0 2px 8px rgba(34, 34, 34, 0.15) inset);
-    z-index: 10;
-}
-
-.pr-single-widget button[aria-label="Previous"]:hover,
-.pr-single-widget button[aria-label="Next"]:hover {
-    transform: translateY(-50%) scale(1.1);
-    box-shadow: 0 4px 12px rgba(34, 34, 34, 0.2) inset;
-}
-
-.pr-single-widget button[aria-label="Previous"]:hover polygon,
-.pr-single-widget button[aria-label="Next"]:hover polygon {
-    fill: var(--pr-accent-color, #6a5acd);
-}
-
-.pr-single-widget .widget-mobile button[aria-label="Previous"],
-.pr-single-widget .widget-mobile button[aria-label="Next"] {
-    width: 36px;
-    height: 36px;
-    border: var(--pr-border-width, 2px) solid var(--pr-border-color, #cccccc);
-}
-
-.pr-single-widget .widget-mobile button[aria-label="Previous"]:hover,
-.pr-single-widget .widget-mobile button[aria-label="Next"]:hover {
-    transform: translateY(-50%) scale(1.05);
-}
-
-.pr-single-widget .mobile-nav-row {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 1rem;
-    margin-top: 1rem;
-    padding: 0 1rem;
-    position: relative;
-    width: 100%;
-    max-width: 100%;
-}
-
-.pr-single-widget .mobile-nav-row .swiper-pagination {
-    position: relative;
-    margin: 0;
-}
-
-.pr-single-widget .mobile-nav-row .swiper-button-next,
-.pr-single-widget .mobile-nav-row .swiper-button-prev {
-    position: relative;
-    top: auto;
-    left: auto;
-    right: auto;
-    margin: 0;
-    transform: none;
-    width: 36px;
-    height: 36px;
-    background: var(--pr-card-bg, #ffffff);
-    border: var(--pr-border-width, 2px) solid var(--pr-border-color, #cccccc);
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-    box-shadow: var(--pr-button-shadow, 0 2px 8px rgba(34, 34, 34, 0.15) inset);
-    z-index: 10;
-}
-
-.pr-single-widget .mobile-nav-row .swiper-button-next:hover,
-.pr-single-widget .mobile-nav-row .swiper-button-prev:hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(34, 34, 34, 0.2) inset;
-}
-
-.pr-single-widget .mobile-nav-row .swiper-button-next::after,
-.pr-single-widget .mobile-nav-row .swiper-button-prev::after {
-    font-size: 14px;
-    color: var(--pr-accent-color, #6a5acd);
-    font-weight: bold;
+    content: none;
 }
 
 .pr-single-widget .swiper-pagination {
-    position: relative;
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: auto;
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-top: 16px;
-}
-
-.pr-single-widget .swiper-pagination.swiper-pagination-hidden {
-    opacity: 0;
-}
-
-.pr-single-widget .swiper-pagination-disabled > .swiper-pagination,
-.pr-single-widget .swiper-pagination.swiper-pagination-disabled {
-    display: none !important;
+    gap: 0.5rem;
+    padding: 4px;
 }
 
 .pr-single-widget .swiper-pagination-bullet {
-    width: 8px !important;
-    height: 8px !important;
-    background: #ccc;
+    width: 8px;
+    height: 8px;
+    background: #d1d5db;
     opacity: 1;
-    margin: 0 4px;
-    transition: all 0.2s ease;
-    border-radius: 50%;
-    display: inline-block;
+    transition: all 0.3s ease;
+    margin: 0;
+    display: block;
 }
 
 .pr-single-widget .swiper-pagination-bullet-active {
+    background: var(--pr-accent-color, #6a5acd);
     transform: scale(1.2);
-    background: var(--swiper-pagination-color, var(--swiper-theme-color));
 }
 
 .pr-single-widget .swiper-button-disabled {
-    opacity: 0.5;
+    opacity: 0.2;
     cursor: not-allowed;
+    pointer-events: none;
 }
 
 /* Responsive Design */
@@ -431,12 +338,17 @@
         max-width: 800px;
     }
     
+    .pr-single-widget .swiper {
+        padding-left: 50px;
+        padding-right: 50px;
+    }
+    
     .pr-single-widget .swiper-button-next {
-        right: -20px;
+        right: 0px;
     }
     
     .pr-single-widget .swiper-button-prev {
-        left: -20px;
+        left: 0px;
     }
     
     .pr-single-widget .pr-review-card {
@@ -461,6 +373,11 @@
     .pr-single-widget .widget-outer-container {
         max-width: 100%;
         padding: 0 1rem;
+    }
+    
+    .pr-single-widget .swiper {
+        padding-left: 0;
+        padding-right: 0;
     }
     
     .pr-single-widget .swiper-button-next,
@@ -529,11 +446,11 @@
 }
 
 .pr-single-widget .widget-desktop .swiper-button-prev {
-    left: -20px;
+    left: 0px;
 }
 
 .pr-single-widget .widget-desktop .swiper-button-next {
-    right: -20px;
+    right: 0px;
 }
 
 .pr-single-widget .widget-desktop .swiper-pagination {

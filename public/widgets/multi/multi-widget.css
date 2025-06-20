@@ -50,7 +50,7 @@
     justify-content: center;
     position: relative;
     width: 100%;
-    padding: 2rem 0;
+    padding: 2rem 1rem;
 }
 
 .pr-multi-widget .widget-outer-container {
@@ -249,37 +249,24 @@
     background: var(--pr-card-bg);
     border: var(--pr-card-border);
     border-radius: 50%;
-    box-shadow: var(--pr-button-shadow, 0 2px 8px rgba(34,34,34,0.15) inset);
+    z-index: 10;
     cursor: pointer;
-    z-index: 100;
-    display: none; /* Hidden by default */
+    display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--pr-accent-color, #6a5acd);
-    font-size: 24px;
-    font-weight: bold;
-    line-height: 1;
-    text-align: center;
-    transition: all 0.3s ease;
-}
-
-.pr-multi-widget .swiper-button-next {
-    right: -50px;
-}
-
-.pr-multi-widget .swiper-button-prev {
-    left: -50px;
+    box-shadow: var(--pr-shadow);
+    transition: all 0.2s ease;
 }
 
 .pr-multi-widget .swiper-button-next:hover,
 .pr-multi-widget .swiper-button-prev:hover {
-    background: var(--pr-accent-color, #6a5acd);
-    color: white;
+    transform: translateY(-50%) scale(1.05);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
 }
 
 .pr-multi-widget .swiper-button-next::after,
 .pr-multi-widget .swiper-button-prev::after {
-    display: none;
+    content: none; /* Disable default Swiper arrows */
 }
 
 /* Custom button styling to match React widget */
@@ -328,58 +315,26 @@
 }
 
 .pr-multi-widget .mobile-nav-row {
-    width: 100%;
-    display: flex; /* Was hidden on desktop before, now controlled by parent */
-    justify-content: center;
-    align-items: center;
-    margin-top: -1.5rem; /* Further reduced margin to pull navigation up */
-    padding: 0 1rem;
-    gap: 1rem;
-    position: relative; /* Ensure it stacks correctly */
-    z-index: 10;
-}
-
-.pr-multi-widget .mobile-nav-row .swiper-pagination {
-    flex: 1;
-    margin: 0 1rem;
+    display: none; /* Hidden by default, shown in media query */
 }
 
 .pr-multi-widget .mobile-nav-row .swiper-button-next,
 .pr-multi-widget .mobile-nav-row .swiper-button-prev {
-    display: flex;
-    position: relative;
-    top: auto;
-    left: auto;
-    right: auto;
+    position: static;
     transform: none;
-    width: 36px;
-    height: 36px;
     margin: 0;
-    background: white;
-    border: var(--pr-button-border, var(--pr-border-width, 2px) solid var(--pr-border-color, #cccccc));
-    border-radius: 50%;
-    cursor: pointer;
-    z-index: 100;
-    align-items: center;
+    width: 44px;
+    height: 44px;
+    z-index: 10;
+    flex-shrink: 0;
+}
+
+.pr-multi-widget .mobile-nav-row .swiper-pagination {
+    position: static;
+    flex-grow: 1;
+    display: flex;
     justify-content: center;
-    color: var(--pr-accent-color, #6a5acd);
-    font-size: 20px;
-    font-weight: bold;
-    line-height: 1;
-    text-align: center;
-    transition: all 0.3s ease;
-    box-shadow: var(--pr-button-shadow, 0 2px 8px rgba(34,34,34,0.15) inset);
-}
-
-.pr-multi-widget .mobile-nav-row .swiper-button-next:hover,
-.pr-multi-widget .mobile-nav-row .swiper-button-prev:hover {
-    background: var(--pr-accent-color, #6a5acd);
-    color: white;
-}
-
-.pr-multi-widget .mobile-nav-row .swiper-button-next::after,
-.pr-multi-widget .mobile-nav-row .swiper-button-prev::after {
-    display: none;
+    align-items: center;
 }
 
 .pr-multi-widget .swiper-pagination {
@@ -413,6 +368,7 @@
     .pr-multi-widget .submit-review-button-container {
         margin-top: -1rem;
         padding-top: 0;
+        padding-right: 1rem;
     }
 
     .pr-multi-widget .widget-desktop {
@@ -433,11 +389,11 @@
     }
 
     .pr-multi-widget .swiper-button-next {
-        right: -50px;
+        right: 10px;
     }
 
     .pr-multi-widget .swiper-button-prev {
-        left: -50px;
+        left: 10px;
     }
 
     .pr-multi-widget .pr-review-card {
@@ -459,40 +415,64 @@
     }
     
     .pr-multi-widget .widget-outer-container {
-        padding: 0;
+        padding: 0 1rem;
     }
 
     .pr-multi-widget .swiper-button-next,
     .pr-multi-widget .swiper-button-prev {
-        display: none;
+        display: none; /* Hide desktop buttons on mobile */
     }
 
     .pr-multi-widget .mobile-nav-row {
         display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        max-width: 300px;
+        margin: 1rem auto 0;
+        position: relative;
     }
 
     .pr-multi-widget .mobile-nav-row .swiper-button-next,
     .pr-multi-widget .mobile-nav-row .swiper-button-prev {
-        display: flex;
-        position: relative;
-        top: auto;
-        left: auto;
-        right: auto;
+        display: flex; /* Display mobile buttons */
+        position: static;
         transform: none;
-        width: 36px;
-        height: 36px;
         margin: 0;
+        width: 40px;
+        height: 40px;
+        z-index: 10;
+        flex-shrink: 0;
+        background: var(--pr-card-bg);
+        border: var(--pr-card-border);
+        border-radius: 50%;
+        align-items: center;
+        justify-content: center;
+        box-shadow: var(--pr-button-shadow);
+    }
+
+    .pr-multi-widget .mobile-nav-row .swiper-button-next::after,
+    .pr-multi-widget .mobile-nav-row .swiper-button-prev::after {
+        content: none; /* Disable default Swiper arrows on mobile too */
+    }
+    
+    .pr-multi-widget .mobile-nav-row .swiper-pagination {
+        position: static;
+        flex-grow: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: auto;
     }
 
     .pr-multi-widget .pr-review-card {
-        min-width: 300px;
-        max-width: 100%;
-        margin: 0 1rem;
+        padding: 1.5rem;
+        min-height: 320px;
     }
     
     .pr-multi-widget .submit-review-button-container {
-        margin-right: 1rem;
-        margin-top: 1rem;
+        padding-top: 0.5rem;
+        padding-right: 1rem; /* Add padding to the right on mobile */
     }
 }
 
@@ -510,13 +490,12 @@
     }
 
     .pr-multi-widget .pr-review-card {
-        min-width: 280px;
-        padding: 1.25rem;
-        margin: 0 0.5rem;
+        min-width: 0;
+        padding: 1rem;
     }
 
     .pr-multi-widget .review-text {
-        font-size: 1rem;
+        font-size: 0.9rem;
     }
 }
 
@@ -599,4 +578,16 @@
 .pr-multi-widget .swiper-button-disabled {
     opacity: 0.3;
     cursor: not-allowed;
+    pointer-events: none; /* Keep the button from being clickable */
+}
+
+.pr-multi-widget .mobile-nav-row .swiper-button-disabled {
+    opacity: 0.3;
+    background-color: #f0f0f0; /* Provide a visual cue for disabled state */
+}
+
+/* Ensure that even when disabled, the buttons still take up space in the flex container */
+.pr-multi-widget .mobile-nav-row .swiper-button-prev,
+.pr-multi-widget .mobile-nav-row .swiper-button-next {
+    flex-shrink: 0;
 } 
