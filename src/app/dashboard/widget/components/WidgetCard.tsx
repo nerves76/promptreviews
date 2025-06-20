@@ -32,6 +32,9 @@ export function WidgetCard({
 }: WidgetCardProps) {
   const isCopied = copiedWidgetId === widget.id;
 
+  // Debug logging
+  console.log(`Widget ${widget.name} (${widget.id}) isSelected:`, isSelected);
+
   return (
     <div className={`bg-white rounded-lg shadow-md p-4 border transition-colors flex flex-col h-full ${
       isSelected 
@@ -129,9 +132,9 @@ export function WidgetCard({
       <div className="flex justify-end mt-auto">
         <button
           onClick={onSelect}
-          className={`px-4 py-2 rounded-lg font-semibold text-sm transition-colors ${
+          className={`px-4 py-2 rounded-lg font-semibold text-sm transition-colors flex items-center ${
             isSelected
-              ? 'bg-slateblue text-white'
+              ? 'bg-slateblue text-white shadow-lg ring-2 ring-slateblue/20'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           }`}
           aria-label="Select to view"
@@ -142,7 +145,7 @@ export function WidgetCard({
             viewBox="0 0 24 24"
             strokeWidth={1.5}
             stroke="currentColor"
-            className="w-4 h-4 inline-block mr-1"
+            className="w-4 h-4 mr-1"
           >
             <path
               strokeLinecap="round"
@@ -155,7 +158,7 @@ export function WidgetCard({
               d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
             />
           </svg>
-          {isSelected ? 'Selected' : 'Select to view'}
+          <span>{isSelected ? 'Selected' : 'Select to view'}</span>
         </button>
       </div>
     </div>
