@@ -245,10 +245,13 @@ if (!window.PromptReviews || !window.PromptReviews.renderMultiWidget) {
             console.error('PromptReviews Widget: Could not determine script URL to load styles.');
             return;
         }
+        
+        // Add a cache-busting query string. Using a timestamp for simplicity.
+        const cacheBuster = `?v=${new Date().getTime()}`;
 
-        // e.g., "https://host.com/.../widget-embed.js" -> "https://host.com/.../multi-widget.css"
-        const cssHref = scriptSrc.replace('widget-embed.js', 'multi-widget.css');
-
+        // e.g., "https://host.com/.../widget-embed.js" -> "https://host.com/.../multi-widget.css?v=123456789"
+        const cssHref = scriptSrc.replace('widget-embed.js', 'multi-widget.css') + cacheBuster;
+        
         const link = document.createElement('link');
         link.id = cssId;
         link.rel = 'stylesheet';
