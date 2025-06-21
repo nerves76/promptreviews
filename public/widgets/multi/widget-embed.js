@@ -46,7 +46,12 @@ console.log('🔄 Multi Widget Script Loading...', new Date().toISOString());
   }
 
   function loadDependencies(callback) {
-    const swiperUrl = 'https://unpkg.com/swiper/swiper-bundle.min.js';
+    // Try multiple Swiper URLs in case one fails
+    const swiperUrls = [
+      'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js',
+      'https://unpkg.com/swiper/swiper-bundle.min.js',
+      'https://cdnjs.cloudflare.com/ajax/libs/Swiper/11.0.5/swiper-bundle.min.js'
+    ];
     const cssUrl = '/widgets/multi/multi-widget.css';
 
     let loaded = 0;
@@ -55,26 +60,65 @@ console.log('🔄 Multi Widget Script Loading...', new Date().toISOString());
     function checkDone() {
       loaded++;
       if (loaded === total) {
-        callback();
+        // Add a small delay to ensure Swiper is fully initialized
+        setTimeout(() => {
+          console.log('All dependencies loaded, Swiper available:', typeof Swiper !== 'undefined');
+          callback();
+        }, 100);
       }
     }
 
-    if (!document.querySelector(`script[src="${swiperUrl}"]`)) {
+    // Load Swiper script with fallback URLs
+    function loadSwiperScript(urlIndex = 0) {
+      if (urlIndex >= swiperUrls.length) {
+        console.error('All Swiper URLs failed to load');
+        checkDone();
+        return;
+      }
+
+      const swiperUrl = swiperUrls[urlIndex];
+      console.log(`Trying to load Swiper from: ${swiperUrl}`);
+      
       const swiperScript = document.createElement('script');
       swiperScript.src = swiperUrl;
-      swiperScript.onload = checkDone;
+      swiperScript.onload = () => {
+        console.log(`Swiper script loaded from: ${swiperUrl}`);
+        checkDone();
+      };
+      swiperScript.onerror = () => {
+        console.warn(`Failed to load Swiper from: ${swiperUrl}`);
+        loadSwiperScript(urlIndex + 1); // Try next URL
+      };
       document.head.appendChild(swiperScript);
-    } else {
-      checkDone();
     }
 
+    // Check if Swiper is already loaded
+    if (typeof Swiper !== 'undefined') {
+      console.log('Swiper already available globally');
+      checkDone();
+    } else if (document.querySelector('script[src*="swiper"]')) {
+      console.log('Swiper script already in DOM, waiting...');
+      checkDone();
+    } else {
+      loadSwiperScript();
+    }
+
+    // Load CSS
     if (!document.querySelector(`link[href="${cssUrl}"]`)) {
       const styleLink = document.createElement('link');
       styleLink.rel = 'stylesheet';
       styleLink.href = cssUrl;
-      styleLink.onload = checkDone;
+      styleLink.onload = () => {
+        console.log('CSS loaded');
+        checkDone();
+      };
+      styleLink.onerror = () => {
+        console.error('Failed to load CSS');
+        checkDone(); // Continue anyway
+      };
       document.head.appendChild(styleLink);
     } else {
+      console.log('CSS already loaded');
       checkDone();
     }
   }
@@ -250,8 +294,10 @@ console.log('🔄 Multi Widget Script Loading...', new Date().toISOString());
             if (typeof Swiper !== 'undefined') {
                 initializeSwiper(container, design);
             } else {
-                console.error('Swiper not available after dependencies loaded');
-                container.innerHTML += '<div style="color: red; padding: 10px;">Error: Swiper library failed to load</div>';
+                console.warn('Swiper not available, using static layout');
+                // Fallback to static layout when Swiper is not available
+                container.classList.add('is-multi-static');
+                container.innerHTML += '<div style="color: orange; padding: 10px; font-size: 12px;">Note: Carousel disabled (Swiper not loaded)</div>';
             }
         } catch (error) {
             console.error('Error in widget initialization:', error);
