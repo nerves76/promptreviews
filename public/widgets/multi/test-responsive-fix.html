@@ -43,6 +43,7 @@
             margin: 20px 0;
             min-height: 400px;
             position: relative;
+            background: #fafafa;
         }
         .breakpoint-indicator {
             position: fixed;
@@ -72,6 +73,31 @@
         .btn-secondary { background: #757575; color: white; }
         .btn-success { background: #4caf50; color: white; }
         .btn-warning { background: #ff9800; color: white; }
+        
+        /* Debug styles to make widget more visible */
+        #promptreviews-widget {
+            min-height: 300px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        
+        /* Force some basic styling if CSS doesn't load */
+        .pr-multi-widget {
+            background: white !important;
+            padding: 20px !important;
+            border-radius: 8px !important;
+        }
+        
+        .pr-review-card {
+            background: white !important;
+            border: 2px solid #ccc !important;
+            border-radius: 16px !important;
+            padding: 20px !important;
+            margin: 10px !important;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important;
+        }
     </style>
 </head>
 <body>
@@ -97,6 +123,7 @@
             <button class="btn-primary" onclick="checkSwiperState()">Check Swiper State</button>
             <button class="btn-secondary" onclick="forceSwiperUpdate()">Force Swiper Update</button>
             <button class="btn-success" onclick="checkContainerWidth()">Check Container Width</button>
+            <button class="btn-warning" onclick="inspectWidgetStructure()">Inspect Widget Structure</button>
             <button class="btn-warning" onclick="toggleBreakpointIndicator()">Toggle Breakpoint Indicator</button>
         </div>
 
@@ -264,6 +291,27 @@
                 windowWidth: window.innerWidth
             };
             updateDebugInfo('Container Width: ' + JSON.stringify(info, null, 2));
+        }
+
+        function inspectWidgetStructure() {
+            const container = document.getElementById('promptreviews-widget');
+            if (!container) {
+                updateDebugInfo('Widget container not found');
+                return;
+            }
+            
+            const structure = {
+                containerClasses: container.className,
+                containerHTML: container.innerHTML.substring(0, 200) + '...',
+                hasPrMultiWidgetClass: container.classList.contains('pr-multi-widget'),
+                childElements: Array.from(container.children).map(child => ({
+                    tagName: child.tagName,
+                    className: child.className,
+                    hasSwiperClass: child.classList.contains('swiper')
+                }))
+            };
+            
+            updateDebugInfo('Widget Structure: ' + JSON.stringify(structure, null, 2));
         }
 
         function toggleBreakpointIndicator() {

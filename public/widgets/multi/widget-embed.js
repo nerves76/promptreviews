@@ -213,6 +213,9 @@ console.log('🔄 Multi Widget Script Loading...', new Date().toISOString());
       container.cleanupSwiper();
     }
     
+    // Add the required CSS class for styling
+    container.classList.add('pr-multi-widget');
+    
     container.dataset.widgetInitialized = 'true';
     
     const { reviews, design, businessSlug } = data;
