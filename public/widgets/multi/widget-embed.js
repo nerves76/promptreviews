@@ -120,81 +120,93 @@ console.log('🔄 Multi Widget Script Loading...', new Date().toISOString());
   }
 
   function initializeSwiper(container, design) {
-    const swiperEl = container.querySelector('.swiper');
-    if (!swiperEl) return;
-
-    const slides = swiperEl.querySelectorAll('.swiper-slide');
-    if (slides.length <= 3 && window.innerWidth > 768) {
-        container.classList.add('is-multi-static');
+    try {
+      const swiperEl = container.querySelector('.swiper');
+      if (!swiperEl) {
+        console.error('Swiper element not found in container');
         return;
+      }
+
+      const slides = swiperEl.querySelectorAll('.swiper-slide');
+      console.log('Found slides:', slides.length);
+      
+      if (slides.length <= 3 && window.innerWidth > 768) {
+          container.classList.add('is-multi-static');
+          console.log('Using static layout (no Swiper needed)');
+          return;
+      }
+
+      console.log('Creating Swiper instance...');
+      const swiper = new Swiper(swiperEl, {
+        loop: slides.length > 3,
+        slidesPerView: 1, // Base: 1 card on mobile
+        spaceBetween: 16,
+        centeredSlides: false, // Changed from true to false for better responsive behavior
+        autoplay: design.autoAdvance ? { delay: design.slideshowSpeed * 1000 } : false,
+        pagination: {
+          el: container.querySelector('.swiper-pagination'),
+          clickable: true,
+        },
+        navigation: {
+          nextEl: container.querySelector('.swiper-button-next'),
+          prevEl: container.querySelector('.swiper-button-prev'),
+        },
+        breakpoints: {
+          // Mobile: 1 card (default, no breakpoint needed)
+          // Tablet: 2 cards
+          768: {
+            slidesPerView: 2,
+            spaceBetween: 20,
+            centeredSlides: false,
+          },
+          // Desktop: 3 cards
+          1024: {
+            slidesPerView: 3,
+            spaceBetween: 30,
+            centeredSlides: false,
+          },
+        },
+      });
+
+      // Store swiper instance for debugging
+      container.swiperInstance = swiper;
+
+      // Add resize listener to update Swiper when container size changes
+      const resizeObserver = new ResizeObserver(() => {
+        if (swiper && !swiper.destroyed) {
+          swiper.update();
+          console.log('Swiper updated on resize. Current breakpoint:', swiper.currentBreakpoint);
+        }
+      });
+      resizeObserver.observe(container);
+
+      // Add window resize listener as fallback
+      const handleResize = () => {
+        if (swiper && !swiper.destroyed) {
+          swiper.update();
+          console.log('Swiper updated on window resize. Current breakpoint:', swiper.currentBreakpoint);
+        }
+      };
+      window.addEventListener('resize', handleResize);
+
+      // Cleanup function
+      container.cleanupSwiper = () => {
+        resizeObserver.disconnect();
+        window.removeEventListener('resize', handleResize);
+        if (swiper && !swiper.destroyed) {
+          swiper.destroy();
+        }
+      };
+
+      console.log('Swiper initialized successfully with responsive breakpoints:', {
+        currentBreakpoint: swiper.currentBreakpoint,
+        slidesPerView: swiper.params.slidesPerView,
+        containerWidth: container.offsetWidth
+      });
+    } catch (error) {
+      console.error('Error initializing Swiper:', error);
+      container.innerHTML += `<div style="color: red; padding: 10px;">Swiper Error: ${error.message}</div>`;
     }
-
-    const swiper = new Swiper(swiperEl, {
-      loop: slides.length > 3,
-      slidesPerView: 1, // Base: 1 card on mobile
-      spaceBetween: 16,
-      centeredSlides: false, // Changed from true to false for better responsive behavior
-      autoplay: design.autoAdvance ? { delay: design.slideshowSpeed * 1000 } : false,
-      pagination: {
-        el: container.querySelector('.swiper-pagination'),
-        clickable: true,
-      },
-      navigation: {
-        nextEl: container.querySelector('.swiper-button-next'),
-        prevEl: container.querySelector('.swiper-button-prev'),
-      },
-      breakpoints: {
-        // Mobile: 1 card (default, no breakpoint needed)
-        // Tablet: 2 cards
-        768: {
-          slidesPerView: 2,
-          spaceBetween: 20,
-          centeredSlides: false,
-        },
-        // Desktop: 3 cards
-        1024: {
-          slidesPerView: 3,
-          spaceBetween: 30,
-          centeredSlides: false,
-        },
-      },
-    });
-
-    // Store swiper instance for debugging
-    container.swiperInstance = swiper;
-
-    // Add resize listener to update Swiper when container size changes
-    const resizeObserver = new ResizeObserver(() => {
-      if (swiper && !swiper.destroyed) {
-        swiper.update();
-        console.log('Swiper updated on resize. Current breakpoint:', swiper.currentBreakpoint);
-      }
-    });
-    resizeObserver.observe(container);
-
-    // Add window resize listener as fallback
-    const handleResize = () => {
-      if (swiper && !swiper.destroyed) {
-        swiper.update();
-        console.log('Swiper updated on window resize. Current breakpoint:', swiper.currentBreakpoint);
-      }
-    };
-    window.addEventListener('resize', handleResize);
-
-    // Cleanup function
-    container.cleanupSwiper = () => {
-      resizeObserver.disconnect();
-      window.removeEventListener('resize', handleResize);
-      if (swiper && !swiper.destroyed) {
-        swiper.destroy();
-      }
-    };
-
-    console.log('Swiper initialized with responsive breakpoints:', {
-      currentBreakpoint: swiper.currentBreakpoint,
-      slidesPerView: swiper.params.slidesPerView,
-      containerWidth: container.offsetWidth
-    });
   }
   
   function applyDesign(container, design) {
@@ -206,6 +218,8 @@ console.log('🔄 Multi Widget Script Loading...', new Date().toISOString());
   }
 
   window.PromptReviews.renderMultiWidget = function(container, data) {
+    console.log('renderMultiWidget called with:', data);
+    
     if (!container || container.dataset.widgetInitialized) return;
     
     // Cleanup existing Swiper instance if it exists
@@ -226,10 +240,23 @@ console.log('🔄 Multi Widget Script Loading...', new Date().toISOString());
     }
 
     loadDependencies(() => {
-        const widgetHTML = createWidgetHTML(reviews, design, businessSlug);
-        container.innerHTML = widgetHTML;
-        applyDesign(container, design);
-        initializeSwiper(container, design);
+        try {
+            console.log('Dependencies loaded, creating widget HTML...');
+            const widgetHTML = createWidgetHTML(reviews, design, businessSlug);
+            container.innerHTML = widgetHTML;
+            applyDesign(container, design);
+            
+            console.log('Swiper available in render:', typeof Swiper !== 'undefined');
+            if (typeof Swiper !== 'undefined') {
+                initializeSwiper(container, design);
+            } else {
+                console.error('Swiper not available after dependencies loaded');
+                container.innerHTML += '<div style="color: red; padding: 10px;">Error: Swiper library failed to load</div>';
+            }
+        } catch (error) {
+            console.error('Error in widget initialization:', error);
+            container.innerHTML = `<div style="color: red; padding: 10px;">Widget Error: ${error.message}</div>`;
+        }
     });
   };
 
