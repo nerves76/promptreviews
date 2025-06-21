@@ -4,10 +4,11 @@
   used by both the dashboard preview and the live embeddable widget.
 */
 
-/* CSS Isolation: Reset all inherited styles to prevent host website interference */
+/* CSS Isolation & Variables */
 .pr-multi-widget {
     all: revert;
     font-family: var(--pr-font, 'Inter'), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: transparent !important;
     --pr-bg-color: #ffffff;
     --pr-text-primary: #22223b;
     --pr-text-secondary: #6b7280;
@@ -35,14 +36,7 @@
     position: relative;
 }
 
-.pr-multi-widget .widget-mobile {
-    display: none;
-}
-
-.pr-multi-widget .widget-desktop {
-    display: block;
-}
-
+/* General Layout */
 .pr-multi-widget .widget-content {
     display: flex;
     flex-direction: column;
@@ -50,16 +44,20 @@
     justify-content: center;
     position: relative;
     width: 100%;
-    padding: 2rem 1rem;
+    padding: 2rem 0;
+    background: transparent;
+    min-height: 500px; /* Ensure minimum height to accommodate all content */
+    overflow: visible; /* Ensure content is not clipped */
 }
 
 .pr-multi-widget .widget-outer-container {
     position: relative;
     width: 100%;
-    max-width: 100%;
+    max-width: 1280px;
     margin: 0 auto;
     padding: 0;
     box-sizing: border-box;
+    overflow: visible; /* Ensure content is not clipped */
 }
 
 .pr-multi-widget .widget-carousel-container {
@@ -67,60 +65,65 @@
     width: 100%;
     max-width: 100%;
     margin: 0 auto;
-    padding: 0 clamp(20px, 5vw, 60px);
-    overflow: hidden;
+    padding: 0 1rem;
+    overflow: visible;
 }
 
+/* Swiper Base Styles */
 .pr-multi-widget .swiper {
-    position: relative;
+    position: static;
     z-index: 1;
-    display: flex;
     overflow: hidden;
     padding-top: 10px;
-    padding-bottom: 24px;
+    padding-bottom: 60px; /* Increased padding to accommodate pagination and submit button */
 }
 
 .pr-multi-widget .swiper-wrapper {
     display: flex;
-    align-items: stretch; /* Ensure all slides have the same height */
-    overflow: visible;
+    align-items: stretch;
+}
+
+/* Add this for multi-static mode */
+.pr-multi-widget.is-multi-static .swiper-wrapper {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
 }
 
 .pr-multi-widget .swiper-slide {
     display: flex;
     justify-content: center;
-    align-items: stretch; /* Make all slides stretch to same height */
+    align-items: stretch;
     height: auto;
-    transition: opacity 0.3s ease;
-    padding-bottom: 1rem; /* Add padding for shadow */
+    padding-bottom: 1rem;
+    box-sizing: border-box;
 }
 
-.pr-multi-widget .swiper-slide-active {
-    z-index: 1;
+/* Add this for multi-static mode */
+.pr-multi-widget.is-multi-static .swiper-slide {
+    flex: 1 1 300px; /* Flex-grow, flex-shrink, flex-basis */
+    max-width: 380px;
 }
 
-/* This rule was causing the inconsistent fade and is now removed */
-/*
-.pr-multi-widget .swiper-slide-next,
-.pr-multi-widget .swiper-slide-prev {
-    opacity: 0.7;
+.pr-multi-widget.is-multi-static .swiper-pagination,
+.pr-multi-widget.is-multi-static .swiper-navigation {
+    display: none;
 }
-*/
 
+/* Review Card Styles */
 .pr-multi-widget .pr-review-card {
     background: var(--pr-card-bg, #fff);
     border: var(--pr-card-border, 2px solid #cccccc);
     border-radius: var(--pr-card-radius, 16px);
     box-shadow: var(--pr-card-shadow, 0 4px 32px rgba(34,34,34,0.2) inset);
-    padding: 1.5rem 2rem 1.5rem;
+    padding: 1.5rem;
     min-height: 350px;
-    height: auto;
+    height: 100%;
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     width: 100%;
-    min-width: 280px;
     max-width: 420px;
     margin: 0 auto;
     box-sizing: border-box;
@@ -129,7 +132,7 @@
 
 .pr-multi-widget .pr-review-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 32px rgba(34, 34, 34, 0.15);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
 }
 
 .pr-multi-widget .stars-row {
@@ -137,7 +140,7 @@
     gap: 0.25rem;
     margin-bottom: 0.5rem;
     justify-content: center;
-    flex-shrink: 0; /* Prevent shrinking */
+    flex-shrink: 0;
 }
 
 .pr-multi-widget .review-content {
@@ -147,23 +150,17 @@
     flex-direction: column;
     gap: 0.25rem;
     align-items: center;
-    justify-content: center; /* Center content vertically */
-    min-height: 0; /* Allow shrinking */
+    justify-content: center;
 }
 
 .pr-multi-widget .review-text {
-    font-size: 1rem; /* Standardized to 16px */
+    font-size: 1rem;
     line-height: var(--pr-line-spacing, 1.75);
     color: var(--pr-text-primary, #22223b);
     margin: 0;
     text-align: center;
     word-wrap: break-word;
     overflow-wrap: break-word;
-    hyphens: auto;
-    flex-grow: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 .pr-multi-widget .decorative-quote {
@@ -186,36 +183,11 @@
     align-self: flex-end;
 }
 
-.pr-multi-widget .submit-review-button-container {
-    display: flex;
-    justify-content: flex-end;
-    padding-top: 0.25rem; /* Further reduced vertical padding */
-    padding-bottom: 0;
-}
-
-.pr-multi-widget .submit-review-button {
-    background-color: var(--pr-card-bg, #ffffff);
-    color: var(--pr-text-primary, #22223b);
-    border: var(--pr-button-border, var(--pr-border-width, 2px) solid var(--pr-border-color, #cccccc));
-    padding: 0.5rem 1.25rem;
-    border-radius: 9999px;
-    font-weight: 500;
-    font-size: 0.875rem;
-    text-decoration: none;
-    transition: all 0.2s ease-in-out;
-    box-shadow: var(--pr-button-shadow, 0 2px 8px rgba(34,34,34,0.15) inset);
-}
-
-.pr-multi-widget .submit-review-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-
 .pr-multi-widget .reviewer-details {
     margin-top: auto;
     padding-top: 1rem;
     border-top: 1px solid var(--pr-border-color, #cccccc);
-    flex-shrink: 0; /* Prevent shrinking */
+    flex-shrink: 0;
 }
 
 .pr-multi-widget .reviewer-name {
@@ -237,357 +209,153 @@
     color: var(--pr-text-secondary, #6b7280);
 }
 
+/* === NAVIGATION STYLES START === */
+
+.pr-multi-widget .swiper-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-top: 1rem;
+    padding: 0 1rem;
+    box-sizing: border-box;
+}
+
+/* Base button styles (Mobile First) */
 .pr-multi-widget .swiper-button-next,
 .pr-multi-widget .swiper-button-prev {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 40px;
-    height: 40px;
+    position: static; /* In the document flow on mobile */
+    transform: none;
+    width: 44px;
+    height: 44px;
     margin: 0;
-    padding: 0;
-    background: var(--pr-card-bg);
-    border: var(--pr-card-border);
+    background: var(--pr-card-bg, #fff);
+    border: var(--pr-card-border, 2px solid #cccccc);
     border-radius: 50%;
-    z-index: 10;
-    cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: var(--pr-shadow);
-    transition: all 0.2s ease;
+    cursor: pointer;
+    z-index: 10;
+    color: var(--pr-accent-color);
+    transition: background-color 0.2s, box-shadow 0.2s;
+    box-shadow: var(--pr-button-shadow, 0 2px 8px rgba(34,34,34,0.15) inset);
 }
 
 .pr-multi-widget .swiper-button-next:hover,
 .pr-multi-widget .swiper-button-prev:hover {
-    transform: translateY(-50%) scale(1.05);
-    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 .pr-multi-widget .swiper-button-next::after,
 .pr-multi-widget .swiper-button-prev::after {
-    content: none; /* Disable default Swiper arrows */
+    font-size: 14px;
+    font-weight: 900;
+    font-family: sans-serif;
 }
 
-/* Custom button styling to match React widget */
-.pr-multi-widget button[aria-label="Previous"],
-.pr-multi-widget button[aria-label="Next"] {
-    background: var(--pr-card-bg, #ffffff);
-    border: 1.5px solid rgba(136, 136, 136, 0.22);
-    transition: all 0.3s ease;
-    box-shadow: var(--pr-button-shadow, 0 2px 8px rgba(34,34,34,0.15) inset);
+.pr-multi-widget .swiper-button-prev::after {
+    content: '◀';
 }
 
-.pr-multi-widget button[aria-label="Previous"]:hover,
-.pr-multi-widget button[aria-label="Next"]:hover,
-.pr-multi-widget button[aria-label="Previous"]:active,
-.pr-multi-widget button[aria-label="Next"]:active,
-.pr-multi-widget button[aria-label="Previous"]:focus,
-.pr-multi-widget button[aria-label="Next"]:focus {
-    background: var(--pr-accent-color, #6a5acd) !important;
+.pr-multi-widget .swiper-button-next::after {
+    content: '▶';
 }
 
-.pr-multi-widget button[aria-label="Previous"]:hover polygon,
-.pr-multi-widget button[aria-label="Next"]:hover polygon,
-.pr-multi-widget button[aria-label="Previous"]:active polygon,
-.pr-multi-widget button[aria-label="Next"]:active polygon,
-.pr-multi-widget button[aria-label="Previous"]:focus polygon,
-.pr-multi-widget button[aria-label="Next"]:focus polygon {
-    fill: var(--pr-card-bg, #ffffff) !important;
-}
-
-/* Mobile button styling */
-.pr-multi-widget .widget-mobile button[aria-label="Previous"],
-.pr-multi-widget .widget-mobile button[aria-label="Next"] {
-    background: var(--pr-card-bg, #ffffff);
-    border: 1.5px solid rgba(136, 136, 136, 0.22);
-    box-shadow: var(--pr-button-shadow, 0 2px 8px rgba(34,34,34,0.15) inset);
-}
-
-.pr-multi-widget .widget-mobile button[aria-label="Previous"]:hover,
-.pr-multi-widget .widget-mobile button[aria-label="Next"]:hover {
-    background: var(--pr-accent-color, #6a5acd) !important;
-}
-
-.pr-multi-widget .widget-mobile button[aria-label="Previous"]:hover polygon,
-.pr-multi-widget .widget-mobile button[aria-label="Next"]:hover polygon {
-    fill: var(--pr-card-bg, #ffffff) !important;
-}
-
-.pr-multi-widget .mobile-nav-row {
-    display: none; /* Hidden by default, shown in media query */
-}
-
-.pr-multi-widget .mobile-nav-row .swiper-button-next,
-.pr-multi-widget .mobile-nav-row .swiper-button-prev {
-    position: static;
-    transform: none;
-    margin: 0;
-    width: 44px;
-    height: 44px;
-    z-index: 10;
-    flex-shrink: 0;
-}
-
-.pr-multi-widget .mobile-nav-row .swiper-pagination {
-    position: static;
+/* Pagination styles */
+.pr-multi-widget .swiper-pagination {
+    position: static; /* In the flow on mobile */
     flex-grow: 1;
     display: flex;
     justify-content: center;
     align-items: center;
-}
-
-.pr-multi-widget .swiper-pagination {
-    position: relative;
-    bottom: auto;
-    left: auto;
-    width: auto;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 0.5rem;
-    margin-top: 1rem;
 }
 
 .pr-multi-widget .swiper-pagination-bullet {
     width: 8px;
     height: 8px;
-    background: #d1d5db;
-    opacity: 1;
-    transition: all 0.3s ease;
-    margin: 0;
-    display: block;
+    background-color: var(--pr-border-color, #ccc);
+    opacity: 0.7;
+    transition: background-color 0.2s, opacity 0.2s;
+    margin: 0 4px;
 }
 
 .pr-multi-widget .swiper-pagination-bullet-active {
-    background: var(--pr-accent-color, #6a5acd);
-    transform: scale(1.2);
+    background-color: var(--pr-accent-color, #6a5acd);
+    opacity: 1;
 }
 
+.pr-multi-widget .swiper-button-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    filter: grayscale(80%);
+}
+
+/* Tablet & Desktop Styles */
 @media screen and (min-width: 768px) {
-    .pr-multi-widget .submit-review-button-container {
-        margin-top: -1rem;
-        padding-top: 0;
-        padding-right: 1rem;
+    .pr-multi-widget .widget-carousel-container {
+        padding: 0 4rem;
     }
 
-    .pr-multi-widget .widget-desktop {
-        display: block;
+    .pr-multi-widget .swiper-navigation {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        width: 100%;
+        height: 0;
+        transform: translateY(-50%);
+        margin-top: 0;
+        padding: 0;
+        z-index: 20;
     }
     
-    .pr-multi-widget .widget-mobile {
-        display: none !important;
-    }
-    
-    .pr-multi-widget .swiper-button-next,
     .pr-multi-widget .swiper-button-prev {
-        display: flex; /* Show arrows on md and up */
-    }
-    
-    .pr-multi-widget .widget-outer-container {
-        padding: 0; /* Ensure no conflicting padding */
+        position: absolute;
+        left: 0;
     }
 
     .pr-multi-widget .swiper-button-next {
-        right: 10px;
+        position: absolute;
+        right: 0;
     }
 
-    .pr-multi-widget .swiper-button-prev {
-        left: 10px;
-    }
-
-    .pr-multi-widget .pr-review-card {
-        padding: 1.5rem;
-    }
-    
-    .pr-multi-widget .mobile-nav-row {
-        display: none; /* Hide mobile nav on desktop */
-    }
-}
-
-@media screen and (max-width: 767px) {
-    .pr-multi-widget .widget-desktop {
-        display: none;
-    }
-    
-    .pr-multi-widget .widget-mobile {
-        display: block;
-    }
-    
-    .pr-multi-widget .widget-outer-container {
-        padding: 0 1rem;
-    }
-
-    .pr-multi-widget .swiper-button-next,
-    .pr-multi-widget .swiper-button-prev {
-        display: none; /* Hide desktop buttons on mobile */
-    }
-
-    .pr-multi-widget .mobile-nav-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        width: 100%;
-        max-width: 300px;
-        margin: 1rem auto 0;
-        position: relative;
-    }
-
-    .pr-multi-widget .mobile-nav-row .swiper-button-next,
-    .pr-multi-widget .mobile-nav-row .swiper-button-prev {
-        display: flex; /* Display mobile buttons */
-        position: static;
-        transform: none;
-        margin: 0;
-        width: 40px;
-        height: 40px;
-        z-index: 10;
-        flex-shrink: 0;
-        background: var(--pr-card-bg);
-        border: var(--pr-card-border);
-        border-radius: 50%;
-        align-items: center;
-        justify-content: center;
-        box-shadow: var(--pr-button-shadow);
-    }
-
-    .pr-multi-widget .mobile-nav-row .swiper-button-next::after,
-    .pr-multi-widget .mobile-nav-row .swiper-button-prev::after {
-        content: none; /* Disable default Swiper arrows on mobile too */
-    }
-    
-    .pr-multi-widget .mobile-nav-row .swiper-pagination {
-        position: static;
-        flex-grow: 1;
-        display: flex;
-        justify-content: center;
-        align-items: center;
+    .pr-multi-widget .swiper-pagination {
+        position: absolute;
+        bottom: 20px; /* Position 20px up from the bottom of the carousel */
+        left: 50%;
+        transform: translateX(-50%);
         width: auto;
-    }
-
-    .pr-multi-widget .pr-review-card {
-        padding: 1.5rem;
-        min-height: 320px;
-    }
-    
-    .pr-multi-widget .submit-review-button-container {
-        padding-top: 0.5rem;
-        padding-right: 1rem; /* Add padding to the right on mobile */
+        z-index: 30;
     }
 }
 
-@media screen and (max-width: 480px) {
-    .pr-multi-widget .mobile-nav-row {
-        max-width: 320px;
-        padding: 0 0.5rem;
-    }
+/* === NAVIGATION STYLES END === */
 
-    .pr-multi-widget .mobile-nav-row .swiper-button-next,
-    .pr-multi-widget .mobile-nav-row .swiper-button-prev {
-        width: 32px;
-        height: 32px;
-        font-size: 20px;
-    }
-
-    .pr-multi-widget .pr-review-card {
-        min-width: 0;
-        padding: 1rem;
-    }
-
-    .pr-multi-widget .review-text {
-        font-size: 0.9rem;
-    }
+/* Submit Review Button */
+.pr-multi-widget .submit-review-button-container {
+    padding-top: 1.5rem;
+    padding-bottom: 1rem; /* Add bottom padding to ensure button is not cut off */
+    text-align: center;
+    margin-bottom: 1rem; /* Add margin to ensure spacing from bottom */
 }
 
-/* NAVIGATION (Desktop) - These now only apply within .widget-desktop */
-.pr-multi-widget .widget-desktop .swiper-button-prev,
-.pr-multi-widget .widget-desktop .swiper-button-next {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 10;
-    width: 40px;
-    height: 40px;
-    display: flex; /* Kept as flex */
-    align-items: center;
-    justify-content: center;
-    background-color: white;
-    color: var(--pr-accent-color, #6a5acd);
-    border-radius: 50%;
+.pr-multi-widget .submit-review-button {
+    background-color: var(--pr-card-bg, #ffffff);
+    color: var(--pr-text-primary, #22223b);
+    border: var(--pr-button-border, var(--pr-border-width, 2px) solid var(--pr-border-color, #cccccc));
+    padding: 0.75rem 1.5rem;
+    border-radius: 9999px;
+    font-weight: 500;
+    font-size: 1rem;
+    text-decoration: none;
+    transition: all 0.2s ease-in-out;
     box-shadow: var(--pr-button-shadow, 0 2px 8px rgba(34,34,34,0.15) inset);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-size: 20px;
+    display: inline-block; /* Ensure proper display */
+    line-height: 1.2; /* Ensure proper line height */
 }
 
-.pr-multi-widget .widget-desktop .swiper-button-prev:hover,
-.pr-multi-widget .widget-desktop .swiper-button-next:hover {
-    background-color: #f0f0f0;
-}
-
-.pr-multi-widget .widget-desktop .swiper-button-prev {
-    left: 0;
-}
-
-.pr-multi-widget .widget-desktop .swiper-button-next {
-    right: 0;
-}
-
-.pr-multi-widget .widget-desktop .swiper-pagination {
-    position: static; /* No longer absolute */
-    margin-top: -1rem; /* Negative margin to pull dots up */
-    width: 100%;
-    bottom: 0;
-    z-index: 10;
-}
-
-/* NAVIGATION (Mobile) - Styles for the mobile-only nav row */
-.pr-multi-widget .mobile-nav-row {
-    width: 100%;
-    display: flex; /* Was hidden on desktop before, now controlled by parent */
-    justify-content: center;
-    align-items: center;
-    margin-top: -1.5rem; /* Further reduced margin to pull navigation up */
-    padding: 0 1rem;
-    gap: 1rem;
-    position: relative; /* Ensure it stacks correctly */
-    z-index: 10;
-}
-
-.pr-multi-widget .mobile-nav-row .swiper-button-prev,
-.pr-multi-widget .mobile-nav-row .swiper-button-next {
-    position: static;
-    transform: none;
-    width: 40px;
-    height: 40px;
-    background: #eee;
-    color: #555;
-    border-radius: 50%;
-    box-shadow: var(--pr-button-shadow, 0 2px 8px rgba(34,34,34,0.15) inset);
-    font-size: 20px;
-    margin: 0;
-}
-
-.pr-multi-widget .mobile-nav-row .swiper-pagination {
-    position: static;
-    width: auto;
-    flex-grow: 1;
-}
-
-/* Hiding arrows when disabled */
-.pr-multi-widget .swiper-button-disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
-    pointer-events: none; /* Keep the button from being clickable */
-}
-
-.pr-multi-widget .mobile-nav-row .swiper-button-disabled {
-    opacity: 0.3;
-    background-color: #f0f0f0; /* Provide a visual cue for disabled state */
-}
-
-/* Ensure that even when disabled, the buttons still take up space in the flex container */
-.pr-multi-widget .mobile-nav-row .swiper-button-prev,
-.pr-multi-widget .mobile-nav-row .swiper-button-next {
-    flex-shrink: 0;
+.pr-multi-widget .submit-review-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 } 
