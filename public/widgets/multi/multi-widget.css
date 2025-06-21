@@ -46,8 +46,8 @@
     width: 100%;
     padding: 2rem 0;
     background: transparent;
-    min-height: 500px; /* Ensure minimum height to accommodate all content */
-    overflow: visible; /* Ensure content is not clipped */
+    min-height: 500px;
+    overflow: visible;
 }
 
 .pr-multi-widget .widget-outer-container {
@@ -57,7 +57,7 @@
     margin: 0 auto;
     padding: 0;
     box-sizing: border-box;
-    overflow: visible; /* Ensure content is not clipped */
+    overflow: visible;
 }
 
 .pr-multi-widget .widget-carousel-container {
@@ -75,19 +75,12 @@
     z-index: 1;
     overflow: hidden;
     padding-top: 10px;
-    padding-bottom: 60px; /* Increased padding to accommodate pagination and submit button */
+    padding-bottom: 60px;
 }
 
 .pr-multi-widget .swiper-wrapper {
     display: flex;
     align-items: stretch;
-}
-
-/* Add this for multi-static mode */
-.pr-multi-widget.is-multi-static .swiper-wrapper {
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 1rem;
 }
 
 .pr-multi-widget .swiper-slide {
@@ -97,17 +90,6 @@
     height: auto;
     padding-bottom: 1rem;
     box-sizing: border-box;
-}
-
-/* Add this for multi-static mode */
-.pr-multi-widget.is-multi-static .swiper-slide {
-    flex: 1 1 300px; /* Flex-grow, flex-shrink, flex-basis */
-    max-width: 380px;
-}
-
-.pr-multi-widget.is-multi-static .swiper-pagination,
-.pr-multi-widget.is-multi-static .swiper-navigation {
-    display: none;
 }
 
 /* Review Card Styles */
@@ -209,135 +191,116 @@
     color: var(--pr-text-secondary, #6b7280);
 }
 
-/* === NAVIGATION STYLES START === */
-
+/* Navigation Styles - Override Swiper defaults */
+.pr-multi-widget .swiper-pagination,
 .pr-multi-widget .swiper-navigation {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
+    display: none !important;
+}
+
+.pr-multi-widget.swiper-initialized .swiper-pagination {
+    display: block !important;
+    position: relative !important;
+    bottom: auto !important;
+    left: auto !important;
+    right: auto !important;
+    top: auto !important;
     margin-top: 1rem;
-    padding: 0 1rem;
-    box-sizing: border-box;
+    text-align: center;
+    width: auto !important;
+    height: 20px !important;
+    min-height: 20px !important;
+    line-height: 20px !important;
+    background-color: rgba(0, 255, 0, 0.1) !important; /* Debug: green background */
 }
 
-/* Base button styles (Mobile First) */
-.pr-multi-widget .swiper-button-next,
-.pr-multi-widget .swiper-button-prev {
-    position: static; /* In the document flow on mobile */
-    transform: none;
-    width: 44px;
-    height: 44px;
-    margin: 0;
-    background: var(--pr-card-bg, #fff);
-    border: var(--pr-card-border, 2px solid #cccccc);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
+.pr-multi-widget.swiper-initialized .swiper-navigation {
+    display: flex !important;
     justify-content: center;
-    cursor: pointer;
-    z-index: 10;
-    color: var(--pr-accent-color);
-    transition: background-color 0.2s, box-shadow 0.2s;
-    box-shadow: var(--pr-button-shadow, 0 2px 8px rgba(34,34,34,0.15) inset);
+    gap: 1rem;
+    margin-top: 1rem;
+    position: relative !important;
+    bottom: auto !important;
+    left: auto !important;
+    right: auto !important;
+    top: auto !important;
+    width: auto !important;
+    height: auto !important;
 }
 
-.pr-multi-widget .swiper-button-next:hover,
-.pr-multi-widget .swiper-button-prev:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+.pr-multi-widget.swiper-initialized .swiper-button-prev,
+.pr-multi-widget.swiper-initialized .swiper-button-next {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    transform: none !important;
+    width: 40px !important;
+    height: 40px !important;
+    background: #007bff !important;
+    border-radius: 50% !important;
+    color: white !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: background-color 0.3s !important;
+    border: none !important;
+    margin: 0 !important;
+    z-index: auto !important;
 }
 
-.pr-multi-widget .swiper-button-next::after,
-.pr-multi-widget .swiper-button-prev::after {
-    font-size: 14px;
-    font-weight: 900;
-    font-family: sans-serif;
+.pr-multi-widget.swiper-initialized .swiper-button-prev:hover,
+.pr-multi-widget.swiper-initialized .swiper-button-next:hover {
+    background: #0056b3 !important;
 }
 
-.pr-multi-widget .swiper-button-prev::after {
-    content: '◀';
+.pr-multi-widget.swiper-initialized .swiper-button-prev::after,
+.pr-multi-widget.swiper-initialized .swiper-button-next::after {
+    font-size: 16px !important;
+    font-weight: bold !important;
+    color: white !important;
+    margin: 0 !important;
+    width: auto !important;
+    height: auto !important;
 }
 
-.pr-multi-widget .swiper-button-next::after {
-    content: '▶';
+.pr-multi-widget.swiper-initialized .swiper-button-prev::after {
+    content: '◀' !important;
 }
 
-/* Pagination styles */
-.pr-multi-widget .swiper-pagination {
-    position: static; /* In the flow on mobile */
-    flex-grow: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+.pr-multi-widget.swiper-initialized .swiper-button-next::after {
+    content: '▶' !important;
 }
 
-.pr-multi-widget .swiper-pagination-bullet {
-    width: 8px;
-    height: 8px;
-    background-color: var(--pr-border-color, #ccc);
-    opacity: 0.7;
-    transition: background-color 0.2s, opacity 0.2s;
-    margin: 0 4px;
-}
-
-.pr-multi-widget .swiper-pagination-bullet-active {
-    background-color: var(--pr-accent-color, #6a5acd);
-    opacity: 1;
-}
-
-.pr-multi-widget .swiper-button-disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    filter: grayscale(80%);
-}
-
-/* Tablet & Desktop Styles */
-@media screen and (min-width: 768px) {
-    .pr-multi-widget .widget-carousel-container {
-        padding: 0 4rem;
+/* Override Swiper's default pagination dots */
+.pr-multi-widget.swiper-initialized .swiper-pagination-bullet {
+    background: #007bff !important;
+    opacity: 0.3 !important;
+    width: 12px !important;
+    height: 12px !important;
+    margin: 0 6px !important;
+    display: inline-block !important;
+    border-radius: 50% !important;
+    cursor: pointer !important;
+    transition: opacity 0.3s !important;
+    vertical-align: middle !important;
+    line-height: 12px !important;
+    position: relative !important;
+    z-index: 10 !important;
     }
 
-    .pr-multi-widget .swiper-navigation {
-        position: absolute;
-        top: 50%;
-        left: 0;
-        right: 0;
-        width: 100%;
-        height: 0;
-        transform: translateY(-50%);
-        margin-top: 0;
-        padding: 0;
-        z-index: 20;
+.pr-multi-widget.swiper-initialized .swiper-pagination-bullet-active {
+    opacity: 1 !important;
+    background: #007bff !important;
+    transform: scale(1.2) !important;
     }
-    
-    .pr-multi-widget .swiper-button-prev {
-        position: absolute;
-        left: 0;
-    }
-
-    .pr-multi-widget .swiper-button-next {
-        position: absolute;
-        right: 0;
-    }
-
-    .pr-multi-widget .swiper-pagination {
-        position: absolute;
-        bottom: 20px; /* Position 20px up from the bottom of the carousel */
-        left: 50%;
-        transform: translateX(-50%);
-        width: auto;
-        z-index: 30;
-    }
-}
-
-/* === NAVIGATION STYLES END === */
 
 /* Submit Review Button */
 .pr-multi-widget .submit-review-button-container {
     padding-top: 1.5rem;
-    padding-bottom: 1rem; /* Add bottom padding to ensure button is not cut off */
+    padding-bottom: 1rem;
     text-align: center;
-    margin-bottom: 1rem; /* Add margin to ensure spacing from bottom */
+    margin-bottom: 1rem;
 }
 
 .pr-multi-widget .submit-review-button {
@@ -351,11 +314,19 @@
     text-decoration: none;
     transition: all 0.2s ease-in-out;
     box-shadow: var(--pr-button-shadow, 0 2px 8px rgba(34,34,34,0.15) inset);
-    display: inline-block; /* Ensure proper display */
-    line-height: 1.2; /* Ensure proper line height */
+    display: inline-block;
+    line-height: 1.2;
 }
 
 .pr-multi-widget .submit-review-button:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+/* Additional specificity for pagination container */
+#promptreviews-widget.pr-multi-widget.swiper-initialized .swiper-pagination {
+    height: 20px !important;
+    min-height: 20px !important;
+    line-height: 20px !important;
+    background-color: rgba(0, 255, 0, 0.1) !important; /* Debug: green background */
 } 

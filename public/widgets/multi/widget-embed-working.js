@@ -1,6 +1,6 @@
-// Multi Widget Embeddable Implementation
+// Working Multi Widget Embeddable Implementation
 // This version has better error handling and fallbacks
-console.log('🔄 Multi Widget Script Loading...', new Date().toISOString());
+console.log('🔄 Working Multi Widget Script Loading...', new Date().toISOString());
 
 (function() {
   'use strict';
@@ -471,8 +471,8 @@ console.log('🔄 Multi Widget Script Loading...', new Date().toISOString());
     });
   };
 
-  console.log('✅ Widget script loaded successfully');
+  console.log('✅ Working widget script loaded successfully');
   console.log('🔧 PromptReviews object available:', !!window.PromptReviews);
   console.log('🔧 renderMultiWidget available:', !!(window.PromptReviews && window.PromptReviews.renderMultiWidget));
 
-})();
+})(); 

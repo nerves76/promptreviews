@@ -29,17 +29,48 @@ The widget is currently being developed as a standalone component in the `public
 
 ```
 public/widgets/multi/
-├── widget-embed.js    # Main widget JavaScript
-├── widget-embed.css   # Widget styles
-└── multi.html        # Example implementation
+├── widget-embed.js    # Main widget JavaScript (with responsive fallback)
+├── widget-embed.min.js # Minified version for production
+├── widget-embed-working.js # Working version with responsive fixes
+├── multi-widget.css   # Widget styles
+├── test-responsive.html # Test page for responsive behavior
+└── working-test.html  # Test page with debug console
 ```
 
 To test the widget:
-1. Open `public/widgets/multi/multi.html` in your browser
+1. Open `public/widgets/multi/test-responsive.html` in your browser
 2. Make changes to the JavaScript and CSS files
 3. Refresh to see your changes
+4. Test responsive behavior by resizing the browser window
 
 No build step is required during widget development.
+
+## Widget Responsiveness
+
+The multi-widget now has proper responsive behavior with a dual system:
+
+### Primary: Swiper.js Carousel
+- **Desktop (1024px+)**: 3 cards visible with navigation
+- **Tablet (768px-1023px)**: 2 cards visible with navigation  
+- **Mobile (<768px)**: 1 card visible with navigation
+
+### Fallback: CSS Grid Layout
+When Swiper.js fails to load (network issues, CDN problems), the widget falls back to a responsive CSS Grid:
+- **Desktop (1024px+)**: 3 cards per row
+- **Tablet (768px-1023px)**: 2 cards per row
+- **Mobile (<768px)**: 1 card per row
+
+### Key Features
+- **Multiple CDN fallbacks** for Swiper.js loading reliability
+- **Responsive CSS Grid** with `!important` declarations to override inline styles
+- **Graceful degradation** when Swiper fails to load
+- **Consistent card styling** between Swiper and Grid modes
+
+### Testing Responsiveness
+1. Visit `http://localhost:3001/widgets/multi/test-responsive.html`
+2. Resize browser window to test different breakpoints
+3. Check browser console for loading status
+4. Test with network throttling to simulate slow connections
 
 ---
 
@@ -186,6 +217,11 @@ For more details, see the safelist comment in `src/widget-embed/widget.css`.
 - **If uploads fail:**
   - Check Supabase Storage bucket permissions and policy.
   - Check file size/type limits.
+- **If widget responsiveness breaks:**
+  - Check browser console for Swiper loading errors
+  - Test with network throttling to simulate slow connections
+  - Verify CSS media queries are applying correctly
+  - Test on different screen sizes using browser dev tools
 
 ---
 

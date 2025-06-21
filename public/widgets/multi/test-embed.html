@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Widget Embed Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .widget-section {
+            margin: 40px 0;
+            padding: 20px;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+        }
+        .widget-section h2 {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        /* Debug Console */
+        .debug-console {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            width: calc(100% - 20px);
+            max-height: 200px;
+            overflow-y: auto;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #0f0;
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 9999;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+        .debug-console .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+            margin-bottom: 5px;
+        }
+        .debug-console .clear-btn {
+            background: none;
+            border: 1px solid #333;
+            color: #0f0;
+            padding: 2px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .debug-console .log-entry {
+            border-bottom: 1px solid #222;
+            padding: 2px 0;
+        }
+        
+        /* Fallback widget styles in case external CSS fails */
+        .pr-multi-widget {
+            all: revert;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            width: 100%;
+            max-width: 100vw;
+            margin: 0 auto;
+            padding: 0;
+            box-sizing: border-box;
+            position: relative;
+        }
+        
+        .pr-multi-widget .widget-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            width: 100%;
+            padding: 2rem 1rem;
+        }
+        
+        .pr-multi-widget .pr-review-card {
+            background: #fff !important;
+            border: 2px solid #cccccc;
+            border-radius: 16px;
+            box-shadow: 0 4px 32px rgba(34,34,34,0.2) inset;
+            padding: 1.5rem 2rem 1.5rem;
+            min-height: 350px;
+            height: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            width: 100%;
+            min-width: 280px;
+            max-width: 420px;
+            margin: 0 auto;
+            box-sizing: border-box;
+            text-align: center;
+        }
+        
+        .pr-multi-widget .review-text {
+            font-size: 1rem;
+            line-height: 1.75;
+            color: #22223b;
+            margin: 0;
+            text-align: center;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .pr-multi-widget .reviewer-name {
+            font-weight: 600;
+            color: #1a237e;
+            margin-bottom: 0.25rem;
+        }
+        
+        .pr-multi-widget .reviewer-role {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+        
+        .pr-multi-widget .stars {
+            color: gold;
+            font-size: 1.25rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Widget Embed Test</h1>
+        
+        <div class="widget-section">
+            <h2>Multi Widget Test (with Swiper)</h2>
+            <!-- Use a different ID to avoid automatic initialization -->
+            <div id="test-widget-container"></div>
+        </div>
+    </div>
+
+    <!-- Debug Console -->
+    <div class="debug-console" id="debug-console">
+        <div class="header">
+            <span>Debug Console</span>
+            <button class="clear-btn" onclick="clearDebugLog()">Clear</button>
+        </div>
+        <div id="debug-logs">No logs yet...</div>
+    </div>
+
+    <!-- Widget Script -->
+    <script src="/widgets/multi/widget-embed.js"></script>
+    
+    <script>
+        // Debug logging system
+        const debugLogs = [];
+        const debugContainer = document.getElementById('debug-logs');
+        
+        function addDebugLog(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}`;
+            debugLogs.push(logEntry);
+            
+            if (debugContainer) {
+                if (debugLogs.length === 1) {
+                    debugContainer.innerHTML = '';
+                }
+                const logDiv = document.createElement('div');
+                logDiv.className = 'log-entry';
+                logDiv.textContent = logEntry;
+                debugContainer.appendChild(logDiv);
+                debugContainer.scrollTop = debugContainer.scrollHeight;
+            }
+            
+            console.log(logEntry);
+        }
+        
+        function clearDebugLog() {
+            debugLogs.length = 0;
+            if (debugContainer) {
+                debugContainer.innerHTML = 'No logs yet...';
+            }
+        }
+        
+        // Override console.log to capture logs
+        const originalLog = console.log;
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addDebugLog(args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' '));
+        };
+        
+        // Debug logging
+        addDebugLog('🔍 Test page loaded');
+        addDebugLog('🔍 PromptReviews object: ' + (window.PromptReviews ? 'Available' : 'Not available'));
+        
+        // Wait for widget script to load and then manually trigger
+        setTimeout(() => {
+            const container = document.querySelector('#test-widget-container');
+            addDebugLog('🔍 Container found: ' + (container ? 'Yes' : 'No'));
+            
+            if (container && window.PromptReviews && window.PromptReviews.renderMultiWidget) {
+                addDebugLog('✅ Widget script loaded successfully');
+                
+                const testData = {
+                    reviews: [
+                        {
+                            id: '1',
+                            review_content: 'This is an amazing product! I love how it works and would definitely recommend it to others.',
+                            first_name: 'John',
+                            last_name: 'Doe',
+                            reviewer_role: 'Customer',
+                            platform: 'Google',
+                            created_at: '2024-01-15T10:30:00Z',
+                            star_rating: 5
+                        },
+                        {
+                            id: '2',
+                            review_content: 'Excellent service and quality. The team was very helpful throughout the entire process.',
+                            first_name: 'Jane',
+                            last_name: 'Smith',
+                            reviewer_role: 'Client',
+                            platform: 'Yelp',
+                            created_at: '2024-01-10T14:20:00Z',
+                            star_rating: 5
+                        },
+                        {
+                            id: '3',
+                            review_content: 'Great experience overall. The product exceeded my expectations and I\'m very satisfied.',
+                            first_name: 'Mike',
+                            last_name: 'Johnson',
+                            reviewer_role: 'User',
+                            platform: 'Facebook',
+                            created_at: '2024-01-05T09:15:00Z',
+                            star_rating: 4
+                        },
+                        {
+                            id: '4',
+                            review_content: 'Outstanding quality and fast delivery. Will definitely order again!',
+                            first_name: 'Sarah',
+                            last_name: 'Wilson',
+                            reviewer_role: 'Customer',
+                            platform: 'Google',
+                            created_at: '2024-01-20T16:45:00Z',
+                            star_rating: 5
+                        },
+                        {
+                            id: '5',
+                            review_content: 'Professional service and great communication. Highly recommended!',
+                            first_name: 'David',
+                            last_name: 'Brown',
+                            reviewer_role: 'Client',
+                            platform: 'Yelp',
+                            created_at: '2024-01-18T11:30:00Z',
+                            star_rating: 5
+                        }
+                    ],
+                    design: {
+                        bgColor: '#ffffff',
+                        textColor: '#22223b',
+                        accentColor: '#6a5acd',
+                        nameTextColor: '#1a237e',
+                        roleTextColor: '#6b7280',
+                        borderColor: '#cccccc',
+                        borderWidth: 2,
+                        borderRadius: 16,
+                        font: 'Inter',
+                        shadow: true,
+                        border: true,
+                        lineSpacing: 1.4,
+                        shadowIntensity: 0.2,
+                        shadowColor: '#222222',
+                        showQuotes: false,
+                        showRelativeDate: true,
+                        showSubmitReviewButton: true,
+                        bgOpacity: 1
+                    },
+                    businessSlug: 'test-business'
+                };
+                
+                addDebugLog('🎯 Calling renderMultiWidget with test data');
+                window.PromptReviews.renderMultiWidget(container, testData);
+            } else {
+                addDebugLog('❌ Widget script not loaded or render function not available');
+                addDebugLog('Container: ' + (container ? 'Found' : 'Not found'));
+                addDebugLog('PromptReviews: ' + (window.PromptReviews ? 'Available' : 'Not available'));
+                if (container) {
+                    container.innerHTML = '<div style="padding: 20px; text-align: center; color: red;">Widget failed to load. Check console for errors.</div>';
+                }
+            }
+        }, 2000);
+    </script>
+</body>
+</html> 

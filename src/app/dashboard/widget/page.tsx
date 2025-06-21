@@ -382,10 +382,9 @@ export default function WidgetPage() {
       const widthTimeout = setTimeout(() => {
         if (container.dataset.widgetInitialized === 'true') {
           console.log('Width changed to:', design.width);
-          // Remove fixed width constraint to allow responsive behavior
-          // container.style.maxWidth = `${design.width}px`;
+          // Update the container width directly for immediate visual feedback
+          container.style.maxWidth = `${design.width}px`;
           container.style.width = '100%';
-          container.style.maxWidth = '100%'; // Allow full responsive width
           
           // Then re-render the widget with the new design
           renderWidgetContent();
@@ -437,12 +436,12 @@ export default function WidgetPage() {
               </p>
             </div>
             <div className="absolute top-1/2 right-0 -translate-y-1/2">
-              <WidgetActions
-                onEditStyle={openStyleModal}
-                onManageReviews={openReviewModal}
-                onGetEmbedCode={getEmbedCode}
-                selectedWidget={selectedWidget}
-              />
+            <WidgetActions
+              onEditStyle={openStyleModal}
+              onManageReviews={openReviewModal}
+              onGetEmbedCode={getEmbedCode}
+              selectedWidget={selectedWidget}
+            />
             </div>
           </div>
           
@@ -468,10 +467,10 @@ export default function WidgetPage() {
                 </div>
               </div>
             )}
-          </div>
         </div>
+      </div>
 
-        {/* Widget Management Dashboard */}
+      {/* Widget Management Dashboard */}
         <PageCard className="bg-transparent shadow-none">
           <div className="text-left mb-6">
             <div className="flex justify-between items-center mb-4">
