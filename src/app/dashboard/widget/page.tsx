@@ -382,9 +382,10 @@ export default function WidgetPage() {
       const widthTimeout = setTimeout(() => {
         if (container.dataset.widgetInitialized === 'true') {
           console.log('Width changed to:', design.width);
-          // Update the container width directly for immediate visual feedback
-          container.style.maxWidth = `${design.width}px`;
+          // Remove fixed width constraint to allow responsive behavior
+          // container.style.maxWidth = `${design.width}px`;
           container.style.width = '100%';
+          container.style.maxWidth = '100%'; // Allow full responsive width
           
           // Then re-render the widget with the new design
           renderWidgetContent();

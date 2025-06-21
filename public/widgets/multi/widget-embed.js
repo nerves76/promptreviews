@@ -85,9 +85,9 @@ console.log('🔄 Multi Widget Script Loading...', new Date().toISOString());
         <div class="pr-review-card">
           <div class="stars-row">${renderStars(review.star_rating)}</div>
           <div class="review-content">
-            ${design.showQuotes ? '<div class="decorative-quote decorative-quote-open">“</div>' : ''}
+            ${design.showQuotes ? '<div class="decorative-quote decorative-quote-open">"</div>' : ''}
             <div class="review-text">${review.review_content}</div>
-            ${design.showQuotes ? '<div class="decorative-quote decorative-quote-close">”</div>' : ''}
+            ${design.showQuotes ? '<div class="decorative-quote decorative-quote-close">"</div>' : ''}
           </div>
           <div class="reviewer-details">
             <div class="reviewer-name">${review.first_name || 'Anonymous'} ${review.last_name || ''}</div>
@@ -129,11 +129,11 @@ console.log('🔄 Multi Widget Script Loading...', new Date().toISOString());
         return;
     }
 
-    new Swiper(swiperEl, {
+    const swiper = new Swiper(swiperEl, {
       loop: slides.length > 3,
-      slidesPerView: 1,
+      slidesPerView: 1, // Base: 1 card on mobile
       spaceBetween: 16,
-      centeredSlides: true,
+      centeredSlides: false, // Changed from true to false for better responsive behavior
       autoplay: design.autoAdvance ? { delay: design.slideshowSpeed * 1000 } : false,
       pagination: {
         el: container.querySelector('.swiper-pagination'),
@@ -144,15 +144,56 @@ console.log('🔄 Multi Widget Script Loading...', new Date().toISOString());
         prevEl: container.querySelector('.swiper-button-prev'),
       },
       breakpoints: {
-        640: {
+        // Mobile: 1 card (default, no breakpoint needed)
+        // Tablet: 2 cards
+        768: {
           slidesPerView: 2,
           spaceBetween: 20,
+          centeredSlides: false,
         },
+        // Desktop: 3 cards
         1024: {
           slidesPerView: 3,
           spaceBetween: 30,
+          centeredSlides: false,
         },
       },
+    });
+
+    // Store swiper instance for debugging
+    container.swiperInstance = swiper;
+
+    // Add resize listener to update Swiper when container size changes
+    const resizeObserver = new ResizeObserver(() => {
+      if (swiper && !swiper.destroyed) {
+        swiper.update();
+        console.log('Swiper updated on resize. Current breakpoint:', swiper.currentBreakpoint);
+      }
+    });
+    resizeObserver.observe(container);
+
+    // Add window resize listener as fallback
+    const handleResize = () => {
+      if (swiper && !swiper.destroyed) {
+        swiper.update();
+        console.log('Swiper updated on window resize. Current breakpoint:', swiper.currentBreakpoint);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+
+    // Cleanup function
+    container.cleanupSwiper = () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', handleResize);
+      if (swiper && !swiper.destroyed) {
+        swiper.destroy();
+      }
+    };
+
+    console.log('Swiper initialized with responsive breakpoints:', {
+      currentBreakpoint: swiper.currentBreakpoint,
+      slidesPerView: swiper.params.slidesPerView,
+      containerWidth: container.offsetWidth
     });
   }
   
@@ -166,6 +207,11 @@ console.log('🔄 Multi Widget Script Loading...', new Date().toISOString());
 
   window.PromptReviews.renderMultiWidget = function(container, data) {
     if (!container || container.dataset.widgetInitialized) return;
+    
+    // Cleanup existing Swiper instance if it exists
+    if (container.cleanupSwiper) {
+      container.cleanupSwiper();
+    }
     
     container.dataset.widgetInitialized = 'true';
     
@@ -182,6 +228,18 @@ console.log('🔄 Multi Widget Script Loading...', new Date().toISOString());
         applyDesign(container, design);
         initializeSwiper(container, design);
     });
+  };
+
+  // Add cleanup function to global scope
+  window.PromptReviews.cleanupWidget = function(container) {
+    if (container && container.cleanupSwiper) {
+      container.cleanupSwiper();
+    }
+    if (container) {
+      delete container.dataset.widgetInitialized;
+      delete container.swiperInstance;
+      delete container.cleanupSwiper;
+    }
   };
 
   function init() {
