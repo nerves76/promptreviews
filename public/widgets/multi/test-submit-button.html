@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Review Button Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .test-info {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .widget-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            min-height: 600px; /* Ensure enough height */
+            overflow: visible; /* Ensure content is not clipped */
+        }
+        .height-indicator {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div class="height-indicator" id="heightIndicator">
+        Container Height: <span id="heightValue">0px</span>
+    </div>
+
+    <div class="container">
+        <h1 style="color: white; text-align: center; margin-bottom: 30px;">Submit Review Button Visibility Test</h1>
+        
+        <div class="test-info">
+            <h3>Test Instructions</h3>
+            <ol>
+                <li>Check that the submit review button is fully visible at the bottom of the widget</li>
+                <li>Verify the button is not cut off by the container</li>
+                <li>Test different screen sizes to ensure responsiveness</li>
+                <li>Check that the button has proper spacing and padding</li>
+            </ol>
+        </div>
+        
+        <div class="widget-container" id="widgetContainer">
+            <div id="promptreviews-widget" data-widget-id="test-submit-button"></div>
+        </div>
+    </div>
+
+    <script src="/widgets/multi/widget-embed.js"></script>
+    <script>
+        // Test data with submit review button enabled
+        const testData = {
+            id: 'test-submit-button',
+            reviews: [
+                {
+                    id: 'test-1',
+                    review_content: 'Amazing service! The team went above and beyond to deliver exactly what we needed. Highly recommend!',
+                    first_name: 'John',
+                    last_name: 'S.',
+                    reviewer_role: 'Verified Customer',
+                    created_at: new Date().toISOString(),
+                    star_rating: 5
+                },
+                {
+                    id: 'test-2',
+                    review_content: 'Excellent service and great quality. Highly recommend to anyone looking for this type of solution.',
+                    first_name: 'Sarah',
+                    last_name: 'J.',
+                    reviewer_role: 'Happy Client',
+                    created_at: new Date().toISOString(),
+                    star_rating: 5
+                },
+                {
+                    id: 'test-3',
+                    review_content: 'Outstanding experience from start to finish. The team was professional and delivered exactly what we needed.',
+                    first_name: 'Mike',
+                    last_name: 'D.',
+                    reviewer_role: 'Business Owner',
+                    created_at: new Date().toISOString(),
+                    star_rating: 5
+                }
+            ],
+            design: {
+                bgType: "solid",
+                bgColor: "#ffffff",
+                textColor: "#22223b",
+                accentColor: "#6a5acd",
+                bodyTextColor: "#22223b",
+                nameTextColor: "#1a237e",
+                roleTextColor: "#6b7280",
+                attributionFontSize: 15,
+                borderRadius: 16,
+                shadow: true,
+                bgOpacity: 1,
+                autoAdvance: false,
+                slideshowSpeed: 4,
+                border: true,
+                borderWidth: 2,
+                lineSpacing: 1.4,
+                showQuotes: false,
+                showRelativeDate: false,
+                showGrid: false,
+                width: 800,
+                sectionBgType: "none",
+                sectionBgColor: "#ffffff",
+                shadowIntensity: 0.2,
+                shadowColor: "#222222",
+                borderColor: "#cccccc",
+                font: "Inter",
+                showSubmitReviewButton: true, // Ensure submit button is enabled
+            },
+            business_slug: 'test-business'
+        };
+
+        // Initialize widget when script loads
+        function initWidget() {
+            const container = document.getElementById('promptreviews-widget');
+            if (container && window.PromptReviews?.renderMultiWidget) {
+                window.PromptReviews.renderMultiWidget(container, testData);
+                
+                // Update height indicator
+                setTimeout(() => {
+                    const widgetContainer = document.getElementById('widgetContainer');
+                    const heightValue = document.getElementById('heightValue');
+                    if (widgetContainer && heightValue) {
+                        heightValue.textContent = widgetContainer.offsetHeight + 'px';
+                    }
+                }, 1000);
+            } else {
+                setTimeout(initWidget, 100);
+            }
+        }
+
+        // Update height indicator on resize
+        window.addEventListener('resize', () => {
+            const widgetContainer = document.getElementById('widgetContainer');
+            const heightValue = document.getElementById('heightValue');
+            if (widgetContainer && heightValue) {
+                heightValue.textContent = widgetContainer.offsetHeight + 'px';
+            }
+        });
+
+        // Initialize when page loads
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initWidget);
+        } else {
+            initWidget();
+        }
+    </script>
+</body>
+</html> 

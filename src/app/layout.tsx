@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Inter, Roboto, Open_Sans, Lato, Montserrat, Poppins, Source_Sans_3, Raleway, Nunito, Playfair_Display, Merriweather, Roboto_Slab, PT_Sans, Oswald, Roboto_Condensed, Source_Serif_4, Noto_Sans, Ubuntu, Work_Sans, Quicksand, Josefin_Sans, Mukta, Rubik, IBM_Plex_Sans, Barlow, Mulish, Comfortaa, Outfit, Plus_Jakarta_Sans, Courier_Prime, IBM_Plex_Mono } from "next/font/google";
 import ClientRoot from "./ClientRoot";
 import AppMain from "./components/AppMain";
+import ConsoleLogger from "./components/ConsoleLogger";
 
 const inter = Inter({ subsets: ["latin"] });
 const roboto = Roboto({ subsets: ["latin"], weight: ["400", "700"] });
@@ -51,6 +52,7 @@ export default function RootLayout({
       <body className={inter.className + " min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 overscroll-x-auto"}>
         <ClientRoot>
           <AppMain>{children}</AppMain>
+          <ConsoleLogger />
         </ClientRoot>
       </body>
     </html>

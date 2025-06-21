@@ -1,4 +1,36 @@
-import { DesignState, WidgetType } from './types';
+import { WidgetType } from './types';
+
+// Define the flat DesignState type for utils (different from the nested one in types.ts)
+export interface DesignState {
+  bgType: "none" | "solid";
+  bgColor: string;
+  textColor: string;
+  accentColor: string;
+  bodyTextColor: string;
+  nameTextColor: string;
+  roleTextColor: string;
+  quoteFontSize: number;
+  attributionFontSize: number;
+  borderRadius: number;
+  shadow: boolean;
+  bgOpacity: number;
+  autoAdvance: boolean;
+  slideshowSpeed: number;
+  border: boolean;
+  borderWidth: number;
+  lineSpacing: number;
+  showQuotes: boolean;
+  showRelativeDate: boolean;
+  showGrid: boolean;
+  width: number;
+  sectionBgType: "none" | "custom";
+  sectionBgColor: string;
+  shadowIntensity: number;
+  shadowColor: string;
+  borderColor: string;
+  font: string;
+  showSubmitReviewButton: boolean;
+}
 
 // Default design settings for each widget type
 export const DEFAULT_DESIGN: Record<WidgetType, DesignState> = {

@@ -78,11 +78,6 @@ export default function WidgetList({
   // Remove local design state and use parentDesign directly
   const design = parentDesign;
 
-  // Update this effect to only depend on isEditorOpen:
-  useEffect(() => {
-    if (onDesignChange) onDesignChange(design);
-  }, [design, onDesignChange]);
-
   // Add effect to update design when selected widget changes
   useEffect(() => {
     if (selectedWidgetId) {
@@ -244,7 +239,7 @@ export default function WidgetList({
 
         {widgets.length === 0 && (
           <div className="text-center py-12">
-            <div className="text-gray-500 mb-4">No widgets created yet</div>
+            <div className="text-white/80 mb-4">No widgets created yet</div>
             <button
               onClick={() => {
                 setWidgetToEdit(null);

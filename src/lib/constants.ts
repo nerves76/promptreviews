@@ -41,4 +41,7 @@ export const FONT_FAMILIES: Record<string, string> = {
   'Lucida Console': 'Lucida Console, monospace',
   'Palatino': 'Palatino, serif',
   'Garamond': 'Garamond, serif',
-}; 
+};
+
+// Widget configuration constants
+export const MAX_WIDGET_REVIEWS = 10; 

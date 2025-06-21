@@ -5,10 +5,11 @@ import { createBrowserClient } from "@supabase/ssr";
 export interface Widget {
   id: string;
   name: string;
-  user_id: string;
+  account_id: string;
   created_at: string;
   widget_type: string;
   theme: any;
+  reviews?: any[];
 }
 
 export function useWidgets() {
@@ -29,20 +30,41 @@ export function useWidgets() {
       return;
     }
     
-    // Only fetch widgets for the current user
-    const { data, error } = await supabase
+    // Fetch widgets for the current user
+    const { data: widgetsData, error: widgetsError } = await supabase
       .from("widgets")
       .select("*")
       .eq("account_id", user.id)
       .order("created_at", { ascending: false });
       
-    if (error) {
-      console.error("Error fetching widgets:", error);
-      setError(error.message);
-    } else {
-      console.log("Fetched widgets data:", data);
-      setWidgets(data || []);
+    if (widgetsError) {
+      console.error("Error fetching widgets:", widgetsError);
+      setError(widgetsError.message);
+      return;
     }
+
+    // Fetch reviews for each widget
+    const widgetsWithReviews = await Promise.all(
+      (widgetsData || []).map(async (widget) => {
+        console.log(`Fetching reviews for widget ${widget.id}...`);
+        const { data: reviews, error: reviewsError } = await supabase
+          .from("widget_reviews")
+          .select("*")
+          .eq("widget_id", widget.id)
+          .order("created_at", { ascending: false });
+
+        if (reviewsError) {
+          console.error(`Error fetching reviews for widget ${widget.id}:`, reviewsError);
+          return { ...widget, reviews: [] };
+        }
+
+        console.log(`Found ${reviews?.length || 0} reviews for widget ${widget.id}:`, reviews);
+        return { ...widget, reviews: reviews || [] };
+      })
+    );
+
+    console.log("Fetched widgets with reviews:", widgetsWithReviews);
+    setWidgets(widgetsWithReviews);
   }, []);
 
   const createWidget = useCallback(async (name: string, widgetType: string, theme: any) => {

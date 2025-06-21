@@ -346,7 +346,6 @@ export function ReviewManagementModal({
       isOpen={isOpen}
       onClose={onClose}
       title="Manage Reviews"
-      size="xl"
     >
       <div className="space-y-6">
         {/* Review Management Content */}

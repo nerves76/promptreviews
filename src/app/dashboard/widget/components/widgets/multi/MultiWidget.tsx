@@ -1,12 +1,39 @@
 import React, { useEffect, useRef } from 'react';
 import { WidgetData } from '../../shared/types';
-import { getDesignWithDefaults } from '../../shared/utils';
+import { DesignState } from '../../../WidgetList';
 
 const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-    const design = getDesignWithDefaults(data.design, data.widget_type);
+  const scriptRef = useRef<HTMLScriptElement | null>(null);
+  
+  // Convert the design to the expected format
+  const design: Omit<DesignState, 'width' | 'showGrid' | 'showRelativeDate' | 'attributionFontSize'> & {
+    font: string;
+    showSubmitReviewButton: boolean;
+    sectionBgColor: string;
+  } = {
+    textColor: data.design.colors.text,
+    accentColor: data.design.colors.accent,
+    bodyTextColor: data.design.colors.text,
+    nameTextColor: data.design.colors.primary,
+    roleTextColor: data.design.colors.secondary,
+    borderRadius: parseInt(data.design.layout.borderRadius) || 16,
+    shadow: true,
+    autoAdvance: false,
+    slideshowSpeed: 4,
+    border: true,
+    borderWidth: 2,
+    lineSpacing: 1.4,
+    showQuotes: true,
+    shadowIntensity: 0.2,
+    shadowColor: "#222222",
+    borderColor: "#cccccc",
+    font: data.design.typography.fontFamily,
+    showSubmitReviewButton: true,
+    sectionBgColor: 'transparent',
+  };
 
-    useEffect(() => {
+  useEffect(() => {
     if (!containerRef.current) return;
 
     // Create widget container
@@ -25,13 +52,23 @@ const MultiWidget: React.FC<{ data: WidgetData }> = ({ data }) => {
       window.initializePromptReviewsWidget(data.id);
     };
     document.head.appendChild(script);
+    scriptRef.current = script;
 
     // Cleanup
     return () => {
       if (containerRef.current) {
         containerRef.current.innerHTML = '';
       }
-      document.head.removeChild(script);
+      
+      // Safely remove script element
+      if (scriptRef.current && scriptRef.current.parentNode === document.head) {
+        try {
+          document.head.removeChild(scriptRef.current);
+        } catch (error) {
+          console.warn('Failed to remove script element:', error);
+        }
+      }
+      scriptRef.current = null;
     };
   }, [data.id, design.font]);
 
