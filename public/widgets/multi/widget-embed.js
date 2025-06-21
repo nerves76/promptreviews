@@ -124,43 +124,64 @@ console.log('🔄 Multi Widget Script Loading...', new Date().toISOString());
   }
 
   function createWidgetHTML(reviews, design, businessSlug) {
-    const reviewSlides = reviews.map(review => `
-      <div class="swiper-slide">
-        <div class="pr-review-card">
-          <div class="stars-row">${renderStars(review.star_rating)}</div>
-          <div class="review-content">
-            ${design.showQuotes ? '<div class="decorative-quote decorative-quote-open">"</div>' : ''}
-            <div class="review-text">${review.review_content}</div>
-            ${design.showQuotes ? '<div class="decorative-quote decorative-quote-close">"</div>' : ''}
-          </div>
-          <div class="reviewer-details">
-            <div class="reviewer-name">${review.first_name || 'Anonymous'} ${review.last_name || ''}</div>
-            <div class="reviewer-role">${review.reviewer_role || ''}</div>
-            ${design.showRelativeDate ? `<div class="reviewer-date">${getRelativeTime(review.created_at)}</div>` : ''}
-          </div>
-        </div>
-      </div>
-    `).join('');
+    try {
+      console.log('Creating widget HTML with reviews:', reviews.length);
+      
+      const reviewSlides = reviews.map((review, index) => {
+        try {
+          return `
+            <div class="swiper-slide">
+              <div class="pr-review-card">
+                <div class="stars-row">${renderStars(review.star_rating)}</div>
+                <div class="review-content">
+                  ${design.showQuotes ? '<div class="decorative-quote decorative-quote-open">"</div>' : ''}
+                  <div class="review-text">${review.review_content}</div>
+                  ${design.showQuotes ? '<div class="decorative-quote decorative-quote-close">"</div>' : ''}
+                </div>
+                <div class="reviewer-details">
+                  <div class="reviewer-name">${review.first_name || 'Anonymous'} ${review.last_name || ''}</div>
+                  <div class="reviewer-role">${review.reviewer_role || ''}</div>
+                  ${design.showRelativeDate ? `<div class="reviewer-date">${getRelativeTime(review.created_at)}</div>` : ''}
+                </div>
+              </div>
+            </div>
+          `;
+        } catch (error) {
+          console.error(`Error processing review ${index}:`, error);
+          return `
+            <div class="swiper-slide">
+              <div class="pr-review-card">
+                <div style="color: red;">Error loading review</div>
+              </div>
+            </div>
+          `;
+        }
+      }).join('');
 
-    return `
-      <div class="widget-outer-container">
-        <div class="widget-carousel-container">
-          <div class="swiper">
-            <div class="swiper-wrapper">${reviewSlides}</div>
+      return `
+        <div class="widget-outer-container">
+          <div class="widget-carousel-container">
+            <div class="swiper">
+              <div class="swiper-wrapper">${reviewSlides}</div>
+            </div>
+            <div class="swiper-pagination"></div>
+            <div class="swiper-navigation">
+              <div class="swiper-button-prev"></div>
+              <div class="swiper-button-next"></div>
+            </div>
           </div>
-          <div class="swiper-pagination"></div>
-          <div class="swiper-navigation">
-            <div class="swiper-button-prev"></div>
-            <div class="swiper-button-next"></div>
+          ${design.showSubmitReviewButton ? `
+          <div class="submit-review-button-container">
+            <a href="/r/${businessSlug}" target="_blank" class="submit-review-button">Submit a review</a>
           </div>
+          ` : ''}
         </div>
-        ${design.showSubmitReviewButton ? `
-        <div class="submit-review-button-container">
-          <a href="/r/${businessSlug}" target="_blank" class="submit-review-button">Submit a review</a>
-        </div>
-        ` : ''}
-      </div>
-    `;
+      `;
+    } catch (error) {
+      console.error('Error in createWidgetHTML:', error);
+      console.error('Error stack:', error.stack);
+      return '<div style="color: red; padding: 10px;">Error creating widget HTML</div>';
+    }
   }
 
   function initializeSwiper(container, design) {
@@ -262,48 +283,57 @@ console.log('🔄 Multi Widget Script Loading...', new Date().toISOString());
   }
 
   window.PromptReviews.renderMultiWidget = function(container, data) {
-    console.log('renderMultiWidget called with:', data);
-    
-    if (!container || container.dataset.widgetInitialized) return;
-    
-    // Cleanup existing Swiper instance if it exists
-    if (container.cleanupSwiper) {
-      container.cleanupSwiper();
-    }
-    
-    // Add the required CSS class for styling
-    container.classList.add('pr-multi-widget');
-    
-    container.dataset.widgetInitialized = 'true';
-    
-    const { reviews, design, businessSlug } = data;
+    try {
+      console.log('renderMultiWidget called with:', data);
+      
+      if (!container || container.dataset.widgetInitialized) return;
+      
+      // Cleanup existing Swiper instance if it exists
+      if (container.cleanupSwiper) {
+        container.cleanupSwiper();
+      }
+      
+      // Add the required CSS class for styling
+      container.classList.add('pr-multi-widget');
+      
+      container.dataset.widgetInitialized = 'true';
+      
+      const { reviews, design, businessSlug } = data;
 
-    if (!reviews || reviews.length === 0) {
-      container.innerHTML = '<div>No reviews to display.</div>';
-      return;
-    }
+      if (!reviews || reviews.length === 0) {
+        container.innerHTML = '<div>No reviews to display.</div>';
+        return;
+      }
 
-    loadDependencies(() => {
-        try {
-            console.log('Dependencies loaded, creating widget HTML...');
-            const widgetHTML = createWidgetHTML(reviews, design, businessSlug);
-            container.innerHTML = widgetHTML;
-            applyDesign(container, design);
-            
-            console.log('Swiper available in render:', typeof Swiper !== 'undefined');
-            if (typeof Swiper !== 'undefined') {
-                initializeSwiper(container, design);
-            } else {
-                console.warn('Swiper not available, using static layout');
-                // Fallback to static layout when Swiper is not available
-                container.classList.add('is-multi-static');
-                container.innerHTML += '<div style="color: orange; padding: 10px; font-size: 12px;">Note: Carousel disabled (Swiper not loaded)</div>';
-            }
-        } catch (error) {
-            console.error('Error in widget initialization:', error);
-            container.innerHTML = `<div style="color: red; padding: 10px;">Widget Error: ${error.message}</div>`;
-        }
-    });
+      loadDependencies(() => {
+          try {
+              console.log('Dependencies loaded, creating widget HTML...');
+              const widgetHTML = createWidgetHTML(reviews, design, businessSlug);
+              container.innerHTML = widgetHTML;
+              applyDesign(container, design);
+              
+              console.log('Swiper available in render:', typeof Swiper !== 'undefined');
+              if (typeof Swiper !== 'undefined') {
+                  initializeSwiper(container, design);
+              } else {
+                  console.warn('Swiper not available, using static layout');
+                  // Fallback to static layout when Swiper is not available
+                  container.classList.add('is-multi-static');
+                  container.innerHTML += '<div style="color: orange; padding: 10px; font-size: 12px;">Note: Carousel disabled (Swiper not loaded)</div>';
+              }
+          } catch (error) {
+              console.error('Error in widget initialization:', error);
+              console.error('Error stack:', error.stack);
+              container.innerHTML = `<div style="color: red; padding: 10px;">Widget Error: ${error.message}</div>`;
+          }
+      });
+    } catch (error) {
+      console.error('Error in renderMultiWidget:', error);
+      console.error('Error stack:', error.stack);
+      if (container) {
+        container.innerHTML = `<div style="color: red; padding: 10px;">Critical Widget Error: ${error.message}</div>`;
+      }
+    }
   };
 
   // Add cleanup function to global scope
