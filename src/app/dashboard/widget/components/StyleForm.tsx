@@ -12,10 +12,10 @@ export const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange }) 
   };
 
   return (
-    <div className="space-y-6 max-h-96 overflow-y-auto">
+    <div className="space-y-8 max-h-[70vh] overflow-y-auto pr-2">
       {/* Font Settings */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Font Family</label>
+        <label className="block text-sm font-medium text-gray-700 mb-3">Font Family</label>
         <select
           value={design.font || 'Inter'}
           onChange={(e) => updateDesign({ font: e.target.value })}
@@ -31,9 +31,9 @@ export const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange }) 
       </div>
 
       {/* Color Settings */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Text Color</label>
+          <label className="block text-sm font-medium text-gray-700 mb-3">Text Color</label>
           <input
             type="color"
             value={design.textColor || '#22223b'}
@@ -42,7 +42,7 @@ export const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange }) 
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Accent Color</label>
+          <label className="block text-sm font-medium text-gray-700 mb-3">Accent Color</label>
           <input
             type="color"
             value={design.accentColor || '#6a5acd'}
@@ -51,7 +51,7 @@ export const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange }) 
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Body Text Color</label>
+          <label className="block text-sm font-medium text-gray-700 mb-3">Body Text Color</label>
           <input
             type="color"
             value={design.bodyTextColor || '#22223b'}
@@ -60,7 +60,7 @@ export const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange }) 
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Reviewer's name color</label>
+          <label className="block text-sm font-medium text-gray-700 mb-3">Reviewer's name color</label>
           <input
             type="color"
             value={design.nameTextColor || '#1a237e'}
@@ -72,7 +72,7 @@ export const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange }) 
 
       {/* Background Settings */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Background Color</label>
+        <label className="block text-sm font-medium text-gray-700 mb-3">Background Color</label>
         <input
           type="color"
           value={design.bgColor || '#ffffff'}
@@ -81,7 +81,7 @@ export const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange }) 
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Background Transparency</label>
+        <label className="block text-sm font-medium text-gray-700 mb-3">Background Transparency</label>
         <input
           type="range"
           min="0"
@@ -95,7 +95,7 @@ export const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange }) 
       </div>
 
       {/* Border Settings */}
-      <div className="space-y-3">
+      <div className="space-y-4">
         <div className="flex items-center">
           <input
             type="checkbox"
@@ -109,9 +109,9 @@ export const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange }) 
           </label>
         </div>
         {design.border && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Border Width (px)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-3">Border Width (px)</label>
               <input
                 type="number"
                 min="1"
@@ -122,7 +122,7 @@ export const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange }) 
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Border Color</label>
+              <label className="block text-sm font-medium text-gray-700 mb-3">Border Color</label>
               <input
                 type="color"
                 value={design.borderColor || '#cccccc'}
@@ -136,7 +136,7 @@ export const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange }) 
 
       {/* Border Radius */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Border Radius (px)</label>
+        <label className="block text-sm font-medium text-gray-700 mb-3">Border Radius (px)</label>
         <input
           type="range"
           min="0"
@@ -150,9 +150,9 @@ export const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange }) 
       </div>
 
       {/* Shadow Settings */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Inner Shadow Vignette</label>
+          <label className="block text-sm font-medium text-gray-700 mb-3">Inner Shadow Vignette</label>
           <select
             value={design.shadow ? 'true' : 'false'}
             onChange={(e) => updateDesign({ shadow: e.target.value === 'true' })}
@@ -165,7 +165,7 @@ export const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange }) 
         {design.shadow && (
           <>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Vignette Color</label>
+              <label className="block text-sm font-medium text-gray-700 mb-3">Vignette Color</label>
               <input
                 type="color"
                 value={design.shadowColor || '#222222'}
@@ -174,7 +174,7 @@ export const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange }) 
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Vignette Intensity</label>
+              <label className="block text-sm font-medium text-gray-700 mb-3">Vignette Intensity</label>
               <input
                 type="range"
                 min="0"
@@ -191,7 +191,7 @@ export const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange }) 
       </div>
 
       {/* Display Options */}
-      <div className="space-y-3">
+      <div className="space-y-4">
         <div className="flex items-center">
           <input
             type="checkbox"
@@ -219,7 +219,7 @@ export const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange }) 
       </div>
 
       {/* Auto-advance Settings (for multi-widget) */}
-      <div className="space-y-3">
+      <div className="space-y-4">
         <div className="flex items-center">
           <input
             type="checkbox"
@@ -234,7 +234,7 @@ export const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange }) 
         </div>
         {design.autoAdvance && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Slideshow Speed (seconds)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-3">Slideshow Speed (seconds)</label>
             <input
               type="range"
               min="1"

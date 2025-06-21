@@ -101,7 +101,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
           <ReviewList
             selectedReviews={selectedReviews}
             onToggleReview={onToggleReview}
-            isPhotoWidget={isPhotoWidget}
+            isPhotoWidget={!!isPhotoWidget}
           />
           {isPhotoWidget && (
             <div className="mb-3">

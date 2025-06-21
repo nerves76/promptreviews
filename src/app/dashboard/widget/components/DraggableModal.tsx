@@ -23,9 +23,11 @@ export const DraggableModal: React.FC<DraggableModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      // Center modal on screen
-      const x = Math.max(0, (window.innerWidth - 500) / 2);
-      const y = Math.max(0, (window.innerHeight - 400) / 2);
+      // Center modal on screen with a medium size
+      const modalWidth = 576; // Corresponds to max-w-xl
+      const modalHeight = 600;
+      const x = Math.max(0, (window.innerWidth - modalWidth) / 2);
+      const y = Math.max(0, (window.innerHeight - modalHeight) / 2);
       setModalPos({ x, y });
     }
   }, [isOpen]);
@@ -70,7 +72,7 @@ export const DraggableModal: React.FC<DraggableModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
       <div
-        className="bg-white rounded-lg shadow-xl w-full max-w-2xl pointer-events-auto"
+        className="bg-white rounded-lg shadow-xl w-full max-w-xl pointer-events-auto"
         style={{
           position: 'absolute',
           left: modalPos.x,
@@ -79,7 +81,7 @@ export const DraggableModal: React.FC<DraggableModalProps> = ({
         }}
         onMouseDown={handleMouseDown}
       >
-        <div className="modal-header flex items-center justify-between p-4 border-b cursor-move">
+        <div className="modal-header flex items-center justify-between p-6 border-b cursor-move">
           <h2 className="text-xl font-semibold">{title}</h2>
           <button
             onClick={onClose}
@@ -91,14 +93,14 @@ export const DraggableModal: React.FC<DraggableModalProps> = ({
             </svg>
           </button>
         </div>
-        <div className="p-4">
+        <div className="p-6">
           {children}
         </div>
         {onSave && (
-          <div className="p-4 border-t flex justify-end">
+          <div className="p-6 border-t flex justify-end">
             <button
               onClick={onSave}
-              className="px-4 py-2 bg-slate-blue text-white rounded hover:bg-slate-blue/90"
+              className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
             >
               {saveLabel}
             </button>
