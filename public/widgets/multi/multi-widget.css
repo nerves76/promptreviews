@@ -38,40 +38,64 @@
   position: relative;
 }
 
-/* CAROUSEL STYLES */
-.pr-carousel-container {
+/* General Layout */
+.pr-multi-widget .widget-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     position: relative;
     width: 100%;
+    padding: 2rem 0;
+    background: transparent;
+    min-height: 500px;
+    overflow: hidden; /* Prevent horizontal scrollbars */
+}
+
+.pr-multi-widget .widget-outer-container {
+    position: relative;
+    width: 100%;
+    max-width: 1280px;
     margin: 0 auto;
-    overflow: hidden; /* This is crucial */
-}
-
-.pr-carousel-track {
-    display: flex;
-    transition: transform 0.5s ease;
-}
-
-.pr-carousel-item {
-    min-width: 100%;
+    padding: 0;
     box-sizing: border-box;
-    padding: 1rem;
-    flex-shrink: 0;
+    overflow: visible;
 }
 
-/* Responsive carousel views */
-@media (min-width: 768px) {
-    .pr-carousel-item {
-        min-width: 50%;
-    }
-}
-@media (min-width: 1024px) {
-    .pr-carousel-item {
-        min-width: 33.3333%;
-    }
+.pr-multi-widget .widget-carousel-container {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0 1rem;
+    overflow: visible;
 }
 
-/* REVIEW CARD STYLES */
-.pr-review-card {
+/* Swiper Base Styles */
+.pr-multi-widget .swiper {
+    position: static;
+    z-index: 1;
+    overflow: hidden;
+    padding-top: 10px;
+    padding-bottom: 60px;
+}
+
+.pr-multi-widget .swiper-wrapper {
+    display: flex;
+    align-items: stretch;
+}
+
+.pr-multi-widget .swiper-slide {
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    height: auto;
+    padding-bottom: 1rem;
+    box-sizing: border-box;
+}
+
+/* Review Card Styles */
+.pr-multi-widget .pr-review-card {
     background: var(--pr-card-bg, #fff);
     border: var(--pr-card-border, 2px solid #cccccc);
     border-radius: var(--pr-card-radius, 16px);
@@ -83,17 +107,18 @@
     gap: 0.75rem;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     width: 100%;
+    max-width: 420px;
     margin: 0 auto;
     box-sizing: border-box;
     text-align: center;
 }
 
-.pr-review-card:hover {
+.pr-multi-widget .pr-review-card:hover {
     transform: translateY(-4px);
     box-shadow: 0 8px 16px rgba(0,0,0,0.1);
 }
 
-.stars-row {
+.pr-multi-widget .stars-row {
     display: flex;
     gap: 0.25rem;
     margin-bottom: 0.5rem;
@@ -101,7 +126,7 @@
     flex-shrink: 0;
 }
 
-.review-content {
+.pr-multi-widget .review-content {
     position: relative;
     flex-grow: 1;
     display: flex;
@@ -111,7 +136,7 @@
     justify-content: center;
 }
 
-.review-text {
+.pr-multi-widget .review-text {
     font-size: 1rem;
     line-height: var(--pr-line-spacing, 1.75);
     color: var(--pr-text-primary, #22223b);
@@ -121,7 +146,7 @@
     overflow-wrap: break-word;
 }
 
-.decorative-quote {
+.pr-multi-widget .decorative-quote {
     font-size: 3.5rem;
     line-height: 1;
     color: var(--pr-accent-color, #6a5acd);
@@ -129,19 +154,19 @@
     font-family: Georgia, serif;
 }
 
-.decorative-quote-opening {
+.pr-multi-widget .decorative-quote-open {
     margin-bottom: -1.5rem;
     margin-left: -1rem;
     align-self: flex-start;
 }
 
-.decorative-quote-closing {
+.pr-multi-widget .decorative-quote-close {
     margin-top: -1.5rem;
     margin-right: -1rem;
     align-self: flex-end;
 }
 
-.reviewer-details {
+.pr-multi-widget .reviewer-details {
     margin-top: auto;
     padding-top: 1rem;
     border-top: 1px solid var(--pr-border-color, #cccccc);
@@ -149,7 +174,7 @@
     text-align: center;
 }
 
-.reviewer-name {
+.pr-multi-widget .reviewer-name {
     font-weight: 600;
     font-size: var(--pr-attribution-font-size, 1rem);
     color: var(--pr-name-text-color, #111111);
@@ -157,28 +182,170 @@
     line-height: 1.2;
 }
 
-.reviewer-role {
+.pr-multi-widget .reviewer-role {
     font-size: calc(var(--pr-attribution-font-size, 1rem) * 0.875);
     color: var(--pr-role-text-color, #666666);
     margin-bottom: 0.75rem;
 }
 
-.reviewer-date {
+.pr-multi-widget .reviewer-date {
     font-size: 0.75rem;
     color: var(--pr-text-secondary, #6b7280);
 }
 
-/* CONTROLS STYLES */
-.pr-carousel-controls {
-    display: flex;
-    justify-content: center;
+/* Navigation Styles - Override Swiper defaults */
+.pr-multi-widget .swiper-pagination,
+.pr-multi-widget .swiper-navigation {
+    display: none !important;
+}
+
+.pr-multi-widget.swiper-initialized .swiper-pagination {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex !important;
     align-items: center;
     gap: 1rem;
+    z-index: 10;
+    background: rgba(255,255,255,0.9);
+    padding: 12px 20px;
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+}
+
+.pr-multi-widget.swiper-initialized .swiper-navigation {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex !important;
+    align-items: center;
+    gap: 1rem;
+    z-index: 10;
+    background: rgba(255,255,255,0.9);
+    padding: 12px 20px;
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+}
+
+.pr-multi-widget.swiper-initialized .swiper-button-prev,
+.pr-multi-widget.swiper-initialized .swiper-button-next {
+    width: 40px;
+    height: 40px;
+    background: var(--pr-card-bg, #fff);
+    border: var(--pr-card-border, 2px solid #cccccc);
+    border-radius: 50%;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: var(--pr-card-shadow, 0 4px 32px rgba(34,34,34,0.2) inset);
+    font-size: 18px;
+    font-weight: bold;
+    color: var(--pr-text-primary, #333);
+    transition: all 0.2s ease;
+    margin: 0;
+    position: static;
+    transform: none;
+}
+
+.pr-multi-widget.swiper-initialized .swiper-button-prev:hover,
+.pr-multi-widget.swiper-initialized .swiper-button-next:hover {
+    background: var(--pr-card-bg, #fff) !important;
+    transform: scale(1.1);
+}
+
+.pr-multi-widget.swiper-initialized .swiper-button-prev::after,
+.pr-multi-widget.swiper-initialized .swiper-button-next::after {
+    content: '';
+    display: none;
+}
+
+.pr-multi-widget.swiper-initialized .swiper-pagination-bullet {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: none;
+    background: var(--pr-accent-color, #6a5acd);
+    opacity: 0.5;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin: 0 8px;
+}
+
+.pr-multi-widget.swiper-initialized .swiper-pagination-bullet-active {
+    background: var(--pr-card-bg, #fff);
+    opacity: 1;
+}
+
+.pr-multi-widget .submit-review-button-container {
+    text-align: right;
+    margin-top: 2rem;
+    padding-right: 1rem;
+}
+
+.pr-multi-widget .submit-review-button {
+    display: inline-block;
+    background: var(--pr-card-bg, #fff);
+    color: var(--pr-text-primary, #22223b);
+    padding: 8px 16px;
+    border: var(--pr-card-border, 2px solid #cccccc);
+    border-radius: var(--pr-card-radius, 16px);
+    box-shadow: var(--pr-card-shadow, 0 4px 32px rgba(34,34,34,0.2) inset);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.pr-multi-widget .submit-review-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 40px rgba(34,34,34,0.3) inset;
+}
+
+#promptreviews-widget.pr-multi-widget.swiper-initialized .swiper-pagination {
+    display: flex !important;
+}
+
+/* New Carousel Styles for Vanilla JavaScript Widget */
+.pr-widget-container {
+    width: 100%;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.pr-carousel-container {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+}
+
+.pr-carousel-track {
+    display: flex;
+    transition: transform 0.5s ease;
+    gap: 1rem; /* Space between cards */
+}
+
+.pr-carousel-item {
+    flex-shrink: 0;
+    width: calc(100% / 3 - 1rem * 2 / 3); /* Three cards by default */
+}
+
+.pr-carousel-controls {
+    text-align: center;
     margin-top: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
 }
 
 .pr-prev-btn,
 .pr-next-btn {
+    cursor: pointer;
     width: 40px;
     height: 40px;
     background: var(--pr-card-bg, #fff);
@@ -187,41 +354,44 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
-    box-shadow: var(--pr-button-shadow);
-    color: var(--pr-text-primary, #333);
+    box-shadow: var(--pr-card-shadow, 0 4px 32px rgba(34,34,34,0.2) inset);
     transition: all 0.2s ease;
+    position: relative;
 }
 
 .pr-prev-btn:hover,
 .pr-next-btn:hover {
-    transform: scale(1.05);
-    border-color: var(--pr-accent-color, #6a5acd);
+    transform: scale(1.1);
 }
 
 .pr-dots-container {
     display: flex;
-    gap: 0.5rem;
+    gap: 16px;
+    align-items: center;
 }
 
 .pr-dot {
-    width: 12px;
     height: 12px;
+    width: 12px;
+    background-color: var(--pr-accent-color, #6a5acd);
+    opacity: 0.5;
+    border: none;
     border-radius: 50%;
-    background: var(--pr-border-color, #cccccc);
+    display: inline-block;
+    transition: all 0.3s ease;
     cursor: pointer;
-    transition: background 0.3s ease;
+    padding: 0;
+    margin: 0 8px;
 }
 
 .pr-dot.active {
-    background: var(--pr-accent-color, #6a5acd);
+    background-color: var(--pr-card-bg, #fff);
+    opacity: 1;
 }
 
-/* SUBMIT BUTTON STYLES */
 .pr-submit-review-container {
     text-align: right;
-    margin-top: 1rem;
-    padding-right: 1rem;
+    margin-top: 0.5rem;
 }
 
 .pr-submit-btn {
@@ -231,7 +401,7 @@
     padding: 8px 16px;
     border: var(--pr-card-border, 2px solid #cccccc);
     border-radius: var(--pr-card-radius, 16px);
-    box-shadow: var(--pr-button-shadow);
+    box-shadow: var(--pr-card-shadow, 0 4px 32px rgba(34,34,34,0.2) inset);
     text-decoration: none;
     font-weight: 500;
     font-size: 0.9rem;
@@ -240,5 +410,18 @@
 
 .pr-submit-btn:hover {
     transform: translateY(-2px);
-    box-shadow: var(--pr-shadow);
+    box-shadow: 0 6px 40px rgba(34,34,34,0.3) inset;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .pr-carousel-item {
+        width: calc(100% / 2 - 1rem * 1 / 2); /* Two cards */
+    }
+}
+
+@media (max-width: 640px) {
+    .pr-carousel-item {
+        width: 100%; /* One card */
+    }
 } 
