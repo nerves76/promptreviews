@@ -26,6 +26,7 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    let isMounted = true;
     console.log('🎯 MultiWidget: Component mounted with data:', { 
       widgetId: data.id,
       widgetType: data.widget_type,
@@ -89,28 +90,23 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
     const initializeWidget = async () => {
       try {
         await Promise.all([loadWidgetCSS(), loadWidgetScript()]);
-        
         // Add a small delay to ensure the script has executed
         await new Promise(resolve => setTimeout(resolve, 100));
-        
         // Add more detailed debugging
         console.log('🔍 MultiWidget: Checking dependencies after loading...');
         console.log('🔍 MultiWidget: containerRef.current:', !!containerRef.current);
         console.log('🔍 MultiWidget: window.PromptReviews:', !!window.PromptReviews);
         console.log('🔍 MultiWidget: window.PromptReviews.initializeWidget:', !!window.PromptReviews?.initializeWidget);
         console.log('🔍 MultiWidget: Available PromptReviews functions:', Object.keys(window.PromptReviews || {}));
-        
         // Retry mechanism for initializeWidget function
         let retryCount = 0;
         const maxRetries = 10;
-        
-        while (!window.PromptReviews?.initializeWidget && retryCount < maxRetries) {
-          console.log(`🔄 MultiWidget: Waiting for initializeWidget function... (attempt ${retryCount + 1}/${maxRetries})`);
+        while ((!window.PromptReviews?.initializeWidget || !containerRef.current) && retryCount < maxRetries) {
+          console.log(`🔄 MultiWidget: Waiting for initializeWidget function and container... (attempt ${retryCount + 1}/${maxRetries})`);
           await new Promise(resolve => setTimeout(resolve, 100));
           retryCount++;
         }
-        
-        if (containerRef.current && window.PromptReviews && window.PromptReviews.initializeWidget) {
+        if (isMounted && containerRef.current && window.PromptReviews && window.PromptReviews.initializeWidget) {
           console.log('🚀 MultiWidget: Using initializeWidget API');
           window.PromptReviews.initializeWidget(
             containerRef.current.id,
@@ -135,6 +131,9 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
     if (reviews && currentDesign) {
       initializeWidget();
     }
+    return () => {
+      isMounted = false;
+    };
   }, [reviews, currentDesign, slug, data.id, data.widget_type]);
 
   if (!reviews || !currentDesign) {
