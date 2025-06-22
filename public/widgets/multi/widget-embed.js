@@ -326,7 +326,7 @@
       widgetContainer.id = `pr-widget-container-${widgetId}`;
 
       try {
-        const response = await fetch(`https://www.prompt.reviews/api/widgets/${widgetId}`);
+        const response = await fetch(`http://localhost:3001/api/widgets/${widgetId}`);
         if (!response.ok) {
           throw new Error(`Failed to fetch widget data: ${response.statusText}`);
         }
