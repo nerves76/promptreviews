@@ -120,6 +120,9 @@
       itemsPerView: 3, // Default, will be recalculated
       reviews: reviews,
       design: design,
+      autoAdvance: design.autoAdvance || false,
+      slideshowSpeed: design.slideshowSpeed || 4,
+      autoAdvanceInterval: null,
       get totalPages() {
         return Math.ceil(this.reviews.length / this.itemsPerView);
       }
@@ -354,6 +357,9 @@
     const widgetElement = document.getElementById(widgetId);
     if (!widgetElement) return;
 
+    const state = carouselState[widgetId];
+    if (!state) return;
+
     const prevBtn = widgetElement.querySelector('.pr-prev-btn');
     const nextBtn = widgetElement.querySelector('.pr-next-btn');
 
@@ -366,6 +372,19 @@
       const state = carouselState[widgetId];
       moveToIndex(widgetId, state.currentIndex + 1);
     });
+
+    // Set up auto-advance if enabled
+    if (state.autoAdvance && state.reviews.length > state.itemsPerView) {
+      state.autoAdvanceInterval = setInterval(() => {
+        const maxIndex = Math.max(0, state.reviews.length - state.itemsPerView);
+        if (state.currentIndex >= maxIndex) {
+          state.currentIndex = 0;
+        } else {
+          state.currentIndex++;
+        }
+        updateCarousel(widgetId);
+      }, state.slideshowSpeed * 1000);
+    }
 
     // Initial setup
     updateCarousel(widgetId);
