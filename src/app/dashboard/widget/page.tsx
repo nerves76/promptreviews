@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import WidgetList from "./WidgetList";
 import PageCard from "@/app/components/PageCard";
-import { FaPlus, FaCopy, FaEdit, FaComments, FaTrash } from "react-icons/fa";
+import { FaPlus, FaCopy, FaEdit, FaComments } from "react-icons/fa";
 import { WidgetPreview } from "./components/WidgetPreview";
 import { DEFAULT_DESIGN, DesignState } from "./components/widgets/multi";
 
@@ -36,13 +36,6 @@ export default function WidgetPage() {
     }
   };
 
-  const handleDeleteWidget = async () => {
-    if (!selectedWidget || !confirm('Are you sure you want to delete this widget?')) return;
-    
-    // Dispatch event to delete the widget
-    window.dispatchEvent(new CustomEvent('deleteWidget', { detail: selectedWidget.id }));
-  };
-
   const handleWidgetDeleted = (deletedWidgetId: string) => {
     if (selectedWidget?.id === deletedWidgetId) {
       setSelectedWidget(null);
@@ -61,35 +54,24 @@ export default function WidgetPage() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={handleEditStyle}
-                    className="px-3 py-1 text-sm font-medium text-white bg-slate-blue rounded-md hover:bg-slate-blue/90 flex items-center gap-1"
+                    className="p-2 text-white bg-slate-blue rounded-md hover:bg-slate-blue/90 transition-colors"
                     title="Edit Style"
                   >
-                    <FaEdit className="w-3 h-3" />
-                    Edit Style
+                    <FaEdit className="w-4 h-4" />
                   </button>
                   <button
                     onClick={handleManageReviews}
-                    className="px-3 py-1 text-sm font-medium text-white bg-slate-blue rounded-md hover:bg-slate-blue/90 flex items-center gap-1"
+                    className="p-2 text-white bg-slate-blue rounded-md hover:bg-slate-blue/90 transition-colors"
                     title="Manage Reviews"
                   >
-                    <FaComments className="w-3 h-3" />
-                    Manage Reviews
+                    <FaComments className="w-4 h-4" />
                   </button>
                   <button
                     onClick={handleCopyEmbed}
-                    className="px-3 py-1 text-sm font-medium text-white bg-slate-blue rounded-md hover:bg-slate-blue/90 flex items-center gap-1"
+                    className="p-2 text-white bg-slate-blue rounded-md hover:bg-slate-blue/90 transition-colors"
                     title="Copy Embed Code"
                   >
-                    <FaCopy className="w-3 h-3" />
-                    Copy Embed
-                  </button>
-                  <button
-                    onClick={handleDeleteWidget}
-                    className="px-3 py-1 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 flex items-center gap-1"
-                    title="Delete Widget"
-                  >
-                    <FaTrash className="w-3 h-3" />
-                    Delete
+                    <FaCopy className="w-4 h-4" />
                   </button>
                 </div>
               )}
