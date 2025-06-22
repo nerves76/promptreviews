@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { getUserOrMock } from "@/utils/supabase";
-import FiveStarSpinner from "@/app/components/FiveStarSpinner";
+import AppLoader from "@/app/components/AppLoader";
 import { DraggableModal } from './components/DraggableModal';
 import { WidgetEditorForm } from './components/WidgetEditorForm';
 import { ReviewManagementModal } from './components/ReviewManagementModal';
@@ -141,7 +141,7 @@ export default function WidgetList({
     }
   };
 
-  if (loading) return <FiveStarSpinner />;
+  if (loading) return <AppLoader />;
   if (error) return <div>Error: {error}</div>;
 
   return (
