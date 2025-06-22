@@ -86,8 +86,21 @@ export default function WidgetList({
     const widget = widgets.find(w => w.id === widgetId);
     if (!widget) return;
 
-    // All widget types use the same generic container ID
-    const containerId = 'promptreviews-widget';
+    // Use the correct widget-specific container ID for each widget type
+    let containerId;
+    switch (widget.widget_type) {
+      case 'multi':
+        containerId = 'promptreviews-multi-widget';
+        break;
+      case 'single':
+        containerId = 'promptreviews-single-widget';
+        break;
+      case 'photo':
+        containerId = 'promptreviews-photo-widget';
+        break;
+      default:
+        containerId = 'promptreviews-widget';
+    }
     
     const embedCode = `<script src="${window.location.origin}/widgets/${widget.widget_type}/widget-embed.min.js"></script>
 <div id="${containerId}" data-widget-id="${widgetId}"></div>`;

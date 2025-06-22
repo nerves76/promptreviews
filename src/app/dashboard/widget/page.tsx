@@ -73,8 +73,21 @@ export default function WidgetPage() {
   const handleCopyEmbedCode = async () => {
     if (!selectedWidget) return;
 
-    // All widget types use the same generic container ID
-    const containerId = 'promptreviews-widget';
+    // Use the correct widget-specific container ID for each widget type
+    let containerId;
+    switch (selectedWidget.widget_type) {
+      case 'multi':
+        containerId = 'promptreviews-multi-widget';
+        break;
+      case 'single':
+        containerId = 'promptreviews-single-widget';
+        break;
+      case 'photo':
+        containerId = 'promptreviews-photo-widget';
+        break;
+      default:
+        containerId = 'promptreviews-widget';
+    }
     
     const embedCode = `<script src="${window.location.origin}/widgets/${selectedWidget.widget_type}/widget-embed.min.js"></script>
 <div id="${containerId}" data-widget-id="${selectedWidget.id}"></div>`;

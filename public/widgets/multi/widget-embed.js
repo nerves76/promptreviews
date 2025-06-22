@@ -418,7 +418,9 @@
         and responsive container, just like in the app.
       */
       #promptreviews-widget,
-      [id^="pr-widget-container-"] {
+      #promptreviews-multi-widget,
+      #promptreviews-single-widget,
+      #promptreviews-photo-widget {
           position: relative;
           width: 100%;
           max-width: 64rem; /* 1024px */
