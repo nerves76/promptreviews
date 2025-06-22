@@ -6,7 +6,6 @@ import { DraggableModal } from './components/DraggableModal';
 import { WidgetEditorForm } from './components/WidgetEditorForm';
 import { ReviewManagementModal } from './components/ReviewManagementModal';
 import { WidgetCard } from './components/WidgetCard';
-import { useWidgets } from './hooks/useWidgets';
 import { StyleModal } from './components/StyleModal';
 import { DesignState, DEFAULT_DESIGN } from './components/widgets/multi';
 
@@ -15,15 +14,28 @@ export default function WidgetList({
   selectedWidgetId,
   onDesignChange,
   design,
-  onWidgetReviewsChange,
+  widgets,
+  loading,
+  error,
+  createWidget,
+  deleteWidget,
+  saveWidgetName,
+  saveWidgetDesign,
+  fetchWidgets,
 }: {
   onSelectWidget?: (widget: any) => void;
   selectedWidgetId?: string;
   onDesignChange?: (design: DesignState) => void;
   design: DesignState;
-  onWidgetReviewsChange?: () => void;
+  widgets: any[];
+  loading: boolean;
+  error: string | null;
+  createWidget: (name: string, widgetType: string, theme: any) => Promise<any>;
+  deleteWidget: (widgetId: string) => Promise<void>;
+  saveWidgetName: (id: string, name: string) => Promise<any>;
+  saveWidgetDesign: (id: string, theme: any) => Promise<any>;
+  fetchWidgets: () => Promise<void>;
 }) {
-  const { widgets, loading, error, createWidget, deleteWidget, saveWidgetName, saveWidgetDesign } = useWidgets();
   const [copiedWidgetId, setCopiedWidgetId] = useState<string | null>(null);
   const [widgetToEdit, setWidgetToEdit] = useState<any>(null);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
@@ -91,7 +103,7 @@ export default function WidgetList({
     
     try {
       await deleteWidget(widgetId);
-      if (onWidgetReviewsChange) onWidgetReviewsChange();
+      fetchWidgets();
     } catch (error) {
       console.error('Error deleting widget:', error);
       alert('Failed to delete widget. Please try again.');
@@ -106,7 +118,7 @@ export default function WidgetList({
   const handleSaveDesign = async () => {
     if (selectedWidgetForStyle) {
       await saveWidgetDesign(selectedWidgetForStyle.id, design);
-      onWidgetReviewsChange?.();
+      fetchWidgets();
       setShowStyleModal(false);
     }
   };
@@ -119,7 +131,7 @@ export default function WidgetList({
   const handleSaveWidgetName = async (id: string, name: string) => {
     try {
       await saveWidgetName(id, name);
-      if (onWidgetReviewsChange) onWidgetReviewsChange();
+      fetchWidgets();
     } catch (error) {
       console.error('Error saving widget name:', error);
       alert('Failed to save widget name. Please try again.');
@@ -153,7 +165,7 @@ export default function WidgetList({
         title={widgetToEdit ? 'Edit Widget' : 'Create New Widget'}
       >
         <WidgetEditorForm
-          onSaveSuccess={() => { setIsEditorOpen(false); onWidgetReviewsChange?.(); }}
+          onSaveSuccess={() => { setIsEditorOpen(false); fetchWidgets(); }}
           onCancel={() => setIsEditorOpen(false)}
           widgetToEdit={widgetToEdit}
           design={design}
@@ -167,7 +179,7 @@ export default function WidgetList({
           setSelectedWidgetForReviews(null);
         }}
         widgetId={selectedWidgetForReviews}
-        onReviewsChange={onWidgetReviewsChange}
+        onReviewsChange={fetchWidgets}
       />
 
       {showStyleModal && selectedWidgetForStyle && (
