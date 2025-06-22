@@ -77,7 +77,7 @@ export default function WidgetPage() {
               )}
             </div>
             <p className="mt-2 text-white/80">
-              {selectedWidget ? `Editing: ${selectedWidget.name}` : 'Select a widget to see its preview'}
+              {selectedWidget ? `Editing: ${selectedWidget.name}` : ''}
             </p>
           </div>
           <WidgetPreview widget={selectedWidget} design={design} />

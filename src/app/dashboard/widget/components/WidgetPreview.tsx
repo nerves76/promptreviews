@@ -45,7 +45,6 @@ export function WidgetPreview({ widget, design }) {
     // or the component is not available.
     return (
       <div className="text-center p-8 text-white/60">
-        <p>Select a widget to see its preview</p>
       </div>
     );
   }
