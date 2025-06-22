@@ -81,6 +81,14 @@ export default function WidgetList({
     }
   }, [selectedWidgetId, widgets, onDesignChange]);
 
+  // Auto-select first widget when widgets are loaded and none is selected
+  useEffect(() => {
+    if (widgets.length > 0 && !selectedWidgetId && onSelectWidget) {
+      const firstWidget = widgets[0];
+      onSelectWidget(firstWidget);
+    }
+  }, [widgets, selectedWidgetId, onSelectWidget]);
+
   const handleCopyEmbed = async (widgetId: string) => {
     const widget = widgets.find(w => w.id === widgetId);
     if (!widget) return;
