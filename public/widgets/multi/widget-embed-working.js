@@ -42,8 +42,7 @@ console.log('🔄 Working Multi Widget Script Loading...', new Date().toISOStrin
         display: flex;
         flex-direction: column;
         gap: 0.75rem;
-        width: 100%;
-        max-width: 420px;
+        width: 320px;
         margin: 0 auto;
         box-sizing: border-box;
         text-align: center;
@@ -83,110 +82,8 @@ console.log('🔄 Working Multi Widget Script Loading...', new Date().toISOStrin
     `;
   }
 
-  function createSwiperHTML(reviews, design, businessSlug) {
-    console.log('🎨 Creating Swiper HTML for', reviews.length, 'reviews');
-    
-    const reviewSlides = reviews.map(review => `
-      <div class="swiper-slide">
-        ${createReviewCard(review, design)}
-      </div>
-    `).join('');
-
-    return `
-      <div class="widget-outer-container" style="
-        position: relative;
-        width: 100%;
-        max-width: 1280px;
-        margin: 0 auto;
-        padding: 0;
-        box-sizing: border-box;
-        overflow: visible;
-      ">
-        <div class="widget-carousel-container" style="
-          position: relative;
-          width: 100%;
-          max-width: 100%;
-          margin: 0 auto;
-          padding: 0 1rem;
-          overflow: visible;
-        ">
-          <div class="swiper" style="
-            position: static;
-            z-index: 1;
-            overflow: hidden;
-            padding-top: 10px;
-            padding-bottom: 60px;
-          ">
-            <div class="swiper-wrapper" style="display: flex; align-items: stretch;">
-              ${reviewSlides}
-            </div>
-          </div>
-          <div class="swiper-pagination" style="
-            position: absolute;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 8px;
-            z-index: 10;
-          "></div>
-          <div class="swiper-navigation" style="
-            position: absolute;
-            top: 50%;
-            left: 0;
-            right: 0;
-            transform: translateY(-50%);
-            display: flex;
-            justify-content: space-between;
-            pointer-events: none;
-            z-index: 10;
-          ">
-            <div class="swiper-button-prev" style="
-              width: 40px;
-              height: 40px;
-              background: rgba(255,255,255,0.9);
-              border-radius: 50%;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              cursor: pointer;
-              pointer-events: auto;
-              box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            ">‹</div>
-            <div class="swiper-button-next" style="
-              width: 40px;
-              height: 40px;
-              background: rgba(255,255,255,0.9);
-              border-radius: 50%;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              cursor: pointer;
-              pointer-events: auto;
-              box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            ">›</div>
-          </div>
-        </div>
-        ${design.showSubmitReviewButton ? `
-        <div class="submit-review-button-container" style="text-align: center; margin-top: 2rem;">
-          <a href="/r/${businessSlug}" target="_blank" class="submit-review-button" style="
-            display: inline-block;
-            background: ${design.accentColor || '#6a5acd'};
-            color: white;
-            padding: 12px 24px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: background-color 0.3s ease;
-          ">Submit a review</a>
-        </div>
-        ` : ''}
-      </div>
-    `;
-  }
-
   function createGridHTML(reviews, design, businessSlug) {
-    console.log('🎨 Creating Grid HTML for', reviews.length, 'reviews');
+    console.log('🎨 Creating Responsive Carousel for', reviews.length, 'reviews');
     
     const reviewCards = reviews.map(review => createReviewCard(review, design)).join('');
 
@@ -198,222 +95,308 @@ console.log('🔄 Working Multi Widget Script Loading...', new Date().toISOStrin
         margin: 0 auto;
         padding: 0;
         box-sizing: border-box;
-        overflow: visible;
       ">
-        <div class="widget-carousel-container" style="
+        <div class="reviews-carousel-container" style="
+          overflow: hidden;
           position: relative;
           width: 100%;
-          max-width: 100%;
-          margin: 0 auto;
-          padding: 0 1rem;
-          overflow: visible;
         ">
-          <div class="reviews-grid" style="
-            display: grid;
-            grid-template-columns: repeat(1, 1fr);
-            gap: 2rem;
-            padding: 2rem 0;
+          <div class="reviews-carousel" style="
+            display: flex;
+            gap: 1.5rem;
+            padding: 2rem 1.5rem 1rem 1.5rem;
+            transition: transform 0.5s ease-in-out;
+            transform: translateX(0px);
           ">
             ${reviewCards}
           </div>
         </div>
-        ${design.showSubmitReviewButton ? `
-        <div class="submit-review-button-container" style="text-align: center; margin-top: 2rem;">
-          <a href="/r/${businessSlug}" target="_blank" class="submit-review-button" style="
-            display: inline-block;
-            background: ${design.accentColor || '#6a5acd'};
-            color: white;
-            padding: 12px 24px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: background-color 0.3s ease;
-          ">Submit a review</a>
+        
+        <!-- All Controls Container -->
+        <div class="all-controls-container" style="
+            padding: 1rem 1rem 0 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+        ">
+            <!-- Navigation and Pagination Container -->
+            <div class="carousel-controls" style="
+              display: flex;
+              align-items: center;
+              gap: 1rem;
+              z-index: 10;
+            ">
+              <!-- Left Arrow -->
+              <button class="carousel-button-prev" style="
+                width: 36px;
+                height: 36px;
+                background: white;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                border: 2px solid ${design.accentColor || '#6a5acd'};
+                font-size: 20px;
+                font-weight: bold;
+                color: ${design.accentColor || '#6a5acd'};
+                transition: all 0.2s ease;
+                box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+              ">‹</button>
+              
+              <!-- Pagination Dots -->
+              <div class="carousel-pagination" style="
+                display: flex;
+                gap: 8px;
+              "></div>
+              
+              <!-- Right Arrow -->
+              <button class="carousel-button-next" style="
+                width: 36px;
+                height: 36px;
+                background: white;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                border: 2px solid ${design.accentColor || '#6a5acd'};
+                font-size: 20px;
+                font-weight: bold;
+                color: ${design.accentColor || '#6a5acd'};
+                transition: all 0.2s ease;
+                box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+              ">›</button>
+            </div>
+            
+            ${design.showSubmitReviewButton ? `
+            <div class="submit-review-button-container" style="text-align: center;">
+              <a href="/r/${businessSlug}" target="_blank" class="submit-review-button" style="
+                display: inline-block;
+                background: ${design.accentColor || '#6a5acd'};
+                color: white;
+                padding: 12px 24px;
+                border-radius: 8px;
+                text-decoration: none;
+                font-weight: 600;
+                transition: background-color 0.3s ease;
+              ">Submit a review</a>
+            </div>
+            ` : ''}
         </div>
-        ` : ''}
       </div>
       
       <style>
-        @media (min-width: 768px) {
-          .reviews-grid {
-            grid-template-columns: repeat(2, 1fr) !important;
-          }
+        .pr-review-card {
+          flex: 0 0 320px;
+          width: 320px;
+          transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-        @media (min-width: 1024px) {
-          .reviews-grid {
-            grid-template-columns: repeat(3, 1fr) !important;
-          }
+        .pr-review-card:hover {
+          transform: translateY(-8px);
+          box-shadow: 0 8px 40px rgba(34,34,34,0.3) !important;
+        }
+        .carousel-button-prev:hover,
+        .carousel-button-next:hover {
+          background: rgba(255,255,255,1) !important;
+          transform: scale(1.1);
         }
       </style>
     `;
   }
 
-  function loadSwiper(callback) {
-    console.log('🔄 Loading Swiper...');
+  function initializeGridNavigation(container, totalReviews) {
+    console.log('🔧 Initializing responsive carousel navigation for', totalReviews, 'reviews');
     
-    // Check if Swiper is already loaded
-    if (typeof Swiper !== 'undefined') {
-      console.log('✅ Swiper already available');
-      callback(true);
+    const carouselControls = container.querySelector('.carousel-controls');
+    const carouselButtonPrev = container.querySelector('.carousel-button-prev');
+    const carouselButtonNext = container.querySelector('.carousel-button-next');
+    const carouselPagination = container.querySelector('.carousel-pagination');
+    const carouselContainer = container.querySelector('.reviews-carousel-container');
+    const carousel = container.querySelector('.reviews-carousel');
+    const reviewCards = container.querySelectorAll('.pr-review-card');
+
+    console.log('🔧 Found elements:', {
+      carouselControls: !!carouselControls,
+      carouselButtonPrev: !!carouselButtonPrev,
+      carouselButtonNext: !!carouselButtonNext,
+      carouselPagination: !!carouselPagination,
+      carouselContainer: !!carouselContainer,
+      carousel: !!carousel,
+      reviewCards: reviewCards.length
+    });
+
+    if (reviewCards.length === 0) {
+      console.log('⚠️ No review cards found, skipping navigation');
       return;
     }
 
-    // Try multiple CDN sources for better reliability
-    const swiperUrls = [
-      'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js',
-      'https://unpkg.com/swiper@11/swiper-bundle.min.js',
-      'https://cdnjs.cloudflare.com/ajax/libs/Swiper/11.0.5/swiper-bundle.min.js'
-    ];
-    
-    const swiperCssUrls = [
-      'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css',
-      'https://unpkg.com/swiper@11/swiper-bundle.min.css',
-      'https://cdnjs.cloudflare.com/ajax/libs/Swiper/11.0.5/swiper-bundle.min.css'
-    ];
-    
-    let currentUrlIndex = 0;
-    let cssLoaded = false;
-    let jsLoaded = false;
-    
-    function checkBothLoaded() {
-      if (cssLoaded && jsLoaded) {
-        console.log('✅ Swiper CSS and JS both loaded successfully');
-        callback(true);
-      }
+    if (!carouselContainer || !carousel) {
+      console.error('❌ Required carousel elements not found');
+      return;
     }
+
+    const cardWidth = 320;
+    const gap = 24;
+    let currentIndex = 0;
     
-    function tryNextUrl() {
-      if (currentUrlIndex >= swiperUrls.length) {
-        console.log('❌ All Swiper CDN sources failed');
-        callback(false);
-        return;
-      }
-      
-      const swiperUrl = swiperUrls[currentUrlIndex];
-      const swiperCssUrl = swiperCssUrls[currentUrlIndex];
-      console.log(`📦 Trying Swiper from: ${swiperUrl}`);
-      
-      // Check if this script is already loading
-      if (document.querySelector(`script[src="${swiperUrl}"]`)) {
-        console.log('📦 Swiper script already loading, waiting...');
-        // Wait for it to load
-        const checkSwiper = setInterval(() => {
-          if (typeof Swiper !== 'undefined') {
-            clearInterval(checkSwiper);
-            console.log('✅ Swiper loaded successfully');
-            jsLoaded = true;
-            checkBothLoaded();
-          }
-        }, 100);
+    function getCardsPerView() {
+        const outerContainer = container.querySelector('.widget-outer-container');
+        const containerWidth = outerContainer ? outerContainer.offsetWidth : carouselContainer.offsetWidth;
+        console.log('🔧 Outer container width:', containerWidth);
         
-        // Timeout after 3 seconds
-        setTimeout(() => {
-          clearInterval(checkSwiper);
-          console.log('❌ Swiper loading timed out, trying next URL');
-          currentUrlIndex++;
-          tryNextUrl();
-        }, 3000);
-        return;
-      }
-
-      // Load Swiper CSS first
-      const swiperCss = document.createElement('link');
-      swiperCss.rel = 'stylesheet';
-      swiperCss.href = swiperCssUrl;
-      swiperCss.onload = () => {
-        console.log('✅ Swiper CSS loaded successfully');
-        cssLoaded = true;
-        checkBothLoaded();
-      };
-      swiperCss.onerror = () => {
-        console.error('❌ Failed to load Swiper CSS from', swiperCssUrl);
-      };
-      document.head.appendChild(swiperCss);
-
-      // Load Swiper script
-      const swiperScript = document.createElement('script');
-      swiperScript.src = swiperUrl;
-      swiperScript.onload = () => {
-        console.log('✅ Swiper JS loaded successfully from', swiperUrl);
-        jsLoaded = true;
-        checkBothLoaded();
-      };
-      swiperScript.onerror = () => {
-        console.error('❌ Failed to load Swiper from', swiperUrl);
-        currentUrlIndex++;
-        tryNextUrl();
-      };
-      document.head.appendChild(swiperScript);
-    }
-    
-    tryNextUrl();
-  }
-
-  function initializeSwiper(container) {
-    console.log('🎯 Initializing Swiper...');
-    
-    const swiperEl = container.querySelector('.swiper');
-    if (!swiperEl) {
-      console.log('❌ Swiper element not found');
-      return;
-    }
-
-    const slides = swiperEl.querySelectorAll('.swiper-slide');
-    console.log('📊 Found', slides.length, 'slides');
-    
-    if (slides.length <= 1) {
-      console.log('📱 Single review, hiding Swiper controls');
-      const pagination = container.querySelector('.swiper-pagination');
-      const navigation = container.querySelector('.swiper-navigation');
-      if (pagination) pagination.style.display = 'none';
-      if (navigation) navigation.style.display = 'none';
-      return;
-    }
-
-    try {
-      const swiperInstance = new Swiper(swiperEl, {
-        loop: false,
-        spaceBetween: 16,
-        centeredSlides: false,
-        autoplay: false,
-        breakpoints: {
-          320: {
-            slidesPerView: 1,
-            spaceBetween: 16,
-            centeredSlides: true
-          },
-          768: {
-            slidesPerView: 2,
-            spaceBetween: 20,
-            centeredSlides: false
-          },
-          1024: {
-            slidesPerView: 3,
-            spaceBetween: 24,
-            centeredSlides: false
-          }
-        },
-        pagination: {
-          el: container.querySelector('.swiper-pagination'),
-          clickable: true,
-          type: 'bullets',
-          dynamicBullets: false
-        },
-        navigation: {
-          nextEl: container.querySelector('.swiper-button-next'),
-          prevEl: container.querySelector('.swiper-button-prev'),
-        },
-        on: {
-          init: function() {
-            console.log('✅ Swiper initialized successfully');
-          }
+        if (containerWidth === 0) {
+          console.log('⚠️ Container width is 0, using fallback');
+          return 1;
         }
-      });
-      
-      console.log('✅ Swiper initialized with responsive breakpoints');
-    } catch (error) {
-      console.error('❌ Failed to initialize Swiper:', error);
+        
+        // Calculate how many full cards can fit in the available space
+        // Account for the horizontal padding (48px total) and gaps between cards
+        const availableWidth = containerWidth - 48; // Subtract padding
+        const cards = Math.floor(availableWidth / (cardWidth + gap));
+        const result = Math.max(1, Math.min(cards, totalReviews)); // Don't exceed total reviews
+        
+        console.log('🔧 Cards per view calculation:', {
+          containerWidth,
+          availableWidth,
+          cardWidth,
+          gap,
+          calculatedCards: cards,
+          finalResult: result
+        });
+        
+        return result;
     }
+
+    function updateContainerWidth() {
+        const cardsPerView = getCardsPerView();
+        
+        // Calculate the exact width needed for the cards and gaps
+        const cardTotalWidth = cardsPerView * cardWidth;
+        const gapTotalWidth = (cardsPerView - 1) * gap;
+        const contentWidth = cardTotalWidth + gapTotalWidth;
+        
+        // Add the horizontal padding (1.5rem = 24px on each side)
+        const totalContainerWidth = contentWidth + 48;
+        
+        carouselContainer.style.width = `${totalContainerWidth}px`;
+        carouselContainer.style.margin = '0 auto';
+        carouselContainer.style.maxWidth = '100%';
+        
+        console.log('🔧 Container calculation:', {
+            cardsPerView,
+            cardTotalWidth,
+            gapTotalWidth,
+            contentWidth,
+            totalContainerWidth
+        });
+        
+        return cardsPerView;
+    }
+
+    let cardsPerView = updateContainerWidth();
+
+    if (totalReviews <= cardsPerView) {
+        console.log('🔧 All reviews fit in view, hiding controls');
+        if (carouselControls) {
+            carouselControls.style.display = 'none';
+        }
+        return;
+    }
+
+    function updateCarousel() {
+        const offset = currentIndex * (cardWidth + gap);
+        carousel.style.transform = `translateX(-${offset}px)`;
+
+        // Always show both arrow buttons
+        if (carouselButtonPrev) {
+          carouselButtonPrev.style.display = 'flex';
+        }
+        
+        if (carouselButtonNext) {
+          carouselButtonNext.style.display = 'flex';
+        }
+        
+        updatePagination();
+    }
+    
+    function updatePagination() {
+        if (!carouselPagination) return;
+        
+        carouselPagination.innerHTML = '';
+        const pageCount = Math.ceil(totalReviews / cardsPerView);
+        
+        if (pageCount <= 1) return;
+
+        const currentPage = Math.round(currentIndex / cardsPerView);
+
+        for (let i = 0; i < pageCount; i++) {
+            const dot = document.createElement('button');
+            dot.style.cssText = `
+              width: 12px; height: 12px; border-radius: 50%; border: none;
+              background: ${i === currentPage ? '#6a5acd' : '#ddd'}; 
+              cursor: pointer; transition: background 0.3s ease;
+            `;
+            dot.addEventListener('click', () => {
+              let targetIndex = i * cardsPerView;
+              if (targetIndex > totalReviews - cardsPerView) {
+                targetIndex = totalReviews - cardsPerView;
+              }
+              currentIndex = targetIndex;
+              updateCarousel();
+            });
+            carouselPagination.appendChild(dot);
+        }
+    }
+
+    if (carouselButtonPrev) {
+      carouselButtonPrev.addEventListener('click', () => {
+          const prevIndex = currentIndex - cardsPerView;
+          currentIndex = Math.max(0, prevIndex);
+          updateCarousel();
+      });
+    }
+
+    if (carouselButtonNext) {
+      carouselButtonNext.addEventListener('click', () => {
+          const nextIndex = currentIndex + cardsPerView;
+          currentIndex = Math.min(nextIndex, totalReviews - cardsPerView);
+          updateCarousel();
+      });
+    }
+
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            console.log('🔄 Window resized, recalculating...');
+            const oldCardsPerView = cardsPerView;
+            const newCardsPerView = updateContainerWidth();
+            
+            console.log('🔧 Old cards per view:', oldCardsPerView, 'New cards per view:', newCardsPerView);
+            
+            if (newCardsPerView !== oldCardsPerView) {
+                cardsPerView = newCardsPerView;
+                
+                // Recalculate current index to maintain relative position
+                const oldPage = Math.round(currentIndex / oldCardsPerView);
+                let targetIndex = oldPage * cardsPerView;
+                
+                // Ensure we don't go beyond the last valid position
+                if (targetIndex > totalReviews - cardsPerView) {
+                    targetIndex = totalReviews - cardsPerView;
+                }
+                currentIndex = Math.max(0, targetIndex);
+                
+                console.log('🔧 Updated current index to:', currentIndex, 'for', cardsPerView, 'cards per view');
+                updateCarousel();
+            }
+        }, 100);
+    });
+
+    updateCarousel();
+    console.log('✅ Responsive carousel navigation initialized successfully');
   }
 
   window.PromptReviews.renderMultiWidget = function(container, data) {
@@ -442,33 +425,15 @@ console.log('🔄 Working Multi Widget Script Loading...', new Date().toISOStrin
       return;
     }
     
-    // Try to load Swiper first
-    loadSwiper((swiperAvailable) => {
-      try {
-        if (swiperAvailable && reviews.length > 1) {
-          console.log('🎠 Using Swiper carousel');
-          const widgetHTML = createSwiperHTML(reviews, design, businessSlug);
-          container.innerHTML = widgetHTML;
-          
-          // Initialize Swiper after a short delay
-          setTimeout(() => {
-            initializeSwiper(container);
-          }, 100);
-        } else {
-          console.log('📱 Using grid layout (Swiper not available or single review)');
-          const widgetHTML = createGridHTML(reviews, design, businessSlug);
-          container.innerHTML = widgetHTML;
-        }
-        
-        console.log('✅ Widget rendered successfully');
-      } catch (error) {
-        console.error('❌ Error rendering widget:', error);
-        // Fallback to grid layout
-        console.log('🔄 Falling back to grid layout');
-        const widgetHTML = createGridHTML(reviews, design, businessSlug);
-        container.innerHTML = widgetHTML;
-      }
-    });
+    const widgetHTML = createGridHTML(reviews, design, businessSlug);
+    container.innerHTML = widgetHTML;
+    
+    // Defer initialization to ensure DOM is ready
+    setTimeout(() => {
+      initializeGridNavigation(container, reviews.length);
+    }, 100);
+    
+    console.log('✅ Widget rendered successfully');
   };
 
   console.log('✅ Working widget script loaded successfully');

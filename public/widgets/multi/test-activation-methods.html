@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Widget Activation Methods Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .section h2 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #6a5acd;
+            padding-bottom: 8px;
+        }
+        .widget-container {
+            min-height: 400px;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+            background: #fafafa;
+        }
+        .widget-container[data-prompt-reviews-widget] {
+            border-color: #6a5acd;
+            background: #f8f7ff;
+        }
+        .method-description {
+            background: #f0f0f0;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .button {
+            background: #6a5acd;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 8px;
+        }
+        .button:hover {
+            background: #5a4acd;
+        }
+        .status {
+            font-size: 12px;
+            color: #666;
+            margin-top: 8px;
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .info { color: #17a2b8; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Widget Activation Methods Test</h1>
+        <p>This page demonstrates three different ways to activate the PromptReviews widget:</p>
+
+        <!-- Method 1: Auto-Activation with API -->
+        <div class="section">
+            <h2>Method 1: Auto-Activation with API Fetching</h2>
+            <div class="method-description">
+                <strong>How it works:</strong> The widget automatically finds containers with <code>data-prompt-reviews-widget="WIDGET_ID"</code> 
+                and fetches the widget data from the API endpoint <code>/api/widgets/WIDGET_ID</code>.
+                <br><br>
+                <strong>Use case:</strong> Perfect for embedding widgets on external websites where you only need to specify the widget ID.
+            </div>
+            
+            <!-- Widget container with widget ID -->
+            <div class="widget-container" data-prompt-reviews-widget="test-widget-1">
+                <div class="status info">Widget will auto-initialize with data from API...</div>
+            </div>
+            
+            <button class="button" onclick="reloadWidget1()">Reload Widget</button>
+            <button class="button" onclick="checkWidget1Status()">Check Status</button>
+        </div>
+
+        <!-- Method 2: Manual Activation with Data -->
+        <div class="section">
+            <h2>Method 2: Manual Activation with Data</h2>
+            <div class="method-description">
+                <strong>How it works:</strong> Data is provided directly via <code>data-prompt-reviews-data</code> attribute 
+                and the widget is manually initialized using <code>window.PromptReviews.renderMultiWidget()</code>.
+                <br><br>
+                <strong>Use case:</strong> When you have the widget data available and want full control over initialization.
+            </div>
+            
+            <!-- Widget container with data -->
+            <div class="widget-container" id="manual-widget">
+                <div class="status info">Widget will be manually initialized...</div>
+            </div>
+            
+            <button class="button" onclick="initializeManualWidget()">Initialize Widget</button>
+            <button class="button" onclick="updateManualWidgetData()">Update Data</button>
+        </div>
+
+        <!-- Method 3: Dynamic Loading -->
+        <div class="section">
+            <h2>Method 3: Dynamic Loading</h2>
+            <div class="method-description">
+                <strong>How it works:</strong> Widget containers are created dynamically and widgets are initialized 
+                programmatically after the page loads.
+                <br><br>
+                <strong>Use case:</strong> For dynamic content where widgets need to be created on-the-fly.
+            </div>
+            
+            <div id="dynamic-widgets">
+                <div class="status info">Dynamic widgets will be created here...</div>
+            </div>
+            
+            <button class="button" onclick="createDynamicWidget()">Create Widget</button>
+            <button class="button" onclick="clearDynamicWidgets()">Clear All</button>
+        </div>
+
+        <!-- Debug Information -->
+        <div class="section">
+            <h2>Debug Information</h2>
+            <div id="debug-info">
+                <div class="status info">Loading debug information...</div>
+            </div>
+            <button class="button" onclick="updateDebugInfo()">Refresh Debug Info</button>
+        </div>
+    </div>
+
+    <!-- Load the auto-activating widget script -->
+    <script src="widget-embed-auto.js"></script>
+
+    <script>
+        // Sample widget data for manual activation
+        const sampleWidgetData = {
+            reviews: [
+                {
+                    id: '1',
+                    review_content: 'Amazing service! The team went above and beyond to deliver exactly what we needed. Highly recommend!',
+                    first_name: 'John',
+                    last_name: 'S.',
+                    reviewer_role: 'Verified Customer',
+                    created_at: new Date().toISOString(),
+                    star_rating: 5
+                },
+                {
+                    id: '2',
+                    review_content: 'Excellent service and great quality. Highly recommend to anyone looking for this type of solution.',
+                    first_name: 'Sarah',
+                    last_name: 'J.',
+                    reviewer_role: 'Happy Client',
+                    created_at: new Date().toISOString(),
+                    star_rating: 5
+                },
+                {
+                    id: '3',
+                    review_content: 'Outstanding experience from start to finish. The team was professional and delivered exactly what we needed.',
+                    first_name: 'Mike',
+                    last_name: 'D.',
+                    reviewer_role: 'Business Owner',
+                    created_at: new Date().toISOString(),
+                    star_rating: 5
+                }
+            ],
+            design: {
+                bgColor: '#ffffff',
+                textColor: '#22223b',
+                accentColor: '#6a5acd',
+                nameTextColor: '#1a237e',
+                roleTextColor: '#6b7280',
+                borderColor: '#cccccc',
+                borderWidth: 2,
+                borderRadius: 16,
+                font: 'Inter',
+                shadow: true,
+                border: true,
+                lineSpacing: 1.4,
+                shadowIntensity: 0.2,
+                shadowColor: '#222222',
+                showQuotes: false,
+                showRelativeDate: true,
+                showSubmitReviewButton: true,
+                bgOpacity: 1
+            },
+            businessSlug: 'test-business'
+        };
+
+        // Method 1: Reload auto-activated widget
+        function reloadWidget1() {
+            const container = document.querySelector('[data-prompt-reviews-widget="test-widget-1"]');
+            if (container) {
+                container.dataset.widgetInitialized = '';
+                container.innerHTML = '<div class="status info">Reloading widget...</div>';
+                setTimeout(() => {
+                    window.PromptReviews.initializeWidgets();
+                }, 100);
+            }
+        }
+
+        // Method 1: Check widget status
+        function checkWidget1Status() {
+            const container = document.querySelector('[data-prompt-reviews-widget="test-widget-1"]');
+            const status = container ? 
+                (container.dataset.widgetInitialized ? 'Initialized' : 'Not initialized') : 
+                'Container not found';
+            alert(`Widget 1 Status: ${status}`);
+        }
+
+        // Method 2: Initialize manual widget
+        function initializeManualWidget() {
+            const container = document.getElementById('manual-widget');
+            if (container && window.PromptReviews.renderMultiWidget) {
+                container.innerHTML = '<div class="status info">Initializing manual widget...</div>';
+                window.PromptReviews.renderMultiWidget(container, sampleWidgetData);
+            } else {
+                alert('Widget script not loaded or container not found');
+            }
+        }
+
+        // Method 2: Update manual widget data
+        function updateManualWidgetData() {
+            const newData = {
+                ...sampleWidgetData,
+                design: {
+                    ...sampleWidgetData.design,
+                    bgColor: '#' + Math.floor(Math.random()*16777215).toString(16),
+                    accentColor: '#' + Math.floor(Math.random()*16777215).toString(16)
+                }
+            };
+            
+            const container = document.getElementById('manual-widget');
+            if (container && window.PromptReviews.renderMultiWidget) {
+                container.innerHTML = '<div class="status info">Updating widget with new data...</div>';
+                window.PromptReviews.renderMultiWidget(container, newData);
+            }
+        }
+
+        // Method 3: Create dynamic widget
+        function createDynamicWidget() {
+            const container = document.getElementById('dynamic-widgets');
+            const widgetId = 'dynamic-' + Date.now();
+            
+            const widgetContainer = document.createElement('div');
+            widgetContainer.className = 'widget-container';
+            widgetContainer.setAttribute('data-prompt-reviews-widget', widgetId);
+            widgetContainer.innerHTML = '<div class="status info">Dynamic widget created, initializing...</div>';
+            
+            container.appendChild(widgetContainer);
+            
+            // Initialize the widget
+            setTimeout(() => {
+                window.PromptReviews.initializeWidgets();
+            }, 100);
+        }
+
+        // Method 3: Clear dynamic widgets
+        function clearDynamicWidgets() {
+            const container = document.getElementById('dynamic-widgets');
+            container.innerHTML = '<div class="status info">Dynamic widgets cleared...</div>';
+        }
+
+        // Update debug information
+        function updateDebugInfo() {
+            const debugContainer = document.getElementById('debug-info');
+            const info = {
+                scriptLoaded: !!window.PromptReviews,
+                renderFunctionAvailable: !!(window.PromptReviews && window.PromptReviews.renderMultiWidget),
+                initializeFunctionAvailable: !!(window.PromptReviews && window.PromptReviews.initializeWidgets),
+                autoWidgets: document.querySelectorAll('[data-prompt-reviews-widget]').length,
+                manualWidgets: document.querySelectorAll('#manual-widget').length,
+                dynamicWidgets: document.querySelectorAll('#dynamic-widgets .widget-container').length,
+                totalWidgets: document.querySelectorAll('.widget-container').length
+            };
+            
+            debugContainer.innerHTML = `
+                <div class="status ${info.scriptLoaded ? 'success' : 'error'}">
+                    Script Loaded: ${info.scriptLoaded ? 'Yes' : 'No'}
+                </div>
+                <div class="status ${info.renderFunctionAvailable ? 'success' : 'error'}">
+                    Render Function: ${info.renderFunctionAvailable ? 'Available' : 'Not Available'}
+                </div>
+                <div class="status ${info.initializeFunctionAvailable ? 'success' : 'error'}">
+                    Initialize Function: ${info.initializeFunctionAvailable ? 'Available' : 'Not Available'}
+                </div>
+                <div class="status info">
+                    Auto Widgets: ${info.autoWidgets}
+                </div>
+                <div class="status info">
+                    Manual Widgets: ${info.manualWidgets}
+                </div>
+                <div class="status info">
+                    Dynamic Widgets: ${info.dynamicWidgets}
+                </div>
+                <div class="status info">
+                    Total Widgets: ${info.totalWidgets}
+                </div>
+            `;
+        }
+
+        // Initialize debug info on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(updateDebugInfo, 1000);
+        });
+    </script>
+</body>
+</html> 
