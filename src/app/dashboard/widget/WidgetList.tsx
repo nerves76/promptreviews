@@ -86,11 +86,11 @@ export default function WidgetList({
     const widget = widgets.find(w => w.id === widgetId);
     if (!widget) return;
 
-    // Generate a unique container ID based on widget ID
-    const uniqueContainerId = `promptreviews-widget-${widgetId.replace(/-/g, '')}`;
+    // Use the correct container ID format that matches CSS selectors
+    const containerId = `pr-widget-container-${widgetId}`;
     
     const embedCode = `<script src="${window.location.origin}/widgets/${widget.widget_type}/widget-embed.min.js"></script>
-<div id="${uniqueContainerId}" data-widget-id="${widgetId}"></div>`;
+<div id="${containerId}" data-widget-id="${widgetId}"></div>`;
 
     try {
       await navigator.clipboard.writeText(embedCode);
