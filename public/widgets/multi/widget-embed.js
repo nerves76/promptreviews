@@ -426,13 +426,13 @@
         .pr-prev-btn::before {
             border-width: 6px 8px 6px 0;
             border-color: transparent var(--pr-accent-color, #4f46e5) transparent transparent;
-            margin-left: 4px;
+            margin-left: 6px;
         }
         
         .pr-next-btn::before {
             border-width: 6px 0 6px 8px;
             border-color: transparent transparent transparent var(--pr-accent-color, #4f46e5);
-            margin-right: 4px;
+            margin-right: 6px;
         }
         
         .pr-dots-container {
