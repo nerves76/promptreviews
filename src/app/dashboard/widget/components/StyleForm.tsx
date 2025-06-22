@@ -51,15 +51,6 @@ export const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange }) 
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-3">Body Text Color</label>
-          <input
-            type="color"
-            value={design.bodyTextColor || '#22223b'}
-            onChange={(e) => updateDesign({ bodyTextColor: e.target.value })}
-            className="w-full h-10 border border-gray-300 rounded-md"
-          />
-        </div>
-        <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">Reviewer's name color</label>
           <input
             type="color"
