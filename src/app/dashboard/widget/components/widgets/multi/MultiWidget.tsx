@@ -29,7 +29,9 @@ const MultiWidget: React.FC<{ data: any }> = ({ data }) => {
       return new Promise<void>((resolve, reject) => {
         const link = document.createElement('link');
         link.rel = 'stylesheet';
-        link.href = `/widgets/multi/multi-widget.css?v=${new Date().getTime()}`;
+        const cssUrl = `/widgets/multi/multi-widget.css?v=${Date.now()}-${Math.random()}`;
+        link.href = cssUrl;
+        console.log('🔗 MultiWidget: Loading CSS from URL:', cssUrl);
         link.onload = () => {
           console.log('✅ MultiWidget: CSS loaded successfully');
           resolve();
@@ -52,7 +54,7 @@ const MultiWidget: React.FC<{ data: any }> = ({ data }) => {
       console.log('📥 MultiWidget: Loading widget script from /widgets/multi/widget-embed.js...');
       return new Promise<void>((resolve, reject) => {
         const script = document.createElement('script');
-        script.src = `/widgets/multi/widget-embed.js?v=${new Date().getTime()}`;
+        script.src = `/widgets/multi/widget-embed.js?v=${Date.now()}-${Math.random()}`;
         script.onload = () => {
           console.log('✅ MultiWidget: Widget script loaded successfully');
           console.log('🔧 MultiWidget: Available functions:', Object.keys(window.PromptReviews || {}));
