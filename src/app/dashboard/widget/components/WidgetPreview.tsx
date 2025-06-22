@@ -47,13 +47,8 @@ export function WidgetPreview({ widget, design }: WidgetPreviewProps) {
 
   if (!widget || !WidgetComponent) {
     console.log('⚠️ WidgetPreview: No widget selected or component not available');
-    // Return null (or a placeholder) when no widget is selected
-    // or the component is not available.
-    return (
-      <div className="text-center p-8 text-white/60">
-        <p>Select a widget to see its preview</p>
-      </div>
-    );
+    // Return null when no widget is selected or the component is not available.
+    return null;
   }
 
   console.log('🚀 WidgetPreview: Rendering widget component with data:', widget, 'and design:', design);
