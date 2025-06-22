@@ -5,22 +5,14 @@ import { WidgetData } from './index';
 // import '../../../../../../../public/widgets/multi/multi-widget.css';
 
 const MultiWidget: React.FC<{ data: any }> = ({ data }) => {
-  // Transform the database widget data to the expected format
-  const widgetData: WidgetData = {
-    id: data.id,
-    type: data.widget_type as 'multi' | 'single' | 'photo',
-    design: data.theme || {},
-    reviews: data.reviews || [],
-    slug: data.slug || 'example-business'
-  };
+  const { design, reviews, slug, widget_type, id } = data;
 
-  const { reviews, design, slug } = widgetData;
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     console.log('🎯 MultiWidget: Component mounted with data:', { 
-      widgetId: data.id,
-      widgetType: data.widget_type,
+      widgetId: id,
+      widgetType: widget_type,
       reviewsCount: reviews?.length, 
       design: design, 
       slug: slug 
@@ -123,7 +115,7 @@ const MultiWidget: React.FC<{ data: any }> = ({ data }) => {
     } else {
       console.log('⚠️ MultiWidget: Missing reviews or design data:', { reviews: !!reviews, design: !!design });
     }
-  }, [reviews, design, slug, data.id, data.widget_type]);
+  }, [reviews, design, slug, id, widget_type]);
 
   if (!reviews || !design) {
     return <div className="text-center p-4">Loading widget data...</div>;

@@ -24,7 +24,7 @@ const WIDGET_COMPONENTS = {
   // photo: PhotoWidget,
 };
 
-export function WidgetPreview({ widget }) {
+export function WidgetPreview({ widget, design }) {
   const [WidgetComponent, setWidgetComponent] = useState<React.ComponentType<any> | null>(null);
 
   useEffect(() => {
@@ -50,6 +50,6 @@ export function WidgetPreview({ widget }) {
     );
   }
 
-  console.log('🚀 WidgetPreview: Rendering widget component with data:', widget);
-  return <WidgetComponent data={widget} />;
+  console.log('🚀 WidgetPreview: Rendering widget component with data:', widget, 'and design:', design);
+  return <WidgetComponent data={{ ...widget, design }} />;
 } 

@@ -21,7 +21,7 @@ export default function WidgetPage() {
               {selectedWidget ? `Editing: ${selectedWidget.name}` : 'Select a widget to see its preview'}
             </p>
           </div>
-          <WidgetPreview widget={selectedWidget} />
+          <WidgetPreview widget={selectedWidget} design={design} />
         </div>
       </div>
 

@@ -33,50 +33,74 @@
     return `${years} year${years !== 1 ? 's' : ''} ago`;
   }
 
-  function isColorDark(hexColor) {
-    if (!hexColor || hexColor.length < 4) return false;
-    let color = (hexColor.charAt(0) === '#') ? hexColor.substring(1) : hexColor;
-    if (color.length === 3) {
-      color = color.split('').map(char => char + char).join('');
+  function hexToRgba(hex, alpha) {
+    if (!hex) return 'rgba(255,255,255,1)';
+    let r = 0, g = 0, b = 0;
+    if (hex.length == 4) {
+      r = "0x" + hex[1] + hex[1];
+      g = "0x" + hex[2] + hex[2];
+      b = "0x" + hex[3] + hex[3];
+    } else if (hex.length == 7) {
+      r = "0x" + hex[1] + hex[2];
+      g = "0x" + hex[3] + hex[4];
+      b = "0x" + hex[5] + hex[6];
     }
-    const r = parseInt(color.substring(0, 2), 16);
-    const g = parseInt(color.substring(2, 4), 16);
-    const b = parseInt(color.substring(4, 6), 16);
-    // Using the HSP value, determine whether the color is light or dark
-    const hsp = Math.sqrt(0.299 * (r * r) + 0.587 * (g * g) + 0.114 * (b * b));
-    return hsp < 127.5;
+    return `rgba(${+r},${+g},${+b},${alpha})`;
   }
 
   function createReviewCard(review, design) {
-    // Automatically set text color based on background brightness
-    const bgColor = design.bgColor || '#ffffff';
-    let textColor = design.textColor || '#22223b';
-    if (isColorDark(bgColor)) {
-      textColor = '#ffffff'; // Force white text on dark backgrounds
-    }
+    // --- Destructure design properties with fallbacks ---
+    const {
+      font = 'Inter',
+      bgColor = '#ffffff',
+      textColor = '#22223b',
+      nameTextColor,
+      roleTextColor,
+      accentColor = '#4f46e5',
+      bgOpacity = 1,
+      border = true,
+      borderWidth = 2,
+      borderColor = '#cccccc',
+      borderRadius = 16,
+      shadow = false,
+      shadowColor = '#000000',
+      shadowIntensity = 0.2,
+      showQuotes = true,
+      showRelativeDate = true,
+    } = design || {};
+
+    // --- Build Styles ---
+    const cardStyle = {
+      fontFamily: `'${font}', sans-serif`,
+      backgroundColor: hexToRgba(bgColor, bgOpacity),
+      color: textColor,
+      borderRadius: `${borderRadius}px`,
+      border: border ? `${borderWidth}px solid ${borderColor}` : 'none',
+      boxShadow: shadow ? `inset 0 0 40px ${hexToRgba(shadowColor, shadowIntensity)}` : 'none',
+      padding: '1.5rem',
+      display: 'flex',
+      flexDirection: 'column',
+      height: '100%',
+    };
+
+    const cardStyleString = Object.entries(cardStyle)
+      .map(([key, value]) => `${key.replace(/([A-Z])/g, '-$1').toLowerCase()}:${value};`)
+      .join('');
     
-    // Use design properties with fallbacks
-    const nameColor = design.nameColor || textColor;
-    const roleColor = design.roleColor || textColor;
-    const accentColor = design.accentColor || '#4f46e5';
-    const cardBorderRadius = design.cardBorderRadius !== undefined ? `${design.cardBorderRadius}px` : '1rem';
-    
-    const cardStyle = `background-color: ${bgColor}; color: ${textColor}; border-radius: ${cardBorderRadius}; padding: 1.5rem; display: flex; flex-direction: column; height: 100%;`;
-    
-    const quoteHTML = design.showQuotes ? `<span class="decorative-quote" style="color: ${accentColor}; font-size: 2rem; font-weight: bold; line-height: 1;">"</span>` : '';
+    const quoteHTML = showQuotes ? `<span class="decorative-quote" style="color: ${accentColor}; font-size: 2rem; font-weight: bold; line-height: 1;">"</span>` : '';
     const starsHTML = review.star_rating ? `<div class="stars-row" style="margin-bottom: 0.75rem;">${renderStars(review.star_rating)}</div>` : '';
-    const dateHTML = design.showRelativeDate && review.created_at ? `<div class="reviewer-date" style="font-size: 0.875rem; color: ${roleColor}; margin-top: 0.5rem;">${getRelativeTime(review.created_at)}</div>` : '';
+    const dateHTML = showRelativeDate && review.created_at ? `<div class="reviewer-date" style="font-size: 0.875rem; color: ${roleTextColor || textColor}; margin-top: 0.5rem;">${getRelativeTime(review.created_at)}</div>` : '';
 
     return `
-      <div class="pr-review-card" style="${cardStyle}">
+      <div class="pr-review-card" style="${cardStyleString}">
         ${starsHTML}
         <div class="review-content" style="flex-grow: 1;">
           ${quoteHTML}
           <p class="review-text" style="margin: 0; font-size: 1rem; line-height: 1.5;">${review.review_content}</p>
         </div>
         <div class="reviewer-details" style="margin-top: 1rem; text-align: left;">
-          <div class="reviewer-name" style="font-weight: bold; color: ${nameColor};">${review.first_name || ''} ${review.last_name || ''}</div>
-          ${review.reviewer_role ? `<div class="reviewer-role" style="font-size: 0.875rem; color: ${roleColor};">${review.reviewer_role}</div>` : ''}
+          <div class="reviewer-name" style="font-weight: bold; color: ${nameTextColor || textColor};">${review.first_name || ''} ${review.last_name || ''}</div>
+          ${review.reviewer_role ? `<div class="reviewer-role" style="font-size: 0.875rem; color: ${roleTextColor || textColor};">${review.reviewer_role}</div>` : ''}
           ${dateHTML}
         </div>
       </div>
