@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StyleForm } from './StyleForm';
 import { DraggableModal } from './DraggableModal';
-import { DesignState } from '../WidgetList';
+import { DesignState } from './widgets/multi/index';
 
 interface StyleModalProps {
   isOpen: boolean;

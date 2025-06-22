@@ -16,14 +16,12 @@ export default function WidgetList({
   onDesignChange,
   design,
   onWidgetReviewsChange,
-  onWidgetDeleted,
 }: {
   onSelectWidget?: (widget: any) => void;
   selectedWidgetId?: string;
   onDesignChange?: (design: DesignState) => void;
   design: DesignState;
   onWidgetReviewsChange?: () => void;
-  onWidgetDeleted?: (deletedWidgetId: string) => void;
 }) {
   const { widgets, loading, error, createWidget, deleteWidget, saveWidgetName, saveWidgetDesign } = useWidgets();
   const [copiedWidgetId, setCopiedWidgetId] = useState<string | null>(null);
@@ -64,15 +62,6 @@ export default function WidgetList({
   }, [selectedWidgetId]);
 
   useEffect(() => {
-    const handler = (event: CustomEvent) => {
-      const widgetId = event.detail;
-      handleDeleteWidget(widgetId);
-    };
-    window.addEventListener("deleteWidget", handler as EventListener);
-    return () => window.removeEventListener("deleteWidget", handler as EventListener);
-  }, []);
-
-  useEffect(() => {
     if (selectedWidgetId) {
       const widget = widgets.find(w => w.id === selectedWidgetId);
       if (widget?.theme && onDesignChange) {
@@ -80,22 +69,6 @@ export default function WidgetList({
       }
     }
   }, [selectedWidgetId, widgets, onDesignChange]);
-
-  // Auto-select first widget when widgets are loaded and none is selected
-  useEffect(() => {
-    console.log('🔍 WidgetList: Auto-selection check:', {
-      widgetsLength: widgets.length,
-      selectedWidgetId,
-      hasOnSelectWidget: !!onSelectWidget,
-      widgets: widgets.map(w => ({ id: w.id, name: w.name }))
-    });
-    
-    if (widgets.length > 0 && !selectedWidgetId && onSelectWidget) {
-      const firstWidget = widgets[0];
-      console.log('🎯 WidgetList: Auto-selecting first widget:', firstWidget);
-      onSelectWidget(firstWidget);
-    }
-  }, [widgets, selectedWidgetId, onSelectWidget]);
 
   const handleCopyEmbed = async (widgetId: string) => {
     const widget = widgets.find(w => w.id === widgetId);
@@ -119,7 +92,6 @@ export default function WidgetList({
     try {
       await deleteWidget(widgetId);
       if (onWidgetReviewsChange) onWidgetReviewsChange();
-      if (onWidgetDeleted) onWidgetDeleted(widgetId);
     } catch (error) {
       console.error('Error deleting widget:', error);
       alert('Failed to delete widget. Please try again.');

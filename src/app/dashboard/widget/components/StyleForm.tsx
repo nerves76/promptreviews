@@ -1,5 +1,5 @@
 import React from 'react';
-import { DesignState } from '../WidgetList';
+import { DesignState } from './widgets/multi/index';
 
 interface StyleFormProps {
   design: DesignState;

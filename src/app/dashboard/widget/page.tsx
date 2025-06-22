@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import WidgetList from "./WidgetList";
 import PageCard from "@/app/components/PageCard";
-import { FaPlus, FaCopy, FaEdit, FaComments } from "react-icons/fa";
+import { FaPlus } from "react-icons/fa";
 import { WidgetPreview } from "./components/WidgetPreview";
 import { DEFAULT_DESIGN, DesignState } from "./components/widgets/multi";
 
@@ -10,84 +10,15 @@ export default function WidgetPage() {
   const [selectedWidget, setSelectedWidget] = useState<any>(null);
   const [design, setDesign] = useState<DesignState>(DEFAULT_DESIGN);
 
-  // Debug logging for widget selection
-  React.useEffect(() => {
-    console.log('🎯 WidgetPage: selectedWidget changed:', selectedWidget);
-  }, [selectedWidget]);
-
-  const handleSelectWidget = (widget: any) => {
-    console.log('🎯 WidgetPage: handleSelectWidget called with:', widget);
-    setSelectedWidget(widget);
-  };
-
-  const handleCopyEmbed = async () => {
-    if (!selectedWidget) return;
-
-    const embedCode = `<script src="${window.location.origin}/widgets/${selectedWidget.widget_type}/widget-embed.min.js"></script>
-<div id="promptreviews-widget" data-widget-id="${selectedWidget.id}"></div>`;
-
-    try {
-      await navigator.clipboard.writeText(embedCode);
-      // You could add a toast notification here
-    } catch (err) {
-      console.error('Failed to copy embed code:', err);
-    }
-  };
-
-  const handleEditStyle = () => {
-    if (selectedWidget) {
-      window.dispatchEvent(new CustomEvent('openStyleModal'));
-    }
-  };
-
-  const handleManageReviews = () => {
-    if (selectedWidget) {
-      window.dispatchEvent(new CustomEvent('openReviewModal'));
-    }
-  };
-
-  const handleWidgetDeleted = (deletedWidgetId: string) => {
-    if (selectedWidget?.id === deletedWidgetId) {
-      setSelectedWidget(null);
-    }
-  };
-
   return (
     <div className="p-4 md:p-8 lg:p-12">
       {/* Top Section: Widget Preview */}
       <div className="mb-8">
         <div className="relative w-full max-w-4xl mx-auto" style={{ minHeight: '600px' }}>
           <div className="text-center mb-6">
-            <div className="flex items-center justify-center gap-4 mb-2">
-              <h2 className="text-2xl font-bold text-white">Widget Preview</h2>
-              {selectedWidget && (
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={handleEditStyle}
-                    className="p-2 text-slate-blue bg-white/20 rounded-md hover:bg-white/30 transition-colors"
-                    title="Edit Style"
-                  >
-                    <FaEdit className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={handleManageReviews}
-                    className="p-2 text-slate-blue bg-white/20 rounded-md hover:bg-white/30 transition-colors"
-                    title="Manage Reviews"
-                  >
-                    <FaComments className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={handleCopyEmbed}
-                    className="p-2 text-slate-blue bg-white/20 rounded-md hover:bg-white/30 transition-colors"
-                    title="Copy Embed Code"
-                  >
-                    <FaCopy className="w-4 h-4" />
-                  </button>
-                </div>
-              )}
-            </div>
+            <h2 className="text-2xl font-bold text-white">Widget Preview</h2>
             <p className="mt-2 text-white/80">
-              {selectedWidget ? `Editing: ${selectedWidget.name}` : ''}
+              {selectedWidget ? `Editing: ${selectedWidget.name}` : 'Select a widget to see its preview'}
             </p>
           </div>
           <WidgetPreview widget={selectedWidget} design={design} />
@@ -113,11 +44,10 @@ export default function WidgetPage() {
         </div>
         
         <WidgetList
-          onSelectWidget={handleSelectWidget}
+          onSelectWidget={setSelectedWidget}
           selectedWidgetId={selectedWidget?.id}
           design={design}
           onDesignChange={setDesign}
-          onWidgetDeleted={handleWidgetDeleted}
         />
       </PageCard>
     </div>

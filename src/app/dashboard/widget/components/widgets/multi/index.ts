@@ -4,7 +4,6 @@ export type DesignState = {
   bgColor: string;
   textColor: string;
   accentColor: string;
-  bodyTextColor: string;
   nameTextColor: string;
   roleTextColor: string;
   attributionFontSize: number;
@@ -55,7 +54,6 @@ export const DEFAULT_DESIGN: DesignState = {
   bgColor: '#FDFBF2',
   textColor: '#22223b',
   accentColor: 'slateblue',
-  bodyTextColor: '#22223b',
   nameTextColor: '#1a237e',
   roleTextColor: '#6b7280',
   attributionFontSize: 15,
