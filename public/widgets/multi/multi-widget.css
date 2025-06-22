@@ -172,6 +172,7 @@
     padding-top: 1rem;
     border-top: 1px solid var(--pr-border-color, #cccccc);
     flex-shrink: 0;
+    text-align: center;
 }
 
 .pr-multi-widget .reviewer-name {
@@ -381,6 +382,7 @@
     transition: all 0.3s ease;
     cursor: pointer;
     padding: 0;
+    margin: 0 8px;
 }
 
 .pr-dot.active {

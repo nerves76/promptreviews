@@ -101,7 +101,7 @@
           ${quoteHTML}
           <p class="review-text" style="margin: 0; font-size: 1rem; line-height: 1.5; color: ${textColor};">${review.review_content}</p>
         </div>
-        <div class="reviewer-details" style="margin-top: 1rem; text-align: left;">
+        <div class="reviewer-details" style="margin-top: 1rem; text-align: center;">
           <div class="reviewer-name" style="font-weight: bold; color: ${nameColor};">${review.first_name || ''} ${review.last_name || ''}</div>
           ${review.reviewer_role ? `<div class="reviewer-role" style="font-size: 0.875rem; color: ${roleColor};">${review.reviewer_role}</div>` : ''}
           ${dateHTML}
@@ -136,13 +136,69 @@
     carousel.style.transform = `translateX(${offset}px)`;
     
     updateDots();
+    updateArrowButtons();
   }
 
   function updateDots() {
     const dots = document.querySelectorAll('.pr-dot');
+    const bgColor = designData.bgColor || '#ffffff';
+    const accentColor = designData.accentColor || '#4f46e5';
+    
     dots.forEach((dot, index) => {
-      dot.classList.toggle('active', index === currentIndex);
+      const isActive = index === currentIndex;
+      dot.classList.toggle('active', isActive);
+      
+      // Update dot styling
+      if (isActive) {
+        dot.style.backgroundColor = bgColor;
+        dot.style.opacity = '1';
+      } else {
+        dot.style.backgroundColor = accentColor;
+        dot.style.opacity = '0.5';
+      }
     });
+  }
+
+  function updateArrowButtons() {
+    const prevBtn = document.querySelector('.pr-prev-btn');
+    const nextBtn = document.querySelector('.pr-next-btn');
+    
+    if (!prevBtn || !nextBtn) return;
+    
+    const bgColor = designData.bgColor || '#ffffff';
+    const borderWidth = designData.borderWidth || 2;
+    const borderColor = designData.borderColor || '#cccccc';
+    const accentColor = designData.accentColor || '#4f46e5';
+    const bgOpacity = designData.bgOpacity !== undefined ? designData.bgOpacity : 1;
+    
+    // Update button styling
+    const buttonStyle = `
+      background: ${bgColor};
+      border: ${borderWidth}px solid ${borderColor};
+      opacity: ${bgOpacity};
+    `;
+    
+    prevBtn.style.cssText += buttonStyle;
+    nextBtn.style.cssText += buttonStyle;
+    
+    // Update triangle colors
+    const leftTriangle = prevBtn.querySelector('div');
+    const rightTriangle = nextBtn.querySelector('div');
+    
+    if (leftTriangle) {
+      leftTriangle.style.borderRightColor = accentColor;
+    }
+    if (rightTriangle) {
+      rightTriangle.style.borderLeftColor = accentColor;
+    }
+    
+    // Add shadow if enabled
+    if (designData.shadow) {
+      const shadowIntensity = designData.shadowIntensity || 0.2;
+      const shadowStyle = `box-shadow: inset 0 0 20px rgba(0, 0, 0, ${shadowIntensity});`;
+      prevBtn.style.cssText += shadowStyle;
+      nextBtn.style.cssText += shadowStyle;
+    }
   }
 
   function moveToIndex(index) {
@@ -162,8 +218,58 @@
     ).join('');
 
     const dotsHTML = Array.from({ length: Math.ceil(reviews.length / itemsPerView) }, (_, i) => 
-      `<button class="pr-dot" data-index="${i}"></button>`
+      `<button class="pr-dot" data-index="${i}" style="height: 12px; width: 12px; background-color: ${design.accentColor || '#4f46e5'}; opacity: 0.5; border: none; border-radius: 50%; display: inline-block; transition: all 0.3s ease; cursor: pointer; padding: 0; margin: 0 8px;"></button>`
     ).join('');
+    
+    // Build submit button style to match cards
+    const bgColor = design.bgColor || '#ffffff';
+    const borderRadius = design.borderRadius || 16;
+    const borderWidth = design.borderWidth || 2;
+    const borderColor = design.borderColor || '#cccccc';
+    const textColor = design.textColor || '#22223b';
+    const accentColor = design.accentColor || '#4f46e5';
+    const bgOpacity = design.bgOpacity !== undefined ? design.bgOpacity : 1;
+    
+    let submitButtonStyle = `
+      display: inline-block;
+      background: ${bgColor};
+      color: ${textColor};
+      padding: 8px 16px;
+      border: ${borderWidth}px solid ${borderColor};
+      border-radius: ${borderRadius}px;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+      opacity: ${bgOpacity};
+    `;
+    
+    // Build arrow button style to match cards
+    let arrowButtonStyle = `
+      cursor: pointer;
+      width: 40px;
+      height: 40px;
+      background: ${bgColor};
+      border: ${borderWidth}px solid ${borderColor};
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      position: relative;
+      opacity: ${bgOpacity};
+    `;
+    
+    // Add shadow if enabled
+    if (design.shadow) {
+      const shadowIntensity = design.shadowIntensity || 0.2;
+      submitButtonStyle += `box-shadow: inset 0 0 20px rgba(0, 0, 0, ${shadowIntensity});`;
+      arrowButtonStyle += `box-shadow: inset 0 0 20px rgba(0, 0, 0, ${shadowIntensity});`;
+    }
+    
+    // Create triangle arrows using CSS
+    const leftTriangle = `<div style="width: 0; height: 0; border-top: 6px solid transparent; border-bottom: 6px solid transparent; border-right: 8px solid ${accentColor}; margin-left: 2px;"></div>`;
+    const rightTriangle = `<div style="width: 0; height: 0; border-top: 6px solid transparent; border-bottom: 6px solid transparent; border-left: 8px solid ${accentColor}; margin-right: 2px;"></div>`;
     
     return `
       <div class="pr-carousel-container" style="position: relative;">
@@ -172,13 +278,13 @@
         </div>
       </div>
       <div class="pr-carousel-controls" style="text-align: center; margin-top: 1rem;">
-        <button class="pr-prev-btn">&lt;</button>
+        <button class="pr-prev-btn" style="${arrowButtonStyle}">${leftTriangle}</button>
         <div class="pr-dots-container" style="display: inline-block; margin: 0 10px;">
           ${dotsHTML}
         </div>
-        <button class="pr-next-btn">&gt;</button>
+        <button class="pr-next-btn" style="${arrowButtonStyle}">${rightTriangle}</button>
       </div>
-      ${design.showSubmitReviewButton ? `<div class="pr-submit-review-container" style="text-align: center; margin-top: 1rem;"><a href="/r/${businessSlug}" target="_blank" class="pr-submit-btn">Submit a Review</a></div>` : ''}
+      ${design.showSubmitReviewButton ? `<div class="pr-submit-review-container" style="text-align: right; margin-top: 1.5rem; padding-right: 1rem;"><a href="/r/${businessSlug}" target="_blank" class="pr-submit-btn" style="${submitButtonStyle}">Submit a Review</a></div>` : ''}
     `;
   }
 
