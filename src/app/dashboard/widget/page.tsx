@@ -10,6 +10,16 @@ export default function WidgetPage() {
   const [selectedWidget, setSelectedWidget] = useState<any>(null);
   const [design, setDesign] = useState<DesignState>(DEFAULT_DESIGN);
 
+  // Debug logging for widget selection
+  React.useEffect(() => {
+    console.log('🎯 WidgetPage: selectedWidget changed:', selectedWidget);
+  }, [selectedWidget]);
+
+  const handleSelectWidget = (widget: any) => {
+    console.log('🎯 WidgetPage: handleSelectWidget called with:', widget);
+    setSelectedWidget(widget);
+  };
+
   const handleCopyEmbed = async () => {
     if (!selectedWidget) return;
 
@@ -103,7 +113,7 @@ export default function WidgetPage() {
         </div>
         
         <WidgetList
-          onSelectWidget={setSelectedWidget}
+          onSelectWidget={handleSelectWidget}
           selectedWidgetId={selectedWidget?.id}
           design={design}
           onDesignChange={setDesign}

@@ -83,8 +83,16 @@ export default function WidgetList({
 
   // Auto-select first widget when widgets are loaded and none is selected
   useEffect(() => {
+    console.log('🔍 WidgetList: Auto-selection check:', {
+      widgetsLength: widgets.length,
+      selectedWidgetId,
+      hasOnSelectWidget: !!onSelectWidget,
+      widgets: widgets.map(w => ({ id: w.id, name: w.name }))
+    });
+    
     if (widgets.length > 0 && !selectedWidgetId && onSelectWidget) {
       const firstWidget = widgets[0];
+      console.log('🎯 WidgetList: Auto-selecting first widget:', firstWidget);
       onSelectWidget(firstWidget);
     }
   }, [widgets, selectedWidgetId, onSelectWidget]);
