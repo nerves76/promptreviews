@@ -283,7 +283,17 @@
     const submitReviewButton = design.showSubmitReviewButton ? `
       <div class="pr-submit-review-container">
         <a href="https://prompt.reviews/r/${businessSlug}" target="_blank" rel="noopener noreferrer" class="pr-submit-btn"
-           style="background-color: ${design.accentColor || '#4f46e5'}; color: #ffffff;">
+           style="
+             background-color: ${bgColor};
+             border: ${borderWidth}px solid ${borderColor};
+             opacity: ${bgOpacity};
+             color: ${accentColor};
+             padding: 8px 16px;
+             text-decoration: none;
+             font-weight: 500;
+             border-radius: 8px;
+             display: inline-block;
+           ">
           Submit a Review
         </a>
       </div>
