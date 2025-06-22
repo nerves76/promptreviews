@@ -4,6 +4,8 @@ import WidgetList from "./WidgetList";
 import PageCard from "@/app/components/PageCard";
 import { FaPlus } from "react-icons/fa";
 import { WidgetPreview } from "./components/WidgetPreview";
+import { StyleModal } from "./components/StyleModal";
+import { ReviewManagementModal } from "./components/ReviewManagementModal";
 import { DEFAULT_DESIGN, DesignState } from "./components/widgets/multi";
 import { useWidgets } from "./hooks/useWidgets";
 
@@ -11,6 +13,9 @@ export default function WidgetPage() {
   const { widgets, loading, error, createWidget, deleteWidget, saveWidgetName, saveWidgetDesign, fetchWidgets } = useWidgets();
   const [selectedWidget, setSelectedWidget] = useState<any>(null);
   const [design, setDesign] = useState<DesignState>(DEFAULT_DESIGN);
+  const [copiedWidgetId, setCopiedWidgetId] = useState<string | null>(null);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [showStyleModal, setShowStyleModal] = useState(false);
 
   // Fake reviews for empty state
   const fakeReviews = [
@@ -64,6 +69,41 @@ export default function WidgetPage() {
     }
   }, [loading, widgets]);
 
+  // Action handlers
+  const handleCopyEmbedCode = async () => {
+    if (!selectedWidget) return;
+
+    // Generate a unique container ID based on widget ID
+    const uniqueContainerId = `promptreviews-widget-${selectedWidget.id.replace(/-/g, '')}`;
+    
+    const embedCode = `<script src="${window.location.origin}/widgets/${selectedWidget.widget_type}/widget-embed.min.js"></script>
+<div id="${uniqueContainerId}" data-widget-id="${selectedWidget.id}"></div>`;
+
+    try {
+      await navigator.clipboard.writeText(embedCode);
+      setCopiedWidgetId(selectedWidget.id);
+      setTimeout(() => setCopiedWidgetId(null), 2000);
+    } catch (err) {
+      console.error('Failed to copy embed code:', err);
+    }
+  };
+
+  const handleEditStyle = () => {
+    setShowStyleModal(true);
+  };
+
+  const handleManageReviews = () => {
+    setShowReviewModal(true);
+  };
+
+  const handleSaveDesign = async () => {
+    if (selectedWidget) {
+      await saveWidgetDesign(selectedWidget.id, design);
+      fetchWidgets();
+      setShowStyleModal(false);
+    }
+  };
+
   return (
     <div className="p-4 md:p-8 lg:p-12">
       {/* Top Section: Widget Preview */}
@@ -75,7 +115,14 @@ export default function WidgetPage() {
               {selectedWidget ? `Editing: ${selectedWidget.name}` : ''}
             </p>
           </div>
-          <WidgetPreview widget={selectedWidget} design={design} />
+          <WidgetPreview 
+            widget={selectedWidget} 
+            design={design}
+            onEditStyle={handleEditStyle}
+            onManageReviews={handleManageReviews}
+            onCopyEmbedCode={handleCopyEmbedCode}
+            copiedWidgetId={copiedWidgetId}
+          />
         </div>
       </div>
 
@@ -112,6 +159,25 @@ export default function WidgetPage() {
           fetchWidgets={fetchWidgets}
         />
       </PageCard>
+
+      {/* Modals */}
+      <ReviewManagementModal
+        isOpen={showReviewModal}
+        onClose={() => setShowReviewModal(false)}
+        widgetId={selectedWidget?.id}
+        onReviewsChange={fetchWidgets}
+      />
+
+      {showStyleModal && selectedWidget && (
+        <StyleModal
+          isOpen={showStyleModal}
+          onClose={() => setShowStyleModal(false)}
+          selectedWidget={selectedWidget}
+          design={design}
+          onDesignChange={setDesign}
+          onSaveDesign={handleSaveDesign}
+        />
+      )}
     </div>
   );
 }
