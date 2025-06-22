@@ -321,7 +321,8 @@
         This ensures the embedded widget has a consistent, centered,
         and responsive container, just like in the app.
       */
-      #promptreviews-widget {
+      #promptreviews-widget,
+      [id^="pr-widget-container-"] {
           position: relative;
           width: 100%;
           max-width: 64rem; /* 1024px */
