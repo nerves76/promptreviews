@@ -302,7 +302,7 @@
 
   // Function to load the CSS file with cache-busting
   const loadCSS = () => {
-    const cssPath = 'https://widgets.prompt.reviews/multi/multi-widget.css';
+    const cssPath = 'http://localhost:3001/widgets/multi/multi-widget.css';
     // Check if the CSS is already added
     if (document.querySelector(`link[href^="${cssPath}"]`)) {
         return;
