@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import WidgetList from "./WidgetList";
 import PageCard from "@/app/components/PageCard";
-import { FaPlus, FaEdit, FaUsers, FaCode, FaCheck } from "react-icons/fa";
+import { FaPlus, FaEdit, FaComment, FaCode, FaCheck } from "react-icons/fa";
 import { WidgetPreview } from "./components/WidgetPreview";
 import { StyleModal } from "./components/StyleModal";
 import { ReviewManagementModal } from "./components/ReviewManagementModal";
@@ -130,7 +130,7 @@ export default function WidgetPage() {
                   className="p-2 bg-white/40 backdrop-blur-sm rounded-full shadow-lg hover:bg-white/50 transition-all duration-200 group"
                   title="Manage Reviews"
                 >
-                  <FaUsers className="w-4 h-4 text-slate-blue group-hover:text-slate-blue/80 transition-colors" />
+                  <FaComment className="w-4 h-4 text-slate-blue group-hover:text-slate-blue/80 transition-colors" />
                 </button>
                 
                 <button
