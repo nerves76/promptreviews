@@ -86,6 +86,16 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
       try {
         await Promise.all([loadWidgetCSS(), loadWidgetScript()]);
         
+        // Add a small delay to ensure the script has executed
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Add more detailed debugging
+        console.log('🔍 MultiWidget: Checking dependencies after loading...');
+        console.log('🔍 MultiWidget: containerRef.current:', !!containerRef.current);
+        console.log('🔍 MultiWidget: window.PromptReviews:', !!window.PromptReviews);
+        console.log('🔍 MultiWidget: window.PromptReviews.initializeWidget:', !!window.PromptReviews?.initializeWidget);
+        console.log('🔍 MultiWidget: Available PromptReviews functions:', Object.keys(window.PromptReviews || {}));
+        
         if (containerRef.current && window.PromptReviews && window.PromptReviews.initializeWidget) {
           console.log('🚀 MultiWidget: Using initializeWidget API');
           window.PromptReviews.initializeWidget(
@@ -96,6 +106,12 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
           );
         } else {
           console.error('❌ MultiWidget: Missing dependencies for initialization.');
+          console.error('❌ MultiWidget: containerRef.current:', !!containerRef.current);
+          console.error('❌ MultiWidget: window.PromptReviews:', !!window.PromptReviews);
+          console.error('❌ MultiWidget: window.PromptReviews.initializeWidget:', !!window.PromptReviews?.initializeWidget);
+          if (window.PromptReviews) {
+            console.error('❌ MultiWidget: Available functions:', Object.keys(window.PromptReviews));
+          }
         }
       } catch (error) {
         console.error('❌ MultiWidget: Failed to initialize widget:', error);
