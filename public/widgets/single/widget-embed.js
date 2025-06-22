@@ -58,9 +58,9 @@
     if (!state) return;
 
     const widgetElement = document.getElementById(widgetId);
-    const track = widgetElement.querySelector('.pr-carousel-track');
-    const prevBtn = widgetElement.querySelector('.pr-prev-btn');
-    const nextBtn = widgetElement.querySelector('.pr-next-btn');
+    const track = widgetElement.querySelector('.pr-single-carousel-track');
+    const prevBtn = widgetElement.querySelector('.pr-single-prev-btn');
+    const nextBtn = widgetElement.querySelector('.pr-single-next-btn');
 
     // Set up event listeners
     if (prevBtn) {
@@ -102,14 +102,14 @@
     if (!state) return;
 
     const widgetElement = document.getElementById(widgetId);
-    const track = widgetElement.querySelector('.pr-carousel-track');
+    const track = widgetElement.querySelector('.pr-single-carousel-track');
     if (!track) return;
 
     // Recalculate items per view on each update for responsiveness
     state.itemsPerView = calculateItemsPerView(widgetId);
     
     // Use precise pixel values for transform to account for gaps
-    const firstItem = widgetElement.querySelector('.pr-carousel-item');
+    const firstItem = widgetElement.querySelector('.pr-single-carousel-item');
     if (!firstItem) return; // Can't calculate transform without an item
 
     const gapStyle = window.getComputedStyle(track).gap;
@@ -128,7 +128,7 @@
     if (!state) return;
 
     const widgetElement = document.getElementById(widgetId);
-    const dotsContainer = widgetElement.querySelector('.pr-dots-container');
+    const dotsContainer = widgetElement.querySelector('.pr-single-dots-container');
     if (!dotsContainer) return;
 
     // Clear existing dots
@@ -137,7 +137,7 @@
     // Create dots for each review
     for (let i = 0; i < state.totalItems; i++) {
       const dot = document.createElement('button');
-      dot.className = `pr-dot ${i === state.currentIndex ? 'active' : ''}`;
+      dot.className = `pr-single-dot ${i === state.currentIndex ? 'active' : ''}`;
       dot.style.backgroundColor = i === state.currentIndex ? '#4f46e5' : '#d1d5db';
       dot.addEventListener('click', () => {
         state.currentIndex = i;
@@ -152,8 +152,8 @@
     if (!state) return;
 
     const widgetElement = document.getElementById(widgetId);
-    const prevBtn = widgetElement.querySelector('.pr-prev-btn');
-    const nextBtn = widgetElement.querySelector('.pr-next-btn');
+    const prevBtn = widgetElement.querySelector('.pr-single-prev-btn');
+    const nextBtn = widgetElement.querySelector('.pr-single-next-btn');
 
     if (prevBtn) {
       prevBtn.style.opacity = state.currentIndex === 0 ? '0.5' : '1';
@@ -172,7 +172,7 @@
     const dateText = design.showRelativeDate ? getRelativeDate(review.created_at) : new Date(review.created_at).toLocaleDateString();
     
     return `
-      <div class="pr-review-card" style="
+      <div class="pr-single-review-card" style="
         background-color: ${design.bgColor || '#ffffff'};
         border: ${design.borderWidth || 2}px solid ${design.borderColor || '#cccccc'};
         border-radius: ${design.borderRadius || 16}px;
@@ -182,13 +182,13 @@
         line-height: ${design.lineSpacing || 1.4};
         box-shadow: ${design.shadow ? `0 4px 6px -1px rgba(0, 0, 0, ${design.shadowIntensity || 0.2})` : 'none'};
       ">
-        <div class="review-content">
-          <div class="stars-row" style="color: ${design.accentColor || '#4f46e5'}; margin-bottom: 1rem;">
+        <div class="pr-single-review-content">
+          <div class="pr-single-stars-row" style="color: ${design.accentColor || '#4f46e5'}; margin-bottom: 1rem;">
             ${stars}
           </div>
-          <p class="review-text" style="margin-bottom: 1rem;">${reviewText}</p>
+          <p class="pr-single-review-text" style="margin-bottom: 1rem;">${reviewText}</p>
         </div>
-        <div class="reviewer-details">
+        <div class="pr-single-reviewer-details">
           <div style="
             color: ${design.nameTextColor || '#1a237e'};
             font-weight: 600;
@@ -226,101 +226,90 @@
     const state = carouselState[widgetId];
 
     const reviewCardsHTML = reviews.map(review => 
-      `<div class="pr-carousel-item">${createReviewCard(review, design)}</div>`
+      `<div class="pr-single-carousel-item">${createReviewCard(review, design)}</div>`
     ).join('');
     
-    // Dots are now generated in updateDots
-    const dotsHTML = '';
+    // Dots are generated dynamically in updateDots, so we just need the container.
+    const dotsHTML = '<div class="pr-single-dots-container"></div>';
 
-    // Style arrow buttons to match the design settings
+    // --- Dynamic Styles ---
     const bgColor = design.bgColor || '#ffffff';
     const borderColor = design.borderColor || '#cccccc';
     const borderWidth = design.borderWidth || 2;
     const bgOpacity = design.bgOpacity !== undefined ? design.bgOpacity : 1;
     const accentColor = design.accentColor || '#4f46e5';
     
+    // Base style for arrow buttons
     const buttonStyle = `
       background-color: ${bgColor};
       border: ${borderWidth}px solid ${borderColor};
       opacity: ${bgOpacity};
     `;
 
-    const arrowStyle = `
-      .pr-prev-btn::before {
-        border-color: transparent ${accentColor} transparent transparent !important;
-      }
-      .pr-next-btn::before {
-        border-color: transparent transparent transparent ${accentColor} !important;
-      }
-      
-      /* Hover effects for arrow buttons - invert colors */
-      .pr-prev-btn:hover,
-      .pr-next-btn:hover {
-        background-color: ${accentColor} !important;
-        border-color: ${accentColor} !important;
-      }
-      
-      .pr-prev-btn:hover::before {
-        border-color: transparent ${bgColor} transparent transparent !important;
-      }
-      
-      .pr-next-btn:hover::before {
-        border-color: transparent transparent transparent ${bgColor} !important;
-      }
-      
-      /* Hover effects for submit button - invert colors */
-      .pr-submit-btn:hover {
-        background-color: ${accentColor} !important;
-        color: ${bgColor} !important;
-      }
-      
-      /* Hover effects for review cards - lift up */
-      .pr-review-card {
-        transition: all 0.2s ease;
-      }
-      
-      .pr-review-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 25px -5px rgba(0, 0, 0, ${design.shadowIntensity ? design.shadowIntensity + 0.1 : 0.3}) !important;
-      }
+    // Style for the "Submit a Review" button
+    const submitButtonStyle = `
+      background-color: ${bgColor};
+      border: ${borderWidth}px solid ${borderColor};
+      border-radius: ${design.buttonBorderRadius || 8}px;
+      opacity: ${bgOpacity};
+      color: ${accentColor};
+    `;
+    
+    // --- Embedded <style> tag for hover effects and dynamic arrow colors ---
+    const embeddedStyles = `
+      <style>
+        /* Arrow Color */
+        .pr-single-prev-btn::before { border-color: transparent ${accentColor} transparent transparent !important; }
+        .pr-single-next-btn::before { border-color: transparent transparent transparent ${accentColor} !important; }
+        
+        /* Arrow & Submit Button Hover: Invert colors */
+        .pr-single-prev-btn:hover, .pr-single-next-btn:hover, .pr-single-submit-btn:hover {
+          background-color: ${accentColor} !important;
+          color: ${bgColor} !important;
+        }
+        
+        /* Arrow Icon Hover: Change to background color */
+        .pr-single-prev-btn:hover::before { border-color: transparent ${bgColor} transparent transparent !important; }
+        .pr-single-next-btn:hover::before { border-color: transparent transparent transparent ${bgColor} !important; }
+
+        /* Card Hover: Lift effect */
+        .pr-single-review-card {
+          transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .pr-single-review-card:hover {
+          transform: ${design.liftOnHover ? 'translateY(-5px)' : 'none'};
+          box-shadow: ${design.liftOnHover ? `0 10px 15px -3px rgba(0, 0, 0, ${design.shadowIntensity || 0.2})` : (design.shadow ? `0 4px 6px -1px rgba(0, 0, 0, ${design.shadowIntensity || 0.2})` : 'none')};
+        }
+      </style>
     `;
 
-    const submitReviewButton = design.showSubmitReviewButton ? `
-      <div class="pr-submit-review-container">
-        <a href="https://prompt.reviews/r/${businessSlug}" target="_blank" rel="noopener noreferrer" class="pr-submit-btn"
-           style="
-             background-color: ${bgColor};
-             border: ${borderWidth}px solid ${borderColor};
-             opacity: ${bgOpacity};
-             color: ${accentColor};
-             padding: 8px 16px;
-             text-decoration: none;
-             font-weight: 500;
-             border-radius: 8px;
-             display: inline-block;
-           ">
+    // --- HTML components ---
+    const controlsHTML = state.totalItems > 1 ? `
+      <div class="pr-single-carousel-controls">
+        <button class="pr-single-prev-btn" style="${buttonStyle}" title="Previous review"></button>
+        ${dotsHTML}
+        <button class="pr-single-next-btn" style="${buttonStyle}" title="Next review"></button>
+      </div>
+    ` : '';
+
+    const submitReviewHTML = design.showSubmitReviewButton ? `
+      <div class="pr-single-submit-review-container">
+        <a href="/r/${businessSlug}?source=widget" target="_blank" class="pr-single-submit-btn" style="${submitButtonStyle}">
           Submit a Review
         </a>
       </div>
     ` : '';
-
+    
+    // --- Final Widget HTML ---
     return `
-      <div class="pr-single-widget">
-        <style>
-          ${arrowStyle}
-        </style>
-        <div class="pr-carousel-container">
-          <div class="pr-carousel-track">
-            ${reviewCardsHTML}
-          </div>
+      ${embeddedStyles}
+      <div class="pr-single-carousel-container">
+        <div class="pr-single-carousel-track">
+          ${reviewCardsHTML}
         </div>
-        <div class="pr-carousel-controls">
-          <button class="pr-prev-btn" style="${buttonStyle}"></button>
-          <div class="pr-dots-container">${dotsHTML}</div>
-          <button class="pr-next-btn" style="${buttonStyle}"></button>
-        </div>
-        ${submitReviewButton}
       </div>
+      ${controlsHTML}
+      ${submitReviewHTML}
     `;
   }
 
