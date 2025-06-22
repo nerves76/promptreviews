@@ -266,16 +266,17 @@
     width: 12px;
     height: 12px;
     border-radius: 50%;
-    border: 2px solid var(--pr-accent-color, #6a5acd);
-    background: var(--pr-card-bg, #fff);
+    border: none;
+    background: var(--pr-accent-color, #6a5acd);
+    opacity: 0.5;
     cursor: pointer;
     transition: all 0.3s ease;
     margin: 0 8px;
-    opacity: 1;
 }
 
 .pr-multi-widget.swiper-initialized .swiper-pagination-bullet-active {
-    background: var(--pr-accent-color, #6a5acd);
+    background: var(--pr-card-bg, #fff);
+    opacity: 1;
 }
 
 .pr-multi-widget .submit-review-button-container {
@@ -370,8 +371,9 @@
 .pr-dot {
     height: 12px;
     width: 12px;
-    background-color: var(--pr-card-bg, #fff);
-    border: 2px solid var(--pr-accent-color, #6a5acd);
+    background-color: var(--pr-accent-color, #6a5acd);
+    opacity: 0.5;
+    border: none;
     border-radius: 50%;
     display: inline-block;
     transition: all 0.3s ease;
@@ -380,7 +382,8 @@
 }
 
 .pr-dot.active {
-    background-color: var(--pr-accent-color, #6a5acd);
+    background-color: var(--pr-card-bg, #fff);
+    opacity: 1;
 }
 
 .pr-submit-review-container {
