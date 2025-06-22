@@ -258,6 +258,30 @@
     // Dots are now generated in updateDots
     const dotsHTML = '';
 
+    // Style arrow buttons to match the design settings
+    const bgColor = design.bgColor || '#ffffff';
+    const borderColor = design.borderColor || '#cccccc';
+    const borderWidth = design.borderWidth || 2;
+    const borderRadius = design.borderRadius || 16;
+    const bgOpacity = design.bgOpacity !== undefined ? design.bgOpacity : 1;
+    const accentColor = design.accentColor || '#4f46e5';
+    
+    const buttonStyle = `
+      background-color: ${bgColor};
+      border: ${borderWidth}px solid ${borderColor};
+      border-radius: ${borderRadius}px;
+      opacity: ${bgOpacity};
+    `;
+
+    const arrowStyle = `
+      .pr-prev-btn::before {
+        border-color: transparent ${accentColor} transparent transparent !important;
+      }
+      .pr-next-btn::before {
+        border-color: transparent transparent transparent ${accentColor} !important;
+      }
+    `;
+
     const submitReviewButton = design.submitReviewsLink ? `
       <div class="pr-submit-review-container">
         <a href="https://prompt.reviews/r/${businessSlug}" target="_blank" rel="noopener noreferrer" class="pr-submit-btn"
@@ -269,15 +293,18 @@
     
     return `
       <div class="pr-multi-widget">
+        <style>
+          ${arrowStyle}
+        </style>
         <div class="pr-carousel-container">
           <div class="pr-carousel-track">
             ${reviewCardsHTML}
           </div>
         </div>
         <div class="pr-carousel-controls">
-          <button class="pr-prev-btn"></button>
+          <button class="pr-prev-btn" style="${buttonStyle}"></button>
           <div class="pr-dots-container">${dotsHTML}</div>
-          <button class="pr-next-btn"></button>
+          <button class="pr-next-btn" style="${buttonStyle}"></button>
         </div>
         ${submitReviewButton}
       </div>
@@ -418,8 +445,6 @@
             cursor: pointer;
             width: 40px;
             height: 40px;
-            background: var(--pr-card-bg, #fff);
-            border: var(--pr-card-border, 2px solid #cccccc);
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -438,13 +463,13 @@
         
         .pr-prev-btn::before {
             border-width: 6px 8px 6px 0;
-            border-color: transparent var(--pr-accent-color, #4f46e5) transparent transparent;
+            border-color: transparent #4f46e5 transparent transparent;
             margin-left: -2px;
         }
         
         .pr-next-btn::before {
             border-width: 6px 0 6px 8px;
-            border-color: transparent transparent transparent var(--pr-accent-color, #4f46e5);
+            border-color: transparent transparent transparent #4f46e5;
             margin-right: -2px;
         }
         
