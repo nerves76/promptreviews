@@ -1,528 +1,329 @@
-// Single Widget Embeddable Implementation
-// This file is the vanilla JS Swiper-based implementation for the embeddable Single widget.
-// The dashboard preview version is rendered in src/app/dashboard/widget/page.tsx using the React SingleWidget component.
-// Related files:
-// - src/widget-embed/single/SingleWidget.css (styles)
-// - src/widget-embed/single/embed-single.jsx (embed entry point)
-// - src/widget-embed/single/dist/widget-embed.min.js (bundled JS)
-// - src/widget-embed/single/dist/widget.min.css (bundled CSS)
+// PromptReviews Single Widget - Vanilla JS
+// This file contains the core widget logic for the single card carousel widget
 
-console.log('🔄 Single Widget Script Loading...', new Date().toISOString());
+(function() {
+  'use strict';
 
-if (!window.PromptReviews || !window.PromptReviews.renderSingleWidget) {
+  // Global state for carousel management
+  const carouselState = {};
 
-
-  (function() {
-    console.log('IIFE starting...');
-    // Create global namespace
-    window.PromptReviews = window.PromptReviews || {};
-
-    // Add Swiper CSS if not already present
-    function addSwiperCSS() {
-      if (document.getElementById('swiper-css')) return;
-      
-      const style = document.createElement('style');
-      style.id = 'swiper-css';
-      style.textContent = `
-        .swiper-button-next,
-        .swiper-button-prev {
-          position: absolute;
-          top: 50%;
-          width: 27px;
-          height: 44px;
-          margin-top: calc(0px - (44px / 2));
-          z-index: 10;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: var(--swiper-navigation-color, var(--swiper-theme-color));
-        }
-        .swiper-button-next.swiper-button-disabled,
-        .swiper-button-prev.swiper-button-disabled {
-          opacity: 0.35;
-          cursor: auto;
-          pointer-events: none;
-        }
-        .swiper-button-next:after,
-        .swiper-button-prev:after {
-          font-family: swiper-icons;
-          font-size: 44px;
-          text-transform: none !important;
-          letter-spacing: 0;
-          text-transform: none;
-          font-variant: initial;
-          line-height: 1;
-        }
-        .swiper-button-prev,
-        .swiper-rtl .swiper-button-next {
-          left: 10px;
-          right: auto;
-        }
-        .swiper-button-prev:after,
-        .swiper-rtl .swiper-button-next:after {
-          content: 'prev';
-        }
-        .swiper-button-next,
-        .swiper-rtl .swiper-button-prev {
-          right: 10px;
-          left: auto;
-        }
-        .swiper-button-next:after,
-        .swiper-rtl .swiper-button-prev:after {
-          content: 'next';
-        }
-        .swiper-button-lock {
-          display: none;
-        }
-        .swiper-pagination {
-          position: relative;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          margin-top: 16px;
-        }
-        .swiper-pagination.swiper-pagination-hidden {
-          opacity: 0;
-        }
-        .swiper-pagination-disabled > .swiper-pagination,
-        .swiper-pagination.swiper-pagination-disabled {
-          display: none !important;
-        }
-        .swiper-pagination-bullet {
-          width: 8px !important;
-          height: 8px !important;
-          background: #ccc;
-          opacity: 1;
-          margin: 0 4px;
-          transition: all 0.2s ease;
-          border-radius: 50%;
-          display: inline-block;
-        }
-        .swiper-pagination-bullet-active {
-          transform: scale(1.2);
-          background: var(--swiper-pagination-color, var(--swiper-theme-color));
-        }
-        .swiper-button-disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-        
-        /* Responsive classes for embedded widget */
-        .hidden { display: none !important; }
-        .block { display: block !important; }
-        .flex { display: flex !important; }
-        .flex-col { flex-direction: column !important; }
-        .items-center { align-items: center !important; }
-        .justify-center { justify-content: center !important; }
-        .justify-end { justify-content: flex-end !important; }
-        .w-full { width: 100% !important; }
-        .max-w-5xl { max-width: 64rem !important; }
-        .max-w-\\[400px\\] { max-width: 400px !important; }
-        .mx-auto { margin-left: auto !important; margin-right: auto !important; }
-        .px-4 { padding-left: 1rem !important; padding-right: 1rem !important; }
-        .px-8 { padding-left: 2rem !important; padding-right: 2rem !important; }
-        .mt-4 { margin-top: 1rem !important; }
-        .pr-8 { padding-right: 2rem !important; }
-        .relative { position: relative !important; }
-        .absolute { position: absolute !important; }
-        .top-1\\/2 { top: 50% !important; }
-        .-translate-y-1\\/2 { transform: translateY(-50%) !important; }
-        .-left-8 { left: -2rem !important; }
-        .-right-8 { right: -2rem !important; }
-        .left-0 { left: 0 !important; }
-        .right-0 { right: 0 !important; }
-        .z-10 { z-index: 10 !important; }
-        .rounded-full { border-radius: 9999px !important; }
-        .w-10 { width: 2.5rem !important; }
-        .h-10 { height: 2.5rem !important; }
-        .min-w-10 { min-width: 2.5rem !important; }
-        .min-h-10 { min-height: 2.5rem !important; }
-        .border { border-width: 1px !important; }
-        .border-gray-200 { border-color: #e5e7eb !important; }
-        .transition { transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter !important; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important; transition-duration: 150ms !important; }
-        .hover\\:bg-opacity-80:hover { --tw-bg-opacity: 0.8 !important; }
-        .md\\:block { display: none; }
-        .md\\:hidden { display: block; }
-        
-        @media (min-width: 768px) {
-          .md\\:block { display: block !important; }
-          .md\\:hidden { display: none !important; }
-        }
-        .group:focus .group-focus\\:fill-white { fill: white !important; }
-        .overflow-hidden { overflow: hidden !important; }
-        
-        .md\\:block { display: none; }
-        .md\\:flex { display: none; }
-      `;
-      document.head.appendChild(style);
+  // Initialize the widget
+  window.PromptReviews = window.PromptReviews || {};
+  window.PromptReviews.initializeWidget = function(widgetId, reviews, design, businessSlug) {
+    console.log('🚀 SingleWidget: Initializing widget', { widgetId, reviewsCount: reviews?.length, design });
+    
+    if (!reviews || reviews.length === 0) {
+      console.warn('⚠️ SingleWidget: No reviews provided');
+      return;
     }
 
-    // Load Google Fonts if not already present
-    function loadGoogleFonts() {
-      if (!document.querySelector('link[href*="fonts.googleapis.com"]')) {
-        const fontLink = document.createElement('link');
-        fontLink.rel = 'stylesheet';
-        fontLink.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap';
-        document.head.appendChild(fontLink);
-        console.log('Google Fonts (Inter) added to page');
-      }
+    const widgetElement = document.getElementById(widgetId);
+    if (!widgetElement) {
+      console.error('❌ SingleWidget: Widget container not found:', widgetId);
+      return;
     }
 
-    // Load Swiper JS if not already present
-    function loadSwiperJS() {
-      return new Promise((resolve, reject) => {
-        // Check if Swiper is already loaded
-        if (typeof Swiper !== 'undefined') {
-          console.log('Swiper already loaded');
-          resolve();
-          return;
-        }
+    // Create and insert the widget HTML
+    const widgetHTML = createCarouselHTML(widgetId, reviews, design, businessSlug);
+    widgetElement.innerHTML = widgetHTML;
 
-        // Check if Swiper script is already being loaded
-        if (document.querySelector('script[src*="swiper"]')) {
-          console.log('Swiper script already loading, waiting...');
-          waitForSwiper(resolve, 20);
-          return;
-        }
+    // Initialize carousel functionality
+    initCarousel(widgetId, reviews, design);
+    
+    console.log('✅ SingleWidget: Widget initialized successfully');
+  };
 
-        // Load Swiper script
-        console.log('Loading Swiper script...');
-        const swiperScript = document.createElement('script');
-        swiperScript.src = 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js';
-        swiperScript.async = true;
-        swiperScript.onload = () => {
-          console.log('Swiper script loaded successfully');
-          resolve();
-        };
-        swiperScript.onerror = () => {
-          console.error('Failed to load Swiper script');
-          reject(new Error('Failed to load Swiper'));
-        };
-        document.head.appendChild(swiperScript);
+  function initCarouselState(widgetId, reviews, design) {
+    carouselState[widgetId] = {
+      currentIndex: 0,
+      totalItems: reviews.length,
+      itemsPerView: 1, // Single card always shows 1 item
+      autoAdvance: design.autoAdvance || false,
+      slideshowSpeed: design.slideshowSpeed || 4,
+      autoAdvanceInterval: null
+    };
+  }
+
+  function calculateItemsPerView(widgetId) {
+    // Single widget always shows 1 item
+    return 1;
+  }
+
+  function initCarousel(widgetId, reviews, design) {
+    const state = carouselState[widgetId];
+    if (!state) return;
+
+    const widgetElement = document.getElementById(widgetId);
+    const track = widgetElement.querySelector('.pr-carousel-track');
+    const prevBtn = widgetElement.querySelector('.pr-prev-btn');
+    const nextBtn = widgetElement.querySelector('.pr-next-btn');
+
+    // Set up event listeners
+    if (prevBtn) {
+      prevBtn.addEventListener('click', () => {
+        if (state.currentIndex > 0) {
+          state.currentIndex--;
+          updateCarousel(widgetId);
+        }
       });
     }
 
-    // Wait for Swiper to be available
-    function waitForSwiper(callback, maxAttempts = 10) {
-      let attempts = 0;
-      const checkSwiper = () => {
-        attempts++;
-        if (typeof Swiper !== 'undefined') {
-          console.log('Swiper detected after', attempts, 'attempts');
-          callback();
-        } else if (attempts < maxAttempts) {
-          setTimeout(checkSwiper, 100);
+    if (nextBtn) {
+      nextBtn.addEventListener('click', () => {
+        if (state.currentIndex < state.totalItems - 1) {
+          state.currentIndex++;
+          updateCarousel(widgetId);
+        }
+      });
+    }
+
+    // Set up auto-advance if enabled
+    if (state.autoAdvance && state.totalItems > 1) {
+      state.autoAdvanceInterval = setInterval(() => {
+        if (state.currentIndex < state.totalItems - 1) {
+          state.currentIndex++;
         } else {
-          console.error('Swiper not available after', maxAttempts, 'attempts');
-          callback(); // Continue anyway
+          state.currentIndex = 0;
         }
-      };
-      checkSwiper();
+        updateCarousel(widgetId);
+      }, state.slideshowSpeed * 1000);
     }
 
-    // Get the script URL to determine the base path for loading CSS
-    function getScriptURL() {
-      const scripts = document.getElementsByTagName('script');
-      for (let i = 0; i < scripts.length; i++) {
-        if (scripts[i].src && scripts[i].src.includes('widget-embed.js')) {
-          return scripts[i].src;
-        }
-      }
-      return null;
-    }
+    // Initial update
+    updateCarousel(widgetId);
+  }
 
-    // Load widget CSS
-    function loadWidgetCSS() {
-      const scriptSrc = getScriptURL();
-      if (!scriptSrc) {
-        console.error("PromptReviews Widget: Could not determine script URL to load styles.");
-        return;
-      }
-      
-      const cacheBuster = `?v=${new Date().getTime()}`;
-      // e.g., "https://host.com/.../widget-embed.js" -> "https://host.com/.../single-widget.css?v=123456789"
-      const cssHref = scriptSrc.replace('widget-embed.js', 'single-widget.css') + cacheBuster;
-      
-      console.log("PromptReviews Widget: Attempting to load CSS from:", cssHref);
-      
-      const link = document.createElement('link');
-      link.id = 'promptreviews-widget-css';
-      link.rel = 'stylesheet';
-      link.type = 'text/css';
-      link.href = cssHref;
-      
-      link.onload = () => {
-        console.log("PromptReviews Widget: CSS loaded successfully");
-      };
-      
-      link.onerror = () => {
-        console.error("PromptReviews Widget: Failed to load CSS from:", cssHref);
-      };
-      
-      document.head.appendChild(link);
-    }
+  function updateCarousel(widgetId) {
+    const state = carouselState[widgetId];
+    if (!state) return;
 
-    // Utility functions
-    function hexToRgba(hex, alpha = 1) {
-      const r = parseInt(hex.slice(1, 3), 16);
-      const g = parseInt(hex.slice(3, 5), 16);
-      const b = parseInt(hex.slice(5, 7), 16);
-      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-    }
+    const widgetElement = document.getElementById(widgetId);
+    const track = widgetElement.querySelector('.pr-carousel-track');
+    if (!track) return;
 
-    function lightenHex(hex, amount = 0.7) {
-      const r = parseInt(hex.slice(1, 3), 16);
-      const g = parseInt(hex.slice(3, 5), 16);
-      const b = parseInt(hex.slice(5, 7), 16);
-      const lightR = Math.min(255, r + (255 - r) * amount);
-      const lightG = Math.min(255, g + (255 - g) * amount);
-      const lightB = Math.min(255, b + (255 - b) * amount);
-      return `#${Math.round(lightR).toString(16).padStart(2, '0')}${Math.round(lightG).toString(16).padStart(2, '0')}${Math.round(lightB).toString(16).padStart(2, '0')}`;
-    }
+    // Recalculate items per view on each update for responsiveness
+    state.itemsPerView = calculateItemsPerView(widgetId);
+    
+    // Use precise pixel values for transform to account for gaps
+    const firstItem = widgetElement.querySelector('.pr-carousel-item');
+    if (!firstItem) return; // Can't calculate transform without an item
 
-    function renderStars(rating) {
-      const fullStars = Math.floor(rating);
-      const hasHalfStar = rating % 1 !== 0;
-      const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
-      
-      return '★'.repeat(fullStars) + (hasHalfStar ? '☆' : '') + '☆'.repeat(emptyStars);
-    }
+    const gapStyle = window.getComputedStyle(track).gap;
+    const gap = parseFloat(gapStyle) || 0; // No gap for single widget
 
-    function getRelativeTime(dateString) {
-      const now = new Date();
-      const date = new Date(dateString);
-      const diffInSeconds = Math.floor((now - date) / 1000);
-      
-      if (diffInSeconds < 60) return 'just now';
-      if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-      if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-      if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)}d ago`;
-      if (diffInSeconds < 31536000) return `${Math.floor(diffInSeconds / 2592000)}mo ago`;
-      return `${Math.floor(diffInSeconds / 31536000)}y ago`;
-    }
+    const itemTotalWidth = firstItem.offsetWidth + gap;
+    const offset = -state.currentIndex * itemTotalWidth;
+    track.style.transform = `translateX(${offset}px)`;
+    
+    updateDots(widgetId);
+    updateArrowButtons(widgetId);
+  }
 
-    function getInitials(first, last) {
-      return `${(first || '').charAt(0)}${(last || '').charAt(0)}`.toUpperCase();
-    }
+  function updateDots(widgetId) {
+    const state = carouselState[widgetId];
+    if (!state) return;
 
-    // Create widget HTML
-    function createWidgetHTML(reviews, design, businessSlug) {
-      const widgetId = 'promptreviews-single-widget-' + Math.random().toString(36).substr(2, 9);
-      
-      // Generate CSS variables for dynamic styling
-      const cssVars = `
-        --pr-bg-color: ${design.bgColor || '#ffffff'};
-        --pr-text-primary: ${design.textColor || '#22223b'};
-        --pr-text-secondary: ${design.bodyTextColor || '#6b7280'};
-        --pr-accent-color: ${design.accentColor || '#6a5acd'};
-        --pr-border-color: ${design.borderColor || '#cccccc'};
-        --pr-border-width: ${design.borderWidth || 2}px;
-        --pr-border-radius: ${design.borderRadius || 16}px;
-        --pr-shadow-intensity: ${design.shadowIntensity || 0.2};
-        --pr-shadow-color: ${design.shadowColor || '#222222'};
-        --pr-line-spacing: ${design.lineSpacing || 1.75};
-        --pr-attribution-font-size: ${design.attributionFontSize || 16}px;
-        --pr-name-text-color: ${design.nameTextColor || '#111111'};
-        --pr-role-text-color: ${design.roleTextColor || '#666666'};
-        --pr-font: ${design.font || 'Inter'};
-      `;
+    const widgetElement = document.getElementById(widgetId);
+    const dotsContainer = widgetElement.querySelector('.pr-dots-container');
+    if (!dotsContainer) return;
 
-      const reviewCards = reviews.map((review, index) => {
-        const initials = getInitials(review.first_name, review.last_name);
-        const relativeDate = design.showRelativeDate ? getRelativeTime(review.created_at) : new Date(review.created_at).toLocaleDateString();
-        
-        return `
-          <div class="swiper-slide">
-            <div class="pr-review-card">
-              <div class="stars-row">
-                <span style="color: #FFD700; font-size: 36px;">${renderStars(review.star_rating || 5)}</span>
-              </div>
-              <div class="review-content">
-                ${design.showQuotes ? `<span class="decorative-quote decorative-quote-open">“</span>` : ''}
-                <div class="review-text">${review.review_content}</div>
-                ${design.showQuotes ? `<span class="decorative-quote decorative-quote-close">”</span>` : ''}
-              </div>
-              <div class="reviewer-details">
-                <div class="reviewer-name">${review.first_name} ${review.last_name}</div>
-                ${review.reviewer_role ? `<div class="reviewer-role">${review.reviewer_role}</div>` : ''}
-                <div class="reviewer-date">${relativeDate}</div>
-              </div>
-            </div>
-          </div>
-        `;
-      }).join('');
+    // Clear existing dots
+    dotsContainer.innerHTML = '';
 
-      return `
-        <div id="${widgetId}" class="pr-single-widget" style="${cssVars}">
-          <div class="widget-carousel-container">
-            <div class="swiper">
-              <div class="swiper-wrapper">
-                ${reviewCards}
-              </div>
-              <div class="swiper-pagination"></div>
-            </div>
-            <div class="swiper-button-prev">‹</div>
-            <div class="swiper-button-next">›</div>
-          </div>
-          ${design.showSubmitReviewButton && businessSlug ? `
-            <div class="submit-review-button-container">
-              <a href="https://promptreviews.app/r/${businessSlug}"
-                 class="submit-review-button"
-                 target="_blank"
-                 rel="noopener noreferrer">
-                Submit a review
-              </a>
-            </div>
-          ` : ''}
-        </div>
-      `;
-    }
-
-    // Initialize Swiper with the widget
-    function initializeSwiper(container, design) {
-      const swiperEl = container.querySelector('.swiper');
-
-      if (swiperEl) {
-        new Swiper(swiperEl, {
-          slidesPerView: 1,
-          spaceBetween: 16,
-          loop: design.loop !== false,
-          observer: true,
-          observeParents: true,
-          navigation: {
-            nextEl: '.swiper-button-next',
-            prevEl: '.swiper-button-prev',
-          },
-          pagination: {
-            el: '.swiper-pagination',
-            clickable: true,
-          },
-        });
-      } else {
-          console.error('Swiper container .swiper not found');
-      }
-    }
-
-    // Main render function
-    function renderSingleWidget(container, data) {
-      console.log('Rendering Single Widget with data:', data);
-      
-      const { reviews, design, businessSlug } = data;
-      
-      if (!reviews || reviews.length === 0) {
-        container.innerHTML = '<div style="text-align: center; padding: 2rem; color: #666;">No reviews available</div>';
-        return;
-      }
-
-      // Clear container
-      container.innerHTML = '';
-      
-      // Create widget HTML
-      const widgetHTML = createWidgetHTML(reviews, design, businessSlug);
-      container.innerHTML = widgetHTML;
-      
-      // Initialize Swiper
-      const widgetElement = container.querySelector('.pr-single-widget');
-      if (widgetElement) {
-        initializeSwiper(widgetElement, design);
-      }
-      
-      console.log('Single Widget rendered successfully');
-    }
-
-    // Load all single widgets on the page
-    async function loadSingleWidgets() {
-      console.log('Loading Single Widgets...');
-      
-      // Add Swiper CSS
-      addSwiperCSS();
-      
-      // Load Google Fonts
-      loadGoogleFonts();
-      
-      // Load widget CSS
-      loadWidgetCSS();
-      
-      // Load Swiper JS
-      await loadSwiperJS();
-      
-      // Find all widget containers
-      const containers = document.querySelectorAll('[data-widget-type="single"]');
-      console.log('Found', containers.length, 'single widget containers');
-      
-      containers.forEach(async (container) => {
-        const widgetId = container.getAttribute('data-widget');
-        if (!widgetId) {
-          console.error('No widget ID found');
-          return;
-        }
-        
-        try {
-          // For now, we'll use mock data - in production this would fetch from your API
-          const mockData = {
-            reviews: [
-              {
-                id: '1',
-                review_content: 'This is an amazing product! I love how easy it is to use and the results are fantastic.',
-                first_name: 'John',
-                last_name: 'Doe',
-                reviewer_role: 'Product Manager',
-                platform: 'Google',
-                created_at: '2024-01-15T10:30:00Z',
-                star_rating: 5
-              },
-              {
-                id: '2',
-                review_content: 'Excellent service and great value for money. Highly recommend!',
-                first_name: 'Jane',
-                last_name: 'Smith',
-                reviewer_role: 'Marketing Director',
-                platform: 'Yelp',
-                created_at: '2024-01-10T14:20:00Z',
-                star_rating: 5
-              }
-            ],
-            design: {
-              bgColor: '#ffffff',
-              textColor: '#22223b',
-              accentColor: '#6a5acd',
-              borderColor: '#cccccc',
-              borderWidth: 2,
-              borderRadius: 16,
-              shadowIntensity: 0.2,
-              shadowColor: '#222222',
-              lineSpacing: 1.75,
-              attributionFontSize: 16,
-              nameTextColor: '#111111',
-              roleTextColor: '#666666',
-              font: 'Inter',
-              showQuotes: true,
-              showRelativeDate: false,
-              showSubmitReviewButton: true,
-              autoAdvance: false,
-              slideshowSpeed: 4
-            },
-            businessSlug: 'demo-business'
-          };
-          
-          renderSingleWidget(container, mockData);
-        } catch (error) {
-          console.error('Error rendering single widget:', error);
-          container.innerHTML = '<div style="text-align: center; padding: 2rem; color: #666;">Error loading widget</div>';
-        }
+    // Create dots for each review
+    for (let i = 0; i < state.totalItems; i++) {
+      const dot = document.createElement('button');
+      dot.className = `pr-dot ${i === state.currentIndex ? 'active' : ''}`;
+      dot.style.backgroundColor = i === state.currentIndex ? '#4f46e5' : '#d1d5db';
+      dot.addEventListener('click', () => {
+        state.currentIndex = i;
+        updateCarousel(widgetId);
       });
+      dotsContainer.appendChild(dot);
+    }
+  }
+
+  function updateArrowButtons(widgetId) {
+    const state = carouselState[widgetId];
+    if (!state) return;
+
+    const widgetElement = document.getElementById(widgetId);
+    const prevBtn = widgetElement.querySelector('.pr-prev-btn');
+    const nextBtn = widgetElement.querySelector('.pr-next-btn');
+
+    if (prevBtn) {
+      prevBtn.style.opacity = state.currentIndex === 0 ? '0.5' : '1';
+      prevBtn.disabled = state.currentIndex === 0;
     }
 
-    // Expose the render function globally
-    window.PromptReviews.renderSingleWidget = renderSingleWidget;
-
-    // Auto-load widgets when DOM is ready
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', loadSingleWidgets);
-    } else {
-      loadSingleWidgets();
+    if (nextBtn) {
+      nextBtn.style.opacity = state.currentIndex === state.totalItems - 1 ? '0.5' : '1';
+      nextBtn.disabled = state.currentIndex === state.totalItems - 1;
     }
+  }
 
-  })();
-}
+  function createReviewCard(review, design) {
+    const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
+    const reviewText = design.showQuotes ? `"${review.review_text}"` : review.review_text;
+    const dateText = design.showRelativeDate ? getRelativeDate(review.created_at) : new Date(review.created_at).toLocaleDateString();
+    
+    return `
+      <div class="pr-review-card" style="
+        background-color: ${design.bgColor || '#ffffff'};
+        border: ${design.borderWidth || 2}px solid ${design.borderColor || '#cccccc'};
+        border-radius: ${design.borderRadius || 16}px;
+        opacity: ${design.bgOpacity !== undefined ? design.bgOpacity : 1};
+        color: ${design.textColor || '#22223b'};
+        font-family: ${design.font || 'Inter'}, sans-serif;
+        line-height: ${design.lineSpacing || 1.4};
+        box-shadow: ${design.shadow ? `0 4px 6px -1px rgba(0, 0, 0, ${design.shadowIntensity || 0.2})` : 'none'};
+      ">
+        <div class="review-content">
+          <div class="stars-row" style="color: ${design.accentColor || '#4f46e5'}; margin-bottom: 1rem;">
+            ${stars}
+          </div>
+          <p class="review-text" style="margin-bottom: 1rem;">${reviewText}</p>
+        </div>
+        <div class="reviewer-details">
+          <div style="
+            color: ${design.nameTextColor || '#1a237e'};
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+          ">${review.reviewer_name}</div>
+          ${review.reviewer_role ? `<div style="
+            color: ${design.roleTextColor || '#6b7280'};
+            font-size: ${design.attributionFontSize || 15}px;
+          ">${review.reviewer_role}</div>` : ''}
+          <div style="
+            color: ${design.roleTextColor || '#6b7280'};
+            font-size: ${design.attributionFontSize || 15}px;
+            margin-top: 0.25rem;
+          ">${dateText}</div>
+        </div>
+      </div>
+    `;
+  }
+
+  function getRelativeDate(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now - date);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 1) return '1 day ago';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+    if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
+    return `${Math.floor(diffDays / 365)} years ago`;
+  }
+
+  function createCarouselHTML(widgetId, reviews, design, businessSlug) {
+    initCarouselState(widgetId, reviews, design);
+    const state = carouselState[widgetId];
+
+    const reviewCardsHTML = reviews.map(review => 
+      `<div class="pr-carousel-item">${createReviewCard(review, design)}</div>`
+    ).join('');
+    
+    // Dots are now generated in updateDots
+    const dotsHTML = '';
+
+    // Style arrow buttons to match the design settings
+    const bgColor = design.bgColor || '#ffffff';
+    const borderColor = design.borderColor || '#cccccc';
+    const borderWidth = design.borderWidth || 2;
+    const bgOpacity = design.bgOpacity !== undefined ? design.bgOpacity : 1;
+    const accentColor = design.accentColor || '#4f46e5';
+    
+    const buttonStyle = `
+      background-color: ${bgColor};
+      border: ${borderWidth}px solid ${borderColor};
+      opacity: ${bgOpacity};
+    `;
+
+    const arrowStyle = `
+      .pr-prev-btn::before {
+        border-color: transparent ${accentColor} transparent transparent !important;
+      }
+      .pr-next-btn::before {
+        border-color: transparent transparent transparent ${accentColor} !important;
+      }
+      
+      /* Hover effects for arrow buttons - invert colors */
+      .pr-prev-btn:hover,
+      .pr-next-btn:hover {
+        background-color: ${accentColor} !important;
+        border-color: ${accentColor} !important;
+      }
+      
+      .pr-prev-btn:hover::before {
+        border-color: transparent ${bgColor} transparent transparent !important;
+      }
+      
+      .pr-next-btn:hover::before {
+        border-color: transparent transparent transparent ${bgColor} !important;
+      }
+      
+      /* Hover effects for submit button - invert colors */
+      .pr-submit-btn:hover {
+        background-color: ${accentColor} !important;
+        color: ${bgColor} !important;
+      }
+      
+      /* Hover effects for review cards - lift up */
+      .pr-review-card {
+        transition: all 0.2s ease;
+      }
+      
+      .pr-review-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 25px -5px rgba(0, 0, 0, ${design.shadowIntensity ? design.shadowIntensity + 0.1 : 0.3}) !important;
+      }
+    `;
+
+    const submitReviewButton = design.showSubmitReviewButton ? `
+      <div class="pr-submit-review-container">
+        <a href="https://prompt.reviews/r/${businessSlug}" target="_blank" rel="noopener noreferrer" class="pr-submit-btn"
+           style="
+             background-color: ${bgColor};
+             border: ${borderWidth}px solid ${borderColor};
+             opacity: ${bgOpacity};
+             color: ${accentColor};
+             padding: 8px 16px;
+             text-decoration: none;
+             font-weight: 500;
+             border-radius: 8px;
+             display: inline-block;
+           ">
+          Submit a Review
+        </a>
+      </div>
+    ` : '';
+
+    return `
+      <div class="pr-single-widget">
+        <style>
+          ${arrowStyle}
+        </style>
+        <div class="pr-carousel-container">
+          <div class="pr-carousel-track">
+            ${reviewCardsHTML}
+          </div>
+        </div>
+        <div class="pr-carousel-controls">
+          <button class="pr-prev-btn" style="${buttonStyle}"></button>
+          <div class="pr-dots-container">${dotsHTML}</div>
+          <button class="pr-next-btn" style="${buttonStyle}"></button>
+        </div>
+        ${submitReviewButton}
+      </div>
+    `;
+  }
+
+  // Expose the render function for direct use
+  window.PromptReviews.renderSingleWidget = function(containerId, reviews, design, businessSlug) {
+    window.PromptReviews.initializeWidget(containerId, reviews, design, businessSlug);
+  };
+
+  console.log('✅ SingleWidget: Widget script loaded successfully');
+})(); 
