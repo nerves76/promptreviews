@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { createBrowserClient } from '@supabase/ssr';
 
 interface PhotoUploadProps {
   reviewId: string;
@@ -19,45 +18,46 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
       setPhotoUploadProgress(true);
       setPhotoUploadError(null);
 
-      const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      );
+      // Use the API route for photo upload
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('widgetId', selectedWidget);
 
-      // Upload to Supabase Storage
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${reviewId}-${Date.now()}.${fileExt}`;
-      const filePath = `${selectedWidget}/${fileName}`;
+      const response = await fetch('/api/upload-widget-photo', {
+        method: 'POST',
+        body: formData,
+      });
 
-      const { error: uploadError } = await supabase.storage
-        .from('review-photos')
-        .upload(filePath, file);
-
-      if (uploadError) {
-        console.error('[DEBUG] Error uploading photo:', uploadError);
-        setPhotoUploadError('Failed to upload photo');
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('[DEBUG] Error uploading photo:', errorData);
+        setPhotoUploadError(errorData.error || 'Failed to upload photo');
         return;
       }
 
-      // Get the public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('review-photos')
-        .getPublicUrl(filePath);
+      const { url } = await response.json();
 
-      // Update the review with the photo URL
-      const { error: updateError } = await supabase
-        .from('widget_reviews')
-        .update({ photo_url: publicUrl })
-        .eq('review_id', reviewId)
-        .eq('widget_id', selectedWidget);
+      // Update the review with the photo URL using the API
+      const updateResponse = await fetch('/api/widgets/upload-photo', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          reviewId,
+          widgetId: selectedWidget,
+          photoUrl: url,
+        }),
+      });
 
-      if (updateError) {
-        console.error('[DEBUG] Error updating review with photo URL:', updateError);
+      if (!updateResponse.ok) {
+        const errorData = await updateResponse.json();
+        console.error('[DEBUG] Error updating review with photo URL:', errorData);
         setPhotoUploadError('Failed to update review with photo');
         return;
       }
 
-      setPhotoUrl(publicUrl);
+      setPhotoUrl(url);
     } catch (error) {
       console.error('[DEBUG] Unexpected error in handlePhotoUpload:', error);
       setPhotoUploadError(error instanceof Error ? error.message : 'Failed to upload photo');

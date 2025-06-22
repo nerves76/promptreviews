@@ -422,7 +422,8 @@
     for (const widgetContainer of widgets) {
       const widgetId = widgetContainer.getAttribute('data-prompt-reviews-id') || widgetContainer.getAttribute('data-widget-id');
       const businessSlug = widgetContainer.getAttribute('data-business-slug');
-      widgetContainer.id = `pr-photo-widget-container-${widgetId}`;
+      // Do NOT change the container's ID here
+      // widgetContainer.id = `pr-photo-widget-container-${widgetId}`;
 
       try {
         const response = await fetch(`http://localhost:3001/api/widgets/${widgetId}`);
