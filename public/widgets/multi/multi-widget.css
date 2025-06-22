@@ -270,7 +270,7 @@
     background: var(--pr-card-bg, #fff);
     cursor: pointer;
     transition: all 0.3s ease;
-    margin: 0 6px;
+    margin: 0 8px;
     opacity: 1;
 }
 
@@ -363,7 +363,7 @@
 
 .pr-dots-container {
     display: flex;
-    gap: 12px;
+    gap: 16px;
     align-items: center;
 }
 
