@@ -264,9 +264,9 @@
           </div>
         </div>
         <div class="pr-carousel-controls">
-          <button class="pr-prev-btn">&lt;</button>
+          <button class="pr-prev-btn"></button>
           <div class="pr-dots-container">${dotsHTML}</div>
-          <button class="pr-next-btn">&gt;</button>
+          <button class="pr-next-btn"></button>
         </div>
         ${submitReviewButton}
       </div>
@@ -412,6 +412,27 @@
             align-items: center;
             justify-content: center;
             transition: all 0.2s ease;
+            position: relative;
+        }
+        
+        .pr-prev-btn::before,
+        .pr-next-btn::before {
+            content: '';
+            width: 0;
+            height: 0;
+            border-style: solid;
+        }
+        
+        .pr-prev-btn::before {
+            border-width: 6px 8px 6px 0;
+            border-color: transparent var(--pr-accent-color, #4f46e5) transparent transparent;
+            margin-left: 2px;
+        }
+        
+        .pr-next-btn::before {
+            border-width: 6px 0 6px 8px;
+            border-color: transparent transparent transparent var(--pr-accent-color, #4f46e5);
+            margin-right: 2px;
         }
         
         .pr-dots-container {
