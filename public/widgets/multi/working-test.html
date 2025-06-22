@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Working Widget Test</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -12,7 +13,7 @@
             background-color: #f5f5f5;
         }
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             background: white;
             padding: 40px;
@@ -34,202 +35,184 @@
             color: #666;
             margin-bottom: 20px;
         }
-        
-        /* Debug Console */
-        .debug-console {
-            position: fixed;
-            bottom: 10px;
-            left: 10px;
-            width: calc(100% - 20px);
-            max-height: 200px;
-            overflow-y: auto;
-            background-color: rgba(0, 0, 0, 0.8);
-            color: #0f0;
-            padding: 10px;
-            border-radius: 5px;
-            z-index: 9999;
-            font-family: monospace;
-            font-size: 12px;
-            white-space: pre-wrap;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        .note {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 12px 18px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            font-size: 15px;
         }
-        .debug-console .header {
+        .swap-btns {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #333;
-            padding-bottom: 5px;
-            margin-bottom: 5px;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            justify-content: center;
         }
-        .debug-console .clear-btn {
-            background: none;
-            border: 1px solid #333;
-            color: #0f0;
-            padding: 2px 8px;
-            border-radius: 3px;
+        .swap-btns button {
+            padding: 8px 18px;
+            border-radius: 6px;
+            border: 1px solid #6a5acd;
+            background: #f5f5ff;
+            color: #22223b;
+            font-weight: 600;
             cursor: pointer;
+            transition: background 0.2s, color 0.2s;
         }
-        .debug-console .log-entry {
-            border-bottom: 1px solid #222;
-            padding: 2px 0;
+        .swap-btns button.active {
+            background: #6a5acd;
+            color: #fff;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Working Widget Test</h1>
-        
+        <div class="note">
+            This page lets you test the <b>multi-widget</b> in isolation.<br>
+            <b>By default, it loads the production <code>widget-embed.js</code>.</b><br>
+            Use the buttons below to swap between the production and experimental widget scripts.<br>
+            <span style="color:#d32f2f">The experimental widget uses Swiper with responsive breakpoints: 3 cards on desktop, 2 on tablet, 1 on mobile.</span>
+        </div>
+        <div class="swap-btns">
+            <button id="btn-prod" class="active">Use Production widget-embed.js</button>
+            <button id="btn-working">Use Experimental widget-embed-working.js</button>
+        </div>
         <div class="widget-section">
-            <h2>Multi Widget Test (Working Version)</h2>
+            <h2>Multi Widget Test</h2>
             <div id="test-widget-container"></div>
         </div>
-    </div>
-
-    <!-- Debug Console -->
-    <div class="debug-console" id="debug-console">
-        <div class="header">
-            <span>Debug Console</span>
-            <button class="clear-btn" onclick="clearDebugLog()">Clear</button>
+        
+        <!-- Simple Swiper Test -->
+        <div class="widget-section">
+            <h2>Simple Swiper Test</h2>
+            <div class="swiper" style="width: 100%; max-width: 800px; margin: 0 auto;">
+                <div class="swiper-wrapper">
+                    <div class="swiper-slide" style="background: #f0f0f0; padding: 20px; text-align: center;">Slide 1</div>
+                    <div class="swiper-slide" style="background: #e0e0e0; padding: 20px; text-align: center;">Slide 2</div>
+                    <div class="swiper-slide" style="background: #d0d0d0; padding: 20px; text-align: center;">Slide 3</div>
+                </div>
+                <div class="swiper-pagination"></div>
+                <div class="swiper-button-next"></div>
+                <div class="swiper-button-prev"></div>
+            </div>
         </div>
-        <div id="debug-logs">No logs yet...</div>
     </div>
-
-    <!-- Working Widget Script -->
-    <script src="/widgets/multi/widget-embed-working.js"></script>
     
     <script>
-        // Simple debug logging system
-        const debugLogs = [];
-        const debugContainer = document.getElementById('debug-logs');
+    // --- Widget Loader Logic ---
+    const WIDGET_SCRIPTS = {
+        prod: '/widgets/multi/widget-embed.js',
+        working: '/widgets/multi/widget-embed-working.js'
+    };
+    let currentScript = null;
+    let currentMode = 'prod';
+    const btnProd = document.getElementById('btn-prod');
+    const btnWorking = document.getElementById('btn-working');
+    const container = document.getElementById('test-widget-container');
+
+    // Test data
+    const testData = {
+        reviews: [
+            { id: '1', review_content: 'This is an amazing product! I love how it works and would definitely recommend it to others.', first_name: 'John', last_name: 'Doe', reviewer_role: 'Customer', platform: 'Google', created_at: '2024-01-15T10:30:00Z', star_rating: 5 },
+            { id: '2', review_content: 'Excellent service and quality. The team was very helpful throughout the entire process.', first_name: 'Jane', last_name: 'Smith', reviewer_role: 'Client', platform: 'Yelp', created_at: '2024-01-10T14:20:00Z', star_rating: 5 },
+            { id: '3', review_content: 'Great experience overall. The product exceeded my expectations and I\'m very satisfied.', first_name: 'Mike', last_name: 'Johnson', reviewer_role: 'User', platform: 'Facebook', created_at: '2024-01-05T09:15:00Z', star_rating: 4 },
+            { id: '4', review_content: 'Outstanding quality and fast delivery. Will definitely order again!', first_name: 'Sarah', last_name: 'Wilson', reviewer_role: 'Customer', platform: 'Google', created_at: '2024-01-20T16:45:00Z', star_rating: 5 },
+            { id: '5', review_content: 'Professional service and great communication. Highly recommended!', first_name: 'David', last_name: 'Brown', reviewer_role: 'Client', platform: 'Yelp', created_at: '2024-01-18T11:30:00Z', star_rating: 5 }
+        ],
+        design: {
+            bgColor: '#ffffff', textColor: '#22223b', accentColor: '#6a5acd', nameTextColor: '#1a237e', roleTextColor: '#6b7280', borderColor: '#cccccc', borderWidth: 2, borderRadius: 16, font: 'Inter', shadow: true, border: true, lineSpacing: 1.4, shadowIntensity: 0.2, shadowColor: '#222222', showQuotes: false, showRelativeDate: true, showSubmitReviewButton: true, bgOpacity: 1
+        },
+        businessSlug: 'test-business'
+    };
+    function loadWidgetScript(mode) {
+        // Remove any previous script
+        if (currentScript) {
+            currentScript.remove();
+            currentScript = null;
+        }
+        // Remove any previous widget content and the initialized flag
+        container.innerHTML = '';
+        container.removeAttribute('data-widget-initialized');
+
+        // Remove PromptReviews global (for a clean reload)
+        if (window.PromptReviews) delete window.PromptReviews;
         
-        function addDebugLog(message) {
-            const timestamp = new Date().toLocaleTimeString();
-            const logEntry = `[${timestamp}] ${message}`;
-            debugLogs.push(logEntry);
-            
-            if (debugContainer) {
-                if (debugLogs.length === 1) {
-                    debugContainer.innerHTML = '';
+        // Add script with cache-busting query parameter
+        const script = document.createElement('script');
+        const cacheBuster = new Date().getTime();
+        script.src = `${WIDGET_SCRIPTS[mode]}?v=${cacheBuster}`;
+        
+        script.onload = () => {
+            console.log(`✅ ${mode === 'prod' ? 'Production' : 'Experimental'} widget script loaded successfully`);
+            setTimeout(() => {
+                if (window.PromptReviews && window.PromptReviews.renderMultiWidget) {
+                    try {
+                        window.PromptReviews.renderMultiWidget(container, testData);
+                        console.log('✅ renderMultiWidget called successfully');
+                    } catch (error) {
+                        console.error('❌ ERROR in renderMultiWidget: ' + error.message);
+                    }
+                } else {
+                    console.error('❌ renderMultiWidget not available after script load');
                 }
-                const logDiv = document.createElement('div');
-                logDiv.className = 'log-entry';
-                logDiv.textContent = logEntry;
-                debugContainer.appendChild(logDiv);
-                debugContainer.scrollTop = debugContainer.scrollHeight;
-            }
-        }
+            }, 200);
+        };
+        script.onerror = () => {
+            console.error(`❌ Failed to load ${mode === 'prod' ? 'production' : 'experimental'} widget script`);
+        };
+        document.body.appendChild(script);
+        currentScript = script;
+    }
+    // Button handlers
+    btnProd.onclick = function() {
+        if (currentMode === 'prod') return;
+        btnProd.classList.add('active');
+        btnWorking.classList.remove('active');
+        currentMode = 'prod';
+        console.log('🔄 Swapping to production widget-embed.js');
+        loadWidgetScript('prod');
+    };
+    btnWorking.onclick = function() {
+        if (currentMode === 'working') return;
+        btnWorking.classList.add('active');
+        btnProd.classList.remove('active');
+        currentMode = 'working';
+        console.log('🔄 Swapping to experimental widget-embed-working.js');
+        loadWidgetScript('working');
+    };
+    // Initial load: production
+    window.addEventListener('DOMContentLoaded', function() {
+        console.log('🔍 Test page loaded. Loading production widget by default.');
         
-        function clearDebugLog() {
-            debugLogs.length = 0;
-            if (debugContainer) {
-                debugContainer.innerHTML = 'No logs yet...';
-            }
-        }
+        loadWidgetScript('prod');
         
-        // Initial logging
-        addDebugLog('🔍 Working test page loaded');
-        addDebugLog('🔍 PromptReviews object: ' + (window.PromptReviews ? 'Available' : 'Not available'));
-        
-        // Wait for widget script to load and then manually trigger
+        // Initialize simple Swiper test
         setTimeout(() => {
-            const container = document.querySelector('#test-widget-container');
-            addDebugLog('🔍 Container found: ' + (container ? 'Yes' : 'No'));
-            
-            if (container && window.PromptReviews && window.PromptReviews.renderMultiWidget) {
-                addDebugLog('✅ Working widget script loaded successfully');
-                
-                const testData = {
-                    reviews: [
-                        {
-                            id: '1',
-                            review_content: 'This is an amazing product! I love how it works and would definitely recommend it to others.',
-                            first_name: 'John',
-                            last_name: 'Doe',
-                            reviewer_role: 'Customer',
-                            platform: 'Google',
-                            created_at: '2024-01-15T10:30:00Z',
-                            star_rating: 5
-                        },
-                        {
-                            id: '2',
-                            review_content: 'Excellent service and quality. The team was very helpful throughout the entire process.',
-                            first_name: 'Jane',
-                            last_name: 'Smith',
-                            reviewer_role: 'Client',
-                            platform: 'Yelp',
-                            created_at: '2024-01-10T14:20:00Z',
-                            star_rating: 5
-                        },
-                        {
-                            id: '3',
-                            review_content: 'Great experience overall. The product exceeded my expectations and I\'m very satisfied.',
-                            first_name: 'Mike',
-                            last_name: 'Johnson',
-                            reviewer_role: 'User',
-                            platform: 'Facebook',
-                            created_at: '2024-01-05T09:15:00Z',
-                            star_rating: 4
-                        },
-                        {
-                            id: '4',
-                            review_content: 'Outstanding quality and fast delivery. Will definitely order again!',
-                            first_name: 'Sarah',
-                            last_name: 'Wilson',
-                            reviewer_role: 'Customer',
-                            platform: 'Google',
-                            created_at: '2024-01-20T16:45:00Z',
-                            star_rating: 5
-                        },
-                        {
-                            id: '5',
-                            review_content: 'Professional service and great communication. Highly recommended!',
-                            first_name: 'David',
-                            last_name: 'Brown',
-                            reviewer_role: 'Client',
-                            platform: 'Yelp',
-                            created_at: '2024-01-18T11:30:00Z',
-                            star_rating: 5
-                        }
-                    ],
-                    design: {
-                        bgColor: '#ffffff',
-                        textColor: '#22223b',
-                        accentColor: '#6a5acd',
-                        nameTextColor: '#1a237e',
-                        roleTextColor: '#6b7280',
-                        borderColor: '#cccccc',
-                        borderWidth: 2,
-                        borderRadius: 16,
-                        font: 'Inter',
-                        shadow: true,
-                        border: true,
-                        lineSpacing: 1.4,
-                        shadowIntensity: 0.2,
-                        shadowColor: '#222222',
-                        showQuotes: false,
-                        showRelativeDate: true,
-                        showSubmitReviewButton: true,
-                        bgOpacity: 1
-                    },
-                    businessSlug: 'test-business'
-                };
-                
-                addDebugLog('🎯 Calling renderMultiWidget with test data');
+            if (typeof Swiper !== 'undefined') {
+                console.log('🧪 Initializing simple Swiper test...');
                 try {
-                    window.PromptReviews.renderMultiWidget(container, testData);
-                    addDebugLog('✅ renderMultiWidget called successfully');
+                    const simpleSwiper = new Swiper('.swiper', {
+                        slidesPerView: 1,
+                        spaceBetween: 30,
+                        pagination: {
+                            el: '.swiper-pagination',
+                            clickable: true,
+                        },
+                        navigation: {
+                            nextEl: '.swiper-button-next',
+                            prevEl: '.swiper-button-prev',
+                        },
+                    });
+                    console.log('✅ Simple Swiper test initialized successfully');
                 } catch (error) {
-                    addDebugLog('❌ ERROR in renderMultiWidget: ' + error.message);
+                    console.error('❌ Simple Swiper test failed: ' + error.message);
                 }
             } else {
-                addDebugLog('❌ Working widget script not loaded or render function not available');
-                addDebugLog('Container: ' + (container ? 'Found' : 'Not found'));
-                addDebugLog('PromptReviews: ' + (window.PromptReviews ? 'Available' : 'Not available'));
-                if (container) {
-                    container.innerHTML = '<div style="padding: 20px; text-align: center; color: red;">Widget failed to load. Check console for errors.</div>';
-                }
+                console.error('❌ Swiper not available for simple test');
             }
-        }, 1000);
+        }, 2000);
+    });
     </script>
 </body>
 </html> 

@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Widget Integration Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .section h2 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #6a5acd;
+            padding-bottom: 8px;
+        }
+        .widget-container {
+            min-height: 400px;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+            background: #fafafa;
+        }
+        .design-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .control-group label {
+            font-weight: 600;
+            font-size: 14px;
+            color: #333;
+        }
+        .control-group input, .control-group select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .button {
+            background: #6a5acd;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 8px;
+        }
+        .button:hover {
+            background: #5a4acd;
+        }
+        .status {
+            font-size: 12px;
+            color: #666;
+            margin-top: 8px;
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .info { color: #17a2b8; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Widget Integration Test</h1>
+        <p>This page tests the integration between the modular widget and the dashboard design system.</p>
+
+        <!-- Design Controls -->
+        <div class="section">
+            <h2>Design Controls</h2>
+            <div class="design-controls">
+                <div class="control-group">
+                    <label>Background Color</label>
+                    <input type="color" id="bgColor" value="#ffffff">
+                </div>
+                <div class="control-group">
+                    <label>Text Color</label>
+                    <input type="color" id="textColor" value="#22223b">
+                </div>
+                <div class="control-group">
+                    <label>Accent Color</label>
+                    <input type="color" id="accentColor" value="#6a5acd">
+                </div>
+                <div class="control-group">
+                    <label>Border Color</label>
+                    <input type="color" id="borderColor" value="#cccccc">
+                </div>
+                <div class="control-group">
+                    <label>Border Width</label>
+                    <input type="range" id="borderWidth" min="0" max="10" value="2">
+                    <span id="borderWidthValue">2px</span>
+                </div>
+                <div class="control-group">
+                    <label>Border Radius</label>
+                    <input type="range" id="borderRadius" min="0" max="50" value="16">
+                    <span id="borderRadiusValue">16px</span>
+                </div>
+                <div class="control-group">
+                    <label>Shadow Intensity</label>
+                    <input type="range" id="shadowIntensity" min="0" max="1" step="0.1" value="0.2">
+                    <span id="shadowIntensityValue">20%</span>
+                </div>
+                <div class="control-group">
+                    <label>Background Opacity</label>
+                    <input type="range" id="bgOpacity" min="0" max="1" step="0.1" value="1">
+                    <span id="bgOpacityValue">100%</span>
+                </div>
+                <div class="control-group">
+                    <label>Font</label>
+                    <select id="font">
+                        <option value="Inter">Inter</option>
+                        <option value="Roboto">Roboto</option>
+                        <option value="Open Sans">Open Sans</option>
+                        <option value="Lato">Lato</option>
+                        <option value="Montserrat">Montserrat</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label>
+                        <input type="checkbox" id="showQuotes" checked> Show Quotes
+                    </label>
+                </div>
+                <div class="control-group">
+                    <label>
+                        <input type="checkbox" id="showRelativeDate"> Show Relative Date
+                    </label>
+                </div>
+                <div class="control-group">
+                    <label>
+                        <input type="checkbox" id="showSubmitReviewButton" checked> Show Submit Button
+                    </label>
+                </div>
+                <div class="control-group">
+                    <label>
+                        <input type="checkbox" id="border" checked> Show Border
+                    </label>
+                </div>
+                <div class="control-group">
+                    <label>
+                        <input type="checkbox" id="shadow" checked> Show Shadow
+                    </label>
+                </div>
+            </div>
+            
+            <button class="button" onclick="updateWidget()">Update Widget</button>
+            <button class="button" onclick="resetDesign()">Reset Design</button>
+        </div>
+
+        <!-- Widget Display -->
+        <div class="section">
+            <h2>Widget Preview</h2>
+            <div class="widget-container" id="widget-container">
+                <div class="status info">Loading widget...</div>
+            </div>
+        </div>
+
+        <!-- Debug Information -->
+        <div class="section">
+            <h2>Debug Information</h2>
+            <div id="debug-info">
+                <div class="status info">Loading debug information...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load the auto-activating widget script -->
+    <script src="widget-embed-auto.js"></script>
+
+    <script>
+        // Sample widget data
+        let widgetData = {
+            reviews: [
+                {
+                    id: '1',
+                    review_content: 'Amazing service! The team went above and beyond to deliver exactly what we needed. Highly recommend!',
+                    first_name: 'John',
+                    last_name: 'S.',
+                    reviewer_role: 'Verified Customer',
+                    created_at: new Date().toISOString(),
+                    star_rating: 5
+                },
+                {
+                    id: '2',
+                    review_content: 'Excellent service and great quality. Highly recommend to anyone looking for this type of solution.',
+                    first_name: 'Sarah',
+                    last_name: 'J.',
+                    reviewer_role: 'Happy Client',
+                    created_at: new Date().toISOString(),
+                    star_rating: 5
+                },
+                {
+                    id: '3',
+                    review_content: 'Outstanding experience from start to finish. The team was professional and delivered exactly what we needed.',
+                    first_name: 'Mike',
+                    last_name: 'D.',
+                    reviewer_role: 'Business Owner',
+                    created_at: new Date().toISOString(),
+                    star_rating: 5
+                }
+            ],
+            design: {
+                bgColor: '#ffffff',
+                textColor: '#22223b',
+                accentColor: '#6a5acd',
+                nameTextColor: '#1a237e',
+                roleTextColor: '#6b7280',
+                borderColor: '#cccccc',
+                borderWidth: 2,
+                borderRadius: 16,
+                font: 'Inter',
+                shadow: true,
+                border: true,
+                lineSpacing: 1.4,
+                shadowIntensity: 0.2,
+                shadowColor: '#222222',
+                showQuotes: true,
+                showRelativeDate: false,
+                showSubmitReviewButton: true,
+                bgOpacity: 1
+            },
+            businessSlug: 'test-business'
+        };
+
+        // Initialize design controls
+        function initializeControls() {
+            // Set initial values
+            document.getElementById('bgColor').value = widgetData.design.bgColor;
+            document.getElementById('textColor').value = widgetData.design.textColor;
+            document.getElementById('accentColor').value = widgetData.design.accentColor;
+            document.getElementById('borderColor').value = widgetData.design.borderColor;
+            document.getElementById('borderWidth').value = widgetData.design.borderWidth;
+            document.getElementById('borderRadius').value = widgetData.design.borderRadius;
+            document.getElementById('shadowIntensity').value = widgetData.design.shadowIntensity;
+            document.getElementById('bgOpacity').value = widgetData.design.bgOpacity;
+            document.getElementById('font').value = widgetData.design.font;
+            document.getElementById('showQuotes').checked = widgetData.design.showQuotes;
+            document.getElementById('showRelativeDate').checked = widgetData.design.showRelativeDate;
+            document.getElementById('showSubmitReviewButton').checked = widgetData.design.showSubmitReviewButton;
+            document.getElementById('border').checked = widgetData.design.border;
+            document.getElementById('shadow').checked = widgetData.design.shadow;
+
+            // Update display values
+            updateDisplayValues();
+
+            // Add event listeners
+            document.getElementById('borderWidth').addEventListener('input', updateDisplayValues);
+            document.getElementById('borderRadius').addEventListener('input', updateDisplayValues);
+            document.getElementById('shadowIntensity').addEventListener('input', updateDisplayValues);
+            document.getElementById('bgOpacity').addEventListener('input', updateDisplayValues);
+        }
+
+        function updateDisplayValues() {
+            document.getElementById('borderWidthValue').textContent = document.getElementById('borderWidth').value + 'px';
+            document.getElementById('borderRadiusValue').textContent = document.getElementById('borderRadius').value + 'px';
+            document.getElementById('shadowIntensityValue').textContent = Math.round(document.getElementById('shadowIntensity').value * 100) + '%';
+            document.getElementById('bgOpacityValue').textContent = Math.round(document.getElementById('bgOpacity').value * 100) + '%';
+        }
+
+        function updateWidget() {
+            // Update widget data from controls
+            widgetData.design.bgColor = document.getElementById('bgColor').value;
+            widgetData.design.textColor = document.getElementById('textColor').value;
+            widgetData.design.accentColor = document.getElementById('accentColor').value;
+            widgetData.design.borderColor = document.getElementById('borderColor').value;
+            widgetData.design.borderWidth = parseInt(document.getElementById('borderWidth').value);
+            widgetData.design.borderRadius = parseInt(document.getElementById('borderRadius').value);
+            widgetData.design.shadowIntensity = parseFloat(document.getElementById('shadowIntensity').value);
+            widgetData.design.bgOpacity = parseFloat(document.getElementById('bgOpacity').value);
+            widgetData.design.font = document.getElementById('font').value;
+            widgetData.design.showQuotes = document.getElementById('showQuotes').checked;
+            widgetData.design.showRelativeDate = document.getElementById('showRelativeDate').checked;
+            widgetData.design.showSubmitReviewButton = document.getElementById('showSubmitReviewButton').checked;
+            widgetData.design.border = document.getElementById('border').checked;
+            widgetData.design.shadow = document.getElementById('shadow').checked;
+
+            // Re-render widget
+            const container = document.getElementById('widget-container');
+            if (container && window.PromptReviews && window.PromptReviews.renderMultiWidget) {
+                container.innerHTML = '<div class="status info">Updating widget...</div>';
+                setTimeout(() => {
+                    window.PromptReviews.renderMultiWidget(container, widgetData);
+                }, 100);
+            }
+
+            updateDebugInfo();
+        }
+
+        function resetDesign() {
+            widgetData.design = {
+                bgColor: '#ffffff',
+                textColor: '#22223b',
+                accentColor: '#6a5acd',
+                nameTextColor: '#1a237e',
+                roleTextColor: '#6b7280',
+                borderColor: '#cccccc',
+                borderWidth: 2,
+                borderRadius: 16,
+                font: 'Inter',
+                shadow: true,
+                border: true,
+                lineSpacing: 1.4,
+                shadowIntensity: 0.2,
+                shadowColor: '#222222',
+                showQuotes: true,
+                showRelativeDate: false,
+                showSubmitReviewButton: true,
+                bgOpacity: 1
+            };
+
+            initializeControls();
+            updateWidget();
+        }
+
+        function updateDebugInfo() {
+            const debugContainer = document.getElementById('debug-info');
+            const info = {
+                scriptLoaded: !!window.PromptReviews,
+                renderFunctionAvailable: !!(window.PromptReviews && window.PromptReviews.renderMultiWidget),
+                reviewsCount: widgetData.reviews.length,
+                designProperties: Object.keys(widgetData.design).length,
+                containerExists: !!document.getElementById('widget-container'),
+                widgetInitialized: document.getElementById('widget-container').dataset.widgetInitialized === 'true'
+            };
+            
+            debugContainer.innerHTML = `
+                <div class="status ${info.scriptLoaded ? 'success' : 'error'}">
+                    Script Loaded: ${info.scriptLoaded ? 'Yes' : 'No'}
+                </div>
+                <div class="status ${info.renderFunctionAvailable ? 'success' : 'error'}">
+                    Render Function: ${info.renderFunctionAvailable ? 'Available' : 'Not Available'}
+                </div>
+                <div class="status info">
+                    Reviews: ${info.reviewsCount}
+                </div>
+                <div class="status info">
+                    Design Properties: ${info.designProperties}
+                </div>
+                <div class="status info">
+                    Container: ${info.containerExists ? 'Found' : 'Not Found'}
+                </div>
+                <div class="status ${info.widgetInitialized ? 'success' : 'info'}">
+                    Widget Initialized: ${info.widgetInitialized ? 'Yes' : 'No'}
+                </div>
+                <div class="status info">
+                    <strong>Current Design:</strong><br>
+                    <pre style="font-size: 10px; overflow-x: auto;">${JSON.stringify(widgetData.design, null, 2)}</pre>
+                </div>
+            `;
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeControls();
+            
+            // Initial widget render
+            setTimeout(() => {
+                updateWidget();
+            }, 1000);
+        });
+    </script>
+</body>
+</html> 

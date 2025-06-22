@@ -34,12 +34,16 @@ export interface WidgetData {
   type: 'multi' | 'single' | 'photo';
   design: DesignState;
   reviews: Review[];
+  slug?: string;
+  universalPromptSlug?: string;
 }
 
 export interface Review {
   id: string;
-  author: string;
-  content: string;
+  first_name?: string;
+  last_name?: string;
+  reviewer_role?: string;
+  review_content: string;
   star_rating: number;
   photo_url?: string;
   created_at: string;
