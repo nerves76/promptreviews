@@ -168,7 +168,7 @@
 
   function createReviewCard(review, design) {
     const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
-    const reviewText = design.showQuotes ? `"${review.review_text}"` : review.review_text;
+    const reviewText = design.showQuotes ? `"${review.review_content}"` : review.review_content;
     const dateText = design.showRelativeDate ? getRelativeDate(review.created_at) : new Date(review.created_at).toLocaleDateString();
     
     return `
@@ -193,7 +193,7 @@
             color: ${design.nameTextColor || '#1a237e'};
             font-weight: 600;
             margin-bottom: 0.25rem;
-          ">${review.reviewer_name}</div>
+          ">${review.first_name || ''} ${review.last_name || ''}</div>
           ${review.reviewer_role ? `<div style="
             color: ${design.roleTextColor || '#6b7280'};
             font-size: ${design.attributionFontSize || 15}px;
