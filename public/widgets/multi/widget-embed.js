@@ -329,6 +329,8 @@
           margin-left: auto;
           margin-right: auto;
           font-size: 16px; /* Set a consistent base font size for rem calculations */
+          padding: 0 1rem; /* Add horizontal padding to prevent cutoff */
+          box-sizing: border-box; /* Ensure padding doesn't add to the total width */
         }
         
         /* Base widget styling reset */
