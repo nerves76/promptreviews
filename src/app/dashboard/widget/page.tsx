@@ -8,6 +8,10 @@ import { DEFAULT_DESIGN, DesignState } from "./components/widgets/multi";
 import { useWidgets } from "./hooks/useWidgets";
 
 export default function WidgetPage() {
+  const { widgets, loading, error, createWidget, deleteWidget, saveWidgetName, saveWidgetDesign, fetchWidgets } = useWidgets();
+  const [selectedWidget, setSelectedWidget] = useState<any>(null);
+  const [design, setDesign] = useState<DesignState>(DEFAULT_DESIGN);
+
   // Fake reviews for empty state
   const fakeReviews = [
     {
@@ -36,26 +40,20 @@ export default function WidgetPage() {
     },
   ];
 
-  // Create fake widget for initial state
-  const fakeWidget = {
-    id: "fake-multi-widget",
-    name: "Demo Multi-Widget",
-    widget_type: "multi",
-    theme: DEFAULT_DESIGN,
-    reviews: fakeReviews,
-  };
-
-  const { widgets, loading, error, createWidget, deleteWidget, saveWidgetName, saveWidgetDesign, fetchWidgets } = useWidgets();
-  const [selectedWidget, setSelectedWidget] = useState<any>(fakeWidget);
-  const [design, setDesign] = useState<DesignState>(DEFAULT_DESIGN);
-
   // Auto-select logic
   React.useEffect(() => {
     if (loading) return;
     if (widgets && widgets.length > 0) {
       setSelectedWidget(widgets[0]);
+    } else {
+      setSelectedWidget({
+        id: "fake-multi-widget",
+        name: "Demo Multi-Widget",
+        widget_type: "multi",
+        theme: DEFAULT_DESIGN,
+        reviews: fakeReviews,
+      });
     }
-    // If no widgets, keep the fake widget (already set as initial state)
   }, [loading, widgets]);
 
   return (
