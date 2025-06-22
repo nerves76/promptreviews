@@ -6,6 +6,7 @@
 
   // Global state for carousel management
   const carouselState = {};
+  const initializingWidgets = new Set(); // Track widgets being initialized
 
   // Initialize the widget
   window.PromptReviewsPhoto = window.PromptReviewsPhoto || {};
@@ -26,12 +27,18 @@
         return;
       }
 
+      // Mark widget as initializing
+      initializingWidgets.add(containerId);
+
       // Create and insert the widget HTML
       const widgetHTML = createCarouselHTML(containerId, reviews, design, businessSlug);
       widgetElement.innerHTML = widgetHTML;
 
       // Initialize carousel functionality
       initCarousel(containerId, reviews, design);
+      
+      // Mark widget as initialized
+      initializingWidgets.delete(containerId);
       
       console.log('✅ PhotoWidget: Widget initialized successfully');
     };
@@ -98,19 +105,36 @@
   }
 
   function updateCarousel(widgetId) {
+    // Don't update if widget is being initialized
+    if (initializingWidgets.has(widgetId)) {
+      console.log('🔄 PhotoWidget: Skipping carousel update - widget is initializing:', widgetId);
+      return;
+    }
+
     const state = carouselState[widgetId];
     if (!state) return;
 
     const widgetElement = document.getElementById(widgetId);
+    if (!widgetElement) {
+      console.warn('⚠️ PhotoWidget: Widget element not found for ID:', widgetId);
+      return;
+    }
+
     const track = widgetElement.querySelector('.pr-photo-carousel-track');
-    if (!track) return;
+    if (!track) {
+      console.warn('⚠️ PhotoWidget: Carousel track not found for widget:', widgetId);
+      return;
+    }
 
     // Recalculate items per view on each update for responsiveness
     state.itemsPerView = calculateItemsPerView(widgetId);
     
     // Use precise pixel values for transform to account for gaps
     const firstItem = widgetElement.querySelector('.pr-photo-carousel-item');
-    if (!firstItem) return; // Can't calculate transform without an item
+    if (!firstItem) {
+      console.warn('⚠️ PhotoWidget: No carousel items found for widget:', widgetId);
+      return; // Can't calculate transform without an item
+    }
 
     const gapStyle = window.getComputedStyle(track).gap;
     const gap = parseFloat(gapStyle) || 0; // No gap for photo widget
@@ -128,8 +152,16 @@
     if (!state) return;
 
     const widgetElement = document.getElementById(widgetId);
+    if (!widgetElement) {
+      console.warn('⚠️ PhotoWidget: Widget element not found for dots update:', widgetId);
+      return;
+    }
+
     const dotsContainer = widgetElement.querySelector('.pr-photo-dots-container');
-    if (!dotsContainer) return;
+    if (!dotsContainer) {
+      console.warn('⚠️ PhotoWidget: Dots container not found for widget:', widgetId);
+      return;
+    }
 
     // Clear existing dots
     dotsContainer.innerHTML = '';
@@ -152,6 +184,11 @@
     if (!state) return;
 
     const widgetElement = document.getElementById(widgetId);
+    if (!widgetElement) {
+      console.warn('⚠️ PhotoWidget: Widget element not found for arrow buttons update:', widgetId);
+      return;
+    }
+
     const prevBtn = widgetElement.querySelector('.pr-photo-prev-btn');
     const nextBtn = widgetElement.querySelector('.pr-photo-next-btn');
 
