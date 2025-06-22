@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import WidgetList from "./WidgetList";
 import PageCard from "@/app/components/PageCard";
-import { FaPlus } from "react-icons/fa";
+import { FaPlus, FaEdit, FaUsers, FaCode, FaCheck } from "react-icons/fa";
 import { WidgetPreview } from "./components/WidgetPreview";
 import { StyleModal } from "./components/StyleModal";
 import { ReviewManagementModal } from "./components/ReviewManagementModal";
@@ -104,25 +104,57 @@ export default function WidgetPage() {
     }
   };
 
+  const isCopied = copiedWidgetId === selectedWidget?.id;
+
   return (
     <div className="p-4 md:p-8 lg:p-12">
       {/* Top Section: Widget Preview */}
       <div className="mb-8">
         <div className="relative w-full max-w-4xl mx-auto" style={{ minHeight: '600px' }}>
           <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold text-white">Widget Preview</h2>
+            <div className="flex items-center justify-center gap-4 mb-2">
+              <h2 className="text-2xl font-bold text-white">Widget Preview</h2>
+              
+              {/* Action Buttons */}
+              <div className="flex gap-2">
+                <button
+                  onClick={handleEditStyle}
+                  className="p-2 bg-white/20 backdrop-blur-sm rounded-full shadow-lg hover:bg-white/30 transition-all duration-200 group"
+                  title="Edit Style"
+                >
+                  <FaEdit className="w-4 h-4 text-slate-blue group-hover:text-slate-blue/80 transition-colors" />
+                </button>
+                
+                <button
+                  onClick={handleManageReviews}
+                  className="p-2 bg-white/20 backdrop-blur-sm rounded-full shadow-lg hover:bg-white/30 transition-all duration-200 group"
+                  title="Manage Reviews"
+                >
+                  <FaUsers className="w-4 h-4 text-slate-blue group-hover:text-slate-blue/80 transition-colors" />
+                </button>
+                
+                <button
+                  onClick={handleCopyEmbedCode}
+                  className={`p-2 rounded-full shadow-lg transition-all duration-200 group ${
+                    isCopied 
+                      ? 'bg-green-500/20 backdrop-blur-sm hover:bg-green-500/30' 
+                      : 'bg-white/20 backdrop-blur-sm hover:bg-white/30'
+                  }`}
+                  title={isCopied ? "Copied!" : "Copy Embed Code"}
+                >
+                  {isCopied ? (
+                    <FaCheck className="w-4 h-4 text-green-500" />
+                  ) : (
+                    <FaCode className="w-4 h-4 text-slate-blue group-hover:text-slate-blue/80 transition-colors" />
+                  )}
+                </button>
+              </div>
+            </div>
             <p className="mt-2 text-white/80">
               {selectedWidget ? `Editing: ${selectedWidget.name}` : ''}
             </p>
           </div>
-          <WidgetPreview 
-            widget={selectedWidget} 
-            design={design}
-            onEditStyle={handleEditStyle}
-            onManageReviews={handleManageReviews}
-            onCopyEmbedCode={handleCopyEmbedCode}
-            copiedWidgetId={copiedWidgetId}
-          />
+          <WidgetPreview widget={selectedWidget} design={design} />
         </div>
       </div>
 
