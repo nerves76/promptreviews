@@ -9,7 +9,7 @@
   This ensures the embedded widget has a consistent, centered,
   and responsive container, just like in the app.
 */
-#promptreviews-widget {
+body #promptreviews-widget.pr-single-widget {
     position: relative;
     width: 100%;
     max-width: 650px; /* Desktop max-width for single widget */
