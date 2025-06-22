@@ -78,98 +78,95 @@ export function ReviewManagementModal({
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       );
 
-      // Get the current user to get account_id
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError || !user) {
-        setReviewError("Failed to get user session");
-        return;
-      }
-
-      // Get the account_id from the user's metadata or profile
-      const { data: profile, error: profileError } = await supabase
-        .from('accounts')
-        .select('id')
-        .eq('user_id', user.id)
+      // First, fetch the widget to determine its type
+      const { data: widgetData, error: widgetError } = await supabase
+        .from('widgets')
+        .select('widget_type')
+        .eq('id', widgetId)
         .single();
 
-      if (profileError || !profile) {
-        setReviewError("Failed to get account information");
-        return;
+      if (widgetError) {
+        console.error('[DEBUG] Error fetching widget type:', widgetError);
+      } else {
+        setWidgetType(widgetData?.widget_type || null);
       }
 
-      const accountId = profile.id;
-
-      // Fetch all reviews for this account
+      // Fetch all available reviews from review_submissions (without account filtering)
       const { data: reviews, error: reviewsError } = await supabase
-        .from("review_submissions")
-        .select("*")
-        .eq("account_id", accountId)
-        .order("created_at", { ascending: false });
+        .from('review_submissions')
+        .select('id, first_name, last_name, reviewer_role, review_content, platform, created_at')
+        .order('created_at', { ascending: false });
 
       if (reviewsError) {
+        console.error('[DEBUG] Error fetching review_submissions:', reviewsError);
         setReviewError("Failed to load reviews: " + reviewsError.message);
+        setLoadingReviews(false);
         return;
       }
 
-      setAllReviews(reviews || []);
+      if (!reviews || reviews.length === 0) {
+        setAllReviews([]);
+        setLoadingReviews(false);
+        return;
+      }
 
-      // Fetch current widget reviews to show which are selected
+      const mappedReviews = reviews.map(r => ({
+        review_id: r.id,
+        first_name: r.first_name,
+        last_name: r.last_name,
+        reviewer_role: r.reviewer_role,
+        review_content: r.review_content,
+        platform: r.platform,
+        created_at: r.created_at
+      }));
+      
+      setAllReviews(mappedReviews);
+
+      // Fetch selected reviews for this widget from widget_reviews
       const { data: widgetReviews, error: widgetReviewsError } = await supabase
         .from("widget_reviews")
-        .select("*")
+        .select(
+          "review_id, review_content, first_name, last_name, reviewer_role, platform, created_at, star_rating, photo_url"
+        )
         .eq("widget_id", widgetId)
         .order("order_index", { ascending: true });
 
       if (widgetReviewsError) {
-        setReviewError("Failed to load widget reviews: " + widgetReviewsError.message);
+        setSelectedReviews([]);
+        setEditedReviews({});
+        setEditedNames({});
+        setEditedRoles({});
+        setEditedRatings({});
+        setPhotoUploads({});
+        setLoadingReviews(false);
         return;
       }
-
-      // Map widget reviews to full review data and set up edited states
-      const selectedReviewsData = (widgetReviews || []).map(widgetReview => {
-        const fullReview = reviews?.find(r => r.id === widgetReview.review_id);
-        if (fullReview) {
-          // Initialize edited states
-          setEditedReviews(prev => ({
-            ...prev,
-            [widgetReview.review_id]: widgetReview.review_content || fullReview.review_content || "",
-          }));
-          setEditedNames(prev => ({
-            ...prev,
-            [widgetReview.review_id]: `${widgetReview.first_name || fullReview.first_name || ''} ${widgetReview.last_name || fullReview.last_name || ''}`.trim(),
-          }));
-          setEditedRoles(prev => ({
-            ...prev,
-            [widgetReview.review_id]: widgetReview.reviewer_role || fullReview.reviewer_role || "",
-          }));
-          setEditedRatings(prev => ({
-            ...prev,
-            [widgetReview.review_id]: widgetReview.star_rating ?? fullReview.star_rating ?? null,
-          }));
-          
-          // Load existing photo URLs
-          if (widgetReview.photo_url) {
-            setPhotoUploads(prev => ({
-              ...prev,
-              [widgetReview.review_id]: widgetReview.photo_url
-            }));
-          }
-          
-          return {
-            ...fullReview,
-            review_id: widgetReview.review_id,
-            review_content: widgetReview.review_content || fullReview.review_content,
-            first_name: widgetReview.first_name || fullReview.first_name,
-            last_name: widgetReview.last_name || fullReview.last_name,
-            reviewer_role: widgetReview.reviewer_role || fullReview.reviewer_role,
-            star_rating: widgetReview.star_rating ?? fullReview.star_rating,
-            platform: widgetReview.platform || fullReview.platform,
-          };
+      
+      setSelectedReviews(widgetReviews || []);
+      
+      // Set edited fields to match the widget's current reviews
+      const editedReviewsObj: { [id: string]: string } = {};
+      const editedNamesObj: { [id: string]: string } = {};
+      const editedRolesObj: { [id: string]: string } = {};
+      const editedRatingsObj: { [id: string]: number | null } = {};
+      const photoUploadsObj: { [id: string]: string } = {};
+      
+      (widgetReviews || []).forEach((r) => {
+        editedReviewsObj[r.review_id] = r.review_content;
+        editedNamesObj[r.review_id] = `${r.first_name} ${r.last_name}`;
+        editedRolesObj[r.review_id] = r.reviewer_role;
+        editedRatingsObj[r.review_id] = r.star_rating ?? null;
+        if (r.photo_url) {
+          photoUploadsObj[r.review_id] = r.photo_url;
         }
-        return null;
-      }).filter(Boolean);
-
-      setSelectedReviews(selectedReviewsData);
+      });
+      
+      setEditedReviews(editedReviewsObj);
+      setEditedNames(editedNamesObj);
+      setEditedRoles(editedRolesObj);
+      setEditedRatings(editedRatingsObj);
+      setPhotoUploads(photoUploadsObj);
+      
     } catch (error) {
       setReviewError("Failed to load reviews: " + (error as Error).message);
     } finally {
