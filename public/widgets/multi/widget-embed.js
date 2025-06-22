@@ -91,8 +91,8 @@
     }
     
     // Create curly quotes positioned correctly
-    const openingQuote = design.showQuotes ? `<span class="decorative-quote-opening" style="color: ${accentColor}; font-size: 1.5rem; font-weight: bold; line-height: 1; opacity: 0.3; margin-bottom: 0.5rem; display: block; text-align: left; width: 100%;">“</span>` : '';
-    const closingQuote = design.showQuotes ? `<span class="decorative-quote-closing" style="color: ${accentColor}; font-size: 1.5rem; font-weight: bold; line-height: 1; opacity: 0.3; position: absolute; bottom: 1rem; right: 1rem;">”</span>` : '';
+    const openingQuote = design.showQuotes ? `<span class="decorative-quote-opening" style="color: ${accentColor}; font-size: 1.5rem; font-weight: bold; line-height: 1; opacity: 0.3; margin-bottom: 0.5rem; display: block; text-align: left; width: 100%;">"</span>` : '';
+    const closingQuote = design.showQuotes ? `<span class="decorative-quote-closing" style="color: ${accentColor}; font-size: 1.5rem; font-weight: bold; line-height: 1; opacity: 0.3; position: absolute; bottom: 1rem; right: 1rem;">"</span>` : '';
     
     const starsHTML = review.star_rating ? `<div class="stars-row" style="margin-bottom: 0.75rem;">${renderStars(review.star_rating)}</div>` : '';
     const dateHTML = design.showRelativeDate && review.created_at ? `<div class="reviewer-date" style="font-size: 0.875rem; color: ${roleColor}; margin-top: 0.5rem;">${getRelativeTime(review.created_at)}</div>` : '';
@@ -365,6 +365,48 @@
   window.PromptReviews.initializeWidget = initializeWidget;
   window.PromptReviews.createCarouselHTML = createCarouselHTML;
   window.PromptReviews.initializeCarousel = initializeCarousel;
+
+  // Auto-initialize widgets with data-widget-id
+  function autoInitializeWidgets() {
+    console.log('🔍 Auto-initializing widgets...');
+    const widgets = document.querySelectorAll('[data-widget-id]');
+    console.log(`Found ${widgets.length} widgets to initialize`);
+    
+    widgets.forEach(widget => {
+      const widgetId = widget.getAttribute('data-widget-id');
+      console.log(`🎯 Initializing widget: ${widgetId}`);
+      
+      // Fetch widget data from API
+      fetch(`/api/widgets/${widgetId}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log(`✅ Widget data loaded for ${widgetId}:`, data);
+          if (data.reviews && data.design) {
+            initializeWidget(widget.id, data.reviews, data.design, data.businessSlug || 'default');
+          } else {
+            console.error(`❌ Invalid widget data for ${widgetId}:`, data);
+            widget.innerHTML = '<div style="text-align: center; padding: 2rem; color: #666;">Widget data not available.</div>';
+          }
+        })
+        .catch(error => {
+          console.error(`❌ Failed to load widget data for ${widgetId}:`, error);
+          widget.innerHTML = '<div style="text-align: center; padding: 2rem; color: #666;">Failed to load widget.</div>';
+        });
+    });
+  }
+
+  // Initialize widgets when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', autoInitializeWidgets);
+  } else {
+    // DOM is already ready
+    autoInitializeWidgets();
+  }
 
   console.log('✅ PromptReviews Multi-Widget loaded');
 
