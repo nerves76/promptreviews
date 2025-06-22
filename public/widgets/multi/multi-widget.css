@@ -233,17 +233,17 @@
 .pr-multi-widget.swiper-initialized .swiper-button-next {
     width: 40px;
     height: 40px;
-    background: rgba(255,255,255,0.95);
+    background: var(--pr-card-bg, #fff);
+    border: var(--pr-card-border, 2px solid #cccccc);
     border-radius: 50%;
     display: flex !important;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    border: none;
+    box-shadow: var(--pr-card-shadow, 0 4px 32px rgba(34,34,34,0.2) inset);
     font-size: 18px;
     font-weight: bold;
-    color: #333;
+    color: var(--pr-text-primary, #333);
     transition: all 0.2s ease;
     margin: 0;
     position: static;
@@ -252,7 +252,7 @@
 
 .pr-multi-widget.swiper-initialized .swiper-button-prev:hover,
 .pr-multi-widget.swiper-initialized .swiper-button-next:hover {
-    background: rgba(255,255,255,1) !important;
+    background: var(--pr-card-bg, #fff) !important;
     transform: scale(1.1);
 }
 
@@ -263,17 +263,21 @@
 }
 
 .pr-multi-widget.swiper-initialized .swiper-button-prev::after {
-    content: '‹';
-    font-size: 24px;
-    font-weight: bold;
-    color: #333;
+    content: '';
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 6px 8px 6px 0;
+    border-color: transparent var(--pr-text-primary, #333) transparent transparent;
 }
 
 .pr-multi-widget.swiper-initialized .swiper-button-next::after {
-    content: '›';
-    font-size: 24px;
-    font-weight: bold;
-    color: #333;
+    content: '';
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 6px 0 6px 8px;
+    border-color: transparent transparent transparent var(--pr-text-primary, #333);
 }
 
 .pr-multi-widget.swiper-initialized .swiper-pagination-bullet {
@@ -299,17 +303,20 @@
 
 .pr-multi-widget .submit-review-button {
     display: inline-block;
-    background: var(--pr-accent-color, #6a5acd);
-    color: white;
+    background: var(--pr-card-bg, #fff);
+    color: var(--pr-text-primary, #22223b);
     padding: 12px 24px;
-    border-radius: 8px;
+    border: var(--pr-card-border, 2px solid #cccccc);
+    border-radius: var(--pr-card-radius, 16px);
+    box-shadow: var(--pr-card-shadow, 0 4px 32px rgba(34,34,34,0.2) inset);
     text-decoration: none;
     font-weight: 600;
-    transition: background-color 0.3s ease;
+    transition: all 0.3s ease;
 }
 
 .pr-multi-widget .submit-review-button:hover {
-    background: #5a4acd;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 40px rgba(34,34,34,0.3) inset;
 }
 
 #promptreviews-widget.pr-multi-widget.swiper-initialized .swiper-pagination {
@@ -354,18 +361,40 @@
 .pr-prev-btn,
 .pr-next-btn {
     cursor: pointer;
-    padding: 8px 16px;
-    background-color: #f1f1f1;
-    border: none;
-    border-radius: 4px;
-    font-size: 16px;
-    font-weight: bold;
-    transition: background-color 0.2s ease;
+    width: 40px;
+    height: 40px;
+    background: var(--pr-card-bg, #fff);
+    border: var(--pr-card-border, 2px solid #cccccc);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--pr-card-shadow, 0 4px 32px rgba(34,34,34,0.2) inset);
+    transition: all 0.2s ease;
+    position: relative;
 }
 
 .pr-prev-btn:hover,
 .pr-next-btn:hover {
-    background-color: #e0e0e0;
+    transform: scale(1.1);
+}
+
+.pr-prev-btn::after {
+    content: '';
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 6px 8px 6px 0;
+    border-color: transparent var(--pr-text-primary, #333) transparent transparent;
+}
+
+.pr-next-btn::after {
+    content: '';
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 6px 0 6px 8px;
+    border-color: transparent transparent transparent var(--pr-text-primary, #333);
 }
 
 .pr-dots-container {
@@ -397,17 +426,20 @@
 
 .pr-submit-btn {
     display: inline-block;
-    background: #6a5acd;
-    color: white;
+    background: var(--pr-card-bg, #fff);
+    color: var(--pr-text-primary, #22223b);
     padding: 12px 24px;
-    border-radius: 8px;
+    border: var(--pr-card-border, 2px solid #cccccc);
+    border-radius: var(--pr-card-radius, 16px);
+    box-shadow: var(--pr-card-shadow, 0 4px 32px rgba(34,34,34,0.2) inset);
     text-decoration: none;
     font-weight: 600;
-    transition: background-color 0.3s ease;
+    transition: all 0.3s ease;
 }
 
 .pr-submit-btn:hover {
-    background: #5a4acd;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 40px rgba(34,34,34,0.3) inset;
 }
 
 /* Responsive Design */

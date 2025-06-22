@@ -162,6 +162,37 @@
       `<button class="pr-dot" data-index="${i}"></button>`
     ).join('');
     
+    // Create shared button styles based on design
+    const buttonStyle = {
+      backgroundColor: hexToRgba(design.bgColor || '#ffffff', design.bgOpacity || 1),
+      border: design.border ? `${design.borderWidth || 2}px solid ${design.borderColor || '#cccccc'}` : 'none',
+      borderRadius: `${design.borderRadius || 16}px`,
+      boxShadow: design.shadow ? `inset 0 0 40px ${hexToRgba(design.shadowColor || '#000000', design.shadowIntensity || 0.2)}` : 'none',
+      color: design.textColor || '#22223b',
+    };
+
+    const buttonStyleString = Object.entries(buttonStyle)
+      .map(([key, value]) => `${key.replace(/([A-Z])/g, '-$1').toLowerCase()}:${value};`)
+      .join('');
+
+    // Arrow button styles (round with solid triangles)
+    const arrowButtonStyle = {
+      ...buttonStyle,
+      width: '40px',
+      height: '40px',
+      borderRadius: '50%',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      cursor: 'pointer',
+      transition: 'all 0.2s ease',
+      position: 'relative',
+    };
+
+    const arrowButtonStyleString = Object.entries(arrowButtonStyle)
+      .map(([key, value]) => `${key.replace(/([A-Z])/g, '-$1').toLowerCase()}:${value};`)
+      .join('');
+    
     return `
       <div class="pr-carousel-container" style="position: relative;">
         <div class="pr-carousel-track" style="display: flex; transition: transform 0.5s ease;">
@@ -169,13 +200,17 @@
         </div>
       </div>
       <div class="pr-carousel-controls" style="text-align: center; margin-top: 1rem;">
-        <button class="pr-prev-btn">&lt;</button>
+        <button class="pr-prev-btn" style="${arrowButtonStyleString}">
+          <div style="width: 0; height: 0; border-style: solid; border-width: 6px 8px 6px 0; border-color: transparent ${design.textColor || '#333'} transparent transparent;"></div>
+        </button>
         <div class="pr-dots-container" style="display: inline-block; margin: 0 10px;">
           ${dotsHTML}
         </div>
-        <button class="pr-next-btn">&gt;</button>
+        <button class="pr-next-btn" style="${arrowButtonStyleString}">
+          <div style="width: 0; height: 0; border-style: solid; border-width: 6px 0 6px 8px; border-color: transparent transparent transparent ${design.textColor || '#333'};"></div>
+        </button>
       </div>
-      ${design.showSubmitReviewButton ? `<div class="pr-submit-review-container" style="text-align: center; margin-top: 1rem;"><a href="/r/${businessSlug}" target="_blank" class="pr-submit-btn">Submit a Review</a></div>` : ''}
+      ${design.showSubmitReviewButton ? `<div class="pr-submit-review-container" style="text-align: center; margin-top: 1rem;"><a href="/r/${businessSlug}" target="_blank" class="pr-submit-btn" style="${buttonStyleString} padding: 12px 24px; text-decoration: none; font-weight: 600; transition: all 0.3s ease;">Submit a Review</a></div>` : ''}
     `;
   }
 
