@@ -50,6 +50,12 @@ export async function GET(
       return NextResponse.json({ error: 'Failed to fetch reviews' }, { status: 500 });
     }
 
+    // Add photo_url field to each review (since the column doesn't exist yet)
+    const reviewsWithPhotoUrl = (reviews || []).map(review => ({
+      ...review,
+      photo_url: review.photo_url || null
+    }));
+
     // Fetch the universal prompt page slug for the business
     let businessSlug = null;
     if (widget.account_id) {
@@ -71,7 +77,7 @@ export async function GET(
     const response = {
       ...widget,
       design: widget.theme, // Map theme to design for backward compatibility
-      reviews: reviews || [],
+      reviews: reviewsWithPhotoUrl,
       businessSlug: businessSlug,
     };
 

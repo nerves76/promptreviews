@@ -201,6 +201,14 @@
     // Check if review has a photo
     const hasPhoto = review.photo_url && review.photo_url.trim() !== '';
     
+    // Debug logging
+    console.log('🔍 PhotoWidget: Review photo check:', {
+      reviewId: review.id,
+      photoUrl: review.photo_url,
+      hasPhoto: hasPhoto,
+      reviewData: review
+    });
+    
     // Calculate background color with opacity
     const bgColor = design.bgColor || '#ffffff';
     const bgOpacity = design.bgOpacity !== undefined ? design.bgOpacity : 1;
