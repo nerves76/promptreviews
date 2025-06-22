@@ -165,8 +165,16 @@
     // Recalculate items per view on each update for responsiveness
     state.itemsPerView = calculateItemsPerView(widgetId);
     
-    const offset = -state.currentIndex * (100 / state.itemsPerView);
-    track.style.transform = `translateX(${offset}%)`;
+    // Use precise pixel values for transform to account for gaps
+    const firstItem = widgetElement.querySelector('.pr-carousel-item');
+    if (!firstItem) return; // Can't calculate transform without an item
+
+    const gapStyle = window.getComputedStyle(track).gap;
+    const gap = parseFloat(gapStyle) || 16; // Default fallback for safety
+
+    const itemTotalWidth = firstItem.offsetWidth + gap;
+    const offset = -state.currentIndex * itemTotalWidth;
+    track.style.transform = `translateX(${offset}px)`;
     
     updateDots(widgetId);
     updateArrowButtons(widgetId);
