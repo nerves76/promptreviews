@@ -60,7 +60,6 @@
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
-    justify-content: center; /* Center content vertically */
     width: 100%;
     text-align: center;
     flex-grow: 1; 
@@ -68,11 +67,11 @@
 }
   
 .pr-single-widget .pr-single-review-content {
-    /* flex-grow removed to allow vertical centering */
+    flex-grow: 1; /* Ensures the text content area grows, pushing footer down */
 }
   
 .pr-single-widget .pr-single-reviewer-details {
-    /* margin-top: auto removed to allow vertical centering */
+    margin-top: auto; /* Pushes details to the bottom of the card */
 }
   
 /* --- Other existing styles below --- */
