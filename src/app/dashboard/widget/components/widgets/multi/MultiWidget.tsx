@@ -24,21 +24,35 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
   // Use the passed design prop if available, otherwise fall back to the widget's saved theme
   const currentDesign = design || data.theme || {};
   const containerRef = useRef<HTMLDivElement>(null);
+  const retryCountRef = useRef<number>(0);
+  const maxRetries = 10;
 
   useEffect(() => {
+    console.log('🎯 MultiWidget: Component mounted with data:', { 
+      widgetId: data.id,
+      widgetType: data.widget_type,
+      reviewsCount: reviews?.length, 
+      design: currentDesign, 
+      slug: slug 
+    });
+    
+    // Add a cleanup flag to prevent initialization after unmount
     let isMounted = true;
     
     // Load the CSS if not already loaded
     const loadWidgetCSS = (): Promise<void> => {
       if (document.querySelector('link[href="/widgets/multi/multi-widget.css"]')) {
+        console.log('✅ MultiWidget: CSS already loaded');
         return Promise.resolve();
       }
 
+      console.log('📥 MultiWidget: Loading CSS from /widgets/multi/multi-widget.css...');
       return new Promise<void>((resolve, reject) => {
         const link = document.createElement('link');
         link.rel = 'stylesheet';
         link.href = `/widgets/multi/multi-widget.css?v=${new Date().getTime()}`;
         link.onload = () => {
+          console.log('✅ MultiWidget: CSS loaded successfully');
           resolve();
         };
         link.onerror = (error) => {
@@ -51,18 +65,23 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
     
     // Load the widget script if not already loaded
     const loadWidgetScript = (): Promise<void> => {
-      if (window.PromptReviews && (window.PromptReviews.initializeWidget || window.PromptReviews.renderMultiWidget)) {
+      if (window.PromptReviews?.initializeWidget) {
+        console.log('✅ MultiWidget: Widget script already loaded');
         return Promise.resolve();
       }
 
+      console.log('📥 MultiWidget: Loading widget script from /widgets/multi/widget-embed.js...');
       return new Promise<void>((resolve, reject) => {
         const script = document.createElement('script');
         script.src = `/widgets/multi/widget-embed.js?v=${new Date().getTime()}`;
         script.onload = () => {
-          // Add a small delay to ensure the script has executed and exposed the function
+          console.log('✅ MultiWidget: Widget script loaded successfully');
+          // Wait a bit for the script to initialize
           setTimeout(() => {
+            console.log('🔧 MultiWidget: Available functions:', Object.keys(window.PromptReviews || {}));
+            console.log('🔧 MultiWidget: initializeWidget function:', typeof window.PromptReviews?.initializeWidget);
             resolve();
-          }, 200);
+          }, 100);
         };
         script.onerror = (error) => {
           console.error('❌ MultiWidget: Failed to load widget script:', error);
@@ -74,44 +93,87 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
 
     const initializeWidget = async () => {
       try {
-        await Promise.all([loadWidgetCSS(), loadWidgetScript()]);
-        // Add a small delay to ensure the script has executed
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-        // Retry mechanism for initializeWidget function
-        let retryCount = 0;
-        const maxRetries = 10;
-        
-        while ((!window.PromptReviews?.initializeWidget || !containerRef.current) && retryCount < maxRetries) {
-          await new Promise(resolve => setTimeout(resolve, 100));
-          retryCount++;
+        // Check if component is still mounted before proceeding
+        if (!isMounted) {
+          console.log('🛑 MultiWidget: Component unmounted, skipping initialization');
+          return;
         }
         
-        if (isMounted && containerRef.current && window.PromptReviews && window.PromptReviews.initializeWidget) {
+        console.log('🚀 MultiWidget: Starting initialization...');
+        await Promise.all([loadWidgetCSS(), loadWidgetScript()]);
+        
+        // Check again after loading dependencies
+        if (!isMounted) {
+          console.log('🛑 MultiWidget: Component unmounted after loading dependencies');
+          return;
+        }
+        
+        // Add a small delay to ensure the script is fully initialized
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
+        // Final check before initialization
+        if (!isMounted) {
+          console.log('🛑 MultiWidget: Component unmounted before initialization');
+          return;
+        }
+        
+        console.log('🔍 MultiWidget: Checking dependencies...');
+        console.log('🔍 MultiWidget: Container ref:', !!containerRef.current);
+        console.log('🔍 MultiWidget: Container ID:', containerRef.current?.id);
+        console.log('🔍 MultiWidget: PromptReviews:', !!window.PromptReviews);
+        console.log('🔍 MultiWidget: initializeWidget function:', !!window.PromptReviews?.initializeWidget);
+        console.log('🔍 MultiWidget: Reviews:', reviews);
+        console.log('🔍 MultiWidget: Design:', currentDesign);
+        
+        if (containerRef.current && window.PromptReviews?.initializeWidget) {
+          console.log('🚀 MultiWidget: Using initializeWidget API');
           window.PromptReviews.initializeWidget(
             containerRef.current.id,
             reviews,
             currentDesign,
             slug || 'example-business'
           );
+          console.log('✅ MultiWidget: Widget initialization completed');
         } else {
-          // Only log error if component is still mounted and we actually have data to display
-          if (isMounted && reviews && reviews.length > 0) {
-            console.error('❌ MultiWidget: Missing dependencies for initialization.');
+          console.error('❌ MultiWidget: Missing dependencies for initialization.');
+          console.log('🔍 MultiWidget: Debug info:', {
+            containerRef: !!containerRef.current,
+            PromptReviews: !!window.PromptReviews,
+            initializeWidget: !!window.PromptReviews?.initializeWidget,
+            retryCount: retryCountRef.current
+          });
+          
+          // Retry mechanism
+          if (retryCountRef.current < maxRetries && isMounted) {
+            retryCountRef.current++;
+            console.log(`🔄 MultiWidget: Retrying initialization (${retryCountRef.current}/${maxRetries})...`);
+            setTimeout(initializeWidget, 500);
+          } else {
+            console.error('❌ MultiWidget: Max retries reached, giving up');
           }
         }
       } catch (error) {
-        // Only log error if component is still mounted
-        if (isMounted) {
-          console.error('❌ MultiWidget: Failed to initialize widget:', error);
+        console.error('❌ MultiWidget: Failed to initialize widget:', error);
+        
+        // Retry on error
+        if (retryCountRef.current < maxRetries && isMounted) {
+          retryCountRef.current++;
+          console.log(`🔄 MultiWidget: Retrying after error (${retryCountRef.current}/${maxRetries})...`);
+          setTimeout(initializeWidget, 1000);
         }
       }
     };
 
-    if (reviews && reviews.length > 0 && currentDesign && isMounted) {
+    if (reviews && currentDesign) {
+      retryCountRef.current = 0; // Reset retry count
       initializeWidget();
+    } else {
+      console.log('⚠️ MultiWidget: Missing reviews or design data:', { reviews: !!reviews, design: !!currentDesign });
     }
+
+    // Cleanup function
     return () => {
+      console.log('🧹 MultiWidget: Component unmounting, setting cleanup flag');
       isMounted = false;
     };
   }, [reviews, currentDesign, slug, data.id, data.widget_type]);

@@ -36,6 +36,9 @@ const PhotoWidget: React.FC<PhotoWidgetProps> = ({ data, design }) => {
       slug: slug 
     });
     
+    // Add a cleanup flag to prevent initialization after unmount
+    let isMounted = true;
+    
     // Load the CSS if not already loaded
     const loadWidgetCSS = (): Promise<void> => {
       if (document.querySelector('link[href="/widgets/photo/photo-widget.css"]')) {
@@ -90,11 +93,29 @@ const PhotoWidget: React.FC<PhotoWidgetProps> = ({ data, design }) => {
 
     const initializeWidget = async () => {
       try {
+        // Check if component is still mounted before proceeding
+        if (!isMounted) {
+          console.log('🛑 PhotoWidget: Component unmounted, skipping initialization');
+          return;
+        }
+        
         console.log('🚀 PhotoWidget: Starting initialization...');
         await Promise.all([loadWidgetCSS(), loadWidgetScript()]);
         
+        // Check again after loading dependencies
+        if (!isMounted) {
+          console.log('🛑 PhotoWidget: Component unmounted after loading dependencies');
+          return;
+        }
+        
         // Add a small delay to ensure the script is fully initialized
         await new Promise(resolve => setTimeout(resolve, 200));
+        
+        // Final check before initialization
+        if (!isMounted) {
+          console.log('🛑 PhotoWidget: Component unmounted before initialization');
+          return;
+        }
         
         console.log('🔍 PhotoWidget: Checking dependencies...');
         console.log('🔍 PhotoWidget: Container ref:', !!containerRef.current);
@@ -123,7 +144,7 @@ const PhotoWidget: React.FC<PhotoWidgetProps> = ({ data, design }) => {
           });
           
           // Retry mechanism
-          if (retryCountRef.current < maxRetries) {
+          if (retryCountRef.current < maxRetries && isMounted) {
             retryCountRef.current++;
             console.log(`🔄 PhotoWidget: Retrying initialization (${retryCountRef.current}/${maxRetries})...`);
             setTimeout(initializeWidget, 500);
@@ -135,7 +156,7 @@ const PhotoWidget: React.FC<PhotoWidgetProps> = ({ data, design }) => {
         console.error('❌ PhotoWidget: Failed to initialize widget:', error);
         
         // Retry on error
-        if (retryCountRef.current < maxRetries) {
+        if (retryCountRef.current < maxRetries && isMounted) {
           retryCountRef.current++;
           console.log(`🔄 PhotoWidget: Retrying after error (${retryCountRef.current}/${maxRetries})...`);
           setTimeout(initializeWidget, 1000);
@@ -149,6 +170,12 @@ const PhotoWidget: React.FC<PhotoWidgetProps> = ({ data, design }) => {
     } else {
       console.log('⚠️ PhotoWidget: Missing reviews or design data:', { reviews: !!reviews, design: !!currentDesign });
     }
+
+    // Cleanup function
+    return () => {
+      console.log('🧹 PhotoWidget: Component unmounting, setting cleanup flag');
+      isMounted = false;
+    };
   }, [reviews, currentDesign, slug, data.id, data.widget_type]);
 
   if (!reviews || !currentDesign) {

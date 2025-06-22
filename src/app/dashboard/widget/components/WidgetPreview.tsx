@@ -27,6 +27,14 @@ const WIDGET_COMPONENTS: Record<string, React.ComponentType<any>> = {
   photo: PhotoWidget,
 };
 
+// Debug: Log the available components
+console.log('🔧 WidgetPreview: Available widget components:', {
+  multi: !!MultiWidget,
+  single: !!SingleWidget,
+  photo: !!PhotoWidget,
+  components: Object.keys(WIDGET_COMPONENTS)
+});
+
 interface WidgetPreviewProps {
   widget: any;
   design?: DesignState;
@@ -37,12 +45,20 @@ export function WidgetPreview({ widget, design }: WidgetPreviewProps) {
 
   useEffect(() => {
     console.log('🔍 WidgetPreview: Received widget data:', widget);
+    console.log('🔍 WidgetPreview: Widget type:', widget?.widget_type);
+    console.log('🔍 WidgetPreview: Widget type type:', typeof widget?.widget_type);
+    console.log('🔍 WidgetPreview: Available components:', Object.keys(WIDGET_COMPONENTS));
+    console.log('🔍 WidgetPreview: Component for this type:', WIDGET_COMPONENTS[widget?.widget_type as string]);
     
     if (widget?.widget_type && WIDGET_COMPONENTS[widget.widget_type as string]) {
       console.log('✅ WidgetPreview: Found widget component for type:', widget.widget_type);
+      console.log('✅ WidgetPreview: Selected component:', WIDGET_COMPONENTS[widget.widget_type as string].name);
       setWidgetComponent(() => WIDGET_COMPONENTS[widget.widget_type as string]);
     } else {
       console.log('❌ WidgetPreview: No widget component found for type:', widget?.widget_type);
+      console.log('❌ WidgetPreview: Available types:', Object.keys(WIDGET_COMPONENTS));
+      console.log('❌ WidgetPreview: Widget type exists:', !!widget?.widget_type);
+      console.log('❌ WidgetPreview: Component exists for type:', !!WIDGET_COMPONENTS[widget?.widget_type as string]);
       setWidgetComponent(null);
     }
   }, [widget]);
@@ -54,6 +70,7 @@ export function WidgetPreview({ widget, design }: WidgetPreviewProps) {
   }
 
   console.log('🚀 WidgetPreview: Rendering widget component with data:', widget, 'and design:', design);
+  console.log('🚀 WidgetPreview: Component being rendered:', WidgetComponent.name);
   
   // Pass both widget data and current design to the component
   return <WidgetComponent data={widget} design={design} />;

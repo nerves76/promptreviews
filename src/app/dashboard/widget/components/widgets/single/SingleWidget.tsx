@@ -36,6 +36,9 @@ const SingleWidget: React.FC<SingleWidgetProps> = ({ data, design }) => {
       slug: slug 
     });
     
+    // Add a cleanup flag to prevent initialization after unmount
+    let isMounted = true;
+    
     // Load the CSS if not already loaded
     const loadWidgetCSS = (): Promise<void> => {
       if (document.querySelector('link[href="/widgets/single/single-widget.css"]')) {
@@ -76,6 +79,7 @@ const SingleWidget: React.FC<SingleWidgetProps> = ({ data, design }) => {
           // Wait a bit for the script to initialize
           setTimeout(() => {
             console.log('🔧 SingleWidget: Available functions:', Object.keys(window.PromptReviewsSingle || {}));
+            console.log('🔧 SingleWidget: initializeWidget function:', typeof window.PromptReviewsSingle?.initializeWidget);
             resolve();
           }, 100);
         };
@@ -89,10 +93,37 @@ const SingleWidget: React.FC<SingleWidgetProps> = ({ data, design }) => {
 
     const initializeWidget = async () => {
       try {
+        // Check if component is still mounted before proceeding
+        if (!isMounted) {
+          console.log('🛑 SingleWidget: Component unmounted, skipping initialization');
+          return;
+        }
+        
+        console.log('🚀 SingleWidget: Starting initialization...');
         await Promise.all([loadWidgetCSS(), loadWidgetScript()]);
+        
+        // Check again after loading dependencies
+        if (!isMounted) {
+          console.log('🛑 SingleWidget: Component unmounted after loading dependencies');
+          return;
+        }
         
         // Add a small delay to ensure the script is fully initialized
         await new Promise(resolve => setTimeout(resolve, 200));
+        
+        // Final check before initialization
+        if (!isMounted) {
+          console.log('🛑 SingleWidget: Component unmounted before initialization');
+          return;
+        }
+        
+        console.log('🔍 SingleWidget: Checking dependencies...');
+        console.log('🔍 SingleWidget: Container ref:', !!containerRef.current);
+        console.log('🔍 SingleWidget: Container ID:', containerRef.current?.id);
+        console.log('🔍 SingleWidget: PromptReviewsSingle:', !!window.PromptReviewsSingle);
+        console.log('🔍 SingleWidget: initializeWidget function:', !!window.PromptReviewsSingle?.initializeWidget);
+        console.log('🔍 SingleWidget: Reviews:', reviews);
+        console.log('🔍 SingleWidget: Design:', currentDesign);
         
         if (containerRef.current && window.PromptReviewsSingle?.initializeWidget) {
           console.log('🚀 SingleWidget: Using initializeWidget API');
@@ -102,6 +133,7 @@ const SingleWidget: React.FC<SingleWidgetProps> = ({ data, design }) => {
             currentDesign,
             slug || 'example-business'
           );
+          console.log('✅ SingleWidget: Widget initialization completed');
         } else {
           console.error('❌ SingleWidget: Missing dependencies for initialization.');
           console.log('🔍 SingleWidget: Debug info:', {
@@ -112,7 +144,7 @@ const SingleWidget: React.FC<SingleWidgetProps> = ({ data, design }) => {
           });
           
           // Retry mechanism
-          if (retryCountRef.current < maxRetries) {
+          if (retryCountRef.current < maxRetries && isMounted) {
             retryCountRef.current++;
             console.log(`🔄 SingleWidget: Retrying initialization (${retryCountRef.current}/${maxRetries})...`);
             setTimeout(initializeWidget, 500);
@@ -124,7 +156,7 @@ const SingleWidget: React.FC<SingleWidgetProps> = ({ data, design }) => {
         console.error('❌ SingleWidget: Failed to initialize widget:', error);
         
         // Retry on error
-        if (retryCountRef.current < maxRetries) {
+        if (retryCountRef.current < maxRetries && isMounted) {
           retryCountRef.current++;
           console.log(`🔄 SingleWidget: Retrying after error (${retryCountRef.current}/${maxRetries})...`);
           setTimeout(initializeWidget, 1000);
@@ -135,7 +167,15 @@ const SingleWidget: React.FC<SingleWidgetProps> = ({ data, design }) => {
     if (reviews && currentDesign) {
       retryCountRef.current = 0; // Reset retry count
       initializeWidget();
+    } else {
+      console.log('⚠️ SingleWidget: Missing reviews or design data:', { reviews: !!reviews, design: !!currentDesign });
     }
+
+    // Cleanup function
+    return () => {
+      console.log('🧹 SingleWidget: Component unmounting, setting cleanup flag');
+      isMounted = false;
+    };
   }, [reviews, currentDesign, slug, data.id, data.widget_type]);
 
   if (!reviews || !currentDesign) {
