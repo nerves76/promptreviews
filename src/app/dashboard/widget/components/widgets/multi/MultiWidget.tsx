@@ -1,20 +1,35 @@
 import React, { useEffect, useRef } from 'react';
-import { WidgetData } from './index';
+import { WidgetData, DesignState } from './index';
 
 // Remove the incorrect CSS import - we'll load it dynamically
 // import '../../../../../../../public/widgets/multi/multi-widget.css';
 
-const MultiWidget: React.FC<{ data: any }> = ({ data }) => {
-  const { design, reviews, slug, widget_type, id } = data;
+interface MultiWidgetProps {
+  data: any;
+  design?: DesignState;
+}
 
+const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
+  // Transform the database widget data to the expected format
+  const widgetData: WidgetData = {
+    id: data.id,
+    type: data.widget_type as 'multi' | 'single' | 'photo',
+    design: data.theme || {},
+    reviews: data.reviews || [],
+    slug: data.slug || 'example-business'
+  };
+
+  const { reviews, slug } = widgetData;
+  // Use the passed design prop if available, otherwise fall back to the widget's saved theme
+  const currentDesign = design || data.theme || {};
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     console.log('🎯 MultiWidget: Component mounted with data:', { 
-      widgetId: id,
-      widgetType: widget_type,
+      widgetId: data.id,
+      widgetType: data.widget_type,
       reviewsCount: reviews?.length, 
-      design: design, 
+      design: currentDesign, 
       slug: slug 
     });
     
@@ -29,9 +44,7 @@ const MultiWidget: React.FC<{ data: any }> = ({ data }) => {
       return new Promise<void>((resolve, reject) => {
         const link = document.createElement('link');
         link.rel = 'stylesheet';
-        const cssUrl = `/widgets/multi/multi-widget.css?v=${Date.now()}-${Math.random()}`;
-        link.href = cssUrl;
-        console.log('🔗 MultiWidget: Loading CSS from URL:', cssUrl);
+        link.href = `/widgets/multi/multi-widget.css?v=${new Date().getTime()}`;
         link.onload = () => {
           console.log('✅ MultiWidget: CSS loaded successfully');
           resolve();
@@ -54,7 +67,7 @@ const MultiWidget: React.FC<{ data: any }> = ({ data }) => {
       console.log('📥 MultiWidget: Loading widget script from /widgets/multi/widget-embed.js...');
       return new Promise<void>((resolve, reject) => {
         const script = document.createElement('script');
-        script.src = `/widgets/multi/widget-embed.js?v=${Date.now()}-${Math.random()}`;
+        script.src = `/widgets/multi/widget-embed.js?v=${new Date().getTime()}`;
         script.onload = () => {
           console.log('✅ MultiWidget: Widget script loaded successfully');
           console.log('🔧 MultiWidget: Available functions:', Object.keys(window.PromptReviews || {}));
@@ -76,7 +89,7 @@ const MultiWidget: React.FC<{ data: any }> = ({ data }) => {
         if (containerRef.current && window.PromptReviews) {
           console.log('🎯 MultiWidget: Initializing widget in container:', containerRef.current.id);
           console.log('📊 MultiWidget: Reviews data:', reviews);
-          console.log('🎨 MultiWidget: Design data:', design);
+          console.log('🎨 MultiWidget: Design data:', currentDesign);
           
           // Try the new API first
           if (window.PromptReviews.initializeWidget) {
@@ -84,7 +97,7 @@ const MultiWidget: React.FC<{ data: any }> = ({ data }) => {
             window.PromptReviews.initializeWidget(
               containerRef.current.id,
               reviews,
-              design,
+              currentDesign,
               slug || 'example-business'
             );
             console.log('✅ MultiWidget: Widget initialization completed');
@@ -94,7 +107,7 @@ const MultiWidget: React.FC<{ data: any }> = ({ data }) => {
             console.log('🔄 MultiWidget: Using renderMultiWidget API (fallback)');
             window.PromptReviews.renderMultiWidget(
               containerRef.current,
-              { reviews, design, businessSlug: slug || 'example-business' }
+              { reviews, design: currentDesign, businessSlug: slug || 'example-business' }
             );
             console.log('✅ MultiWidget: Widget initialization completed (fallback)');
           } else {
@@ -111,15 +124,15 @@ const MultiWidget: React.FC<{ data: any }> = ({ data }) => {
       }
     };
 
-    if (reviews && design) {
+    if (reviews && currentDesign) {
       console.log('🎯 MultiWidget: Starting widget initialization...');
       initializeWidget();
     } else {
-      console.log('⚠️ MultiWidget: Missing reviews or design data:', { reviews: !!reviews, design: !!design });
+      console.log('⚠️ MultiWidget: Missing reviews or design data:', { reviews: !!reviews, design: !!currentDesign });
     }
-  }, [reviews, design, slug, id, widget_type]);
+  }, [reviews, currentDesign, slug, data.id, data.widget_type]); // Added currentDesign to dependencies
 
-  if (!reviews || !design) {
+  if (!reviews || !currentDesign) {
     return <div className="text-center p-4">Loading widget data...</div>;
   }
 

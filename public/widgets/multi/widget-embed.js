@@ -33,74 +33,77 @@
     return `${years} year${years !== 1 ? 's' : ''} ago`;
   }
 
-  function hexToRgba(hex, alpha) {
-    if (!hex) return 'rgba(255,255,255,1)';
-    let r = 0, g = 0, b = 0;
-    if (hex.length == 4) {
-      r = "0x" + hex[1] + hex[1];
-      g = "0x" + hex[2] + hex[2];
-      b = "0x" + hex[3] + hex[3];
-    } else if (hex.length == 7) {
-      r = "0x" + hex[1] + hex[2];
-      g = "0x" + hex[3] + hex[4];
-      b = "0x" + hex[5] + hex[6];
+  function isColorDark(hexColor) {
+    if (!hexColor || hexColor.length < 4) return false;
+    let color = (hexColor.charAt(0) === '#') ? hexColor.substring(1) : hexColor;
+    if (color.length === 3) {
+      color = color.split('').map(char => char + char).join('');
     }
-    return `rgba(${+r},${+g},${+b},${alpha})`;
+    const r = parseInt(color.substring(0, 2), 16);
+    const g = parseInt(color.substring(2, 4), 16);
+    const b = parseInt(color.substring(4, 6), 16);
+    // Using the HSP value, determine whether the color is light or dark
+    const hsp = Math.sqrt(0.299 * (r * r) + 0.587 * (g * g) + 0.114 * (b * b));
+    return hsp < 127.5;
   }
 
   function createReviewCard(review, design) {
-    // --- Destructure design properties with fallbacks ---
-    const {
-      font = 'Inter',
-      bgColor = '#ffffff',
-      textColor = '#22223b',
-      nameTextColor,
-      roleTextColor,
-      accentColor = '#4f46e5',
-      bgOpacity = 1,
-      border = true,
-      borderWidth = 2,
-      borderColor = '#cccccc',
-      borderRadius = 16,
-      shadow = false,
-      shadowColor = '#000000',
-      shadowIntensity = 0.2,
-      showQuotes = true,
-      showRelativeDate = true,
-    } = design || {};
-
-    // --- Build Styles ---
-    const cardStyle = {
-      fontFamily: `'${font}', sans-serif`,
-      backgroundColor: hexToRgba(bgColor, bgOpacity),
-      color: textColor,
-      borderRadius: `${borderRadius}px`,
-      border: border ? `${borderWidth}px solid ${borderColor}` : 'none',
-      boxShadow: shadow ? `inset 0 0 40px ${hexToRgba(shadowColor, shadowIntensity)}` : 'none',
-      padding: '1.5rem',
-      display: 'flex',
-      flexDirection: 'column',
-      height: '100%',
-    };
-
-    const cardStyleString = Object.entries(cardStyle)
-      .map(([key, value]) => `${key.replace(/([A-Z])/g, '-$1').toLowerCase()}:${value};`)
-      .join('');
+    // Automatically set text color based on background brightness
+    const bgColor = design.bgColor || '#ffffff';
+    let textColor = design.textColor || '#22223b';
+    if (isColorDark(bgColor)) {
+      textColor = '#ffffff'; // Force white text on dark backgrounds
+    }
     
-    const quoteHTML = showQuotes ? `<span class="decorative-quote" style="color: ${accentColor}; font-size: 2rem; font-weight: bold; line-height: 1;">"</span>` : '';
+    // Use design properties with proper fallbacks
+    const nameColor = design.nameTextColor || design.nameColor || textColor;
+    const roleColor = design.roleTextColor || design.roleColor || textColor;
+    const accentColor = design.accentColor || '#4f46e5';
+    const borderRadius = design.borderRadius || 16;
+    const borderWidth = design.borderWidth || 2;
+    const borderColor = design.borderColor || '#cccccc';
+    const bgOpacity = design.bgOpacity !== undefined ? design.bgOpacity : 1;
+    const font = design.font || 'Inter';
+    
+    // Build card style with all properties
+    let cardStyle = `
+      background-color: ${bgColor};
+      color: ${textColor};
+      border-radius: ${borderRadius}px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      font-family: ${font}, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      opacity: ${bgOpacity};
+    `;
+    
+    // Add border if enabled
+    if (design.border) {
+      cardStyle += `border: ${borderWidth}px solid ${borderColor};`;
+    }
+    
+    // Add shadow/vignette if enabled
+    if (design.shadow) {
+      const shadowColor = design.shadowColor || '#222222';
+      const shadowIntensity = design.shadowIntensity || 0.2;
+      cardStyle += `box-shadow: inset 0 0 20px rgba(0, 0, 0, ${shadowIntensity});`;
+    }
+    
+    const quoteHTML = design.showQuotes ? `<span class="decorative-quote" style="color: ${accentColor}; font-size: 2rem; font-weight: bold; line-height: 1;">"</span>` : '';
     const starsHTML = review.star_rating ? `<div class="stars-row" style="margin-bottom: 0.75rem;">${renderStars(review.star_rating)}</div>` : '';
-    const dateHTML = showRelativeDate && review.created_at ? `<div class="reviewer-date" style="font-size: 0.875rem; color: ${roleTextColor || textColor}; margin-top: 0.5rem;">${getRelativeTime(review.created_at)}</div>` : '';
+    const dateHTML = design.showRelativeDate && review.created_at ? `<div class="reviewer-date" style="font-size: 0.875rem; color: ${roleColor}; margin-top: 0.5rem;">${getRelativeTime(review.created_at)}</div>` : '';
 
     return `
-      <div class="pr-review-card" style="${cardStyleString}">
+      <div class="pr-review-card" style="${cardStyle}">
         ${starsHTML}
         <div class="review-content" style="flex-grow: 1;">
           ${quoteHTML}
-          <p class="review-text" style="margin: 0; font-size: 1rem; line-height: 1.5;">${review.review_content}</p>
+          <p class="review-text" style="margin: 0; font-size: 1rem; line-height: 1.5; color: ${textColor};">${review.review_content}</p>
         </div>
         <div class="reviewer-details" style="margin-top: 1rem; text-align: left;">
-          <div class="reviewer-name" style="font-weight: bold; color: ${nameTextColor || textColor};">${review.first_name || ''} ${review.last_name || ''}</div>
-          ${review.reviewer_role ? `<div class="reviewer-role" style="font-size: 0.875rem; color: ${roleTextColor || textColor};">${review.reviewer_role}</div>` : ''}
+          <div class="reviewer-name" style="font-weight: bold; color: ${nameColor};">${review.first_name || ''} ${review.last_name || ''}</div>
+          ${review.reviewer_role ? `<div class="reviewer-role" style="font-size: 0.875rem; color: ${roleColor};">${review.reviewer_role}</div>` : ''}
           ${dateHTML}
         </div>
       </div>
@@ -162,37 +165,6 @@
       `<button class="pr-dot" data-index="${i}"></button>`
     ).join('');
     
-    // Create shared button styles based on design
-    const buttonStyle = {
-      backgroundColor: hexToRgba(design.bgColor || '#ffffff', design.bgOpacity || 1),
-      border: design.border ? `${design.borderWidth || 2}px solid ${design.borderColor || '#cccccc'}` : 'none',
-      borderRadius: `${design.borderRadius || 16}px`,
-      boxShadow: design.shadow ? `inset 0 0 40px ${hexToRgba(design.shadowColor || '#000000', design.shadowIntensity || 0.2)}` : 'none',
-      color: design.textColor || '#22223b',
-    };
-
-    const buttonStyleString = Object.entries(buttonStyle)
-      .map(([key, value]) => `${key.replace(/([A-Z])/g, '-$1').toLowerCase()}:${value};`)
-      .join('');
-
-    // Arrow button styles (round with solid triangles)
-    const arrowButtonStyle = {
-      ...buttonStyle,
-      width: '40px',
-      height: '40px',
-      borderRadius: '50%',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      cursor: 'pointer',
-      transition: 'all 0.2s ease',
-      position: 'relative',
-    };
-
-    const arrowButtonStyleString = Object.entries(arrowButtonStyle)
-      .map(([key, value]) => `${key.replace(/([A-Z])/g, '-$1').toLowerCase()}:${value};`)
-      .join('');
-    
     return `
       <div class="pr-carousel-container" style="position: relative;">
         <div class="pr-carousel-track" style="display: flex; transition: transform 0.5s ease;">
@@ -200,17 +172,13 @@
         </div>
       </div>
       <div class="pr-carousel-controls" style="text-align: center; margin-top: 1rem;">
-        <button class="pr-prev-btn" style="${arrowButtonStyleString}">
-          <div style="width: 0; height: 0; border-style: solid; border-width: 6px 8px 6px 0; border-color: transparent ${design.textColor || '#333'} transparent transparent;"></div>
-        </button>
+        <button class="pr-prev-btn">&lt;</button>
         <div class="pr-dots-container" style="display: inline-block; margin: 0 10px;">
           ${dotsHTML}
         </div>
-        <button class="pr-next-btn" style="${arrowButtonStyleString}">
-          <div style="width: 0; height: 0; border-style: solid; border-width: 6px 0 6px 8px; border-color: transparent transparent transparent ${design.textColor || '#333'};"></div>
-        </button>
+        <button class="pr-next-btn">&gt;</button>
       </div>
-      ${design.showSubmitReviewButton ? `<div class="pr-submit-review-container" style="text-align: center; margin-top: 1rem;"><a href="/r/${businessSlug}" target="_blank" class="pr-submit-btn" style="${buttonStyleString} padding: 12px 24px; text-decoration: none; font-weight: 600; transition: all 0.3s ease;">Submit a Review</a></div>` : ''}
+      ${design.showSubmitReviewButton ? `<div class="pr-submit-review-container" style="text-align: center; margin-top: 1rem;"><a href="/r/${businessSlug}" target="_blank" class="pr-submit-btn">Submit a Review</a></div>` : ''}
     `;
   }
 
@@ -235,8 +203,25 @@
 
     window.addEventListener('resize', updateCarousel);
     
+    // Auto-advance slideshow if enabled
+    let autoAdvanceInterval = null;
+    if (designData.autoAdvance && designData.slideshowSpeed) {
+      const speedMs = (designData.slideshowSpeed || 4) * 1000;
+      autoAdvanceInterval = setInterval(() => {
+        const nextIndex = (currentIndex + 1) % totalPages;
+        moveToIndex(nextIndex);
+      }, speedMs);
+    }
+    
     // Initial setup
     updateCarousel();
+    
+    // Clean up interval on page unload
+    window.addEventListener('beforeunload', () => {
+      if (autoAdvanceInterval) {
+        clearInterval(autoAdvanceInterval);
+      }
+    });
   }
 
   // Main widget initialization
