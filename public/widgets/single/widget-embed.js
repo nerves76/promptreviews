@@ -8,11 +8,11 @@
   const carouselState = {};
 
   // Initialize the widget
-  window.PromptReviews = window.PromptReviews || {};
+  window.PromptReviewsSingle = window.PromptReviewsSingle || {};
   
   // Only define initializeWidget if it doesn't already exist (to avoid conflicts with multi widget)
-  if (!window.PromptReviews.initializeWidget) {
-    window.PromptReviews.initializeWidget = function(containerId, reviews, design, businessSlug) {
+  if (!window.PromptReviewsSingle.initializeWidget) {
+    window.PromptReviewsSingle.initializeWidget = function(containerId, reviews, design, businessSlug) {
       console.log('🚀 SingleWidget: Initializing widget', { containerId, reviewsCount: reviews?.length, design });
       
       if (!reviews || reviews.length === 0) {
@@ -325,8 +325,8 @@
   }
 
   // Expose the render function for direct use
-  window.PromptReviews.renderSingleWidget = function(containerId, reviews, design, businessSlug) {
-    window.PromptReviews.initializeWidget(containerId, reviews, design, businessSlug);
+  window.PromptReviewsSingle.renderSingleWidget = function(containerId, reviews, design, businessSlug) {
+    window.PromptReviewsSingle.initializeWidget(containerId, reviews, design, businessSlug);
   };
 
   console.log('✅ SingleWidget: Widget script loaded successfully');

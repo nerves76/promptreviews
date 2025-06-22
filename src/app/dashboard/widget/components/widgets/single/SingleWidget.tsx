@@ -60,8 +60,8 @@ const SingleWidget: React.FC<SingleWidgetProps> = ({ data, design }) => {
     
     // Load the widget script if not already loaded
     const loadWidgetScript = (): Promise<void> => {
-      if (window.PromptReviews && (window.PromptReviews.initializeWidget || window.PromptReviews.renderSingleWidget)) {
-        console.log('✅ SingleWidget: Widget script already loaded, available functions:', Object.keys(window.PromptReviews));
+      if (window.PromptReviewsSingle && (window.PromptReviewsSingle.initializeWidget || window.PromptReviewsSingle.renderSingleWidget)) {
+        console.log('✅ SingleWidget: Widget script already loaded, available functions:', Object.keys(window.PromptReviewsSingle));
         return Promise.resolve();
       }
 
@@ -71,7 +71,7 @@ const SingleWidget: React.FC<SingleWidgetProps> = ({ data, design }) => {
         script.src = `/widgets/single/widget-embed.js?v=${new Date().getTime()}`;
         script.onload = () => {
           console.log('✅ SingleWidget: Widget script loaded successfully');
-          console.log('🔧 SingleWidget: Available functions:', Object.keys(window.PromptReviews || {}));
+          console.log('🔧 SingleWidget: Available functions:', Object.keys(window.PromptReviewsSingle || {}));
           resolve();
         };
         script.onerror = (error) => {
@@ -86,9 +86,9 @@ const SingleWidget: React.FC<SingleWidgetProps> = ({ data, design }) => {
       try {
         await Promise.all([loadWidgetCSS(), loadWidgetScript()]);
         
-        if (containerRef.current && window.PromptReviews && window.PromptReviews.initializeWidget) {
+        if (containerRef.current && window.PromptReviewsSingle && window.PromptReviewsSingle.initializeWidget) {
           console.log('🚀 SingleWidget: Using initializeWidget API');
-          window.PromptReviews.initializeWidget(
+          window.PromptReviewsSingle.initializeWidget(
             containerRef.current.id,
             reviews,
             currentDesign,

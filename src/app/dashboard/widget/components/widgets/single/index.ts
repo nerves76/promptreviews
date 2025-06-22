@@ -36,6 +36,16 @@ export type WidgetData = {
   slug: string;
 };
 
+// Type declaration for the single widget namespace
+declare global {
+  interface Window {
+    PromptReviewsSingle?: {
+      initializeWidget: (containerId: string, reviews: any[], design: any, businessSlug: string) => void;
+      renderSingleWidget: (containerId: string, reviews: any[], design: any, businessSlug: string) => void;
+    };
+  }
+}
+
 // Flat default design structure matching the rest of the dashboard
 export const DEFAULT_DESIGN: DesignState = {
   bgType: 'solid',
