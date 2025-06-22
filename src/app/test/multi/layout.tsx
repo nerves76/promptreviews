@@ -17,9 +17,17 @@ export default function TestLayout({
                 src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"
                 strategy="beforeInteractive"
             />
-            {/* Load our widget */}
+            {/* Load all widget scripts */}
             <Script
                 src="/widgets/multi/widget-embed.min.js"
+                strategy="beforeInteractive"
+            />
+            <Script
+                src="/widgets/single/widget-embed.min.js"
+                strategy="beforeInteractive"
+            />
+            <Script
+                src="/widgets/photo/widget-embed.min.js"
                 strategy="beforeInteractive"
             />
             {children}
