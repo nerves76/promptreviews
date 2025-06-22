@@ -315,13 +315,13 @@
 
   // Main function to initialize all widgets on the page
   async function autoInitializeWidgets() {
-    const widgets = document.querySelectorAll('[data-prompt-reviews-id]');
+    const widgets = document.querySelectorAll('[data-prompt-reviews-id], [data-widget-id]');
     if (widgets.length === 0) return;
 
     loadCSS();
 
     for (const widgetContainer of widgets) {
-      const widgetId = widgetContainer.getAttribute('data-prompt-reviews-id');
+      const widgetId = widgetContainer.getAttribute('data-prompt-reviews-id') || widgetContainer.getAttribute('data-widget-id');
       const businessSlug = widgetContainer.getAttribute('data-business-slug');
       widgetContainer.id = `pr-widget-container-${widgetId}`;
 
