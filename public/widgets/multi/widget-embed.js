@@ -364,16 +364,19 @@
     console.log(`Found ${widgets.length} widgets to initialize`);
     
     const loadCSS = () => {
-      if (document.querySelector('link[href="/widgets/multi/multi-widget.css"]')) {
+      const cssUrl = `/widgets/multi/multi-widget.css`;
+      const cacheBustedUrl = `${cssUrl}?v=${new Date().getTime()}`;
+
+      if (document.querySelector(`link[href^="${cssUrl}"]`)) {
         console.log('✅ CSS already loaded');
         return Promise.resolve();
       }
       
-      console.log('📥 Loading CSS from /widgets/multi/multi-widget.css...');
+      console.log(`📥 Loading CSS from ${cacheBustedUrl}...`);
       return new Promise((resolve, reject) => {
         const link = document.createElement('link');
         link.rel = 'stylesheet';
-        link.href = '/widgets/multi/multi-widget.css';
+        link.href = cacheBustedUrl;
         link.onload = () => {
           console.log('✅ CSS loaded successfully');
           resolve();
