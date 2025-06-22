@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from "react";
 import { getUserOrMock } from "@/utils/supabase";
 import FiveStarSpinner from "@/app/components/FiveStarSpinner";
-import { smartMergeDesign } from '../../utils/smartMergeDesign';
 import { DraggableModal } from './components/DraggableModal';
 import { WidgetEditorForm } from './components/WidgetEditorForm';
 import { ReviewManagementModal } from './components/ReviewManagementModal';
@@ -17,12 +16,14 @@ export default function WidgetList({
   onDesignChange,
   design,
   onWidgetReviewsChange,
+  onWidgetDeleted,
 }: {
   onSelectWidget?: (widget: any) => void;
   selectedWidgetId?: string;
   onDesignChange?: (design: DesignState) => void;
   design: DesignState;
   onWidgetReviewsChange?: () => void;
+  onWidgetDeleted?: (deletedWidgetId: string) => void;
 }) {
   const { widgets, loading, error, createWidget, deleteWidget, saveWidgetName, saveWidgetDesign } = useWidgets();
   const [copiedWidgetId, setCopiedWidgetId] = useState<string | null>(null);
@@ -63,6 +64,15 @@ export default function WidgetList({
   }, [selectedWidgetId]);
 
   useEffect(() => {
+    const handler = (event: CustomEvent) => {
+      const widgetId = event.detail;
+      handleDeleteWidget(widgetId);
+    };
+    window.addEventListener("deleteWidget", handler as EventListener);
+    return () => window.removeEventListener("deleteWidget", handler as EventListener);
+  }, []);
+
+  useEffect(() => {
     if (selectedWidgetId) {
       const widget = widgets.find(w => w.id === selectedWidgetId);
       if (widget?.theme && onDesignChange) {
@@ -93,6 +103,7 @@ export default function WidgetList({
     try {
       await deleteWidget(widgetId);
       if (onWidgetReviewsChange) onWidgetReviewsChange();
+      if (onWidgetDeleted) onWidgetDeleted(widgetId);
     } catch (error) {
       console.error('Error deleting widget:', error);
       alert('Failed to delete widget. Please try again.');
