@@ -118,10 +118,12 @@
   let reviewsData = [];
   let designData = {};
 
-  function calculateItemsPerView(containerWidth) {
-    const cardWidth = 320;
-    const gap = 16;
-    return Math.max(1, Math.floor(containerWidth / (cardWidth + gap)));
+  function calculateItemsPerView(container, firstItem) {
+    if (!container || !firstItem || firstItem.offsetWidth === 0) {
+      return itemsPerView;
+    }
+    // Dynamically determine items per view based on rendered widths
+    return Math.round(container.offsetWidth / firstItem.offsetWidth);
   }
 
   function updateCarousel() {
@@ -129,15 +131,14 @@
     if (!carousel) return;
 
     const container = document.querySelector('.pr-carousel-container');
-    const containerWidth = container.offsetWidth;
-    itemsPerView = calculateItemsPerView(containerWidth);
+    const firstItem = carousel.querySelector('.pr-carousel-item');
+
+    if (!container || !firstItem) return;
+
+    itemsPerView = calculateItemsPerView(container, firstItem);
     totalPages = Math.ceil(reviewsData.length / itemsPerView);
     
-    const firstItem = carousel.querySelector('.pr-carousel-item');
-    if (!firstItem) return;
-    
-    const itemWidth = firstItem.offsetWidth;
-    const offset = -currentIndex * itemWidth * itemsPerView;
+    const offset = -currentIndex * container.offsetWidth;
     carousel.style.transform = `translateX(${offset}px)`;
     
     updateDots();
