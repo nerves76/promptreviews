@@ -280,20 +280,22 @@
 }
 
 .pr-multi-widget .submit-review-button-container {
-    text-align: center;
+    text-align: right;
     margin-top: 2rem;
+    padding-right: 1rem;
 }
 
 .pr-multi-widget .submit-review-button {
     display: inline-block;
     background: var(--pr-card-bg, #fff);
     color: var(--pr-text-primary, #22223b);
-    padding: 12px 24px;
+    padding: 8px 16px;
     border: var(--pr-card-border, 2px solid #cccccc);
     border-radius: var(--pr-card-radius, 16px);
     box-shadow: var(--pr-card-shadow, 0 4px 32px rgba(34,34,34,0.2) inset);
     text-decoration: none;
-    font-weight: 600;
+    font-weight: 500;
+    font-size: 0.9rem;
     transition: all 0.3s ease;
 }
 
@@ -387,20 +389,22 @@
 }
 
 .pr-submit-review-container {
-    text-align: center;
-    margin-top: 1rem;
+    text-align: right;
+    margin-top: 1.5rem;
+    padding-right: 1rem;
 }
 
 .pr-submit-btn {
     display: inline-block;
     background: var(--pr-card-bg, #fff);
     color: var(--pr-text-primary, #22223b);
-    padding: 12px 24px;
+    padding: 8px 16px;
     border: var(--pr-card-border, 2px solid #cccccc);
     border-radius: var(--pr-card-radius, 16px);
     box-shadow: var(--pr-card-shadow, 0 4px 32px rgba(34,34,34,0.2) inset);
     text-decoration: none;
-    font-weight: 600;
+    font-weight: 500;
+    font-size: 0.9rem;
     transition: all 0.3s ease;
 }
 
