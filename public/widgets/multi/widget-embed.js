@@ -300,17 +300,165 @@
 
   // --- Start of Initialization Logic ---
 
-  // Function to load the CSS file with cache-busting
-  const loadCSS = () => {
-    const cssPath = 'http://localhost:3001/widgets/multi/multi-widget.css';
-    // Check if the CSS is already added
-    if (document.querySelector(`link[href^="${cssPath}"]`)) {
-        return;
+  // Function to inject CSS styles inline
+  const injectCSS = () => {
+    // Check if CSS is already injected
+    if (document.getElementById('promptreviews-widget-styles')) {
+      return;
     }
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = `${cssPath}?v=${new Date().getTime()}`;
-    document.head.appendChild(link);
+    
+    const style = document.createElement('style');
+    style.id = 'promptreviews-widget-styles';
+    style.textContent = `
+      /* 
+        Canonical CSS for the Multi-Widget.
+        This file is the single source of truth for styling the multi-widget,
+        used by both the dashboard preview and the live embeddable widget.
+      */
+
+      /* 
+        Container styles to mimic the dashboard preview environment.
+        This ensures the embedded widget has a consistent, centered,
+        and responsive container, just like in the app.
+      */
+      #promptreviews-widget {
+          position: relative;
+          width: 100%;
+          max-width: 64rem; /* 1024px */
+          margin-left: auto;
+          margin-right: auto;
+          font-size: 16px; /* Set a consistent base font size for rem calculations */
+        }
+        
+        /* Base widget styling reset */
+        .pr-multi-widget {
+          all: revert;
+          box-sizing: border-box;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+        }
+        
+        /* Carousel Layout */
+        .pr-carousel-container {
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+        }
+        
+        .pr-carousel-track {
+            display: flex;
+            transition: transform 0.5s ease;
+            gap: 1rem;
+        }
+        
+        /* This is a key part of the fix: making the item a flex container */
+        .pr-carousel-item {
+            flex-shrink: 0;
+            width: calc(100% / 3 - 1rem * 2 / 3);
+            display: flex; 
+        }
+        
+        /* Review Card Styles */
+        .pr-multi-widget .pr-review-card {
+            background: var(--pr-card-bg, #fff);
+            border: var(--pr-card-border, 2px solid #cccccc);
+            border-radius: var(--pr-card-radius, 16px);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            text-align: center;
+            /* This is the other key part: making the card grow */
+            flex-grow: 1; 
+        }
+        
+        .pr-multi-widget .review-content {
+            flex-grow: 1; /* Ensures the text content area grows, pushing footer down */
+        }
+        
+        .pr-multi-widget .reviewer-details {
+            margin-top: auto; /* Pushes details to the bottom of the card */
+        }
+        
+        /* --- Other existing styles below --- */
+        
+        .pr-multi-widget .stars-row {
+            display: flex;
+            justify-content: center;
+        }
+        
+        .pr-multi-widget .review-text {
+            margin: 0;
+        }
+        
+        .pr-carousel-controls {
+            text-align: center;
+            margin-top: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .pr-prev-btn,
+        .pr-next-btn {
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            background: var(--pr-card-bg, #fff);
+            border: var(--pr-card-border, 2px solid #cccccc);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        
+        .pr-dots-container {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+        
+        .pr-dot {
+            height: 12px;
+            width: 12px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .pr-submit-review-container {
+            text-align: right;
+            margin-top: 0.5rem;
+        }
+        
+        .pr-submit-btn {
+            display: inline-block;
+            padding: 8px 16px;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .pr-carousel-item {
+                width: calc(100% / 2 - 1rem * 1 / 2); /* Two cards */
+            }
+        }
+        
+        @media (max-width: 640px) {
+            .pr-carousel-item {
+                width: 100%; /* One card */
+                gap: 0;
+            }
+            .pr-carousel-track {
+              gap: 0;
+            }
+        }
+    `;
+    document.head.appendChild(style);
   };
 
   // Main function to initialize all widgets on the page
@@ -318,7 +466,7 @@
     const widgets = document.querySelectorAll('[data-prompt-reviews-id], [data-widget-id]');
     if (widgets.length === 0) return;
 
-    loadCSS();
+    injectCSS();
 
     for (const widgetContainer of widgets) {
       const widgetId = widgetContainer.getAttribute('data-prompt-reviews-id') || widgetContainer.getAttribute('data-widget-id');
