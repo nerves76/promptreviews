@@ -86,20 +86,20 @@ export default function WidgetList({
     const widget = widgets.find(w => w.id === widgetId);
     if (!widget) return;
 
-    // Use the correct container ID format for each widget type
+    // Use the correct generic container ID format for each widget type
     let containerId;
     switch (widget.widget_type) {
       case 'multi':
-        containerId = `pr-widget-container-${widgetId}`;
+        containerId = 'pr-widget-container';
         break;
       case 'single':
-        containerId = `pr-single-widget-container-${widgetId}`;
+        containerId = 'pr-single-widget-container';
         break;
       case 'photo':
-        containerId = `pr-photo-widget-container-${widgetId}`;
+        containerId = 'pr-photo-widget-container';
         break;
       default:
-        containerId = `pr-widget-container-${widgetId}`;
+        containerId = 'pr-widget-container';
     }
     
     const embedCode = `<script src="${window.location.origin}/widgets/${widget.widget_type}/widget-embed.min.js"></script>
