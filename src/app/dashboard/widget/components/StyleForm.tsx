@@ -6,7 +6,7 @@ interface StyleFormProps {
   onDesignChange: (design: DesignState) => void;
 }
 
-export const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange }) => {
+const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange }) => {
   const updateDesign = (updates: Partial<DesignState>) => {
     onDesignChange({ ...design, ...updates });
   };
@@ -241,4 +241,6 @@ export const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange }) 
       </div>
     </div>
   );
-}; 
+};
+
+export default StyleForm;

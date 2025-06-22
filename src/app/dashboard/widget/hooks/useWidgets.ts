@@ -18,6 +18,7 @@ export function useWidgets() {
   const [error, setError] = useState<string | null>(null);
 
   const fetchWidgets = useCallback(async () => {
+    console.log('🔄 useWidgets: Starting fetchWidgets');
     setLoading(true);
     const supabase = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -25,7 +26,10 @@ export function useWidgets() {
     );
     
     const { data: { user } } = await supabase.auth.getUser();
+    console.log('👤 useWidgets: User auth result:', { user: !!user, userId: user?.id });
+    
     if (!user) {
+      console.log('❌ useWidgets: No user found, setting empty widgets');
       setWidgets([]);
       setLoading(false);
       return;
@@ -37,12 +41,20 @@ export function useWidgets() {
       .eq("account_id", user.id)
       .order("created_at", { ascending: false });
       
+    console.log('📊 useWidgets: Widgets query result:', { 
+      widgetsCount: widgetsData?.length, 
+      error: widgetsError?.message,
+      widgets: widgetsData 
+    });
+      
     if (widgetsError) {
+      console.error('❌ useWidgets: Widgets query error:', widgetsError);
       setError(widgetsError.message);
       setLoading(false);
       return;
     }
 
+    console.log('🔄 useWidgets: Fetching reviews for widgets...');
     const widgetsWithReviews = await Promise.all(
       (widgetsData || []).map(async (widget) => {
         const { data: reviews, error: reviewsError } = await supabase
@@ -50,10 +62,17 @@ export function useWidgets() {
           .select("*")
           .eq("widget_id", widget.id)
           .order("created_at", { ascending: false });
+        
+        console.log(`📝 useWidgets: Reviews for widget ${widget.id}:`, { 
+          reviewsCount: reviews?.length, 
+          error: reviewsError?.message 
+        });
+        
         return { ...widget, reviews: reviews || [] };
       })
     );
 
+    console.log('✅ useWidgets: Final widgets with reviews:', widgetsWithReviews);
     setWidgets(widgetsWithReviews);
     setLoading(false);
   }, []);

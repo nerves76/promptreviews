@@ -42,10 +42,18 @@ export default function WidgetPage() {
 
   // Auto-select logic
   React.useEffect(() => {
-    if (loading) return;
+    console.log('🔍 WidgetPage: Auto-select effect triggered', { loading, widgetsCount: widgets?.length, widgets });
+    
+    if (loading) {
+      console.log('⏳ WidgetPage: Still loading, skipping auto-select');
+      return;
+    }
+    
     if (widgets && widgets.length > 0) {
+      console.log('✅ WidgetPage: Found widgets, selecting first one:', widgets[0]);
       setSelectedWidget(widgets[0]);
     } else {
+      console.log('📝 WidgetPage: No widgets found, creating fake widget');
       setSelectedWidget({
         id: "fake-multi-widget",
         name: "Demo Multi-Widget",

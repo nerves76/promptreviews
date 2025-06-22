@@ -1,5 +1,5 @@
-// PromptReviews Single Widget - Vanilla JS
-// This file contains the core widget logic for the single card carousel widget
+// PromptReviews Photo Widget - Vanilla JS
+// This file contains the core widget logic for the photo card carousel widget
 
 (function() {
   'use strict';
@@ -8,21 +8,21 @@
   const carouselState = {};
 
   // Initialize the widget
-  window.PromptReviewsSingle = window.PromptReviewsSingle || {};
+  window.PromptReviewsPhoto = window.PromptReviewsPhoto || {};
   
-  // Only define initializeWidget if it doesn't already exist (to avoid conflicts with multi widget)
-  if (!window.PromptReviewsSingle.initializeWidget) {
-    window.PromptReviewsSingle.initializeWidget = function(containerId, reviews, design, businessSlug) {
-      console.log('🚀 SingleWidget: Initializing widget', { containerId, reviewsCount: reviews?.length, design });
+  // Only define initializeWidget if it doesn't already exist (to avoid conflicts with other widgets)
+  if (!window.PromptReviewsPhoto.initializeWidget) {
+    window.PromptReviewsPhoto.initializeWidget = function(containerId, reviews, design, businessSlug) {
+      console.log('🚀 PhotoWidget: Initializing widget', { containerId, reviewsCount: reviews?.length, design });
       
       if (!reviews || reviews.length === 0) {
-        console.warn('⚠️ SingleWidget: No reviews provided');
+        console.warn('⚠️ PhotoWidget: No reviews provided');
         return;
       }
 
       const widgetElement = document.getElementById(containerId);
       if (!widgetElement) {
-        console.error('❌ SingleWidget: Widget container not found:', containerId);
+        console.error('❌ PhotoWidget: Widget container not found:', containerId);
         return;
       }
 
@@ -33,7 +33,7 @@
       // Initialize carousel functionality
       initCarousel(containerId, reviews, design);
       
-      console.log('✅ SingleWidget: Widget initialized successfully');
+      console.log('✅ PhotoWidget: Widget initialized successfully');
     };
   }
 
@@ -41,7 +41,7 @@
     carouselState[widgetId] = {
       currentIndex: 0,
       totalItems: reviews.length,
-      itemsPerView: 1, // Single card always shows 1 item
+      itemsPerView: 1, // Photo card always shows 1 item
       autoAdvance: design.autoAdvance || false,
       slideshowSpeed: design.slideshowSpeed || 4,
       autoAdvanceInterval: null
@@ -49,7 +49,7 @@
   }
 
   function calculateItemsPerView(widgetId) {
-    // Single widget always shows 1 item
+    // Photo widget always shows 1 item
     return 1;
   }
 
@@ -58,9 +58,9 @@
     if (!state) return;
 
     const widgetElement = document.getElementById(widgetId);
-    const track = widgetElement.querySelector('.pr-single-carousel-track');
-    const prevBtn = widgetElement.querySelector('.pr-single-prev-btn');
-    const nextBtn = widgetElement.querySelector('.pr-single-next-btn');
+    const track = widgetElement.querySelector('.pr-photo-carousel-track');
+    const prevBtn = widgetElement.querySelector('.pr-photo-prev-btn');
+    const nextBtn = widgetElement.querySelector('.pr-photo-next-btn');
 
     // Set up event listeners
     if (prevBtn) {
@@ -102,18 +102,18 @@
     if (!state) return;
 
     const widgetElement = document.getElementById(widgetId);
-    const track = widgetElement.querySelector('.pr-single-carousel-track');
+    const track = widgetElement.querySelector('.pr-photo-carousel-track');
     if (!track) return;
 
     // Recalculate items per view on each update for responsiveness
     state.itemsPerView = calculateItemsPerView(widgetId);
     
     // Use precise pixel values for transform to account for gaps
-    const firstItem = widgetElement.querySelector('.pr-single-carousel-item');
+    const firstItem = widgetElement.querySelector('.pr-photo-carousel-item');
     if (!firstItem) return; // Can't calculate transform without an item
 
     const gapStyle = window.getComputedStyle(track).gap;
-    const gap = parseFloat(gapStyle) || 0; // No gap for single widget
+    const gap = parseFloat(gapStyle) || 0; // No gap for photo widget
 
     const itemTotalWidth = firstItem.offsetWidth + gap;
     const offset = -state.currentIndex * itemTotalWidth;
@@ -128,7 +128,7 @@
     if (!state) return;
 
     const widgetElement = document.getElementById(widgetId);
-    const dotsContainer = widgetElement.querySelector('.pr-single-dots-container');
+    const dotsContainer = widgetElement.querySelector('.pr-photo-dots-container');
     if (!dotsContainer) return;
 
     // Clear existing dots
@@ -137,7 +137,7 @@
     // Create dots for each review
     for (let i = 0; i < state.totalItems; i++) {
       const dot = document.createElement('button');
-      dot.className = `pr-single-dot ${i === state.currentIndex ? 'active' : ''}`;
+      dot.className = `pr-photo-dot ${i === state.currentIndex ? 'active' : ''}`;
       dot.style.backgroundColor = i === state.currentIndex ? '#4f46e5' : '#d1d5db';
       dot.addEventListener('click', () => {
         state.currentIndex = i;
@@ -152,8 +152,8 @@
     if (!state) return;
 
     const widgetElement = document.getElementById(widgetId);
-    const prevBtn = widgetElement.querySelector('.pr-single-prev-btn');
-    const nextBtn = widgetElement.querySelector('.pr-single-next-btn');
+    const prevBtn = widgetElement.querySelector('.pr-photo-prev-btn');
+    const nextBtn = widgetElement.querySelector('.pr-photo-next-btn');
 
     if (prevBtn) {
       prevBtn.style.opacity = state.currentIndex === 0 ? '0.5' : '1';
@@ -188,7 +188,7 @@
             starsHTML += `<span style="color: ${emptyColor};">&#9733;</span>`;
         }
     }
-    return `<div class="pr-single-stars-row" style="display: flex; justify-content: center; margin-bottom: 1rem;">${starsHTML}</div>`;
+    return `<div class="pr-photo-stars-row" style="display: flex; justify-content: center; margin-bottom: 1rem;">${starsHTML}</div>`;
   }
 
   function createReviewCard(review, design) {
@@ -198,36 +198,87 @@
     // Use the new renderStars function
     const starsHTML = review.star_rating ? renderStars(review.star_rating, design) : '';
 
+    // Check if review has a photo
+    const hasPhoto = review.photo_url && review.photo_url.trim() !== '';
+    
+    // Calculate background color with opacity
+    const bgColor = design.bgColor || '#ffffff';
+    const bgOpacity = design.bgOpacity !== undefined ? design.bgOpacity : 1;
+    
+    // Convert hex to rgba for transparency
+    const hexToRgba = (hex, alpha) => {
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    };
+    
+    const backgroundColorWithOpacity = hexToRgba(bgColor, bgOpacity);
+    
+    // Create photo HTML if available - now fills the full left side
+    const photoHTML = hasPhoto ? `
+      <div class="pr-photo-review-image" style="
+        width: 50%;
+        height: 100%;
+        position: absolute;
+        left: 0;
+        top: 0;
+        overflow: hidden;
+        border-top-left-radius: ${design.borderRadius || 16}px;
+        border-bottom-left-radius: ${design.borderRadius || 16}px;
+      ">
+        <img src="${review.photo_url}" alt="Review photo" style="
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        " />
+      </div>
+    ` : '';
+
     return `
-      <div class="pr-single-review-card" style="
-        background-color: ${design.bgColor || '#ffffff'};
+      <div class="pr-photo-review-card" style="
+        background-color: ${backgroundColorWithOpacity};
         border: ${design.borderWidth || 2}px solid ${design.borderColor || '#cccccc'};
         border-radius: ${design.borderRadius || 16}px;
-        opacity: ${design.bgOpacity !== undefined ? design.bgOpacity : 1};
         color: ${design.textColor || '#22223b'};
         font-family: ${design.font || 'Inter'}, sans-serif;
         line-height: ${design.lineSpacing || 1.4};
         box-shadow: ${design.shadow ? `0 4px 6px -1px rgba(0, 0, 0, ${design.shadowIntensity || 0.2})` : 'none'};
+        padding: 0;
+        position: relative;
+        overflow: hidden;
+        min-height: 300px;
       ">
-        <div class="pr-single-review-content">
-          ${starsHTML}
-          <p class="pr-single-review-text" style="margin-bottom: 1rem;">${reviewText}</p>
-        </div>
-        <div class="pr-single-reviewer-details">
-          <div style="
-            color: ${design.nameTextColor || '#1a237e'};
-            font-weight: 600;
-            margin-bottom: 0.25rem;
-          ">${review.first_name || ''} ${review.last_name || ''}</div>
-          ${review.reviewer_role ? `<div style="
-            color: ${design.roleTextColor || '#6b7280'};
-            font-size: ${design.attributionFontSize || 15}px;
-          ">${review.reviewer_role}</div>` : ''}
-          <div style="
-            color: ${design.roleTextColor || '#6b7280'};
-            font-size: ${design.attributionFontSize || 15}px;
-            margin-top: 0.25rem;
-          ">${dateText}</div>
+        ${hasPhoto ? photoHTML : ''}
+        <div class="pr-photo-review-content" style="
+          display: flex;
+          height: 100%;
+          min-height: 300px;
+        ">
+          <div class="pr-photo-review-text-content" style="
+            flex: 1;
+            padding: 1.5rem;
+            ${hasPhoto ? 'margin-left: 50%;' : ''}
+          ">
+            ${starsHTML}
+            <p class="pr-photo-review-text" style="margin-bottom: 1rem;">${reviewText}</p>
+            <div class="pr-photo-reviewer-details">
+              <div style="
+                color: ${design.nameTextColor || '#1a237e'};
+                font-weight: 600;
+                margin-bottom: 0.25rem;
+              ">${review.first_name || ''} ${review.last_name || ''}</div>
+              ${review.reviewer_role ? `<div style="
+                color: ${design.roleTextColor || '#6b7280'};
+                font-size: ${design.attributionFontSize || 15}px;
+              ">${review.reviewer_role}</div>` : ''}
+              <div style="
+                color: ${design.roleTextColor || '#6b7280'};
+                font-size: ${design.attributionFontSize || 15}px;
+                margin-top: 0.25rem;
+              ">${dateText}</div>
+            </div>
+          </div>
         </div>
       </div>
     `;
@@ -251,11 +302,11 @@
     const state = carouselState[widgetId];
 
     const reviewCardsHTML = reviews.map(review => 
-      `<div class="pr-single-carousel-item">${createReviewCard(review, design)}</div>`
+      `<div class="pr-photo-carousel-item">${createReviewCard(review, design)}</div>`
     ).join('');
     
     // Dots are generated dynamically in updateDots, so we just need the container.
-    const dotsHTML = '<div class="pr-single-dots-container"></div>';
+    const dotsHTML = '<div class="pr-photo-dots-container"></div>';
 
     // --- Dynamic Styles ---
     const bgColor = design.bgColor || '#ffffff';
@@ -284,42 +335,62 @@
     const embeddedStyles = `
       <style>
         /* Arrow Color */
-        .pr-single-prev-btn::before { border-color: transparent ${accentColor} transparent transparent !important; }
-        .pr-single-next-btn::before { border-color: transparent transparent transparent ${accentColor} !important; }
+        .pr-photo-prev-btn::before { border-color: transparent ${accentColor} transparent transparent !important; }
+        .pr-photo-next-btn::before { border-color: transparent transparent transparent ${accentColor} !important; }
         
         /* Arrow & Submit Button Hover: Invert colors */
-        .pr-single-prev-btn:hover, .pr-single-next-btn:hover, .pr-single-submit-btn:hover {
+        .pr-photo-prev-btn:hover, .pr-photo-next-btn:hover, .pr-photo-submit-btn:hover {
           background-color: ${accentColor} !important;
           color: ${bgColor} !important;
         }
         
         /* Arrow Icon Hover: Change to background color */
-        .pr-single-prev-btn:hover::before { border-color: transparent ${bgColor} transparent transparent !important; }
-        .pr-single-next-btn:hover::before { border-color: transparent transparent transparent ${bgColor} !important; }
+        .pr-photo-prev-btn:hover::before { border-color: transparent ${bgColor} transparent transparent !important; }
+        .pr-photo-next-btn:hover::before { border-color: transparent transparent transparent ${bgColor} !important; }
 
         /* Card Hover: Lift effect */
-        .pr-single-review-card {
+        .pr-photo-review-card {
           transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-        .pr-single-review-card:hover {
+        .pr-photo-review-card:hover {
           transform: ${design.liftOnHover ? 'translateY(-5px)' : 'none'};
           box-shadow: ${design.liftOnHover ? `0 10px 15px -3px rgba(0, 0, 0, ${design.shadowIntensity || 0.2})` : (design.shadow ? `0 4px 6px -1px rgba(0, 0, 0, ${design.shadowIntensity || 0.2})` : 'none')};
+        }
+
+        /* Responsive design for photo widget */
+        @media (max-width: 768px) {
+          .pr-photo-review-content {
+            flex-direction: column !important;
+            height: auto !important;
+            min-height: auto !important;
+          }
+          .pr-photo-review-image {
+            width: 100% !important;
+            height: 200px !important;
+            position: relative !important;
+            border-radius: ${design.borderRadius || 16}px ${design.borderRadius || 16}px 0 0 !important;
+            margin-bottom: 0 !important;
+          }
+          .pr-photo-review-text-content {
+            margin-left: 0 !important;
+            padding: 1.5rem !important;
+          }
         }
       </style>
     `;
 
     // --- HTML components ---
     const controlsHTML = state.totalItems > 1 ? `
-      <div class="pr-single-carousel-controls">
-        <button class="pr-single-prev-btn" style="${buttonStyle}" title="Previous review"></button>
+      <div class="pr-photo-carousel-controls">
+        <button class="pr-photo-prev-btn" style="${buttonStyle}" title="Previous review"></button>
         ${dotsHTML}
-        <button class="pr-single-next-btn" style="${buttonStyle}" title="Next review"></button>
+        <button class="pr-photo-next-btn" style="${buttonStyle}" title="Next review"></button>
       </div>
     ` : '';
 
     const submitReviewHTML = design.showSubmitReviewButton ? `
-      <div class="pr-single-submit-review-container">
-        <a href="/r/${businessSlug}?source=widget" target="_blank" class="pr-single-submit-btn" style="${submitButtonStyle}">
+      <div class="pr-photo-submit-review-container">
+        <a href="/r/${businessSlug}?source=widget" target="_blank" class="pr-photo-submit-btn" style="${submitButtonStyle}">
           Submit a Review
         </a>
       </div>
@@ -328,8 +399,8 @@
     // --- Final Widget HTML ---
     return `
       ${embeddedStyles}
-      <div class="pr-single-carousel-container">
-        <div class="pr-single-carousel-track">
+      <div class="pr-photo-carousel-container">
+        <div class="pr-photo-carousel-track">
           ${reviewCardsHTML}
         </div>
       </div>
@@ -339,8 +410,8 @@
   }
 
   // Expose the render function for direct use
-  window.PromptReviewsSingle.renderSingleWidget = function(containerId, reviews, design, businessSlug) {
-    window.PromptReviewsSingle.initializeWidget(containerId, reviews, design, businessSlug);
+  window.PromptReviewsPhoto.renderPhotoWidget = function(containerId, reviews, design, businessSlug) {
+    window.PromptReviewsPhoto.initializeWidget(containerId, reviews, design, businessSlug);
   };
 
   // Main function to initialize all widgets on the page
@@ -351,7 +422,7 @@
     for (const widgetContainer of widgets) {
       const widgetId = widgetContainer.getAttribute('data-prompt-reviews-id') || widgetContainer.getAttribute('data-widget-id');
       const businessSlug = widgetContainer.getAttribute('data-business-slug');
-      widgetContainer.id = `pr-single-widget-container-${widgetId}`;
+      widgetContainer.id = `pr-photo-widget-container-${widgetId}`;
 
       try {
         const response = await fetch(`http://localhost:3001/api/widgets/${widgetId}`);
@@ -368,7 +439,7 @@
         }
 
       } catch (error) {
-        console.error('Error initializing PromptReviews Single widget:', error);
+        console.error('Error initializing PromptReviews Photo widget:', error);
         widgetContainer.innerHTML = '<p>Error loading reviews.</p>';
       }
     }
@@ -381,5 +452,5 @@
     autoInitializeWidgets();
   }
 
-  console.log('✅ SingleWidget: Widget script loaded successfully');
+  console.log('✅ PhotoWidget: Widget script loaded successfully');
 })(); 

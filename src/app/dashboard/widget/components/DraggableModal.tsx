@@ -7,6 +7,7 @@ interface DraggableModalProps {
   children: React.ReactNode;
   onSave?: () => void;
   saveLabel?: string;
+  maxWidth?: string;
 }
 
 export const DraggableModal: React.FC<DraggableModalProps> = ({
@@ -16,6 +17,7 @@ export const DraggableModal: React.FC<DraggableModalProps> = ({
   children,
   onSave,
   saveLabel = 'Save',
+  maxWidth = 'max-w-xl',
 }) => {
   const [modalPos, setModalPos] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -72,7 +74,7 @@ export const DraggableModal: React.FC<DraggableModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
       <div
-        className="bg-white rounded-lg shadow-xl w-full max-w-xl pointer-events-auto"
+        className={`bg-white rounded-lg shadow-xl w-full ${maxWidth} pointer-events-auto`}
         style={{
           position: 'absolute',
           left: modalPos.x,

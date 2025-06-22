@@ -24,6 +24,8 @@ const SingleWidget: React.FC<SingleWidgetProps> = ({ data, design }) => {
   // Use the passed design prop if available, otherwise fall back to the widget's saved theme
   const currentDesign = design || data.theme || {};
   const containerRef = useRef<HTMLDivElement>(null);
+  const retryCountRef = useRef(0);
+  const maxRetries = 5;
 
   useEffect(() => {
     console.log('🎯 SingleWidget: Component mounted with data:', { 
@@ -71,8 +73,11 @@ const SingleWidget: React.FC<SingleWidgetProps> = ({ data, design }) => {
         script.src = `/widgets/single/widget-embed.js?v=${new Date().getTime()}`;
         script.onload = () => {
           console.log('✅ SingleWidget: Widget script loaded successfully');
-          console.log('🔧 SingleWidget: Available functions:', Object.keys(window.PromptReviewsSingle || {}));
-          resolve();
+          // Wait a bit for the script to initialize
+          setTimeout(() => {
+            console.log('🔧 SingleWidget: Available functions:', Object.keys(window.PromptReviewsSingle || {}));
+            resolve();
+          }, 100);
         };
         script.onerror = (error) => {
           console.error('❌ SingleWidget: Failed to load widget script:', error);
@@ -86,6 +91,9 @@ const SingleWidget: React.FC<SingleWidgetProps> = ({ data, design }) => {
       try {
         await Promise.all([loadWidgetCSS(), loadWidgetScript()]);
         
+        // Add a small delay to ensure the script is fully initialized
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
         if (containerRef.current && window.PromptReviewsSingle?.initializeWidget) {
           console.log('🚀 SingleWidget: Using initializeWidget API');
           window.PromptReviewsSingle.initializeWidget(
@@ -96,13 +104,36 @@ const SingleWidget: React.FC<SingleWidgetProps> = ({ data, design }) => {
           );
         } else {
           console.error('❌ SingleWidget: Missing dependencies for initialization.');
+          console.log('🔍 SingleWidget: Debug info:', {
+            containerRef: !!containerRef.current,
+            PromptReviewsSingle: !!window.PromptReviewsSingle,
+            initializeWidget: !!window.PromptReviewsSingle?.initializeWidget,
+            retryCount: retryCountRef.current
+          });
+          
+          // Retry mechanism
+          if (retryCountRef.current < maxRetries) {
+            retryCountRef.current++;
+            console.log(`🔄 SingleWidget: Retrying initialization (${retryCountRef.current}/${maxRetries})...`);
+            setTimeout(initializeWidget, 500);
+          } else {
+            console.error('❌ SingleWidget: Max retries reached, giving up');
+          }
         }
       } catch (error) {
         console.error('❌ SingleWidget: Failed to initialize widget:', error);
+        
+        // Retry on error
+        if (retryCountRef.current < maxRetries) {
+          retryCountRef.current++;
+          console.log(`🔄 SingleWidget: Retrying after error (${retryCountRef.current}/${maxRetries})...`);
+          setTimeout(initializeWidget, 1000);
+        }
       }
     };
 
     if (reviews && currentDesign) {
+      retryCountRef.current = 0; // Reset retry count
       initializeWidget();
     }
   }, [reviews, currentDesign, slug, data.id, data.widget_type]);

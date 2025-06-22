@@ -9,7 +9,10 @@
   This ensures the embedded widget has a consistent, centered,
   and responsive container, just like in the app.
 */
-#promptreviews-widget {
+#promptreviews-widget,
+[id^="promptreviews-widget-"],
+[id^="pr-single-widget-container-"],
+[id^="pr-photo-widget-container-"] {
     position: relative;
     width: 100%;
     max-width: 64rem; /* 1024px */
@@ -84,7 +87,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 10px;
+      gap: 20px;
   }
   
   .pr-prev-btn,
@@ -99,6 +102,27 @@
       align-items: center;
       justify-content: center;
       transition: all 0.2s ease;
+      position: relative;
+  }
+  
+  .pr-prev-btn::before,
+  .pr-next-btn::before {
+      content: '';
+      width: 0;
+      height: 0;
+      border-style: solid;
+  }
+  
+  .pr-prev-btn::before {
+      border-width: 6px 8px 6px 0;
+      border-color: transparent #4f46e5 transparent transparent;
+      margin-left: -2px;
+  }
+  
+  .pr-next-btn::before {
+      border-width: 6px 0 6px 8px;
+      border-color: transparent transparent transparent #4f46e5;
+      margin-right: -2px;
   }
   
   .pr-dots-container {
@@ -124,9 +148,10 @@
   
   .pr-submit-btn {
       display: inline-block;
-      padding: 8px 16px;
+      padding: 6px 12px;
       text-decoration: none;
       font-weight: 500;
+      font-size: 0.875rem;
   }
   
   /* Responsive Design */
@@ -143,5 +168,8 @@
       }
       .pr-carousel-track {
         gap: 0;
+      }
+      .pr-submit-review-container {
+          margin-top: 1.5rem;
       }
   }

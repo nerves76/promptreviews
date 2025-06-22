@@ -1,6 +1,6 @@
 /* 
-  Canonical CSS for the Single-Widget.
-  This file is the single source of truth for styling the single-widget,
+  Canonical CSS for the Photo-Widget.
+  This file is the single source of truth for styling the photo-widget,
   used by both the dashboard preview and the live embeddable widget.
 */
 
@@ -9,7 +9,7 @@
   This handles the sizing and centering of the widget itself,
   both in the dashboard preview and on live sites.
 */
-.pr-single-widget {
+.pr-photo-widget {
   all: revert;
   box-sizing: border-box;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
@@ -30,22 +30,22 @@
 }
   
 /* Carousel Layout */
-.pr-single-carousel-container {
+.pr-photo-carousel-container {
     position: relative;
     overflow: hidden;
     width: 100%;
     min-height: 300px; /* Ensure carousel has minimum height */
 }
   
-.pr-single-carousel-track {
+.pr-photo-carousel-track {
     display: flex;
     transition: transform 0.5s ease;
-    gap: 0; /* No gap for single widget */
+    gap: 0; /* No gap for photo widget */
     min-height: 300px; /* Ensure track has minimum height */
 }
   
 /* Single card takes full width */
-.pr-single-carousel-item {
+.pr-photo-carousel-item {
     flex-shrink: 0;
     width: 100%; /* Full width for single card */
     display: flex; 
@@ -53,7 +53,7 @@
 }
   
 /* Review Card Styles */
-.pr-single-widget .pr-single-review-card {
+.pr-photo-widget .pr-photo-review-card {
     background: var(--pr-card-bg, #fff);
     border: var(--pr-card-border, 2px solid #cccccc);
     border-radius: var(--pr-card-radius, 16px);
@@ -66,26 +66,26 @@
     min-height: 300px; /* Ensure card has minimum height */
 }
   
-.pr-single-widget .pr-single-review-content {
+.pr-photo-widget .pr-photo-review-content {
     flex-grow: 1; /* Ensures the text content area grows, pushing footer down */
 }
   
-.pr-single-widget .pr-single-reviewer-details {
+.pr-photo-widget .pr-photo-reviewer-details {
     margin-top: auto; /* Pushes details to the bottom of the card */
 }
   
 /* --- Other existing styles below --- */
   
-.pr-single-widget .pr-single-stars-row {
+.pr-photo-widget .pr-photo-stars-row {
     display: flex;
     justify-content: center;
 }
   
-.pr-single-widget .pr-single-review-text {
+.pr-photo-widget .pr-photo-review-text {
     margin: 0;
 }
   
-.pr-single-carousel-controls {
+.pr-photo-carousel-controls {
     text-align: center;
     margin-top: 1.5rem;
     display: flex;
@@ -94,8 +94,8 @@
     gap: 20px;
 }
   
-.pr-single-prev-btn,
-.pr-single-next-btn {
+.pr-photo-prev-btn,
+.pr-photo-next-btn {
     cursor: pointer;
     width: 40px;
     height: 40px;
@@ -107,33 +107,33 @@
     position: relative;
 }
   
-.pr-single-prev-btn::before,
-.pr-single-next-btn::before {
+.pr-photo-prev-btn::before,
+.pr-photo-next-btn::before {
     content: '';
     width: 0;
     height: 0;
     border-style: solid;
 }
   
-.pr-single-prev-btn::before {
+.pr-photo-prev-btn::before {
     border-width: 6px 8px 6px 0;
     border-color: transparent #4f46e5 transparent transparent;
     margin-left: -2px;
 }
   
-.pr-single-next-btn::before {
+.pr-photo-next-btn::before {
     border-width: 6px 0 6px 8px;
     border-color: transparent transparent transparent #4f46e5;
     margin-right: -2px;
 }
   
-.pr-single-dots-container {
+.pr-photo-dots-container {
     display: flex;
     gap: 16px;
     align-items: center;
 }
   
-.pr-single-dot {
+.pr-photo-dot {
     height: 12px;
     width: 12px;
     border: none;
@@ -143,12 +143,12 @@
     margin: 0;
 }
   
-.pr-single-submit-review-container {
+.pr-photo-submit-review-container {
     text-align: right;
     margin-top: 0.5rem;
 }
   
-.pr-single-submit-btn {
+.pr-photo-submit-btn {
     display: inline-block;
     padding: 6px 12px;
     text-decoration: none;
@@ -158,10 +158,10 @@
   
 /* Responsive Design - simplified for single card */
 @media (max-width: 640px) {
-    .pr-single-carousel-track {
+    .pr-photo-carousel-track {
       gap: 0;
     }
-    .pr-single-submit-review-container {
+    .pr-photo-submit-review-container {
       margin-top: 1.5rem;
     }
-}
+} 
