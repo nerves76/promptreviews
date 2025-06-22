@@ -266,11 +266,11 @@
     width: 12px;
     height: 12px;
     border-radius: 50%;
-    border: none;
-    background: #ddd;
+    border: 2px solid var(--pr-accent-color, #6a5acd);
+    background: var(--pr-card-bg, #fff);
     cursor: pointer;
-    transition: background 0.3s ease;
-    margin: 0 4px;
+    transition: all 0.3s ease;
+    margin: 0 6px;
     opacity: 1;
 }
 
@@ -363,24 +363,24 @@
 
 .pr-dots-container {
     display: flex;
-    gap: 8px;
+    gap: 12px;
     align-items: center;
 }
 
 .pr-dot {
-    height: 10px;
-    width: 10px;
-    background-color: #bbb;
+    height: 12px;
+    width: 12px;
+    background-color: var(--pr-card-bg, #fff);
+    border: 2px solid var(--pr-accent-color, #6a5acd);
     border-radius: 50%;
     display: inline-block;
-    transition: background-color 0.6s ease;
-    border: none;
+    transition: all 0.3s ease;
     cursor: pointer;
     padding: 0;
 }
 
 .pr-dot.active {
-    background-color: #717171;
+    background-color: var(--pr-accent-color, #6a5acd);
 }
 
 .pr-submit-review-container {
