@@ -262,14 +262,12 @@
     const bgColor = design.bgColor || '#ffffff';
     const borderColor = design.borderColor || '#cccccc';
     const borderWidth = design.borderWidth || 2;
-    const borderRadius = design.borderRadius || 16;
     const bgOpacity = design.bgOpacity !== undefined ? design.bgOpacity : 1;
     const accentColor = design.accentColor || '#4f46e5';
     
     const buttonStyle = `
       background-color: ${bgColor};
       border: ${borderWidth}px solid ${borderColor};
-      border-radius: ${borderRadius}px;
       opacity: ${bgOpacity};
     `;
 
