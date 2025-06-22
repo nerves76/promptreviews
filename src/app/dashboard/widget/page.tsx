@@ -5,10 +5,56 @@ import PageCard from "@/app/components/PageCard";
 import { FaPlus } from "react-icons/fa";
 import { WidgetPreview } from "./components/WidgetPreview";
 import { DEFAULT_DESIGN, DesignState } from "./components/widgets/multi";
+import { useWidgets } from "./hooks/useWidgets";
 
 export default function WidgetPage() {
+  const { widgets, loading, error, createWidget, deleteWidget, saveWidgetName, saveWidgetDesign, fetchWidgets } = useWidgets();
   const [selectedWidget, setSelectedWidget] = useState<any>(null);
   const [design, setDesign] = useState<DesignState>(DEFAULT_DESIGN);
+
+  // Fake reviews for empty state
+  const fakeReviews = [
+    {
+      review_content: "You are killing it. Keep going. Everything you do is amazing!",
+      first_name: "Motivator",
+      last_name: "McCheer",
+      reviewer_role: "Hype Person",
+      created_at: new Date().toISOString(),
+      star_rating: 5,
+    },
+    {
+      review_content: "If coffee can't fix it, you can!",
+      first_name: "Java",
+      last_name: "Joe",
+      reviewer_role: "Barista Coach",
+      created_at: new Date(Date.now() - 86400000).toISOString(),
+      star_rating: 5,
+    },
+    {
+      review_content: "Your code is so clean, VSCode asks for tips!",
+      first_name: "Code",
+      last_name: "Guru",
+      reviewer_role: "Senior Encourager",
+      created_at: new Date(Date.now() - 2 * 86400000).toISOString(),
+      star_rating: 5,
+    },
+  ];
+
+  // Auto-select logic
+  React.useEffect(() => {
+    if (loading) return;
+    if (widgets && widgets.length > 0) {
+      setSelectedWidget(widgets[0]);
+    } else {
+      setSelectedWidget({
+        id: "fake-multi-widget",
+        name: "Demo Multi-Widget",
+        widget_type: "multi",
+        theme: DEFAULT_DESIGN,
+        reviews: fakeReviews,
+      });
+    }
+  }, [loading, widgets]);
 
   return (
     <div className="p-4 md:p-8 lg:p-12">
@@ -18,7 +64,7 @@ export default function WidgetPage() {
           <div className="text-center mb-6">
             <h2 className="text-2xl font-bold text-white">Widget Preview</h2>
             <p className="mt-2 text-white/80">
-              {selectedWidget ? `Editing: ${selectedWidget.name}` : 'Select a widget to see its preview'}
+              {selectedWidget ? `Editing: ${selectedWidget.name}` : ''}
             </p>
           </div>
           <WidgetPreview widget={selectedWidget} design={design} />
@@ -48,6 +94,14 @@ export default function WidgetPage() {
           selectedWidgetId={selectedWidget?.id}
           design={design}
           onDesignChange={setDesign}
+          widgets={widgets}
+          loading={loading}
+          error={error}
+          createWidget={createWidget}
+          deleteWidget={deleteWidget}
+          saveWidgetName={saveWidgetName}
+          saveWidgetDesign={saveWidgetDesign}
+          fetchWidgets={fetchWidgets}
         />
       </PageCard>
     </div>
