@@ -603,8 +603,6 @@
   // Expose to global scope for dashboard compatibility
   window.PromptReviews = window.PromptReviews || {};
   window.PromptReviews.initializeWidget = function(containerId, reviews, design, businessSlug) {
-    console.log('🚀 MultiWidget: initializeWidget called with:', { containerId, reviewsCount: reviews?.length, design });
-    
     const container = document.getElementById(containerId);
     if (!container) {
       console.error('Container not found:', containerId);
@@ -621,8 +619,5 @@
     container.innerHTML = createCarouselHTML(containerId, reviews, design, businessSlug);
     initializeCarousel(containerId);
   };
-
-  console.log('✅ MultiWidget: Script loaded and initializeWidget function exposed');
-  console.log('🔧 MultiWidget: Available functions:', Object.keys(window.PromptReviews));
 
 })(); 
