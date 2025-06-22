@@ -91,7 +91,7 @@
     }
     
     // Create curly quotes positioned correctly
-    const openingQuote = design.showQuotes ? `<span class="decorative-quote-opening" style="color: ${accentColor}; font-size: 1.5rem; font-weight: bold; line-height: 1; opacity: 0.3; margin-bottom: 0.5rem;">"</span>` : '';
+    const openingQuote = design.showQuotes ? `<span class="decorative-quote-opening" style="color: ${accentColor}; font-size: 1.5rem; font-weight: bold; line-height: 1; opacity: 0.3; margin-bottom: 0.5rem; text-align: left; display: block;">"</span>` : '';
     const closingQuote = design.showQuotes ? `<span class="decorative-quote-closing" style="color: ${accentColor}; font-size: 1.5rem; font-weight: bold; line-height: 1; opacity: 0.3; position: absolute; bottom: 1rem; right: 1rem;">"</span>` : '';
     
     const starsHTML = review.star_rating ? `<div class="stars-row" style="margin-bottom: 0.75rem;">${renderStars(review.star_rating)}</div>` : '';
@@ -147,6 +147,7 @@
     const dots = document.querySelectorAll('.pr-dot');
     const bgColor = designData.bgColor || '#ffffff';
     const accentColor = designData.accentColor || '#4f46e5';
+    const bgOpacity = designData.bgOpacity !== undefined ? designData.bgOpacity : 1;
     
     dots.forEach((dot, index) => {
       const isActive = index === currentIndex;
@@ -155,10 +156,10 @@
       // Update dot styling
       if (isActive) {
         dot.style.backgroundColor = bgColor;
-        dot.style.opacity = '1';
+        dot.style.opacity = bgOpacity;
       } else {
         dot.style.backgroundColor = accentColor;
-        dot.style.opacity = '0.5';
+        dot.style.opacity = bgOpacity * 0.5;
       }
     });
   }
@@ -222,7 +223,7 @@
     ).join('');
 
     const dotsHTML = Array.from({ length: Math.ceil(reviews.length / itemsPerView) }, (_, i) => 
-      `<button class="pr-dot" data-index="${i}" style="height: 12px; width: 12px; background-color: ${design.accentColor || '#4f46e5'}; opacity: 0.5; border: none; border-radius: 50%; display: inline-block; transition: all 0.3s ease; cursor: pointer; padding: 0; margin: 0 8px;"></button>`
+      `<button class="pr-dot" data-index="${i}" style="height: 12px; width: 12px; background-color: ${design.accentColor || '#4f46e5'}; border: none; border-radius: 50%; display: inline-block; transition: all 0.3s ease; cursor: pointer; padding: 0; margin: 0 8px; opacity: ${design.bgOpacity !== undefined ? design.bgOpacity * 0.5 : 0.5};"></button>`
     ).join('');
     
     // Build submit button style to match cards
@@ -288,7 +289,7 @@
         </div>
         <button class="pr-next-btn" style="${arrowButtonStyle}">${rightTriangle}</button>
       </div>
-      ${design.showSubmitReviewButton ? `<div class="pr-submit-review-container" style="text-align: right; margin-top: 1rem; padding-right: 1rem;"><a href="/r/${businessSlug}" target="_blank" class="pr-submit-btn" style="${submitButtonStyle}">Submit a Review</a></div>` : ''}
+      ${design.showSubmitReviewButton ? `<div class="pr-submit-review-container" style="text-align: right; margin-top: 0.5rem;"><a href="/r/${businessSlug}" target="_blank" class="pr-submit-btn" style="${submitButtonStyle}">Submit a Review</a></div>` : ''}
     `;
   }
 
