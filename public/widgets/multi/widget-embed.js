@@ -353,4 +353,24 @@
     autoInitializeWidgets();
   }
 
+  // Expose to global scope for dashboard compatibility
+  window.PromptReviews = window.PromptReviews || {};
+  window.PromptReviews.initializeWidget = function(containerId, reviews, design, businessSlug) {
+    const container = document.getElementById(containerId);
+    if (!container) {
+      console.error('Container not found:', containerId);
+      return;
+    }
+    
+    // Set the data attributes for auto-initialization
+    container.setAttribute('data-prompt-reviews-id', containerId.replace('promptreviews-widget-container-', ''));
+    if (businessSlug) {
+      container.setAttribute('data-business-slug', businessSlug);
+    }
+    
+    // Create the widget HTML
+    container.innerHTML = createCarouselHTML(containerId, reviews, design, businessSlug);
+    initializeCarousel(containerId);
+  };
+
 })(); 
