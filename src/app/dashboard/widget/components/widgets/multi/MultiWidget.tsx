@@ -71,8 +71,12 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
         script.src = `/widgets/multi/widget-embed.js?v=${new Date().getTime()}`;
         script.onload = () => {
           console.log('✅ MultiWidget: Widget script loaded successfully');
-          console.log('🔧 MultiWidget: Available functions:', Object.keys(window.PromptReviews || {}));
-          resolve();
+          // Add a small delay to ensure the script has executed and exposed the function
+          setTimeout(() => {
+            console.log('🔧 MultiWidget: Available functions after delay:', Object.keys(window.PromptReviews || {}));
+            console.log('🔧 MultiWidget: initializeWidget available:', !!window.PromptReviews?.initializeWidget);
+            resolve();
+          }, 200);
         };
         script.onerror = (error) => {
           console.error('❌ MultiWidget: Failed to load widget script:', error);
@@ -95,6 +99,16 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
         console.log('🔍 MultiWidget: window.PromptReviews:', !!window.PromptReviews);
         console.log('🔍 MultiWidget: window.PromptReviews.initializeWidget:', !!window.PromptReviews?.initializeWidget);
         console.log('🔍 MultiWidget: Available PromptReviews functions:', Object.keys(window.PromptReviews || {}));
+        
+        // Retry mechanism for initializeWidget function
+        let retryCount = 0;
+        const maxRetries = 10;
+        
+        while (!window.PromptReviews?.initializeWidget && retryCount < maxRetries) {
+          console.log(`🔄 MultiWidget: Waiting for initializeWidget function... (attempt ${retryCount + 1}/${maxRetries})`);
+          await new Promise(resolve => setTimeout(resolve, 100));
+          retryCount++;
+        }
         
         if (containerRef.current && window.PromptReviews && window.PromptReviews.initializeWidget) {
           console.log('🚀 MultiWidget: Using initializeWidget API');
