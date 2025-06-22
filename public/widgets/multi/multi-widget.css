@@ -4,6 +4,19 @@
   used by both the dashboard preview and the live embeddable widget.
 */
 
+/* 
+  Container styles to mimic the dashboard preview environment.
+  This ensures the embedded widget has a consistent, centered,
+  and responsive container, just like in the app.
+*/
+#promptreviews-widget {
+  position: relative;
+  width: 100%;
+  max-width: 64rem; /* 1024px */
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .pr-multi-widget {
   all: revert; /* Reset styles to browser defaults */
   box-sizing: border-box;
