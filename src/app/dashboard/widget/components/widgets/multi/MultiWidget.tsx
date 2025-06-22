@@ -95,14 +95,20 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
             slug || 'example-business'
           );
         } else {
-          console.error('❌ MultiWidget: Missing dependencies for initialization.');
+          // Only log error if component is still mounted and we actually have data to display
+          if (isMounted && reviews && reviews.length > 0) {
+            console.error('❌ MultiWidget: Missing dependencies for initialization.');
+          }
         }
       } catch (error) {
-        console.error('❌ MultiWidget: Failed to initialize widget:', error);
+        // Only log error if component is still mounted
+        if (isMounted) {
+          console.error('❌ MultiWidget: Failed to initialize widget:', error);
+        }
       }
     };
 
-    if (reviews && currentDesign) {
+    if (reviews && reviews.length > 0 && currentDesign && isMounted) {
       initializeWidget();
     }
     return () => {
