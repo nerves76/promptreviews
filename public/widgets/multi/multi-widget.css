@@ -124,6 +124,7 @@
     margin: 0 auto;
     box-sizing: border-box;
     text-align: center;
+    flex-grow: 1; /* This will make the card stretch to fill the item container */
 }
 
 .pr-multi-widget .pr-review-card:hover {
@@ -345,6 +346,7 @@
 .pr-carousel-item {
     flex-shrink: 0;
     width: calc(100% / 3 - 1rem * 2 / 3); /* Three cards by default */
+    display: flex; /* This makes the item a flex container */
 }
 
 .pr-carousel-controls {
