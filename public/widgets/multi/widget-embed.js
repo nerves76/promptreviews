@@ -280,7 +280,7 @@
       }
     `;
 
-    const submitReviewButton = design.submitReviewsLink ? `
+    const submitReviewButton = design.showSubmitReviewButton ? `
       <div class="pr-submit-review-container">
         <a href="https://prompt.reviews/r/${businessSlug}" target="_blank" rel="noopener noreferrer" class="pr-submit-btn"
            style="background-color: ${design.accentColor || '#4f46e5'}; color: #ffffff;">
