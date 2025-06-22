@@ -16,13 +16,15 @@ const SingleWidget = dynamic(() => import('./widgets/single/SingleWidget'), {
   loading: () => <FiveStarSpinner />,
   ssr: false 
 });
-// Add other widget types here as they are created
-// const PhotoWidget = dynamic(() => import('./widgets/photo/PhotoWidget'), { loading: () => <FiveStarSpinner /> });
+const PhotoWidget = dynamic(() => import('./widgets/photo/PhotoWidget'), {
+  loading: () => <FiveStarSpinner />,
+  ssr: false 
+});
 
 const WIDGET_COMPONENTS: Record<string, React.ComponentType<any>> = {
   multi: MultiWidget,
   single: SingleWidget,
-  // photo: PhotoWidget,
+  photo: PhotoWidget,
 };
 
 interface WidgetPreviewProps {
