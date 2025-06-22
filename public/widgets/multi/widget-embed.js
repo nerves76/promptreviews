@@ -165,7 +165,7 @@
     // Recalculate items per view on each update for responsiveness
     state.itemsPerView = calculateItemsPerView(widgetId);
     
-    const offset = -state.currentIndex * (100 / state.itemsPerView);
+    const offset = -state.currentIndex * 100;
     track.style.transform = `translateX(${offset}%)`;
     
     updateDots(widgetId);
@@ -336,6 +336,7 @@
           all: revert;
           box-sizing: border-box;
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+          padding: 0 1rem; /* Add horizontal padding here */
         }
         
         /* Carousel Layout */
@@ -343,8 +344,7 @@
             position: relative;
             overflow: hidden;
             width: 100%;
-            padding: 0 1rem; /* Add horizontal padding */
-            box-sizing: border-box;
+            /* Padding removed from here */
         }
         
         .pr-carousel-track {
