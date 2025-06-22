@@ -28,28 +28,27 @@ body #promptreviews-widget.pr-single-widget {
   }
   
   /* Carousel Layout */
-  .pr-carousel-container {
+  .pr-single-carousel-container {
       position: relative;
       overflow: hidden;
       width: 100%;
-      /* Padding removed from here */
   }
   
-  .pr-carousel-track {
+  .pr-single-carousel-track {
       display: flex;
       transition: transform 0.5s ease;
       gap: 0; /* No gap for single widget */
   }
   
   /* Single card takes full width */
-  .pr-carousel-item {
+  .pr-single-carousel-item {
       flex-shrink: 0;
       width: 100%; /* Full width for single card */
       display: flex; 
   }
   
   /* Review Card Styles */
-  .pr-single-widget .pr-review-card {
+  .pr-single-widget .pr-single-review-card {
       background: var(--pr-card-bg, #fff);
       border: var(--pr-card-border, 2px solid #cccccc);
       border-radius: var(--pr-card-radius, 16px);
@@ -58,30 +57,29 @@ body #promptreviews-widget.pr-single-widget {
       flex-direction: column;
       width: 100%;
       text-align: center;
-      /* This is the other key part: making the card grow */
       flex-grow: 1; 
   }
   
-  .pr-single-widget .review-content {
+  .pr-single-widget .pr-single-review-content {
       flex-grow: 1; /* Ensures the text content area grows, pushing footer down */
   }
   
-  .pr-single-widget .reviewer-details {
+  .pr-single-widget .pr-single-reviewer-details {
       margin-top: auto; /* Pushes details to the bottom of the card */
   }
   
   /* --- Other existing styles below --- */
   
-  .pr-single-widget .stars-row {
+  .pr-single-widget .pr-single-stars-row {
       display: flex;
       justify-content: center;
   }
   
-  .pr-single-widget .review-text {
+  .pr-single-widget .pr-single-review-text {
       margin: 0;
   }
   
-  .pr-carousel-controls {
+  .pr-single-carousel-controls {
       text-align: center;
       margin-top: 1.5rem;
       display: flex;
@@ -90,8 +88,8 @@ body #promptreviews-widget.pr-single-widget {
       gap: 10px;
   }
   
-  .pr-prev-btn,
-  .pr-next-btn {
+  .pr-single-prev-btn,
+  .pr-single-next-btn {
       cursor: pointer;
       width: 40px;
       height: 40px;
@@ -103,33 +101,33 @@ body #promptreviews-widget.pr-single-widget {
       position: relative;
   }
   
-  .pr-prev-btn::before,
-  .pr-next-btn::before {
+  .pr-single-prev-btn::before,
+  .pr-single-next-btn::before {
       content: '';
       width: 0;
       height: 0;
       border-style: solid;
   }
   
-  .pr-prev-btn::before {
+  .pr-single-prev-btn::before {
       border-width: 6px 8px 6px 0;
       border-color: transparent #4f46e5 transparent transparent;
       margin-left: -2px;
   }
   
-  .pr-next-btn::before {
+  .pr-single-next-btn::before {
       border-width: 6px 0 6px 8px;
       border-color: transparent transparent transparent #4f46e5;
       margin-right: -2px;
   }
   
-  .pr-dots-container {
+  .pr-single-dots-container {
       display: flex;
       gap: 16px;
       align-items: center;
   }
   
-  .pr-dot {
+  .pr-single-dot {
       height: 12px;
       width: 12px;
       border: none;
@@ -139,12 +137,12 @@ body #promptreviews-widget.pr-single-widget {
       margin: 0;
   }
   
-  .pr-submit-review-container {
+  .pr-single-submit-review-container {
       text-align: right;
       margin-top: 0.5rem;
   }
   
-  .pr-submit-btn {
+  .pr-single-submit-btn {
       display: inline-block;
       padding: 8px 16px;
       text-decoration: none;
@@ -153,7 +151,7 @@ body #promptreviews-widget.pr-single-widget {
   
   /* Responsive Design - simplified for single card */
   @media (max-width: 640px) {
-      .pr-carousel-track {
+      .pr-single-carousel-track {
         gap: 0;
       }
   }
