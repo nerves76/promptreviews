@@ -73,8 +73,21 @@ export default function WidgetPage() {
   const handleCopyEmbedCode = async () => {
     if (!selectedWidget) return;
 
-    // Use the correct container ID format that matches CSS selectors
-    const containerId = `pr-widget-container-${selectedWidget.id}`;
+    // Use the correct container ID format for each widget type
+    let containerId;
+    switch (selectedWidget.widget_type) {
+      case 'multi':
+        containerId = `pr-widget-container-${selectedWidget.id}`;
+        break;
+      case 'single':
+        containerId = `pr-single-widget-container-${selectedWidget.id}`;
+        break;
+      case 'photo':
+        containerId = `pr-photo-widget-container-${selectedWidget.id}`;
+        break;
+      default:
+        containerId = `pr-widget-container-${selectedWidget.id}`;
+    }
     
     const embedCode = `<script src="${window.location.origin}/widgets/${selectedWidget.widget_type}/widget-embed.min.js"></script>
 <div id="${containerId}" data-widget-id="${selectedWidget.id}"></div>`;
