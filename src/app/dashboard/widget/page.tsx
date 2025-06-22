@@ -73,11 +73,11 @@ export default function WidgetPage() {
   const handleCopyEmbedCode = async () => {
     if (!selectedWidget) return;
 
-    // Generate a unique container ID based on widget ID
-    const uniqueContainerId = `promptreviews-widget-${selectedWidget.id.replace(/-/g, '')}`;
+    // Use the correct container ID format that matches CSS selectors
+    const containerId = `pr-widget-container-${selectedWidget.id}`;
     
     const embedCode = `<script src="${window.location.origin}/widgets/${selectedWidget.widget_type}/widget-embed.min.js"></script>
-<div id="${uniqueContainerId}" data-widget-id="${selectedWidget.id}"></div>`;
+<div id="${containerId}" data-widget-id="${selectedWidget.id}"></div>`;
 
     try {
       await navigator.clipboard.writeText(embedCode);
