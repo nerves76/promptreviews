@@ -372,31 +372,87 @@
     const widgets = document.querySelectorAll('[data-widget-id]');
     console.log(`Found ${widgets.length} widgets to initialize`);
     
-    widgets.forEach(widget => {
-      const widgetId = widget.getAttribute('data-widget-id');
-      console.log(`🎯 Initializing widget: ${widgetId}`);
+    // Load CSS if not already loaded
+    const loadCSS = () => {
+      if (document.querySelector('link[href="/widgets/multi/multi-widget.css"]')) {
+        console.log('✅ CSS already loaded');
+        return Promise.resolve();
+      }
       
-      // Fetch widget data from API
-      fetch(`/api/widgets/${widgetId}`)
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          return response.json();
-        })
-        .then(data => {
-          console.log(`✅ Widget data loaded for ${widgetId}:`, data);
-          if (data.reviews && data.design) {
-            initializeWidget(widget.id, data.reviews, data.design, data.businessSlug || 'default');
-          } else {
-            console.error(`❌ Invalid widget data for ${widgetId}:`, data);
-            widget.innerHTML = '<div style="text-align: center; padding: 2rem; color: #666;">Widget data not available.</div>';
-          }
-        })
-        .catch(error => {
-          console.error(`❌ Failed to load widget data for ${widgetId}:`, error);
-          widget.innerHTML = '<div style="text-align: center; padding: 2rem; color: #666;">Failed to load widget.</div>';
-        });
+      console.log('📥 Loading CSS from /widgets/multi/multi-widget.css...');
+      return new Promise((resolve, reject) => {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = '/widgets/multi/multi-widget.css';
+        link.onload = () => {
+          console.log('✅ CSS loaded successfully');
+          resolve();
+        };
+        link.onerror = (error) => {
+          console.error('❌ Failed to load CSS:', error);
+          reject(error);
+        };
+        document.head.appendChild(link);
+      });
+    };
+    
+    // Load CSS first, then initialize widgets
+    loadCSS().then(() => {
+      widgets.forEach(widget => {
+        const widgetId = widget.getAttribute('data-widget-id');
+        console.log(`🎯 Initializing widget: ${widgetId}`);
+        
+        // Fetch widget data from API
+        fetch(`/api/widgets/${widgetId}`)
+          .then(response => {
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+          })
+          .then(data => {
+            console.log(`✅ Widget data loaded for ${widgetId}:`, data);
+            if (data.reviews && data.design) {
+              initializeWidget(widget.id, data.reviews, data.design, data.businessSlug || 'default');
+            } else {
+              console.error(`❌ Invalid widget data for ${widgetId}:`, data);
+              widget.innerHTML = '<div style="text-align: center; padding: 2rem; color: #666;">Widget data not available.</div>';
+            }
+          })
+          .catch(error => {
+            console.error(`❌ Failed to load widget data for ${widgetId}:`, error);
+            widget.innerHTML = '<div style="text-align: center; padding: 2rem; color: #666;">Failed to load widget.</div>';
+          });
+      });
+    }).catch(error => {
+      console.error('❌ Failed to load CSS, widgets may not display correctly:', error);
+      // Still try to initialize widgets even if CSS fails
+      widgets.forEach(widget => {
+        const widgetId = widget.getAttribute('data-widget-id');
+        console.log(`🎯 Initializing widget without CSS: ${widgetId}`);
+        
+        // Fetch widget data from API
+        fetch(`/api/widgets/${widgetId}`)
+          .then(response => {
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+          })
+          .then(data => {
+            console.log(`✅ Widget data loaded for ${widgetId}:`, data);
+            if (data.reviews && data.design) {
+              initializeWidget(widget.id, data.reviews, data.design, data.businessSlug || 'default');
+            } else {
+              console.error(`❌ Invalid widget data for ${widgetId}:`, data);
+              widget.innerHTML = '<div style="text-align: center; padding: 2rem; color: #666;">Widget data not available.</div>';
+            }
+          })
+          .catch(error => {
+            console.error(`❌ Failed to load widget data for ${widgetId}:`, error);
+            widget.innerHTML = '<div style="text-align: center; padding: 2rem; color: #666;">Failed to load widget.</div>';
+          });
+      });
     });
   }
 
