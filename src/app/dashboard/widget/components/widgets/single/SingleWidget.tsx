@@ -60,8 +60,8 @@ const SingleWidget: React.FC<SingleWidgetProps> = ({ data, design }) => {
     
     // Load the widget script if not already loaded
     const loadWidgetScript = (): Promise<void> => {
-      if (window.PromptReviewsSingle && (window.PromptReviewsSingle.initializeWidget || window.PromptReviewsSingle.renderSingleWidget)) {
-        console.log('✅ SingleWidget: Widget script already loaded, available functions:', Object.keys(window.PromptReviewsSingle));
+      if (window.PromptReviewsSingle?.initializeWidget) {
+        console.log('✅ SingleWidget: Widget script already loaded');
         return Promise.resolve();
       }
 
@@ -86,7 +86,7 @@ const SingleWidget: React.FC<SingleWidgetProps> = ({ data, design }) => {
       try {
         await Promise.all([loadWidgetCSS(), loadWidgetScript()]);
         
-        if (containerRef.current && window.PromptReviewsSingle && window.PromptReviewsSingle.initializeWidget) {
+        if (containerRef.current && window.PromptReviewsSingle?.initializeWidget) {
           console.log('🚀 SingleWidget: Using initializeWidget API');
           window.PromptReviewsSingle.initializeWidget(
             containerRef.current.id,
@@ -120,7 +120,6 @@ const SingleWidget: React.FC<SingleWidgetProps> = ({ data, design }) => {
       id={`promptreviews-widget-container-${data.id}`}
       ref={containerRef}
       className="pr-widget-container pr-single-widget"
-      style={{ minHeight: '200px' }}
     />
   );
 };
