@@ -4,7 +4,9 @@
 (function() {
   'use strict';
 
-  // Utility functions
+  // --- Start of Shared Canonical Functions ---
+  // This section is now the single source of truth for card generation.
+
   function renderStars(rating) {
     let stars = '';
     for (let i = 1; i <= 5; i++) {
@@ -48,16 +50,14 @@
   }
 
   function createReviewCard(review, design) {
-    // Automatically set text color based on background brightness
     const bgColor = design.bgColor || '#ffffff';
     let textColor = design.textColor || '#22223b';
     if (isColorDark(bgColor)) {
-      textColor = '#ffffff'; // Force white text on dark backgrounds
+      textColor = '#ffffff';
     }
     
-    // Use design properties with proper fallbacks
-    const nameColor = design.nameTextColor || design.nameColor || textColor;
-    const roleColor = design.roleTextColor || design.roleColor || textColor;
+    const nameColor = design.nameTextColor || textColor;
+    const roleColor = design.roleTextColor || textColor;
     const accentColor = design.accentColor || '#4f46e5';
     const borderRadius = design.borderRadius || 16;
     const borderWidth = design.borderWidth || 2;
@@ -65,7 +65,6 @@
     const bgOpacity = design.bgOpacity !== undefined ? design.bgOpacity : 1;
     const font = design.font || 'Inter';
     
-    // Build card style with all properties
     let cardStyle = `
       background-color: ${bgColor};
       color: ${textColor};
@@ -73,28 +72,24 @@
       padding: 1.5rem;
       display: flex;
       flex-direction: column;
-      height: 100%;
-      font-family: ${font}, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: ${font}, sans-serif;
       opacity: ${bgOpacity};
     `;
     
-    // Add border if enabled
     if (design.border) {
       cardStyle += `border: ${borderWidth}px solid ${borderColor};`;
     }
     
-    // Add shadow/vignette if enabled
     if (design.shadow) {
       const shadowColor = design.shadowColor || '#222222';
       const shadowIntensity = design.shadowIntensity || 0.2;
       cardStyle += `box-shadow: inset 0 0 20px rgba(0, 0, 0, ${shadowIntensity});`;
     }
     
-    // Create curly quotes positioned correctly
     const openingQuote = design.showQuotes ? `<span class="decorative-quote-opening" style="color: ${accentColor}; font-size: 1.5rem; font-weight: bold; line-height: 1; opacity: 0.3; margin-bottom: 0.5rem; display: block; text-align: left; width: 100%;">"</span>` : '';
     const closingQuote = design.showQuotes ? `<span class="decorative-quote-closing" style="color: ${accentColor}; font-size: 1.5rem; font-weight: bold; line-height: 1; opacity: 0.3; position: absolute; bottom: 1rem; right: 1rem;">"</span>` : '';
     
-    const starsHTML = review.star_rating ? `<div class="stars-row" style="margin-bottom: 0.75rem;">${renderStars(review.star_rating)}</div>` : '';
+    const starsHTML = review.star_rating ? `<div class="stars-row" style="margin-bottom: 0.75rem; display: flex; justify-content: center;">${renderStars(review.star_rating)}</div>` : '';
     const dateHTML = design.showRelativeDate && review.created_at ? `<div class="reviewer-date" style="font-size: 0.875rem; color: ${roleColor}; margin-top: 0.5rem;">${getRelativeTime(review.created_at)}</div>` : '';
 
     return `
@@ -113,6 +108,8 @@
       </div>
     `;
   }
+  
+  // --- End of Shared Canonical Functions ---
 
   // Carousel state
   let currentIndex = 0;
@@ -153,7 +150,6 @@
       const isActive = index === currentIndex;
       dot.classList.toggle('active', isActive);
       
-      // Update dot styling
       if (isActive) {
         dot.style.backgroundColor = bgColor;
         dot.style.opacity = bgOpacity;
@@ -176,7 +172,6 @@
     const accentColor = designData.accentColor || '#4f46e5';
     const bgOpacity = designData.bgOpacity !== undefined ? designData.bgOpacity : 1;
     
-    // Update button styling
     const buttonStyle = `
       background: ${bgColor};
       border: ${borderWidth}px solid ${borderColor};
@@ -186,7 +181,6 @@
     prevBtn.style.cssText += buttonStyle;
     nextBtn.style.cssText += buttonStyle;
     
-    // Update triangle colors
     const leftTriangle = prevBtn.querySelector('div');
     const rightTriangle = nextBtn.querySelector('div');
     
@@ -197,7 +191,6 @@
       rightTriangle.style.borderLeftColor = accentColor;
     }
     
-    // Add shadow if enabled
     if (designData.shadow) {
       const shadowIntensity = designData.shadowIntensity || 0.2;
       const shadowStyle = `box-shadow: inset 0 0 20px rgba(0, 0, 0, ${shadowIntensity});`;
@@ -226,7 +219,6 @@
       `<button class="pr-dot" data-index="${i}" style="height: 12px; width: 12px; background-color: ${design.accentColor || '#4f46e5'}; border: none; border-radius: 50%; display: inline-block; transition: all 0.3s ease; cursor: pointer; padding: 0; margin: 0 8px; opacity: ${design.bgOpacity !== undefined ? design.bgOpacity * 0.5 : 0.5};"></button>`
     ).join('');
     
-    // Build submit button style to match cards
     const bgColor = design.bgColor || '#ffffff';
     const borderRadius = design.borderRadius || 16;
     const borderWidth = design.borderWidth || 2;
@@ -249,7 +241,6 @@
       opacity: ${bgOpacity};
     `;
     
-    // Build arrow button style to match cards
     let arrowButtonStyle = `
       cursor: pointer;
       width: 40px;
@@ -265,14 +256,12 @@
       opacity: ${bgOpacity};
     `;
     
-    // Add shadow if enabled
     if (design.shadow) {
       const shadowIntensity = design.shadowIntensity || 0.2;
       submitButtonStyle += `box-shadow: inset 0 0 20px rgba(0, 0, 0, ${shadowIntensity});`;
       arrowButtonStyle += `box-shadow: inset 0 0 20px rgba(0, 0, 0, ${shadowIntensity});`;
     }
     
-    // Create triangle arrows using CSS
     const leftTriangle = `<div style="width: 0; height: 0; border-top: 6px solid transparent; border-bottom: 6px solid transparent; border-right: 8px solid ${accentColor}; margin-left: 4px;"></div>`;
     const rightTriangle = `<div style="width: 0; height: 0; border-top: 6px solid transparent; border-bottom: 6px solid transparent; border-left: 8px solid ${accentColor}; margin-right: 4px;"></div>`;
     
@@ -314,7 +303,6 @@
 
     window.addEventListener('resize', updateCarousel);
     
-    // Auto-advance slideshow if enabled
     let autoAdvanceInterval = null;
     if (designData.autoAdvance && designData.slideshowSpeed) {
       const speedMs = (designData.slideshowSpeed || 4) * 1000;
@@ -324,10 +312,8 @@
       }, speedMs);
     }
     
-    // Initial setup
     updateCarousel();
     
-    // Clean up interval on page unload
     window.addEventListener('beforeunload', () => {
       if (autoAdvanceInterval) {
         clearInterval(autoAdvanceInterval);
@@ -372,7 +358,6 @@
     const widgets = document.querySelectorAll('[data-widget-id]');
     console.log(`Found ${widgets.length} widgets to initialize`);
     
-    // Load CSS if not already loaded
     const loadCSS = () => {
       if (document.querySelector('link[href="/widgets/multi/multi-widget.css"]')) {
         console.log('✅ CSS already loaded');
@@ -396,13 +381,11 @@
       });
     };
     
-    // Load CSS first, then initialize widgets
     loadCSS().then(() => {
       widgets.forEach(widget => {
         const widgetId = widget.getAttribute('data-widget-id');
         console.log(`🎯 Initializing widget: ${widgetId}`);
         
-        // Fetch widget data from API
         fetch(`/api/widgets/${widgetId}`)
           .then(response => {
             if (!response.ok) {
@@ -426,12 +409,10 @@
       });
     }).catch(error => {
       console.error('❌ Failed to load CSS, widgets may not display correctly:', error);
-      // Still try to initialize widgets even if CSS fails
       widgets.forEach(widget => {
         const widgetId = widget.getAttribute('data-widget-id');
         console.log(`🎯 Initializing widget without CSS: ${widgetId}`);
         
-        // Fetch widget data from API
         fetch(`/api/widgets/${widgetId}`)
           .then(response => {
             if (!response.ok) {

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { WidgetData, DesignState } from './index';
+import { createReviewCardHTML } from '../../shared/card-generator';
 
 // Remove the incorrect CSS import - we'll load it dynamically
 // import '../../../../../../../public/widgets/multi/multi-widget.css';
@@ -83,41 +84,18 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
 
     const initializeWidget = async () => {
       try {
-        // Load both CSS and JS
         await Promise.all([loadWidgetCSS(), loadWidgetScript()]);
         
-        if (containerRef.current && window.PromptReviews) {
-          console.log('🎯 MultiWidget: Initializing widget in container:', containerRef.current.id);
-          console.log('📊 MultiWidget: Reviews data:', reviews);
-          console.log('🎨 MultiWidget: Design data:', currentDesign);
-          
-          // Try the new API first
-          if (window.PromptReviews.initializeWidget) {
-            console.log('🚀 MultiWidget: Using initializeWidget API');
-            window.PromptReviews.initializeWidget(
-              containerRef.current.id,
-              reviews,
-              currentDesign,
-              slug || 'example-business'
-            );
-            console.log('✅ MultiWidget: Widget initialization completed');
-          } 
-          // Fallback to the old API
-          else if (window.PromptReviews.renderMultiWidget) {
-            console.log('🔄 MultiWidget: Using renderMultiWidget API (fallback)');
-            window.PromptReviews.renderMultiWidget(
-              containerRef.current,
-              { reviews, design: currentDesign, businessSlug: slug || 'example-business' }
-            );
-            console.log('✅ MultiWidget: Widget initialization completed (fallback)');
-          } else {
-            console.error('❌ MultiWidget: No widget initialization function found in PromptReviews:', window.PromptReviews);
-          }
+        if (containerRef.current && window.PromptReviews && window.PromptReviews.initializeWidget) {
+          console.log('🚀 MultiWidget: Using initializeWidget API');
+          window.PromptReviews.initializeWidget(
+            containerRef.current.id,
+            reviews,
+            currentDesign,
+            slug || 'example-business'
+          );
         } else {
-          console.error('❌ MultiWidget: Missing required elements for widget initialization:', {
-            containerRef: !!containerRef.current,
-            PromptReviews: !!window.PromptReviews
-          });
+          console.error('❌ MultiWidget: Missing dependencies for initialization.');
         }
       } catch (error) {
         console.error('❌ MultiWidget: Failed to initialize widget:', error);
@@ -125,12 +103,9 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
     };
 
     if (reviews && currentDesign) {
-      console.log('🎯 MultiWidget: Starting widget initialization...');
       initializeWidget();
-    } else {
-      console.log('⚠️ MultiWidget: Missing reviews or design data:', { reviews: !!reviews, design: !!currentDesign });
     }
-  }, [reviews, currentDesign, slug, data.id, data.widget_type]); // Added currentDesign to dependencies
+  }, [reviews, currentDesign, slug, data.id, data.widget_type]);
 
   if (!reviews || !currentDesign) {
     return <div className="text-center p-4">Loading widget data...</div>;
@@ -142,7 +117,7 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
 
   return (
     <div 
-      id="promptreviews-widget-container"
+      id={`promptreviews-widget-container-${data.id}`}
       ref={containerRef}
       className="pr-widget-container pr-multi-widget"
       style={{ minHeight: '200px' }}
