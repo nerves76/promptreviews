@@ -12,7 +12,7 @@
 #promptreviews-widget {
     position: relative;
     width: 100%;
-    max-width: 650px; /* Changed from 750px to 650px for single widget */
+    min-width: 650px; /* Changed from max-width to min-width for single widget */
     min-height: 200px; /* Added minimum height for single widget */
     margin-left: auto;
     margin-right: auto;
