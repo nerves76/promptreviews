@@ -9,29 +9,33 @@
 
   // Initialize the widget
   window.PromptReviews = window.PromptReviews || {};
-  window.PromptReviews.initializeWidget = function(widgetId, reviews, design, businessSlug) {
-    console.log('🚀 SingleWidget: Initializing widget', { widgetId, reviewsCount: reviews?.length, design });
-    
-    if (!reviews || reviews.length === 0) {
-      console.warn('⚠️ SingleWidget: No reviews provided');
-      return;
-    }
+  
+  // Only define initializeWidget if it doesn't already exist (to avoid conflicts with multi widget)
+  if (!window.PromptReviews.initializeWidget) {
+    window.PromptReviews.initializeWidget = function(containerId, reviews, design, businessSlug) {
+      console.log('🚀 SingleWidget: Initializing widget', { containerId, reviewsCount: reviews?.length, design });
+      
+      if (!reviews || reviews.length === 0) {
+        console.warn('⚠️ SingleWidget: No reviews provided');
+        return;
+      }
 
-    const widgetElement = document.getElementById(widgetId);
-    if (!widgetElement) {
-      console.error('❌ SingleWidget: Widget container not found:', widgetId);
-      return;
-    }
+      const widgetElement = document.getElementById(containerId);
+      if (!widgetElement) {
+        console.error('❌ SingleWidget: Widget container not found:', containerId);
+        return;
+      }
 
-    // Create and insert the widget HTML
-    const widgetHTML = createCarouselHTML(widgetId, reviews, design, businessSlug);
-    widgetElement.innerHTML = widgetHTML;
+      // Create and insert the widget HTML
+      const widgetHTML = createCarouselHTML(containerId, reviews, design, businessSlug);
+      widgetElement.innerHTML = widgetHTML;
 
-    // Initialize carousel functionality
-    initCarousel(widgetId, reviews, design);
-    
-    console.log('✅ SingleWidget: Widget initialized successfully');
-  };
+      // Initialize carousel functionality
+      initCarousel(containerId, reviews, design);
+      
+      console.log('✅ SingleWidget: Widget initialized successfully');
+    };
+  }
 
   function initCarouselState(widgetId, reviews, design) {
     carouselState[widgetId] = {
