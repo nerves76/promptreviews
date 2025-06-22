@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import StyleForm from '@/app/dashboard/widget/components/StyleForm';
+import StyleForm from './StyleForm';
 import { DraggableModal } from './DraggableModal';
 import { DesignState } from './widgets/multi/index';
 
