@@ -54,21 +54,21 @@ export default function WidgetPage() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={handleEditStyle}
-                    className="p-2 text-white bg-slate-blue rounded-md hover:bg-slate-blue/90 transition-colors"
+                    className="p-2 text-slate-blue bg-white/20 rounded-md hover:bg-white/30 transition-colors"
                     title="Edit Style"
                   >
                     <FaEdit className="w-4 h-4" />
                   </button>
                   <button
                     onClick={handleManageReviews}
-                    className="p-2 text-white bg-slate-blue rounded-md hover:bg-slate-blue/90 transition-colors"
+                    className="p-2 text-slate-blue bg-white/20 rounded-md hover:bg-white/30 transition-colors"
                     title="Manage Reviews"
                   >
                     <FaComments className="w-4 h-4" />
                   </button>
                   <button
                     onClick={handleCopyEmbed}
-                    className="p-2 text-white bg-slate-blue rounded-md hover:bg-slate-blue/90 transition-colors"
+                    className="p-2 text-slate-blue bg-white/20 rounded-md hover:bg-white/30 transition-colors"
                     title="Copy Embed Code"
                   >
                     <FaCopy className="w-4 h-4" />
