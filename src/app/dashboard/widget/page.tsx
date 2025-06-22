@@ -119,7 +119,7 @@ export default function WidgetPage() {
               <div className="flex gap-2">
                 <button
                   onClick={handleEditStyle}
-                  className="p-2 bg-white/20 backdrop-blur-sm rounded-full shadow-lg hover:bg-white/30 transition-all duration-200 group"
+                  className="p-2 bg-white/40 backdrop-blur-sm rounded-full shadow-lg hover:bg-white/50 transition-all duration-200 group"
                   title="Edit Style"
                 >
                   <FaEdit className="w-4 h-4 text-slate-blue group-hover:text-slate-blue/80 transition-colors" />
@@ -127,7 +127,7 @@ export default function WidgetPage() {
                 
                 <button
                   onClick={handleManageReviews}
-                  className="p-2 bg-white/20 backdrop-blur-sm rounded-full shadow-lg hover:bg-white/30 transition-all duration-200 group"
+                  className="p-2 bg-white/40 backdrop-blur-sm rounded-full shadow-lg hover:bg-white/50 transition-all duration-200 group"
                   title="Manage Reviews"
                 >
                   <FaUsers className="w-4 h-4 text-slate-blue group-hover:text-slate-blue/80 transition-colors" />
@@ -137,8 +137,8 @@ export default function WidgetPage() {
                   onClick={handleCopyEmbedCode}
                   className={`p-2 rounded-full shadow-lg transition-all duration-200 group ${
                     isCopied 
-                      ? 'bg-green-500/20 backdrop-blur-sm hover:bg-green-500/30' 
-                      : 'bg-white/20 backdrop-blur-sm hover:bg-white/30'
+                      ? 'bg-green-500/40 backdrop-blur-sm hover:bg-green-500/50' 
+                      : 'bg-white/40 backdrop-blur-sm hover:bg-white/50'
                   }`}
                   title={isCopied ? "Copied!" : "Copy Embed Code"}
                 >
