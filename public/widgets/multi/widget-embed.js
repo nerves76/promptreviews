@@ -278,6 +278,37 @@
       .pr-next-btn::before {
         border-color: transparent transparent transparent ${accentColor} !important;
       }
+      
+      /* Hover effects for arrow buttons - invert colors */
+      .pr-prev-btn:hover,
+      .pr-next-btn:hover {
+        background-color: ${accentColor} !important;
+        border-color: ${accentColor} !important;
+      }
+      
+      .pr-prev-btn:hover::before {
+        border-color: transparent ${bgColor} transparent transparent !important;
+      }
+      
+      .pr-next-btn:hover::before {
+        border-color: transparent transparent transparent ${bgColor} !important;
+      }
+      
+      /* Hover effect for submit button - invert colors */
+      .pr-submit-btn:hover {
+        background-color: ${accentColor} !important;
+        color: ${bgColor} !important;
+      }
+      
+      /* Hover effect for review cards - lift up */
+      .pr-review-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+      
+      .pr-review-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+      }
     `;
 
     const submitReviewButton = design.showSubmitReviewButton ? `
