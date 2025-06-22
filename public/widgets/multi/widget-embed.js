@@ -90,16 +90,20 @@
       cardStyle += `box-shadow: inset 0 0 20px rgba(0, 0, 0, ${shadowIntensity});`;
     }
     
-    const quoteHTML = design.showQuotes ? `<span class="decorative-quote" style="color: ${accentColor}; font-size: 2rem; font-weight: bold; line-height: 1;">"</span>` : '';
+    // Create curly quotes positioned correctly
+    const openingQuote = design.showQuotes ? `<span class="decorative-quote-opening" style="color: ${accentColor}; font-size: 1.5rem; font-weight: bold; line-height: 1; opacity: 0.3; margin-bottom: 0.5rem;">"</span>` : '';
+    const closingQuote = design.showQuotes ? `<span class="decorative-quote-closing" style="color: ${accentColor}; font-size: 1.5rem; font-weight: bold; line-height: 1; opacity: 0.3; position: absolute; bottom: 1rem; right: 1rem;">"</span>` : '';
+    
     const starsHTML = review.star_rating ? `<div class="stars-row" style="margin-bottom: 0.75rem;">${renderStars(review.star_rating)}</div>` : '';
     const dateHTML = design.showRelativeDate && review.created_at ? `<div class="reviewer-date" style="font-size: 0.875rem; color: ${roleColor}; margin-top: 0.5rem;">${getRelativeTime(review.created_at)}</div>` : '';
 
     return `
       <div class="pr-review-card" style="${cardStyle}">
         ${starsHTML}
-        <div class="review-content" style="flex-grow: 1;">
-          ${quoteHTML}
-          <p class="review-text" style="margin: 0; font-size: 1rem; line-height: 1.5; color: ${textColor};">${review.review_content}</p>
+        <div class="review-content" style="flex-grow: 1; position: relative;">
+          ${openingQuote}
+          <p class="review-text" style="margin: 0; font-size: 1rem; line-height: 1.5; color: ${textColor}; padding-left: ${design.showQuotes ? '1rem' : '0'}; padding-right: ${design.showQuotes ? '2rem' : '0'}; padding-bottom: ${design.showQuotes ? '2rem' : '0'};">${review.review_content}</p>
+          ${closingQuote}
         </div>
         <div class="reviewer-details" style="margin-top: 1rem; text-align: center;">
           <div class="reviewer-name" style="font-weight: bold; color: ${nameColor};">${review.first_name || ''} ${review.last_name || ''}</div>
@@ -268,8 +272,8 @@
     }
     
     // Create triangle arrows using CSS
-    const leftTriangle = `<div style="width: 0; height: 0; border-top: 6px solid transparent; border-bottom: 6px solid transparent; border-right: 8px solid ${accentColor}; margin-left: 2px;"></div>`;
-    const rightTriangle = `<div style="width: 0; height: 0; border-top: 6px solid transparent; border-bottom: 6px solid transparent; border-left: 8px solid ${accentColor}; margin-right: 2px;"></div>`;
+    const leftTriangle = `<div style="width: 0; height: 0; border-top: 6px solid transparent; border-bottom: 6px solid transparent; border-right: 8px solid ${accentColor}; margin-left: 4px;"></div>`;
+    const rightTriangle = `<div style="width: 0; height: 0; border-top: 6px solid transparent; border-bottom: 6px solid transparent; border-left: 8px solid ${accentColor}; margin-right: 4px;"></div>`;
     
     return `
       <div class="pr-carousel-container" style="position: relative;">
@@ -284,7 +288,7 @@
         </div>
         <button class="pr-next-btn" style="${arrowButtonStyle}">${rightTriangle}</button>
       </div>
-      ${design.showSubmitReviewButton ? `<div class="pr-submit-review-container" style="text-align: right; margin-top: 1.5rem; padding-right: 1rem;"><a href="/r/${businessSlug}" target="_blank" class="pr-submit-btn" style="${submitButtonStyle}">Submit a Review</a></div>` : ''}
+      ${design.showSubmitReviewButton ? `<div class="pr-submit-review-container" style="text-align: right; margin-top: 1rem; padding-right: 1rem;"><a href="/r/${businessSlug}" target="_blank" class="pr-submit-btn" style="${submitButtonStyle}">Submit a Review</a></div>` : ''}
     `;
   }
 
