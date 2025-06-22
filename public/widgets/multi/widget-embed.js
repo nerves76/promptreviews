@@ -165,7 +165,7 @@
     // Recalculate items per view on each update for responsiveness
     state.itemsPerView = calculateItemsPerView(widgetId);
     
-    const offset = -state.currentIndex * 100;
+    const offset = -state.currentIndex * (100 / state.itemsPerView);
     track.style.transform = `translateX(${offset}%)`;
     
     updateDots(widgetId);
@@ -193,8 +193,11 @@
         // Re-add event listeners
         dotsContainer.querySelectorAll('.pr-dot').forEach(dot => {
             dot.addEventListener('click', (e) => {
-                const index = parseInt(e.target.dataset.index, 10);
-                moveToIndex(widgetId, index);
+                const state = carouselState[widgetId];
+                if (!state) return;
+                const pageIndex = parseInt(e.target.dataset.index, 10);
+                const cardIndex = pageIndex * state.itemsPerView;
+                moveToIndex(widgetId, cardIndex);
             });
         });
     }
@@ -217,18 +220,18 @@
     const nextBtn = widgetElement.querySelector('.pr-next-btn');
     if (!prevBtn || !nextBtn) return;
     
-    const totalPages = Math.ceil(state.reviews.length / state.itemsPerView);
+    const maxIndex = Math.max(0, state.reviews.length - state.itemsPerView);
     
     prevBtn.disabled = state.currentIndex === 0;
-    nextBtn.disabled = state.currentIndex >= totalPages - 1;
+    nextBtn.disabled = state.currentIndex >= maxIndex;
   }
 
   function moveToIndex(widgetId, index) {
     const state = carouselState[widgetId];
     if (!state) return;
     
-    const totalPages = Math.ceil(state.reviews.length / state.itemsPerView);
-    const newIndex = Math.max(0, Math.min(index, totalPages - 1));
+    const maxIndex = Math.max(0, state.reviews.length - state.itemsPerView);
+    const newIndex = Math.max(0, Math.min(index, maxIndex));
 
     if (newIndex !== state.currentIndex) {
       state.currentIndex = newIndex;
