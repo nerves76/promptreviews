@@ -111,348 +111,246 @@
   
   // --- End of Shared Canonical Functions ---
 
-  // Carousel state
-  let currentIndex = 0;
-  let itemsPerView = 3;
-  let totalPages = 0;
-  let reviewsData = [];
-  let designData = {};
+  // --- Start of Carousel Logic ---
+  let carouselState = {};
 
-  function calculateItemsPerView(container, firstItem) {
+  function initCarouselState(widgetId, reviews, design) {
+    carouselState[widgetId] = {
+      currentIndex: 0,
+      itemsPerView: 3, // Default, will be recalculated
+      reviews: reviews,
+      design: design,
+      get totalPages() {
+        return Math.ceil(this.reviews.length / this.itemsPerView);
+      }
+    };
+  }
+
+  function calculateItemsPerView(widgetId) {
+    const widgetElement = document.getElementById(widgetId);
+    if (!widgetElement) return 3;
+
+    const container = widgetElement.querySelector('.pr-carousel-container');
+    const firstItem = widgetElement.querySelector('.pr-carousel-item');
+    
     if (!container || !firstItem || firstItem.offsetWidth === 0) {
-      return itemsPerView;
+      // Return default based on viewport width if item not rendered yet
+      if (window.innerWidth <= 640) return 1;
+      if (window.innerWidth <= 1024) return 2;
+      return 3;
     }
-    // Dynamically determine items per view based on rendered widths
-    return Math.round(container.offsetWidth / firstItem.offsetWidth);
+    
+    const gapStyle = getComputedStyle(firstItem.parentElement).gap;
+    const gap = parseFloat(gapStyle) || 16; // Default gap to 16px if not found
+
+    const containerWidth = container.offsetWidth;
+    const itemWidth = firstItem.offsetWidth;
+
+    // Calculation needs to account for the gaps between items
+    const items = Math.round((containerWidth + gap) / (itemWidth + gap));
+    return Math.max(1, items);
   }
 
-  function updateCarousel() {
-    const carousel = document.querySelector('.pr-carousel-track');
-    if (!carousel) return;
 
-    const container = document.querySelector('.pr-carousel-container');
-    const firstItem = carousel.querySelector('.pr-carousel-item');
+  function updateCarousel(widgetId) {
+    const state = carouselState[widgetId];
+    if (!state) return;
 
-    if (!container || !firstItem) return;
+    const widgetElement = document.getElementById(widgetId);
+    if (!widgetElement) return;
 
-    itemsPerView = calculateItemsPerView(container, firstItem);
-    totalPages = Math.ceil(reviewsData.length / itemsPerView);
+    const track = widgetElement.querySelector('.pr-carousel-track');
+    if (!track) return;
     
-    const offset = -currentIndex * container.offsetWidth;
-    carousel.style.transform = `translateX(${offset}px)`;
+    // Recalculate items per view on each update for responsiveness
+    state.itemsPerView = calculateItemsPerView(widgetId);
     
-    updateDots();
-    updateArrowButtons();
+    const offset = -state.currentIndex * (100 / state.itemsPerView);
+    track.style.transform = `translateX(${offset}%)`;
+    
+    updateDots(widgetId);
+    updateArrowButtons(widgetId);
   }
 
-  function updateDots() {
-    const dots = document.querySelectorAll('.pr-dot');
-    const bgColor = designData.bgColor || '#ffffff';
-    const accentColor = designData.accentColor || '#4f46e5';
-    const bgOpacity = designData.bgOpacity !== undefined ? designData.bgOpacity : 1;
+  function updateDots(widgetId) {
+    const state = carouselState[widgetId];
+    const widgetElement = document.getElementById(widgetId);
+    if (!state || !widgetElement) return;
+
+    const dotsContainer = widgetElement.querySelector('.pr-dots-container');
+    if (!dotsContainer) return;
+    
+    const totalPages = Math.ceil(state.reviews.length / state.itemsPerView);
+
+    // Regenerate dots if the number of pages has changed
+    if (dotsContainer.children.length !== totalPages) {
+        let dotsHTML = '';
+        for (let i = 0; i < totalPages; i++) {
+            dotsHTML += `<button class="pr-dot" data-index="${i}"></button>`;
+        }
+        dotsContainer.innerHTML = dotsHTML;
+        
+        // Re-add event listeners
+        dotsContainer.querySelectorAll('.pr-dot').forEach(dot => {
+            dot.addEventListener('click', (e) => {
+                const index = parseInt(e.target.dataset.index, 10);
+                moveToIndex(widgetId, index);
+            });
+        });
+    }
+
+    const dots = dotsContainer.querySelectorAll('.pr-dot');
+    const activeDot = state.currentIndex;
     
     dots.forEach((dot, index) => {
-      const isActive = index === currentIndex;
-      dot.classList.toggle('active', isActive);
-      
-      if (isActive) {
-        dot.style.backgroundColor = bgColor;
-        dot.style.opacity = bgOpacity;
-      } else {
-        dot.style.backgroundColor = accentColor;
-        dot.style.opacity = bgOpacity * 0.5;
-      }
+      dot.classList.toggle('active', index === activeDot);
+      dot.style.backgroundColor = index === activeDot ? (state.design.accentColor || '#4f46e5') : '#cccccc';
     });
   }
 
-  function updateArrowButtons() {
-    const prevBtn = document.querySelector('.pr-prev-btn');
-    const nextBtn = document.querySelector('.pr-next-btn');
-    
+  function updateArrowButtons(widgetId) {
+    const state = carouselState[widgetId];
+    const widgetElement = document.getElementById(widgetId);
+    if (!state || !widgetElement) return;
+
+    const prevBtn = widgetElement.querySelector('.pr-prev-btn');
+    const nextBtn = widgetElement.querySelector('.pr-next-btn');
     if (!prevBtn || !nextBtn) return;
     
-    const bgColor = designData.bgColor || '#ffffff';
-    const borderWidth = designData.borderWidth || 2;
-    const borderColor = designData.borderColor || '#cccccc';
-    const accentColor = designData.accentColor || '#4f46e5';
-    const bgOpacity = designData.bgOpacity !== undefined ? designData.bgOpacity : 1;
+    const totalPages = Math.ceil(state.reviews.length / state.itemsPerView);
     
-    const buttonStyle = `
-      background: ${bgColor};
-      border: ${borderWidth}px solid ${borderColor};
-      opacity: ${bgOpacity};
-    `;
-    
-    prevBtn.style.cssText += buttonStyle;
-    nextBtn.style.cssText += buttonStyle;
-    
-    const leftTriangle = prevBtn.querySelector('div');
-    const rightTriangle = nextBtn.querySelector('div');
-    
-    if (leftTriangle) {
-      leftTriangle.style.borderRightColor = accentColor;
-    }
-    if (rightTriangle) {
-      rightTriangle.style.borderLeftColor = accentColor;
-    }
-    
-    if (designData.shadow) {
-      const shadowIntensity = designData.shadowIntensity || 0.2;
-      const shadowStyle = `box-shadow: inset 0 0 20px rgba(0, 0, 0, ${shadowIntensity});`;
-      prevBtn.style.cssText += shadowStyle;
-      nextBtn.style.cssText += shadowStyle;
-    }
+    prevBtn.disabled = state.currentIndex === 0;
+    nextBtn.disabled = state.currentIndex >= totalPages - 1;
   }
 
-  function moveToIndex(index) {
+  function moveToIndex(widgetId, index) {
+    const state = carouselState[widgetId];
+    if (!state) return;
+    
+    const totalPages = Math.ceil(state.reviews.length / state.itemsPerView);
     const newIndex = Math.max(0, Math.min(index, totalPages - 1));
-    if (newIndex !== currentIndex) {
-      currentIndex = newIndex;
-      updateCarousel();
+
+    if (newIndex !== state.currentIndex) {
+      state.currentIndex = newIndex;
+      updateCarousel(widgetId);
     }
   }
 
-  function createCarouselHTML(reviews, design, businessSlug) {
-    reviewsData = reviews;
-    designData = design;
-    
+  function createCarouselHTML(widgetId, reviews, design, businessSlug) {
+    initCarouselState(widgetId, reviews, design);
+    const state = carouselState[widgetId];
+
     const reviewCardsHTML = reviews.map(review => 
       `<div class="pr-carousel-item">${createReviewCard(review, design)}</div>`
     ).join('');
+    
+    // Dots are now generated in updateDots
+    const dotsHTML = '';
 
-    const dotsHTML = Array.from({ length: Math.ceil(reviews.length / itemsPerView) }, (_, i) => 
-      `<button class="pr-dot" data-index="${i}" style="height: 12px; width: 12px; background-color: ${design.accentColor || '#4f46e5'}; border: none; border-radius: 50%; display: inline-block; transition: all 0.3s ease; cursor: pointer; padding: 0; margin: 0 8px; opacity: ${design.bgOpacity !== undefined ? design.bgOpacity * 0.5 : 0.5};"></button>`
-    ).join('');
-    
-    const bgColor = design.bgColor || '#ffffff';
-    const borderRadius = design.borderRadius || 16;
-    const borderWidth = design.borderWidth || 2;
-    const borderColor = design.borderColor || '#cccccc';
-    const textColor = design.textColor || '#22223b';
-    const accentColor = design.accentColor || '#4f46e5';
-    const bgOpacity = design.bgOpacity !== undefined ? design.bgOpacity : 1;
-    
-    let submitButtonStyle = `
-      display: inline-block;
-      background: ${bgColor};
-      color: ${textColor};
-      padding: 8px 16px;
-      border: ${borderWidth}px solid ${borderColor};
-      border-radius: ${borderRadius}px;
-      text-decoration: none;
-      font-weight: 500;
-      font-size: 0.9rem;
-      transition: all 0.3s ease;
-      opacity: ${bgOpacity};
-    `;
-    
-    let arrowButtonStyle = `
-      cursor: pointer;
-      width: 40px;
-      height: 40px;
-      background: ${bgColor};
-      border: ${borderWidth}px solid ${borderColor};
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s ease;
-      position: relative;
-      opacity: ${bgOpacity};
-    `;
-    
-    if (design.shadow) {
-      const shadowIntensity = design.shadowIntensity || 0.2;
-      submitButtonStyle += `box-shadow: inset 0 0 20px rgba(0, 0, 0, ${shadowIntensity});`;
-      arrowButtonStyle += `box-shadow: inset 0 0 20px rgba(0, 0, 0, ${shadowIntensity});`;
-    }
-    
-    const leftTriangle = `<div style="width: 0; height: 0; border-top: 6px solid transparent; border-bottom: 6px solid transparent; border-right: 8px solid ${accentColor}; margin-left: 4px;"></div>`;
-    const rightTriangle = `<div style="width: 0; height: 0; border-top: 6px solid transparent; border-bottom: 6px solid transparent; border-left: 8px solid ${accentColor}; margin-right: 4px;"></div>`;
+    const submitReviewButton = design.submitReviewsLink ? `
+      <div class="pr-submit-review-container">
+        <a href="https://prompt.reviews/r/${businessSlug}" target="_blank" rel="noopener noreferrer" class="pr-submit-btn"
+           style="background-color: ${design.accentColor || '#4f46e5'}; color: #ffffff;">
+          Submit a Review
+        </a>
+      </div>
+    ` : '';
     
     return `
-      <div class="pr-carousel-container" style="position: relative;">
-        <div class="pr-carousel-track" style="display: flex; transition: transform 0.5s ease;">
-          ${reviewCardsHTML}
+      <div class="pr-multi-widget">
+        <div class="pr-carousel-container">
+          <div class="pr-carousel-track">
+            ${reviewCardsHTML}
+          </div>
         </div>
-      </div>
-      <div class="pr-carousel-controls" style="text-align: center; margin-top: 1rem;">
-        <button class="pr-prev-btn" style="${arrowButtonStyle}">${leftTriangle}</button>
-        <div class="pr-dots-container" style="display: inline-block; margin: 0 10px;">
-          ${dotsHTML}
+        <div class="pr-carousel-controls">
+          <button class="pr-prev-btn">&lt;</button>
+          <div class="pr-dots-container">${dotsHTML}</div>
+          <button class="pr-next-btn">&gt;</button>
         </div>
-        <button class="pr-next-btn" style="${arrowButtonStyle}">${rightTriangle}</button>
+        ${submitReviewButton}
       </div>
-      ${design.showSubmitReviewButton ? `<div class="pr-submit-review-container" style="text-align: right; margin-top: 0.5rem;"><a href="/r/${businessSlug}" target="_blank" class="pr-submit-btn" style="${submitButtonStyle}">Submit a Review</a></div>` : ''}
     `;
   }
 
-  function initializeCarousel() {
-    const prevBtn = document.querySelector('.pr-prev-btn');
-    const nextBtn = document.querySelector('.pr-next-btn');
-    const dotsContainer = document.querySelector('.pr-dots-container');
+  function initializeCarousel(widgetId) {
+    const widgetElement = document.getElementById(widgetId);
+    if (!widgetElement) return;
 
-    if (prevBtn) {
-      prevBtn.addEventListener('click', () => moveToIndex(currentIndex - 1));
+    const prevBtn = widgetElement.querySelector('.pr-prev-btn');
+    const nextBtn = widgetElement.querySelector('.pr-next-btn');
+
+    prevBtn.addEventListener('click', () => {
+      const state = carouselState[widgetId];
+      moveToIndex(widgetId, state.currentIndex - 1);
+    });
+
+    nextBtn.addEventListener('click', () => {
+      const state = carouselState[widgetId];
+      moveToIndex(widgetId, state.currentIndex + 1);
+    });
+
+    // Initial setup
+    updateCarousel(widgetId);
+
+    // Add resize listener to handle responsive changes
+    window.addEventListener('resize', () => updateCarousel(widgetId));
+  }
+  // --- End of Carousel Logic ---
+
+  // --- Start of Initialization Logic ---
+
+  // Function to load the CSS file with cache-busting
+  const loadCSS = () => {
+    const cssPath = 'https://widgets.prompt.reviews/multi/multi-widget.css';
+    // Check if the CSS is already added
+    if (document.querySelector(`link[href^="${cssPath}"]`)) {
+        return;
     }
-    if (nextBtn) {
-      nextBtn.addEventListener('click', () => moveToIndex(currentIndex + 1));
-    }
-    if (dotsContainer) {
-      dotsContainer.addEventListener('click', (e) => {
-        if (e.target.matches('.pr-dot')) {
-          moveToIndex(parseInt(e.target.dataset.index, 10));
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = `${cssPath}?v=${new Date().getTime()}`;
+    document.head.appendChild(link);
+  };
+
+  // Main function to initialize all widgets on the page
+  async function autoInitializeWidgets() {
+    const widgets = document.querySelectorAll('[data-prompt-reviews-id]');
+    if (widgets.length === 0) return;
+
+    loadCSS();
+
+    for (const widgetContainer of widgets) {
+      const widgetId = widgetContainer.getAttribute('data-prompt-reviews-id');
+      const businessSlug = widgetContainer.getAttribute('data-business-slug');
+      widgetContainer.id = `pr-widget-container-${widgetId}`;
+
+      try {
+        const response = await fetch(`https://www.prompt.reviews/api/widgets/${widgetId}`);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch widget data: ${response.statusText}`);
         }
-      });
-    }
-
-    window.addEventListener('resize', updateCarousel);
-    
-    let autoAdvanceInterval = null;
-    if (designData.autoAdvance && designData.slideshowSpeed) {
-      const speedMs = (designData.slideshowSpeed || 4) * 1000;
-      autoAdvanceInterval = setInterval(() => {
-        const nextIndex = (currentIndex + 1) % totalPages;
-        moveToIndex(nextIndex);
-      }, speedMs);
-    }
-    
-    updateCarousel();
-    
-    window.addEventListener('beforeunload', () => {
-      if (autoAdvanceInterval) {
-        clearInterval(autoAdvanceInterval);
-      }
-    });
-  }
-
-  // Main widget initialization
-  function initializeWidget(containerId, reviews, design, businessSlug) {
-    console.log('🎯 Widget: initializeWidget called with:', { containerId, reviewsCount: reviews?.length, design, businessSlug });
-    
-    const container = document.getElementById(containerId);
-    if (!container) {
-      console.error('❌ Widget: Container not found:', containerId);
-      return;
-    }
-
-    console.log('✅ Widget: Container found:', container);
-
-    if (!reviews || reviews.length === 0) {
-      console.log('⚠️ Widget: No reviews to display');
-      container.innerHTML = '<div style="text-align: center; padding: 2rem;">No reviews to display.</div>';
-      return;
-    }
-
-    console.log('🎨 Widget: Creating carousel HTML with', reviews.length, 'reviews');
-    container.innerHTML = createCarouselHTML(reviews, design, businessSlug);
-    console.log('✅ Widget: Carousel HTML created, initializing carousel...');
-    initializeCarousel();
-    console.log('✅ Widget: Carousel initialized successfully');
-  }
-
-  // Expose to global scope for embedding
-  window.PromptReviews = window.PromptReviews || {};
-  window.PromptReviews.initializeWidget = initializeWidget;
-  window.PromptReviews.createCarouselHTML = createCarouselHTML;
-  window.PromptReviews.initializeCarousel = initializeCarousel;
-
-  // Auto-initialize widgets with data-widget-id
-  function autoInitializeWidgets() {
-    console.log('🔍 Auto-initializing widgets...');
-    const widgets = document.querySelectorAll('[data-widget-id]');
-    console.log(`Found ${widgets.length} widgets to initialize`);
-    
-    const loadCSS = () => {
-      const cssUrl = `/widgets/multi/multi-widget.css`;
-      const cacheBustedUrl = `${cssUrl}?v=${new Date().getTime()}`;
-
-      if (document.querySelector(`link[href^="${cssUrl}"]`)) {
-        console.log('✅ CSS already loaded');
-        return Promise.resolve();
-      }
-      
-      console.log(`📥 Loading CSS from ${cacheBustedUrl}...`);
-      return new Promise((resolve, reject) => {
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = cacheBustedUrl;
-        link.onload = () => {
-          console.log('✅ CSS loaded successfully');
-          resolve();
-        };
-        link.onerror = (error) => {
-          console.error('❌ Failed to load CSS:', error);
-          reject(error);
-        };
-        document.head.appendChild(link);
-      });
-    };
-    
-    loadCSS().then(() => {
-      widgets.forEach(widget => {
-        const widgetId = widget.getAttribute('data-widget-id');
-        console.log(`🎯 Initializing widget: ${widgetId}`);
+        const { reviews, design } = await response.json();
         
-        fetch(`/api/widgets/${widgetId}`)
-          .then(response => {
-            if (!response.ok) {
-              throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-          })
-          .then(data => {
-            console.log(`✅ Widget data loaded for ${widgetId}:`, data);
-            if (data.reviews && data.design) {
-              initializeWidget(widget.id, data.reviews, data.design, data.businessSlug || 'default');
-            } else {
-              console.error(`❌ Invalid widget data for ${widgetId}:`, data);
-              widget.innerHTML = '<div style="text-align: center; padding: 2rem; color: #666;">Widget data not available.</div>';
-            }
-          })
-          .catch(error => {
-            console.error(`❌ Failed to load widget data for ${widgetId}:`, error);
-            widget.innerHTML = '<div style="text-align: center; padding: 2rem; color: #666;">Failed to load widget.</div>';
-          });
-      });
-    }).catch(error => {
-      console.error('❌ Failed to load CSS, widgets may not display correctly:', error);
-      widgets.forEach(widget => {
-        const widgetId = widget.getAttribute('data-widget-id');
-        console.log(`🎯 Initializing widget without CSS: ${widgetId}`);
-        
-        fetch(`/api/widgets/${widgetId}`)
-          .then(response => {
-            if (!response.ok) {
-              throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-          })
-          .then(data => {
-            console.log(`✅ Widget data loaded for ${widgetId}:`, data);
-            if (data.reviews && data.design) {
-              initializeWidget(widget.id, data.reviews, data.design, data.businessSlug || 'default');
-            } else {
-              console.error(`❌ Invalid widget data for ${widgetId}:`, data);
-              widget.innerHTML = '<div style="text-align: center; padding: 2rem; color: #666;">Widget data not available.</div>';
-            }
-          })
-          .catch(error => {
-            console.error(`❌ Failed to load widget data for ${widgetId}:`, error);
-            widget.innerHTML = '<div style="text-align: center; padding: 2rem; color: #666;">Failed to load widget.</div>';
-          });
-      });
-    });
+        if (reviews && reviews.length > 0) {
+          widgetContainer.innerHTML = createCarouselHTML(widgetContainer.id, reviews, design, businessSlug);
+          initializeCarousel(widgetContainer.id);
+        } else {
+          widgetContainer.innerHTML = '<p>No reviews to display.</p>';
+        }
+
+      } catch (error) {
+        console.error('Error initializing PromptReviews widget:', error);
+        widgetContainer.innerHTML = '<p>Error loading reviews.</p>';
+      }
+    }
   }
 
-  // Initialize widgets when DOM is ready
+  // Self-executing initialization
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', autoInitializeWidgets);
   } else {
-    // DOM is already ready
     autoInitializeWidgets();
   }
-
-  console.log('✅ PromptReviews Multi-Widget loaded');
 
 })(); 
