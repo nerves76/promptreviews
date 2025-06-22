@@ -4,14 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Widget Embed Test</title>
-    <!-- The widget script is loaded defer to run after the document is parsed -->
-    <script src="/widgets/multi/widget-embed.js" defer></script>
 </head>
 <body>
-    <h1>Clean Widget Embed Test</h1>
-    <p>This page tests the production multi-review widget by only including the script and the data attribute on a div, just as a user would.</p>
-
-    <!-- The widget will be automatically initialized in this div -->
+    <h1>Widget Embed Test</h1>
+    
+    <!-- User's widget embed code -->
+    <script src="http://localhost:3001/widgets/multi/widget-embed.min.js"></script>
     <div id="promptreviews-widget" data-widget-id="e5caf82f-0c50-4296-b57f-4bd878288dc4"></div>
 
 </body>
