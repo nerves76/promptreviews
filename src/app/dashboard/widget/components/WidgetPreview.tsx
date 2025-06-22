@@ -1,7 +1,6 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
-import FiveStarSpinner from '@/app/components/FiveStarSpinner';
 import { DesignState } from './widgets/multi/index';
 
 // Temporarily use direct import to debug the issue
@@ -13,11 +12,9 @@ import MultiWidget from './widgets/multi/MultiWidget';
 //   ssr: false 
 // });
 const SingleWidget = dynamic(() => import('./widgets/single/SingleWidget'), {
-  loading: () => <FiveStarSpinner />,
   ssr: false 
 });
 const PhotoWidget = dynamic(() => import('./widgets/photo/PhotoWidget'), {
-  loading: () => <FiveStarSpinner />,
   ssr: false 
 });
 
