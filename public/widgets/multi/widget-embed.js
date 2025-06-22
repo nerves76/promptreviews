@@ -133,7 +133,11 @@
     itemsPerView = calculateItemsPerView(containerWidth);
     totalPages = Math.ceil(reviewsData.length / itemsPerView);
     
-    const offset = -currentIndex * (containerWidth / itemsPerView) * itemsPerView;
+    const firstItem = carousel.querySelector('.pr-carousel-item');
+    if (!firstItem) return;
+    
+    const itemWidth = firstItem.offsetWidth;
+    const offset = -currentIndex * itemWidth * itemsPerView;
     carousel.style.transform = `translateX(${offset}px)`;
     
     updateDots();
