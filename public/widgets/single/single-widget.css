@@ -5,163 +5,160 @@
 */
 
 /* 
-  Container styles to mimic the dashboard preview environment.
-  This ensures the embedded widget has a consistent, centered,
-  and responsive container, just like in the app.
+  Base widget container style.
+  This handles the sizing and centering of the widget itself,
+  both in the dashboard preview and on live sites.
 */
-body #promptreviews-widget.pr-single-widget {
+.pr-single-widget {
+  all: revert;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  
+  /* Sizing */
+  width: 100%;
+  max-width: 650px !important;
+  min-height: 300px !important;
+
+  /* Centering */
+  margin: auto; /* Centers horizontally and vertically within a flex container like the preview */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  /* Padding */
+  padding: 0 1rem;
+}
+  
+/* Carousel Layout */
+.pr-single-carousel-container {
     position: relative;
+    overflow: hidden;
     width: 100%;
-    max-width: 650px !important; /* Force max-width for single widget */
-    min-height: 300px !important; /* Force minimum height for single widget */
-    margin-left: auto;
-    margin-right: auto;
-    font-size: 16px; /* Set a consistent base font size for rem calculations */
-    display: block; /* Ensure block display */
-    box-sizing: border-box; /* Include padding in width calculation */
-  }
+    min-height: 300px; /* Ensure carousel has minimum height */
+}
   
-  /* Base widget styling reset */
-  .pr-single-widget {
-    all: revert;
-    box-sizing: border-box;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-    padding: 0 1rem; /* Add horizontal padding here */
+.pr-single-carousel-track {
+    display: flex;
+    transition: transform 0.5s ease;
+    gap: 0; /* No gap for single widget */
+    min-height: 300px; /* Ensure track has minimum height */
+}
+  
+/* Single card takes full width */
+.pr-single-carousel-item {
+    flex-shrink: 0;
+    width: 100%; /* Full width for single card */
+    display: flex; 
+    min-height: 300px; /* Ensure item has minimum height */
+}
+  
+/* Review Card Styles */
+.pr-single-widget .pr-single-review-card {
+    background: var(--pr-card-bg, #fff);
+    border: var(--pr-card-border, 2px solid #cccccc);
+    border-radius: var(--pr-card-radius, 16px);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Center content vertically */
     width: 100%;
-    max-width: 650px !important; /* Ensure max-width is applied */
-    min-height: 300px !important; /* Ensure min-height is applied */
-  }
+    text-align: center;
+    flex-grow: 1; 
+    min-height: 300px; /* Ensure card has minimum height */
+}
   
-  /* Carousel Layout */
-  .pr-single-carousel-container {
-      position: relative;
-      overflow: hidden;
-      width: 100%;
-      min-height: 300px; /* Ensure carousel has minimum height */
-  }
+.pr-single-widget .pr-single-review-content {
+    /* flex-grow removed to allow vertical centering */
+}
   
-  .pr-single-carousel-track {
-      display: flex;
-      transition: transform 0.5s ease;
-      gap: 0; /* No gap for single widget */
-      min-height: 300px; /* Ensure track has minimum height */
-  }
+.pr-single-widget .pr-single-reviewer-details {
+    /* margin-top: auto removed to allow vertical centering */
+}
   
-  /* Single card takes full width */
-  .pr-single-carousel-item {
-      flex-shrink: 0;
-      width: 100%; /* Full width for single card */
-      display: flex; 
-      min-height: 300px; /* Ensure item has minimum height */
-  }
+/* --- Other existing styles below --- */
   
-  /* Review Card Styles */
-  .pr-single-widget .pr-single-review-card {
-      background: var(--pr-card-bg, #fff);
-      border: var(--pr-card-border, 2px solid #cccccc);
-      border-radius: var(--pr-card-radius, 16px);
-      padding: 1.5rem;
-      display: flex;
-      flex-direction: column;
-      justify-content: center; /* Center content vertically */
-      width: 100%;
-      text-align: center;
-      flex-grow: 1; 
-      min-height: 300px; /* Ensure card has minimum height */
-  }
+.pr-single-widget .pr-single-stars-row {
+    display: flex;
+    justify-content: center;
+}
   
-  .pr-single-widget .pr-single-review-content {
-      /* flex-grow removed to allow vertical centering */
-  }
+.pr-single-widget .pr-single-review-text {
+    margin: 0;
+}
   
-  .pr-single-widget .pr-single-reviewer-details {
-      /* margin-top: auto removed to allow vertical centering */
-  }
+.pr-single-carousel-controls {
+    text-align: center;
+    margin-top: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
   
-  /* --- Other existing styles below --- */
+.pr-single-prev-btn,
+.pr-single-next-btn {
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    position: relative;
+}
   
-  .pr-single-widget .pr-single-stars-row {
-      display: flex;
-      justify-content: center;
-  }
+.pr-single-prev-btn::before,
+.pr-single-next-btn::before {
+    content: '';
+    width: 0;
+    height: 0;
+    border-style: solid;
+}
   
-  .pr-single-widget .pr-single-review-text {
-      margin: 0;
-  }
+.pr-single-prev-btn::before {
+    border-width: 6px 8px 6px 0;
+    border-color: transparent #4f46e5 transparent transparent;
+    margin-left: -2px;
+}
   
-  .pr-single-carousel-controls {
-      text-align: center;
-      margin-top: 1.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-  }
+.pr-single-next-btn::before {
+    border-width: 6px 0 6px 8px;
+    border-color: transparent transparent transparent #4f46e5;
+    margin-right: -2px;
+}
   
-  .pr-single-prev-btn,
-  .pr-single-next-btn {
-      cursor: pointer;
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s ease;
-      position: relative;
-  }
+.pr-single-dots-container {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
   
-  .pr-single-prev-btn::before,
-  .pr-single-next-btn::before {
-      content: '';
-      width: 0;
-      height: 0;
-      border-style: solid;
-  }
+.pr-single-dot {
+    height: 12px;
+    width: 12px;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+}
   
-  .pr-single-prev-btn::before {
-      border-width: 6px 8px 6px 0;
-      border-color: transparent #4f46e5 transparent transparent;
-      margin-left: -2px;
-  }
+.pr-single-submit-review-container {
+    text-align: right;
+    margin-top: 0.5rem;
+}
   
-  .pr-single-next-btn::before {
-      border-width: 6px 0 6px 8px;
-      border-color: transparent transparent transparent #4f46e5;
-      margin-right: -2px;
-  }
+.pr-single-submit-btn {
+    display: inline-block;
+    padding: 8px 16px;
+    text-decoration: none;
+    font-weight: 500;
+}
   
-  .pr-single-dots-container {
-      display: flex;
-      gap: 16px;
-      align-items: center;
-  }
-  
-  .pr-single-dot {
-      height: 12px;
-      width: 12px;
-      border: none;
-      border-radius: 50%;
-      cursor: pointer;
-      padding: 0;
-      margin: 0;
-  }
-  
-  .pr-single-submit-review-container {
-      text-align: right;
-      margin-top: 0.5rem;
-  }
-  
-  .pr-single-submit-btn {
-      display: inline-block;
-      padding: 8px 16px;
-      text-decoration: none;
-      font-weight: 500;
-  }
-  
-  /* Responsive Design - simplified for single card */
-  @media (max-width: 640px) {
-      .pr-single-carousel-track {
-        gap: 0;
-      }
-  }
+/* Responsive Design - simplified for single card */
+@media (max-width: 640px) {
+    .pr-single-carousel-track {
+      gap: 0;
+    }
+}
