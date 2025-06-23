@@ -28,12 +28,11 @@ export const StyleModal: React.FC<StyleModalProps> = ({
       onClose={onClose}
       title="Edit Style"
       onSave={onSaveDesign}
+      onReset={onResetDesign}
     >
       <StyleForm 
         design={design} 
         onDesignChange={onDesignChange} 
-        onSave={onSaveDesign}
-        onReset={onResetDesign}
       />
     </DraggableModal>
   );

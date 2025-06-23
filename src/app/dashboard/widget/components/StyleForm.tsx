@@ -21,28 +21,6 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange, onSave, o
 
   return (
     <div className="space-y-8 max-h-[70vh] overflow-y-auto pr-2 relative">
-      {/* Top right save button */}
-      {onSave && (
-        <button
-          className="absolute top-0 right-0 px-5 py-2 bg-slate-blue text-white rounded font-semibold shadow hover:bg-slate-700 transition z-10"
-          style={{ minWidth: 90 }}
-          onClick={onSave}
-        >
-          Save
-        </button>
-      )}
-      
-      {/* Top right reset button */}
-      {onReset && (
-        <button
-          className="absolute top-0 right-24 px-5 py-2 border border-slate-300 bg-white text-slate-blue rounded font-semibold shadow hover:bg-slate-100 transition z-10"
-          style={{ minWidth: 90 }}
-          onClick={handleReset}
-        >
-          Reset
-        </button>
-      )}
-
       {/* Font Settings */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-3">Font Family</label>
@@ -201,11 +179,11 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange, onSave, o
             min="0"
             max="1"
                 step="0.1"
-            value={design.shadowIntensity || 0.2}
+            value={design.shadowIntensity || 0.5}
             onChange={(e) => updateDesign({ shadowIntensity: parseFloat(e.target.value) })}
                 className="w-full"
           />
-              <span className="text-xs text-gray-500">{Math.round((design.shadowIntensity || 0.2) * 100)}%</span>
+              <span className="text-xs text-gray-500">{Math.round((design.shadowIntensity || 0.5) * 100)}%</span>
         </div>
           </>
         )}
@@ -268,6 +246,12 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange, onSave, o
             <span className="text-xs text-gray-500">{design.slideshowSpeed || 4}s</span>
           </div>
         )}
+      </div>
+
+      {/* Bottom save/reset buttons */}
+      <div className="flex justify-end gap-4 pt-4">
+        {onReset && <button onClick={handleReset} className="px-5 py-2 border border-slate-300 bg-white text-slate-600 rounded-md font-semibold shadow-sm hover:bg-slate-50 transition">Reset to Default</button>}
+        {onSave && <button onClick={onSave} className="px-5 py-2 bg-slate-blue text-white rounded-md font-semibold shadow hover:bg-slate-700 transition">Save Changes</button>}
       </div>
     </div>
   );
