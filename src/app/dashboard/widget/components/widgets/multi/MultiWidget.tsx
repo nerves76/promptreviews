@@ -10,6 +10,20 @@ interface MultiWidgetProps {
   design?: DesignState;
 }
 
+declare global {
+  interface Window {
+    PromptReviews?: {
+      initializeWidget?: (
+        containerId: string,
+        reviews: any[],
+        design: any,
+        slug: string
+      ) => void;
+      // Add other PromptReviews properties if needed
+    };
+  }
+}
+
 const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
   // Transform the database widget data to the expected format
   const widgetData: WidgetData = {
