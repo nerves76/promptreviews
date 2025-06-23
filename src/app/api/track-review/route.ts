@@ -31,21 +31,33 @@ export async function POST(request: Request) {
       request.headers.get("x-real-ip") ||
       "";
 
+    // Fetch business_id (account_id) from prompt_pages
+    const { data: promptPage, error: promptPageError } = await supabase
+      .from("prompt_pages")
+      .select("account_id")
+      .eq("id", promptPageId)
+      .single();
+    if (promptPageError || !promptPage?.account_id) {
+      return NextResponse.json({ error: "Could not determine business_id for review." }, { status: 400 });
+    }
+    const business_id = promptPage.account_id;
+
+    // Insert review with business_id (source of truth for stats)
     const { data, error } = await supabase
       .from("review_submissions")
       .insert({
         prompt_page_id: promptPageId,
+        business_id, // Always set business_id for stats and dashboard
         platform,
         status,
         first_name,
         last_name,
         review_content: reviewContent,
         prompt_page_type: promptPageType,
-        review_type:
-          review_type || (status === "feedback" ? "feedback" : "review"),
-        sentiment: sentiment,
-        email: email,
-        phone: phone,
+        review_type: review_type || (status === "feedback" ? "feedback" : "review"),
+        sentiment,
+        email,
+        phone,
         user_agent: userAgent,
         ip_address: ipAddress,
       })
@@ -84,12 +96,6 @@ export async function POST(request: Request) {
         { status: 500 },
       );
     }
-
-    const { data: promptPage } = await supabase
-      .from("prompt_pages")
-      .select("account_id")
-      .eq("id", promptPageId)
-      .single();
 
     if (promptPage && promptPage.account_id) {
       console.log(

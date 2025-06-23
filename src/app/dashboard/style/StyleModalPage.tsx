@@ -189,32 +189,32 @@ export default function StylePage({ onClose }: StylePageProps) {
         </svg>
       </button>
 
-      <div className="overflow-y-auto" style={{ maxHeight: 'calc(80vh - 2rem)' }}>
+      <div className="overflow-y-auto" style={{ maxHeight: 'calc(80vh - 2rem)', paddingBottom: '3.5rem' }}>
         {success && (
           <div className="mb-4 bg-green-50 border border-green-200 text-green-700 rounded-md p-4 text-center font-medium animate-fadein">
             Style settings saved!
           </div>
         )}
         
-        {/* Top right save button */}
-        <button
-          className="absolute top-6 right-8 px-5 py-2 bg-slate-blue text-white rounded font-semibold shadow hover:bg-slate-700 transition z-30"
-          style={{ minWidth: 90 }}
-          onClick={handleSave}
-          disabled={saving}
-        >
-          {saving ? "Saving..." : "Save"}
-        </button>
-        
-        {/* Top right reset button */}
-        <button
-          className="absolute top-6 right-36 px-5 py-2 border border-slate-300 bg-white text-slate-blue rounded font-semibold shadow hover:bg-slate-100 transition z-30"
-          style={{ minWidth: 90 }}
-          onClick={handleReset}
-          disabled={saving}
-        >
-          Reset Styles
-        </button>
+        {/* Top action buttons row */}
+        <div className="flex justify-end gap-4 mb-6">
+          <button
+            className="px-5 py-2 border border-slate-300 bg-white text-slate-blue rounded font-semibold shadow hover:bg-slate-100 transition"
+            style={{ minWidth: 90 }}
+            onClick={handleReset}
+            disabled={saving}
+          >
+            Reset Styles
+          </button>
+          <button
+            className="px-5 py-2 bg-slate-blue text-white rounded font-semibold shadow hover:bg-slate-700 transition"
+            style={{ minWidth: 90 }}
+            onClick={handleSave}
+            disabled={saving}
+          >
+            {saving ? "Saving..." : "Save"}
+          </button>
+        </div>
         
         <h2 className="text-2xl font-bold text-slate-blue mb-4">Prompt page style</h2>
         <p className="text-gray-600 mb-6">
@@ -340,15 +340,25 @@ export default function StylePage({ onClose }: StylePageProps) {
             </div>
           </div>
         </div>
-        {/* Bottom right save button */}
-        <button
-          className="absolute bottom-6 right-8 px-5 py-2 bg-slate-blue text-white rounded font-semibold shadow hover:bg-slate-700 transition z-10"
-          style={{ minWidth: 90 }}
-          onClick={handleSave}
-          disabled={saving}
-        >
-          {saving ? "Saving..." : "Save"}
-        </button>
+        {/* Bottom action buttons row */}
+        <div className="flex justify-end gap-4 mt-10">
+          <button
+            className="px-5 py-2 border border-slate-300 bg-white text-slate-blue rounded font-semibold shadow hover:bg-slate-100 transition"
+            style={{ minWidth: 90 }}
+            onClick={handleReset}
+            disabled={saving}
+          >
+            Reset Styles
+          </button>
+          <button
+            className="px-5 py-2 bg-slate-blue text-white rounded font-semibold shadow hover:bg-slate-700 transition"
+            style={{ minWidth: 90 }}
+            onClick={handleSave}
+            disabled={saving}
+          >
+            {saving ? "Saving..." : "Save"}
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -20,10 +20,13 @@ import {
   FaMapMarkerAlt,
   FaGift,
   FaStore,
+  FaCheckCircle,
+  FaTimesCircle,
 } from "react-icons/fa";
 import { getUserOrMock } from "@/utils/supabase";
 import BusinessForm from "../components/BusinessForm";
 import { useRequirePlan } from "@/utils/useRequirePlan";
+import PageCard from "@/app/components/PageCard";
 
 interface Platform {
   name: string;
@@ -490,11 +493,108 @@ export default function CreateBusinessPage() {
   useRequirePlan(account, ["/dashboard/account", "/dashboard/billing"]);
 
   return (
-    <>
-      {/* Floating Icon */}
-      <div className="absolute -top-6 -left-6 z-10 bg-white rounded-full shadow p-3 flex items-center justify-center w-16 h-16">
-        <FaStore className="w-9 h-9 text-slate-blue" />
-      </div>
+    <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
+      <PageCard icon={<FaStore className="w-9 h-9 text-slate-blue" />}>
+        <div className="space-y-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Create Your Business Profile
+            </h1>
+            <p className="text-gray-600">
+              Set up your business profile to get started with PromptReviews.
+            </p>
+          </div>
+
+          {showTrialConfirmation && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+              <div className="flex items-center">
+                <FaCheckCircle className="text-green-500 mr-2" />
+                <span className="text-green-800 font-medium">
+                  Welcome! You're now on a free trial. Complete your business profile to get started.
+                </span>
+              </div>
+            </div>
+          )}
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="flex items-center">
+                <FaTimesCircle className="text-red-500 mr-2" />
+                <span className="text-red-800">{error}</span>
+              </div>
+            </div>
+          )}
+
+          {success && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="flex items-center">
+                <FaCheckCircle className="text-green-500 mr-2" />
+                <span className="text-green-800">{success}</span>
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-8">
+            <BusinessForm
+              form={form}
+              setForm={setForm}
+              services={services}
+              setServices={setServices}
+              platforms={platforms}
+              setPlatforms={setPlatforms}
+              platformErrors={platformErrors}
+              setPlatformErrors={setPlatformErrors}
+              logoUrl={logoUrl}
+              setLogoUrl={setLogoUrl}
+              logoFile={logoFile}
+              setLogoFile={setLogoFile}
+              logoError={logoError}
+              setLogoError={setLogoError}
+              // @ts-expect-error: React.RefObject<HTMLInputElement> can be initialized with null
+              fileInputRef={fileInputRef}
+              showCropper={showCropper}
+              setShowCropper={setShowCropper}
+              crop={crop}
+              setCrop={setCrop}
+              zoom={zoom}
+              setZoom={setZoom}
+              croppedAreaPixels={croppedAreaPixels}
+              setCroppedAreaPixels={setCroppedAreaPixels}
+              rawLogoFile={rawLogoFile}
+              setRawLogoFile={setRawLogoFile}
+              loading={loading}
+              error={error}
+              success={success}
+              onSubmit={handleSubmit}
+              handleChange={handleChange}
+              handleServiceChange={handleServiceChange}
+              addService={addService}
+              removeService={removeService}
+              handlePlatformChange={handlePlatformChange}
+              addPlatform={addPlatform}
+              removePlatform={removePlatform}
+              handleLogoChange={handleLogoChange}
+              handleCropConfirm={handleCropConfirm}
+              handleCropCancel={handleCropCancel}
+              formId="create-business-form"
+            />
+            
+            {/* Submit Button */}
+            <div className="flex justify-end mt-8">
+              <button
+                type="submit"
+                form="create-business-form"
+                disabled={loading}
+                className="px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+              >
+                {loading ? "Saving..." : "Create Business Profile"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </PageCard>
+
+      {/* Trial Confirmation Modal */}
       {showTrialConfirmation && (
         <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
           <div className="bg-green-100 border border-green-300 text-green-900 px-6 py-4 rounded-lg shadow-lg flex items-center gap-4 text-lg font-semibold pointer-events-auto">
@@ -510,124 +610,41 @@ export default function CreateBusinessPage() {
           </div>
         </div>
       )}
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex flex-col">
-          <h1 className="text-4xl font-bold text-slate-blue">
-            Create Business
-          </h1>
-          <p className="text-sm text-gray-600 mt-2 max-w-xl">
-            Fill out your profile as thoroughly as you can. This will help
-            Prompt AI write better prompt reviews. (You will also be able to
-            add/edit this info later.)
-          </p>
+
+      {/* Cropper Modal */}
+      {showCropper && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-4 rounded-lg max-w-2xl w-full mx-4">
+            <div className="relative h-96">
+              <Cropper
+                image={logoUrl || ""}
+                crop={crop}
+                zoom={zoom}
+                aspect={1}
+                onCropChange={setCrop}
+                onZoomChange={setZoom}
+                onCropComplete={onCropComplete}
+              />
+            </div>
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                type="button"
+                onClick={handleCropCancel}
+                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleCropConfirm}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+              >
+                Confirm Crop
+              </button>
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col items-end gap-2">
-          <button
-            type="button"
-            className="py-2 px-4 border border-indigo-300 rounded-md shadow-sm text-xs font-medium text-indigo-800 bg-indigo-50 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-800"
-            onClick={() => {
-              setForm({
-                name: "Diviner",
-                address_street: "2652 SE 89th ave",
-                address_city: "Portland",
-                address_state: "OR",
-                address_zip: "97266",
-                address_country: "US",
-                business_email: "chris@diviner.agency",
-                business_website: "",
-                facebook_url: "",
-                instagram_url: "",
-                bluesky_url: "",
-                tiktok_url: "",
-                youtube_url: "",
-                linkedin_url:
-                  "https://www.linkedin.com/in/chris-bolton-a7b146a/",
-                pinterest_url: "",
-                industry: "B2B",
-                industry_other: "professional services",
-                industries_served: "agencies, small business",
-                features_or_benefits: "", // handled by setServices
-                company_values: "radical candor, authenticity, partnership",
-                differentiators:
-                  "support for navigating how ai is changing marketing",
-                years_in_business: "1",
-                taglines: "",
-                team_info: "",
-                review_platforms: [], // handled by setPlatforms
-                platform_word_counts: "",
-                keywords: "SEO expert, friendly, authentic",
-                default_offer_enabled: false,
-                default_offer_title: "Special Offer",
-                default_offer_body: "",
-                default_offer_url: "",
-                ai_dos: "",
-                ai_donts: "",
-              });
-              setServices(["SEO", "Marketing Consulting", "SEO Audit"]);
-              setPlatforms([
-                {
-                  name: "Google",
-                  url: "https://g.page/r/CTI0Oyvd6N23EAE/review",
-                  wordCount: 200,
-                },
-              ]);
-            }}
-          >
-            Fill with Test Data
-          </button>
-          <button
-            type="submit"
-            form="create-business-form"
-            disabled={loading}
-            className="py-2 px-6 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-800 hover:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-800 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? "Saving..." : "Save Changes"}
-          </button>
-        </div>
-      </div>
-      <BusinessForm
-        form={form}
-        setForm={setForm}
-        services={services}
-        setServices={setServices}
-        platforms={platforms}
-        setPlatforms={setPlatforms}
-        platformErrors={platformErrors}
-        setPlatformErrors={setPlatformErrors}
-        logoUrl={logoUrl}
-        setLogoUrl={setLogoUrl}
-        logoFile={logoFile}
-        setLogoFile={setLogoFile}
-        logoError={logoError}
-        setLogoError={setLogoError}
-        // @ts-expect-error: React.RefObject<HTMLInputElement> can be initialized with null
-        fileInputRef={fileInputRef}
-        showCropper={showCropper}
-        setShowCropper={setShowCropper}
-        crop={crop}
-        setCrop={setCrop}
-        zoom={zoom}
-        setZoom={setZoom}
-        croppedAreaPixels={croppedAreaPixels}
-        setCroppedAreaPixels={setCroppedAreaPixels}
-        rawLogoFile={rawLogoFile}
-        setRawLogoFile={setRawLogoFile}
-        loading={loading}
-        error={error}
-        success={success}
-        onSubmit={handleSubmit}
-        handleChange={handleChange}
-        handleServiceChange={handleServiceChange}
-        addService={addService}
-        removeService={removeService}
-        handlePlatformChange={handlePlatformChange}
-        addPlatform={addPlatform}
-        removePlatform={removePlatform}
-        handleLogoChange={handleLogoChange}
-        handleCropConfirm={handleCropConfirm}
-        handleCropCancel={handleCropCancel}
-        formId="create-business-form"
-      />
-    </>
+      )}
+    </div>
   );
 }

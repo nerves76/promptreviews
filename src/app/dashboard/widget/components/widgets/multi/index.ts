@@ -80,7 +80,7 @@ export const DEFAULT_DESIGN: DesignState = {
 
 export const getDesignWithDefaults = (design: Partial<DesignState> = {}): DesignState => {
   return { ...DEFAULT_DESIGN, ...design };
-};
+}; 
 
 // Export the MultiWidget component
 export { default as MultiWidget } from './MultiWidget'; 

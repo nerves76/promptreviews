@@ -89,16 +89,16 @@ export const DraggableModal: React.FC<DraggableModalProps> = ({
         onMouseDown={handleMouseDown}
       >
         {/* Circular close button that exceeds modal borders */}
-        <button
+          <button
           className="absolute -top-4 -right-4 bg-white border border-gray-200 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 focus:outline-none z-20 transition-colors"
           style={{ width: 40, height: 40 }}
-          onClick={onClose}
+            onClick={onClose}
           aria-label="Close modal"
-        >
+          >
           <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
 
         <div className="modal-header flex items-center justify-between p-4 border-b cursor-move bg-slate-100 rounded-t-lg">
           <div className="w-1/3">

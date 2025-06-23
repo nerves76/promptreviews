@@ -48,7 +48,7 @@
   function single_injectCSS() {
     const styleId = 'promptreviews-single-widget-styles';
     if (document.getElementById(styleId)) return;
-  
+
     const link = document.createElement('link');
     link.id = styleId;
     link.rel = 'stylesheet';
@@ -366,7 +366,7 @@
           
           if (reviews && reviews.length > 0) {
             container.id = `pr-single-widget-${widgetId}`;
-            
+
             // Load dynamic assets
             single_loadGoogleFont(design.font);
             single_setCSSVariables(container, design);
