@@ -5,6 +5,20 @@
 */
 
 /* 
+  Container styles to mimic the dashboard preview environment.
+  This ensures the embedded widget has a consistent, centered,
+  and responsive container, just like in the app.
+*/
+#promptreviews-photo-widget {
+    position: relative;
+    width: 100%;
+    max-width: 64rem; /* 1024px */
+    margin-left: auto;
+    margin-right: auto;
+    font-size: 16px; /* Set a consistent base font size for rem calculations */
+}
+
+/* 
   Base widget container style.
   This handles the sizing and centering of the widget itself,
   both in the dashboard preview and on live sites.

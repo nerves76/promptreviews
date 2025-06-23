@@ -1,5 +1,6 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { createBrowserClient } from "@supabase/ssr";
 import WidgetList from "./WidgetList";
 import PageCard from "@/app/components/PageCard";
 import { FaPlus, FaEdit, FaRegComment, FaCode, FaCheck } from "react-icons/fa";
@@ -117,6 +118,11 @@ export default function WidgetPage() {
     }
   };
 
+  const handleResetDesign = () => {
+    // Reset to default design
+    setDesign(DEFAULT_DESIGN);
+  };
+
   const isCopied = copiedWidgetId === selectedWidget?.id;
 
   return (
@@ -221,6 +227,7 @@ export default function WidgetPage() {
           design={design}
           onDesignChange={setDesign}
           onSaveDesign={handleSaveDesign}
+          onResetDesign={handleResetDesign}
         />
       )}
     </div>

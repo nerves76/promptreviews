@@ -7,7 +7,7 @@ import { WidgetEditorForm } from './components/WidgetEditorForm';
 import { ReviewManagementModal } from './components/ReviewManagementModal';
 import { WidgetCard } from './components/WidgetCard';
 import { StyleModal } from './components/StyleModal';
-import { DesignState, DEFAULT_DESIGN } from './components/widgets/multi';
+import { DEFAULT_DESIGN, DesignState } from './components/widgets/multi';
 
 export default function WidgetList({
   onSelectWidget,
@@ -139,6 +139,13 @@ export default function WidgetList({
     }
   };
 
+  const handleResetDesign = () => {
+    // Reset to default design
+    if (onDesignChange) {
+      onDesignChange(DEFAULT_DESIGN);
+    }
+  };
+
   const handleManageReviews = (widgetId: string) => {
     setSelectedWidgetForReviews(widgetId);
     setShowReviewModal(true);
@@ -206,6 +213,7 @@ export default function WidgetList({
           design={design}
           onDesignChange={onDesignChange || (() => {})}
           onSaveDesign={handleSaveDesign}
+          onResetDesign={handleResetDesign}
         />
       )}
     </div>

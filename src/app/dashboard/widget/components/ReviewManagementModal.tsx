@@ -392,6 +392,15 @@ export function ReviewManagementModal({
       onSave={handleSaveReviews}
       saveLabel="Save Reviews"
     >
+      {/* Top right save button */}
+      <button
+        className="absolute top-6 right-8 px-5 py-2 bg-slate-blue text-white rounded font-semibold shadow hover:bg-slate-700 transition z-10"
+        style={{ minWidth: 90 }}
+        onClick={handleSaveReviews}
+      >
+        Save Reviews
+      </button>
+
       {loadingReviews ? (
         <div className="flex justify-center items-center h-96">
           <AppLoader />

@@ -4,15 +4,45 @@ import { DesignState } from './widgets/multi/index';
 interface StyleFormProps {
   design: DesignState;
   onDesignChange: (design: DesignState) => void;
+  onSave?: () => void;
+  onReset?: () => void;
 }
 
-const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange }) => {
+const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange, onSave, onReset }) => {
   const updateDesign = (updates: Partial<DesignState>) => {
     onDesignChange({ ...design, ...updates });
   };
 
+  const handleReset = () => {
+    if (window.confirm('Are you sure you want to reset all style settings to default? This cannot be undone.')) {
+      onReset?.();
+    }
+  };
+
   return (
-    <div className="space-y-8 max-h-[70vh] overflow-y-auto pr-2">
+    <div className="space-y-8 max-h-[70vh] overflow-y-auto pr-2 relative">
+      {/* Top right save button */}
+      {onSave && (
+        <button
+          className="absolute top-0 right-0 px-5 py-2 bg-slate-blue text-white rounded font-semibold shadow hover:bg-slate-700 transition z-10"
+          style={{ minWidth: 90 }}
+          onClick={onSave}
+        >
+          Save
+        </button>
+      )}
+      
+      {/* Top right reset button */}
+      {onReset && (
+        <button
+          className="absolute top-0 right-24 px-5 py-2 border border-slate-300 bg-white text-slate-blue rounded font-semibold shadow hover:bg-slate-100 transition z-10"
+          style={{ minWidth: 90 }}
+          onClick={handleReset}
+        >
+          Reset
+        </button>
+      )}
+
       {/* Font Settings */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-3">Font Family</label>
@@ -84,7 +114,7 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange }) => {
         />
         <span className="text-xs text-gray-500">{Math.round((design.bgOpacity || 1) * 100)}%</span>
       </div>
-
+      
       {/* Border Settings */}
       <div className="space-y-4">
         <div className="flex items-center">
@@ -157,26 +187,26 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange }) => {
           <>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">Vignette Color</label>
-              <input
+          <input
                 type="color"
                 value={design.shadowColor || '#222222'}
                 onChange={(e) => updateDesign({ shadowColor: e.target.value })}
                 className="w-full h-10 border border-gray-300 rounded-md"
-              />
-            </div>
-            <div>
+          />
+        </div>
+        <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">Vignette Intensity</label>
-              <input
-                type="range"
-                min="0"
-                max="1"
+          <input
+            type="range"
+            min="0"
+            max="1"
                 step="0.1"
-                value={design.shadowIntensity || 0.2}
-                onChange={(e) => updateDesign({ shadowIntensity: parseFloat(e.target.value) })}
+            value={design.shadowIntensity || 0.2}
+            onChange={(e) => updateDesign({ shadowIntensity: parseFloat(e.target.value) })}
                 className="w-full"
-              />
+          />
               <span className="text-xs text-gray-500">{Math.round((design.shadowIntensity || 0.2) * 100)}%</span>
-            </div>
+        </div>
           </>
         )}
       </div>
@@ -241,6 +271,6 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange }) => {
       </div>
     </div>
   );
-};
+}; 
 
 export default StyleForm;
