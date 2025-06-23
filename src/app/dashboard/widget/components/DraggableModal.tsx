@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { FaArrowsAlt } from 'react-icons/fa';
 
 interface DraggableModalProps {
   isOpen: boolean;
@@ -6,7 +7,9 @@ interface DraggableModalProps {
   title: string;
   children: React.ReactNode;
   onSave?: () => void;
+  onReset?: () => void;
   saveLabel?: string;
+  resetLabel?: string;
   maxWidth?: string;
 }
 
@@ -16,7 +19,9 @@ export const DraggableModal: React.FC<DraggableModalProps> = ({
   title,
   children,
   onSave,
+  onReset,
   saveLabel = 'Save',
+  resetLabel = 'Reset',
   maxWidth = 'max-w-xl',
 }) => {
   const [modalPos, setModalPos] = useState({ x: 0, y: 0 });
@@ -95,22 +100,35 @@ export const DraggableModal: React.FC<DraggableModalProps> = ({
           </svg>
         </button>
 
-        <div className="modal-header flex items-center justify-between p-6 border-b cursor-move">
-          <h2 className="text-xl font-semibold">{title}</h2>
+        <div className="modal-header flex items-center justify-between p-4 border-b cursor-move bg-slate-100 rounded-t-lg">
+          <div className="w-1/3 flex items-center gap-2">
+            {onReset && (
+               <button
+                  onClick={onReset}
+                  className="px-4 py-1 border border-slate-300 bg-white text-slate-600 rounded-md font-semibold shadow-sm hover:bg-slate-50 transition text-sm"
+               >
+                  {resetLabel}
+              </button>
+            )}
+          </div>
+          <div className="w-1/3 flex justify-center text-gray-400">
+             <FaArrowsAlt />
+          </div>
+          <div className="w-1/3 flex justify-end items-center gap-4">
+             <h2 className="text-xl font-semibold">{title}</h2>
+             {onSave && (
+                <button
+                  onClick={onSave}
+                  className="px-5 py-2 bg-slate-blue text-white rounded-md font-semibold shadow hover:bg-slate-700 transition"
+                >
+                  {saveLabel}
+                </button>
+             )}
+          </div>
         </div>
         <div className="p-6">
           {children}
         </div>
-        {onSave && (
-          <div className="p-6 border-t flex justify-end">
-            <button
-              onClick={onSave}
-              className="px-6 py-2 bg-slate-blue text-white rounded hover:bg-slate-700 transition"
-            >
-              {saveLabel}
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );
