@@ -101,21 +101,21 @@ export const DraggableModal: React.FC<DraggableModalProps> = ({
         </button>
 
         <div className="modal-header flex items-center justify-between p-4 border-b cursor-move bg-slate-100 rounded-t-lg">
-          <div className="w-1/3 flex items-center gap-2">
-            {onReset && (
-               <button
-                  onClick={onReset}
-                  className="px-4 py-1 border border-slate-300 bg-white text-slate-600 rounded-md font-semibold shadow-sm hover:bg-slate-50 transition text-sm"
-               >
-                  {resetLabel}
-              </button>
-            )}
+          <div className="w-1/3">
+            <h2 className="text-xl font-semibold">{title}</h2>
           </div>
           <div className="w-1/3 flex justify-center text-gray-400">
              <FaArrowsAlt />
           </div>
-          <div className="w-1/3 flex justify-end items-center gap-4">
-             <h2 className="text-xl font-semibold">{title}</h2>
+          <div className="w-1/3 flex justify-end items-center gap-2">
+             {onReset && (
+                <button
+                   onClick={onReset}
+                   className="px-4 py-1 border border-slate-300 bg-white text-slate-600 rounded-md font-semibold shadow-sm hover:bg-slate-50 transition text-sm"
+                >
+                   {resetLabel}
+               </button>
+             )}
              {onSave && (
                 <button
                   onClick={onSave}
