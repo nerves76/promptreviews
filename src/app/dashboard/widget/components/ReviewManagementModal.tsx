@@ -388,18 +388,31 @@ export function ReviewManagementModal({
     <DraggableModal
       isOpen={isOpen}
       onClose={onClose}
-      title={widgetType === 'photo' ? "Manage Reviews (Photo Widget)" : "Manage Reviews"}
+      title={
+        <div className="flex items-center gap-3">
+          <span>Manage Reviews</span>
+          {widgetType && (
+            <span
+              className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap flex-shrink-0"
+              style={{
+                backgroundColor: 
+                  widgetType === 'single' ? '#60A5FA' :
+                  widgetType === 'multi' ? '#34D399' :
+                  widgetType === 'photo' ? '#A78BFA' : '#6B7280',
+                color: 'white'
+              }}
+            >
+              {widgetType === 'single' && 'Single Card'}
+              {widgetType === 'multi' && 'Multi Card'}
+              {widgetType === 'photo' && 'Photo'}
+            </span>
+          )}
+        </div>
+      }
       onSave={handleSaveReviews}
-      saveLabel="Save Reviews"
+      saveLabel="Save"
     >
-      {/* Top right save button */}
-      <button
-        className="absolute top-6 right-8 px-5 py-2 bg-slate-blue text-white rounded font-semibold shadow hover:bg-slate-700 transition z-10"
-        style={{ minWidth: 90 }}
-        onClick={handleSaveReviews}
-      >
-        Save Reviews
-      </button>
+      {/* Top right save button is now handled by DraggableModal via onSave prop */}
 
       {loadingReviews ? (
         <div className="flex justify-center items-center h-96">
@@ -650,6 +663,17 @@ export function ReviewManagementModal({
                 )}
               </div>
             )}
+          </div>
+          
+          {/* Bottom right save button */}
+          <div className="mt-6 pt-4 border-t border-gray-200 flex justify-end">
+            <button
+              className="px-5 py-2 bg-slate-blue text-white rounded font-semibold shadow hover:bg-slate-700 transition"
+              style={{ minWidth: 90 }}
+              onClick={handleSaveReviews}
+            >
+              Save
+            </button>
           </div>
         </>
       )}

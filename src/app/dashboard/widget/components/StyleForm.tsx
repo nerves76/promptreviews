@@ -247,12 +247,6 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange, onSave, o
           </div>
         )}
       </div>
-
-      {/* Bottom save/reset buttons */}
-      <div className="flex justify-end gap-4 pt-4">
-        {onReset && <button onClick={handleReset} className="px-5 py-2 border border-slate-300 bg-white text-slate-600 rounded-md font-semibold shadow-sm hover:bg-slate-50 transition">Reset to Default</button>}
-        {onSave && <button onClick={onSave} className="px-5 py-2 bg-slate-blue text-white rounded-md font-semibold shadow hover:bg-slate-700 transition">Save Changes</button>}
-      </div>
     </div>
   );
 }; 
