@@ -2,10 +2,44 @@
 // It will be used by both the dashboard preview and the live embeddable widget
 // to ensure that the output is always identical.
 
+// TypeScript interfaces for type safety
+interface Review {
+  first_name: string;
+  last_name: string;
+  review_content: string;
+  star_rating: number;
+  created_at: string;
+  reviewer_role?: string;
+}
+
+interface Design {
+  bgColor?: string;
+  textColor?: string;
+  nameTextColor?: string;
+  roleTextColor?: string;
+  accentColor?: string;
+  borderRadius?: number;
+  borderWidth?: number;
+  borderColor?: string;
+  bgOpacity?: number;
+  font?: string;
+  border?: boolean;
+  shadow?: boolean;
+  shadowColor?: string;
+  shadowIntensity?: number;
+  showQuotes?: boolean;
+  showRelativeDate?: boolean;
+}
+
 // TODO: Move the createReviewCard function here. 
 
 // These utility functions are dependencies for createReviewCard
-function renderStars(rating) {
+/**
+ * Renders star rating HTML for a given rating value.
+ * @param rating - The number of stars to fill (typically 0-5)
+ * @returns HTML string of star elements
+ */
+function renderStars(rating: number) {
   let stars = '';
   for (let i = 1; i <= 5; i++) {
     stars += `<span class="star${i <= rating ? ' filled' : ''}" style="color: ${i <= rating ? '#ffc107' : '#e0e0e0'};">&#9733;</span>`;
@@ -13,10 +47,15 @@ function renderStars(rating) {
   return stars;
 }
 
-function getRelativeTime(dateString) {
+/**
+ * Converts a date string to a relative time string (e.g., "2 hours ago").
+ * @param dateString - The date string to convert
+ * @returns A relative time string
+ */
+function getRelativeTime(dateString: string) {
   const date = new Date(dateString);
   const now = new Date();
-  const seconds = Math.round((now - date) / 1000);
+  const seconds = Math.round((now.getTime() - date.getTime()) / 1000);
   const minutes = Math.round(seconds / 60);
   const hours = Math.round(minutes / 60);
   const days = Math.round(hours / 24);
@@ -33,7 +72,12 @@ function getRelativeTime(dateString) {
   return `${years} year${years !== 1 ? 's' : ''} ago`;
 }
 
-function isColorDark(hexColor) {
+/**
+ * Determines if a hex color is dark.
+ * @param hexColor - The hex color string (e.g., '#ffffff')
+ * @returns True if the color is dark, false otherwise
+ */
+function isColorDark(hexColor: string) {
   if (!hexColor || hexColor.length < 4) return false;
   let color = (hexColor.charAt(0) === '#') ? hexColor.substring(1) : hexColor;
   if (color.length === 3) {
@@ -47,7 +91,7 @@ function isColorDark(hexColor) {
 }
 
 // Canonical function for generating a review card.
-export function createReviewCardHTML(review, design) {
+export function createReviewCardHTML(review: Review, design: Design) {
   const bgColor = design.bgColor || '#ffffff';
   let textColor = design.textColor || '#22223b';
   if (isColorDark(bgColor)) {

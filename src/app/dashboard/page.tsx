@@ -2,10 +2,9 @@
 
 import { useEffect, useState, useRef } from "react";
 import { createBrowserClient } from "@supabase/ssr";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
 import DashboardContent from "./DashboardContent";
-import { FaHome, FaBuilding, FaBullhorn, FaTimes } from "react-icons/fa";
 import { getUserOrMock, getSessionOrMock } from "@/utils/supabase";
 import PricingModal from "../components/PricingModal";
 import FiveStarSpinner from "../components/FiveStarSpinner";
@@ -22,7 +21,6 @@ export default function Dashboard() {
   const [business, setBusiness] = useState<any>(null);
   const [promptPages, setPromptPages] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const searchParams = useSearchParams();
   const [showProfileModal, setShowProfileModal] = useState(false);
   const createPromptPageRef = useRef<HTMLAnchorElement>(null);
   const [showQR, setShowQR] = useState(false);
@@ -38,7 +36,6 @@ export default function Dashboard() {
   const [account, setAccount] = useState<any>(null);
   const [showPricingModal, setShowPricingModal] = useState(true);
   const [pendingAccountUpdate, setPendingAccountUpdate] = useState(false);
-  const success = searchParams.get("success");
   const [reviewStats, setReviewStats] = useState({
     total: { week: 0, month: 0, year: 0 },
     verified: { week: 0, month: 0, year: 0 },
@@ -52,22 +49,27 @@ export default function Dashboard() {
   useEffect(() => {
     const getUser = async () => {
       try {
+        setIsLoading(true);
+        console.log("Getting user...");
         const { data: { user }, error } = await getUserOrMock(supabase);
         if (error) {
           console.error("Auth error:", error);
+          setIsLoading(false);
           router.push("/auth/sign-in");
           return;
         }
         if (!user) {
+          console.log("No user found, redirecting to sign-in");
+          setIsLoading(false);
           router.push("/auth/sign-in");
           return;
         }
+        console.log("User found:", user.email);
         setUser(user);
       } catch (error) {
         console.error("Error loading user:", error);
-        router.push("/auth/sign-in");
-      } finally {
         setIsLoading(false);
+        router.push("/auth/sign-in");
       }
     };
 
@@ -111,13 +113,14 @@ export default function Dashboard() {
           .select("*")
           .eq("id", session.user.id)
           .single();
+        
         if (businessError || !businessData) {
           setBusiness(null);
           setShowProfileModal(true);
-          setIsLoading(false);
-          return;
+          // Don't return early - continue to fetch prompt pages
+        } else {
+          setBusiness(businessData);
         }
-        setBusiness(businessData);
 
         // Fetch prompt pages
         const { data: promptPagesData, error: promptPagesError } =
@@ -152,7 +155,7 @@ export default function Dashboard() {
     };
 
     fetchData();
-  }, [user, searchParams, supabase]);
+  }, [user, supabase]);
 
   useEffect(() => {
     // Check for post-save modal flag in localStorage
@@ -170,29 +173,6 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
-    if (success === "1") {
-      setPendingAccountUpdate(true);
-    }
-  }, [success]);
-
-  useEffect(() => {
-    // Refetch account if payment was successful
-    if (success === "1" && user) {
-      const fetchAccount = async () => {
-        const { data: accountData } = await supabase
-          .from("accounts")
-          .select("*")
-          .eq("id", user.id)
-          .single();
-        setAccount(accountData);
-        // Logging for debug
-        console.log("Fetched accountData after payment:", accountData);
-      };
-      fetchAccount();
-    }
-  }, [success, user, supabase]);
-
-  useEffect(() => {
     if (isLoading) return;
     if (account === null) return;
     const paidPlans = ["grower", "builder", "maven"];
@@ -201,137 +181,146 @@ export default function Dashboard() {
       ? new Date(account.trial_start)
       : null;
     const trialEnd = account?.trial_end ? new Date(account.trial_end) : null;
-    const isOnPaidPlan = paidPlans.includes(account?.plan);
-    const isActive = account?.subscription_status === "active";
-    const planExpired =
-      account?.plan === "grower" && trialEnd && now > trialEnd && !isActive;
-    // Prevent redirect if plan success modal is open (flag in localStorage)
-    if (
-      typeof window !== "undefined" &&
-      localStorage.getItem("showPlanSuccess") === "1"
-    ) {
-      return;
+
+    // Check if user is on a paid plan
+    const isPaidUser = paidPlans.includes(account.plan);
+
+    // Check if trial has expired
+    const isTrialExpired =
+      trialEnd && now > trialEnd && account.plan === "free";
+
+    // Show pricing modal if user is on free plan and trial has expired
+    if (!isPaidUser && isTrialExpired) {
+      setShowPricingModal(true);
+    } else {
+      setShowPricingModal(false);
     }
-    if (!account?.plan || planExpired || (isOnPaidPlan && !isActive)) {
-      console.log("[DASHBOARD REDIRECT DEBUG]", {
-        account,
-        plan: account?.plan,
-        isActive,
-        planExpired,
-        isOnPaidPlan,
-      });
-      router.replace("/dashboard/plan");
-      return;
-    }
-    if (!business) {
-      router.replace("/dashboard/create-business");
-      return;
-    }
-  }, [user, account, business, router, isLoading]);
+  }, [account, isLoading]);
 
   useEffect(() => {
-    // Debug log for account and pendingAccountUpdate
-    console.log("Dashboard debug:", { account, pendingAccountUpdate });
-  }, [account, pendingAccountUpdate]);
+    if (!user || !business) return;
 
-  useEffect(() => {
     const fetchStats = async () => {
-      if (!user || !user.id) return;
-      const { data: pages } = await supabase
-        .from("prompt_pages")
-        .select("id")
-        .eq("account_id", user.id);
-      const pageIds = (pages || []).map((p: any) => p.id);
-      if (!pageIds.length) return;
-      const { data: reviews } = await supabase
-        .from("review_submissions")
-        .select("created_at, verified")
-        .in("prompt_page_id", pageIds);
-      const now = new Date();
-      const isThisWeek = (date: Date) => {
-        const firstDayOfWeek = new Date(now);
-        firstDayOfWeek.setDate(now.getDate() - now.getDay());
-        firstDayOfWeek.setHours(0, 0, 0, 0);
-        return date >= firstDayOfWeek && date <= now;
-      };
-      const isThisMonth = (date: Date) =>
-        date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth();
-      const isThisYear = (date: Date) => date.getFullYear() === now.getFullYear();
-      let totalWeek = 0, totalMonth = 0, totalYear = 0;
-      let verifiedWeek = 0, verifiedMonth = 0, verifiedYear = 0;
-      (reviews || []).forEach((r: any) => {
-        const d = new Date(r.created_at);
-        if (isThisWeek(d)) totalWeek++;
-        if (isThisMonth(d)) totalMonth++;
-        if (isThisYear(d)) totalYear++;
-        if (r.verified) {
-          if (isThisWeek(d)) verifiedWeek++;
-          if (isThisMonth(d)) verifiedMonth++;
-          if (isThisYear(d)) verifiedYear++;
-        }
-      });
-      setReviewStats({
-        total: { week: totalWeek, month: totalMonth, year: totalYear },
-        verified: { week: verifiedWeek, month: verifiedMonth, year: verifiedYear },
-      });
+      try {
+        const { data: reviews } = await supabase
+          .from("review_submissions")
+          .select("created_at, is_verified")
+          .eq("business_id", business.id);
+
+        const now = new Date();
+
+        const isThisWeek = (date: Date) => {
+          const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          return date >= weekAgo;
+        };
+
+        const isThisMonth = (date: Date) =>
+          date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth();
+
+        const isThisYear = (date: Date) => date.getFullYear() === now.getFullYear();
+
+        const stats = {
+          total: { week: 0, month: 0, year: 0 },
+          verified: { week: 0, month: 0, year: 0 },
+        };
+
+        reviews?.forEach((review) => {
+          const reviewDate = new Date(review.created_at);
+          if (isThisWeek(reviewDate)) {
+            stats.total.week++;
+            if (review.is_verified) stats.verified.week++;
+          }
+          if (isThisMonth(reviewDate)) {
+            stats.total.month++;
+            if (review.is_verified) stats.verified.month++;
+          }
+          if (isThisYear(reviewDate)) {
+            stats.total.year++;
+            if (review.is_verified) stats.verified.year++;
+          }
+        });
+
+        setReviewStats(stats);
+      } catch (error) {
+        console.error("Error fetching review stats:", error);
+      }
     };
+
     fetchStats();
-  }, [user, supabase]);
+  }, [user, business, supabase]);
 
   const handleCreatePromptPageClick = (
     e: React.MouseEvent<HTMLAnchorElement>,
   ) => {
-    if (!business) {
+    if (account?.plan === "free" && customPromptPages.length >= 1) {
       e.preventDefault();
-      setShowProfileModal(true);
+      setShowPricingModal(true);
     }
   };
 
   const handleCopyLink = async () => {
     if (universalUrl) {
-      try {
-        await navigator.clipboard.writeText(universalUrl);
-        alert("Copied!");
-      } catch (err) {
-        window.prompt("Copy this link:", universalUrl);
-      }
+      await navigator.clipboard.writeText(universalUrl);
+      setCopySuccess("Link copied!");
+      setTimeout(() => setCopySuccess(""), 2000);
     }
   };
 
   const handleSelectTier = async (tierKey: string) => {
-    if (!account) return;
-    setShowPricingModal(false);
-    // Update the account plan in Supabase
-    await supabase
-      .from("accounts")
-      .update({ plan: tierKey })
-      .eq("id", account.id);
-    // Optionally, refetch account or update state
-    setAccount({ ...account, plan: tierKey });
+    try {
+      const response = await fetch("/api/create-checkout-session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          tier: tierKey,
+          accountId: account?.id,
+        }),
+      });
+
+      const { url } = await response.json();
+      if (url) {
+        window.location.href = url;
+      }
+    } catch (error) {
+      console.error("Error creating checkout session:", error);
+    }
   };
 
-  const isDashboardReady =
-    !!user && !!account && !isLoading && !pendingAccountUpdate;
+  const handleClosePricingModal = () => {
+    setShowPricingModal(false);
+  };
 
-  if (!isDashboardReady) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center">
-        <AppLoader />
-      </div>
-    );
+  const handleClosePostSaveModal = () => {
+    setShowPostSaveModal(false);
+    setSavedPromptPageUrl(null);
+  };
+
+  if (isLoading) {
+    console.log("Dashboard loading state:", { isLoading, user, account, business });
+    return <AppLoader />;
   }
 
   if (error) {
+    console.log("Dashboard error state:", { error, user, account, business });
     return (
-      <div className="min-h-screen py-12">
-        <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center text-red-600">
-            <p>{error}</p>
-          </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
+          <h1 className="text-xl font-semibold text-red-600 mb-4">Error</h1>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <Button
+            onClick={() => window.location.reload()}
+            className="w-full"
+          >
+            Retry
+          </Button>
         </div>
       </div>
     );
   }
+
+  console.log("Dashboard rendering with data:", { user, account, business, isLoading });
 
   const userName =
     (account?.first_name && account.first_name.trim().split(" ")[0]) ||
@@ -365,6 +354,14 @@ export default function Dashboard() {
         parentLoading={isLoading}
         reviewStats={reviewStats}
       />
+      
+      {/* Pricing Modal */}
+      {showPricingModal && (
+        <PricingModal
+          onSelectTier={handleSelectTier}
+          currentPlan={account?.plan}
+        />
+      )}
     </PageCard>
   );
 }
