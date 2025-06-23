@@ -738,7 +738,7 @@ export default function CreatePromptPageClient() {
   if (formData.review_type === "product") {
     return (
       <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
-        <PageCard icon={<FaBoxOpen className="w-16 h-16 text-slate-blue" />}>
+        <PageCard icon={<FaBoxOpen className="w-9 h-9 text-slate-blue" />}>
           <ProductPromptPageForm
             mode="create"
             initialData={{ ...formData, review_type: "product" }}

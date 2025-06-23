@@ -109,7 +109,7 @@ export default function SignUpPage() {
     return (
       <>
         <SimpleMarketingNav />
-        <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-slate-blue to-[#FFDAB9]">
+        <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
           <div className="p-8 rounded shadow text-center bg-white max-w-md w-full">
             <h2 className="text-2xl font-bold mb-4 text-[#1A237E]">
               Check your email
@@ -132,7 +132,7 @@ export default function SignUpPage() {
   return (
     <>
       <SimpleMarketingNav />
-      <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-indigo-400 via-indigo-300 to-purple-300">
+      <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <h1 className="mt-6 text-center text-3xl font-extrabold text-white">
             Create your account

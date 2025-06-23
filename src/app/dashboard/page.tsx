@@ -200,11 +200,16 @@ export default function Dashboard() {
   useEffect(() => {
     if (!user || !business) return;
 
+    // REVIEW STATS SOURCE OF TRUTH:
+    // We use business_id as the only source of truth for review stats.
+    // This ensures that stats are robust to prompt page deletion and always reflect all reviews for the business.
+    // If a review is deleted, stats will update accordingly. If a prompt page is deleted, reviews with the correct business_id are still counted.
+    // See README for rationale.
     const fetchStats = async () => {
       try {
         const { data: reviews } = await supabase
           .from("review_submissions")
-          .select("created_at, is_verified")
+          .select("created_at, verified")
           .eq("business_id", business.id);
 
         const now = new Date();
@@ -228,15 +233,15 @@ export default function Dashboard() {
           const reviewDate = new Date(review.created_at);
           if (isThisWeek(reviewDate)) {
             stats.total.week++;
-            if (review.is_verified) stats.verified.week++;
+            if (review.verified) stats.verified.week++;
           }
           if (isThisMonth(reviewDate)) {
             stats.total.month++;
-            if (review.is_verified) stats.verified.month++;
+            if (review.verified) stats.verified.month++;
           }
           if (isThisYear(reviewDate)) {
             stats.total.year++;
-            if (review.is_verified) stats.verified.year++;
+            if (review.verified) stats.verified.year++;
           }
         });
 
