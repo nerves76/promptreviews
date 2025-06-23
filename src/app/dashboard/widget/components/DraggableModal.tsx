@@ -4,7 +4,7 @@ import { FaArrowsAlt } from 'react-icons/fa';
 interface DraggableModalProps {
   isOpen: boolean;
   onClose: () => void;
-  title: string;
+  title: React.ReactNode;
   children: React.ReactNode;
   onSave?: () => void;
   onReset?: () => void;
