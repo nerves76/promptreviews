@@ -16,6 +16,7 @@ import PromptTypeSelectModal from "@/app/components/PromptTypeSelectModal";
 import { FaHandsHelping, FaBoxOpen } from "react-icons/fa";
 import { MdPhotoCamera, MdVideoLibrary, MdEvent } from "react-icons/md";
 import { useRouter } from "next/navigation";
+import QRCodeModal from "../components/QRCodeModal";
 
 const StylePage = dynamic(() => import("../dashboard/style/StyleModalPage"), { ssr: false });
 
@@ -40,6 +41,7 @@ export default function PromptPages() {
   const [error, setError] = useState<string | null>(null);
   const [showStyleModal, setShowStyleModal] = useState(false);
   const [showTypeModal, setShowTypeModal] = useState(false);
+  const [qrPreviewUrl, setQrPreviewUrl] = useState<string>("");
   const router = useRouter();
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -265,16 +267,16 @@ export default function PromptPages() {
                       </button>
                       <button
                         type="button"
-                        onClick={() =>
+                        onClick={() => {
                           setQrModal({
                             open: true,
-                            url: universalUrl,
+                            url: `${window.location.origin}/r/${universalPromptPage.slug}`,
                             clientName: business?.name || "PromptReviews",
-                          })
-                        }
+                          });
+                        }}
                         className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-blue text-white rounded hover:bg-slate-blue/90 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
                       >
-                        <MdDownload className="w-5 h-5" />
+                        <MdDownload size={22} color="#fff" />
                         QR code
                       </button>
                       {copySuccess && (
@@ -288,62 +290,13 @@ export default function PromptPages() {
               </div>
             )}
             {/* QR Code Download Modal */}
-            {qrModal?.open && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-                <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center relative">
-                  <button
-                    className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl"
-                    onClick={() => setQrModal(null)}
-                    aria-label="Close"
-                  >
-                    &times;
-                  </button>
-                  <h3 className="text-lg font-bold mb-4 text-indigo-900">
-                    Download QR Code
-                  </h3>
-                  <div className="mb-4">
-                    <label
-                      htmlFor="frame-size"
-                      className="block text-sm font-medium text-gray-700 mb-2"
-                    >
-                      Select frame size
-                    </label>
-                    <select
-                      id="frame-size"
-                      value={selectedFrameSize.label}
-                      onChange={(e) =>
-                        setSelectedFrameSize(
-                          QR_FRAME_SIZES.find((s) => s.label === e.target.value) || QR_FRAME_SIZES[0],
-                        )
-                      }
-                      className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                    >
-                      {QR_FRAME_SIZES.map((size) => (
-                        <option key={size.label} value={size.label}>
-                          {size.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <QRCodeGenerator
-                    url={qrModal.url}
-                    clientName={qrModal.clientName}
-                    frameSize={selectedFrameSize}
-                  />
-                  <div className="mt-6 flex flex-col gap-2">
-                    <a
-                      href="#"
-                      className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-paleGold hover:bg-yellow-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-                      style={{ background: "#FFD700", color: "#1A237E" }}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Buy Frame/Display
-                    </a>
-                  </div>
-                </div>
-              </div>
-            )}
+            <QRCodeModal
+              isOpen={qrModal?.open || false}
+              onClose={() => setQrModal(null)}
+              url={qrModal?.url || ""}
+              clientName={qrModal?.clientName || ""}
+              logoUrl={qrModal?.logoUrl}
+            />
           </div>
         </PageCard>
         <div className="w-full max-w-[1000px] mx-auto mt-0 px-2 sm:px-4 md:px-8 mb-6">
