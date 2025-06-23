@@ -73,7 +73,11 @@ function getFontClass(fontName: string) {
   return found ? found.class : '';
 }
 
-export default function StylePage() {
+interface StylePageProps {
+  onClose?: () => void;
+}
+
+export default function StylePage({ onClose }: StylePageProps) {
   const supabase = React.useMemo(() => createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -172,154 +176,177 @@ export default function StylePage() {
   }
 
   return (
-    <div className="bg-white p-8 rounded-2xl shadow max-w-2xl w-full overflow-y-auto relative" style={{ maxHeight: '80vh' }}>
-      {success && (
-        <div className="mb-4 bg-green-50 border border-green-200 text-green-700 rounded-md p-4 text-center font-medium animate-fadein">
-          Style settings saved!
-        </div>
-      )}
+    <div className="bg-white p-8 rounded-2xl shadow max-w-2xl w-full relative" style={{ maxHeight: '80vh' }}>
+      {/* Circular close button that exceeds modal borders */}
       <button
-        className="absolute top-6 right-8 px-5 py-2 bg-slate-blue text-white rounded font-semibold shadow hover:bg-slate-700 transition z-10"
-        style={{ minWidth: 90 }}
-        onClick={handleSave}
-        disabled={saving}
+        className="absolute -top-6 -right-6 bg-white border border-gray-200 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 focus:outline-none z-20 transition-colors"
+        style={{ width: 48, height: 48 }}
+        onClick={onClose || (() => window.history.back())}
+        aria-label="Close style modal"
       >
-        {saving ? "Saving..." : "Save"}
+        <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        </svg>
       </button>
-      <button
-        className="absolute top-6 right-32 px-5 py-2 border border-slate-300 bg-white text-slate-blue rounded font-semibold shadow hover:bg-slate-100 transition z-10"
-        style={{ minWidth: 90 }}
-        onClick={handleReset}
-        disabled={saving}
-      >
-        Reset Styles
-      </button>
-      <h2 className="text-2xl font-bold text-slate-blue mb-4">Prompt page style</h2>
-      <p className="text-gray-600 mb-6">
-        Use these settings to make your prompt pages match your brand.
-      </p>
-      <div className="relative my-8 p-6 rounded-lg">
-        <div className="bg-white rounded-lg shadow p-6 mx-auto" style={{ maxWidth: 800, background: settings.card_bg, color: settings.card_text }}>
-          {success && (
-            <div className="mb-4 p-4 bg-green-50 text-green-700 rounded-lg border border-green-200 text-center font-medium animate-fadein">
-              Style settings saved!
-            </div>
-          )}
-          <h3 className={`text-xl font-bold mb-2 ${getFontClass(settings.primary_font)}`} style={{ color: settings.primary_color }}>
-            Preview heading
-          </h3>
-          <p className={`mb-4 ${getFontClass(settings.secondary_font)}`} style={{ color: settings.card_text }}>
-            This is how your background, text, and buttons will look with selected fonts and colors.
-          </p>
-          <button className="px-4 py-2 rounded" style={{ background: settings.secondary_color, color: "#fff" }}>
-            Sample Button
-          </button>
-        </div>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8 mt-2 mb-2">
-        <div className="flex flex-col gap-8">
-      {/* Font pickers */}
-        <div>
-            <label className="block text-sm font-medium text-gray-700 mb-5">Primary Font</label>
-          <select
-            value={settings.primary_font}
-            onChange={e => setSettings(s => ({ ...s, primary_font: e.target.value }))}
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          >
-            <optgroup label="Google Fonts">
-              {fontOptions.filter(f => !["Arial","Helvetica","Verdana","Tahoma","Trebuchet MS","Times New Roman","Georgia","Courier New","Lucida Console","Palatino","Garamond"].includes(f.name)).map(font => (
-                  <option key={font.name} value={font.name}>{font.name}</option>
-              ))}
-            </optgroup>
-            <optgroup label="System Fonts">
-              {fontOptions.filter(f => ["Arial","Helvetica","Verdana","Tahoma","Trebuchet MS","Times New Roman","Georgia","Courier New","Lucida Console","Palatino","Garamond"].includes(f.name)).map(font => (
-                  <option key={font.name} value={font.name}>{font.name}</option>
-              ))}
-            </optgroup>
-          </select>
-          <p className="text-xs text-gray-500 mt-1">System fonts may look different on different devices.</p>
-        </div>
-        <div>
-            <label className="block text-sm font-medium text-gray-700 mb-5">Secondary Font</label>
-          <select
-            value={settings.secondary_font}
-            onChange={e => setSettings(s => ({ ...s, secondary_font: e.target.value }))}
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          >
-            <optgroup label="Google Fonts">
-              {fontOptions.filter(f => !["Arial","Helvetica","Verdana","Tahoma","Trebuchet MS","Times New Roman","Georgia","Courier New","Lucida Console","Palatino","Garamond"].includes(f.name)).map(font => (
-                  <option key={font.name} value={font.name}>{font.name}</option>
-              ))}
-            </optgroup>
-            <optgroup label="System Fonts">
-              {fontOptions.filter(f => ["Arial","Helvetica","Verdana","Tahoma","Trebuchet MS","Times New Roman","Georgia","Courier New","Lucida Console","Palatino","Garamond"].includes(f.name)).map(font => (
-                  <option key={font.name} value={font.name}>{font.name}</option>
-              ))}
-            </optgroup>
-          </select>
-          <p className="text-xs text-gray-500 mt-1">System fonts may look different on different devices.</p>
-        </div>
-          {/* Primary color */}
-        <div>
-            <label className="block text-sm font-medium text-gray-700 mb-5">Primary Color</label>
-          <div className="flex items-center gap-2">
-              <input type="color" value={settings.primary_color} onChange={e => setSettings(s => ({ ...s, primary_color: e.target.value }))} className="w-12 h-8 rounded" />
-              <input type="text" value={settings.primary_color} readOnly className="w-24 px-2 py-1 border rounded bg-gray-50 text-gray-800" onFocus={e => e.target.select()} />
-        </div>
-          </div>
-        </div>
-        <div className="flex flex-col gap-8">
-      {/* Background type */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-5">Background Type</label>
-        <div className="flex gap-4">
-              <label><input type="radio" name="background_type" value="solid" checked={settings.background_type === "solid"} onChange={() => setSettings(s => ({ ...s, background_type: "solid" }))} /><span className="ml-2">Solid</span></label>
-              <label><input type="radio" name="background_type" value="gradient" checked={settings.background_type === "gradient"} onChange={() => setSettings(s => ({ ...s, background_type: "gradient" }))} /><span className="ml-2">Gradient</span></label>
-        </div>
-        {settings.background_type === "gradient" && (
-          <div className="flex gap-4 mt-2">
-            <div>
-              <label className="block text-xs text-gray-500">Start</label>
-              <div className="flex items-center gap-2">
-                    <input type="color" value={settings.gradient_start} onChange={e => setSettings(s => ({ ...s, gradient_start: e.target.value }))} className="w-12 h-8 rounded" />
-                    <input type="text" value={settings.gradient_start} readOnly className="w-24 px-2 py-1 border rounded bg-gray-50 text-gray-800" onFocus={e => e.target.select()} />
-              </div>
-            </div>
-            <div>
-              <label className="block text-xs text-gray-500">End</label>
-              <div className="flex items-center gap-2">
-                    <input type="color" value={settings.gradient_end} onChange={e => setSettings(s => ({ ...s, gradient_end: e.target.value }))} className="w-12 h-8 rounded" />
-                    <input type="text" value={settings.gradient_end} readOnly className="w-24 px-2 py-1 border rounded bg-gray-50 text-gray-800" onFocus={e => e.target.select()} />
-              </div>
-            </div>
+
+      <div className="overflow-y-auto" style={{ maxHeight: 'calc(80vh - 2rem)' }}>
+        {success && (
+          <div className="mb-4 bg-green-50 border border-green-200 text-green-700 rounded-md p-4 text-center font-medium animate-fadein">
+            Style settings saved!
           </div>
         )}
-      </div>
-          {/* Secondary color */}
+        
+        {/* Top right save button */}
+        <button
+          className="absolute top-6 right-8 px-5 py-2 bg-slate-blue text-white rounded font-semibold shadow hover:bg-slate-700 transition z-30"
+          style={{ minWidth: 90 }}
+          onClick={handleSave}
+          disabled={saving}
+        >
+          {saving ? "Saving..." : "Save"}
+        </button>
+        
+        {/* Top right reset button */}
+        <button
+          className="absolute top-6 right-36 px-5 py-2 border border-slate-300 bg-white text-slate-blue rounded font-semibold shadow hover:bg-slate-100 transition z-30"
+          style={{ minWidth: 90 }}
+          onClick={handleReset}
+          disabled={saving}
+        >
+          Reset Styles
+        </button>
+        
+        <h2 className="text-2xl font-bold text-slate-blue mb-4">Prompt page style</h2>
+        <p className="text-gray-600 mb-6">
+          Use these settings to make your prompt pages match your brand.
+        </p>
+        <div className="relative my-8 p-6 rounded-lg">
+          <div className="bg-white rounded-lg shadow p-6 mx-auto" style={{ maxWidth: 800, background: settings.card_bg, color: settings.card_text }}>
+            {success && (
+              <div className="mb-4 p-4 bg-green-50 text-green-700 rounded-lg border border-green-200 text-center font-medium animate-fadein">
+                Style settings saved!
+              </div>
+            )}
+            <h3 className={`text-xl font-bold mb-2 ${getFontClass(settings.primary_font)}`} style={{ color: settings.primary_color }}>
+              Preview heading
+            </h3>
+            <p className={`mb-4 ${getFontClass(settings.secondary_font)}`} style={{ color: settings.card_text }}>
+              This is how your background, text, and buttons will look with selected fonts and colors.
+            </p>
+            <button className="px-4 py-2 rounded" style={{ background: settings.secondary_color, color: "#fff" }}>
+              Sample Button
+            </button>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8 mt-2 mb-2">
+          <div className="flex flex-col gap-8">
+        {/* Font pickers */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-5">Secondary Color</label>
+              <label className="block text-sm font-medium text-gray-700 mb-5">Primary Font</label>
+            <select
+              value={settings.primary_font}
+              onChange={e => setSettings(s => ({ ...s, primary_font: e.target.value }))}
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            >
+              <optgroup label="Google Fonts">
+                {fontOptions.filter(f => !["Arial","Helvetica","Verdana","Tahoma","Trebuchet MS","Times New Roman","Georgia","Courier New","Lucida Console","Palatino","Garamond"].includes(f.name)).map(font => (
+                    <option key={font.name} value={font.name}>{font.name}</option>
+                ))}
+              </optgroup>
+              <optgroup label="System Fonts">
+                {fontOptions.filter(f => ["Arial","Helvetica","Verdana","Tahoma","Trebuchet MS","Times New Roman","Georgia","Courier New","Lucida Console","Palatino","Garamond"].includes(f.name)).map(font => (
+                    <option key={font.name} value={font.name}>{font.name}</option>
+                ))}
+              </optgroup>
+            </select>
+            <p className="text-xs text-gray-500 mt-1">System fonts may look different on different devices.</p>
+          </div>
+          <div>
+              <label className="block text-sm font-medium text-gray-700 mb-5">Secondary Font</label>
+            <select
+              value={settings.secondary_font}
+              onChange={e => setSettings(s => ({ ...s, secondary_font: e.target.value }))}
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            >
+              <optgroup label="Google Fonts">
+                {fontOptions.filter(f => !["Arial","Helvetica","Verdana","Tahoma","Trebuchet MS","Times New Roman","Georgia","Courier New","Lucida Console","Palatino","Garamond"].includes(f.name)).map(font => (
+                    <option key={font.name} value={font.name}>{font.name}</option>
+                ))}
+              </optgroup>
+              <optgroup label="System Fonts">
+                {fontOptions.filter(f => ["Arial","Helvetica","Verdana","Tahoma","Trebuchet MS","Times New Roman","Georgia","Courier New","Lucida Console","Palatino","Garamond"].includes(f.name)).map(font => (
+                    <option key={font.name} value={font.name}>{font.name}</option>
+                ))}
+              </optgroup>
+            </select>
+            <p className="text-xs text-gray-500 mt-1">System fonts may look different on different devices.</p>
+          </div>
+            {/* Primary color */}
+          <div>
+              <label className="block text-sm font-medium text-gray-700 mb-5">Primary Color</label>
             <div className="flex items-center gap-2">
-              <input type="color" value={settings.secondary_color} onChange={e => setSettings(s => ({ ...s, secondary_color: e.target.value }))} className="w-12 h-8 rounded" />
-              <input type="text" value={settings.secondary_color} readOnly className="w-24 px-2 py-1 border rounded bg-gray-50 text-gray-800" onFocus={e => e.target.select()} />
+                <input type="color" value={settings.primary_color} onChange={e => setSettings(s => ({ ...s, primary_color: e.target.value }))} className="w-12 h-8 rounded" />
+                <input type="text" value={settings.primary_color} readOnly className="w-24 px-2 py-1 border rounded bg-gray-50 text-gray-800" onFocus={e => e.target.select()} />
+          </div>
             </div>
           </div>
-      {/* Card background and text color options */}
-        <div>
-            <label className="block text-sm font-medium text-gray-700 mb-5">Card Background</label>
-            <select value={settings.card_bg} onChange={e => setSettings(s => ({ ...s, card_bg: e.target.value }))} className="block w-full rounded-md border-gray-300 shadow-sm">
-              {cardBgOptions.map(opt => (<option key={opt.value} value={opt.value}>{opt.name}</option>))}
-          </select>
+          <div className="flex flex-col gap-8">
+        {/* Background type */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-5">Background Type</label>
+          <div className="flex gap-4">
+                <label><input type="radio" name="background_type" value="solid" checked={settings.background_type === "solid"} onChange={() => setSettings(s => ({ ...s, background_type: "solid" }))} /><span className="ml-2">Solid</span></label>
+                <label><input type="radio" name="background_type" value="gradient" checked={settings.background_type === "gradient"} onChange={() => setSettings(s => ({ ...s, background_type: "gradient" }))} /><span className="ml-2">Gradient</span></label>
+          </div>
+          {settings.background_type === "gradient" && (
+            <div className="flex gap-4 mt-2">
+              <div>
+                <label className="block text-xs text-gray-500">Start</label>
+                <div className="flex items-center gap-2">
+                      <input type="color" value={settings.gradient_start} onChange={e => setSettings(s => ({ ...s, gradient_start: e.target.value }))} className="w-12 h-8 rounded" />
+                      <input type="text" value={settings.gradient_start} readOnly className="w-24 px-2 py-1 border rounded bg-gray-50 text-gray-800" onFocus={e => e.target.select()} />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500">End</label>
+                <div className="flex items-center gap-2">
+                      <input type="color" value={settings.gradient_end} onChange={e => setSettings(s => ({ ...s, gradient_end: e.target.value }))} className="w-12 h-8 rounded" />
+                      <input type="text" value={settings.gradient_end} readOnly className="w-24 px-2 py-1 border rounded bg-gray-50 text-gray-800" onFocus={e => e.target.select()} />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-        <div>
-            <label className="block text-sm font-medium text-gray-700 mb-5">Card Text Color</label>
-            <select value={settings.card_text} onChange={e => setSettings(s => ({ ...s, card_text: e.target.value }))} className="block w-full rounded-md border-gray-300 shadow-sm">
-              {textColorOptions.map(opt => (<option key={opt.value} value={opt.value}>{opt.name}</option>))}
-          </select>
+            {/* Secondary color */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-5">Secondary Color</label>
+              <div className="flex items-center gap-2">
+                <input type="color" value={settings.secondary_color} onChange={e => setSettings(s => ({ ...s, secondary_color: e.target.value }))} className="w-12 h-8 rounded" />
+                <input type="text" value={settings.secondary_color} readOnly className="w-24 px-2 py-1 border rounded bg-gray-50 text-gray-800" onFocus={e => e.target.select()} />
+              </div>
+            </div>
+        {/* Card background and text color options */}
+          <div>
+              <label className="block text-sm font-medium text-gray-700 mb-5">Card Background</label>
+              <select value={settings.card_bg} onChange={e => setSettings(s => ({ ...s, card_bg: e.target.value }))} className="block w-full rounded-md border-gray-300 shadow-sm">
+                {cardBgOptions.map(opt => (<option key={opt.value} value={opt.value}>{opt.name}</option>))}
+            </select>
+          </div>
+          <div>
+              <label className="block text-sm font-medium text-gray-700 mb-5">Card Text Color</label>
+              <select value={settings.card_text} onChange={e => setSettings(s => ({ ...s, card_text: e.target.value }))} className="block w-full rounded-md border-gray-300 shadow-sm">
+                {textColorOptions.map(opt => (<option key={opt.value} value={opt.value}>{opt.name}</option>))}
+            </select>
+            </div>
           </div>
         </div>
-      </div>
-      <div className="mt-8 text-right">
-        <button className="px-6 py-2 bg-slate-blue text-white rounded hover:bg-slate-700 transition" onClick={handleSave} disabled={saving}>
+        {/* Bottom right save button */}
+        <button
+          className="absolute bottom-6 right-8 px-5 py-2 bg-slate-blue text-white rounded font-semibold shadow hover:bg-slate-700 transition z-10"
+          style={{ minWidth: 90 }}
+          onClick={handleSave}
+          disabled={saving}
+        >
           {saving ? "Saving..." : "Save"}
         </button>
       </div>

@@ -5,8 +5,8 @@
   'use strict';
 
   // Global state for carousel management
-  const carouselState = {};
   const initializingWidgets = new Set(); // Track widgets being initialized
+  let carouselState = {};
 
   // Initialize the widget
   window.PromptReviewsPhoto = window.PromptReviewsPhoto || {};
@@ -16,6 +16,8 @@
     window.PromptReviewsPhoto.initializeWidget = function(containerId, reviews, design, businessSlug) {
       console.log('🚀 PhotoWidget: Initializing widget', { containerId, reviewsCount: reviews?.length, design });
       
+      injectCSS(design); // Inject the CSS rules directly
+
       if (!reviews || reviews.length === 0) {
         console.warn('⚠️ PhotoWidget: No reviews provided');
         return;
@@ -33,6 +35,9 @@
       // Create and insert the widget HTML
       const widgetHTML = createCarouselHTML(containerId, reviews, design, businessSlug);
       widgetElement.innerHTML = widgetHTML;
+      
+      // Add the main CSS class to the container so styles are applied
+      widgetElement.classList.add('pr-photo-widget');
 
       // Initialize carousel functionality
       initCarousel(containerId, reviews, design);
@@ -43,6 +48,18 @@
       console.log('✅ PhotoWidget: Widget initialized successfully');
     };
   }
+
+  const injectCSS = (design) => {
+    const cssId = 'pr-photo-widget-styles';
+    if (document.getElementById(cssId)) return;
+
+    const style = document.createElement('style');
+    style.id = cssId;
+    style.type = 'text/css';
+    // This placeholder will be replaced by the build script
+    style.innerText = '__INJECT_CSS_CONTENT__';
+    document.head.appendChild(style);
+  };
 
   function initCarouselState(widgetId, reviews, design) {
     carouselState[widgetId] = {
@@ -314,7 +331,8 @@
                 margin-bottom: 0.25rem;
               ">${review.first_name || ''} ${review.last_name || ''}</div>
               ${review.reviewer_role ? `<div style="
-                color: ${design.roleTextColor || '#6b7280'};
+                color: ${design.nameTextColor || '#1a237e'};
+                opacity: 0.65;
                 font-size: ${design.attributionFontSize || 15}px;
               ">${review.reviewer_role}</div>` : ''}
               <div style="
@@ -467,8 +485,6 @@
     for (const widgetContainer of widgets) {
       const widgetId = widgetContainer.getAttribute('data-prompt-reviews-id') || widgetContainer.getAttribute('data-widget-id');
       const businessSlug = widgetContainer.getAttribute('data-business-slug');
-      // Do NOT change the container's ID here
-      // widgetContainer.id = `pr-photo-widget-container-${widgetId}`;
 
       try {
         const response = await fetch(`http://localhost:3001/api/widgets/${widgetId}`);
@@ -478,8 +494,8 @@
         const { reviews, design } = await response.json();
         
         if (reviews && reviews.length > 0) {
-          widgetContainer.innerHTML = createCarouselHTML(widgetContainer.id, reviews, design, businessSlug);
-          initCarousel(widgetContainer.id, reviews, design);
+          // Use the proper initializeWidget function instead of calling createCarouselHTML directly
+          window.PromptReviewsPhoto.initializeWidget(widgetContainer.id, reviews, design, businessSlug);
         } else {
           widgetContainer.innerHTML = '<p>No reviews to display.</p>';
         }

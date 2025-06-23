@@ -5,39 +5,43 @@
 */
 
 /* 
+  Container styles to mimic the dashboard preview environment.
+  This ensures the embedded widget has a consistent, centered,
+  and responsive container, just like in the app.
+*/
+#promptreviews-single-widget {
+    position: relative;
+    width: 100%;
+    max-width: 64rem; /* 1024px */
+    margin-left: auto;
+    margin-right: auto;
+    font-size: 16px; /* Set a consistent base font size for rem calculations */
+}
+
+/* 
   Base widget container style.
   This handles the sizing and centering of the widget itself,
   both in the dashboard preview and on live sites.
 */
-.pr-single-widget {
-  all: revert;
+.pr-widget-container.pr-single-widget {
+  display: block;
   box-sizing: border-box;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-  
-  /* Sizing */
-  width: 100%;
-  max-width: 650px !important;
-  min-height: 300px !important;
-
-  /* Centering */
-  margin: auto; /* Centers horizontally and vertically within a flex container like the preview */
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-
-  /* Padding */
-  padding: 0 1rem;
+  max-width: 650px;
+  margin: 2rem auto;
+  text-align: center;
 }
   
 /* Carousel Layout */
-.pr-single-carousel-container {
+.pr-widget-container.pr-single-widget .pr-single-carousel-container {
     position: relative;
     overflow: hidden;
     width: 100%;
-    min-height: 300px; /* Ensure carousel has minimum height */
+    min-height: 300px;
+    padding-top: 10px;
 }
   
-.pr-single-carousel-track {
+.pr-widget-container.pr-single-widget .pr-single-carousel-track {
     display: flex;
     transition: transform 0.5s ease;
     gap: 0; /* No gap for single widget */
@@ -45,7 +49,7 @@
 }
   
 /* Single card takes full width */
-.pr-single-carousel-item {
+.pr-widget-container.pr-single-widget .pr-single-carousel-item {
     flex-shrink: 0;
     width: 100%; /* Full width for single card */
     display: flex; 
@@ -53,49 +57,94 @@
 }
   
 /* Review Card Styles */
-.pr-single-widget .pr-single-review-card {
+.pr-widget-container.pr-single-widget .pr-single-review-card {
     background: var(--pr-card-bg, #fff);
-    border: var(--pr-card-border, 2px solid #cccccc);
+    border: var(--pr-card-border-width, 2px) solid var(--pr-card-border-color, #cccccc);
     border-radius: var(--pr-card-radius, 16px);
+    opacity: var(--pr-card-opacity, 1);
+    color: var(--pr-text-color, #22223b);
+    font-family: var(--pr-font-family, 'Inter', sans-serif);
+    line-height: var(--pr-line-spacing, 1.4);
+    box-shadow: var(--pr-card-shadow, none);
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
     width: 100%;
     text-align: center;
     flex-grow: 1; 
-    min-height: 300px; /* Ensure card has minimum height */
+    min-height: 300px;
+    box-sizing: border-box;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.pr-widget-container.pr-single-widget .pr-single-review-card:hover {
+    transform: translateY(-5px); /* This can be overridden by a variable if needed */
 }
   
-.pr-single-widget .pr-single-review-content {
-    flex-grow: 1; /* Ensures the text content area grows, pushing footer down */
+.pr-widget-container.pr-single-widget .pr-single-review-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; 
 }
   
-.pr-single-widget .pr-single-reviewer-details {
+.pr-widget-container.pr-single-widget .pr-single-review-text {
+    margin: 0 0 1rem 0;
+}
+  
+.pr-widget-container.pr-single-widget .pr-single-reviewer-details {
     margin-top: auto; /* Pushes details to the bottom of the card */
+    padding-top: 1rem;
+}
+
+.pr-widget-container.pr-single-widget .pr-single-reviewer-name {
+    color: var(--pr-name-text-color, #1a237e);
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.pr-widget-container.pr-single-widget .pr-single-reviewer-role,
+.pr-widget-container.pr-single-widget .pr-single-review-date {
+    color: var(--pr-name-text-color, #1a237e);
+    opacity: 0.65;
+    font-size: var(--pr-attribution-font-size, 15px);
+}
+
+.pr-widget-container.pr-single-widget .pr-single-review-date {
+    margin-top: 0.25rem;
 }
   
-/* --- Other existing styles below --- */
-  
-.pr-single-widget .pr-single-stars-row {
+/* Star Rating Styles */
+.pr-widget-container.pr-single-widget .pr-single-stars-row {
     display: flex;
     justify-content: center;
+    gap: 0.25rem;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+.pr-widget-container.pr-single-widget .pr-single-star {
+    line-height: 1;
+}
+
+.pr-widget-container.pr-single-widget .pr-single-star.filled {
+    color: #fbbf24; /* Keep stars gold */
+}
+
+.pr-widget-container.pr-single-widget .pr-single-star:not(.filled) {
+    color: #d1d5db;
 }
   
-.pr-single-widget .pr-single-review-text {
-    margin: 0;
-}
-  
-.pr-single-carousel-controls {
-    text-align: center;
-    margin-top: 1.5rem;
+.pr-widget-container.pr-single-widget .pr-single-carousel-controls {
     display: flex;
+    justify-content: center;
     align-items: center;
-    justify-content: center;
-    gap: 20px;
+    margin-top: 1rem;
+    gap: 2rem;
 }
   
-.pr-single-prev-btn,
-.pr-single-next-btn {
+.pr-widget-container.pr-single-widget .pr-single-prev-btn,
+.pr-widget-container.pr-single-widget .pr-single-next-btn {
     cursor: pointer;
     width: 40px;
     height: 40px;
@@ -105,63 +154,105 @@
     justify-content: center;
     transition: all 0.2s ease;
     position: relative;
+    background: var(--pr-card-bg, #fff);
+    border: var(--pr-card-border-width, 2px) solid var(--pr-card-border-color, #cccccc);
+}
+
+.pr-widget-container.pr-single-widget .pr-single-prev-btn:hover,
+.pr-widget-container.pr-single-widget .pr-single-next-btn:hover {
+    background: var(--pr-accent-color, #4f46e5);
+    border-color: var(--pr-accent-color, #4f46e5);
+    transform: scale(1.05);
 }
   
-.pr-single-prev-btn::before,
-.pr-single-next-btn::before {
+.pr-widget-container.pr-single-widget .pr-single-prev-btn::before,
+.pr-widget-container.pr-single-widget .pr-single-next-btn::before {
     content: '';
+    display: block;
     width: 0;
     height: 0;
     border-style: solid;
 }
   
-.pr-single-prev-btn::before {
+.pr-widget-container.pr-single-widget .pr-single-prev-btn::before {
     border-width: 6px 8px 6px 0;
-    border-color: transparent #4f46e5 transparent transparent;
+    border-color: transparent var(--pr-accent-color, #4f46e5) transparent transparent;
     margin-left: -2px;
 }
-  
-.pr-single-next-btn::before {
-    border-width: 6px 0 6px 8px;
-    border-color: transparent transparent transparent #4f46e5;
-    margin-right: -2px;
+
+.pr-widget-container.pr-single-widget .pr-single-prev-btn:hover::before {
+    border-color: transparent var(--pr-card-bg, #fff) transparent transparent;
 }
   
-.pr-single-dots-container {
+.pr-widget-container.pr-single-widget .pr-single-next-btn::before {
+    border-width: 6px 0 6px 8px;
+    border-color: transparent transparent transparent var(--pr-accent-color, #4f46e5);
+    margin-right: -2px;
+}
+
+.pr-widget-container.pr-single-widget .pr-single-next-btn:hover::before {
+    border-color: transparent transparent transparent var(--pr-card-bg, #fff);
+}
+  
+.pr-widget-container.pr-single-widget .pr-single-dots-container {
     display: flex;
-    gap: 16px;
+    gap: 8px;
     align-items: center;
 }
   
-.pr-single-dot {
-    height: 12px;
-    width: 12px;
-    border: none;
+.pr-widget-container.pr-single-widget .pr-single-dot {
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
+    background-color: var(--pr-card-bg, #fff);
+    border: 1px solid var(--pr-card-border-color, #cccccc);
     cursor: pointer;
     padding: 0;
     margin: 0;
+    transition: all 0.2s ease;
+}
+
+.pr-widget-container.pr-single-widget .pr-single-dot.active {
+    background-color: var(--pr-accent-color, #4f46e5);
+    border-color: var(--pr-accent-color, #4f46e5);
+    transform: scale(1.2);
+}
+
+.pr-widget-container.pr-single-widget .pr-single-dot:hover {
+    background-color: var(--pr-accent-color, #4f46e5);
+    border-color: var(--pr-accent-color, #4f46e5);
+    opacity: 0.7;
 }
   
-.pr-single-submit-review-container {
+.pr-widget-container.pr-single-widget .pr-single-submit-review-container {
     text-align: right;
     margin-top: 0.5rem;
 }
   
-.pr-single-submit-btn {
+.pr-widget-container.pr-single-widget .pr-single-submit-btn {
     display: inline-block;
     padding: 6px 12px;
     text-decoration: none;
     font-weight: 500;
     font-size: 0.875rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    background-color: var(--pr-card-bg, #fff);
+    border: var(--pr-card-border-width, 2px) solid var(--pr-card-border-color, #cccccc);
+    color: var(--pr-accent-color, #4f46e5);
+}
+
+.pr-widget-container.pr-single-widget .pr-single-submit-btn:hover {
+    background: var(--pr-accent-color, #4f46e5);
+    color: var(--pr-card-bg, #fff);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
   
 /* Responsive Design - simplified for single card */
-@media (max-width: 640px) {
-    .pr-single-carousel-track {
-      gap: 0;
-    }
-    .pr-single-submit-review-container {
-      margin-top: 1.5rem;
-    }
+@media (max-width: 600px) {
+  .pr-widget-container.pr-single-widget {
+      margin: 1rem auto;
+      padding: 0 1rem;
+  }
 }

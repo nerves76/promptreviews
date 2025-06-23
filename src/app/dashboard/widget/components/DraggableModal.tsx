@@ -74,7 +74,7 @@ export const DraggableModal: React.FC<DraggableModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
       <div
-        className={`bg-white rounded-lg shadow-xl w-full ${maxWidth} pointer-events-auto`}
+        className={`bg-white rounded-lg shadow-xl w-full ${maxWidth} pointer-events-auto relative`}
         style={{
           position: 'absolute',
           left: modalPos.x,
@@ -83,17 +83,20 @@ export const DraggableModal: React.FC<DraggableModalProps> = ({
         }}
         onMouseDown={handleMouseDown}
       >
+        {/* Circular close button that exceeds modal borders */}
+        <button
+          className="absolute -top-4 -right-4 bg-white border border-gray-200 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 focus:outline-none z-20 transition-colors"
+          style={{ width: 40, height: 40 }}
+          onClick={onClose}
+          aria-label="Close modal"
+        >
+          <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
         <div className="modal-header flex items-center justify-between p-6 border-b cursor-move">
           <h2 className="text-xl font-semibold">{title}</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
-            aria-label="Close"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
         </div>
         <div className="p-6">
           {children}
@@ -102,7 +105,7 @@ export const DraggableModal: React.FC<DraggableModalProps> = ({
           <div className="p-6 border-t flex justify-end">
             <button
               onClick={onSave}
-              className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              className="px-6 py-2 bg-slate-blue text-white rounded hover:bg-slate-700 transition"
             >
               {saveLabel}
             </button>

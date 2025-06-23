@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Widget Test Page</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        h2 {
+            color: #555;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+            margin-top: 40px;
+        }
+        .widget-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+        .widget-container {
+            margin: 20px 0;
+            min-height: 200px;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f9f9f9;
+        }
+        .widget-container.loaded {
+            border: none;
+            background: transparent;
+        }
+        .loading-text {
+            color: #666;
+            font-style: italic;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 12px;
+            border: 1px solid #ddd;
+        }
+        code {
+            background: #f0f0f0;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Monaco', 'Menlo', monospace;
+        }
+        .embed-input {
+            width: 100%;
+            min-height: 60px;
+            font-size: 14px;
+            font-family: 'Menlo', 'Monaco', monospace;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            border: 1px solid #bbb;
+            padding: 8px;
+            background: #f8f8f8;
+            resize: vertical;
+        }
+        .run-btn {
+            background: #6a5acd;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 18px;
+            font-size: 15px;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: background 0.2s;
+        }
+        .run-btn:hover {
+            background: #483d8b;
+        }
+        .input-label {
+            font-size: 13px;
+            color: #444;
+            margin-bottom: 4px;
+            display: block;
+        }
+        .note {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 6px;
+            padding: 12px;
+            margin: 10px 0;
+            font-size: 14px;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Widget Test Page</h1>
+        <p>This page lets you paste your own embed code for each widget and see the result live below.</p>
+        
+        <div class="note">
+            <strong>Important:</strong> The widgets need a valid <code>data-widget-id</code> to load data. 
+            Use the "Copy Code" button in your dashboard to get the correct embed code with your widget ID.
+        </div>
+        
+        <h2>Multi Widget</h2>
+        <div class="widget-section">
+            <label class="input-label" for="multi-embed-input">Paste your Multi Widget embed code here:</label>
+            <textarea id="multi-embed-input" class="embed-input" placeholder="&lt;script src=\"http://localhost:3001/widgets/multi/widget-embed.min.js?v=1\"&gt;&lt;/script&gt;&#10;&lt;div id=\"promptreviews-multi-widget\" data-widget-id=\"YOUR_WIDGET_ID\"&gt;&lt;/div&gt;"></textarea>
+            <button class="run-btn" onclick="runEmbed('multi')">Save & Run</button>
+            <div class="widget-container" id="multi-widget-preview" data-prompt-reviews-id="e5caf82f-0c50-4296-b57f-4bd878288dc4" data-widget-type="multi">
+                <div class="loading-text">Widget preview will appear here.</div>
+            </div>
+        </div>
+
+        <h2>Single Widget</h2>
+        <div class="widget-section">
+            <label class="input-label" for="single-embed-input">Paste your Single Widget embed code here:</label>
+            <textarea id="single-embed-input" class="embed-input" placeholder="&lt;script src=\\\"http://localhost:3001/widgets/single/widget-embed.min.js?v=1750565000\\\"&gt;&lt;/script&gt;&#10;&lt;div id=\\\"promptreviews-single-widget\\\" data-widget-id=\\\"YOUR_WIDGET_ID\\\"&gt;&lt;/div&gt;"></textarea>
+            <button class="run-btn" onclick="runEmbed('single')">Save & Run</button>
+            <button class="run-btn" onclick="testSpecificSingleWidget()" style="margin-left: 10px; background: #28a745;">Test Specific Widget</button>
+            <div class="widget-container" id="single-widget-preview" data-prompt-reviews-id="182119da-729d-4bc5-ae24-78556588caba" data-widget-type="single">
+                <div class="loading-text">Widget preview will appear here.</div>
+            </div>
+        </div>
+
+        <h2>Photo Widget</h2>
+        <div class="widget-section">
+            <label class="input-label" for="photo-embed-input">Paste your Photo Widget embed code here:</label>
+            <textarea id="photo-embed-input" class="embed-input" placeholder="&lt;script src=\"http://localhost:3001/widgets/photo/widget-embed.min.js?v=1\"&gt;&lt;/script&gt;&#10;&lt;div id=\"promptreviews-photo-widget\" data-widget-id=\"YOUR_WIDGET_ID\"&gt;&lt;/div&gt;"></textarea>
+            <button class="run-btn" onclick="runEmbed('photo')">Save & Run</button>
+            <button class="run-btn" onclick="testPhotoWidget()" style="margin-left: 10px; background: #28a745;">Test with Known Data</button>
+            <div class="widget-container" id="photo-widget-preview" data-prompt-reviews-id="a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11" data-widget-type="photo">
+                <div class="loading-text">Widget preview will appear here.</div>
+            </div>
+        </div>
+
+    </div>
+    <script>
+    function runEmbed(type) {
+        const inputId = type + '-embed-input';
+        const previewId = type + '-widget-preview';
+        const code = document.getElementById(inputId).value;
+        const preview = document.getElementById(previewId);
+        
+        // Clear previous content
+        preview.innerHTML = '';
+        preview.className = 'widget-container';
+        
+        // Create a temporary div to parse the HTML
+        const temp = document.createElement('div');
+        temp.innerHTML = code;
+        
+        // Extract script tags first
+        const scripts = temp.querySelectorAll('script');
+        const scriptPromises = [];
+        
+        scripts.forEach(script => {
+            const newScript = document.createElement('script');
+            // Copy attributes
+            for (let i = 0; i < script.attributes.length; i++) {
+                const attr = script.attributes[i];
+                newScript.setAttribute(attr.name, attr.value);
+            }
+            // Copy inline script content
+            if (script.textContent) {
+                newScript.textContent = script.textContent;
+            }
+            
+            // Remove script from temp div
+            script.remove();
+            
+            // Create promise for script loading
+            const scriptPromise = new Promise((resolve, reject) => {
+                newScript.onload = resolve;
+                newScript.onerror = reject;
+                // Add to head to execute
+                document.head.appendChild(newScript);
+            });
+            scriptPromises.push(scriptPromise);
+        });
+        
+        // Move remaining elements (divs) to preview
+        while (temp.firstChild) {
+            preview.appendChild(temp.firstChild);
+        }
+        
+        // Wait for scripts to load, then mark as loaded
+        Promise.all(scriptPromises)
+            .then(() => {
+                preview.classList.add('loaded');
+                console.log(`${type} widget loaded successfully`);
+            })
+            .catch(error => {
+                console.error(`Error loading ${type} widget:`, error);
+                preview.innerHTML = '<div class="loading-text">Error loading widget. Check console for details.</div>';
+            });
+    }
+
+    async function testPhotoWidget() {
+        const preview = document.getElementById('photo-widget-preview');
+        preview.innerHTML = '<div class="loading-text">Testing photo widget with known data...</div>';
+        preview.className = 'widget-container';
+        
+        try {
+            // First, load the photo widget script
+            const script = document.createElement('script');
+            script.src = 'http://localhost:3001/widgets/photo/widget-embed.min.js?v=1';
+            
+            await new Promise((resolve, reject) => {
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+            
+            // Create the widget container
+            const widgetContainer = document.createElement('div');
+            widgetContainer.id = 'test-photo-widget';
+            preview.appendChild(widgetContainer);
+            
+            // Fetch the known working widget data
+            const response = await fetch('http://localhost:3001/api/widgets/e5caf82f-0c50-4296-b57f-4bd878288dc4');
+            if (!response.ok) {
+                throw new Error(`Failed to fetch widget data: ${response.statusText}`);
+            }
+            
+            const { reviews, design, businessSlug } = await response.json();
+            console.log('Fetched widget data:', { reviews: reviews.length, design, businessSlug });
+            
+            // Initialize the photo widget manually
+            if (window.PromptReviewsPhoto && window.PromptReviewsPhoto.initializeWidget) {
+                window.PromptReviewsPhoto.initializeWidget('test-photo-widget', reviews, design, businessSlug);
+                preview.classList.add('loaded');
+                console.log('Photo widget initialized successfully with test data');
+            } else {
+                throw new Error('Photo widget not loaded properly');
+            }
+            
+        } catch (error) {
+            console.error('Error testing photo widget:', error);
+            preview.innerHTML = `<div class="loading-text">Error testing photo widget: ${error.message}</div>`;
+        }
+    }
+
+    function testSpecificSingleWidget() {
+        const preview = document.getElementById('single-widget-preview');
+        
+        // Clear previous content
+        preview.innerHTML = '';
+        preview.className = 'widget-container';
+        
+        // Create the widget container
+        const widgetContainer = document.createElement('div');
+        widgetContainer.id = 'promptreviews-single-widget';
+        widgetContainer.setAttribute('data-widget-id', '182119da-729d-4bc5-ae24-78556588caba');
+        preview.appendChild(widgetContainer);
+        
+        // Load the single widget script with cache busting
+        const script = document.createElement('script');
+        script.src = 'http://localhost:3001/widgets/single/widget-embed.min.js?v=1750565000';
+        script.onload = function() {
+            console.log('Single widget script loaded');
+        };
+        script.onerror = function() {
+            console.error('Failed to load single widget script');
+            preview.innerHTML = '<p style="color: red;">Failed to load widget script</p>';
+        };
+        document.head.appendChild(script);
+    }
+
+    // Dynamically load all widget scripts with a cache-busting timestamp
+    (function() {
+        const scripts = [
+            '/widgets/multi/widget-embed.js',
+            '/widgets/single/widget-embed.js',
+            '/widgets/photo/widget-embed.js'
+        ];
+        const timestamp = new Date().getTime();
+        scripts.forEach(src => {
+            const script = document.createElement('script');
+            script.src = `${src}?v=${timestamp}`;
+            document.head.appendChild(script);
+        });
+    })();
+    </script>
+</body>
+</html> 

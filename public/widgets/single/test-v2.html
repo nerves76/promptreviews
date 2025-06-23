@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Single Widget Test</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 2rem;
+            background-color: #f0f2f5;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Single Widget Embed Test</h1>
+    <p>Testing with your provided embed code.</p>
+
+    <!-- Your Embed Code -->
+    <div id="promptreviews-single-widget" data-widget-id="182119da-729d-4bc5-ae24-78556588caba" data-widget-type="single"></div>
+
+    <script>
+      (function() {
+        const script = document.createElement('script');
+        script.src = `http://localhost:3001/widgets/single/widget-embed.min.js?v=${new Date().getTime()}`;
+        script.async = true;
+        document.body.appendChild(script);
+      })();
+    </script>
+
+</body>
+</html> 

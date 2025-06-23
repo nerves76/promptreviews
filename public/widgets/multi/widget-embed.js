@@ -10,7 +10,7 @@
   function renderStars(rating) {
     let stars = '';
     for (let i = 1; i <= 5; i++) {
-      stars += `<span class="star${i <= rating ? ' filled' : ''}" style="color: ${i <= rating ? '#ffc107' : '#e0e0e0'};">&#9733;</span>`;
+      stars += `<span class="star${i <= rating ? ' filled' : ''}" style="color: ${i <= rating ? '#ffc107' : '#e0e0e0'}; font-size: 1.2rem;">&#9733;</span>`;
     }
     return stars;
   }
@@ -57,7 +57,7 @@
     }
     
     const nameColor = design.nameTextColor || textColor;
-    const roleColor = design.roleTextColor || textColor;
+    const roleColor = design.nameTextColor || textColor;
     const accentColor = design.accentColor || '#4f46e5';
     const borderRadius = design.borderRadius || 16;
     const borderWidth = design.borderWidth || 2;
@@ -90,7 +90,7 @@
     const closingQuote = design.showQuotes ? `<span class="decorative-quote-closing" style="color: ${accentColor}; font-size: 1.5rem; font-weight: bold; line-height: 1; opacity: 0.3; position: absolute; bottom: 1rem; right: 1rem;">"</span>` : '';
     
     const starsHTML = review.star_rating ? `<div class="stars-row" style="margin-bottom: 0.75rem; display: flex; justify-content: center;">${renderStars(review.star_rating)}</div>` : '';
-    const dateHTML = design.showRelativeDate && review.created_at ? `<div class="reviewer-date" style="font-size: 0.875rem; color: ${roleColor}; margin-top: 0.5rem;">${getRelativeTime(review.created_at)}</div>` : '';
+    const dateHTML = design.showRelativeDate && review.created_at ? `<div class="reviewer-date" style="font-size: 0.875rem; color: ${roleColor}; opacity: 0.65; margin-top: 0.5rem;">${getRelativeTime(review.created_at)}</div>` : '';
 
     return `
       <div class="pr-review-card" style="${cardStyle}">
@@ -102,7 +102,7 @@
         </div>
         <div class="reviewer-details" style="margin-top: 1rem; text-align: center;">
           <div class="reviewer-name" style="font-weight: bold; color: ${nameColor};">${review.first_name || ''} ${review.last_name || ''}</div>
-          ${review.reviewer_role ? `<div class="reviewer-role" style="font-size: 0.875rem; color: ${roleColor};">${review.reviewer_role}</div>` : ''}
+          ${review.reviewer_role ? `<div class="reviewer-role" style="font-size: 0.875rem; color: ${roleColor}; opacity: 0.65;">${review.reviewer_role}</div>` : ''}
           ${dateHTML}
         </div>
       </div>

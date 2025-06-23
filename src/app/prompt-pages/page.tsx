@@ -374,18 +374,7 @@ export default function PromptPages() {
       {/* Style Modal */}
       {showStyleModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="relative">
-            {/* Close button */}
-            <button
-              className="absolute -top-4 -right-4 bg-white border border-gray-200 rounded-full shadow flex items-center justify-center hover:bg-gray-100 focus:outline-none z-20"
-              style={{ width: 40, height: 40 }}
-              onClick={() => setShowStyleModal(false)}
-              aria-label="Close style modal"
-            >
-              <FaTimes className="w-5 h-5 text-red-600" />
-            </button>
-            <StylePage />
-          </div>
+          <StylePage onClose={() => setShowStyleModal(false)} />
         </div>
       )}
     </>
