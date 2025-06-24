@@ -24,9 +24,9 @@ export async function POST(req: NextRequest) {
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json({ error: "Invalid file type. Only PNG, JPG, or WebP images are allowed." }, { status: 400 });
     }
-    if (file.size > 1 * 1024 * 1024) {
+    if (file.size > 10 * 1024 * 1024) {
       return NextResponse.json(
-        { error: "File too large (max 1MB)" },
+        { error: "File too large (max 10MB). Large images may fail to process." },
         { status: 400 },
       );
     }

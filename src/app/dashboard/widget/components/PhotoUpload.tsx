@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import imageCompression from 'browser-image-compression';
 
 interface PhotoUploadProps {
   reviewId: string;
@@ -27,9 +28,29 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
       setPhotoUploadProgress(true);
       setPhotoUploadError(null);
 
+      // Validate file size (10MB limit before compression)
+      if (file.size > 10 * 1024 * 1024) {
+        setPhotoUploadError("Please upload an image under 10MB. Large images may fail to process.");
+        return;
+      }
+
+      // Validate file type
+      if (!["image/png", "image/jpeg", "image/jpg", "image/webp"].includes(file.type)) {
+        setPhotoUploadError("Only PNG, JPG, or WebP images are allowed.");
+        return;
+      }
+
+      // Compress the image before upload
+      const compressedFile = await imageCompression(file, {
+        maxSizeMB: 0.3, // 300KB
+        maxWidthOrHeight: 800, // Support larger images for better quality on larger screens
+        useWebWorker: true,
+        fileType: 'image/webp', // Always convert to webp for better compression
+      });
+
       // Use the API route for photo upload
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', compressedFile);
       formData.append('widgetId', selectedWidget);
 
       const response = await fetch('/api/upload-widget-photo', {
@@ -83,9 +104,10 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
   return (
     <div>
       <label className="block text-sm font-medium text-gray-700">Photo</label>
+      <div className="text-xs text-gray-500 mb-2">Up to 800x800px supported (PNG, JPG, or WEBP) - automatically compressed for optimal performance</div>
       <input
         type="file"
-        accept="image/*"
+        accept="image/png, image/jpeg, image/webp"
         onChange={(e) => {
           const file = e.target.files?.[0];
           if (file) {
