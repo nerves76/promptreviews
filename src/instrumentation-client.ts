@@ -34,10 +34,15 @@ export function register() {
       
       // Filter out common non-actionable errors
       const error = hint.originalException;
-      if (error && error.message) {
+      if (
+        error &&
+        typeof error === 'object' &&
+        'message' in error &&
+        typeof (error as any).message === 'string'
+      ) {
         // Filter out network errors that are common
-        if (error.message.includes('Network Error') || 
-            error.message.includes('Failed to fetch')) {
+        if ((error as any).message.includes('Network Error') || 
+            (error as any).message.includes('Failed to fetch')) {
           return null;
         }
       }

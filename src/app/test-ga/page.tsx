@@ -204,7 +204,7 @@ export default function TestGAPage() {
             <h3 className="font-semibold text-yellow-800 mb-2">Debug Information:</h3>
             <div className="text-sm text-yellow-700 space-y-1">
               <p>• GA4 Tracking ID: {process.env.NEXT_PUBLIC_GA_TRACKING_ID || 'Not set'}</p>
-              <p>• Window.gtag available: {typeof window !== 'undefined' && window.gtag ? 'Yes' : 'No'}</p>
+              <p>• Window.gtag available: {typeof window !== 'undefined' && typeof window.gtag === 'function' ? 'Yes' : 'No'}</p>
               <p>• DataLayer available: {typeof window !== 'undefined' && window.dataLayer ? 'Yes' : 'No'}</p>
               <p>• Current URL: {typeof window !== 'undefined' ? window.location.href : 'Server-side'}</p>
             </div>

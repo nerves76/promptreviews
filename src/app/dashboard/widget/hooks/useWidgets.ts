@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { createBrowserClient } from "@supabase/ssr";
-import { trackWidgetCreated } from "../../../utils/analytics";
+import { trackWidgetCreated } from "../../../../utils/analytics";
 
 export interface Widget {
   id: string;

@@ -30,10 +30,15 @@ export function register() {
       
       // Filter out common non-actionable errors
       const error = hint.originalException;
-      if (error && error.message) {
+      if (
+        error &&
+        typeof error === 'object' &&
+        'message' in error &&
+        typeof (error as any).message === 'string'
+      ) {
         // Filter out common database connection errors
-        if (error.message.includes('connection') || 
-            error.message.includes('timeout')) {
+        if ((error as any).message.includes('connection') || 
+            (error as any).message.includes('timeout')) {
           return null;
         }
       }

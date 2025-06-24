@@ -11,9 +11,9 @@ import * as Sentry from '@sentry/nextjs';
  */
 export function setUserContext(user: { id: string; email?: string; [key: string]: any }) {
   Sentry.setUser({
+    ...user,
     id: user.id,
     email: user.email,
-    ...user,
   });
 }
 
