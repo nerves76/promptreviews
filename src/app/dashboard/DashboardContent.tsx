@@ -25,6 +25,7 @@ import {
 } from "react-icons/md";
 import { getUserOrMock } from "@/utils/supabase";
 import QRCodeModal from "../components/QRCodeModal";
+import QuoteDisplay from "../components/QuoteDisplay";
 import { useRouter } from "next/navigation";
 import AppLoader from "@/app/components/AppLoader";
 import React from "react";
@@ -512,6 +513,12 @@ export default function DashboardContent({
           reviews to grow your business.
         </p>
       </div>
+
+      {/* Inspirational Quote Section */}
+      <div className="mb-16">
+        <QuoteDisplay />
+      </div>
+
       {/* Review Stats Section (standard section style) */}
       <div className="mb-16">
         <div className="rounded-lg p-6 bg-blue-50 border border-blue-200 flex flex-col md:flex-row items-center gap-8 shadow">
