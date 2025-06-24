@@ -212,18 +212,27 @@ export default function CreateBusinessPage() {
   const removeService = (idx: number) =>
     setServices(services.filter((_, i) => i !== idx));
 
-  const handleWelcomePopupClose = async () => {
-    if (account) {
-      // Mark user as having seen the welcome popup
-      await supabase
-        .from("accounts")
-        .update({ has_seen_welcome: true })
-        .eq("id", account.id);
-      
-      // Update local state
-      setAccount({ ...account, has_seen_welcome: true });
-    }
+  const handleWelcomePopupClose = () => {
     setShowWelcomePopup(false);
+    
+    // Mark user as having seen the welcome popup (async operation)
+    if (account) {
+      const updateWelcomeStatus = async () => {
+        try {
+          await supabase
+            .from("accounts")
+            .update({ has_seen_welcome: true })
+            .eq("id", account.id);
+          
+          // Update local state
+          setAccount({ ...account, has_seen_welcome: true });
+        } catch (error) {
+          console.error('Error updating welcome status:', error);
+        }
+      };
+      
+      updateWelcomeStatus();
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -684,11 +693,11 @@ export default function CreateBusinessPage() {
       <WelcomePopup
         isOpen={showWelcomePopup}
         onClose={handleWelcomePopupClose}
-        title="Welcome to PromptReviews!"
-        message="We're excited to help you capture authentic reviews and boost your online presence.\n\nLet's start by setting up your business profile. This will help us create personalized review requests that truly represent your brand.\n\nOnce you're set up, you'll be able to choose a plan that fits your needs and start collecting reviews right away."
-        imageUrl="/welcome-image.jpg" // Placeholder - you can add your image to public folder
-        imageAlt="Welcome to PromptReviews"
-        buttonText="Let's Get Started"
+        title="Oh hi—I'm Prompty!"
+        message="Welcome to Prompt Reviews.\n\nDid you know you're a miracle? Carl Sagan said it best:\n\"The cosmos is within us. We are made of star-stuff. We are a way for the universe to know itself.\"\n\nBeautiful right! And There is a flaming gas giant in you too! Wait, that didn't come out right . . . Anyway, I am here to help you get the stars you deserve—on Google, Facebook, TripAdvisor, Clutch—you name it.\n\nPrompt Reviews helps you connect with customers in real time and makes it ridiculously easy to collect glowing reviews during or after any interaction.\n\n🔍 First tip:\nWhenever you see this icon 🤖, it means that field will help me learn about your business and create lightning-fast review templates for your customers.\n\nOK, that's it for now—let's go get some stars! 🌟"
+        imageUrl="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompty-get%20reviews.webp"
+        imageAlt="Prompty - Get Reviews"
+        buttonText="Let's Go Get Some Stars! 🌟"
         onButtonClick={handleWelcomePopupClose}
       />
     </div>
