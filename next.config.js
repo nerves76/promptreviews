@@ -2,6 +2,9 @@ require("dotenv").config({
   path: require("path").resolve(process.cwd(), ".env.local"),
 });
 
+// Import Sentry webpack plugin
+const { withSentryConfig } = require("@sentry/nextjs");
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -47,4 +50,13 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+// Sentry configuration
+const sentryWebpackPluginOptions = {
+  // Additional config options for the Sentry webpack plugin
+  silent: true, // Suppresses source map upload logs
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+};
+
+// Export with Sentry configuration
+module.exports = withSentryConfig(nextConfig, sentryWebpackPluginOptions);

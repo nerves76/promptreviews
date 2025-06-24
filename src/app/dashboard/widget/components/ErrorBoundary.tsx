@@ -1,12 +1,21 @@
+/**
+ * Enhanced Error Boundary component with Sentry integration
+ * This component catches React errors and reports them to Sentry
+ */
+
 import React, { Component, ErrorInfo, ReactNode } from 'react';
+import * as Sentry from '@sentry/nextjs';
 
 interface Props {
   children: ReactNode;
+  fallback?: ReactNode;
+  onError?: (error: Error, errorInfo: ErrorInfo) => void;
 }
 
 interface State {
   hasError: boolean;
   error: Error | null;
+  errorId?: string;
 }
 
 export class ErrorBoundary extends Component<Props, State> {
@@ -21,10 +30,40 @@ export class ErrorBoundary extends Component<Props, State> {
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('[DEBUG] Uncaught error:', error, errorInfo);
+    
+    // Report error to Sentry
+    const eventId = Sentry.captureException(error, {
+      contexts: {
+        react: {
+          componentStack: errorInfo.componentStack,
+        },
+      },
+      tags: {
+        errorBoundary: 'true',
+        component: 'ErrorBoundary',
+      },
+      extra: {
+        errorInfo,
+        errorBoundaryProps: this.props,
+      },
+    });
+
+    // Update state with error ID for user feedback
+    this.setState({ errorId: eventId });
+
+    // Call custom error handler if provided
+    if (this.props.onError) {
+      this.props.onError(error, errorInfo);
+    }
   }
 
   public render() {
     if (this.state.hasError) {
+      // Use custom fallback if provided
+      if (this.props.fallback) {
+        return this.props.fallback;
+      }
+
       return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
           <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-lg">
@@ -35,6 +74,11 @@ export class ErrorBoundary extends Component<Props, State> {
               <p className="mt-2 text-sm text-gray-600">
                 {this.state.error?.message || 'An unexpected error occurred'}
               </p>
+              {this.state.errorId && (
+                <p className="mt-2 text-xs text-gray-500">
+                  Error ID: {this.state.errorId}
+                </p>
+              )}
             </div>
             <div className="mt-8 space-y-6">
               <button
@@ -42,6 +86,12 @@ export class ErrorBoundary extends Component<Props, State> {
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-slate-blue hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue"
               >
                 Try Again
+              </button>
+              <button
+                onClick={() => this.setState({ hasError: false, error: null, errorId: undefined })}
+                className="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue"
+              >
+                Dismiss
               </button>
             </div>
           </div>

@@ -10,6 +10,7 @@ import { FaUserCircle, FaBell } from "react-icons/fa";
 import { Menu } from "@headlessui/react";
 import { getUserOrMock } from "@/utils/supabase";
 import { isAdmin } from "../../utils/admin";
+import { trackEvent, GA_EVENTS } from '../../utils/analytics';
 
 export default function Header() {
   const router = useRouter();
@@ -348,6 +349,10 @@ export default function Header() {
                       {({ active }) => (
                         <button
                           onClick={async () => {
+                            // Track sign out event
+                            trackEvent(GA_EVENTS.SIGN_OUT, {
+                              timestamp: new Date().toISOString(),
+                            });
                             await supabase.auth.signOut();
                             router.push("/auth/sign-in");
                           }}
@@ -500,6 +505,10 @@ export default function Header() {
                   )}
                   <button
                     onClick={async () => {
+                      // Track sign out event
+                      trackEvent(GA_EVENTS.SIGN_OUT, {
+                        timestamp: new Date().toISOString(),
+                      });
                       await supabase.auth.signOut();
                       router.push("/auth/sign-in");
                       setMenuOpen(false);
