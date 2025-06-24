@@ -14,7 +14,6 @@
  */
 
 import React, { useState } from 'react';
-import { QRCodeGenerator, QR_FRAME_SIZES } from '../dashboard/components/QRCodeGenerator';
 
 interface QRCodeModalProps {
   isOpen: boolean;
@@ -25,7 +24,8 @@ interface QRCodeModalProps {
 }
 
 export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl }: QRCodeModalProps) {
-  const [selectedFrameSize, setSelectedFrameSize] = useState(QR_FRAME_SIZES[0]);
+  // const [selectedFrameSize, setSelectedFrameSize] = useState(QR_FRAME_SIZES[0]);
+  const [selectedFrameSize, setSelectedFrameSize] = useState({ label: '4x6" (postcard)', width: 1200, height: 1800 });
   const [showPreview, setShowPreview] = useState(false);
   const [headline, setHeadline] = useState('Leave us a review!');
   const [starColor, setStarColor] = useState('#FFD700');
@@ -97,16 +97,17 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
               <select
                 value={selectedFrameSize.label}
                 onChange={(e) => {
-                  const selected = QR_FRAME_SIZES.find(size => size.label === e.target.value);
-                  if (selected) setSelectedFrameSize(selected);
+                  // const selected = QR_FRAME_SIZES.find(size => size.label === e.target.value);
+                  // if (selected) setSelectedFrameSize(selected);
                 }}
                 className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-slate-blue focus:border-transparent"
               >
-                {QR_FRAME_SIZES.map((size) => (
-                  <option key={size.label} value={size.label}>
-                    {size.label}
-                  </option>
-                ))}
+                <option value="4x6&quot; (postcard)">4x6" (postcard)</option>
+                <option value="5x7&quot; (greeting card)">5x7" (greeting card)</option>
+                <option value="5x8&quot;">5x8"</option>
+                <option value="8x10&quot;">8x10"</option>
+                <option value="8.5x11&quot; (US Letter, standard printer paper)">8.5x11" (US Letter, standard printer paper)</option>
+                <option value="11x14&quot; (small poster)">11x14" (small poster)</option>
               </select>
             </div>
 
@@ -198,94 +199,43 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
               }}
               className="w-full bg-slate-blue text-white py-2 px-4 rounded-md hover:bg-slate-blue/90 transition-colors"
             >
-              {showPreview ? 'Download QR Code' : 'Generate QR Code'}
+              {!showPreview ? 'Generate QR Code' : 'Download QR Code'}
             </button>
           </div>
         </div>
 
         {/* Right side: Preview */}
-        <div className="flex-1 flex flex-col items-center justify-center overflow-hidden p-0 m-0">
-          <div className="w-full h-full p-0 m-0">
-            {!showPreview ? (
-              /* Marketing Image Placeholder */
-              <div className="relative h-full overflow-hidden p-0 m-0 rounded-r-xl">
-                <img
-                  src="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/qr-code-review.jpg"
-                  alt="QR Code Preview - Click to generate"
-                  className="w-full h-full object-cover shadow-md p-0 m-0 scale-110"
-                  style={{
-                    objectPosition: 'center'
-                  }}
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                  }}
-                />
-                <div className="hidden absolute inset-0 bg-gray-200 flex items-center justify-center p-0 m-0">
-                  <span className="text-gray-500 text-sm">Preview unavailable</span>
-                </div>
-              </div>
-            ) : (
-              /* Live QR Code Preview */
-              <div className="relative">
-                {isGenerating ? (
-                  <div 
-                    className="bg-white rounded-lg shadow-md flex items-center justify-center"
-                    style={{
-                      aspectRatio: `${selectedFrameSize.width}/${selectedFrameSize.height}`,
-                    }}
-                  >
-                    <div className="text-gray-500">Generating...</div>
-                  </div>
-                ) : qrPreviewUrl ? (
+        <div className="flex-1 bg-gray-50 p-8 rounded-r-xl">
+          {showPreview ? (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900">Preview</h3>
+              {qrPreviewUrl ? (
+                <div className="bg-white p-4 rounded-lg shadow-sm">
                   <img 
                     src={qrPreviewUrl} 
                     alt="QR Code Preview" 
-                    className="w-full h-auto object-contain rounded-lg shadow-md"
-                    style={{
-                      aspectRatio: `${selectedFrameSize.width}/${selectedFrameSize.height}`,
-                    }}
+                    className="w-full h-auto max-w-md mx-auto"
                   />
-                ) : (
-                  <div 
-                    className="bg-white rounded-lg shadow-md flex items-center justify-center"
-                    style={{
-                      aspectRatio: `${selectedFrameSize.width}/${selectedFrameSize.height}`,
-                    }}
-                  >
-                    <div className="text-gray-500">Preview unavailable</div>
-                  </div>
-                )}
+                </div>
+              ) : (
+                <div className="bg-white p-8 rounded-lg shadow-sm text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-blue mx-auto"></div>
+                  <p className="mt-2 text-sm text-gray-600">Generating preview...</p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
+                <div className="w-32 h-32 bg-gray-200 rounded-lg mx-auto mb-4 flex items-center justify-center">
+                  <svg className="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V6a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1zm12 0h2a1 1 0 001-1V6a1 1 0 00-1-1h-2a1 1 0 00-1 1v1a1 1 0 001 1zM5 20h2a1 1 0 001-1v-1a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1z" />
+                  </svg>
+                </div>
+                <p className="text-gray-500">Click "Generate QR Code" to see a preview</p>
               </div>
-            )}
-            
-            {/* QR Code Generator (hidden) */}
-            {showPreview && (
-              <QRCodeGenerator
-                url={url}
-                clientName={clientName}
-                frameSize={selectedFrameSize}
-                headline={headline}
-                starColor={starColor}
-                mainColor={mainColor}
-                showStars={showStars}
-                onPreview={(previewUrl) => {
-                  setQrPreviewUrl(previewUrl);
-                  setIsGenerating(false);
-                }}
-                onDownload={(blob) => {
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.download = `qr-code-${clientName}-${selectedFrameSize.label}.png`;
-                  document.body.appendChild(a);
-                  a.click();
-                  document.body.removeChild(a);
-                  URL.revokeObjectURL(url);
-                }}
-              />
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

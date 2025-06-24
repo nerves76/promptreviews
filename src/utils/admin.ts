@@ -7,19 +7,41 @@ import { supabase } from './supabase';
 
 /**
  * Check if the current user is an admin
+ * @param userId - Optional user ID to check. If not provided, will get current user from auth.
+ * @param supabaseClient - Optional Supabase client instance. If not provided, uses shared client.
  * @returns Promise<boolean> - true if user is admin, false otherwise
  */
-export async function isAdmin(): Promise<boolean> {
+export async function isAdmin(userId?: string, supabaseClient?: any): Promise<boolean> {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return false;
+    const client = supabaseClient || supabase;
+    let userToCheck = userId;
+    
+    if (!userToCheck) {
+      const { data: { user } } = await client.auth.getUser();
+      console.log('isAdmin: Current user:', user?.id, user?.email);
+      if (!user) return false;
+      userToCheck = user.id;
+    }
 
-    const { data: admin } = await supabase
+    console.log('isAdmin: Checking admin status for user ID:', userToCheck);
+    
+    const { data: admin, error } = await client
       .from('admins')
       .select('id')
-      .eq('account_id', user.id)
+      .eq('account_id', userToCheck)
       .single();
 
+    console.log('isAdmin: Admin query result:', { admin, error });
+    
+    if (error) {
+      console.error('isAdmin: Database error details:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
+    }
+    
     return !!admin;
   } catch (error) {
     console.error('Error checking admin status:', error);
@@ -29,17 +51,24 @@ export async function isAdmin(): Promise<boolean> {
 
 /**
  * Get the current active announcement
+ * @param supabaseClient - Optional Supabase client instance. If not provided, uses shared client.
  * @returns Promise<string | null> - the active announcement message or null if none
  */
-export async function getActiveAnnouncement(): Promise<string | null> {
+export async function getActiveAnnouncement(supabaseClient?: any): Promise<string | null> {
   try {
-    const { data: announcement } = await supabase
+    const client = supabaseClient || supabase;
+    
+    const { data: announcement, error } = await client
       .from('announcements')
       .select('message')
       .eq('is_active', true)
       .order('created_at', { ascending: false })
       .limit(1)
       .single();
+
+    if (error) {
+      console.error('Error fetching active announcement:', error);
+    }
 
     return announcement?.message || null;
   } catch (error) {
@@ -50,13 +79,15 @@ export async function getActiveAnnouncement(): Promise<string | null> {
 
 /**
  * Get a random active quote
- * @returns Promise<{text: string, author?: string} | null> - the quote or null if none
+ * @param supabaseClient - Optional Supabase client instance. If not provided, uses shared client.
+ * @returns Promise<{text: string, author?: string, button_text?: string, button_url?: string} | null> - the quote or null if none
  */
-export async function getRandomQuote(): Promise<{text: string, author?: string} | null> {
+export async function getRandomQuote(supabaseClient?: any): Promise<{text: string, author?: string, button_text?: string, button_url?: string} | null> {
   try {
-    const { data: quotes } = await supabase
+    const client = supabaseClient || supabase;
+    const { data: quotes } = await client
       .from('quotes')
-      .select('text, author')
+      .select('text, author, button_text, button_url')
       .eq('is_active', true);
 
     if (!quotes || quotes.length === 0) return null;
@@ -71,40 +102,94 @@ export async function getRandomQuote(): Promise<{text: string, author?: string} 
 }
 
 /**
+ * Get all active quotes for cycling
+ * @param supabaseClient - Optional Supabase client instance. If not provided, uses shared client.
+ * @returns Promise<Array> - array of all active quotes
+ */
+export async function getAllActiveQuotes(supabaseClient?: any) {
+  try {
+    const client = supabaseClient || supabase;
+    const { data: quotes } = await client
+      .from('quotes')
+      .select('id, text, author, button_text, button_url, created_at')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false });
+
+    return quotes || [];
+  } catch (error) {
+    console.error('Error fetching all active quotes:', error);
+    return [];
+  }
+}
+
+/**
  * Create a new announcement (admin only)
  * @param message - the announcement message
+ * @param buttonText - optional button text
+ * @param buttonUrl - optional button URL
+ * @param supabaseClient - Optional Supabase client instance. If not provided, uses shared client.
  * @returns Promise<boolean> - true if successful, false otherwise
  */
-export async function createAnnouncement(message: string): Promise<boolean> {
+export async function createAnnouncement(message: string, buttonText?: string, buttonUrl?: string, supabaseClient?: any): Promise<boolean> {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return false;
+    const client = supabaseClient || supabase;
+    console.log('createAnnouncement: Starting with message:', message);
+    
+    const { data: { user } } = await client.auth.getUser();
+    console.log('createAnnouncement: User check result:', { user: user?.id, email: user?.email });
+    if (!user) {
+      console.error('createAnnouncement: No user found');
+      return false;
+    }
 
     // Get admin record
-    const { data: admin } = await supabase
+    const { data: admin, error: adminError } = await client
       .from('admins')
       .select('id')
       .eq('account_id', user.id)
       .single();
 
-    if (!admin) return false;
+    console.log('createAnnouncement: Admin check result:', { admin, error: adminError });
+    if (!admin) {
+      console.error('createAnnouncement: No admin record found for user');
+      return false;
+    }
 
     // Deactivate all existing announcements
-    await supabase
+    const { error: deactivateError } = await client
       .from('announcements')
       .update({ is_active: false })
       .eq('is_active', true);
 
+    console.log('createAnnouncement: Deactivate existing announcements result:', { error: deactivateError });
+
+    // Prepare announcement data
+    let announcementData: string;
+    if (buttonText && buttonUrl) {
+      // Store as JSON with button info
+      announcementData = JSON.stringify({
+        message,
+        button_text: buttonText,
+        button_url: buttonUrl
+      });
+    } else {
+      // Store as plain message
+      announcementData = message;
+    }
+
+    console.log('createAnnouncement: Prepared announcement data:', announcementData);
+
     // Create new announcement
-    const { error } = await supabase
+    const { error: insertError } = await client
       .from('announcements')
       .insert({
-        message,
+        message: announcementData,
         is_active: true,
         created_by: admin.id
       });
 
-    return !error;
+    console.log('createAnnouncement: Insert result:', { error: insertError });
+    return !insertError;
   } catch (error) {
     console.error('Error creating announcement:', error);
     return false;
@@ -115,33 +200,67 @@ export async function createAnnouncement(message: string): Promise<boolean> {
  * Create a new quote (admin only)
  * @param text - the quote text
  * @param author - the quote author (optional)
+ * @param buttonText - optional button text
+ * @param buttonUrl - optional button URL
+ * @param supabaseClient - Optional Supabase client instance. If not provided, uses shared client.
  * @returns Promise<boolean> - true if successful, false otherwise
  */
-export async function createQuote(text: string, author?: string): Promise<boolean> {
+export async function createQuote(text: string, author?: string, buttonText?: string, buttonUrl?: string, supabaseClient?: any): Promise<boolean> {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return false;
+    const client = supabaseClient || supabase;
+    const { data: { user } } = await client.auth.getUser();
+    if (!user) {
+      console.error('createQuote: No user found');
+      return false;
+    }
 
     // Get admin record
-    const { data: admin } = await supabase
+    const { data: admin } = await client
       .from('admins')
       .select('id')
       .eq('account_id', user.id)
       .single();
 
-    if (!admin) return false;
+    if (!admin) {
+      console.error('createQuote: No admin record found for user');
+      return false;
+    }
+
+    // Prepare quote data with button fields
+    const quoteData: any = {
+      text,
+      author,
+      is_active: true,
+      created_by: admin.id
+    };
+
+    // Add button fields if provided
+    if (buttonText && buttonText.trim()) {
+      quoteData.button_text = buttonText.trim();
+    }
+    if (buttonUrl && buttonUrl.trim()) {
+      quoteData.button_url = buttonUrl.trim();
+    }
+
+    console.log('createQuote: Inserting quote data:', quoteData);
 
     // Create new quote
-    const { error } = await supabase
+    const { error } = await client
       .from('quotes')
-      .insert({
-        text,
-        author,
-        is_active: true,
-        created_by: admin.id
-      });
+      .insert(quoteData);
 
-    return !error;
+    if (error) {
+      console.error('createQuote: Database error:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
+      return false;
+    }
+
+    console.log('createQuote: Quote created successfully');
+    return true;
   } catch (error) {
     console.error('Error creating quote:', error);
     return false;
@@ -150,11 +269,13 @@ export async function createQuote(text: string, author?: string): Promise<boolea
 
 /**
  * Get all announcements (admin only)
+ * @param supabaseClient - Optional Supabase client instance. If not provided, uses shared client.
  * @returns Promise<Array> - array of all announcements
  */
-export async function getAllAnnouncements() {
+export async function getAllAnnouncements(supabaseClient?: any) {
   try {
-    const { data: announcements } = await supabase
+    const client = supabaseClient || supabase;
+    const { data: announcements } = await client
       .from('announcements')
       .select('*')
       .order('created_at', { ascending: false });
@@ -168,11 +289,13 @@ export async function getAllAnnouncements() {
 
 /**
  * Get all quotes (admin only)
+ * @param supabaseClient - Optional Supabase client instance. If not provided, uses shared client.
  * @returns Promise<Array> - array of all quotes
  */
-export async function getAllQuotes() {
+export async function getAllQuotes(supabaseClient?: any) {
   try {
-    const { data: quotes } = await supabase
+    const client = supabaseClient || supabase;
+    const { data: quotes } = await client
       .from('quotes')
       .select('*')
       .order('created_at', { ascending: false });
@@ -188,11 +311,13 @@ export async function getAllQuotes() {
  * Toggle announcement active status (admin only)
  * @param id - announcement id
  * @param isActive - new active status
+ * @param supabaseClient - Optional Supabase client instance. If not provided, uses shared client.
  * @returns Promise<boolean> - true if successful, false otherwise
  */
-export async function toggleAnnouncement(id: string, isActive: boolean): Promise<boolean> {
+export async function toggleAnnouncement(id: string, isActive: boolean, supabaseClient?: any): Promise<boolean> {
   try {
-    const { error } = await supabase
+    const client = supabaseClient || supabase;
+    const { error } = await client
       .from('announcements')
       .update({ is_active: isActive })
       .eq('id', id);
@@ -208,11 +333,13 @@ export async function toggleAnnouncement(id: string, isActive: boolean): Promise
  * Toggle quote active status (admin only)
  * @param id - quote id
  * @param isActive - new active status
+ * @param supabaseClient - Optional Supabase client instance. If not provided, uses shared client.
  * @returns Promise<boolean> - true if successful, false otherwise
  */
-export async function toggleQuote(id: string, isActive: boolean): Promise<boolean> {
+export async function toggleQuote(id: string, isActive: boolean, supabaseClient?: any): Promise<boolean> {
   try {
-    const { error } = await supabase
+    const client = supabaseClient || supabase;
+    const { error } = await client
       .from('quotes')
       .update({ is_active: isActive })
       .eq('id', id);
@@ -220,6 +347,135 @@ export async function toggleQuote(id: string, isActive: boolean): Promise<boolea
     return !error;
   } catch (error) {
     console.error('Error toggling quote:', error);
+    return false;
+  }
+}
+
+/**
+ * Delete a quote (admin only)
+ * @param id - quote id
+ * @param supabaseClient - Optional Supabase client instance. If not provided, uses shared client.
+ * @returns Promise<boolean> - true if successful, false otherwise
+ */
+export async function deleteQuote(id: string, supabaseClient?: any): Promise<boolean> {
+  try {
+    const client = supabaseClient || supabase;
+    const { data: { user } } = await client.auth.getUser();
+    if (!user) {
+      console.error('deleteQuote: No user found');
+      return false;
+    }
+
+    // Get admin record
+    const { data: admin } = await client
+      .from('admins')
+      .select('id')
+      .eq('account_id', user.id)
+      .single();
+
+    if (!admin) {
+      console.error('deleteQuote: No admin record found for user');
+      return false;
+    }
+
+    console.log('deleteQuote: Deleting quote with ID:', id);
+
+    // Delete the quote
+    const { error } = await client
+      .from('quotes')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('deleteQuote: Database error:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
+      return false;
+    }
+
+    console.log('deleteQuote: Quote deleted successfully');
+    return true;
+  } catch (error) {
+    console.error('Error deleting quote:', error);
+    return false;
+  }
+}
+
+/**
+ * Update an existing quote (admin only)
+ * @param id - quote id
+ * @param text - the quote text
+ * @param author - the quote author (optional)
+ * @param buttonText - optional button text
+ * @param buttonUrl - optional button URL
+ * @param supabaseClient - Optional Supabase client instance. If not provided, uses shared client.
+ * @returns Promise<boolean> - true if successful, false otherwise
+ */
+export async function updateQuote(id: string, text: string, author?: string, buttonText?: string, buttonUrl?: string, supabaseClient?: any): Promise<boolean> {
+  try {
+    const client = supabaseClient || supabase;
+    const { data: { user } } = await client.auth.getUser();
+    if (!user) {
+      console.error('updateQuote: No user found');
+      return false;
+    }
+
+    // Get admin record
+    const { data: admin } = await client
+      .from('admins')
+      .select('id')
+      .eq('account_id', user.id)
+      .single();
+
+    if (!admin) {
+      console.error('updateQuote: No admin record found for user');
+      return false;
+    }
+
+    // Prepare update data with button fields
+    const updateData: any = {
+      text,
+      author,
+      updated_at: new Date().toISOString()
+    };
+
+    // Add button fields if provided
+    if (buttonText && buttonText.trim()) {
+      updateData.button_text = buttonText.trim();
+    } else {
+      updateData.button_text = null; // Clear if empty
+    }
+    if (buttonUrl && buttonUrl.trim()) {
+      updateData.button_url = buttonUrl.trim();
+    } else {
+      updateData.button_url = null; // Clear if empty
+    }
+
+    console.log('updateQuote: Updating quote with ID:', id, 'Data:', updateData);
+
+    // Update the quote
+    const { error } = await client
+      .from('quotes')
+      .update(updateData)
+      .eq('id', id);
+
+    if (error) {
+      console.error('updateQuote: Database error:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
+      return false;
+    }
+
+    console.log('updateQuote: Quote updated successfully');
+    return true;
+  } catch (error) {
+    console.error('Error updating quote:', error);
     return false;
   }
 } 

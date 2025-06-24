@@ -95,7 +95,7 @@ module.exports = {
         "plus-jakarta-sans": ["Plus Jakarta Sans", "sans-serif"],
       },
       colors: {
-        "slate-blue": "#2E4A7D", // Primary Dark
+        "slate-blue": "#2E4A7D", // Primary slate blue used throughout the site
         indigo: "#3730A3", // Secondary Dark
         "lavender-haze": "#D8C8DC", // Primary Light
         "soft-peach": "#FFC8A2", // Accent Warm

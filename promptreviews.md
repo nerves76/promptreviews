@@ -550,3 +550,55 @@ See `DESIGN_GUIDELINES.md` for:
 - This fix resolves the issue and improves reliability of the live preview.
 
 ---
+
+## Admin Analytics Page
+
+The Admin Analytics page provides site-wide statistics and performance metrics for administrators. It is accessible only to users with admin privileges.
+
+**Features:**
+- Total users, businesses, reviews, and prompt pages
+- New users, businesses, and reviews this month
+- Top review platforms
+- Recent activity (last 7 days)
+- Business growth (last 6 months)
+- Review trends (last 30 days)
+
+**Access:**
+- Go to the Admin Panel (`/admin`)
+- Use the subnav at the top to switch between "Content Management" and "Analytics"
+- The Analytics tab (`/admin/analytics`) is only visible to admin users
+
+All analytics are site-wide and are intended for administrative oversight and growth tracking.
+
+---
+
+## Admin Content Management
+
+The Admin Panel (`/admin`) provides tools for managing site-wide content that appears to all users.
+
+### Announcements
+- **Purpose:** Display important messages to all users at the top of pages
+- **Features:**
+  - Create announcements with optional button text and URL
+  - Toggle announcements active/inactive
+  - Only one announcement can be active at a time
+  - Displayed as a blue banner above the main navigation
+- **Usage:** Go to Admin Panel → Content Management → Create new announcement
+
+### Inspirational Quotes
+- **Purpose:** Display motivational quotes on the dashboard
+- **Features:**
+  - Create quotes with optional author attribution
+  - Add optional button text and URL for call-to-action links
+  - Navigation arrows to cycle through multiple quotes
+  - Quote counter showing current position (e.g., "2 of 5")
+  - Start with a random quote when page loads
+- **Display:** Shows on dashboard with elegant styling and interactive navigation
+- **Usage:** Go to Admin Panel → Content Management → Create new quote
+
+### Admin Access
+- Only users with admin privileges can access the admin panel
+- Admin status is determined by the `admins` table in the database
+- Admin link appears in the account menu for authorized users
+
+---
