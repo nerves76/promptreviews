@@ -10,6 +10,7 @@ import { useAuthGuard } from "@/utils/authGuard";
 import { sanitizePromptPageInsert } from "@/utils/sanitizePromptPageInsert";
 import { slugify } from "@/utils/slugify";
 import imageCompression from 'browser-image-compression';
+import WelcomePopup from "@/app/components/WelcomePopup";
 import {
   FaImage,
   FaBuilding,
@@ -131,27 +132,44 @@ export default function CreateBusinessPage() {
   const [account, setAccount] = useState<any>(null);
   const [showTrialConfirmation, setShowTrialConfirmation] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [showWelcomePopup, setShowWelcomePopup] = useState(false);
+  const [business, setBusiness] = useState<any>(null);
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   );
 
-  // Fetch account info for plan modal
+  // Fetch account info for plan modal and welcome popup
   useEffect(() => {
     const fetchAccount = async () => {
       const {
         data: { user },
       } = await getUserOrMock(supabase);
       if (!user) return;
+      
+      // Fetch account data
       const { data: accountData } = await supabase
         .from("accounts")
         .select(
-          "id, plan, is_free_account, subscription_status, has_had_paid_plan",
+          "id, plan, is_free_account, subscription_status, has_had_paid_plan, has_seen_welcome",
         )
         .eq("id", user.id)
         .single();
       setAccount(accountData);
+      
+      // Fetch business data
+      const { data: businessData } = await supabase
+        .from("businesses")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+      setBusiness(businessData);
+      
+      // Show welcome popup if user hasn't seen it
+      if (accountData && !accountData.has_seen_welcome) {
+        setShowWelcomePopup(true);
+      }
     };
     fetchAccount();
   }, [supabase]);
@@ -193,6 +211,20 @@ export default function CreateBusinessPage() {
 
   const removeService = (idx: number) =>
     setServices(services.filter((_, i) => i !== idx));
+
+  const handleWelcomePopupClose = async () => {
+    if (account) {
+      // Mark user as having seen the welcome popup
+      await supabase
+        .from("accounts")
+        .update({ has_seen_welcome: true })
+        .eq("id", account.id);
+      
+      // Update local state
+      setAccount({ ...account, has_seen_welcome: true });
+    }
+    setShowWelcomePopup(false);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -345,7 +377,7 @@ export default function CreateBusinessPage() {
       setLoading(false);
       return;
     }
-    router.push("/dashboard?success=business-created");
+    router.push("/dashboard/plan");
   };
 
   // Helper to validate review URLs for known platforms
@@ -492,7 +524,7 @@ export default function CreateBusinessPage() {
     setRawLogoFile(null);
   };
 
-  useRequirePlan(account, ["/dashboard/account", "/dashboard/billing"]);
+  useRequirePlan(account, business, ["/dashboard/account", "/dashboard/billing"]);
 
   return (
     <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
@@ -647,6 +679,18 @@ export default function CreateBusinessPage() {
           </div>
         </div>
       )}
+
+      {/* Welcome Popup */}
+      <WelcomePopup
+        isOpen={showWelcomePopup}
+        onClose={handleWelcomePopupClose}
+        title="Welcome to PromptReviews!"
+        message="We're excited to help you capture authentic reviews and boost your online presence.\n\nLet's start by setting up your business profile. This will help us create personalized review requests that truly represent your brand.\n\nOnce you're set up, you'll be able to choose a plan that fits your needs and start collecting reviews right away."
+        imageUrl="/welcome-image.jpg" // Placeholder - you can add your image to public folder
+        imageAlt="Welcome to PromptReviews"
+        buttonText="Let's Get Started"
+        onButtonClick={handleWelcomePopupClose}
+      />
     </div>
   );
 }
