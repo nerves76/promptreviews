@@ -417,7 +417,7 @@ export default function IndustrySelector({
         isMulti
         options={selectOptions}
         value={selectedOptions}
-        onChange={(selected) => {
+        onChange={(selected: any) => {
           handleSelectChange(selected);
           setTouched(true);
         }}
