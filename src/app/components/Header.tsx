@@ -9,19 +9,21 @@ import { FiMenu, FiX } from "react-icons/fi";
 import { FaUserCircle, FaBell } from "react-icons/fa";
 import { Menu } from "@headlessui/react";
 import { getUserOrMock } from "@/utils/supabase";
+import { isAdmin } from "../../utils/admin";
 
 export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
   const [user, setUser] = useState<any>(null);
+  const [isAdminUser, setIsAdminUser] = useState(false);
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   );
   const [menuOpen, setMenuOpen] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
-  const [showNotif, setShowNotif] = useState(false);
-  const notifDropdownRef = useRef<HTMLDivElement>(null);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const getUser = async () => {
@@ -29,6 +31,12 @@ export default function Header() {
         data: { user },
       } = await getUserOrMock(supabase);
       setUser(user);
+      
+      // Check if user is admin
+      if (user) {
+        const adminStatus = await isAdmin();
+        setIsAdminUser(adminStatus);
+      }
     };
 
     getUser();
@@ -101,7 +109,7 @@ export default function Header() {
 
   // Mark notifications as read when dropdown is opened
   useEffect(() => {
-    if (showNotif && notifications.some((n) => !n.read)) {
+    if (showNotifications && notifications.some((n) => !n.read)) {
       setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
     }
     // Remove notifications older than 7 days
@@ -109,22 +117,22 @@ export default function Header() {
       prev.filter((n) => isRecentNotification(n.created_at)),
     );
     // eslint-disable-next-line
-  }, [showNotif]);
+  }, [showNotifications]);
 
   // Close notification dropdown when clicking outside
   useEffect(() => {
-    if (!showNotif) return;
+    if (!showNotifications) return;
     function handleClickOutside(event: MouseEvent) {
       if (
-        notifDropdownRef.current &&
-        !notifDropdownRef.current.contains(event.target as Node)
+        menuRef.current &&
+        !menuRef.current.contains(event.target as Node)
       ) {
-        setShowNotif(false);
+        setShowNotifications(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showNotif]);
+  }, [showNotifications]);
 
   return (
     <header className="bg-white shadow">
@@ -213,7 +221,7 @@ export default function Header() {
               <div className="relative top-1">
                 <button
                   className="relative focus:outline-none"
-                  onClick={() => setShowNotif((v) => !v)}
+                  onClick={() => setShowNotifications((v) => !v)}
                   aria-label="Show notifications"
                 >
                   <FaBell className="w-6 h-6 text-[#1A237E] hover:text-[#1A237E]/80 transition-colors" />
@@ -223,9 +231,9 @@ export default function Header() {
                     </span>
                   )}
                 </button>
-                {showNotif && (
+                {showNotifications && (
                   <div
-                    ref={notifDropdownRef}
+                    ref={menuRef}
                     className="absolute right-0 mt-2 w-80 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50"
                   >
                     <div className="py-2 max-h-80 overflow-y-auto">
@@ -239,7 +247,7 @@ export default function Header() {
                             key={n.id}
                             href={`/dashboard/reviews#${n.id}`}
                             className="px-4 py-3 border-b last:border-b-0 flex flex-col gap-1 hover:bg-gray-50 transition-colors cursor-pointer no-underline"
-                            onClick={() => setShowNotif(false)}
+                            onClick={() => setShowNotifications(false)}
                           >
                             <span className="text-sm text-gray-800">
                               {n.message}
@@ -319,6 +327,18 @@ export default function Header() {
                         </Link>
                       )}
                     </Menu.Item>
+                    {isAdminUser && (
+                      <Menu.Item>
+                        {({ active }) => (
+                          <Link
+                            href="/admin"
+                            className={`${active ? "bg-purple-50 text-purple-700" : "text-purple-600"} block px-4 py-2 text-sm font-medium`}
+                          >
+                            Admin Panel
+                          </Link>
+                        )}
+                      </Menu.Item>
+                    )}
                     <div className="border-t border-gray-100 my-1" />
                     <Menu.Item>
                       {({ active }) => (
@@ -465,11 +485,30 @@ export default function Header() {
                   >
                     Contacts
                   </Link>
+                  {isAdminUser && (
+                    <Link
+                      href="/admin"
+                      className="text-purple-600 hover:bg-purple-50 block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Admin Panel
+                    </Link>
+                  )}
+                  <button
+                    onClick={async () => {
+                      await supabase.auth.signOut();
+                      router.push("/auth/sign-in");
+                      setMenuOpen(false);
+                    }}
+                    className="text-red-600 hover:bg-red-50 block w-full text-left px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
+                  >
+                    Sign out
+                  </button>
                 </>
               ) : (
                 <Link
-                  href="/login"
-                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-[#1A237E]/10 transition-colors duration-200"
+                  href="/auth/sign-in"
+                  className="text-[#1A237E] hover:bg-[#1A237E]/10 block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
                   onClick={() => setMenuOpen(false)}
                 >
                   Sign in

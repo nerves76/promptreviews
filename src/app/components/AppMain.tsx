@@ -1,6 +1,7 @@
 "use client";
 import { usePathname } from "next/navigation";
 import Header from "./Header";
+import AnnouncementBanner from "./AnnouncementBanner";
 import { useMemo } from "react";
 
 export default function AppMain({
@@ -21,6 +22,7 @@ export default function AppMain({
     <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
       <main>
         {!isAuth && <Header />}
+        {!isAuth && <AnnouncementBanner />}
         {loader}
         {children}
       </main>
