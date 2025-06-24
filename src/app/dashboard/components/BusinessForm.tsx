@@ -198,7 +198,7 @@ export default function BusinessForm({
               className="rounded-full max-h-32 max-w-32 object-contain border shadow"
             />
           )}
-          <div className="flex-1 w-full max-w-xs">
+          <div className="flex-1 w-full max-w-[700px]">
             <label className="block font-bold text-lg text-gray-900 mb-1">
               Upload your logo or your face (whichever is more iconic).
             </label>
