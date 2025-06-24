@@ -16,6 +16,7 @@ import Link from "next/link";
 import { getUserOrMock } from "@/utils/supabase";
 import PageCard from "@/app/components/PageCard";
 import AppLoader from "@/app/components/AppLoader";
+import { trackEvent, GA_EVENTS } from "../../utils/analytics";
 
 export default function AccountPage() {
   const router = useRouter();
@@ -55,6 +56,11 @@ export default function AccountPage() {
   }, [supabase, router]);
 
   const handleSignOut = async () => {
+    // Track sign out event
+    trackEvent(GA_EVENTS.SIGN_OUT, {
+      timestamp: new Date().toISOString(),
+    });
+    
     await supabase.auth.signOut();
     router.push("/auth/sign-in");
   };

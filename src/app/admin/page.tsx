@@ -21,6 +21,7 @@ import {
   updateQuote,
   getActiveAnnouncement
 } from '../../utils/admin';
+import { trackAdminAction } from '../../utils/analytics';
 
 // Use the same Supabase client as the Header component
 const supabase = createBrowserClient(
@@ -159,6 +160,12 @@ export default function AdminPage() {
         setAnnouncementButtonUrl('');
         await loadContent();
         
+        // Track the admin action
+        trackAdminAction('announcement_created', {
+          has_button: !!(announcementButtonText && announcementButtonUrl),
+          message_length: announcementMessage.length,
+        });
+        
         // Test if the announcement can be retrieved immediately
         console.log('Admin: Testing announcement retrieval...');
         const testAnnouncement = await getActiveAnnouncement(supabase);
@@ -196,6 +203,13 @@ export default function AdminPage() {
         setQuoteButtonText('');
         setQuoteButtonUrl('');
         await loadContent();
+        
+        // Track the admin action
+        trackAdminAction('quote_created', {
+          has_author: !!quoteAuthor.trim(),
+          has_button: !!(quoteButtonText && quoteButtonUrl),
+          text_length: quoteText.length,
+        });
       } else {
         console.error('Admin: Failed to create quote');
         setError('Failed to create quote. Please check the console for details.');
@@ -241,6 +255,11 @@ export default function AdminPage() {
       if (success) {
         console.log('Admin: Quote deleted successfully');
         await loadContent();
+        
+        // Track the admin action
+        trackAdminAction('quote_deleted', {
+          quote_id: id,
+        });
       } else {
         console.error('Admin: Failed to delete quote');
         setError('Failed to delete quote. Please check the console for details.');
@@ -287,6 +306,14 @@ export default function AdminPage() {
         console.log('Admin: Quote updated successfully');
         handleCancelEdit();
         await loadContent();
+        
+        // Track the admin action
+        trackAdminAction('quote_updated', {
+          quote_id: editingQuote,
+          has_author: !!editQuoteAuthor.trim(),
+          has_button: !!(editQuoteButtonText && editQuoteButtonUrl),
+          text_length: editQuoteText.length,
+        });
       } else {
         console.error('Admin: Failed to update quote');
         setError('Failed to update quote. Please check the console for details.');

@@ -4,6 +4,7 @@ import { createBrowserClient } from "@supabase/ssr";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
+import { trackEvent, GA_EVENTS } from '../../../utils/analytics';
 
 export default function SignIn() {
   const router = useRouter();
@@ -52,6 +53,12 @@ export default function SignIn() {
         setError("No user data returned");
         return;
       }
+
+      // Track sign in event
+      trackEvent(GA_EVENTS.SIGN_IN, {
+        method: 'email',
+        timestamp: new Date().toISOString(),
+      });
 
       // Check if account exists
       try {

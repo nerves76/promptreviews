@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { createBrowserClient } from "@supabase/ssr";
 import SimpleMarketingNav from "@/app/components/SimpleMarketingNav";
+import { trackSignUp } from '../../../utils/analytics';
 
 export default function SignUpPage() {
   const [email, setEmail] = useState("");
@@ -13,6 +14,7 @@ export default function SignUpPage() {
   const [emailSent, setEmailSent] = useState(false);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [message, setMessage] = useState("");
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -43,64 +45,32 @@ export default function SignUpPage() {
     setError("");
 
     if (!firstName || !lastName || !email || !password) {
-      setError("Please fill in all fields");
+      setError("All fields are required");
       setLoading(false);
       return;
     }
 
     try {
-      const { data, error: authError } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
-          data: {
-            full_name: `${firstName} ${lastName}`.trim(),
-            first_name: firstName,
-            last_name: lastName,
-          },
         },
       });
 
-      if (authError) {
-        console.error("Sign-up error:", authError);
-        const friendly = errorMessages[authError.message] || authError.message;
-        setError(friendly);
-        setLoading(false);
-        return;
+      if (error) {
+        setError(error.message);
+      } else {
+        setEmailSent(true);
+        setMessage('Check your email for the confirmation link!');
+        // Track sign up event
+        trackSignUp('email');
       }
-
-      // Try to create account and account_users row if user is available
-      if (data?.user) {
-        try {
-          const { data: newAccount, error: createAccountError } = await supabase
-            .from("accounts")
-            .insert([{ id: data.user.id, name: email }])
-            .select()
-            .single();
-
-          if (!createAccountError && newAccount) {
-            await supabase
-              .from("account_users")
-              .insert([
-                {
-                  account_id: newAccount.id,
-                  user_id: data.user.id,
-                  role: "owner",
-                },
-              ]);
-          }
-        } catch (err) {
-          // It's okay to fail silently here, as you can retry after sign-in
-          console.warn("Could not create account/account_users on sign-up:", err);
-        }
-      }
-
-      setEmailSent(true);
-      setLoading(false);
     } catch (err) {
       console.error("Unexpected error:", err);
       setError("Failed to create account. Please try again.");
+    } finally {
       setLoading(false);
     }
   };
@@ -112,12 +82,8 @@ export default function SignUpPage() {
         <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
           <div className="p-8 rounded shadow text-center bg-white max-w-md w-full">
             <h2 className="text-2xl font-bold mb-4 text-[#1A237E]">
-              Check your email
+              {message}
             </h2>
-            <p className="mb-4">
-              Please check your email and click the confirmation link to
-              activate your account.
-            </p>
             <Link href="/auth/sign-in">
               <button className="mt-4 px-6 py-2 bg-slate-blue text-white rounded font-semibold hover:bg-indigo-900">
                 Sign in

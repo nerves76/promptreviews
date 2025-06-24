@@ -7,6 +7,7 @@ import Link from "next/link";
 import { Dialog } from "@headlessui/react";
 import { isAccountBlocked } from "@/utils/accountLimits";
 import { getUserOrMock } from "@/utils/supabase";
+import { trackEvent, GA_EVENTS } from "../../utils/analytics";
 
 export default function DashboardLayout({
   children,
@@ -79,6 +80,11 @@ export default function DashboardLayout({
   }, []);
 
   const handleSignOut = async () => {
+    // Track sign out event
+    trackEvent(GA_EVENTS.SIGN_OUT, {
+      timestamp: new Date().toISOString(),
+    });
+    
     await supabase.auth.signOut();
     if (typeof window !== "undefined") {
       sessionStorage.removeItem("hideTrialBanner");

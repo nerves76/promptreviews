@@ -2,7 +2,240 @@
 
 A modern, customizable review widget system built with Next.js, TypeScript, and Tailwind CSS.
 
+## Features
+
+- 🤖 AI-powered review request generation
+- 📱 Responsive widget system for embedding on websites
+- 🎨 Customizable design and branding
+- 📊 Analytics and performance tracking
+- 🔐 Secure authentication with Supabase
+- 💳 Stripe payment integration
+- 📧 Email automation with Resend
+- 🐛 **Error tracking with Sentry**
+- 📈 **Google Analytics 4 integration**
+
+## Quick Start
+
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Set up environment variables (see `.env.local.example`)
+4. Run the development server: `npm run dev`
+5. Open [http://localhost:3001](http://localhost:3001)
+
+## Environment Variables
+
+Create a `.env.local` file with the following variables:
+
+```bash
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url_here
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+
+# Stripe Configuration
+STRIPE_SECRET_KEY=your_stripe_secret_key_here
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key_here
+STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret_here
+
+# Resend Email Configuration
+RESEND_API_KEY=your_resend_api_key_here
+
+# OpenAI Configuration
+OPENAI_API_KEY=your_openai_api_key_here
+
+# Sentry Configuration (Optional but recommended)
+NEXT_PUBLIC_SENTRY_DSN=your_sentry_dsn_here
+NEXT_PUBLIC_SENTRY_RELEASE=promptreviews@0.1.0
+SENTRY_ORG=your_sentry_org_here
+SENTRY_PROJECT=your_sentry_project_here
+
+# Google Analytics Configuration
+NEXT_PUBLIC_GA_TRACKING_ID=G-22JHGCL1T7
+```
+
+## Sentry Integration
+
+This project includes comprehensive error tracking with Sentry:
+
+### Features
+- ✅ Client-side error tracking
+- ✅ Server-side error tracking  
+- ✅ Performance monitoring
+- ✅ Session replay (10% of sessions, 100% of errors)
+- ✅ Release tracking
+- ✅ Environment-based filtering
+- ✅ Development mode suppression
+- ✅ Common error filtering
+
+### Setup
+1. Create a Sentry account at [sentry.io](https://sentry.io)
+2. Create a new project for your Next.js application
+3. Copy the DSN from your project settings
+4. Add the DSN to your `.env.local` file
+5. Test the integration at `/test-sentry`
+
+### Testing
+Visit `/test-sentry` to test all Sentry features:
+- Error capture
+- Message logging
+- Breadcrumb tracking
+- User context
+- API error reporting
+
+## Google Analytics 4 Integration
+
+This project includes comprehensive user behavior tracking with Google Analytics 4:
+
+### Features
+- ✅ User authentication events (sign up, sign in, sign out)
+- ✅ Widget interactions (creation, viewing, review submissions)
+- ✅ Business actions (profile creation, updates)
+- ✅ Admin actions (announcements, quotes management)
+- ✅ Navigation tracking (page views, button clicks)
+- ✅ Error tracking integration with Sentry
+- ✅ Custom event parameters and user context
+
+### Tracked Events
+
+#### User Events
+- `sign_up` - User registration with method tracking
+- `sign_in` - User login with authentication method
+- `sign_out` - User logout events
+
+#### Widget Events
+- `widget_created` - Widget creation with type and business context
+- `widget_viewed` - Widget view events with type tracking
+- `widget_review_submitted` - Review submissions with rating and photo data
+- `widget_photo_uploaded` - Photo upload events
+
+#### Business Events
+- `business_created` - Business profile creation with type
+- `business_updated` - Business profile updates
+- `contacts_uploaded` - Contact list uploads
+- `review_request_sent` - Review request campaigns
+
+#### Admin Events
+- `announcement_created` - Site announcement creation
+- `quote_created` - Customer quote creation
+- `quote_updated` - Quote modification events
+- `quote_deleted` - Quote deletion events
+
+#### Navigation Events
+- `page_view` - Page view tracking
+- `button_click` - Button interaction tracking
+- `link_click` - Link click tracking
+
+#### Error Events
+- `error_occurred` - Error tracking with context
+
+### Usage
+
+```typescript
+import { 
+  trackEvent, 
+  trackSignUp, 
+  trackWidgetCreated, 
+  trackReviewSubmitted,
+  trackAdminAction 
+} from '../utils/analytics';
+
+// Track custom events
+trackEvent('custom_event', { 
+  parameter1: 'value1',
+  parameter2: 'value2' 
+});
+
+// Track user sign up
+trackSignUp('email');
+
+// Track widget creation
+trackWidgetCreated('multi', 'business_id');
+
+// Track review submission
+trackReviewSubmitted('multi', 5, true); // 5-star rating with photo
+
+// Track admin actions
+trackAdminAction('announcement_created', {
+  has_button: true,
+  message_length: 150
+});
+```
+
+### Setup
+1. Create a Google Analytics 4 property at [analytics.google.com](https://analytics.google.com)
+2. Copy your Measurement ID (format: G-XXXXXXXXXX)
+3. Add the ID to your `.env.local` file as `NEXT_PUBLIC_GA_TRACKING_ID`
+4. The tracking script is automatically loaded on all pages
+
+### Privacy & Compliance
+- Respects user privacy preferences
+- No personally identifiable information (PII) is sent to GA4
+- Compliant with GDPR and CCPA requirements
+- User consent can be integrated if needed
+
+## Widget System
+
+The platform includes three types of embeddable widgets:
+
+### Multi Widget
+- Displays multiple reviews in a carousel
+- Fully customizable design
+- Responsive layout
+
+### Single Widget
+- Shows one review at a time
+- Clean, focused design
+- Easy integration
+
+### Photo Widget
+- Includes customer photos
+- Enhanced visual appeal
+- Social proof focused
+
+## Development
+
+### Scripts
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run build:widget` - Build all widgets
+- `npm run watch:widget` - Watch and rebuild widgets
+
+### Architecture
+- **Frontend**: Next.js 15 with TypeScript
+- **Backend**: Supabase (PostgreSQL + Auth)
+- **Styling**: Tailwind CSS
+- **Payments**: Stripe
+- **Email**: Resend
+- **Error Tracking**: Sentry
+- **Analytics**: Google Analytics 4
+
+## Database Schema
+
+See `databaseschema.md` for detailed database structure.
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## License
+
+This project is proprietary software.
+
 ## Recent Fixes (Latest Update)
+
+### Added Google Analytics 4 Integration
+- **Feature**: Comprehensive user behavior tracking
+- **Implementation**: 
+  - Added GA4 tracking script to root layout
+  - Created analytics utility functions for event tracking
+  - Integrated tracking across all major user interactions
+  - Added admin action tracking for content management
+  - Implemented error tracking integration with Sentry
+- **Events Tracked**: User auth, widget interactions, business actions, admin actions, navigation, errors
+- **Privacy**: No PII sent to GA4, GDPR/CCPA compliant
 
 ### Fixed Widget Rendering Issues
 - **Issue**: Widget was not rendering due to dependency loading failures

@@ -106,6 +106,7 @@ export default function DashboardContent({
 }: DashboardContentProps) {
   console.log("DASHBOARD RENDERED");
   useAuthGuard();
+  const router = useRouter();
   const [promptPages, setPromptPages] = useState<PromptPage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -138,6 +139,7 @@ export default function DashboardContent({
   const [showTypeModal, setShowTypeModal] = useState(false);
   const [selectedType, setSelectedType] = useState("");
   const [copyLinkId, setCopyLinkId] = useState<string | null>(null);
+  const [showStars, setShowStars] = useState(false);
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
