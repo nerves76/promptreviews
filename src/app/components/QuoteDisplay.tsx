@@ -1,60 +1,131 @@
 /**
  * Quote Display Component
- * Displays inspirational quotes on the dashboard
+ * Displays quotes on the dashboard with navigation arrows and optional buttons
  */
 
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getRandomQuote } from '../../utils/admin';
+import { createBrowserClient } from '@supabase/ssr';
+import { getAllActiveQuotes } from '../../utils/admin';
+import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+
+// Use the same Supabase client pattern as other components
+const supabase = createBrowserClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+);
 
 interface QuoteDisplayProps {
   className?: string;
 }
 
+interface QuoteData {
+  id: string;
+  text: string;
+  author?: string;
+  button_text?: string;
+  button_url?: string;
+  created_at: string;
+}
+
 export default function QuoteDisplay({ className = '' }: QuoteDisplayProps) {
-  const [quote, setQuote] = useState<{text: string, author?: string} | null>(null);
+  const [quotes, setQuotes] = useState<QuoteData[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadQuote();
+    loadQuotes();
   }, []);
 
-  const loadQuote = async () => {
+  const loadQuotes = async () => {
     try {
-      const randomQuote = await getRandomQuote();
-      setQuote(randomQuote);
+      const activeQuotes = await getAllActiveQuotes(supabase);
+      setQuotes(activeQuotes);
+      if (activeQuotes.length > 0) {
+        // Start with a random quote
+        setCurrentIndex(Math.floor(Math.random() * activeQuotes.length));
+      }
     } catch (error) {
-      console.error('Error loading quote:', error);
+      console.error('Error loading quotes:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  // Don't render if no quote or loading
-  if (loading || !quote) {
+  const nextQuote = () => {
+    if (quotes.length > 1) {
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % quotes.length);
+    }
+  };
+
+  const previousQuote = () => {
+    if (quotes.length > 1) {
+      setCurrentIndex((prevIndex) => (prevIndex - 1 + quotes.length) % quotes.length);
+    }
+  };
+
+  // Don't render if no quotes or loading
+  if (loading || quotes.length === 0) {
     return null;
   }
 
+  const currentQuote = quotes[currentIndex];
+
   return (
     <div className={`bg-gradient-to-r from-slateblue/5 to-slateblue/10 rounded-lg p-6 border border-slateblue/20 ${className}`}>
-      <div className="text-center">
-        <div className="mb-3">
-          <svg 
-            className="h-8 w-8 text-slateblue mx-auto" 
-            fill="currentColor" 
-            viewBox="0 0 24 24"
-          >
-            <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
-          </svg>
-        </div>
-        <blockquote className="text-lg font-medium text-gray-900 mb-2">
-          "{quote.text}"
+      <div className="text-center relative">
+        {/* Navigation Arrows */}
+        {quotes.length > 1 && (
+          <>
+            <button
+              onClick={previousQuote}
+              className="absolute left-0 top-1/2 transform -translate-y-1/2 p-2 text-slateblue hover:text-slateblue/80 transition-colors"
+              aria-label="Previous quote"
+            >
+              <FaChevronLeft className="h-5 w-5" />
+            </button>
+            <button
+              onClick={nextQuote}
+              className="absolute right-0 top-1/2 transform -translate-y-1/2 p-2 text-slateblue hover:text-slateblue/80 transition-colors"
+              aria-label="Next quote"
+            >
+              <FaChevronRight className="h-5 w-5" />
+            </button>
+          </>
+        )}
+
+        {/* Quote Text */}
+        <blockquote className="text-lg font-medium text-gray-900 mb-2 px-8">
+          "{currentQuote.text}"
         </blockquote>
-        {quote.author && (
-          <cite className="text-sm text-gray-600">
-            — {quote.author}
+
+        {/* Author */}
+        {currentQuote.author && (
+          <cite className="text-sm text-gray-600 mb-3">
+            — {currentQuote.author}
           </cite>
+        )}
+
+        {/* Optional Button/Link */}
+        {currentQuote.button_text && currentQuote.button_url && (
+          <div className="mt-4">
+            <a
+              href={currentQuote.button_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block px-4 py-2 bg-slateblue text-white text-sm font-medium rounded hover:bg-slateblue/90 transition-colors"
+            >
+              {currentQuote.button_text}
+            </a>
+          </div>
+        )}
+
+        {/* Quote Counter */}
+        {quotes.length > 1 && (
+          <div className="mt-4 text-xs text-gray-500">
+            {currentIndex + 1} of {quotes.length}
+          </div>
         )}
       </div>
     </div>

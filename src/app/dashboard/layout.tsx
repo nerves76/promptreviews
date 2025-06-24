@@ -117,33 +117,6 @@ export default function DashboardLayout({
           </button>
         </div>
       )}
-      <Dialog
-        open={blocked}
-        onClose={() => {}}
-        className="fixed z-50 inset-0 overflow-y-auto"
-      >
-        <div className="flex items-center justify-center min-h-screen px-4">
-          <div
-            className="fixed inset-0 bg-black opacity-30"
-            aria-hidden="true"
-          />
-          <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-auto p-8 z-10">
-            <Dialog.Title className="text-lg font-bold mb-4">
-              Trial Ended
-            </Dialog.Title>
-            <Dialog.Description className="mb-6 text-gray-700 whitespace-pre-line">
-              Your free trial has ended. To continue using PromptReviews, please
-              upgrade your plan.
-            </Dialog.Description>
-            <button
-              className="w-full py-2 px-4 bg-dustyPlum text-white rounded-md hover:bg-lavenderHaze font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dustyPlum"
-              onClick={() => router.push("/upgrade")}
-            >
-              Upgrade now
-            </button>
-          </div>
-        </div>
-      </Dialog>
     </div>
   );
 }

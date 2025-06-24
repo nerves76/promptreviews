@@ -1,19 +1,33 @@
 /**
  * Announcement Banner Component
  * Displays active announcements to all users at the top of the page
+ * Supports announcements with optional buttons/links
  */
 
 'use client';
 
 import { useState, useEffect } from 'react';
+import { createBrowserClient } from '@supabase/ssr';
 import { getActiveAnnouncement } from '../../utils/admin';
+
+// Use the same Supabase client pattern as other components
+const supabase = createBrowserClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+);
 
 interface AnnouncementBannerProps {
   className?: string;
 }
 
+interface AnnouncementData {
+  message: string;
+  button_text?: string;
+  button_url?: string;
+}
+
 export default function AnnouncementBanner({ className = '' }: AnnouncementBannerProps) {
-  const [announcement, setAnnouncement] = useState<string | null>(null);
+  const [announcement, setAnnouncement] = useState<AnnouncementData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isVisible, setIsVisible] = useState(true);
 
@@ -23,8 +37,17 @@ export default function AnnouncementBanner({ className = '' }: AnnouncementBanne
 
   const loadAnnouncement = async () => {
     try {
-      const activeAnnouncement = await getActiveAnnouncement();
-      setAnnouncement(activeAnnouncement);
+      const activeAnnouncement = await getActiveAnnouncement(supabase);
+      if (activeAnnouncement) {
+        // Parse the announcement data (message and optional button info)
+        try {
+          const parsed = JSON.parse(activeAnnouncement);
+          setAnnouncement(parsed);
+        } catch {
+          // If not JSON, treat as plain message
+          setAnnouncement({ message: activeAnnouncement });
+        }
+      }
     } catch (error) {
       console.error('Error loading announcement:', error);
     } finally {
@@ -42,7 +65,7 @@ export default function AnnouncementBanner({ className = '' }: AnnouncementBanne
   }
 
   return (
-    <div className={`bg-slateblue text-white ${className}`}>
+    <div className={`bg-slate-blue text-white ${className}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between py-3">
           <div className="flex items-center flex-1">
@@ -61,14 +84,24 @@ export default function AnnouncementBanner({ className = '' }: AnnouncementBanne
             </div>
             <div className="ml-3 flex-1">
               <p className="text-sm font-medium">
-                {announcement}
+                {announcement.message}
               </p>
+              {announcement.button_text && announcement.button_url && (
+                <a
+                  href={announcement.button_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block mt-2 px-3 py-1 bg-white text-slate-blue text-xs font-medium rounded hover:bg-gray-100 transition-colors"
+                >
+                  {announcement.button_text}
+                </a>
+              )}
             </div>
           </div>
           <div className="flex-shrink-0">
             <button
               onClick={handleClose}
-              className="inline-flex items-center justify-center p-1.5 rounded-md text-white hover:bg-slateblue/80 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-slateblue"
+              className="inline-flex items-center justify-center p-1.5 rounded-md text-white hover:bg-slate-blue/80 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-slate-blue"
             >
               <span className="sr-only">Dismiss</span>
               <svg 

@@ -34,8 +34,12 @@ export default function Header() {
       
       // Check if user is admin
       if (user) {
-        const adminStatus = await isAdmin();
+        console.log('Header: Checking admin status for user:', user.id, user.email);
+        const adminStatus = await isAdmin(user.id);
+        console.log('Header: Admin status result:', adminStatus);
         setIsAdminUser(adminStatus);
+      } else {
+        console.log('Header: No user found');
       }
     };
 
