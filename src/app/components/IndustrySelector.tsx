@@ -1,5 +1,18 @@
 import React, { useMemo, useRef, useEffect, useState } from "react";
-import Select, { MultiValue } from "react-select";
+import dynamic from "next/dynamic";
+
+// Dynamically import React Select to prevent hydration mismatches
+const SelectComponent = dynamic(() => import("react-select"), {
+  ssr: false,
+  loading: () => (
+    <div className="border border-gray-300 rounded-md px-3 py-2 bg-gray-50 text-gray-500">
+      Loading industry selector...
+    </div>
+  ),
+});
+
+// Import types from react-select
+import type { MultiValue } from "react-select";
 
 // Expanded industry list with B2B/B2C/Both tags
 const INDUSTRY_OPTIONS = [
@@ -398,7 +411,7 @@ export default function IndustrySelector({
           Both
         </label>
       </div>
-      <Select
+      <SelectComponent
         ref={selectRef}
         inputId="industry-select"
         isMulti
