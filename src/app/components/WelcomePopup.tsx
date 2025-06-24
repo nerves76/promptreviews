@@ -120,17 +120,15 @@ export default function WelcomePopup({
         </div>
 
         {/* Right side: Image */}
-        <div className="flex-1 bg-gray-50 p-8 rounded-r-xl flex items-center justify-center">
+        <div className="flex-1 rounded-r-xl flex items-center justify-center overflow-hidden">
           {imageUrl ? (
-            <div className="w-full h-full flex items-center justify-center">
-              <img 
-                src={imageUrl} 
-                alt={imageAlt} 
-                className="w-full h-auto max-w-md mx-auto rounded-lg shadow-sm"
-              />
-            </div>
+            <img 
+              src={imageUrl} 
+              alt={imageAlt} 
+              className="w-full h-full object-cover mx-auto"
+            />
           ) : (
-            <div className="flex items-center justify-center h-full">
+            <div className="flex items-center justify-center h-full w-full">
               <div className="text-center">
                 <div className="w-32 h-32 bg-gray-200 rounded-lg mx-auto mb-4 flex items-center justify-center">
                   <svg className="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
