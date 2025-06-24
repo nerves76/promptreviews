@@ -13,6 +13,7 @@
  */
 
 import React, { useState } from 'react';
+import { FaRobot } from 'react-icons/fa';
 
 interface WelcomePopupProps {
   isOpen: boolean;
@@ -41,30 +42,30 @@ export default function WelcomePopup({
 
   const renderMessage = (text: string) => {
     return text.split('\n').map((paragraph, index) => {
-      // Check if this paragraph contains the robot icon
-      if (paragraph.includes('🤖')) {
+      // Check if this paragraph contains the robot icon placeholder
+      if (paragraph.includes('[icon]')) {
         return (
-          <p key={index} className="text-base">
-            {paragraph.split('🤖').map((part, partIndex) => (
+          <p key={index} className="text-base flex items-center gap-2">
+            {paragraph.split('[icon]').map((part, partIndex, arr) => (
               <React.Fragment key={partIndex}>
                 {part}
-                {partIndex === 0 && (
-                  <span className="relative inline-block">
+                {partIndex < arr.length - 1 && (
+                  <span className="relative inline-block align-middle">
                     <button
                       onClick={() => setShowTooltip(!showTooltip)}
-                      className="inline-block text-2xl cursor-pointer hover:scale-110 transition-transform"
+                      className="inline-block align-middle text-slate-blue hover:text-indigo-600 focus:outline-none"
                       aria-label="Click for AI tip"
+                      tabIndex={0}
+                      type="button"
                     >
-                      🤖
+                      <FaRobot className="inline w-5 h-5 align-middle cursor-pointer" />
                     </button>
                     {showTooltip && (
                       <div className="absolute z-30 left-1/2 -translate-x-1/2 mt-2 w-80 p-4 bg-white border border-gray-200 rounded-lg shadow-lg text-sm text-gray-700">
-                        <p className="mb-2">
-                          You did it! When you see me 🤖 next to an input it means I can use this info to help you create review templates for your customers and clients. And if you click it you'll see a helpful tip.
-                        </p>
-                        <p>
-                          Using AI in Prompt Reviews is also totally optional. We're all about human connection at PromptReviews, so you can write your own review templates too!
-                        </p>
+                        <div className="mb-2 font-semibold">You did it! </div>
+                        <div className="mb-2">
+                          When you see me <FaRobot className="inline w-5 h-5 text-slate-blue align-middle" /> next to an input it means I can use this info to help you create review templates for your customers and clients. And if you click it you'll see a helpful tip. (But don't worry, using Prompty AI is optional.)
+                        </div>
                         <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1 w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent border-b-gray-200"></div>
                       </div>
                     )}
