@@ -54,12 +54,12 @@ export default function WelcomePopup({
         {/* Left side: Content */}
         <div className="flex-1 space-y-6 py-8 px-8">
           <div>
-            <h2 className="text-3xl font-bold text-slate-blue mb-4">
+            <h2 className="text-2xl font-bold text-slate-blue mb-4">
               {title}
             </h2>
             <div className="text-gray-700 leading-relaxed space-y-4">
               {message.split('\n').map((paragraph, index) => (
-                <p key={index} className="text-lg">
+                <p key={index} className="text-base">
                   {paragraph}
                 </p>
               ))}
@@ -68,7 +68,7 @@ export default function WelcomePopup({
             {/* Call to action button */}
             <button
               onClick={onButtonClick || onClose}
-              className="w-full mt-8 bg-slate-blue text-white py-3 px-6 rounded-lg hover:bg-slate-blue/90 transition-colors font-semibold text-lg"
+              className="w-full mt-8 bg-slate-blue text-white py-3 px-6 rounded-lg hover:bg-slate-blue/90 transition-colors font-semibold text-base"
             >
               {buttonText}
             </button>
