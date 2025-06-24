@@ -9,6 +9,7 @@ import type { Area } from "react-easy-crop";
 import { useAuthGuard } from "@/utils/authGuard";
 import { sanitizePromptPageInsert } from "@/utils/sanitizePromptPageInsert";
 import { slugify } from "@/utils/slugify";
+import imageCompression from 'browser-image-compression';
 import {
   FaImage,
   FaBuilding,
@@ -435,32 +436,33 @@ export default function CreateBusinessPage() {
     });
   };
 
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setLogoError("");
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!["image/png", "image/jpeg", "image/jpg"].includes(file.type)) {
-      setLogoError("Only PNG or JPG images are allowed.");
+    if (file.size > 10 * 1024 * 1024) { // 10MB
+      setLogoError("Please upload an image under 10MB. Large images may fail to process.");
       return;
     }
-    if (file.size > 300 * 1024) {
-      setLogoError("Logo must be 300KB or less.");
+    if (!["image/png", "image/jpeg", "image/jpg", "image/webp"].includes(file.type)) {
+      setLogoError("Only PNG, JPG, or WebP images are allowed.");
       return;
     }
-    const img = new window.Image();
-    img.onload = () => {
-      if (img.width > 400 || img.height > 400) {
-        setLogoError("Logo must be no larger than 400x400 pixels.");
-        setLogoFile(null);
-        setLogoUrl(null);
-      } else {
-        setRawLogoFile(file);
-        setShowCropper(true);
-        setLogoUrl(URL.createObjectURL(file));
-      }
-    };
-    img.onerror = () => setLogoError("Invalid image file.");
-    img.src = URL.createObjectURL(file);
+    try {
+      // Use 800x800 for larger screens, but compress to 400x400 for smaller displays
+      const compressedFile = await imageCompression(file, {
+        maxSizeMB: 0.3, // 300KB
+        maxWidthOrHeight: 800, // Support larger images for better quality on larger screens
+        useWebWorker: true,
+        fileType: 'image/webp', // Always convert to webp for better compression
+      });
+      setRawLogoFile(compressedFile);
+      setShowCropper(true);
+      setLogoUrl(URL.createObjectURL(compressedFile));
+    } catch (err) {
+      setLogoError("Failed to compress image. Please try another file.");
+      return;
+    }
   };
 
   const onCropComplete = useCallback(
@@ -475,8 +477,8 @@ export default function CreateBusinessPage() {
     const croppedBlob = await getCroppedImg(logoUrl, croppedAreaPixels);
     const croppedFile = new File(
       [croppedBlob],
-      rawLogoFile?.name || "logo.png",
-      { type: "image/png" },
+      (rawLogoFile?.name?.replace(/\.[^.]+$/, '') || "logo") + ".webp",
+      { type: "image/webp" },
     );
     setLogoFile(croppedFile);
     setLogoUrl(URL.createObjectURL(croppedFile));

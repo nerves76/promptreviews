@@ -202,7 +202,7 @@ export default function BusinessForm({
             <label className="block font-bold text-lg text-gray-900 mb-1">
               Upload your logo or your face (whichever is more iconic).
             </label>
-            <div className="text-sm text-gray-500 mb-2">400x400px for best results (PNG, JPG, or WEBP)</div>
+            <div className="text-sm text-gray-500 mb-2">Up to 800x800px supported (PNG, JPG, or WEBP) - automatically compressed for optimal performance</div>
             <input
               type="file"
               accept="image/png, image/jpeg, image/webp"
