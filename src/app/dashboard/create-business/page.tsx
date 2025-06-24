@@ -715,7 +715,7 @@ export default function CreateBusinessPage() {
         isOpen={showWelcomePopup}
         onClose={handleWelcomePopupClose}
         title={"Oh hi " + userFirstName + "—I'm Prompty!"}
-        message={"Welcome to Prompt Reviews!\n\nDid you know you're a miracle? Carl Sagan said it best:\n\"The cosmos is within us. We are made of star-stuff. We are a way for the universe to know itself.\"\n\nBeautiful right! There is a flaming gas giant in you too! Wait, that didn't come out right . . . Anyway, I am here to help you get the stars you deserve—on Google, Facebook, TripAdvisor, Clutch—you name it.\n\n🔍 First tip:\nWhenever you see this icon (the blue robot head next to input fields), it means that field will help me learn about your business and create lightning-fast review templates for your customers.\n\nOK, that's it for now—let's go get some stars! 🌟"}
+        message={"Welcome to Prompt Reviews!\n\nDid you know you're a miracle? Carl Sagan said it best:\n\"The cosmos is within us. We are made of star-stuff. We are a way for the universe to know itself.\"\n\nBeautiful right! There is a flaming gas giant in you too! Wait, that didn't come out right . . . Anyway, I am here to help you get the stars you deserve—on Google, Facebook, TripAdvisor, Clutch—you name it.\n\nHere's your first tip: 🤖 <----Click here\n\nOK, that's it for now—let's go get some stars! 🌟"}
         imageUrl="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompty-get%20reviews.webp"
         imageAlt="Prompty - Get Reviews"
         buttonText="Let's Go Get Some Stars! 🌟"

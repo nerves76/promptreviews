@@ -9,9 +9,10 @@
  * - Standardized close button
  * - Responsive design
  * - Customizable content
+ * - Interactive robot icon with tooltip
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 
 interface WelcomePopupProps {
   isOpen: boolean;
@@ -34,7 +35,53 @@ export default function WelcomePopup({
   buttonText = "Get Started",
   onButtonClick 
 }: WelcomePopupProps) {
+  const [showTooltip, setShowTooltip] = useState(false);
+
   if (!isOpen) return null;
+
+  const renderMessage = (text: string) => {
+    return text.split('\n').map((paragraph, index) => {
+      // Check if this paragraph contains the robot icon
+      if (paragraph.includes('🤖')) {
+        return (
+          <p key={index} className="text-base">
+            {paragraph.split('🤖').map((part, partIndex) => (
+              <React.Fragment key={partIndex}>
+                {part}
+                {partIndex === 0 && (
+                  <span className="relative inline-block">
+                    <button
+                      onClick={() => setShowTooltip(!showTooltip)}
+                      className="inline-block text-2xl cursor-pointer hover:scale-110 transition-transform"
+                      aria-label="Click for AI tip"
+                    >
+                      🤖
+                    </button>
+                    {showTooltip && (
+                      <div className="absolute z-30 left-1/2 -translate-x-1/2 mt-2 w-80 p-4 bg-white border border-gray-200 rounded-lg shadow-lg text-sm text-gray-700">
+                        <p className="mb-2">
+                          You did it! When you see me 🤖 next to an input it means I can use this info to help you create review templates for your customers and clients. And if you click it you'll see a helpful tip.
+                        </p>
+                        <p>
+                          Using AI in Prompt Reviews is also totally optional. We're all about human connection at PromptReviews, so you can write your own review templates too!
+                        </p>
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1 w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent border-b-gray-200"></div>
+                      </div>
+                    )}
+                  </span>
+                )}
+              </React.Fragment>
+            ))}
+          </p>
+        );
+      }
+      return (
+        <p key={index} className="text-base">
+          {paragraph}
+        </p>
+      );
+    });
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
@@ -58,11 +105,7 @@ export default function WelcomePopup({
               {title}
             </h2>
             <div className="text-gray-700 leading-relaxed space-y-4">
-              {message.split('\n').map((paragraph, index) => (
-                <p key={index} className="text-base">
-                  {paragraph}
-                </p>
-              ))}
+              {renderMessage(message)}
             </div>
             
             {/* Call to action button */}
