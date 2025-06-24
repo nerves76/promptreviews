@@ -559,6 +559,14 @@ export default function CreateBusinessPage() {
             <p className="text-gray-600">
               Set up your business profile to get started with PromptReviews.
             </p>
+            
+            {/* Debug button to manually trigger welcome popup */}
+            <button
+              onClick={() => setShowWelcomePopup(true)}
+              className="mt-4 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 text-sm"
+            >
+              🐛 Debug: Show Welcome Popup
+            </button>
           </div>
 
           {showTrialConfirmation && (
