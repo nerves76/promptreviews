@@ -341,8 +341,10 @@ export default function Dashboard() {
   return (
     <>
       {/* Floating Quote Section - positioned above PageCard */}
-      <div className="relative z-10 mb-8">
-        <QuoteDisplay />
+      <div className="relative z-10 mb-8 flex justify-center items-center min-h-[300px]">
+        <div className="max-w-[800px] w-full px-4">
+          <QuoteDisplay />
+        </div>
       </div>
       
       {/* PageCard pushed down by 300px */}
