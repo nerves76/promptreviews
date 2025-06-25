@@ -26,10 +26,12 @@ import {
   FaCheckCircle,
   FaTimesCircle,
 } from "react-icons/fa";
-import { getUserOrMock } from "@/utils/supabase";
+import { getUserOrMock, getSessionOrMock } from "@/utils/supabase";
 import BusinessForm from "../components/BusinessForm";
 import { useRequirePlan } from "@/utils/useRequirePlan";
 import PageCard from "@/app/components/PageCard";
+import { isAdmin } from "@/utils/admin";
+import { trackEvent } from "@/utils/analytics";
 
 interface Platform {
   name: string;
@@ -136,6 +138,7 @@ export default function CreateBusinessPage() {
   const [showWelcomePopup, setShowWelcomePopup] = useState(false);
   const [business, setBusiness] = useState<any>(null);
   const [userFirstName, setUserFirstName] = useState<string>("");
+  const [isAdminUser, setIsAdminUser] = useState(false);
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -160,6 +163,10 @@ export default function CreateBusinessPage() {
         firstName = "there";
       }
       setUserFirstName(firstName);
+      
+      // Check if user is admin
+      const adminStatus = await isAdmin(user.id);
+      setIsAdminUser(adminStatus);
       
       // Fetch account data
       const { data: accountData } = await supabase
@@ -561,12 +568,14 @@ export default function CreateBusinessPage() {
             </p>
             
             {/* Debug button to manually trigger welcome popup */}
-            <button
-              onClick={() => setShowWelcomePopup(true)}
-              className="mt-4 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 text-sm"
-            >
-              🐛 Debug: Show Welcome Popup
-            </button>
+            {isAdminUser && (
+              <button
+                onClick={() => setShowWelcomePopup(true)}
+                className="mt-4 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 text-sm"
+              >
+                🐛 Debug: Show Welcome Popup
+              </button>
+            )}
           </div>
 
           {showTrialConfirmation && (
