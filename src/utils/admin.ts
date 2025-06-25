@@ -488,6 +488,24 @@ export async function updateQuote(id: string, text: string, author?: string, but
 export async function getAllFeedback(supabaseClient?: any) {
   try {
     const client = supabaseClient || supabase;
+    
+    // First check if user is admin
+    const { data: { user } } = await client.auth.getUser();
+    if (!user) {
+      console.error('getAllFeedback: No user found');
+      return [];
+    }
+
+    console.log('getAllFeedback: Checking admin status for user:', user.id);
+    const adminStatus = await isAdmin(user.id, client);
+    console.log('getAllFeedback: Admin status:', adminStatus);
+
+    if (!adminStatus) {
+      console.error('getAllFeedback: User is not admin');
+      return [];
+    }
+
+    console.log('getAllFeedback: Fetching feedback data...');
     const { data: feedback, error } = await client
       .from('feedback')
       .select(`
@@ -503,13 +521,19 @@ export async function getAllFeedback(supabaseClient?: any) {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching feedback:', error);
+      console.error('getAllFeedback: Database error details:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
       return [];
     }
 
+    console.log('getAllFeedback: Successfully fetched feedback:', feedback?.length || 0, 'items');
     return feedback || [];
   } catch (error) {
-    console.error('Error fetching feedback:', error);
+    console.error('getAllFeedback: Unexpected error:', error);
     return [];
   }
 }
