@@ -45,7 +45,7 @@ export default function WelcomePopup({
       // Check if this paragraph contains the robot icon placeholder
       if (paragraph.includes('[icon]')) {
         return (
-          <p key={index} className="text-base flex items-center gap-2">
+          <div key={index} className="text-base flex items-center gap-2">
             {paragraph.split('[icon]').map((part, partIndex, arr) => (
               <React.Fragment key={partIndex}>
                 {part}
@@ -62,10 +62,10 @@ export default function WelcomePopup({
                     </button>
                     {showTooltip && (
                       <div className="absolute z-30 left-1/2 -translate-x-1/2 mt-2 w-80 p-4 bg-white border border-gray-200 rounded-lg shadow-lg text-sm text-gray-700">
-                        <div className="mb-2 font-semibold">You did it! </div>
-                        <div className="mb-2">
+                        <span className="block mb-2 font-semibold">You did it! </span>
+                        <span className="block mb-2">
                           When you see me <FaRobot className="inline w-5 h-5 text-slate-blue align-middle" /> next to an input it means I can use this info to help you create review templates for your customers and clients. And if you click it you'll see a helpful tip. (But don't worry, using Prompty AI is optional.)
-                        </div>
+                        </span>
                         <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1 w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent border-b-gray-200"></div>
                       </div>
                     )}
@@ -73,7 +73,7 @@ export default function WelcomePopup({
                 )}
               </React.Fragment>
             ))}
-          </p>
+          </div>
         );
       }
       return (
