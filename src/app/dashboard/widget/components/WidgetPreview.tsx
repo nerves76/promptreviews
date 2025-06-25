@@ -37,7 +37,7 @@ interface WidgetPreviewProps {
   design?: DesignState;
 }
 
-export function WidgetPreview({ widget, design }: WidgetPreviewProps) {
+export const WidgetPreview = React.memo(function WidgetPreview({ widget, design }: WidgetPreviewProps) {
   // Memoize the widget component selection to prevent unnecessary re-renders
   const WidgetComponent = useMemo(() => {
     console.log('🔍 WidgetPreview: Received widget data:', widget);
@@ -59,14 +59,17 @@ export function WidgetPreview({ widget, design }: WidgetPreviewProps) {
     }
   }, [widget?.widget_type]);
 
-  if (!widget || !WidgetComponent) {
+  // Memoize the widget data to prevent unnecessary re-renders
+  const memoizedWidget = useMemo(() => widget, [widget?.id, widget?.widget_type, widget?.theme, widget?.reviews?.length]);
+
+  if (!memoizedWidget || !WidgetComponent) {
     console.log('⚠️ WidgetPreview: No widget selected or component not available');
     // Return null when no widget is selected or the component is not available.
     return null;
   }
 
-  console.log('🚀 WidgetPreview: Rendering widget component with data:', widget, 'and design:', design);
+  console.log('🚀 WidgetPreview: Rendering widget component with data:', memoizedWidget, 'and design:', design);
   console.log('🚀 WidgetPreview: Component being rendered:', WidgetComponent.name);
   
-  return <WidgetComponent data={widget} design={design} />;
-} 
+  return <WidgetComponent data={memoizedWidget} design={design} />;
+}); 
