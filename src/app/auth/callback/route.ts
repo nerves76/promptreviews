@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { sendWelcomeEmail } from "@/utils/resend-welcome";
 
 export const dynamic = "force-dynamic";
 
@@ -54,7 +55,9 @@ export async function GET(request: Request) {
       .select("account_id")
       .eq("user_id", userId);
 
+    let isNewUser = false;
     if (!accountLinks || accountLinks.length === 0) {
+      isNewUser = true;
       // No account found, create one and link user as owner
       const { data: newAccount, error: createAccountError } = await supabase
         .from("accounts")
@@ -72,6 +75,25 @@ export async function GET(request: Request) {
               role: "owner",
             },
           ]);
+      }
+    }
+
+    // Send welcome email for new users
+    if (isNewUser && email) {
+      try {
+        // Extract first name from user metadata or email
+        let firstName = "there";
+        if (session.user.user_metadata?.first_name) {
+          firstName = session.user.user_metadata.first_name;
+        } else if (email) {
+          firstName = email.split("@")[0];
+        }
+
+        await sendWelcomeEmail(email, firstName);
+        console.log("Welcome email sent to:", email);
+      } catch (emailError) {
+        console.error("Error sending welcome email:", emailError);
+        // Don't fail the signup if email fails
       }
     }
 
