@@ -14,6 +14,7 @@ import AppLoader from "../components/AppLoader";
 import TopLoaderOverlay from "../components/TopLoaderOverlay";
 import { Button } from "@/app/components/ui/button";
 import Link from "next/link";
+import QuoteDisplay from "../components/QuoteDisplay";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -338,36 +339,46 @@ export default function Dashboard() {
     "there";
 
   return (
-    <PageCard icon={<FaHome className="w-8 h-8 text-slate-blue" />}>
-      <DashboardContent
-        userName={userName}
-        business={business}
-        customPromptPages={customPromptPages}
-        universalPromptPage={universalPromptPage}
-        createPromptPageRef={createPromptPageRef}
-        handleCreatePromptPageClick={handleCreatePromptPageClick}
-        showQR={showQR}
-        handleCopyLink={handleCopyLink}
-        copySuccess={copySuccess}
-        showProfileModal={showProfileModal}
-        setShowProfileModal={setShowProfileModal}
-        showSuccessModal={showSuccessModal}
-        setShowSuccessModal={setShowSuccessModal}
-        universalUrl={universalUrl}
-        QRCode={QRCodeSVG}
-        setShowQR={setShowQR}
-        account={account}
-        parentLoading={isLoading}
-        reviewStats={reviewStats}
-      />
+    <>
+      {/* Floating Quote Section - positioned above PageCard */}
+      <div className="relative z-10 mb-8">
+        <QuoteDisplay />
+      </div>
       
-      {/* Pricing Modal */}
-      {showPricingModal && (
-        <PricingModal
-          onSelectTier={handleSelectTier}
-          currentPlan={account?.plan}
-        />
-      )}
-    </PageCard>
+      {/* PageCard pushed down by 300px */}
+      <div className="mt-[300px]">
+        <PageCard icon={<FaHome className="w-8 h-8 text-slate-blue" />}>
+          <DashboardContent
+            userName={userName}
+            business={business}
+            customPromptPages={customPromptPages}
+            universalPromptPage={universalPromptPage}
+            createPromptPageRef={createPromptPageRef}
+            handleCreatePromptPageClick={handleCreatePromptPageClick}
+            showQR={showQR}
+            handleCopyLink={handleCopyLink}
+            copySuccess={copySuccess}
+            showProfileModal={showProfileModal}
+            setShowProfileModal={setShowProfileModal}
+            showSuccessModal={showSuccessModal}
+            setShowSuccessModal={setShowSuccessModal}
+            universalUrl={universalUrl}
+            QRCode={QRCodeSVG}
+            setShowQR={setShowQR}
+            account={account}
+            parentLoading={isLoading}
+            reviewStats={reviewStats}
+          />
+          
+          {/* Pricing Modal */}
+          {showPricingModal && (
+            <PricingModal
+              onSelectTier={handleSelectTier}
+              currentPlan={account?.plan}
+            />
+          )}
+        </PageCard>
+      </div>
+    </>
   );
 }

@@ -73,21 +73,21 @@ export default function QuoteDisplay({ className = '' }: QuoteDisplayProps) {
   const currentQuote = quotes[currentIndex];
 
   return (
-    <div className={`bg-gradient-to-r from-slateblue/5 to-slateblue/10 rounded-lg p-6 border border-slateblue/20 ${className}`}>
+    <div className={`border-2 border-white rounded-lg p-6 shadow-lg ${className}`}>
       <div className="text-center relative">
         {/* Navigation Arrows */}
         {quotes.length > 1 && (
           <>
             <button
               onClick={previousQuote}
-              className="absolute left-0 top-1/2 transform -translate-y-1/2 p-2 text-slateblue hover:text-slateblue/80 transition-colors"
+              className="absolute left-0 top-1/2 transform -translate-y-1/2 p-2 text-white hover:text-white/80 transition-colors"
               aria-label="Previous quote"
             >
               <FaChevronLeft className="h-5 w-5" />
             </button>
             <button
               onClick={nextQuote}
-              className="absolute right-0 top-1/2 transform -translate-y-1/2 p-2 text-slateblue hover:text-slateblue/80 transition-colors"
+              className="absolute right-0 top-1/2 transform -translate-y-1/2 p-2 text-white hover:text-white/80 transition-colors"
               aria-label="Next quote"
             >
               <FaChevronRight className="h-5 w-5" />
@@ -96,13 +96,13 @@ export default function QuoteDisplay({ className = '' }: QuoteDisplayProps) {
         )}
 
         {/* Quote Text */}
-        <blockquote className="text-lg font-medium text-gray-900 mb-2 px-8">
+        <blockquote className="text-lg font-medium text-white mb-2 px-8">
           "{currentQuote.text}"
         </blockquote>
 
         {/* Author */}
         {currentQuote.author && (
-          <cite className="text-sm text-gray-600 mb-3">
+          <cite className="text-sm text-white/80 mb-3">
             — {currentQuote.author}
           </cite>
         )}
@@ -114,7 +114,7 @@ export default function QuoteDisplay({ className = '' }: QuoteDisplayProps) {
               href={currentQuote.button_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-block px-4 py-2 bg-slateblue text-white text-sm font-medium rounded hover:bg-slateblue/90 transition-colors"
+              className="inline-block px-4 py-2 bg-white text-slate-blue text-sm font-medium rounded hover:bg-white/90 transition-colors"
             >
               {currentQuote.button_text}
             </a>
@@ -123,7 +123,7 @@ export default function QuoteDisplay({ className = '' }: QuoteDisplayProps) {
 
         {/* Quote Counter */}
         {quotes.length > 1 && (
-          <div className="mt-4 text-xs text-gray-500">
+          <div className="mt-4 text-xs text-white/60">
             {currentIndex + 1} of {quotes.length}
           </div>
         )}
