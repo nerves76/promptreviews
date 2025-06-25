@@ -71,13 +71,13 @@ export default function AnnouncementBanner({ className = '' }: AnnouncementBanne
           <div className="flex items-center flex-1 max-w-[750px]">
             <div className="flex-shrink-0">
               <svg 
-                className="h-5 w-5 text-white" 
+                className="h-6 w-6 text-white" 
                 fill="currentColor" 
-                viewBox="0 0 20 20"
+                viewBox="0 0 24 24"
               >
                 <path 
                   fillRule="evenodd" 
-                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" 
+                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" 
                   clipRule="evenodd" 
                 />
               </svg>
