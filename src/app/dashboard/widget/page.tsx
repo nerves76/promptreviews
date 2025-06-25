@@ -13,10 +13,28 @@ import { useWidgets } from "./hooks/useWidgets";
 export default function WidgetPage() {
   const { widgets, loading, error, createWidget, deleteWidget, saveWidgetName, saveWidgetDesign, fetchWidgets } = useWidgets();
   const [selectedWidget, setSelectedWidget] = useState<any>(null);
+  const [selectedWidgetFull, setSelectedWidgetFull] = useState<any>(null);
   const [design, setDesign] = useState<DesignState>(DEFAULT_DESIGN);
   const [copiedWidgetId, setCopiedWidgetId] = useState<string | null>(null);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [showStyleModal, setShowStyleModal] = useState(false);
+
+  // Function to fetch full widget data including reviews
+  const fetchFullWidgetData = async (widgetId: string) => {
+    try {
+      console.log('🔍 WidgetPage: Fetching full widget data for:', widgetId);
+      const response = await fetch(`/api/widgets/${widgetId}`);
+      if (response.ok) {
+        const fullWidgetData = await response.json();
+        console.log('✅ WidgetPage: Full widget data fetched:', fullWidgetData);
+        setSelectedWidgetFull(fullWidgetData);
+      } else {
+        console.error('❌ WidgetPage: Failed to fetch full widget data:', response.status);
+      }
+    } catch (error) {
+      console.error('❌ WidgetPage: Error fetching full widget data:', error);
+    }
+  };
 
   // Memoize fake reviews to prevent recreation on every render
   const fakeReviews = useMemo(() => [
@@ -106,15 +124,19 @@ export default function WidgetPage() {
     if (widgets && widgets.length > 0) {
       console.log('✅ WidgetPage: Found widgets, selecting first one:', widgets[0]);
       setSelectedWidget(widgets[0]);
+      // Fetch full widget data for the selected widget
+      fetchFullWidgetData(widgets[0].id);
     } else {
       console.log('📝 WidgetPage: No widgets found, creating fake widget');
-      setSelectedWidget({
+      const fakeWidget = {
         id: "fake-multi-widget",
         name: "Demo Multi-Widget",
         widget_type: "multi",
         theme: DEFAULT_DESIGN,
         reviews: fakeReviews,
-      });
+      };
+      setSelectedWidget(fakeWidget);
+      setSelectedWidgetFull(fakeWidget);
     }
   }, [loading, widgets?.length]);
 
@@ -171,6 +193,13 @@ export default function WidgetPage() {
     setDesign(DEFAULT_DESIGN);
   };
 
+  // Handle widget selection from the list
+  const handleWidgetSelect = (widget: any) => {
+    console.log('🔍 WidgetPage: Widget selected from list:', widget);
+    setSelectedWidget(widget);
+    fetchFullWidgetData(widget.id);
+  };
+
   const isCopied = copiedWidgetId === selectedWidget?.id;
 
   return (
@@ -221,7 +250,7 @@ export default function WidgetPage() {
               {selectedWidget ? `Editing: ${selectedWidget.name}` : ''}
             </p>
           </div>
-          <WidgetPreview widget={selectedWidget} design={design} />
+          <WidgetPreview widget={selectedWidgetFull} design={design} />
         </div>
       </div>
 
@@ -242,7 +271,7 @@ export default function WidgetPage() {
           }
         >
           <WidgetList
-            onSelectWidget={setSelectedWidget}
+            onSelectWidget={handleWidgetSelect}
             selectedWidgetId={selectedWidget?.id}
             design={design}
             onDesignChange={setDesign}
