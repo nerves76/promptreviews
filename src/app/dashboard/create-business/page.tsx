@@ -715,7 +715,7 @@ export default function CreateBusinessPage() {
         isOpen={showWelcomePopup}
         onClose={handleWelcomePopupClose}
         title={"Oh hi " + userFirstName + "—I'm Prompty!"}
-        message={"Welcome to Prompt Reviews!\n\nDid you know you're a star? Carl Sagan said it best:\n\n\"The cosmos is within us. We are made of star-stuff. We are a way for the universe to know itself.\"\n\nBeautiful right! There is a flaming gas giant in you too! Wait, that didn't come out right . . .\n\nAnyway, I am here to help you get the stars you deserve—on Google, Facebook, TripAdvisor, TrustPilot—you name it.\n\nHere's your first tip: [icon] <----Click here"}
+        message={"Welcome to Prompt Reviews!\n\nDid you know you're a star? Carl Sagan said it best:\n\n\"The cosmos is within us. We are made of star-stuff. We are a way for the universe to know itself.\"\n\nBeautiful right! There is a flaming gas giant in you too! Wait, that didn't come out right . . .\n\nAnyway, I am here to help you get the stars you deserve—on Google, Facebook, TripAdvisor, TrustPilot—you name it.\n\nHere's your first tip: [icon] ← Click here"}
         imageUrl="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompty-sherif-reviews.png"
         imageAlt="Prompty Sheriff - Get Reviews"
         buttonText="Let's Wrangle Some Reviews!"
