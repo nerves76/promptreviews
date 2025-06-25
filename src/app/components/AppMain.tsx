@@ -2,6 +2,7 @@
 import { usePathname } from "next/navigation";
 import Header from "./Header";
 import AnnouncementBanner from "./AnnouncementBanner";
+import FeedbackBubble from "./FeedbackBubble";
 import { useMemo } from "react";
 
 export default function AppMain({
@@ -25,6 +26,8 @@ export default function AppMain({
         {!isAuth && <AnnouncementBanner />}
         {loader}
         {children}
+        {/* Feedback bubble for authenticated users */}
+        {!isAuth && <FeedbackBubble />}
       </main>
     </div>
   );

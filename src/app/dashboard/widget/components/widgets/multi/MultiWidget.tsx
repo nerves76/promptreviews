@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
 import { WidgetData, DesignState } from './index';
 import { createReviewCardHTML } from '../../shared/card-generator';
 
@@ -26,20 +26,25 @@ declare global {
 
 const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
   // Transform the database widget data to the expected format
-  const widgetData: WidgetData = {
+  const widgetData: WidgetData = useMemo(() => ({
     id: data.id,
     type: data.widget_type as 'multi' | 'single' | 'photo',
     design: data.theme || {},
     reviews: data.reviews || [],
     slug: data.slug || 'example-business'
-  };
+  }), [data.id, data.widget_type, data.theme, data.reviews, data.slug]);
 
   const { reviews, slug } = widgetData;
-  // Use the passed design prop if available, otherwise fall back to the widget's saved theme
-  const currentDesign = design || data.theme || {};
+  
+  // Memoize currentDesign to prevent unnecessary re-renders
+  const currentDesign = useMemo(() => {
+    return design || data.theme || {};
+  }, [design, data.theme]);
+  
   const containerRef = useRef<HTMLDivElement>(null);
   const retryCountRef = useRef<number>(0);
   const maxRetries = 10;
+  const initializedRef = useRef<boolean>(false);
 
   useEffect(() => {
     console.log('🎯 MultiWidget: Component mounted with data:', { 
@@ -113,6 +118,12 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
           return;
         }
         
+        // Prevent multiple initializations
+        if (initializedRef.current) {
+          console.log('🛑 MultiWidget: Already initialized, skipping');
+          return;
+        }
+        
         console.log('🚀 MultiWidget: Starting initialization...');
         await Promise.all([loadWidgetCSS(), loadWidgetScript()]);
         
@@ -148,6 +159,7 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
             slug || 'example-business'
           );
           console.log('✅ MultiWidget: Widget initialization completed');
+          initializedRef.current = true;
         } else {
           console.error('❌ MultiWidget: Missing dependencies for initialization.');
           console.log('🔍 MultiWidget: Debug info:', {
@@ -178,17 +190,22 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
       }
     };
 
-    if (reviews && currentDesign) {
+    if (reviews && currentDesign && !initializedRef.current) {
       retryCountRef.current = 0; // Reset retry count
       initializeWidget();
     } else {
-      console.log('⚠️ MultiWidget: Missing reviews or design data:', { reviews: !!reviews, design: !!currentDesign });
+      console.log('⚠️ MultiWidget: Missing reviews or design data, or already initialized:', { 
+        reviews: !!reviews, 
+        design: !!currentDesign,
+        initialized: initializedRef.current 
+      });
     }
 
     // Cleanup function
     return () => {
       console.log('🧹 MultiWidget: Component unmounting, setting cleanup flag');
       isMounted = false;
+      initializedRef.current = false;
     };
   }, [reviews, currentDesign, slug, data.id, data.widget_type]);
 
