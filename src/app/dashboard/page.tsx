@@ -347,8 +347,8 @@ export default function Dashboard() {
         </div>
       </div>
       
-      {/* PageCard pushed down by 100px */}
-      <div className="mt-[100px]">
+      {/* PageCard pushed down by 50px */}
+      <div className="mt-[50px]">
         <PageCard icon={<FaHome className="w-8 h-8 text-slate-blue" />}>
           <DashboardContent
             userName={userName}
