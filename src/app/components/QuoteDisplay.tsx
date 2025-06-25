@@ -73,53 +73,56 @@ export default function QuoteDisplay({ className = '' }: QuoteDisplayProps) {
   const currentQuote = quotes[currentIndex];
 
   return (
-    <div className={`border-2 border-white rounded-lg p-6 shadow-lg relative ${className}`}>
-      <div className="text-center">
-        {/* Navigation Arrows - Always show for testing */}
-        <button
-          onClick={previousQuote}
-          className="absolute left-2 top-1/2 transform -translate-y-1/2 p-2 text-white hover:text-white/80 transition-colors z-10 bg-black/20 rounded"
-          aria-label="Previous quote"
-        >
-          <FaChevronLeft className="h-5 w-5" />
-        </button>
-        <button
-          onClick={nextQuote}
-          className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 text-white hover:text-white/80 transition-colors z-10 bg-black/20 rounded"
-          aria-label="Next quote"
-        >
-          <FaChevronRight className="h-5 w-5" />
-        </button>
+    <div className={`relative ${className}`}>
+      {/* Navigation Arrows - Positioned outside the quote box */}
+      <button
+        onClick={previousQuote}
+        className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-12 p-2 text-white hover:text-white/80 transition-colors z-10 bg-black/20 rounded"
+        aria-label="Previous quote"
+      >
+        <FaChevronLeft className="h-5 w-5" />
+      </button>
+      <button
+        onClick={nextQuote}
+        className="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-12 p-2 text-white hover:text-white/80 transition-colors z-10 bg-black/20 rounded"
+        aria-label="Next quote"
+      >
+        <FaChevronRight className="h-5 w-5" />
+      </button>
 
-        {/* Quote Text */}
-        <blockquote className="text-lg font-medium text-white mb-2 px-12">
-          "{currentQuote.text}"
-        </blockquote>
+      {/* Quote Box */}
+      <div className="border-2 border-white rounded-lg p-6 shadow-lg">
+        <div className="text-center">
+          {/* Quote Text */}
+          <blockquote className="text-lg font-medium text-white mb-2">
+            "{currentQuote.text}"
+          </blockquote>
 
-        {/* Author */}
-        {currentQuote.author && (
-          <cite className="text-sm text-white/80 mb-3">
-            — {currentQuote.author}
-          </cite>
-        )}
+          {/* Author */}
+          {currentQuote.author && (
+            <cite className="text-sm text-white/80 mb-3">
+              — {currentQuote.author}
+            </cite>
+          )}
 
-        {/* Optional Button/Link */}
-        {currentQuote.button_text && currentQuote.button_url && (
-          <div className="mt-4">
-            <a
-              href={currentQuote.button_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-block px-4 py-2 bg-white text-slate-blue text-sm font-medium rounded hover:bg-white/90 transition-colors"
-            >
-              {currentQuote.button_text}
-            </a>
+          {/* Optional Button/Link */}
+          {currentQuote.button_text && currentQuote.button_url && (
+            <div className="mt-4">
+              <a
+                href={currentQuote.button_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block px-4 py-2 bg-white text-slate-blue text-sm font-medium rounded hover:bg-white/90 transition-colors"
+              >
+                {currentQuote.button_text}
+              </a>
+            </div>
+          )}
+
+          {/* Quote Counter - Always show for debugging */}
+          <div className="mt-4 text-xs text-white/60">
+            {currentIndex + 1} of {quotes.length} quotes
           </div>
-        )}
-
-        {/* Quote Counter - Always show for debugging */}
-        <div className="mt-4 text-xs text-white/60">
-          {currentIndex + 1} of {quotes.length} quotes
         </div>
       </div>
     </div>
