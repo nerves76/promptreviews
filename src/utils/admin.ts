@@ -478,4 +478,66 @@ export async function updateQuote(id: string, text: string, author?: string, but
     console.error('Error updating quote:', error);
     return false;
   }
+}
+
+/**
+ * Get all feedback submissions (admin only)
+ * @param supabaseClient - Optional Supabase client instance. If not provided, uses shared client.
+ * @returns Promise<Array> - array of all feedback submissions
+ */
+export async function getAllFeedback(supabaseClient?: any) {
+  try {
+    const client = supabaseClient || supabase;
+    const { data: feedback, error } = await client
+      .from('feedback')
+      .select(`
+        id,
+        user_id,
+        category,
+        message,
+        email,
+        is_read,
+        created_at,
+        users:user_id(email, user_metadata)
+      `)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching feedback:', error);
+      return [];
+    }
+
+    return feedback || [];
+  } catch (error) {
+    console.error('Error fetching feedback:', error);
+    return [];
+  }
+}
+
+/**
+ * Mark feedback as read (admin only)
+ * @param feedbackId - the feedback ID to mark as read
+ * @param isRead - whether to mark as read or unread
+ * @param supabaseClient - Optional Supabase client instance. If not provided, uses shared client.
+ * @returns Promise<boolean> - true if successful, false otherwise
+ */
+export async function markFeedbackAsRead(feedbackId: string, isRead: boolean, supabaseClient?: any): Promise<boolean> {
+  try {
+    const client = supabaseClient || supabase;
+    
+    const { error } = await client
+      .from('feedback')
+      .update({ is_read: isRead })
+      .eq('id', feedbackId);
+
+    if (error) {
+      console.error('Error marking feedback as read:', error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error marking feedback as read:', error);
+    return false;
+  }
 } 

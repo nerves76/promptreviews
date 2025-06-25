@@ -19,7 +19,9 @@ import {
   toggleQuote,
   deleteQuote,
   updateQuote,
-  getActiveAnnouncement
+  getActiveAnnouncement,
+  getAllFeedback,
+  markFeedbackAsRead
 } from '../../utils/admin';
 import { trackAdminAction } from '../../utils/analytics';
 
@@ -44,6 +46,20 @@ interface Quote {
   button_url?: string;
   is_active: boolean;
   created_at: string;
+}
+
+interface Feedback {
+  id: string;
+  user_id: string;
+  category: string;
+  message: string;
+  email?: string;
+  is_read: boolean;
+  created_at: string;
+  users?: {
+    email?: string;
+    user_metadata?: any;
+  };
 }
 
 export default function AdminPage() {
@@ -76,6 +92,9 @@ export default function AdminPage() {
   const [editQuoteButtonUrl, setEditQuoteButtonUrl] = useState('');
   const [updatingQuote, setUpdatingQuote] = useState(false);
 
+  // Feedback state
+  const [feedback, setFeedback] = useState<Feedback[]>([]);
+  const [loadingFeedback, setLoadingFeedback] = useState(false);
   useEffect(() => {
     checkAdminStatus();
   }, []);
@@ -125,14 +144,17 @@ export default function AdminPage() {
   const loadContent = async () => {
     try {
       console.log('Admin: Loading content...');
-      const [announcementsData, quotesData] = await Promise.all([
+      const [announcementsData, quotesData, feedbackData] = await Promise.all([
         getAllAnnouncements(supabase),
-        getAllQuotes(supabase)
+        getAllQuotes(supabase),
+        getAllFeedback(supabase)
       ]);
       console.log('Admin: Loaded announcements:', announcementsData);
       console.log('Admin: Loaded quotes:', quotesData);
+      console.log('Admin: Loaded feedback:', feedbackData);
       setAnnouncements(announcementsData);
       setQuotes(quotesData);
+      setFeedback(feedbackData);
     } catch (error) {
       console.log('Admin page: Error loading content:', error);
       setError('Error loading content: ' + (error as Error).message);
@@ -331,6 +353,29 @@ export default function AdminPage() {
     setEditQuoteAuthor('');
     setEditQuoteButtonText('');
     setEditQuoteButtonUrl('');
+  };
+
+  const handleMarkFeedbackAsRead = async (feedbackId: string, isRead: boolean) => {
+    setLoadingFeedback(true);
+    try {
+      const success = await markFeedbackAsRead(feedbackId, isRead, supabase);
+      if (success) {
+        // Update local state
+        setFeedback(prev => prev.map(f => 
+          f.id === feedbackId ? { ...f, is_read: isRead } : f
+        ));
+        
+        // Track the admin action
+        trackAdminAction('feedback_marked_read', {
+          feedback_id: feedbackId,
+          is_read: isRead,
+        });
+      }
+    } catch (error) {
+      console.error('Error marking feedback as read:', error);
+    } finally {
+      setLoadingFeedback(false);
+    }
   };
 
   if (loading) {
@@ -682,6 +727,68 @@ export default function AdminPage() {
                   <p className="text-gray-500 text-center py-4">No quotes yet</p>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Feedback Management */}
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Feedback Management</h2>
+          
+          <div>
+            <h3 className="text-lg font-medium text-gray-900 mb-3">All Feedback Submissions</h3>
+            <div className="space-y-4">
+              {feedback.map((item) => (
+                <div key={item.id} className={`border rounded-md p-4 ${item.is_read ? 'bg-gray-50' : 'bg-yellow-50 border-yellow-200'}`}>
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          item.category === 'bug_report' ? 'bg-red-100 text-red-800' :
+                          item.category === 'feature_request' ? 'bg-blue-100 text-blue-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {item.category.replace('_', ' ').toUpperCase()}
+                        </span>
+                        {!item.is_read && (
+                          <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                            NEW
+                          </span>
+                        )}
+                      </div>
+                      
+                      <p className="text-gray-900 mb-2">{item.message}</p>
+                      
+                      <div className="text-sm text-gray-600 space-y-1">
+                        {item.users?.email && (
+                          <p><strong>User:</strong> {item.users.email}</p>
+                        )}
+                        {item.email && (
+                          <p><strong>Contact Email:</strong> {item.email}</p>
+                        )}
+                        <p><strong>Submitted:</strong> {new Date(item.created_at).toLocaleString()}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-col gap-2 ml-4">
+                      <button
+                        onClick={() => handleMarkFeedbackAsRead(item.id, !item.is_read)}
+                        disabled={loadingFeedback}
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          item.is_read
+                            ? 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                            : 'bg-green-100 text-green-800 hover:bg-green-200'
+                        } disabled:opacity-50`}
+                      >
+                        {loadingFeedback ? '...' : (item.is_read ? 'Mark Unread' : 'Mark Read')}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {feedback.length === 0 && (
+                <p className="text-gray-500 text-center py-4">No feedback submissions yet</p>
+              )}
             </div>
           </div>
         </div>
