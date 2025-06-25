@@ -257,9 +257,7 @@ export default function WidgetPage() {
       {/* Bottom Section: Header and Widget List */}
       <div className="w-full max-w-6xl mx-auto">
         <PageCard
-          title="Your Widgets"
-          description="Create up to three widgets and embed them on your site."
-          icon={FaCode}
+          icon={<FaCode />}
           topRightAction={
             <button
               onClick={() => window.dispatchEvent(new CustomEvent('openNewWidgetForm'))}
@@ -270,6 +268,10 @@ export default function WidgetPage() {
             </button>
           }
         >
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Your Widgets</h2>
+            <p className="text-gray-600">Create up to three widgets and embed them on your site.</p>
+          </div>
           <WidgetList
             onSelectWidget={handleWidgetSelect}
             selectedWidgetId={selectedWidget?.id}
