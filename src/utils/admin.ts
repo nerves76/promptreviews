@@ -515,8 +515,7 @@ export async function getAllFeedback(supabaseClient?: any) {
         message,
         email,
         is_read,
-        created_at,
-        users:user_id(email, user_metadata)
+        created_at
       `)
       .order('created_at', { ascending: false });
 
@@ -525,7 +524,8 @@ export async function getAllFeedback(supabaseClient?: any) {
         message: error.message,
         details: error.details,
         hint: error.hint,
-        code: error.code
+        code: error.code,
+        fullError: error
       });
       return [];
     }
