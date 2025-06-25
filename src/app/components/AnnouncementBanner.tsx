@@ -83,7 +83,7 @@ export default function AnnouncementBanner({ className = '' }: AnnouncementBanne
               </svg>
             </div>
             <div className="ml-3 flex-1">
-              <p className="text-sm font-medium">
+              <p className="text-sm font-medium max-w-[750px]">
                 {announcement.message}
               </p>
               {announcement.button_text && announcement.button_url && (
