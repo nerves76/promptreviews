@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 import WidgetList from "./WidgetList";
 import PageCard from "@/app/components/PageCard";
@@ -18,8 +18,8 @@ export default function WidgetPage() {
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [showStyleModal, setShowStyleModal] = useState(false);
 
-  // Fake reviews for empty state
-  const fakeReviews = [
+  // Memoize fake reviews to prevent recreation on every render
+  const fakeReviews = useMemo(() => [
     {
       review_content: "The tour was incredible. Ricardo was an amazing guide. I really just had a stomach bug. Tell Ricardo, I'm happy to pay for his dry cleaning bill. Hope to return soon when I'm feeling better!",
       first_name: "Jillian",
@@ -92,11 +92,11 @@ export default function WidgetPage() {
       created_at: new Date(Date.now() - 8 * 86400000).toISOString(),
       star_rating: 5,
     },
-  ];
+  ], []);
 
   // Auto-select logic
   React.useEffect(() => {
-    console.log('🔍 WidgetPage: Auto-select effect triggered', { loading, widgetsCount: widgets?.length, widgets });
+    console.log('🔍 WidgetPage: Auto-select effect triggered', { loading, widgetsCount: widgets?.length });
     
     if (loading) {
       console.log('⏳ WidgetPage: Still loading, skipping auto-select');
@@ -116,7 +116,7 @@ export default function WidgetPage() {
         reviews: fakeReviews,
       });
     }
-  }, [loading, widgets]);
+  }, [loading, widgets?.length]);
 
   // Action handlers
   const handleCopyEmbedCode = async () => {
@@ -226,38 +226,37 @@ export default function WidgetPage() {
       </div>
 
       {/* Bottom Section: Header and Widget List */}
-      <PageCard>
-        <div className="text-left mb-6">
-          <div className="flex justify-between items-center mb-4">
-            <h1 className="text-4xl font-bold text-gray-900 leading-tight">Your widgets</h1>
+      <div className="w-full max-w-6xl mx-auto">
+        <PageCard
+          title="Your Widgets"
+          description="Create up to three widgets and embed them on your site."
+          icon={FaCode}
+          topRightAction={
             <button
               onClick={() => window.dispatchEvent(new CustomEvent('openNewWidgetForm'))}
               className="px-4 py-2 text-sm font-medium text-white bg-slate-blue rounded-md hover:bg-slate-blue/90 flex items-center"
             >
               <FaPlus className="mr-2" />
-              New Widget
+              Create Widget
             </button>
-          </div>
-          <p className="text-gray-600 text-base leading-relaxed max-w-2xl">
-            Create and manage your review widgets. Customize their appearance and select which reviews to display.
-          </p>
-        </div>
-        
-        <WidgetList
-          onSelectWidget={setSelectedWidget}
-          selectedWidgetId={selectedWidget?.id}
-          design={design}
-          onDesignChange={setDesign}
-          widgets={widgets}
-          loading={loading}
-          error={error}
-          createWidget={createWidget}
-          deleteWidget={deleteWidget}
-          saveWidgetName={saveWidgetName}
-          saveWidgetDesign={saveWidgetDesign}
-          fetchWidgets={fetchWidgets}
-        />
-      </PageCard>
+          }
+        >
+          <WidgetList
+            onSelectWidget={setSelectedWidget}
+            selectedWidgetId={selectedWidget?.id}
+            design={design}
+            onDesignChange={setDesign}
+            widgets={widgets}
+            loading={loading}
+            error={error}
+            createWidget={createWidget}
+            deleteWidget={deleteWidget}
+            saveWidgetName={saveWidgetName}
+            saveWidgetDesign={saveWidgetDesign}
+            fetchWidgets={fetchWidgets}
+          />
+        </PageCard>
+      </div>
 
       {/* Modals */}
       <ReviewManagementModal

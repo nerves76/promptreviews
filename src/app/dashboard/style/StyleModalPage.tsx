@@ -179,8 +179,8 @@ export default function StylePage({ onClose }: StylePageProps) {
     <div className="bg-white p-8 rounded-2xl shadow max-w-2xl w-full relative" style={{ maxHeight: '80vh' }}>
       {/* Circular close button that exceeds modal borders */}
       <button
-        className="absolute -top-6 -right-6 bg-white border border-gray-200 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 focus:outline-none z-20 transition-colors"
-        style={{ width: 48, height: 48 }}
+        className="absolute -top-6 -right-6 bg-white border border-gray-200 rounded-full shadow-lg shadow-[inset_0_0_8px_0_rgba(0,0,0,0.25)] flex items-center justify-center hover:bg-gray-100 focus:outline-none z-20 transition-colors p-4"
+        style={{ width: 64, height: 64 }}
         onClick={onClose || (() => window.history.back())}
         aria-label="Close style modal"
       >

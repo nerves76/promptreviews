@@ -583,6 +583,13 @@
 
   // Main function to initialize all widgets on the page
   async function autoInitializeWidgets() {
+    // Skip auto-initialization if we're in a dashboard context
+    // Dashboard components will call initializeWidget manually
+    if (window.location.pathname.includes('/dashboard')) {
+      console.log('🔄 MultiWidget: Dashboard context detected, skipping auto-initialization');
+      return;
+    }
+
     const widgets = document.querySelectorAll('[data-prompt-reviews-id], [data-widget-id]');
     if (widgets.length === 0) return;
 
@@ -594,7 +601,7 @@
       widgetContainer.id = `pr-widget-container-${widgetId}`;
 
       try {
-        const response = await fetch(`http://localhost:3001/api/widgets/${widgetId}`);
+        const response = await fetch(`/api/widgets/${widgetId}`);
         if (!response.ok) {
           throw new Error(`Failed to fetch widget data: ${response.statusText}`);
         }

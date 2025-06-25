@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 import { useRouter } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
+import { FaHome } from "react-icons/fa";
 import DashboardContent from "./DashboardContent";
 import { getUserOrMock, getSessionOrMock } from "@/utils/supabase";
 import PricingModal from "../components/PricingModal";
@@ -337,7 +338,7 @@ export default function Dashboard() {
     "there";
 
   return (
-    <PageCard>
+    <PageCard icon={<FaHome className="w-8 h-8 text-slate-blue" />}>
       <DashboardContent
         userName={userName}
         business={business}

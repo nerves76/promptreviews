@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
 import { WidgetData, DesignState } from './index';
 import { createReviewCardHTML } from '../../shared/card-generator';
 
@@ -21,8 +21,12 @@ const SingleWidget: React.FC<SingleWidgetProps> = ({ data, design }) => {
   };
 
   const { reviews, slug } = widgetData;
-  // Use the passed design prop if available, otherwise fall back to the widget's saved theme
-  const currentDesign = design || data.theme || {};
+  
+  // Memoize the design to prevent unnecessary re-renders
+  const currentDesign = useMemo(() => {
+    return design || data.theme || {};
+  }, [design, data.theme]);
+  
   const containerRef = useRef<HTMLDivElement>(null);
   const retryCountRef = useRef(0);
   const maxRetries = 5;
@@ -76,12 +80,19 @@ const SingleWidget: React.FC<SingleWidgetProps> = ({ data, design }) => {
         script.src = `/widgets/single/widget-embed.js?v=${new Date().getTime()}`;
         script.onload = () => {
           console.log('✅ SingleWidget: Widget script loaded successfully');
-          // Wait a bit for the script to initialize
-          setTimeout(() => {
-            console.log('🔧 SingleWidget: Available functions:', Object.keys(window.PromptReviewsSingle || {}));
-            console.log('🔧 SingleWidget: initializeWidget function:', typeof window.PromptReviewsSingle?.initializeWidget);
-            resolve();
-          }, 100);
+          // Wait for the script to fully initialize and expose the function
+          const checkFunction = () => {
+            if (window.PromptReviewsSingle?.initializeWidget) {
+              console.log('🔧 SingleWidget: initializeWidget function is available');
+              resolve();
+            } else {
+              console.log('⏳ SingleWidget: Waiting for initializeWidget function...');
+              setTimeout(checkFunction, 100);
+            }
+          };
+          
+          // Start checking after a short delay
+          setTimeout(checkFunction, 100);
         };
         script.onerror = (error) => {
           console.error('❌ SingleWidget: Failed to load widget script:', error);

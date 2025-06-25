@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { DesignState } from './widgets/multi/index';
 
@@ -38,9 +38,8 @@ interface WidgetPreviewProps {
 }
 
 export function WidgetPreview({ widget, design }: WidgetPreviewProps) {
-  const [WidgetComponent, setWidgetComponent] = useState<React.ComponentType<any> | null>(null);
-
-  useEffect(() => {
+  // Memoize the widget component selection to prevent unnecessary re-renders
+  const WidgetComponent = useMemo(() => {
     console.log('🔍 WidgetPreview: Received widget data:', widget);
     console.log('🔍 WidgetPreview: Widget type:', widget?.widget_type);
     console.log('🔍 WidgetPreview: Widget type type:', typeof widget?.widget_type);
@@ -50,15 +49,15 @@ export function WidgetPreview({ widget, design }: WidgetPreviewProps) {
     if (widget?.widget_type && WIDGET_COMPONENTS[widget.widget_type as string]) {
       console.log('✅ WidgetPreview: Found widget component for type:', widget.widget_type);
       console.log('✅ WidgetPreview: Selected component:', WIDGET_COMPONENTS[widget.widget_type as string].name);
-      setWidgetComponent(() => WIDGET_COMPONENTS[widget.widget_type as string]);
+      return WIDGET_COMPONENTS[widget.widget_type as string];
     } else {
       console.log('❌ WidgetPreview: No widget component found for type:', widget?.widget_type);
       console.log('❌ WidgetPreview: Available types:', Object.keys(WIDGET_COMPONENTS));
       console.log('❌ WidgetPreview: Widget type exists:', !!widget?.widget_type);
       console.log('❌ WidgetPreview: Component exists for type:', !!WIDGET_COMPONENTS[widget?.widget_type as string]);
-      setWidgetComponent(null);
+      return null;
     }
-  }, [widget]);
+  }, [widget?.widget_type]);
 
   if (!widget || !WidgetComponent) {
     console.log('⚠️ WidgetPreview: No widget selected or component not available');

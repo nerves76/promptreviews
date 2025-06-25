@@ -131,3 +131,10 @@ export async function getSessionOrMock(supabase: any) {
     return { data: { session: null }, error };
   }
 }
+
+/**
+ * Create a Supabase client for server-side operations
+ */
+export function createServerClient() {
+  return createClient(supabaseUrl, supabaseAnonKey);
+}

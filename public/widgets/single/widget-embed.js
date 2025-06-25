@@ -325,6 +325,13 @@
 
   // Main function to initialize all widgets on the page
   async function single_autoInitializeWidgets() {
+    // Skip auto-initialization if we're in a dashboard context
+    // Dashboard components will call initializeWidget manually
+    if (window.location.pathname.includes('/dashboard')) {
+      console.log('🔄 SingleWidget: Dashboard context detected, skipping auto-initialization');
+      return;
+    }
+
     console.log('🚀 AUTO INIT STARTED - Single Widget');
     console.log('🔍 Auto-initialization: Looking for widget containers...');
     
