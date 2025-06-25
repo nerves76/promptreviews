@@ -39,19 +39,53 @@ export async function GET(
       return NextResponse.json({ error: 'Widget not found' }, { status: 404 });
     }
 
-    // Fetch reviews for this widget from 'widget_reviews' table
-    const { data: reviews, error: reviewsError } = await supabase
+    // First, try to fetch reviews from 'widget_reviews' table
+    let reviews = [];
+    const { data: widgetReviews, error: widgetReviewsError } = await supabase
       .from('widget_reviews')
       .select('*')
       .eq('widget_id', widgetId)
       .order('created_at', { ascending: false });
 
-    if (reviewsError) {
-      return NextResponse.json({ error: 'Failed to fetch reviews' }, { status: 500 });
+    if (widgetReviewsError) {
+      console.error('Error fetching widget reviews:', widgetReviewsError);
+    } else if (widgetReviews && widgetReviews.length > 0) {
+      // Use widget-specific reviews if they exist
+      reviews = widgetReviews;
+      console.log(`Found ${reviews.length} widget-specific reviews`);
+    } else {
+      // Fallback: fetch reviews from review_submissions for this account
+      console.log('No widget-specific reviews found, falling back to review_submissions');
+      const { data: submissionReviews, error: submissionReviewsError } = await supabase
+        .from('review_submissions')
+        .select('*')
+        .eq('business_id', widget.account_id)
+        .order('created_at', { ascending: false })
+        .limit(10); // Limit to prevent too many reviews
+
+      if (submissionReviewsError) {
+        console.error('Error fetching review submissions:', submissionReviewsError);
+      } else if (submissionReviews) {
+        // Transform review_submissions to match widget_reviews format
+        reviews = submissionReviews.map(review => ({
+          id: review.id,
+          widget_id: widgetId,
+          review_id: review.id,
+          first_name: review.first_name,
+          last_name: review.last_name,
+          reviewer_role: review.reviewer_role,
+          review_content: review.review_content,
+          star_rating: 5, // Default to 5 stars
+          platform: review.platform,
+          created_at: review.created_at,
+          updated_at: review.created_at
+        }));
+        console.log(`Found ${reviews.length} review submissions for account`);
+      }
     }
 
     // Add photo_url field to each review (since the column doesn't exist yet)
-    const reviewsWithPhotoUrl = (reviews || []).map(review => ({
+    const reviewsWithPhotoUrl = reviews.map(review => ({
       ...review,
       photo_url: review.photo_url || null
     }));
