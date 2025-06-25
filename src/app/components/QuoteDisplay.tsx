@@ -73,21 +73,21 @@ export default function QuoteDisplay({ className = '' }: QuoteDisplayProps) {
   const currentQuote = quotes[currentIndex];
 
   return (
-    <div className={`border-2 border-white rounded-lg p-6 shadow-lg ${className}`}>
-      <div className="text-center relative">
+    <div className={`border-2 border-white rounded-lg p-6 shadow-lg relative ${className}`}>
+      <div className="text-center">
         {/* Navigation Arrows */}
         {quotes.length > 1 && (
           <>
             <button
               onClick={previousQuote}
-              className="absolute left-0 top-1/2 transform -translate-y-1/2 p-2 text-white hover:text-white/80 transition-colors"
+              className="absolute left-2 top-1/2 transform -translate-y-1/2 p-2 text-white hover:text-white/80 transition-colors z-10"
               aria-label="Previous quote"
             >
               <FaChevronLeft className="h-5 w-5" />
             </button>
             <button
               onClick={nextQuote}
-              className="absolute right-0 top-1/2 transform -translate-y-1/2 p-2 text-white hover:text-white/80 transition-colors"
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 text-white hover:text-white/80 transition-colors z-10"
               aria-label="Next quote"
             >
               <FaChevronRight className="h-5 w-5" />
@@ -96,7 +96,7 @@ export default function QuoteDisplay({ className = '' }: QuoteDisplayProps) {
         )}
 
         {/* Quote Text */}
-        <blockquote className="text-lg font-medium text-white mb-2 px-8">
+        <blockquote className="text-lg font-medium text-white mb-2 px-12">
           "{currentQuote.text}"
         </blockquote>
 
