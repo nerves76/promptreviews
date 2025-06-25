@@ -67,8 +67,8 @@ export default function AnnouncementBanner({ className = '' }: AnnouncementBanne
   return (
     <div className={`bg-slate-blue text-white ${className}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between py-3">
-          <div className="flex items-center flex-1">
+        <div className="flex items-center justify-center py-3">
+          <div className="flex items-center flex-1 max-w-[750px]">
             <div className="flex-shrink-0">
               <svg 
                 className="h-5 w-5 text-white" 
