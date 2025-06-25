@@ -36,10 +36,31 @@ export function useWidgets() {
       return;
     }
     
+    // First, get the user's account
+    const { data: account, error: accountError } = await supabase
+      .from("accounts")
+      .select("id")
+      .eq("id", user.id)
+      .single();
+      
+    console.log('🏢 useWidgets: Account lookup result:', { 
+      account: !!account, 
+      accountId: account?.id,
+      error: accountError?.message 
+    });
+    
+    if (accountError || !account) {
+      console.error('❌ useWidgets: Account lookup error:', accountError);
+      setError('Account not found');
+      setLoading(false);
+      return;
+    }
+    
+    // Now query widgets using the account_id
     const { data: widgetsData, error: widgetsError } = await supabase
       .from("widgets")
       .select("*")
-      .eq("account_id", user.id)
+      .eq("account_id", account.id)
       .order("created_at", { ascending: false });
       
     console.log('📊 useWidgets: Widgets query result:', { 
@@ -91,9 +112,20 @@ export function useWidgets() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error("User not authenticated");
 
+    // Get the user's account first
+    const { data: account, error: accountError } = await supabase
+      .from("accounts")
+      .select("id")
+      .eq("id", user.id)
+      .single();
+      
+    if (accountError || !account) {
+      throw new Error("Account not found");
+    }
+
     const { data, error } = await supabase
       .from("widgets")
-      .insert([{ name, widget_type: widgetType, account_id: user.id, theme }])
+      .insert([{ name, widget_type: widgetType, account_id: account.id, theme }])
       .select()
       .single();
 
