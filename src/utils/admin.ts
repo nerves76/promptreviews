@@ -564,4 +564,55 @@ export async function markFeedbackAsRead(feedbackId: string, isRead: boolean, su
     console.error('Error marking feedback as read:', error);
     return false;
   }
+}
+
+/**
+ * Delete feedback submission (admin only)
+ * @param feedbackId - the feedback ID to delete
+ * @param supabaseClient - Optional Supabase client instance. If not provided, uses shared client.
+ * @returns Promise<boolean> - true if successful, false otherwise
+ */
+export async function deleteFeedback(feedbackId: string, supabaseClient?: any): Promise<boolean> {
+  try {
+    const client = supabaseClient || supabase;
+    
+    // First check if user is admin
+    const { data: { user } } = await client.auth.getUser();
+    if (!user) {
+      console.error('deleteFeedback: No user found');
+      return false;
+    }
+
+    console.log('deleteFeedback: Checking admin status for user:', user.id);
+    const adminStatus = await isAdmin(user.id, client);
+    console.log('deleteFeedback: Admin status:', adminStatus);
+
+    if (!adminStatus) {
+      console.error('deleteFeedback: User is not admin');
+      return false;
+    }
+
+    console.log('deleteFeedback: Deleting feedback with ID:', feedbackId);
+
+    const { error } = await client
+      .from('feedback')
+      .delete()
+      .eq('id', feedbackId);
+
+    if (error) {
+      console.error('deleteFeedback: Database error:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
+      return false;
+    }
+
+    console.log('deleteFeedback: Feedback deleted successfully');
+    return true;
+  } catch (error) {
+    console.error('Error deleting feedback:', error);
+    return false;
+  }
 } 

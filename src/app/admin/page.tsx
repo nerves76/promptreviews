@@ -21,7 +21,8 @@ import {
   updateQuote,
   getActiveAnnouncement,
   getAllFeedback,
-  markFeedbackAsRead
+  markFeedbackAsRead,
+  deleteFeedback
 } from '../../utils/admin';
 import { trackAdminAction } from '../../utils/analytics';
 
@@ -377,6 +378,34 @@ export default function AdminPage() {
       }
     } catch (error) {
       console.error('Error marking feedback as read:', error);
+    } finally {
+      setLoadingFeedback(false);
+    }
+  };
+
+  const handleDeleteFeedback = async (feedbackId: string) => {
+    if (!confirm('Are you sure you want to delete this feedback submission? This action cannot be undone.')) {
+      return;
+    }
+
+    setLoadingFeedback(true);
+    try {
+      const success = await deleteFeedback(feedbackId, supabase);
+      if (success) {
+        // Remove from local state
+        setFeedback(prev => prev.filter(f => f.id !== feedbackId));
+        
+        // Track the admin action
+        trackAdminAction('feedback_deleted', {
+          feedback_id: feedbackId,
+        });
+      } else {
+        console.error('Failed to delete feedback');
+        setError('Failed to delete feedback. Please check the console for details.');
+      }
+    } catch (error) {
+      console.error('Error deleting feedback:', error);
+      setError('Error deleting feedback: ' + (error as Error).message);
     } finally {
       setLoadingFeedback(false);
     }
@@ -802,6 +831,15 @@ export default function AdminPage() {
                           } disabled:opacity-50`}
                         >
                           {loadingFeedback ? '...' : (item.is_read ? 'Mark Unread' : 'Mark Read')}
+                        </button>
+                        <button
+                          onClick={() => handleDeleteFeedback(item.id)}
+                          disabled={loadingFeedback}
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            loadingFeedback ? 'bg-gray-100 text-gray-800 hover:bg-gray-200' : 'bg-red-100 text-red-800 hover:bg-red-200'
+                          } disabled:opacity-50`}
+                        >
+                          Delete
                         </button>
                       </div>
                     </div>
