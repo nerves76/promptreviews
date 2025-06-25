@@ -479,29 +479,38 @@
 
   // Main function to initialize all widgets on the page
   async function autoInitializeWidgets() {
+    // Skip auto-initialization if we're in a dashboard context
+    // Dashboard components will call initializeWidget manually
+    if (window.location.pathname.includes('/dashboard')) {
+      console.log('🔄 PhotoWidget: Dashboard context detected, skipping auto-initialization');
+      return;
+    }
+
     const widgets = document.querySelectorAll('[data-prompt-reviews-id], [data-widget-id]');
     if (widgets.length === 0) return;
+
+    injectCSS();
 
     for (const widgetContainer of widgets) {
       const widgetId = widgetContainer.getAttribute('data-prompt-reviews-id') || widgetContainer.getAttribute('data-widget-id');
       const businessSlug = widgetContainer.getAttribute('data-business-slug');
+      widgetContainer.id = `pr-widget-container-${widgetId}`;
 
       try {
-        const response = await fetch(`http://localhost:3001/api/widgets/${widgetId}`);
+        const response = await fetch(`/api/widgets/${widgetId}`);
         if (!response.ok) {
           throw new Error(`Failed to fetch widget data: ${response.statusText}`);
         }
         const { reviews, design } = await response.json();
         
         if (reviews && reviews.length > 0) {
-          // Use the proper initializeWidget function instead of calling createCarouselHTML directly
           window.PromptReviewsPhoto.initializeWidget(widgetContainer.id, reviews, design, businessSlug);
         } else {
           widgetContainer.innerHTML = '<p>No reviews to display.</p>';
         }
 
       } catch (error) {
-        console.error('Error initializing PromptReviews Photo widget:', error);
+        console.error('Error initializing PromptReviews widget:', error);
         widgetContainer.innerHTML = '<p>Error loading reviews.</p>';
       }
     }

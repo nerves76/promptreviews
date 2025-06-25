@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
 import { WidgetData, DesignState } from './index';
 import { createReviewCardHTML } from '../../shared/card-generator';
 
@@ -21,8 +21,12 @@ const PhotoWidget: React.FC<PhotoWidgetProps> = ({ data, design }) => {
   };
 
   const { reviews, slug } = widgetData;
-  // Use the passed design prop if available, otherwise fall back to the widget's saved theme
-  const currentDesign = design || data.theme || {};
+  
+  // Memoize the design to prevent unnecessary re-renders
+  const currentDesign = useMemo(() => {
+    return design || data.theme || {};
+  }, [design, data.theme]);
+  
   const containerRef = useRef<HTMLDivElement>(null);
   const retryCountRef = useRef(0);
   const maxRetries = 5;
@@ -76,12 +80,19 @@ const PhotoWidget: React.FC<PhotoWidgetProps> = ({ data, design }) => {
         script.src = `/widgets/photo/widget-embed.js?v=${new Date().getTime()}`;
         script.onload = () => {
           console.log('✅ PhotoWidget: Widget script loaded successfully');
-          // Wait a bit for the script to initialize
-          setTimeout(() => {
-            console.log('🔧 PhotoWidget: Available functions:', Object.keys(window.PromptReviewsPhoto || {}));
-            console.log('🔧 PhotoWidget: initializeWidget function:', typeof window.PromptReviewsPhoto?.initializeWidget);
-            resolve();
-          }, 100);
+          // Wait for the script to fully initialize and expose the function
+          const checkFunction = () => {
+            if (window.PromptReviewsPhoto?.initializeWidget) {
+              console.log('🔧 PhotoWidget: initializeWidget function is available');
+              resolve();
+            } else {
+              console.log('⏳ PhotoWidget: Waiting for initializeWidget function...');
+              setTimeout(checkFunction, 100);
+            }
+          };
+          
+          // Start checking after a short delay
+          setTimeout(checkFunction, 100);
         };
         script.onerror = (error) => {
           console.error('❌ PhotoWidget: Failed to load widget script:', error);

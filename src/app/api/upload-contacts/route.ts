@@ -1,55 +1,22 @@
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { parse } from "csv-parse/sync";
 import slugify from "slugify";
 import { checkAccountLimits } from "@/utils/accountLimits";
-import { getUserOrMock, getSessionOrMock } from "@/utils/supabase";
-import { createClient } from "@supabase/supabase-js";
+import { authenticateApiRequest } from "@/utils/apiAuth";
 
 export async function POST(request: Request) {
   try {
     console.log("Starting upload-contacts API route");
-    let user;
-    let supabase;
-    const cookieStore = cookies();
-    supabase = createRouteHandlerClient({ cookies: () => cookieStore });
-    const {
-      data: { session },
-      error: sessionError,
-    } = await getSessionOrMock(supabase);
-
-    if (!session) {
-      // Try to get from Authorization header
-      const authHeader = request.headers.get("Authorization");
-      if (authHeader?.startsWith("Bearer ")) {
-        const token = authHeader.split(" ")[1];
-        supabase = createClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-          {
-            global: { headers: { Authorization: `Bearer ${token}` } },
-          },
-        );
-        const {
-          data: { user: tokenUser },
-          error: tokenError,
-        } = await supabase.auth.getUser(token);
-        if (tokenError || !tokenUser) {
-          return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-        user = tokenUser;
-      } else {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-      }
-    } else {
-      user = session.user;
+    
+    // Authenticate the request
+    const { user, supabase, error: authError } = await authenticateApiRequest(request);
+    
+    if (authError || !user) {
+      console.log("Upload contacts API: Authentication failed:", authError);
+      return NextResponse.json({ error: authError || "Authentication required" }, { status: 401 });
     }
 
-    if (!user) {
-      console.error("No user found after authentication");
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    console.log("User authenticated:", { userId: user.id, email: user.email });
 
     // ENFORCE ACCOUNT LIMITS
     const limitCheck = await checkAccountLimits(supabase, user.id, "contact");
@@ -212,7 +179,6 @@ export async function POST(request: Request) {
       console.log("First contact data:", contacts[0]); // Log the first contact's data
     }
     console.log("User ID being used:", user.id); // Log the user ID
-    console.log("Session:", session); // Log the session
 
     const { data: insertedContacts, error: insertError } = await supabase
       .from("contacts")

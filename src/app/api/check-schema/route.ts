@@ -1,40 +1,54 @@
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 
 export async function GET() {
   try {
-    const cookieStore = cookies();
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+    const cookieStore = await cookies();
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        global: {
+          headers: {
+            cookie: cookieStore.toString(),
+          },
+        },
+      }
+    );
 
-    // Check contacts table schema
-    const { data: contactsSchema, error: contactsSchemaError } =
-      await supabase.rpc("get_table_schema", { table_name: "contacts" });
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session?.user) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
 
-    // Check prompt_pages table schema
-    const { data: promptPagesSchema, error: promptPagesSchemaError } =
-      await supabase.rpc("get_table_schema", { table_name: "prompt_pages" });
+    // Check if user is admin
+    const { data: adminData, error: adminError } = await supabase
+      .from('admins')
+      .select('*')
+      .eq('user_id', session.user.id)
+      .single();
 
-    return NextResponse.json({
-      contacts: {
-        exists: !contactsSchemaError,
-        error: contactsSchemaError?.message,
-        schema: contactsSchema,
-      },
-      prompt_pages: {
-        exists: !promptPagesSchemaError,
-        error: promptPagesSchemaError?.message,
-        schema: promptPagesSchema,
-      },
+    if (adminError || !adminData) {
+      return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+    }
+
+    // Get schema information
+    const { data: tables, error: tablesError } = await supabase
+      .from('information_schema.tables')
+      .select('table_name')
+      .eq('table_schema', 'public');
+
+    if (tablesError) {
+      return NextResponse.json({ error: "Failed to get schema info" }, { status: 500 });
+    }
+
+    return NextResponse.json({ 
+      tables: tables.map(t => t.table_name),
+      user: session.user.email 
     });
   } catch (error) {
-    console.error("Error checking schema:", error);
-    return NextResponse.json(
-      {
-        error: "Failed to check schema",
-        details: error instanceof Error ? error.message : String(error),
-      },
-      { status: 500 },
-    );
+    console.error('Schema check error:', error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
