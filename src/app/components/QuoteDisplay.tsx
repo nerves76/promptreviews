@@ -75,25 +75,21 @@ export default function QuoteDisplay({ className = '' }: QuoteDisplayProps) {
   return (
     <div className={`border-2 border-white rounded-lg p-6 shadow-lg relative ${className}`}>
       <div className="text-center">
-        {/* Navigation Arrows */}
-        {quotes.length > 1 && (
-          <>
-            <button
-              onClick={previousQuote}
-              className="absolute left-2 top-1/2 transform -translate-y-1/2 p-2 text-white hover:text-white/80 transition-colors z-10"
-              aria-label="Previous quote"
-            >
-              <FaChevronLeft className="h-5 w-5" />
-            </button>
-            <button
-              onClick={nextQuote}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 text-white hover:text-white/80 transition-colors z-10"
-              aria-label="Next quote"
-            >
-              <FaChevronRight className="h-5 w-5" />
-            </button>
-          </>
-        )}
+        {/* Navigation Arrows - Always show for testing */}
+        <button
+          onClick={previousQuote}
+          className="absolute left-2 top-1/2 transform -translate-y-1/2 p-2 text-white hover:text-white/80 transition-colors z-10 bg-black/20 rounded"
+          aria-label="Previous quote"
+        >
+          <FaChevronLeft className="h-5 w-5" />
+        </button>
+        <button
+          onClick={nextQuote}
+          className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 text-white hover:text-white/80 transition-colors z-10 bg-black/20 rounded"
+          aria-label="Next quote"
+        >
+          <FaChevronRight className="h-5 w-5" />
+        </button>
 
         {/* Quote Text */}
         <blockquote className="text-lg font-medium text-white mb-2 px-12">
@@ -121,12 +117,10 @@ export default function QuoteDisplay({ className = '' }: QuoteDisplayProps) {
           </div>
         )}
 
-        {/* Quote Counter */}
-        {quotes.length > 1 && (
-          <div className="mt-4 text-xs text-white/60">
-            {currentIndex + 1} of {quotes.length}
-          </div>
-        )}
+        {/* Quote Counter - Always show for debugging */}
+        <div className="mt-4 text-xs text-white/60">
+          {currentIndex + 1} of {quotes.length} quotes
+        </div>
       </div>
     </div>
   );
