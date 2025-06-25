@@ -95,6 +95,10 @@ export default function AdminPage() {
   // Feedback state
   const [feedback, setFeedback] = useState<Feedback[]>([]);
   const [loadingFeedback, setLoadingFeedback] = useState(false);
+
+  // Tab state
+  const [activeTab, setActiveTab] = useState<'content' | 'feedback' | 'analytics'>('content');
+
   useEffect(() => {
     checkAdminStatus();
   }, []);
@@ -421,12 +425,26 @@ export default function AdminPage() {
         {/* Admin Subnav */}
         <div className="mb-8 border-b border-indigo-300/30">
           <nav className="-mb-px flex space-x-8">
-            <Link
-              href="/admin"
-              className="border-b-2 border-white py-2 px-1 text-sm font-medium text-white"
+            <button
+              onClick={() => setActiveTab('content')}
+              className={`border-b-2 py-2 px-1 text-sm font-medium ${
+                activeTab === 'content'
+                  ? 'border-white text-white'
+                  : 'border-transparent text-indigo-200 hover:text-white hover:border-indigo-300'
+              }`}
             >
               Content Management
-            </Link>
+            </button>
+            <button
+              onClick={() => setActiveTab('feedback')}
+              className={`border-b-2 py-2 px-1 text-sm font-medium ${
+                activeTab === 'feedback'
+                  ? 'border-white text-white'
+                  : 'border-transparent text-indigo-200 hover:text-white hover:border-indigo-300'
+              }`}
+            >
+              Feedback
+            </button>
             <Link
               href="/admin/analytics"
               className="border-b-2 border-transparent py-2 px-1 text-sm font-medium text-indigo-200 hover:text-white hover:border-indigo-300"
@@ -436,362 +454,366 @@ export default function AdminPage() {
           </nav>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Announcements Section */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Announcements</h2>
-            
-            {/* Create Announcement Form */}
-            <form onSubmit={handleAnnouncementSubmit} className="mb-6">
-              <div className="mb-4">
-                <label htmlFor="announcement" className="block text-sm font-medium text-gray-700 mb-2">
-                  New Announcement
-                </label>
-                <textarea
-                  id="announcement"
-                  value={announcementMessage}
-                  onChange={(e) => setAnnouncementMessage(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
-                  rows={3}
-                  placeholder="Enter announcement message..."
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label htmlFor="buttonText" className="block text-sm font-medium text-gray-700 mb-2">
-                  Button Text
-                </label>
-                <input
-                  type="text"
-                  id="buttonText"
-                  value={announcementButtonText}
-                  onChange={(e) => setAnnouncementButtonText(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
-                  placeholder="Enter button text..."
-                />
-              </div>
-              <div className="mb-4">
-                <label htmlFor="buttonUrl" className="block text-sm font-medium text-gray-700 mb-2">
-                  Button URL
-                </label>
-                <input
-                  type="text"
-                  id="buttonUrl"
-                  value={announcementButtonUrl}
-                  onChange={(e) => setAnnouncementButtonUrl(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
-                  placeholder="Enter button URL..."
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={creatingAnnouncement || !announcementMessage.trim()}
-                className="w-full bg-slate-blue text-white py-3 px-6 rounded-md hover:bg-slate-blue/90 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-lg"
-              >
-                {creatingAnnouncement ? 'Saving...' : 'Save Announcement'}
-              </button>
-            </form>
+        {/* Tab Content */}
+        {activeTab === 'content' && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Announcements Section */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Announcements</h2>
+              
+              {/* Create Announcement Form */}
+              <form onSubmit={handleAnnouncementSubmit} className="mb-6">
+                <div className="mb-4">
+                  <label htmlFor="announcement" className="block text-sm font-medium text-gray-700 mb-2">
+                    New Announcement
+                  </label>
+                  <textarea
+                    id="announcement"
+                    value={announcementMessage}
+                    onChange={(e) => setAnnouncementMessage(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
+                    rows={3}
+                    placeholder="Enter announcement message..."
+                    required
+                  />
+                </div>
+                <div className="mb-4">
+                  <label htmlFor="buttonText" className="block text-sm font-medium text-gray-700 mb-2">
+                    Button Text
+                  </label>
+                  <input
+                    type="text"
+                    id="buttonText"
+                    value={announcementButtonText}
+                    onChange={(e) => setAnnouncementButtonText(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
+                    placeholder="Enter button text..."
+                  />
+                </div>
+                <div className="mb-4">
+                  <label htmlFor="buttonUrl" className="block text-sm font-medium text-gray-700 mb-2">
+                    Button URL
+                  </label>
+                  <input
+                    type="text"
+                    id="buttonUrl"
+                    value={announcementButtonUrl}
+                    onChange={(e) => setAnnouncementButtonUrl(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
+                    placeholder="Enter button URL..."
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={creatingAnnouncement || !announcementMessage.trim()}
+                  className="w-full bg-slate-blue text-white py-3 px-6 rounded-md hover:bg-slate-blue/90 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-lg"
+                >
+                  {creatingAnnouncement ? 'Saving...' : 'Save Announcement'}
+                </button>
+              </form>
 
-            {/* Announcements List */}
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-3">All Announcements</h3>
-              <div className="space-y-3">
-                {announcements.map((announcement) => (
-                  <div key={announcement.id} className="border border-gray-200 rounded-md p-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <p className="text-gray-900">{announcement.message}</p>
-                        <p className="text-sm text-gray-500 mt-1">
-                          {new Date(announcement.created_at).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => handleToggleAnnouncement(announcement.id, announcement.is_active)}
-                        className={`ml-4 px-3 py-1 rounded-full text-xs font-medium ${
-                          announcement.is_active
-                            ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                            : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                        }`}
-                      >
-                        {announcement.is_active ? 'Active' : 'Inactive'}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-                {announcements.length === 0 && (
-                  <p className="text-gray-500 text-center py-4">No announcements yet</p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Quotes Section */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Quotes</h2>
-            
-            {/* Create Quote Form */}
-            <form onSubmit={handleCreateQuote} className="mb-6">
-              <div className="mb-4">
-                <label htmlFor="quote" className="block text-sm font-medium text-gray-700 mb-2">
-                  Quote Text
-                </label>
-                <textarea
-                  id="quote"
-                  value={quoteText}
-                  onChange={(e) => setQuoteText(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
-                  rows={3}
-                  placeholder="Enter quote text..."
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label htmlFor="author" className="block text-sm font-medium text-gray-700 mb-2">
-                  Author (Optional)
-                </label>
-                <input
-                  type="text"
-                  id="author"
-                  value={quoteAuthor}
-                  onChange={(e) => setQuoteAuthor(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
-                  placeholder="Quote author..."
-                />
-              </div>
-              <div className="mb-4">
-                <label htmlFor="buttonText" className="block text-sm font-medium text-gray-700 mb-2">
-                  Button Text
-                </label>
-                <input
-                  type="text"
-                  id="buttonText"
-                  value={quoteButtonText}
-                  onChange={(e) => setQuoteButtonText(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
-                  placeholder="Enter button text..."
-                />
-              </div>
-              <div className="mb-4">
-                <label htmlFor="buttonUrl" className="block text-sm font-medium text-gray-700 mb-2">
-                  Button URL
-                </label>
-                <input
-                  type="text"
-                  id="buttonUrl"
-                  value={quoteButtonUrl}
-                  onChange={(e) => setQuoteButtonUrl(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
-                  placeholder="Enter button URL..."
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={creatingQuote || !quoteText.trim()}
-                className="w-full bg-slate-blue text-white py-3 px-6 rounded-md hover:bg-slate-blue/90 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-lg"
-              >
-                {creatingQuote ? 'Saving...' : 'Save Quote'}
-              </button>
-            </form>
-
-            {/* Quotes List */}
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-3">All Quotes</h3>
-              <div className="space-y-3">
-                {quotes.map((quote) => (
-                  <div key={quote.id} className="border border-gray-200 rounded-md p-4">
-                    {editingQuote === quote.id ? (
-                      // Edit Form
-                      <form onSubmit={handleUpdateQuote}>
-                        <div className="mb-4">
-                          <label htmlFor={`edit-quote-${quote.id}`} className="block text-sm font-medium text-gray-700 mb-2">
-                            Quote Text
-                          </label>
-                          <textarea
-                            id={`edit-quote-${quote.id}`}
-                            value={editQuoteText}
-                            onChange={(e) => setEditQuoteText(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
-                            rows={3}
-                            placeholder="Enter quote text..."
-                            required
-                          />
-                        </div>
-                        <div className="mb-4">
-                          <label htmlFor={`edit-author-${quote.id}`} className="block text-sm font-medium text-gray-700 mb-2">
-                            Author (Optional)
-                          </label>
-                          <input
-                            type="text"
-                            id={`edit-author-${quote.id}`}
-                            value={editQuoteAuthor}
-                            onChange={(e) => setEditQuoteAuthor(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
-                            placeholder="Quote author..."
-                          />
-                        </div>
-                        <div className="mb-4">
-                          <label htmlFor={`edit-buttonText-${quote.id}`} className="block text-sm font-medium text-gray-700 mb-2">
-                            Button Text
-                          </label>
-                          <input
-                            type="text"
-                            id={`edit-buttonText-${quote.id}`}
-                            value={editQuoteButtonText}
-                            onChange={(e) => setEditQuoteButtonText(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
-                            placeholder="Enter button text..."
-                          />
-                        </div>
-                        <div className="mb-4">
-                          <label htmlFor={`edit-buttonUrl-${quote.id}`} className="block text-sm font-medium text-gray-700 mb-2">
-                            Button URL
-                          </label>
-                          <input
-                            type="text"
-                            id={`edit-buttonUrl-${quote.id}`}
-                            value={editQuoteButtonUrl}
-                            onChange={(e) => setEditQuoteButtonUrl(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
-                            placeholder="Enter button URL..."
-                          />
-                        </div>
-                        <div className="flex gap-2">
-                          <button
-                            type="submit"
-                            disabled={updatingQuote || !editQuoteText.trim()}
-                            className="flex-1 bg-slate-blue text-white py-2 px-4 rounded-md hover:bg-slate-blue/90 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-                          >
-                            {updatingQuote ? 'Saving...' : 'Save Changes'}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={handleCancelEdit}
-                            disabled={updatingQuote}
-                            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      </form>
-                    ) : (
-                      // Display Mode
+              {/* Announcements List */}
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-3">All Announcements</h3>
+                <div className="space-y-3">
+                  {announcements.map((announcement) => (
+                    <div key={announcement.id} className="border border-gray-200 rounded-md p-4">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <p className="text-gray-900 italic">"{quote.text}"</p>
-                          {quote.author && (
-                            <p className="text-sm text-gray-600 mt-1">— {quote.author}</p>
-                          )}
-                          {quote.button_text && quote.button_url && (
-                            <div className="mt-2 p-2 bg-blue-50 rounded border border-blue-200">
-                              <p className="text-sm text-blue-800">
-                                <strong>Button:</strong> {quote.button_text}
-                              </p>
-                              <p className="text-sm text-blue-600 truncate">
-                                <strong>URL:</strong> {quote.button_url}
-                              </p>
-                            </div>
-                          )}
+                          <p className="text-gray-900">{announcement.message}</p>
                           <p className="text-sm text-gray-500 mt-1">
-                            {new Date(quote.created_at).toLocaleDateString()}
+                            {new Date(announcement.created_at).toLocaleDateString()}
                           </p>
                         </div>
-                        <div className="flex flex-col gap-2 ml-4">
-                          <button
-                            onClick={() => handleToggleQuote(quote.id, quote.is_active)}
-                            className={`px-3 py-1 rounded-full text-xs font-medium ${
-                              quote.is_active
-                                ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                                : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                            }`}
-                          >
-                            {quote.is_active ? 'Active' : 'Inactive'}
-                          </button>
-                          <button
-                            onClick={() => handleEditQuote(quote)}
-                            className="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 hover:bg-blue-200"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDeleteQuote(quote.id)}
-                            className="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 hover:bg-red-200"
-                          >
-                            Delete
-                          </button>
+                        <button
+                          onClick={() => handleToggleAnnouncement(announcement.id, announcement.is_active)}
+                          className={`ml-4 px-3 py-1 rounded-full text-xs font-medium ${
+                            announcement.is_active
+                              ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                              : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                          }`}
+                        >
+                          {announcement.is_active ? 'Active' : 'Inactive'}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  {announcements.length === 0 && (
+                    <p className="text-gray-500 text-center py-4">No announcements yet</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Quotes Section */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Quotes</h2>
+              
+              {/* Create Quote Form */}
+              <form onSubmit={handleCreateQuote} className="mb-6">
+                <div className="mb-4">
+                  <label htmlFor="quote" className="block text-sm font-medium text-gray-700 mb-2">
+                    Quote Text
+                  </label>
+                  <textarea
+                    id="quote"
+                    value={quoteText}
+                    onChange={(e) => setQuoteText(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
+                    rows={3}
+                    placeholder="Enter quote text..."
+                    required
+                  />
+                </div>
+                <div className="mb-4">
+                  <label htmlFor="author" className="block text-sm font-medium text-gray-700 mb-2">
+                    Author (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    id="author"
+                    value={quoteAuthor}
+                    onChange={(e) => setQuoteAuthor(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
+                    placeholder="Quote author..."
+                  />
+                </div>
+                <div className="mb-4">
+                  <label htmlFor="buttonText" className="block text-sm font-medium text-gray-700 mb-2">
+                    Button Text
+                  </label>
+                  <input
+                    type="text"
+                    id="buttonText"
+                    value={quoteButtonText}
+                    onChange={(e) => setQuoteButtonText(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
+                    placeholder="Enter button text..."
+                  />
+                </div>
+                <div className="mb-4">
+                  <label htmlFor="buttonUrl" className="block text-sm font-medium text-gray-700 mb-2">
+                    Button URL
+                  </label>
+                  <input
+                    type="text"
+                    id="buttonUrl"
+                    value={quoteButtonUrl}
+                    onChange={(e) => setQuoteButtonUrl(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
+                    placeholder="Enter button URL..."
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={creatingQuote || !quoteText.trim()}
+                  className="w-full bg-slate-blue text-white py-3 px-6 rounded-md hover:bg-slate-blue/90 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-lg"
+                >
+                  {creatingQuote ? 'Saving...' : 'Save Quote'}
+                </button>
+              </form>
+
+              {/* Quotes List */}
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-3">All Quotes</h3>
+                <div className="space-y-3">
+                  {quotes.map((quote) => (
+                    <div key={quote.id} className="border border-gray-200 rounded-md p-4">
+                      {editingQuote === quote.id ? (
+                        // Edit Form
+                        <form onSubmit={handleUpdateQuote}>
+                          <div className="mb-4">
+                            <label htmlFor={`edit-quote-${quote.id}`} className="block text-sm font-medium text-gray-700 mb-2">
+                              Quote Text
+                            </label>
+                            <textarea
+                              id={`edit-quote-${quote.id}`}
+                              value={editQuoteText}
+                              onChange={(e) => setEditQuoteText(e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
+                              rows={3}
+                              placeholder="Enter quote text..."
+                              required
+                            />
+                          </div>
+                          <div className="mb-4">
+                            <label htmlFor={`edit-author-${quote.id}`} className="block text-sm font-medium text-gray-700 mb-2">
+                              Author (Optional)
+                            </label>
+                            <input
+                              type="text"
+                              id={`edit-author-${quote.id}`}
+                              value={editQuoteAuthor}
+                              onChange={(e) => setEditQuoteAuthor(e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
+                              placeholder="Quote author..."
+                            />
+                          </div>
+                          <div className="mb-4">
+                            <label htmlFor={`edit-buttonText-${quote.id}`} className="block text-sm font-medium text-gray-700 mb-2">
+                              Button Text
+                            </label>
+                            <input
+                              type="text"
+                              id={`edit-buttonText-${quote.id}`}
+                              value={editQuoteButtonText}
+                              onChange={(e) => setEditQuoteButtonText(e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
+                              placeholder="Enter button text..."
+                            />
+                          </div>
+                          <div className="mb-4">
+                            <label htmlFor={`edit-buttonUrl-${quote.id}`} className="block text-sm font-medium text-gray-700 mb-2">
+                              Button URL
+                            </label>
+                            <input
+                              type="text"
+                              id={`edit-buttonUrl-${quote.id}`}
+                              value={editQuoteButtonUrl}
+                              onChange={(e) => setEditQuoteButtonUrl(e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
+                              placeholder="Enter button URL..."
+                            />
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              type="submit"
+                              disabled={updatingQuote || !editQuoteText.trim()}
+                              className="flex-1 bg-slate-blue text-white py-2 px-4 rounded-md hover:bg-slate-blue/90 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                            >
+                              {updatingQuote ? 'Saving...' : 'Save Changes'}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleCancelEdit}
+                              disabled={updatingQuote}
+                              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </form>
+                      ) : (
+                        // Display Mode
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <p className="text-gray-900 italic">"{quote.text}"</p>
+                            {quote.author && (
+                              <p className="text-sm text-gray-600 mt-1">— {quote.author}</p>
+                            )}
+                            {quote.button_text && quote.button_url && (
+                              <div className="mt-2 p-2 bg-blue-50 rounded border border-blue-200">
+                                <p className="text-sm text-blue-800">
+                                  <strong>Button:</strong> {quote.button_text}
+                                </p>
+                                <p className="text-sm text-blue-600 truncate">
+                                  <strong>URL:</strong> {quote.button_url}
+                                </p>
+                              </div>
+                            )}
+                            <p className="text-sm text-gray-500 mt-1">
+                              {new Date(quote.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <div className="flex flex-col gap-2 ml-4">
+                            <button
+                              onClick={() => handleToggleQuote(quote.id, quote.is_active)}
+                              className={`px-3 py-1 rounded-full text-xs font-medium ${
+                                quote.is_active
+                                  ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                                  : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                              }`}
+                            >
+                              {quote.is_active ? 'Active' : 'Inactive'}
+                            </button>
+                            <button
+                              onClick={() => handleEditQuote(quote)}
+                              className="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 hover:bg-blue-200"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDeleteQuote(quote.id)}
+                              className="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 hover:bg-red-200"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  {quotes.length === 0 && (
+                    <p className="text-gray-500 text-center py-4">No quotes yet</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'feedback' && (
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Feedback Management</h2>
+            
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 mb-3">All Feedback Submissions</h3>
+              <div className="space-y-4">
+                {feedback.map((item) => (
+                  <div key={item.id} className={`border rounded-md p-4 ${item.is_read ? 'bg-gray-50' : 'bg-yellow-50 border-yellow-200'}`}>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            item.category === 'bug_report' ? 'bg-red-100 text-red-800' :
+                            item.category === 'feature_request' ? 'bg-blue-100 text-blue-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {item.category.replace('_', ' ').toUpperCase()}
+                          </span>
+                          {!item.is_read && (
+                            <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                              NEW
+                            </span>
+                          )}
+                        </div>
+                        
+                        <p className="text-gray-900 mb-2">{item.message}</p>
+                        
+                        <div className="text-sm text-gray-600 space-y-1">
+                          {item.users?.email && (
+                            <p><strong>User:</strong> {item.users.email}</p>
+                          )}
+                          {item.email && (
+                            <p><strong>Contact Email:</strong> {item.email}</p>
+                          )}
+                          <p><strong>Submitted:</strong> {new Date(item.created_at).toLocaleString()}</p>
                         </div>
                       </div>
-                    )}
+                      
+                      <div className="flex flex-col gap-2 ml-4">
+                        <button
+                          onClick={() => handleMarkFeedbackAsRead(item.id, !item.is_read)}
+                          disabled={loadingFeedback}
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            item.is_read
+                              ? 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                              : 'bg-green-100 text-green-800 hover:bg-green-200'
+                          } disabled:opacity-50`}
+                        >
+                          {loadingFeedback ? '...' : (item.is_read ? 'Mark Unread' : 'Mark Read')}
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 ))}
-                {quotes.length === 0 && (
-                  <p className="text-gray-500 text-center py-4">No quotes yet</p>
+                {feedback.length === 0 && (
+                  <p className="text-gray-500 text-center py-4">No feedback submissions yet</p>
                 )}
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Feedback Management */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Feedback Management</h2>
-          
-          <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-3">All Feedback Submissions</h3>
-            <div className="space-y-4">
-              {feedback.map((item) => (
-                <div key={item.id} className={`border rounded-md p-4 ${item.is_read ? 'bg-gray-50' : 'bg-yellow-50 border-yellow-200'}`}>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          item.category === 'bug_report' ? 'bg-red-100 text-red-800' :
-                          item.category === 'feature_request' ? 'bg-blue-100 text-blue-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
-                          {item.category.replace('_', ' ').toUpperCase()}
-                        </span>
-                        {!item.is_read && (
-                          <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                            NEW
-                          </span>
-                        )}
-                      </div>
-                      
-                      <p className="text-gray-900 mb-2">{item.message}</p>
-                      
-                      <div className="text-sm text-gray-600 space-y-1">
-                        {item.users?.email && (
-                          <p><strong>User:</strong> {item.users.email}</p>
-                        )}
-                        {item.email && (
-                          <p><strong>Contact Email:</strong> {item.email}</p>
-                        )}
-                        <p><strong>Submitted:</strong> {new Date(item.created_at).toLocaleString()}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex flex-col gap-2 ml-4">
-                      <button
-                        onClick={() => handleMarkFeedbackAsRead(item.id, !item.is_read)}
-                        disabled={loadingFeedback}
-                        className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          item.is_read
-                            ? 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                            : 'bg-green-100 text-green-800 hover:bg-green-200'
-                        } disabled:opacity-50`}
-                      >
-                        {loadingFeedback ? '...' : (item.is_read ? 'Mark Unread' : 'Mark Read')}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-              {feedback.length === 0 && (
-                <p className="text-gray-500 text-center py-4">No feedback submissions yet</p>
-              )}
-            </div>
-          </div>
-        </div>
+        )}
 
         {/* Back to Dashboard */}
         <div className="mt-8 text-center">
