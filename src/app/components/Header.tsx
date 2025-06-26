@@ -15,23 +15,29 @@ import { trackEvent, GA_EVENTS } from '../../utils/analytics';
 /**
  * CowboyUserIcon component
  * 
- * A user account icon with a white cowboy hat on a slate blue circle background.
+ * A user account icon with a white cowboy hat positioned in the center of a slate blue circle.
  * Falls back to the standard user circle icon if the PNG image fails to load.
  */
 const CowboyUserIcon = () => {
   const [imageError, setImageError] = useState(false);
   
   if (imageError) {
-    return <FaUserCircle className="w-8 h-8 text-[#1A237E] hover:text-[#1A237E]/80 transition-colors" />;
+    return (
+      <div className="w-8 h-8 bg-[#1A237E] rounded-full flex items-center justify-center hover:opacity-80 transition-opacity">
+        <FaUserCircle className="w-5 h-5 text-white" />
+      </div>
+    );
   }
   
   return (
-    <img
-      src="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/cowboy-account-icon.png"
-      alt="Account"
-      className="w-8 h-8 hover:opacity-80 transition-opacity"
-      onError={() => setImageError(true)}
-    />
+    <div className="w-8 h-8 bg-[#1A237E] rounded-full relative hover:opacity-80 transition-opacity">
+      <img
+        src="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/cowboy-account-icon.png"
+        alt="Account"
+        className="absolute inset-0 w-5 h-5 m-auto object-contain"
+        onError={() => setImageError(true)}
+      />
+    </div>
   );
 };
 
