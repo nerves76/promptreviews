@@ -499,6 +499,12 @@ export default function AdminPage() {
             >
               Email Templates
             </button>
+            <Link
+              href="/admin/trial-reminders"
+              className="border-b-2 border-transparent py-2 px-1 text-sm font-medium text-indigo-200 hover:text-white hover:border-indigo-300"
+            >
+              Trial Reminders
+            </Link>
           </nav>
         </div>
 

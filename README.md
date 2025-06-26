@@ -13,6 +13,7 @@ A modern, customizable review widget system built with Next.js, TypeScript, and 
 - 📧 Email automation with Resend
 - 🐛 **Error tracking with Sentry**
 - 📈 **Google Analytics 4 integration**
+- ⏰ **Automatic trial reminder system**
 
 ## Quick Start
 
@@ -30,6 +31,7 @@ Create a `.env.local` file with the following variables:
 # Supabase Configuration
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url_here
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key_here
 
 # Stripe Configuration
 STRIPE_SECRET_KEY=your_stripe_secret_key_here
@@ -42,6 +44,9 @@ RESEND_API_KEY=your_resend_api_key_here
 # OpenAI Configuration
 OPENAI_API_KEY=your_openai_api_key_here
 
+# Cron Job Configuration
+CRON_SECRET_TOKEN=your_cron_secret_token_here
+
 # Sentry Configuration (Optional but recommended)
 NEXT_PUBLIC_SENTRY_DSN=your_sentry_dsn_here
 NEXT_PUBLIC_SENTRY_RELEASE=promptreviews@0.1.0
@@ -51,6 +56,52 @@ SENTRY_PROJECT=your_sentry_project_here
 # Google Analytics Configuration
 NEXT_PUBLIC_GA_TRACKING_ID=G-22JHGCL1T7
 ```
+
+## Automatic Trial Reminder System
+
+This project includes an automated trial reminder system that sends emails to users whose trial expires in 3 days.
+
+### Features
+- ✅ **Automatic daily scheduling** via Vercel cron jobs
+- ✅ **Duplicate prevention** - max 1 reminder per day per user
+- ✅ **Comprehensive logging** of all reminder attempts
+- ✅ **Manual override** capability for testing
+- ✅ **Admin dashboard** for monitoring and management
+- ✅ **Error tracking** and reporting
+
+### Setup
+
+1. **Database Setup**: Run the SQL script in `create_trial_reminder_logs.sql` in your Supabase SQL editor
+2. **Environment Variables**: Add `CRON_SECRET_TOKEN` to your environment variables
+3. **Vercel Deployment**: The cron job is automatically configured in `vercel.json`
+
+### How It Works
+
+- **Schedule**: Runs daily at 9 AM UTC via Vercel cron
+- **Target Users**: Users on 'grower' plan with trial ending in 3 days
+- **Email Template**: Uses the 'trial_reminder' email template
+- **Logging**: All attempts are logged in `trial_reminder_logs` table
+- **Duplicate Prevention**: Checks for existing reminders sent today
+
+### Admin Management
+
+- **Manual Sending**: Use the "Send Trial Reminders" button in Email Templates section
+- **Logs Viewing**: Visit `/admin/trial-reminders` to view all reminder activity
+- **Statistics**: See total, successful, failed, and today's reminder counts
+- **Error Tracking**: View detailed error messages for failed reminders
+
+### API Endpoints
+
+- `GET /api/cron/send-trial-reminders` - Automated cron endpoint (requires `CRON_SECRET_TOKEN`)
+- `POST /api/send-trial-reminders` - Manual sending endpoint (requires admin access)
+
+### Monitoring
+
+The system provides comprehensive monitoring:
+- Real-time statistics in admin dashboard
+- Detailed logs with success/failure tracking
+- Error message capture for debugging
+- Daily activity summaries
 
 ## Sentry Integration
 

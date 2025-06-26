@@ -1,56 +1,43 @@
 /**
- * Send Trial Reminders API
+ * Cron Job: Send Trial Reminders
  * 
- * Sends reminder emails to users whose trial expires in 3 days
+ * Automatically sends reminder emails to users whose trial expires in 3 days.
+ * This endpoint is called by Vercel's cron service daily at 9 AM UTC.
+ * 
+ * Security: Uses a secret token to ensure only Vercel can call this endpoint.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
-import { sendTrialReminderEmail } from '../../../utils/emailTemplates';
+import { createClient } from '@supabase/supabase-js';
+import { sendTrialReminderEmail } from '../../../../utils/emailTemplates';
 
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
-    const cookieStore = await cookies();
+    // Verify the request is from Vercel cron
+    const authHeader = request.headers.get('authorization');
+    const expectedToken = process.env.CRON_SECRET_TOKEN;
     
-    const supabase = createServerClient(
+    if (!expectedToken) {
+      console.error('CRON_SECRET_TOKEN environment variable not set');
+      return NextResponse.json(
+        { error: 'Cron secret not configured' }, 
+        { status: 500 }
+      );
+    }
+
+    if (authHeader !== `Bearer ${expectedToken}`) {
+      console.error('Invalid cron authorization token');
+      return NextResponse.json(
+        { error: 'Unauthorized' }, 
+        { status: 401 }
+      );
+    }
+
+    // Create Supabase client with service role key for admin access
+    const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll();
-          },
-          setAll(cookiesToSet) {
-            try {
-              cookiesToSet.forEach(({ name, value, options }) =>
-                cookieStore.set(name, value, options)
-              );
-            } catch {
-              // The `setAll` method was called from a Server Component.
-              // This can be ignored if you have middleware refreshing
-              // user sessions.
-            }
-          },
-        },
-      }
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
-    
-    // Check if user is admin
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const { data: adminCheck } = await supabase
-      .from('admins')
-      .select('id')
-      .eq('account_id', user.id)
-      .single();
-
-    if (!adminCheck) {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
-    }
 
     // Calculate the date 3 days from now
     const threeDaysFromNow = new Date();
@@ -167,6 +154,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    console.log(`Cron job completed: ${successCount} reminders sent, ${errorCount} failed, ${skippedCount} skipped`);
+
     return NextResponse.json({
       success: true,
       summary: {
@@ -179,7 +168,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error sending trial reminders:', error);
+    console.error('Error in trial reminder cron job:', error);
     return NextResponse.json(
       { error: 'Internal server error' }, 
       { status: 500 }

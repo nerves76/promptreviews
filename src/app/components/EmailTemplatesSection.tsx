@@ -153,6 +153,9 @@ export default function EmailTemplatesSection() {
             <p>Total: {reminderResults.summary.total}</p>
             <p>Sent: {reminderResults.summary.sent}</p>
             <p>Failed: {reminderResults.summary.failed}</p>
+            {reminderResults.summary.skipped > 0 && (
+              <p>Skipped: {reminderResults.summary.skipped}</p>
+            )}
           </div>
         </div>
       )}
@@ -190,7 +193,7 @@ export default function EmailTemplatesSection() {
                       ...editingTemplate,
                       subject: e.target.value
                     })}
-                    className="w-full px-3 py-2 bg-indigo-800 border border-indigo-600 rounded-md text-white placeholder-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   />
                 </div>
 
@@ -205,7 +208,7 @@ export default function EmailTemplatesSection() {
                       html_content: e.target.value
                     })}
                     rows={8}
-                    className="w-full px-3 py-2 bg-indigo-800 border border-indigo-600 rounded-md text-white placeholder-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono text-sm"
+                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono text-sm"
                   />
                 </div>
 
@@ -220,7 +223,7 @@ export default function EmailTemplatesSection() {
                       text_content: e.target.value
                     })}
                     rows={6}
-                    className="w-full px-3 py-2 bg-indigo-800 border border-indigo-600 rounded-md text-white placeholder-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono text-sm"
+                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono text-sm"
                   />
                 </div>
 
@@ -245,7 +248,7 @@ export default function EmailTemplatesSection() {
             {editingTemplate?.id !== template.id && (
               <div className="text-indigo-300 text-sm">
                 <p className="mb-2">
-                  <strong>Available variables:</strong> {{firstName}}, {{lastName}}, {{email}}, {{dashboardUrl}}, {{loginUrl}}, {{upgradeUrl}}
+                  <strong>Available variables:</strong> {'{{firstName}}'}, {'{{lastName}}'}, {'{{email}}'}, {'{{dashboardUrl}}'}, {'{{loginUrl}}'}, {'{{upgradeUrl}}'}
                 </p>
                 <details className="mt-2">
                   <summary className="cursor-pointer text-indigo-200 hover:text-white">
