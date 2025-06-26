@@ -34,7 +34,7 @@ const CowboyUserIcon = () => {
       <img
         src="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/cowboy-account-icon.png"
         alt="Account"
-        className="absolute inset-0 w-5 h-5 m-auto object-contain"
+        className="absolute inset-0 w-6 h-6 m-auto object-contain"
         onError={() => setImageError(true)}
       />
     </div>
