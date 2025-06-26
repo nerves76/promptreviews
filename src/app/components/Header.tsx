@@ -32,7 +32,7 @@ const CowboyUserIcon = () => {
   return (
     <div className="w-8 h-8 bg-[#1A237E] rounded-full relative hover:opacity-80 transition-opacity">
       <img
-        src="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/cowboy-account-icon.png"
+        src="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/new-cowboy-icon.png"
         alt="Account"
         className="absolute inset-0 w-6 h-6 m-auto object-contain"
         onError={() => setImageError(true)}
