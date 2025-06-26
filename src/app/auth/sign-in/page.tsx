@@ -86,7 +86,7 @@ export default function SignIn() {
               email,
               trial_start: new Date().toISOString(),
               trial_end: new Date(
-                Date.now() + 15 * 24 * 60 * 60 * 1000,
+                Date.now() + 14 * 24 * 60 * 60 * 1000,
               ).toISOString(),
               is_free_account: false,
               custom_prompt_page_count: 0,

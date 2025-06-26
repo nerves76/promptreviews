@@ -63,6 +63,7 @@ import PromptReviewsLogo from "@/app/dashboard/components/PromptReviewsLogo";
 import PageCard from "@/app/components/PageCard";
 import imageCompression from 'browser-image-compression';
 import { getAccessibleColor } from "@/utils/colorUtils";
+import { getFallingIcon, getFallingIconColor } from "@/app/components/prompt-modules/fallingStarsConfig";
 
 interface StyleSettings {
   name: string;
@@ -1070,217 +1071,63 @@ export default function PromptPage() {
                 const duration = 3 + Math.random() * 1.5;
                 const delay = Math.random() * 0.5;
                 const size = 32 + Math.random() * 8;
-                let IconComp;
-                if (promptPage.falling_icon === "star")
-                  IconComp = (
-                    <FaStar
-                      className="absolute animate-fall"
-                      style={{
-                        color: "#facc15",
-                        fontSize: size,
-                        left: 0,
-                        top: 0,
-                        animationDuration: `${duration}s`,
-                        animationDelay: `${delay}s`,
-                      }}
-                    />
-                  );
-                else if (promptPage.falling_icon === "heart")
-                  IconComp = (
-                    <FaHeart
-                      className="absolute animate-fall"
-                      style={{
-                        color: "#ef4444",
-                        fontSize: size,
-                        left: 0,
-                        top: 0,
-                        animationDuration: `${duration}s`,
-                        animationDelay: `${delay}s`,
-                      }}
-                    />
-                  );
-                else if (promptPage.falling_icon === "smile")
-                  IconComp = (
-                    <FaSmile
-                      className="absolute animate-fall"
-                      style={{
-                        color: "#facc15",
-                        fontSize: size,
-                        left: 0,
-                        top: 0,
-                        animationDuration: `${duration}s`,
-                        animationDelay: `${delay}s`,
-                      }}
-                    />
-                  );
-                else if (promptPage.falling_icon === "thumb")
-                  IconComp = (
-                    <FaThumbsUp
-                      className="absolute animate-fall"
-                      style={{
-                        color: "#3b82f6",
-                        fontSize: size,
-                        left: 0,
-                        top: 0,
-                        animationDuration: `${duration}s`,
-                        animationDelay: `${delay}s`,
-                      }}
-                    />
-                  );
-                else if (promptPage.falling_icon === "bolt")
-                  IconComp = (
-                    <FaBolt
-                      className="absolute animate-fall"
-                      style={{
-                        color: "#fbbf24",
-                        fontSize: size,
-                        left: 0,
-                        top: 0,
-                        animationDuration: `${duration}s`,
-                        animationDelay: `${delay}s`,
-                      }}
-                    />
-                  );
-                else if (promptPage.falling_icon === "rainbow")
-                  IconComp = (
-                    <FaRainbow
-                      className="absolute animate-fall"
-                      style={{
-                        color: "#d946ef",
-                        fontSize: size,
-                        left: 0,
-                        top: 0,
-                        animationDuration: `${duration}s`,
-                        animationDelay: `${delay}s`,
-                      }}
-                    />
-                  );
-                else if (promptPage.falling_icon === "coffee")
-                  IconComp = (
-                    <FaCoffee
-                      className="absolute animate-fall"
-                      style={{
-                        color: "#92400e",
-                        fontSize: size,
-                        left: 0,
-                        top: 0,
-                        animationDuration: `${duration}s`,
-                        animationDelay: `${delay}s`,
-                      }}
-                    />
-                  );
-                else if (promptPage.falling_icon === "wrench")
-                  IconComp = (
-                    <FaWrench
-                      className="absolute animate-fall"
-                      style={{
-                        color: "#6b7280",
-                        fontSize: size,
-                        left: 0,
-                        top: 0,
-                        animationDuration: `${duration}s`,
-                        animationDelay: `${delay}s`,
-                      }}
-                    />
-                  );
-                else if (promptPage.falling_icon === "confetti")
-                  IconComp = (
-                    <FaGlassCheers
-                      className="absolute animate-fall"
-                      style={{
-                        color: "#ec4899",
-                        fontSize: size,
-                        left: 0,
-                        top: 0,
-                        animationDuration: `${duration}s`,
-                        animationDelay: `${delay}s`,
-                      }}
-                    />
-                  );
-                else if (promptPage.falling_icon === "barbell")
-                  IconComp = (
-                    <FaDumbbell
-                      className="absolute animate-fall"
-                      style={{
-                        color: "#4b5563",
-                        fontSize: size,
-                        left: 0,
-                        top: 0,
-                        animationDuration: `${duration}s`,
-                        animationDelay: `${delay}s`,
-                      }}
-                    />
-                  );
-                else if (promptPage.falling_icon === "flower")
-                  IconComp = (
-                    <FaPagelines
-                      className="absolute animate-fall"
-                      style={{
-                        color: "#22c55e",
-                        fontSize: size,
-                        left: 0,
-                        top: 0,
-                        animationDuration: `${duration}s`,
-                        animationDelay: `${delay}s`,
-                      }}
-                    />
-                  );
-                else if (promptPage.falling_icon === "peace")
-                  IconComp = (
-                    <FaPeace
-                      className="absolute animate-fall"
-                      style={{
-                        color: "#a21caf",
-                        fontSize: size,
-                        left: 0,
-                        top: 0,
-                        animationDuration: `${duration}s`,
-                        animationDelay: `${delay}s`,
-                      }}
-                    />
-                  );
-                else if (promptPage.falling_icon === "bicycle")
-                  IconComp = (
-                    <FaBicycle
-                      className="absolute animate-fall"
-                      style={{
-                        color: "#22c55e", // green
-                        fontSize: size,
-                        left: 0,
-                        top: 0,
-                        animationDuration: `${duration}s`,
-                        animationDelay: `${delay}s`,
-                      }}
-                    />
-                  );
-                else if (promptPage.falling_icon === "anchor")
-                  IconComp = (
-                    <FaAnchor
-                      className="absolute animate-fall"
-                      style={{
-                        color: "#3b82f6", // blue
-                        fontSize: size,
-                        left: 0,
-                        top: 0,
-                        animationDuration: `${duration}s`,
-                        animationDelay: `${delay}s`,
-                      }}
-                    />
-                  );
-                const top = -40 - Math.random() * 360; // increase vertical spread: -40px to -400px
+                
+                // Get icon from configuration
+                const iconConfig = getFallingIcon(promptPage.falling_icon);
+                const IconComponent = iconConfig.icon;
+                
+                // Convert Tailwind color class to hex
+                const getColorFromClass = (colorClass: string) => {
+                  const colorMap: { [key: string]: string } = {
+                    "text-yellow-400": "#facc15",
+                    "text-red-500": "#ef4444",
+                    "text-amber-400": "#fbbf24",
+                    "text-fuchsia-400": "#d946ef",
+                    "text-amber-800": "#92400e",
+                    "text-gray-500": "#6b7280",
+                    "text-pink-400": "#ec4899",
+                    "text-gray-600": "#4b5563",
+                    "text-green-500": "#22c55e",
+                    "text-purple-500": "#a21caf",
+                    "text-blue-500": "#3b82f6",
+                    "text-yellow-500": "#eab308",
+                    "text-blue-300": "#93c5fd",
+                    "text-gray-400": "#9ca3af",
+                    "text-blue-200": "#bfdbfe",
+                    "text-orange-500": "#f97316",
+                    "text-green-600": "#16a34a",
+                    "text-red-400": "#f87171",
+                    "text-orange-600": "#ea580c",
+                    "text-yellow-600": "#ca8a04",
+                    "text-pink-300": "#f9a8d4",
+                    "text-blue-600": "#2563eb",
+                    "text-yellow-300": "#fde047",
+                    "text-purple-400": "#c084fc",
+                    "text-blue-400": "#60a5fa",
+                    "text-purple-300": "#d8b4fe",
+                    "text-gray-300": "#d1d5db",
+                    "text-orange-400": "#fb923c",
+                    "text-amber-600": "#d97706",
+                    "text-red-600": "#dc2626",
+                  };
+                  return colorMap[colorClass] || "#6b7280";
+                };
+
+                const iconColor = getColorFromClass(iconConfig.color);
+
                 return (
-                  <span
+                  <IconComponent
                     key={i}
+                    className="absolute animate-fall"
                     style={{
-                      position: "absolute",
+                      color: iconColor,
+                      fontSize: size,
                       left: `${left}%`,
-                      top: `${top}px`,
-                      pointerEvents: "none",
-                      zIndex: 50,
+                      top: -40,
+                      animationDuration: `${duration}s`,
+                      animationDelay: `${delay}s`,
                     }}
-                  >
-                    {IconComp}
-                  </span>
+                  />
                 );
               })}
             </div>

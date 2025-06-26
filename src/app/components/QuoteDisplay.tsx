@@ -16,6 +16,11 @@ const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
 );
 
+// Simple caching for quotes to improve performance
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+let quotesCache: any[] | null = null;
+let cacheTimestamp = 0;
+
 interface QuoteDisplayProps {
   className?: string;
 }
@@ -40,7 +45,25 @@ export default function QuoteDisplay({ className = '' }: QuoteDisplayProps) {
 
   const loadQuotes = async () => {
     try {
+      const now = Date.now();
+      
+      // Check if we have valid cached quotes
+      if (quotesCache && (now - cacheTimestamp) < CACHE_DURATION) {
+        setQuotes(quotesCache);
+        if (quotesCache.length > 0) {
+          setCurrentIndex(Math.floor(Math.random() * quotesCache.length));
+        }
+        setLoading(false);
+        return;
+      }
+
+      // Fetch fresh quotes if cache is invalid or expired
       const activeQuotes = await getAllActiveQuotes(supabase);
+      
+      // Update cache
+      quotesCache = activeQuotes;
+      cacheTimestamp = now;
+      
       setQuotes(activeQuotes);
       if (activeQuotes.length > 0) {
         // Start with a random quote

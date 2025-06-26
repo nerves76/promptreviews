@@ -23,11 +23,11 @@ const pricingTiers: PricingTier[] = [
   {
     name: "Community Grower",
     price: 15,
-    trialDays: 15,
+    trialDays: 14,
     contactLimit: 0,
     promptPageLimit: 3,
     features: [
-      "15-day free trial",
+      "14-day free trial",
       "3 custom prompt pages",
       "Cannot upload contacts",
       "Basic review management",

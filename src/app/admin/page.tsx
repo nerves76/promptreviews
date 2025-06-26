@@ -25,6 +25,8 @@ import {
   deleteFeedback
 } from '../../utils/admin';
 import { trackAdminAction } from '../../utils/analytics';
+import TrialBanner from '../components/TrialBanner';
+import EmailTemplatesSection from '../components/EmailTemplatesSection';
 
 // Use the same Supabase client as the Header component
 const supabase = createBrowserClient(
@@ -98,7 +100,10 @@ export default function AdminPage() {
   const [loadingFeedback, setLoadingFeedback] = useState(false);
 
   // Tab state
-  const [activeTab, setActiveTab] = useState<'content' | 'feedback' | 'analytics'>('content');
+  const [activeTab, setActiveTab] = useState<'content' | 'feedback' | 'analytics' | 'email-templates'>('content');
+  
+  // Trial banner test state
+  const [showTrialBannerTest, setShowTrialBannerTest] = useState(false);
 
   useEffect(() => {
     checkAdminStatus();
@@ -474,14 +479,55 @@ export default function AdminPage() {
             >
               Feedback
             </button>
-            <Link
-              href="/admin/analytics"
-              className="border-b-2 border-transparent py-2 px-1 text-sm font-medium text-indigo-200 hover:text-white hover:border-indigo-300"
+            <button
+              onClick={() => setActiveTab('analytics')}
+              className={`border-b-2 py-2 px-1 text-sm font-medium ${
+                activeTab === 'analytics'
+                  ? 'border-white text-white'
+                  : 'border-transparent text-indigo-200 hover:text-white hover:border-indigo-300'
+              }`}
             >
               Analytics
-            </Link>
+            </button>
+            <button
+              onClick={() => setActiveTab('email-templates')}
+              className={`border-b-2 py-2 px-1 text-sm font-medium ${
+                activeTab === 'email-templates'
+                  ? 'border-white text-white'
+                  : 'border-transparent text-indigo-200 hover:text-white hover:border-indigo-300'
+              }`}
+            >
+              Email Templates
+            </button>
           </nav>
         </div>
+
+        {/* Trial Banner Test Section */}
+        <div className="mb-8 bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Trial Banner Test</h2>
+          <p className="text-gray-600 mb-4">Test the trial countdown banner to see how it looks for users.</p>
+          <div className="flex gap-4">
+            <button
+              onClick={() => setShowTrialBannerTest(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-lg transition-colors"
+            >
+              Show Trial Banner
+            </button>
+            <button
+              onClick={() => setShowTrialBannerTest(false)}
+              className="bg-gray-600 hover:bg-gray-700 text-white font-bold px-4 py-2 rounded-lg transition-colors"
+            >
+              Hide Trial Banner
+            </button>
+          </div>
+        </div>
+
+        {/* Test Trial Banner */}
+        {showTrialBannerTest && (
+          <div className="mb-8">
+            <TrialBanner showForTesting={true} />
+          </div>
+        )}
 
         {/* Tab Content */}
         {activeTab === 'content' && (
@@ -851,6 +897,17 @@ export default function AdminPage() {
               </div>
             </div>
           </div>
+        )}
+
+        {activeTab === 'analytics' && (
+          <div className="space-y-6">
+            <h3 className="text-lg font-medium text-white">Analytics</h3>
+            <p className="text-indigo-200">Analytics dashboard coming soon...</p>
+          </div>
+        )}
+
+        {activeTab === 'email-templates' && (
+          <EmailTemplatesSection />
         )}
 
         {/* Back to Dashboard */}

@@ -421,15 +421,39 @@ const mergedReviewPlatforms = universalPage.reviewPlatforms?.length
 
 - **Purpose:** Adds a celebratory animation (stars, hearts, rainbows, etc.) that falls from the top of the public prompt page.
 - **How to Enable:**
-  - In the Universal Prompt Page editor, toggle the "Falling star animation" section ON and select an icon.
+  - In any prompt page editor, toggle the "Falling star animation" section ON and select an icon.
   - The animation is enabled if an icon is selected (the toggle reflects this state).
   - The selected icon will be saved as `falling_icon` in the database.
 - **How it Works:**
   - On the public prompt page, if `falling_icon` is set, the animation will run.
   - If **Emoji Sentiment** is also enabled, the animation will only run after a user selects a positive sentiment ("Excellent" or "Satisfied").
-  - If Emoji Sentiment is **not** enabled, the animation runs immediately on page load.
-- **Supported Icons:** Stars, hearts, smiles, thumbs up, bolts, rainbows, coffee, wrenches, wine glass, barbell, flower, peace, etc.
-- **Persistence:** The toggle and icon selection are synced with the presence of `falling_icon` in the database. If you turn the toggle off, the icon is cleared and the animation is disabled.
+  - If Emoji Sentiment is **not** enabled, the animation runs immediately when the page loads.
+  - The animation creates 60 falling icons with random positions, sizes, and timing for a natural effect.
+
+### **UI Improvements (Latest Update)**
+- **Simplified Interface:** Shows only the selected icon with blue border (no grid of default icons)
+- **"More Icons" Button:** Opens a modal with 50+ icons organized by category
+- **Prompty Integration:** Full-height Prompty image positioned flush with module edges
+- **Consistent Styling:** All icons use slate blue color (`text-slate-600`) for brand consistency
+- **Better Layout:** Toggle positioned further from heading, proper spacing and typography
+- **Category Organization:** Icons organized into 8 categories for easy browsing:
+  - **Nature & Weather:** Rainbows, Suns, Moons, Clouds, Snowflakes, Fire, Trees, Leaves, Flowers
+  - **Food & Drinks:** Coffee, Gifts, Wine
+  - **Activities & Sports:** Thumbs Up, Bicycles, Dumbbells, Trophies, Medals, Crowns
+  - **Tools & Objects:** Wrenches, Anchors, Lightbulbs, Magic, Rockets, Gems
+  - **Transportation:** Planes, Cars, Ships
+  - **Symbols & Peace:** Peace, Globes, Flags, Shields
+  - **Entertainment:** Music, Games, Cameras, Books
+  - **Animals:** Cats, Dogs, Birds, Butterflies, Fish, Frogs
+  - **Fantasy & Fun:** Dragons, Ghosts, Robots, Unicorns
+  - **Time & Communication:** Clocks, Bells, Location markers
+
+### **Technical Implementation**
+- **Component:** `FallingStarsSection.tsx` - Reusable component used across all prompt page forms
+- **Configuration:** `fallingStarsConfig.ts` - Centralized icon definitions and utilities
+- **Animation:** CSS animations with JavaScript-generated random positioning
+- **Database:** Stores `falling_icon` as a string key in the `prompt_pages` table
+- **Consistent Usage:** Same component used in Universal, Service, Product, and Photo prompt pages
 
 ### Offer Banner (Special Offer)
 
@@ -514,91 +538,4 @@ If you need a custom loading message or style, consider extending `AppLoader` or
   - Use the `icon` prop on `PageCard` for a floating, breaching icon in the top-left of the card.
   - Never render the icon manually inside the form/component.
 - **AI Gen Button:**
-  - Use the standardized button: `inline-flex items-center px-4 py-2 border rounded font-semibold shadow text-slate-blue border-slate-blue bg-white hover:bg-slate-blue/10 transition text-sm whitespace-nowrap w-auto min-w-[180px] self-start gap-2` with `<FaMagic />` and text `Generate with AI`.
-  - Always left-aligned, never full width, and never a primary color.
-- **Review Platform Cards:**
-  - Use `ReviewWriteSection` for all review platform input flows.
-  - Each card has a platform icon breaching the top-left, card title, and action buttons at the top.
-- **Spacing & Typography:**
-  - Follow the rules in `DESIGN_GUIDELINES.md` for all spacing, font sizes, and color usage.
-  - Main page titles: `text-4xl font-bold text-slate-blue` (pass as `titleClassName` to SectionHeader).
-
-## For Visual Rules & Examples
-
-See `DESIGN_GUIDELINES.md` for:
-
-- Color palette
-- Icon usage
-- Card and section header patterns
-- Spacing and typography
-- Example code snippets
-
-## Quickstart for New Devs
-
-- All shared UI modules are in `src/app/components/` or `src/app/dashboard/edit-prompt-page/components/`.
-- Always use SectionHeader and PageCard for new modules/pages.
-- For new AI buttons, copy the style from ReviewWriteSection or PromptPageForm.
-- If in doubt, check DESIGN_GUIDELINES.md or ask for a design/code review.
-
----
-
-## [2024-06-08] Dashboard Widget Preview: Swiper Global Loading Fix
-
-- The dashboard widget preview now waits for the Swiper script to be available globally (`window.Swiper`) before rendering the vanilla JS multi-widget.
-- This ensures that design changes (such as color) made in the editor are reflected live in the widget preview.
-- Previously, if Swiper was not available on the global scope, the widget would not update visually after design changes.
-- This fix resolves the issue and improves reliability of the live preview.
-
----
-
-## Admin Analytics Page
-
-The Admin Analytics page provides site-wide statistics and performance metrics for administrators. It is accessible only to users with admin privileges.
-
-**Features:**
-- Total users, businesses, reviews, and prompt pages
-- New users, businesses, and reviews this month
-- Top review platforms
-- Recent activity (last 7 days)
-- Business growth (last 6 months)
-- Review trends (last 30 days)
-
-**Access:**
-- Go to the Admin Panel (`/admin`)
-- Use the subnav at the top to switch between "Content Management" and "Analytics"
-- The Analytics tab (`/admin/analytics`) is only visible to admin users
-
-All analytics are site-wide and are intended for administrative oversight and growth tracking.
-
----
-
-## Admin Content Management
-
-The Admin Panel (`/admin`) provides tools for managing site-wide content that appears to all users.
-
-### Announcements
-- **Purpose:** Display important messages to all users at the top of pages
-- **Features:**
-  - Create announcements with optional button text and URL
-  - Toggle announcements active/inactive
-  - Only one announcement can be active at a time
-  - Displayed as a blue banner above the main navigation
-- **Usage:** Go to Admin Panel → Content Management → Create new announcement
-
-### Inspirational Quotes
-- **Purpose:** Display motivational quotes on the dashboard
-- **Features:**
-  - Create quotes with optional author attribution
-  - Add optional button text and URL for call-to-action links
-  - Navigation arrows to cycle through multiple quotes
-  - Quote counter showing current position (e.g., "2 of 5")
-  - Start with a random quote when page loads
-- **Display:** Shows on dashboard with elegant styling and interactive navigation
-- **Usage:** Go to Admin Panel → Content Management → Create new quote
-
-### Admin Access
-- Only users with admin privileges can access the admin panel
-- Admin status is determined by the `admins` table in the database
-- Admin link appears in the account menu for authorized users
-
----
+  - Use the standardized button: `inline-flex items-center px-4 py-2 border rounded font-semibold shadow text-slate-blue border-slate-blue bg-white hover:bg-slate-blue/10 transition text-sm whitespace-nowrap w-auto min-w-[180px] self-start gap-2` with `<FaMagic />`
