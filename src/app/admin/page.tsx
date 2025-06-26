@@ -907,8 +907,37 @@ export default function AdminPage() {
 
         {activeTab === 'analytics' && (
           <div className="space-y-6">
-            <h3 className="text-lg font-medium text-white">Analytics</h3>
-            <p className="text-indigo-200">Analytics dashboard coming soon...</p>
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Analytics Dashboard</h2>
+              <p className="text-gray-600 mb-6">View comprehensive site-wide analytics and performance metrics.</p>
+              
+              <div className="flex gap-4">
+                <Link
+                  href="/admin/analytics"
+                  className="bg-slate-blue text-white px-6 py-3 rounded-md hover:bg-slate-blue/90 font-medium"
+                >
+                  View Full Analytics Dashboard
+                </Link>
+              </div>
+              
+              <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">What's Available</h3>
+                  <ul className="text-gray-600 space-y-2">
+                    <li>• Total users and businesses</li>
+                    <li>• Review submission statistics</li>
+                    <li>• Platform distribution</li>
+                    <li>• Growth trends</li>
+                    <li>• Recent activity</li>
+                  </ul>
+                </div>
+                
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Quick Stats</h3>
+                  <p className="text-gray-600">Click the button above to access detailed analytics with time range filtering and comprehensive reporting.</p>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
