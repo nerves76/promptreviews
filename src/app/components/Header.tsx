@@ -15,8 +15,8 @@ import { trackEvent, GA_EVENTS } from '../../utils/analytics';
 /**
  * CowboyUserIcon component
  * 
- * A user account icon with a cowboy hat that falls back to the standard user circle icon
- * if the PNG image fails to load.
+ * A user account icon with a white cowboy hat on a slate blue circle background.
+ * Falls back to the standard user circle icon if the PNG image fails to load.
  */
 const CowboyUserIcon = () => {
   const [imageError, setImageError] = useState(false);
@@ -27,7 +27,7 @@ const CowboyUserIcon = () => {
   
   return (
     <img
-      src="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/cowboy-icon-2.png"
+      src="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/cowboy-account-icon.png"
       alt="Account"
       className="w-8 h-8 hover:opacity-80 transition-opacity"
       onError={() => setImageError(true)}
