@@ -12,6 +12,29 @@ import { getUserOrMock } from "@/utils/supabase";
 import { isAdmin } from "../../utils/admin";
 import { trackEvent, GA_EVENTS } from '../../utils/analytics';
 
+/**
+ * CowboyUserIcon component
+ * 
+ * A user account icon with a cowboy hat that falls back to the standard user circle icon
+ * if the PNG image fails to load.
+ */
+const CowboyUserIcon = () => {
+  const [imageError, setImageError] = useState(false);
+  
+  if (imageError) {
+    return <FaUserCircle className="w-8 h-8 text-[#1A237E] hover:text-[#1A237E]/80 transition-colors" />;
+  }
+  
+  return (
+    <img
+      src="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/cowboy-icon-2.png"
+      alt="Account"
+      className="w-8 h-8 hover:opacity-80 transition-opacity"
+      onError={() => setImageError(true)}
+    />
+  );
+};
+
 export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
@@ -288,7 +311,7 @@ export default function Header() {
             {user ? (
               <Menu as="div" className="relative inline-block text-left">
                 <Menu.Button className="flex items-center focus:outline-none">
-                  <FaUserCircle className="w-8 h-8 text-[#1A237E] hover:text-[#1A237E]/80 transition-colors" />
+                  <CowboyUserIcon />
                 </Menu.Button>
                 <Menu.Items className="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
                   <div className="py-1">
