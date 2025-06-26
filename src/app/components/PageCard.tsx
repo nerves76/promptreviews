@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 
 /*
  * USAGE INSTRUCTION:
@@ -20,10 +21,20 @@ import React from "react";
  * - Always use for dashboard and prompt page forms.
  * - Pass the icon prop for a floating, breaching icon in the top-left.
  * - Use topRightAction and bottomRightAction for action buttons.
+ * - Use bottomLeftImage to add a decorative image at the bottom-left of the card.
  * - Wrap in a parent div with min-h-screen flex justify-center for spacing.
  *
  * See DESIGN_GUIDELINES.md for visual rules and examples.
  */
+
+interface BottomLeftImage {
+  src: string;
+  alt: string;
+  width?: number;
+  height?: number;
+  maxWidth?: number;
+  maxHeight?: number;
+}
 
 export default function PageCard({
   icon,
@@ -31,20 +42,60 @@ export default function PageCard({
   className = "",
   topRightAction,
   bottomRightAction,
+  bottomLeftImage,
 }: {
   icon?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
   topRightAction?: React.ReactNode;
   bottomRightAction?: React.ReactNode;
+  bottomLeftImage?: BottomLeftImage;
 }) {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [showImage, setShowImage] = useState(false);
+  const [imgHeight, setImgHeight] = useState(0);
+  const [imgWidth, setImgWidth] = useState(0);
+  const imgRef = useRef<HTMLImageElement>(null);
+
+  // Add a delay before showing the image to prevent it from appearing during initial page load
+  useEffect(() => {
+    if (bottomLeftImage) {
+      const timer = setTimeout(() => {
+        setShowImage(true);
+      }, 2000); // 2 second delay
+      return () => clearTimeout(timer);
+    }
+  }, [bottomLeftImage]);
+
+  // Dynamically set bottom padding to match image height
+  useEffect(() => {
+    if (imgRef.current && imageLoaded) {
+      setImgHeight(imgRef.current.offsetHeight);
+      setImgWidth(imgRef.current.offsetWidth);
+    }
+  }, [imageLoaded, showImage]);
+
+  // Responsive image sizing - 2-3 times larger than before
+  const maxImgPx = 800; // Increased from 320 to 800 (2.5x larger)
+  const imgStyle = {
+    maxWidth: "60%", // Increased from 40% to 60%
+    maxHeight: "60%", // Increased from 40% to 60%
+    width: "auto",
+    height: "auto",
+    minWidth: "200px", // Increased from 120px
+    minHeight: "200px", // Increased from 120px
+    objectFit: "contain" as const,
+    display: "block"
+  };
+
   return (
     <div className="w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-12 mt-12 md:mt-16 lg:mt-20 mb-16 flex justify-center items-start">
       <div
         className={`page relative w-full max-w-[1000px] rounded-2xl bg-white shadow-lg pt-4 px-8 md:px-12 pb-8 ${className}`}
+        style={{ overflow: "visible" }} // Restore to visible for icon breaching
       >
         {icon && (
-          <div className="icon absolute -top-2 -left-2 sm:-top-[21px] sm:-left-[21px] z-10 bg-white rounded-full shadow p-2 sm:p-3 flex items-center justify-center">
+          <div key="page-card-icon" className="icon absolute -top-4 -left-4 sm:-top-6 sm:-left-6 z-10 bg-white rounded-full shadow-lg p-3 sm:p-4 flex items-center justify-center">
             {icon}
           </div>
         )}
@@ -55,7 +106,10 @@ export default function PageCard({
           </div>
         )}
         <div
-          className={`content w-full px-1 pt-2 sm:pt-0${icon ? " pl-2 sm:pl-0" : ""}`}
+          className="content w-full px-1 pt-2 sm:pt-0"
+          style={{ 
+            paddingBottom: bottomLeftImage && showImage ? "300px" : undefined
+          }}
         >
           {children}
         </div>
@@ -67,6 +121,30 @@ export default function PageCard({
             </div>
             <div className="h-16" />
           </>
+        )}
+        {/* Bottom-left image */}
+        {bottomLeftImage && showImage && (
+          <div className="absolute bottom-0 left-0 z-0 pointer-events-none transition-opacity duration-500" style={{ width: "100%", maxWidth: maxImgPx }}>
+            <Image
+              ref={imgRef}
+              src={bottomLeftImage.src}
+              alt={bottomLeftImage.alt}
+              width={bottomLeftImage.maxWidth || maxImgPx}
+              height={bottomLeftImage.maxHeight || maxImgPx}
+              style={{
+                maxWidth: "50%", // Increased from 25% to 50% (doubled)
+                maxHeight: "50%", // Increased from 25% to 50% (doubled)
+                width: "auto",
+                height: "auto",
+                minWidth: "240px", // Increased from 120px to 240px (doubled)
+                minHeight: "240px", // Increased from 120px to 240px (doubled)
+                objectFit: "contain" as const,
+                display: "block"
+              }}
+              onLoad={() => setImageLoaded(true)}
+              priority={false}
+            />
+          </div>
         )}
       </div>
     </div>

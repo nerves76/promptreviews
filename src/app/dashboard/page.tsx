@@ -15,13 +15,12 @@ import TopLoaderOverlay from "../components/TopLoaderOverlay";
 import { Button } from "@/app/components/ui/button";
 import Link from "next/link";
 import QuoteDisplay from "../components/QuoteDisplay";
+import { trackEvent, GA_EVENTS } from "../../utils/analytics";
 
 export default function Dashboard() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [business, setBusiness] = useState<any>(null);
-  const [promptPages, setPromptPages] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const createPromptPageRef = useRef<HTMLAnchorElement>(null);
@@ -42,6 +41,7 @@ export default function Dashboard() {
     total: { week: 0, month: 0, year: 0 },
     verified: { week: 0, month: 0, year: 0 },
   });
+  const [business, setBusiness] = useState<any>(null);
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -92,54 +92,59 @@ export default function Dashboard() {
           throw new Error("No active session found. Please sign in again.");
         }
 
-        // Fetch account profile
-        const { data: accountData, error: accountError } = await supabase
-          .from("accounts")
-          .select(
-            "id, plan, is_free_account, subscription_status, first_name, last_name, trial_start, trial_end, custom_prompt_page_count, contact_count, created_at",
-          )
-          .eq("id", session.user.id)
-          .single();
-
-        if (accountError) {
-          throw new Error("Error fetching account: " + (accountError as Error).message);
-        }
-        if (!accountData) {
-          throw new Error("No account data found");
-        }
-        setAccount(accountData);
-
-        // Fetch business profile
-        const { data: businessData, error: businessError } = await supabase
-          .from("businesses")
-          .select("*")
-          .eq("id", session.user.id)
-          .single();
-        
-        if (businessError || !businessData) {
-          setBusiness(null);
-          setShowProfileModal(true);
-          // Don't return early - continue to fetch prompt pages
-        } else {
-          setBusiness(businessData);
-        }
-
-        // Fetch prompt pages
-        const { data: promptPagesData, error: promptPagesError } =
-          await supabase
+        // Parallelize database calls for better performance
+        const [accountResult, businessResult, promptPagesResult] = await Promise.all([
+          // Fetch account profile
+          supabase
+            .from("accounts")
+            .select(
+              "id, plan, is_free_account, subscription_status, first_name, last_name, trial_start, trial_end, custom_prompt_page_count, contact_count, created_at",
+            )
+            .eq("id", session.user.id)
+            .single(),
+          
+          // Fetch business profile
+          supabase
+            .from("businesses")
+            .select("*")
+            .eq("id", session.user.id)
+            .single(),
+          
+          // Fetch prompt pages
+          supabase
             .from("prompt_pages")
             .select("*")
             .eq("account_id", session.user.id)
-            .order("created_at", { ascending: false });
+            .order("created_at", { ascending: false })
+        ]);
 
-        if (promptPagesError) {
-          throw promptPagesError;
+        // Handle account data
+        if (accountResult.error) {
+          throw new Error("Error fetching account: " + (accountResult.error as Error).message);
+        }
+        if (!accountResult.data) {
+          throw new Error("No account data found");
+        }
+        setAccount(accountResult.data);
+
+        // Handle business data
+        if (businessResult.error || !businessResult.data) {
+          setBusiness(null);
+          setShowProfileModal(true);
+          // Don't return early - continue to process prompt pages
+        } else {
+          setBusiness(businessResult.data);
+        }
+
+        // Handle prompt pages data
+        if (promptPagesResult.error) {
+          throw promptPagesResult.error;
         }
 
         // Separate universal and custom prompt pages
-        const universal = promptPagesData?.find((page) => page.is_universal);
+        const universal = promptPagesResult.data?.find((page) => page.is_universal);
         const custom =
-          promptPagesData?.filter((page) => !page.is_universal) || [];
+          promptPagesResult.data?.filter((page) => !page.is_universal) || [];
 
         setUniversalPromptPage(universal);
         setCustomPromptPages(custom);
@@ -339,17 +344,23 @@ export default function Dashboard() {
     "there";
 
   return (
-    <>
-      {/* Floating Quote Section - positioned above PageCard */}
-      <div className="relative z-10 mb-8 flex justify-center items-center min-h-[300px]">
-        <div className="max-w-[800px] w-full px-4">
-          <QuoteDisplay />
-        </div>
+    <div className="min-h-screen flex flex-col justify-start px-4 sm:px-0">
+      {/* Quotes Display - positioned between nav and PageCard */}
+      <div className="flex justify-center items-center pt-12 pb-4">
+        <QuoteDisplay />
       </div>
       
-      {/* PageCard pushed down by 50px */}
-      <div className="mt-[50px]">
-        <PageCard icon={<FaHome className="w-8 h-8 text-slate-blue" />}>
+      {/* PageCard with extra top margin to accommodate quotes */}
+      <div className="flex justify-center items-start flex-1">
+        <PageCard
+          icon={<FaHome className="w-8 h-8 text-slate-blue" />}
+          bottomLeftImage={{
+            src: "https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompty-fishing-for-stars.png",
+            alt: "Prompty fishing for stars",
+            maxWidth: 1280,
+            maxHeight: 1280
+          }}
+        >
           <DashboardContent
             userName={userName}
             business={business}
@@ -371,16 +382,16 @@ export default function Dashboard() {
             parentLoading={isLoading}
             reviewStats={reviewStats}
           />
-          
-          {/* Pricing Modal */}
-          {showPricingModal && (
-            <PricingModal
-              onSelectTier={handleSelectTier}
-              currentPlan={account?.plan}
-            />
-          )}
         </PageCard>
       </div>
-    </>
+      
+      {/* Pricing Modal */}
+      {showPricingModal && (
+        <PricingModal
+          onSelectTier={handleSelectTier}
+          currentPlan={account?.plan}
+        />
+      )}
+    </div>
   );
 }

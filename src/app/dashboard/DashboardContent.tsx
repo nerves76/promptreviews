@@ -496,11 +496,6 @@ export default function DashboardContent({
   return (
     <>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-12 w-full gap-2 relative">
-        <div className="absolute z-10" style={{ left: "-69px", top: "-37px" }}>
-          <div className="rounded-full bg-white w-16 h-16 flex items-center justify-center shadow-lg">
-            <FaHome className="w-8 h-8 text-slate-blue" />
-          </div>
-        </div>
         <h1 className="text-4xl font-bold flex items-center gap-3 text-slate-blue pl-1.5 pt-2">
           Dashboard
         </h1>
@@ -582,14 +577,14 @@ export default function DashboardContent({
           </div>
         </div>
       </div>
-      <div className="min-h-screen flex justify-center items-start w-full">
+      <div className="flex justify-center items-start w-full">
         <div className="relative w-full">
           {/* Main dashboard content, remove pt-12 so title is at the top */}
           <div>
             <div className="mt-2 space-y-4">
               {/* Universal Prompt Page Card */}
               {universalPromptPage && (
-                <div className="rounded-lg p-6 bg-blue-50 border border-blue-200 flex items-center gap-4 shadow relative mb-16">
+                <div className="rounded-lg p-6 bg-blue-50 border border-blue-200 flex items-center gap-4 shadow relative mb-24">
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2">

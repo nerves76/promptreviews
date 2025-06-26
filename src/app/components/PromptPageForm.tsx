@@ -45,10 +45,10 @@ import EmojiSentimentSection from "../dashboard/edit-prompt-page/components/Emoj
 import DisableAIGenerationSection from "./DisableAIGenerationSection";
 import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
-import { FALLING_STARS_ICONS } from "@/app/components/prompt-modules/fallingStarsConfig";
 import FallingStarsSection from "@/app/components/FallingStarsSection";
 import RobotTooltip from "./RobotTooltip";
 import SectionHeader from "./SectionHeader";
+import { getFallingIcon } from "@/app/components/prompt-modules/fallingStarsConfig";
 
 /**
  * PromptPageForm component
@@ -381,9 +381,7 @@ export default function PromptPageForm({
               const delay = Math.random() * 0.5;
               const size = 32 + Math.random() * 8;
               const top = -40 - Math.random() * 360;
-              const iconObj =
-                FALLING_STARS_ICONS.find((opt) => opt.key === fallingIcon) ||
-                FALLING_STARS_ICONS[0];
+              const iconObj = getFallingIcon(fallingIcon);
               const IconComp = iconObj.icon;
               return (
                 <IconComp
@@ -397,25 +395,23 @@ export default function PromptPageForm({
                           ? "#ef4444"
                           : iconObj.key === "smile"
                             ? "#facc15"
-                            : iconObj.key === "thumb"
-                              ? "#3b82f6"
-                              : iconObj.key === "bolt"
-                                ? "#f59e42"
-                                : iconObj.key === "rainbow"
-                                  ? "#d946ef"
-                                  : iconObj.key === "coffee"
-                                    ? "#92400e"
-                                    : iconObj.key === "wrench"
-                                      ? "#6b7280"
-                                      : iconObj.key === "confetti"
-                                        ? "#ec4899"
-                                        : iconObj.key === "barbell"
-                                          ? "#4b5563"
-                                          : iconObj.key === "flower"
-                                            ? "#22c55e"
-                                            : iconObj.key === "peace"
-                                              ? "#a21caf"
-                                              : "#facc15",
+                            : iconObj.key === "bolt"
+                              ? "#f59e42"
+                              : iconObj.key === "rainbow"
+                                ? "#d946ef"
+                                : iconObj.key === "coffee"
+                                  ? "#92400e"
+                                  : iconObj.key === "wrench"
+                                    ? "#6b7280"
+                                    : iconObj.key === "confetti"
+                                      ? "#ec4899"
+                                      : iconObj.key === "barbell"
+                                        ? "#4b5563"
+                                        : iconObj.key === "flower"
+                                          ? "#22c55e"
+                                          : iconObj.key === "peace"
+                                            ? "#a21caf"
+                                            : "#facc15",
                     fontSize: size,
                     left: `${left}%`,
                     top,
@@ -633,78 +629,13 @@ export default function PromptPageForm({
             </div>
           </div>
           {/* Falling star module */}
-          <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-2 shadow relative mb-8">
-            <div className="flex flex-row justify-between items-start px-2 py-2 pb-2">
-              <SectionHeader
-                icon={<FaStar className="w-7 h-7 text-slate-blue" />}
-                title="Falling star animation"
-                subCopy="Enable a fun animation where stars (or other icons) rain down when the prompt page loads. You can choose the icon below."
-                className="!mb-0"
-                subCopyLeftOffset="ml-9"
-              />
-              <div className="flex flex-col justify-start pt-1">
-                <button
-                  type="button"
-                  onClick={handleToggleFalling}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${fallingEnabled ? "bg-slate-blue" : "bg-gray-200"}`}
-                  aria-pressed={!!fallingEnabled}
-                  disabled={iconUpdating}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${fallingEnabled ? "translate-x-5" : "translate-x-1"}`}
-                  />
-                </button>
-              </div>
-            </div>
-            {/* Icon picker (enabled) */}
-            <div className="flex gap-4 px-2 flex-wrap ml-9">
-              {FALLING_STARS_ICONS.map((opt) => {
-                const Icon = opt.icon;
-                return (
-                  <button
-                    key={opt.key}
-                    type="button"
-                    className={`p-2 rounded-full border transition bg-white flex items-center justify-center ${fallingIcon === opt.key ? "border-slate-blue ring-2 ring-slate-blue" : "border-gray-300"}`}
-                    onClick={() => setFallingIcon(opt.key)}
-                    aria-label={opt.label}
-                  >
-                    <Icon
-                      className={
-                        opt.key === "star"
-                          ? "w-6 h-6 text-yellow-400"
-                          : opt.key === "heart"
-                            ? "w-6 h-6 text-red-500"
-                            : opt.key === "smile"
-                              ? "w-6 h-6 text-yellow-400"
-                              : opt.key === "thumb"
-                                ? "w-6 h-6 text-blue-500"
-                                : opt.key === "bolt"
-                                  ? "w-6 h-6 text-amber-400"
-                                  : opt.key === "rainbow"
-                                    ? "w-6 h-6 text-fuchsia-400"
-                                    : opt.key === "coffee"
-                                      ? "w-6 h-6 text-amber-800"
-                                      : opt.key === "wrench"
-                                        ? "w-6 h-6 text-gray-500"
-                                        : opt.key === "confetti"
-                                          ? "w-6 h-6 text-pink-400"
-                                          : opt.key === "barbell"
-                                            ? "w-6 h-6 text-gray-600"
-                                            : opt.key === "flower"
-                                              ? "w-6 h-6 text-green-500"
-                                              : opt.key === "peace"
-                                                ? "w-6 h-6 text-purple-500"
-                                                : "w-6 h-6"
-                      }
-                    />
-                    {iconUpdating && fallingIcon === opt.key && (
-                      <span className="ml-1 animate-spin w-3 h-3 border-2 border-indigo-400 border-t-transparent rounded-full inline-block align-middle"></span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          <FallingStarsSection
+            enabled={fallingEnabled}
+            onToggle={handleToggleFalling}
+            icon={fallingIcon}
+            onIconChange={setFallingIcon}
+            description="Enable a fun animation where stars (or other icons) rain down when the prompt page loads. You can choose the icon below."
+          />
           <div className="w-full flex justify-end gap-2 mt-8">
             <button
               type="submit"
@@ -1082,7 +1013,7 @@ export default function PromptPageForm({
                         type="button"
                         onClick={() => {
                           if (emojiSentimentEnabled) {
-                            setShowPopupConflictModal("note");
+                            setShowPopupConflictModal("emoji");
                             return;
                           }
                           setNotePopupEnabled((v: boolean) => !v);
@@ -1177,78 +1108,13 @@ export default function PromptPageForm({
                 onToggle={() => setAiReviewEnabled((v: boolean) => !v)}
               />
               {/* Falling Stars Section (modular, inline for now) */}
-              <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-2 shadow relative mb-8">
-                <div className="flex flex-row justify-between items-start px-2 py-2 pb-2">
-                  <SectionHeader
-                    icon={<FaStar className="w-7 h-7 text-slate-blue" />}
-                    title="Falling star animation"
-                    subCopy="Enable a fun animation where stars (or other icons) rain down when the prompt page loads. You can choose the icon below."
-                    className="!mb-0"
-                    subCopyLeftOffset="ml-9"
-                  />
-                  <div className="flex flex-col justify-start pt-1">
-                    <button
-                      type="button"
-                      onClick={handleToggleFalling}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${fallingEnabled ? "bg-slate-blue" : "bg-gray-200"}`}
-                      aria-pressed={!!fallingEnabled}
-                      disabled={iconUpdating}
-                    >
-                      <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${fallingEnabled ? "translate-x-5" : "translate-x-1"}`}
-                      />
-                    </button>
-                  </div>
-                </div>
-                {/* Icon picker (enabled) */}
-                <div className="flex gap-4 px-2 flex-wrap ml-9">
-                  {FALLING_STARS_ICONS.map((opt) => {
-                    const Icon = opt.icon;
-                    return (
-                      <button
-                        key={opt.key}
-                        type="button"
-                        className={`p-2 rounded-full border transition bg-white flex items-center justify-center ${fallingIcon === opt.key ? "border-slate-blue ring-2 ring-slate-blue" : "border-gray-300"}`}
-                        onClick={() => setFallingIcon(opt.key)}
-                        aria-label={opt.label}
-                      >
-                        <Icon
-                          className={
-                            opt.key === "star"
-                              ? "w-6 h-6 text-yellow-400"
-                              : opt.key === "heart"
-                                ? "w-6 h-6 text-red-500"
-                                : opt.key === "smile"
-                                  ? "w-6 h-6 text-yellow-400"
-                                  : opt.key === "thumb"
-                                    ? "w-6 h-6 text-blue-500"
-                                    : opt.key === "bolt"
-                                      ? "w-6 h-6 text-amber-400"
-                                      : opt.key === "rainbow"
-                                        ? "w-6 h-6 text-fuchsia-400"
-                                        : opt.key === "coffee"
-                                          ? "w-6 h-6 text-amber-800"
-                                          : opt.key === "wrench"
-                                            ? "w-6 h-6 text-gray-500"
-                                            : opt.key === "confetti"
-                                              ? "w-6 h-6 text-pink-400"
-                                              : opt.key === "barbell"
-                                                ? "w-6 h-6 text-gray-600"
-                                                : opt.key === "flower"
-                                                  ? "w-6 h-6 text-green-500"
-                                                  : opt.key === "peace"
-                                                    ? "w-6 h-6 text-purple-500"
-                                                    : "w-6 h-6"
-                          }
-                        />
-                        {iconUpdating && fallingIcon === opt.key && (
-                          <span className="ml-1 animate-spin w-3 h-3 border-2 border-indigo-400 border-t-transparent rounded-full inline-block align-middle"></span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+              <FallingStarsSection
+                enabled={fallingEnabled}
+                onToggle={handleToggleFalling}
+                icon={fallingIcon}
+                onIconChange={setFallingIcon}
+                description="Enable a fun animation where stars (or other icons) rain down when the prompt page loads. You can choose the icon below."
+              />
             </div>
           )}
         </div>
@@ -1622,7 +1488,7 @@ export default function PromptPageForm({
                       type="button"
                       onClick={() => {
                         if (emojiSentimentEnabled) {
-                          setShowPopupConflictModal("note");
+                          setShowPopupConflictModal("emoji");
                           return;
                         }
                         setNotePopupEnabled((v: boolean) => !v);
@@ -1716,78 +1582,13 @@ export default function PromptPageForm({
               onToggle={() => setAiReviewEnabled((v: boolean) => !v)}
             />
             {/* Falling Stars Section (modular, inline for now) */}
-            <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-2 shadow relative mb-8">
-              <div className="flex flex-row justify-between items-start px-2 py-2 pb-2">
-                <SectionHeader
-                  icon={<FaStar className="w-7 h-7 text-slate-blue" />}
-                  title="Falling star animation"
-                  subCopy="Enable a fun animation where stars (or other icons) rain down when the prompt page loads. You can choose the icon below."
-                  className="!mb-0"
-                  subCopyLeftOffset="ml-9"
-                />
-                <div className="flex flex-col justify-start pt-1">
-                  <button
-                    type="button"
-                    onClick={handleToggleFalling}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${fallingEnabled ? "bg-slate-blue" : "bg-gray-200"}`}
-                    aria-pressed={!!fallingEnabled}
-                    disabled={iconUpdating}
-                  >
-                    <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${fallingEnabled ? "translate-x-5" : "translate-x-1"}`}
-                    />
-                  </button>
-                </div>
-              </div>
-              {/* Icon picker (enabled) */}
-              <div className="flex gap-4 px-2 flex-wrap ml-9">
-                {FALLING_STARS_ICONS.map((opt) => {
-                  const Icon = opt.icon;
-                  return (
-                    <button
-                      key={opt.key}
-                      type="button"
-                      className={`p-2 rounded-full border transition bg-white flex items-center justify-center ${fallingIcon === opt.key ? "border-slate-blue ring-2 ring-slate-blue" : "border-gray-300"}`}
-                      onClick={() => setFallingIcon(opt.key)}
-                      aria-label={opt.label}
-                    >
-                      <Icon
-                        className={
-                          opt.key === "star"
-                            ? "w-6 h-6 text-yellow-400"
-                            : opt.key === "heart"
-                              ? "w-6 h-6 text-red-500"
-                              : opt.key === "smile"
-                                ? "w-6 h-6 text-yellow-400"
-                                : opt.key === "thumb"
-                                  ? "w-6 h-6 text-blue-500"
-                                  : opt.key === "bolt"
-                                    ? "w-6 h-6 text-amber-400"
-                                    : opt.key === "rainbow"
-                                      ? "w-6 h-6 text-fuchsia-400"
-                                      : opt.key === "coffee"
-                                        ? "w-6 h-6 text-amber-800"
-                                        : opt.key === "wrench"
-                                          ? "w-6 h-6 text-gray-500"
-                                          : opt.key === "confetti"
-                                            ? "w-6 h-6 text-pink-400"
-                                            : opt.key === "barbell"
-                                              ? "w-6 h-6 text-gray-600"
-                                              : opt.key === "flower"
-                                                ? "w-6 h-6 text-green-500"
-                                                : opt.key === "peace"
-                                                  ? "w-6 h-6 text-purple-500"
-                                                  : "w-6 h-6"
-                        }
-                      />
-                      {iconUpdating && fallingIcon === opt.key && (
-                        <span className="ml-1 animate-spin w-3 h-3 border-2 border-indigo-400 border-t-transparent rounded-full inline-block align-middle"></span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+            <FallingStarsSection
+              enabled={fallingEnabled}
+              onToggle={handleToggleFalling}
+              icon={fallingIcon}
+              onIconChange={setFallingIcon}
+              description="Enable a fun animation where stars (or other icons) rain down when the prompt page loads. You can choose the icon below."
+            />
           </div>
         )}
       </div>
