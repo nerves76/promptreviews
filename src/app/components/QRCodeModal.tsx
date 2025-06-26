@@ -14,6 +14,7 @@
  */
 
 import React, { useState } from 'react';
+import QRCodeGenerator, { QR_FRAME_SIZES } from '../dashboard/components/QRCodeGenerator';
 
 interface QRCodeModalProps {
   isOpen: boolean;
@@ -24,8 +25,7 @@ interface QRCodeModalProps {
 }
 
 export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl }: QRCodeModalProps) {
-  // const [selectedFrameSize, setSelectedFrameSize] = useState(QR_FRAME_SIZES[0]);
-  const [selectedFrameSize, setSelectedFrameSize] = useState({ label: '4x6" (postcard)', width: 1200, height: 1800 });
+  const [selectedFrameSize, setSelectedFrameSize] = useState(QR_FRAME_SIZES[0]);
   const [showPreview, setShowPreview] = useState(false);
   const [headline, setHeadline] = useState('Leave us a review!');
   const [starColor, setStarColor] = useState('#FFD700');
@@ -42,6 +42,35 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
     let lines = value.split("\n").slice(0, maxLines);
     lines = lines.map(l => l.slice(0, maxChars));
     setHeadline(lines.join("\n"));
+  };
+
+  const handleFrameSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selected = QR_FRAME_SIZES.find(size => size.label === e.target.value);
+    if (selected) {
+      setSelectedFrameSize(selected);
+      // Regenerate preview when frame size changes
+      if (showPreview) {
+        setIsGenerating(true);
+      }
+    }
+  };
+
+  const handleGenerateQRCode = () => {
+    setShowPreview(true);
+    setIsGenerating(true);
+  };
+
+  const handlePreviewGenerated = (previewUrl: string) => {
+    setQrPreviewUrl(previewUrl);
+    setIsGenerating(false);
+  };
+
+  const handleDownload = (blob: Blob) => {
+    const link = document.createElement("a");
+    link.download = `review-qr-${clientName.toLowerCase().replace(/\s+/g, "-")}-${selectedFrameSize.label.replace(/[^a-z0-9]/gi, "-")}.png`;
+    link.href = URL.createObjectURL(blob);
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(link.href), 1000);
   };
 
   if (!isOpen) return null;
@@ -96,18 +125,14 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
               </label>
               <select
                 value={selectedFrameSize.label}
-                onChange={(e) => {
-                  // const selected = QR_FRAME_SIZES.find(size => size.label === e.target.value);
-                  // if (selected) setSelectedFrameSize(selected);
-                }}
+                onChange={handleFrameSizeChange}
                 className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-slate-blue focus:border-transparent"
               >
-                <option value="4x6&quot; (postcard)">4x6" (postcard)</option>
-                <option value="5x7&quot; (greeting card)">5x7" (greeting card)</option>
-                <option value="5x8&quot;">5x8"</option>
-                <option value="8x10&quot;">8x10"</option>
-                <option value="8.5x11&quot; (US Letter, standard printer paper)">8.5x11" (US Letter, standard printer paper)</option>
-                <option value="11x14&quot; (small poster)">11x14" (small poster)</option>
+                {QR_FRAME_SIZES.map((size) => (
+                  <option key={size.label} value={size.label}>
+                    {size.label}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -185,19 +210,15 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
 
             {/* Generate/Download Button - Moved to bottom */}
             <button
-              onClick={() => {
-                if (!showPreview) {
-                  setShowPreview(true);
-                  setIsGenerating(true);
-                } else {
-                  // Trigger download
-                  const qrGenerator = document.querySelector('[data-qr-generator]') as HTMLElement;
-                  if (qrGenerator && (qrGenerator as any).downloadQRCode) {
-                    (qrGenerator as any).downloadQRCode();
-                  }
+              onClick={showPreview ? () => {
+                // Trigger download from QRCodeGenerator
+                const qrGenerator = document.querySelector('[data-qr-generator]') as HTMLElement;
+                if (qrGenerator && (qrGenerator as any).downloadQRCode) {
+                  (qrGenerator as any).downloadQRCode();
                 }
-              }}
-              className="w-full bg-slate-blue text-white py-2 px-4 rounded-md hover:bg-slate-blue/90 transition-colors"
+              } : handleGenerateQRCode}
+              disabled={isGenerating}
+              className="w-full bg-slate-blue text-white py-2 px-4 rounded-md hover:bg-slate-blue/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {!showPreview ? 'Generate QR Code' : 'Download QR Code'}
             </button>
@@ -237,6 +258,21 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
             </div>
           )}
         </div>
+
+        {/* Hidden QR Code Generator Component */}
+        {showPreview && (
+          <QRCodeGenerator
+            url={url}
+            clientName={clientName}
+            frameSize={selectedFrameSize}
+            onDownload={handleDownload}
+            onPreview={handlePreviewGenerated}
+            headline={headline}
+            starColor={starColor}
+            mainColor={mainColor}
+            showStars={showStars}
+          />
+        )}
       </div>
     </div>
   );
