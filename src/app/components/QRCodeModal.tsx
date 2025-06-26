@@ -13,7 +13,7 @@
  * - Responsive design with edge-to-edge marketing image
  */
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import QRCodeGenerator, { QR_FRAME_SIZES } from '../dashboard/components/QRCodeGenerator';
 
 interface QRCodeModalProps {
@@ -33,6 +33,8 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
   const [showStars, setShowStars] = useState(true);
   const [qrPreviewUrl, setQrPreviewUrl] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const qrGeneratorRef = useRef<HTMLCanvasElement>(null);
 
   const maxChars = 50;
   const maxLines = 2;
@@ -71,6 +73,39 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
     link.href = URL.createObjectURL(blob);
     link.click();
     setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+  };
+
+  const handleDownloadClick = () => {
+    setIsDownloading(true);
+    // Add a small delay to ensure QR code is fully generated
+    setTimeout(() => {
+      // Try to find the QR generator canvas and trigger download
+      const qrGenerator = document.querySelector('[data-qr-generator]') as HTMLCanvasElement;
+      if (qrGenerator && (qrGenerator as any).downloadQRCode) {
+        try {
+          (qrGenerator as any).downloadQRCode();
+        } catch (error) {
+          console.error('Error downloading QR code:', error);
+          // Fallback: try to download the preview image
+          if (qrPreviewUrl) {
+            const link = document.createElement("a");
+            link.download = `review-qr-${clientName.toLowerCase().replace(/\s+/g, "-")}-${selectedFrameSize.label.replace(/[^a-z0-9]/gi, "-")}.png`;
+            link.href = qrPreviewUrl;
+            link.click();
+          }
+        }
+      } else {
+        console.error('QR Generator not found or download function not available');
+        // Fallback: try to download the preview image
+        if (qrPreviewUrl) {
+          const link = document.createElement("a");
+          link.download = `review-qr-${clientName.toLowerCase().replace(/\s+/g, "-")}-${selectedFrameSize.label.replace(/[^a-z0-9]/gi, "-")}.png`;
+          link.href = qrPreviewUrl;
+          link.click();
+        }
+      }
+      setIsDownloading(false);
+    }, 100);
   };
 
   if (!isOpen) return null;
@@ -210,17 +245,11 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
 
             {/* Generate/Download Button - Moved to bottom */}
             <button
-              onClick={showPreview ? () => {
-                // Trigger download from QRCodeGenerator
-                const qrGenerator = document.querySelector('[data-qr-generator]') as HTMLElement;
-                if (qrGenerator && (qrGenerator as any).downloadQRCode) {
-                  (qrGenerator as any).downloadQRCode();
-                }
-              } : handleGenerateQRCode}
-              disabled={isGenerating}
+              onClick={showPreview ? handleDownloadClick : handleGenerateQRCode}
+              disabled={isGenerating || isDownloading}
               className="w-full bg-slate-blue text-white py-2 px-4 rounded-md hover:bg-slate-blue/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {!showPreview ? 'Generate QR Code' : 'Download QR Code'}
+              {!showPreview ? 'Generate QR Code' : (isDownloading ? 'Downloading...' : 'Download QR Code')}
             </button>
           </div>
         </div>

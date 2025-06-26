@@ -18,7 +18,7 @@
 
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import QRCode from "qrcode";
 import React from "react";
 
@@ -212,7 +212,7 @@ export default function QRCodeGenerator({
     }
   };
 
-  const downloadQRCode = () => {
+  const downloadQRCode = useCallback(() => {
     if (!canvasRef.current) return;
     canvasRef.current.toBlob((blob) => {
       if (blob) {
@@ -224,7 +224,7 @@ export default function QRCodeGenerator({
         setTimeout(() => URL.revokeObjectURL(link.href), 1000);
       }
     }, "image/png");
-  };
+  }, [canvasRef, onDownload, clientName, frameSize.label]);
 
   // Generate QR code when component mounts or props change
   useEffect(() => {
@@ -236,7 +236,7 @@ export default function QRCodeGenerator({
     if (canvasRef.current) {
       (canvasRef.current as any).downloadQRCode = downloadQRCode;
     }
-  }, [canvasRef.current]);
+  }, [downloadQRCode]);
 
   return (
     <canvas 
