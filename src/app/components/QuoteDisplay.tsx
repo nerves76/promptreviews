@@ -100,21 +100,21 @@ export default function QuoteDisplay({ className = '' }: QuoteDisplayProps) {
       {/* Navigation Arrows - Positioned outside the quote box */}
       <button
         onClick={previousQuote}
-        className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-12 p-2 text-white hover:text-white/80 transition-colors z-10 bg-black/20 rounded"
+        className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-8 md:-translate-x-12 p-2 text-white hover:text-white/80 transition-colors z-10 bg-black/20 rounded"
         aria-label="Previous quote"
       >
         <FaChevronLeft className="h-5 w-5" />
       </button>
       <button
         onClick={nextQuote}
-        className="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-12 p-2 text-white hover:text-white/80 transition-colors z-10 bg-black/20 rounded"
+        className="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-8 md:translate-x-12 p-2 text-white hover:text-white/80 transition-colors z-10 bg-black/20 rounded"
         aria-label="Next quote"
       >
         <FaChevronRight className="h-5 w-5" />
       </button>
 
       {/* Quote Box */}
-      <div className="border-2 border-white rounded-lg p-6 shadow-lg">
+      <div className="border-2 border-white rounded-lg p-6 shadow-lg w-full md:min-w-[800px] md:max-w-[800px]">
         <div className="text-center">
           {/* Quote Text */}
           <blockquote className="text-lg font-medium text-white mb-2">
