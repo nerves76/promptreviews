@@ -5,13 +5,36 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { getAllEmailTemplates, updateEmailTemplate } from '../../../utils/emailTemplates';
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createRouteHandlerClient({ cookies });
+    const cookieStore = await cookies();
+    
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll();
+          },
+          setAll(cookiesToSet) {
+            try {
+              cookiesToSet.forEach(({ name, value, options }) =>
+                cookieStore.set(name, value, options)
+              );
+            } catch {
+              // The `setAll` method was called from a Server Component.
+              // This can be ignored if you have middleware refreshing
+              // user sessions.
+            }
+          },
+        },
+      }
+    );
     
     // Check if user is admin
     const { data: { user } } = await supabase.auth.getUser();
@@ -31,7 +54,6 @@ export async function GET(request: NextRequest) {
 
     // Get all email templates
     const templates = await getAllEmailTemplates();
-    
     return NextResponse.json({ templates });
   } catch (error) {
     console.error('Error fetching email templates:', error);
@@ -44,7 +66,30 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createRouteHandlerClient({ cookies });
+    const cookieStore = await cookies();
+    
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll();
+          },
+          setAll(cookiesToSet) {
+            try {
+              cookiesToSet.forEach(({ name, value, options }) =>
+                cookieStore.set(name, value, options)
+              );
+            } catch {
+              // The `setAll` method was called from a Server Component.
+              // This can be ignored if you have middleware refreshing
+              // user sessions.
+            }
+          },
+        },
+      }
+    );
     
     // Check if user is admin
     const { data: { user } } = await supabase.auth.getUser();
@@ -74,14 +119,12 @@ export async function POST(request: NextRequest) {
 
     // Update the template
     const result = await updateEmailTemplate(id, updates);
-    
     if (!result.success) {
       return NextResponse.json(
         { error: result.error }, 
         { status: 500 }
       );
     }
-
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error updating email template:', error);
