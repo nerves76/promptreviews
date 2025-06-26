@@ -54,7 +54,6 @@ CREATE INDEX IF NOT EXISTS idx_prompt_pages_account_status ON prompt_pages(accou
 CREATE INDEX IF NOT EXISTS idx_review_submissions_page_platform ON review_submissions(prompt_page_id, platform);
 CREATE INDEX IF NOT EXISTS idx_analytics_events_page_type ON analytics_events(prompt_page_id, event_type);
 
--- Partial indexes for better performance
-CREATE INDEX IF NOT EXISTS idx_accounts_active_trials ON accounts(trial_end) WHERE plan = 'free' AND trial_end > NOW();
-CREATE INDEX IF NOT EXISTS idx_review_submissions_verified_only ON review_submissions(prompt_page_id) WHERE verified = true;
-CREATE INDEX IF NOT EXISTS idx_analytics_events_recent ON analytics_events(created_at) WHERE created_at > NOW() - INTERVAL '30 days'; 
+-- Simple partial indexes for better performance
+CREATE INDEX IF NOT EXISTS idx_accounts_free_plan ON accounts(trial_end) WHERE plan = 'free';
+CREATE INDEX IF NOT EXISTS idx_review_submissions_verified_only ON review_submissions(prompt_page_id) WHERE verified = true; 
