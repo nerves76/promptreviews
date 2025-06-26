@@ -10,9 +10,15 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { createBrowserClient } from '@supabase/ssr';
 import { isAdmin } from '../../../utils/admin';
-import { supabase } from '../../../utils/supabase';
 import { FaUsers, FaBuilding, FaStar, FaChartLine, FaCalendarAlt, FaGlobe } from 'react-icons/fa';
+
+// Use the same Supabase client as the admin page
+const supabase = createBrowserClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+);
 
 interface AdminAnalytics {
   totalUsers: number;
@@ -47,19 +53,40 @@ export default function AdminAnalyticsPage() {
   }, [isAdminUser, timeRange]);
 
   const checkAdminStatus = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    console.log('Analytics page: Starting admin status check');
+    try {
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      console.log('Analytics page: User check result:', { user: user?.id, email: user?.email, error: userError });
+      
+      if (userError) {
+        console.log('Analytics page: User error:', userError);
+        router.push('/dashboard');
+        return;
+      }
+      
+      if (!user) {
+        console.log('Analytics page: No user found, redirecting to dashboard');
+        router.push('/dashboard');
+        return;
+      }
+      
+      console.log('Analytics page: Checking admin status for user:', user.id);
+      const adminStatus = await isAdmin(user.id, supabase);
+      console.log('Analytics page: Admin status result:', adminStatus);
+      
+      if (!adminStatus) {
+        console.log('Analytics page: User is not admin, redirecting to dashboard');
+        router.push('/dashboard');
+        return;
+      }
+      
+      console.log('Analytics page: User is admin, setting state');
+      setIsAdminUser(true);
+      setLoading(false);
+    } catch (error) {
+      console.log('Analytics page: Error in checkAdminStatus:', error);
       router.push('/dashboard');
-      return;
     }
-    
-    const adminStatus = await isAdmin(user.id);
-    if (!adminStatus) {
-      router.push('/dashboard');
-      return;
-    }
-    setIsAdminUser(true);
-    setLoading(false);
   };
 
   const loadAnalytics = async () => {
