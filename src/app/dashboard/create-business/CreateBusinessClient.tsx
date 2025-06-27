@@ -232,9 +232,9 @@ export default function CreateBusinessClient() {
       setSuccess("Business profile created successfully!");
       setLoading(false);
       
-      // Redirect to dashboard after a short delay
+      // Redirect to plan selection after a short delay
       setTimeout(() => {
-        router.push("/dashboard");
+        router.push("/dashboard/plan");
       }, 1500);
     } catch (error) {
       console.error("Error in handleSubmit:", error);
