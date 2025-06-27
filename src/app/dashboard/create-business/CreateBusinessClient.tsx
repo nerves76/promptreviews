@@ -81,6 +81,41 @@ export default function CreateBusinessClient() {
     }
 
     // Create business profile
+    console.log("Attempting to create business with data:", {
+      reviewer_id: accountId,
+      name: form.name,
+      business_website: form.business_website,
+      phone: form.phone,
+      business_email: form.business_email,
+      address_street: form.address_street,
+      address_city: form.address_city,
+      address_state: form.address_state,
+      address_zip: form.address_zip,
+      address_country: form.address_country,
+      industry: form.industry,
+      industry_other: form.industry_other,
+    });
+
+    // Check if user already has a business
+    const { data: existingBusiness, error: checkError } = await supabase
+      .from("businesses")
+      .select("id")
+      .eq("reviewer_id", accountId)
+      .single();
+
+    if (existingBusiness) {
+      setError("You already have a business profile. Please go to your business profile page to update it.");
+      setLoading(false);
+      return;
+    }
+
+    if (checkError && checkError.code !== 'PGRST116') { // PGRST116 is "not found" error
+      console.error("Error checking existing business:", checkError);
+      setError("Error checking existing business profile. Please try again.");
+      setLoading(false);
+      return;
+    }
+
     const { error: insertError } = await supabase
       .from("businesses")
       .insert({
@@ -100,7 +135,13 @@ export default function CreateBusinessClient() {
 
     if (insertError) {
       console.error("Error creating business:", insertError);
-      setError(insertError.message);
+      console.error("Error details:", {
+        message: insertError.message,
+        details: insertError.details,
+        hint: insertError.hint,
+        code: insertError.code
+      });
+      setError(insertError.message || "Failed to create business profile. Please try again.");
       setLoading(false);
       return;
     }
