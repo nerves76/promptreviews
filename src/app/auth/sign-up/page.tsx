@@ -21,6 +21,16 @@ export default function SignUpPage() {
   console.log('Sign-up page - NEXT_PUBLIC_SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
   console.log('Sign-up page - NEXT_PUBLIC_APP_URL:', process.env.NEXT_PUBLIC_APP_URL);
   console.log('Sign-up page - window.location.origin:', window.location.origin);
+  
+  // Browser environment test
+  console.log('=== Browser Environment Test ===');
+  const isLocal = process.env.NEXT_PUBLIC_SUPABASE_URL === 'http://127.0.0.1:54321';
+  console.log('Using local Supabase:', isLocal ? 'YES' : 'NO');
+  if (!isLocal) {
+    console.log('❌ WARNING: Still using production Supabase URL!');
+  } else {
+    console.log('✅ SUCCESS: Using local Supabase URL!');
+  }
 
   const errorMessages: Record<string, string> = {
     "User already registered":
