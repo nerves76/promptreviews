@@ -25,7 +25,21 @@ export async function isAdmin(userId?: string, supabaseClient?: any): Promise<bo
 
     console.log('isAdmin: Checking admin status for user ID:', userToCheck);
     
+    // First, let's test if we can access the table at all
+    console.log('isAdmin: Testing basic table access...');
+    try {
+      const { data: testData, error: testError } = await client
+        .from('admins')
+        .select('count')
+        .limit(1);
+      
+      console.log('isAdmin: Basic table access test:', { testData, testError });
+    } catch (testErr) {
+      console.error('isAdmin: Basic table access failed:', testErr);
+    }
+    
     // Try the admin check with better error handling
+    console.log('isAdmin: Attempting main admin query...');
     const { data: admin, error } = await client
       .from('admins')
       .select('id')
@@ -46,6 +60,56 @@ export async function isAdmin(userId?: string, supabaseClient?: any): Promise<bo
         errorKeys: Object.keys(error || {}),
         errorString: String(error)
       });
+      
+      // Try alternative approaches
+      console.log('isAdmin: Trying alternative query approaches...');
+      
+      // Approach 1: Use maybeSingle instead of single
+      try {
+        const { data: adminAlt1, error: altError1 } = await client
+          .from('admins')
+          .select('id')
+          .eq('account_id', userToCheck)
+          .maybeSingle();
+          
+        console.log('isAdmin: Alternative approach 1 (maybeSingle):', { admin: adminAlt1, error: altError1 });
+        if (!altError1) {
+          return !!adminAlt1;
+        }
+      } catch (altErr1) {
+        console.error('isAdmin: Alternative approach 1 failed:', altErr1);
+      }
+      
+      // Approach 2: Try without single() - get array
+      try {
+        const { data: adminAlt2, error: altError2 } = await client
+          .from('admins')
+          .select('id')
+          .eq('account_id', userToCheck);
+          
+        console.log('isAdmin: Alternative approach 2 (array):', { admin: adminAlt2, error: altError2 });
+        if (!altError2 && adminAlt2 && adminAlt2.length > 0) {
+          return true;
+        }
+      } catch (altErr2) {
+        console.error('isAdmin: Alternative approach 2 failed:', altErr2);
+      }
+      
+      // Approach 3: Try with different column selection
+      try {
+        const { data: adminAlt3, error: altError3 } = await client
+          .from('admins')
+          .select('*')
+          .eq('account_id', userToCheck)
+          .maybeSingle();
+          
+        console.log('isAdmin: Alternative approach 3 (select *):', { admin: adminAlt3, error: altError3 });
+        if (!altError3) {
+          return !!adminAlt3;
+        }
+      } catch (altErr3) {
+        console.error('isAdmin: Alternative approach 3 failed:', altErr3);
+      }
       
       // If it's an RLS policy error, try a different approach
       if (error.code === '42501' || error.message?.includes('permission denied')) {
