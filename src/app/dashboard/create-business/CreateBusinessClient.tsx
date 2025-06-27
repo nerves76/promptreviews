@@ -81,21 +81,35 @@ export default function CreateBusinessClient() {
     }
 
     // Ensure user is in account_users table as owner
-    const { error: accountUserError } = await supabase
-      .from("account_users")
-      .upsert({ 
-        account_id: accountId, 
-        user_id: user.id, 
-        role: 'owner' 
-      }, { 
-        onConflict: 'account_id,user_id' 
-      });
-
-    if (accountUserError) {
-      console.error("Error setting up account user:", accountUserError);
-      setError("Failed to set up account access. Please try again.");
+    // First check if the user exists in auth.users
+    const { data: authUser, error: authUserError } = await supabase.auth.getUser();
+    
+    if (authUserError || !authUser.user) {
+      console.error("Error getting auth user:", authUserError);
+      setError("Authentication error. Please sign in again.");
       setLoading(false);
       return;
+    }
+
+    // Only try to insert into account_users if we have a valid auth user
+    if (authUser.user.id === user.id) {
+      const { error: accountUserError } = await supabase
+        .from("account_users")
+        .upsert({ 
+          account_id: accountId, 
+          user_id: user.id, 
+          role: 'owner' 
+        }, { 
+          onConflict: 'account_id,user_id' 
+        });
+
+      if (accountUserError) {
+        console.error("Error setting up account user:", accountUserError);
+        // Don't fail the entire process if account_users fails
+        console.warn("Account user setup failed, but continuing with business creation");
+      }
+    } else {
+      console.warn("User ID mismatch, skipping account_users setup");
     }
 
     // Create business profile
