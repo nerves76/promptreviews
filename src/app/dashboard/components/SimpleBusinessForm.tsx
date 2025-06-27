@@ -120,7 +120,7 @@ export default function SimpleBusinessForm({
           </div>
           <div className="w-full md:w-1/2">
             <label className="block font-semibold text-sm text-gray-500 mb-1">
-              Business email
+              Business email *
             </label>
             <input
               type="email"
@@ -128,6 +128,7 @@ export default function SimpleBusinessForm({
               className="w-full border px-3 py-2 rounded"
               value={form.business_email || ""}
               onChange={handleChange}
+              required
               placeholder="contact@yourbusiness.com"
             />
           </div>

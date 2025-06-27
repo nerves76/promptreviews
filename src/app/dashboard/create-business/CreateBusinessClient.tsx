@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
 import { useAuthGuard } from "@/utils/authGuard";
-import { FaBuilding } from "react-icons/fa";
+import { FaStore } from "react-icons/fa";
 import { getUserOrMock } from "@/utils/supabase";
 import SimpleBusinessForm from "../components/SimpleBusinessForm";
 import AppLoader from "@/app/components/AppLoader";
@@ -115,7 +115,7 @@ export default function CreateBusinessClient() {
   };
 
   return (
-    <PageCard icon={<FaBuilding className="w-9 h-9 text-slate-blue" />}>
+    <PageCard icon={<FaStore className="w-9 h-9 text-slate-blue" />}>
       {success && (
         <div className="mb-6 p-4 bg-green-50 text-green-700 rounded-md text-base font-medium border border-green-200">
           {success}
@@ -132,7 +132,7 @@ export default function CreateBusinessClient() {
             Your Business Basics
           </h1>
           <p className="text-gray-600 text-base max-w-md mt-0 mb-10">
-            Let's get started by setting up your basic business information. You can add more details later.
+            Let's get started by setting up your basic business information.
           </p>
         </div>
         <div
