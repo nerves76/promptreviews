@@ -119,9 +119,10 @@ export default function CreateBusinessClient() {
         message: checkError.message,
         details: checkError.details,
         hint: checkError.hint,
-        code: checkError.code
+        code: checkError.code,
+        error: JSON.stringify(checkError)
       });
-      setError("Error checking existing business profile. Please try again.");
+      setError(`Error checking existing business profile: ${checkError.message || 'Unknown error'}. Please try again.`);
       setLoading(false);
       return;
     }
@@ -149,9 +150,10 @@ export default function CreateBusinessClient() {
         message: insertError.message,
         details: insertError.details,
         hint: insertError.hint,
-        code: insertError.code
+        code: insertError.code,
+        error: JSON.stringify(insertError)
       });
-      setError(insertError.message || "Failed to create business profile. Please try again.");
+      setError(`Failed to create business profile: ${insertError.message || 'Unknown error'}. Please try again.`);
       setLoading(false);
       return;
     }
