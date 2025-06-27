@@ -274,8 +274,9 @@ export default function CreateBusinessClient() {
     }
   };
 
+  // Ensure no invisible characters or syntax issues before return
   return (
-    <PageCard icon={<FaStore className="w-9 h-9 text-slate-blue" />}>
+    <PageCard icon={<FaStore className="w-9 h-9 text-slate-blue" />}> 
       {success && (
         <div className="mb-6 p-4 bg-green-50 text-green-700 rounded-md text-base font-medium border border-green-200">
           {success}
@@ -355,4 +356,4 @@ export default function CreateBusinessClient() {
       )}
     </PageCard>
   );
-} 
+}
