@@ -76,7 +76,7 @@ When Swiper.js fails to load (network issues, CDN problems), the widget falls ba
 
 # **PromptReviews Project Cheat Sheet**
 
-It's important to know that due to a previous issue we use a togglt to embed hard coded keys. ./toggle-supabase-keys.sh
+This project uses environment variables for configuration. Ensure all required environment variables are set in your deployment platform.
 
 Keys include supabase, Stripe, Resend
 
@@ -84,6 +84,16 @@ Keys include supabase, Stripe, Resend
 
 - **Stack:** Vanilla JavaScript, HTML, CSS, Supabase (DB, Auth, Storage), Tailwind CSS.
 - **Purpose:** Business onboarding, authentication, and review management platform with custom prompt pages, AI-generated reviews, and media uploads.
+
+## **Documentation**
+
+- [Sign-Up Process & Multi-User System](SIGNUP_AND_MULTI_USER_DOCUMENTATION.md) - Comprehensive guide to authentication and multi-user account management
+- [Database Schema](databaseschema.md) - Complete database structure and relationships
+- [Authentication Cleanup](AUTHENTICATION_CLEANUP.md) - Security standardization and API authentication patterns
+- [Widget System](WIDGET_SYSTEM_DOCUMENTATION.md) - Widget development and customization guide
+- [Widget Dashboard](WIDGET_DASHBOARD_DOCUMENTATION.md) - Dashboard widget management interface
+- [Troubleshooting](TROUBLESHOOTING_DOCUMENTATION.md) - Common issues and solutions
+- [User Documentation](USER_DOCUMENTATION.md) - End-user guide and features
 
 ---
 
@@ -255,7 +265,7 @@ For more details, see the safelist comment in `src/widget-embed/widget.css`.
 ## **Onboarding Checklist**
 
 - [ ] Clone the repo and install dependencies.
-- [ ] Set up `.env.local` with Supabase project URL and anon key.
+- [ ] Set up environment variables in your deployment platform.
 - [ ] Run `npm run dev` and test sign-in/sign-up.
 - [ ] Familiarize yourself with `@supabase/ssr` usage.
 - [ ] Review the dashboard and prompt page flows.
