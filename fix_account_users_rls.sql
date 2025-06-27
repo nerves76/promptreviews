@@ -54,19 +54,48 @@ FROM account_users au
 LEFT JOIN auth.users u ON au.user_id = u.id
 LIMIT 10;
 
+-- Check existing accounts to use for testing
+SELECT 
+    'Available Accounts' as check_type,
+    id,
+    created_at
+FROM accounts
+ORDER BY created_at DESC
+LIMIT 5;
+
 -- Now let's create a comprehensive fix
 -- First, temporarily disable RLS to test if that's the issue
 ALTER TABLE account_users DISABLE ROW LEVEL SECURITY;
 
--- Test a simple upsert operation
-INSERT INTO account_users (user_id, account_id, role, created_at)
-VALUES ('test-user-id', 'test-account-id', 'owner', NOW())
-ON CONFLICT (user_id, account_id) DO UPDATE SET
-    role = EXCLUDED.role,
-    updated_at = NOW();
-
--- Clean up test data
-DELETE FROM account_users WHERE user_id = 'test-user-id';
+-- Test a simple upsert operation using an existing account ID
+-- We'll use the first available account ID from the accounts table
+DO $$
+DECLARE
+    test_account_id uuid;
+BEGIN
+    -- Get the first available account ID
+    SELECT id INTO test_account_id FROM accounts LIMIT 1;
+    
+    IF test_account_id IS NOT NULL THEN
+        -- Test the upsert operation
+        INSERT INTO account_users (user_id, account_id, role, created_at)
+        VALUES (
+            test_account_id, 
+            test_account_id, 
+            'owner', 
+            NOW()
+        )
+        ON CONFLICT (user_id, account_id) DO UPDATE SET
+            role = EXCLUDED.role;
+            
+        -- Clean up test data
+        DELETE FROM account_users WHERE user_id = test_account_id;
+        
+        RAISE NOTICE 'Test completed successfully using account_id: %', test_account_id;
+    ELSE
+        RAISE NOTICE 'No accounts found, skipping test';
+    END IF;
+END $$;
 
 -- Now let's create proper RLS policies
 -- Drop any existing problematic policies
