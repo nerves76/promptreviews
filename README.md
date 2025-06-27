@@ -800,3 +800,9 @@ http://localhost:3001/widgets/multi/test-responsive.html
 ```
 
 This page provides a slider to adjust widget width and test the responsive behavior without the complexity of the full dashboard. 
+
+## Account Sign-Up Flow
+
+- When a user signs up, they will receive a confirmation email.
+- The user must click the confirmation link in their email to activate their account before signing in.
+- This process improves security, prevents spam, and ensures account recovery. 
