@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { parse } from "csv-parse/sync";
 import slugify from "slugify";
 import { checkAccountLimits } from "@/utils/accountLimits";
 import { authenticateApiRequest } from "@/utils/apiAuth";
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     console.log("Starting upload-contacts API route");
     

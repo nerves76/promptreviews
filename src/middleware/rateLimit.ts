@@ -24,7 +24,7 @@ const defaultConfig: RateLimitConfig = {
   keyGenerator: (req: NextRequest) => {
     // Use IP address as default key
     const forwarded = req.headers.get('x-forwarded-for');
-    const ip = forwarded ? forwarded.split(',')[0] : req.ip || 'unknown';
+    const ip = forwarded ? forwarded.split(',')[0] : 'unknown';
     return ip;
   },
   skipSuccessfulRequests: false,
@@ -118,7 +118,7 @@ export const publicRateLimit = createRateLimit({
   maxRequests: 60, // 60 requests per minute
   keyGenerator: (req: NextRequest) => {
     const forwarded = req.headers.get('x-forwarded-for');
-    const ip = forwarded ? forwarded.split(',')[0] : req.ip || 'unknown';
+    const ip = forwarded ? forwarded.split(',')[0] : 'unknown';
     return `public:${ip}`;
   },
 });

@@ -76,6 +76,13 @@ export async function GET(request: NextRequest) {
     // Send reminder emails
     for (const account of accounts || []) {
       try {
+        // Handle the profiles array from inner join
+        const profile = Array.isArray(account.profiles) ? account.profiles[0] : account.profiles;
+        if (!profile) {
+          console.error('No profile found for account:', account.id);
+          continue;
+        }
+
         // Check if we've already sent a reminder for this account today
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -92,7 +99,7 @@ export async function GET(request: NextRequest) {
           skippedCount++;
           results.push({
             accountId: account.id,
-            email: account.profiles.email,
+            email: profile.email,
             status: 'skipped',
             reason: 'Already sent today'
           });
@@ -100,8 +107,8 @@ export async function GET(request: NextRequest) {
         }
 
         const result = await sendTrialReminderEmail(
-          account.profiles.email,
-          account.profiles.first_name || 'there'
+          profile.email,
+          profile.first_name || 'there'
         );
 
         // Log the reminder attempt
@@ -109,7 +116,7 @@ export async function GET(request: NextRequest) {
           .from('trial_reminder_logs')
           .insert({
             account_id: account.id,
-            email: account.profiles.email,
+            email: profile.email,
             reminder_type: 'trial_reminder',
             success: result.success,
             error_message: result.error || null
@@ -119,14 +126,14 @@ export async function GET(request: NextRequest) {
           successCount++;
           results.push({
             accountId: account.id,
-            email: account.profiles.email,
+            email: profile.email,
             status: 'sent'
           });
         } else {
           errorCount++;
           results.push({
             accountId: account.id,
-            email: account.profiles.email,
+            email: profile.email,
             status: 'failed',
             error: result.error
           });
@@ -134,12 +141,16 @@ export async function GET(request: NextRequest) {
       } catch (error) {
         errorCount++;
         
+        // Handle the profiles array from inner join
+        const profile = Array.isArray(account.profiles) ? account.profiles[0] : account.profiles;
+        const email = profile?.email || 'unknown';
+        
         // Log the error
         await supabase
           .from('trial_reminder_logs')
           .insert({
             account_id: account.id,
-            email: account.profiles.email,
+            email: email,
             reminder_type: 'trial_reminder',
             success: false,
             error_message: error instanceof Error ? error.message : 'Unknown error'
@@ -147,7 +158,7 @@ export async function GET(request: NextRequest) {
 
         results.push({
           accountId: account.id,
-          email: account.profiles.email,
+          email: email,
           status: 'failed',
           error: error instanceof Error ? error.message : 'Unknown error'
         });

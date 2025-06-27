@@ -91,10 +91,10 @@ export default function TermsPage() {
         <li>
           If you have any questions about these Terms, please contact us at{" "}
           <a
-            href="mailto:support@promptreviews.com"
+            href="mailto:support@promptreviews.app"
             className="underline text-indigo-700 hover:text-indigo-900"
           >
-            support@promptreviews.com
+            support@promptreviews.app
           </a>
           .
         </li>

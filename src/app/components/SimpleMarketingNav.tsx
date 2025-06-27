@@ -20,7 +20,7 @@ export default function SimpleMarketingNav() {
             href="https://promptreviews.app/"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 text-indigo-700 hover:text-indigo-900 font-bold text-sm px-4 py-2 rounded transition"
+            className="flex items-center gap-2 text-slate-blue hover:text-slate-blue/80 font-bold text-sm px-4 py-2 rounded transition"
           >
             <FaArrowLeft className="w-4 h-4" />
             Back to main site

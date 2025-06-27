@@ -1,3 +1,5 @@
+import * as React from "react";
+
 /**
  * Performance Monitoring Utilities
  * 
@@ -58,7 +60,8 @@ class PerformanceMonitor {
       const observer = new PerformanceObserver((list) => {
         const entries = list.getEntries();
         entries.forEach((entry) => {
-          this.recordMetric('FID', entry.processingStart - entry.startTime, CORE_WEB_VITALS_THRESHOLDS.FID);
+          const eventEntry = entry as PerformanceEventTiming;
+          this.recordMetric('FID', eventEntry.processingStart - eventEntry.startTime, CORE_WEB_VITALS_THRESHOLDS.FID);
         });
       });
       observer.observe({ entryTypes: ['first-input'] });
@@ -168,7 +171,7 @@ class PerformanceMonitor {
     }
   }
 
-  private recordCustomMetric(name: string, duration: number, error?: any) {
+  public recordCustomMetric(name: string, duration: number, error?: any) {
     const metric: PerformanceMetric = {
       name: `custom_${name}`,
       value: duration,
@@ -254,15 +257,15 @@ export const usePerformanceMeasurement = (componentName: string) => {
 };
 
 // Higher-order component for performance measurement
-export const withPerformanceMeasurement = <P extends object>(
-  Component: React.ComponentType<P>,
+export function withPerformanceMeasurement<P extends object>(
+  Wrapped: React.ComponentType<P>,
   componentName: string
-) => {
+) {
   const WrappedComponent = (props: P) => {
     usePerformanceMeasurement(componentName);
-    return <Component {...props} />;
+    return React.createElement(Wrapped, props);
   };
   
-  WrappedComponent.displayName = `withPerformanceMeasurement(${Component.displayName || Component.name})`;
+  WrappedComponent.displayName = `withPerformanceMeasurement(${Wrapped.displayName || Wrapped.name})`;
   return WrappedComponent;
-}; 
+} 

@@ -382,6 +382,12 @@ export default function PromptPageForm({
               const size = 32 + Math.random() * 8;
               const top = -40 - Math.random() * 360;
               const iconObj = getFallingIcon(fallingIcon);
+              
+              // Guard clause to ensure iconObj is defined
+              if (!iconObj) {
+                return null;
+              }
+              
               const IconComp = iconObj.icon;
               return (
                 <IconComp

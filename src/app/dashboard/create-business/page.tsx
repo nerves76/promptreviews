@@ -576,6 +576,14 @@ export default function CreateBusinessPage() {
                 🐛 Debug: Show Welcome Popup
               </button>
             )}
+            
+            {/* Test button for welcome popup - always visible for testing */}
+            <button
+              onClick={() => setShowWelcomePopup(true)}
+              className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm"
+            >
+              🧪 Test Welcome Popup
+            </button>
           </div>
 
           {showTrialConfirmation && (

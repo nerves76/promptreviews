@@ -170,9 +170,9 @@ otp_expiry = 3600
 enabled = false
 host = "smtp.mailgun.org"
 port = 587
-user = "chris@mg.promptreviews.com"
+user = "chris@mg.promptreviews.app"
 pass = "env(MAILGUN_SMTP_PASSWORD)"
-admin_email = "chris@mg.promptreviews.com"
+admin_email = "chris@mg.promptreviews.app"
 sender_name = "Prompt Reviews"
 
 # Uncomment to customize email template
