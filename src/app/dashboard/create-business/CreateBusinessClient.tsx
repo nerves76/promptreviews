@@ -83,7 +83,7 @@ export default function CreateBusinessClient() {
     // Create business profile
     console.log("User ID:", accountId);
     console.log("Attempting to create business with data:", {
-      id: accountId,
+      account_id: accountId,
       name: form.name,
       business_website: form.business_website,
       phone: form.phone,
@@ -98,11 +98,11 @@ export default function CreateBusinessClient() {
     });
 
     // Check if user already has a business
-    console.log("Checking for existing business with id:", accountId);
+    console.log("Checking for existing business with account_id:", accountId);
     const { data: existingBusiness, error: checkError } = await supabase
       .from("businesses")
       .select("id")
-      .eq("id", accountId)
+      .eq("account_id", accountId)
       .single();
 
     console.log("Existing business check result:", { existingBusiness, checkError });
@@ -130,7 +130,7 @@ export default function CreateBusinessClient() {
     const { error: insertError } = await supabase
       .from("businesses")
       .insert({
-        id: accountId,
+        account_id: accountId,
         name: form.name,
         business_website: form.business_website,
         phone: form.phone,
