@@ -129,7 +129,7 @@ export default function CreateBusinessClient() {
       <div className="flex items-start justify-between mt-2 mb-4">
         <div className="flex flex-col mt-0 md:mt-[3px]">
           <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
-            Your Business Basics
+            Your business basics
           </h1>
           <p className="text-gray-600 text-base max-w-md mt-0 mb-10">
             Let's get started by setting up your basic business information.

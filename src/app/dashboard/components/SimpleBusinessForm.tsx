@@ -72,7 +72,7 @@ export default function SimpleBusinessForm({
       <div className="mb-16">
         <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
           <FaBuilding className="w-7 h-7 text-slate-blue" />
-          Business Information
+          Business information
         </h2>
         
         <div className="mb-4">
@@ -196,7 +196,7 @@ export default function SimpleBusinessForm({
                 className="block text-xs font-medium text-gray-500 mb-1"
                 htmlFor="address_zip"
               >
-                ZIP *
+                Zip *
               </label>
               <input
                 type="text"
@@ -206,7 +206,7 @@ export default function SimpleBusinessForm({
                 value={form.address_zip}
                 onChange={handleChange}
                 required
-                placeholder="ZIP"
+                placeholder="Zip"
               />
             </div>
           </div>
