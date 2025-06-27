@@ -188,7 +188,7 @@ export default function BusinessForm({
       <div className="mb-16">
         <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
           <FaImage className="w-7 h-7 text-slate-blue" />
-          Logo
+          Logo (Optional)
         </h2>
         <div className="mb-10 flex flex-col md:flex-row items-center gap-10">
           {logoUrl && (
@@ -198,81 +198,36 @@ export default function BusinessForm({
               className="rounded-full max-h-32 max-w-32 object-contain border shadow"
             />
           )}
-          <div className="flex-1 w-full max-w-[700px]">
-            <label className="block font-bold text-lg text-gray-900 mb-1">
-              Upload your logo or your face (whichever is more iconic).
-            </label>
-            <div className="text-sm text-gray-500 mb-2">Up to 800x800px supported (PNG, JPG, or WEBP) - automatically compressed for optimal performance</div>
+          <div className="flex flex-col items-center gap-4">
             <input
               type="file"
-              accept="image/png, image/jpeg, image/webp"
               ref={fileInputRef}
               onChange={handleLogoChange}
-              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-slate-blue file:text-white hover:file:bg-slate-blue/90"
+              accept="image/*"
+              className="hidden"
             />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2"
+            >
+              <FaImage className="w-5 h-5" />
+              {logoUrl ? "Change Logo" : "Upload Logo"}
+            </button>
             {logoError && (
-              <p className="text-sm text-red-600 mt-1">{logoError}</p>
+              <p className="text-red-500 text-sm">{logoError}</p>
             )}
           </div>
         </div>
-        {/* Cropping Modal */}
-        {showCropper && logoUrl && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-            <div className="bg-white rounded-lg shadow-lg p-6 max-w-lg w-full">
-              <h2 className="text-lg font-bold mb-4">Crop Your Logo</h2>
-              <div className="relative w-full h-64 bg-white">
-                <Cropper
-                  image={logoUrl}
-                  crop={crop}
-                  zoom={zoom}
-                  aspect={1}
-                  cropShape="round"
-                  showGrid={false}
-                  onCropChange={setCrop}
-                  onZoomChange={setZoom}
-                  onCropComplete={(_, croppedAreaPixels) =>
-                    setCroppedAreaPixels(croppedAreaPixels)
-                  }
-                />
-              </div>
-              <div className="flex items-center gap-4 mt-4">
-                <label className="text-sm">Zoom</label>
-                <input
-                  type="range"
-                  min={1}
-                  max={3}
-                  step={0.01}
-                  value={zoom}
-                  onChange={(e) => setZoom(Number(e.target.value))}
-                  className="w-full"
-                />
-              </div>
-              <div className="flex justify-end gap-2 mt-6">
-                <button
-                  onClick={handleCropCancel}
-                  type="button"
-                  className="px-4 py-2 rounded bg-gray-200 text-gray-700"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleCropConfirm}
-                  type="button"
-                  className="px-4 py-2 rounded bg-slate-blue text-white hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue"
-                >
-                  Crop & Save
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
-      {/* Business Info Section */}
-      <div className="mb-8">
+
+      {/* Business Information Section */}
+      <div className="mb-16">
         <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
-          <FaInfoCircle className="w-7 h-7 text-slate-blue" />
-          Business info
+          <FaBuilding className="w-7 h-7 text-slate-blue" />
+          Business Information
         </h2>
+        
         <div className="mb-4">
           <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center gap-1">
             Business name *
@@ -287,6 +242,7 @@ export default function BusinessForm({
             required
           />
         </div>
+        
         <div className="mb-4">
           <label className="block font-semibold text-sm text-gray-500 mb-1">
             Business website
@@ -300,6 +256,7 @@ export default function BusinessForm({
             placeholder="https://yourbusiness.com"
           />
         </div>
+        
         <div className="mb-4 flex flex-col md:flex-row gap-4">
           <div className="w-full md:w-1/2">
             <label className="block font-semibold text-sm text-gray-500 mb-1">
@@ -328,6 +285,7 @@ export default function BusinessForm({
             />
           </div>
         </div>
+        
         <div className="mb-4">
           <label className="block font-semibold text-sm text-gray-500 mb-1">
             Business address
@@ -351,11 +309,10 @@ export default function BusinessForm({
           <div className="flex gap-2 mb-2">
             <div className="flex flex-col w-32">
               <label
-                className="block text-xs font-medium text-gray-500 mb-1 flex items-center gap-1"
+                className="block text-xs font-medium text-gray-500 mb-1"
                 htmlFor="address_city"
               >
-                City{" "}
-                <RobotTooltip text="Made available for AI prompt generation." />
+                City *
               </label>
               <input
                 type="text"
@@ -370,11 +327,10 @@ export default function BusinessForm({
             </div>
             <div className="flex flex-col w-20">
               <label
-                className="block text-xs font-medium text-gray-500 mb-1 flex items-center gap-1"
+                className="block text-xs font-medium text-gray-500 mb-1"
                 htmlFor="address_state"
               >
-                State{" "}
-                <RobotTooltip text="Made available for AI prompt generation." />
+                State *
               </label>
               <input
                 type="text"
@@ -389,11 +345,10 @@ export default function BusinessForm({
             </div>
             <div className="flex flex-col w-24">
               <label
-                className="block text-xs font-medium text-gray-500 mb-1 flex items-center gap-1"
+                className="block text-xs font-medium text-gray-500 mb-1"
                 htmlFor="address_zip"
               >
-                ZIP{" "}
-                <RobotTooltip text="Made available for AI prompt generation." />
+                ZIP *
               </label>
               <input
                 type="text"
@@ -411,7 +366,7 @@ export default function BusinessForm({
             className="block text-xs font-medium text-gray-500 mb-1"
             htmlFor="address_country"
           >
-            Country
+            Country *
           </label>
           <input
             type="text"
@@ -424,6 +379,7 @@ export default function BusinessForm({
             placeholder="Country"
           />
         </div>
+        
         {/* Industry Selector Integration */}
         <IndustrySelector
           value={form.industry || []}
@@ -447,465 +403,42 @@ export default function BusinessForm({
             </span>
           }
         />
-        {(industryType === "B2B" || industryType === "Both") && (
-          <div className="mb-4">
-            <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
-              Industries you serve (if applicable)
-              <Tooltip text="This helps Prompt AI understand your target audience and tailor reviews for your typical clients or customers." />
-            </label>
-            <textarea
-              name="industries_served"
-              className="w-full border px-3 py-2 rounded"
-              value={
-                typeof form.industries_served === "string"
-                  ? form.industries_served
-                  : Array.isArray(form.industries_served)
-                    ? form.industries_served.join(", ")
-                    : ""
-              }
-              onChange={handleChange}
-            />
-          </div>
-        )}
       </div>
-      {/* Services Section */}
-      <div className="mb-8">
-        <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
-          <FaList className="w-7 h-7 text-slate-blue" />
-          Services
-          <RobotTooltip text="Made available for AI prompt generation." />
-        </h2>
-        <div className="space-y-2">
-          {services.map((service, idx) => (
-            <div key={idx} className="flex items-center gap-2">
-              <input
-                type="text"
-                className="w-full border px-3 py-2 rounded"
-                value={service}
-                onChange={(e) => handleServiceChange(idx, e.target.value)}
-                placeholder="e.g., Web Design"
+
+      {/* Cropper Modal */}
+      {showCropper && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-4 rounded-lg max-w-2xl w-full mx-4">
+            <div className="relative h-96">
+              <Cropper
+                image={logoUrl || ""}
+                crop={crop}
+                zoom={zoom}
+                aspect={1}
+                onCropChange={setCrop}
+                onZoomChange={setZoom}
+                onCropComplete={(croppedArea, croppedAreaPixels) => {
+                  setCroppedAreaPixels(croppedAreaPixels);
+                }}
               />
-              {services.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => removeService(idx)}
-                  className="text-red-600 font-bold"
-                >
-                  &times;
-                </button>
-              )}
             </div>
-          ))}
-          <button
-            type="button"
-            onClick={addService}
-            className="text-blue-600 underline mt-2"
-          >
-            + Add Service
-          </button>
-        </div>
-      </div>
-      {/* What Makes Your Business Unique Section */}
-      <div className="mb-8">
-        <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
-          <FaStar className="w-7 h-7 text-slate-blue" />
-          What makes your business unique?
-        </h2>
-        <div className="mb-4">
-          <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
-            Company values
-            <RobotTooltip text="Made available for AI prompt generation." />
-          </label>
-          <textarea
-            name="company_values"
-            className="w-full border px-3 py-2 rounded"
-            value={form.company_values}
-            onChange={handleChange}
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
-            Differentiators / unique selling points
-            <RobotTooltip text="Made available for AI prompt generation." />
-          </label>
-          <textarea
-            name="differentiators"
-            className="w-full border px-3 py-2 rounded"
-            value={form.differentiators}
-            onChange={handleChange}
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
-            Years in business
-            <RobotTooltip text="Made available for AI prompt generation." />
-          </label>
-          <input
-            type="number"
-            name="years_in_business"
-            min="0"
-            className="w-full border px-3 py-2 rounded"
-            value={form.years_in_business}
-            onChange={handleChange}
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
-            Taglines
-            <RobotTooltip text="Made available for AI prompt generation." />
-          </label>
-          <textarea
-            name="taglines"
-            className="w-full border px-3 py-2 rounded"
-            value={form.taglines}
-            onChange={handleChange}
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
-            Keywords (comma separated)
-            <RobotTooltip text="Made available for AI prompt generation." />
-          </label>
-          <textarea
-            name="keywords"
-            className="w-full border px-3 py-2 rounded min-h-[80px]"
-            value={
-              typeof form.keywords === "string"
-                ? form.keywords
-                : Array.isArray(form.keywords)
-                  ? form.keywords.join(", ")
-                  : ""
-            }
-            onChange={handleChange}
-            placeholder="best therapist in Portland, amazing ADHD therapist, group sessions, works with most insurance companies, compassionate"
-            rows={4}
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
-            AI Dos
-            <RobotTooltip text="Made available for AI prompt generation." />
-          </label>
-          <textarea
-            name="ai_dos"
-            className="w-full border px-3 py-2 rounded"
-            value={form.ai_dos || ""}
-            onChange={handleChange}
-            placeholder="Always refer to us as 'Prompt Reviews'. Always mention our 24/7 support."
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
-            AI Don'ts
-            <RobotTooltip text="Made available for AI prompt generation." />
-          </label>
-          <textarea
-            name="ai_donts"
-            className="w-full border px-3 py-2 rounded"
-            value={form.ai_donts || ""}
-            onChange={handleChange}
-            placeholder="Never call us 'PromptReviewz'. Never mention pricing."
-          />
-        </div>
-      </div>
-      {/* Review Platforms Section */}
-      <div className="mb-16">
-        <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
-          <FaStar className="w-7 h-7 text-slate-blue" />
-          Review platforms
-        </h2>
-        <div className="space-y-4">
-          <div className="flex gap-2 items-center mb-2">
-            <span className="w-1/3 text-xs font-semibold text-gray-500">
-              Platform Name
-            </span>
-            <span className="w-1/2 text-xs font-semibold text-gray-500">
-              Platform URL
-            </span>
-            <span className="w-1/6 text-xs font-semibold text-gray-500">
-              Word Count
-            </span>
-          </div>
-          {platforms.map((platform, idx) => (
-            <div key={idx} className="flex gap-2 items-center">
-              <select
-                className="w-1/3 border px-3 py-2 rounded-lg bg-white"
-                value={platform.name}
-                onChange={(e) =>
-                  handlePlatformChange(idx, "name", e.target.value)
-                }
-                required
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                type="button"
+                onClick={handleCropCancel}
+                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
               >
-                <option value="">Select a platform</option>
-                <option value="Google Business Profile">
-                  Google Business Profile
-                </option>
-                <option value="Yelp">Yelp</option>
-                <option value="Facebook">Facebook</option>
-                <option value="TripAdvisor">TripAdvisor</option>
-                <option value="G2">G2</option>
-                <option value="BBB">BBB</option>
-                <option value="Thumbtack">Thumbtack</option>
-                <option value="Clutch">Clutch</option>
-                <option value="Capterra">Capterra</option>
-                <option value="Angi">Angi</option>
-                <option value="Houzz">Houzz</option>
-                <option value="HomeAdvisor">HomeAdvisor</option>
-                <option value="Trustpilot">Trustpilot</option>
-                <option value="Other">Other</option>
-              </select>
-              {platform.name === "Other" && (
-                <input
-                  type="text"
-                  className="w-1/3 border px-3 py-2 rounded-lg bg-white"
-                  placeholder="Enter platform name"
-                  value={platform.customPlatform || ""}
-                  onChange={(e) =>
-                    handlePlatformChange(idx, "customPlatform", e.target.value)
-                  }
-                  required
-                />
-              )}
-              <input
-                type="url"
-                className="w-1/2 border px-3 py-2 rounded-lg bg-white"
-                placeholder="Review URL"
-                value={platform.url}
-                onChange={(e) =>
-                  handlePlatformChange(idx, "url", e.target.value)
-                }
-                required
-              />
-              <input
-                type="number"
-                className="w-1/6 border px-3 py-2 rounded-lg bg-white"
-                placeholder="Word Count"
-                value={platform.wordCount}
-                onChange={(e) =>
-                  handlePlatformChange(idx, "wordCount", e.target.value)
-                }
-                min={50}
-                max={1000}
-                required
-              />
-              {platforms.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => removePlatform(idx)}
-                  className="text-red-600 font-bold text-xl"
-                >
-                  &times;
-                </button>
-              )}
-              {platformErrors[idx] && (
-                <span className="text-red-500 text-xs ml-2">
-                  {platformErrors[idx]}
-                </span>
-              )}
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleCropConfirm}
+                className="px-4 py-2 bg-slate-blue text-white rounded-md hover:bg-slate-blue/90"
+              >
+                Confirm Crop
+              </button>
             </div>
-          ))}
-          <button
-            type="button"
-            onClick={addPlatform}
-            className="text-blue-600 underline mt-2"
-          >
-            + Add Platform
-          </button>
-        </div>
-      </div>
-      {/* Special Offer Section */}
-      <div className="mb-16">
-        <h2 className="mt-4 mb-2 text-2xl font-bold text-slate-blue flex items-center gap-3">
-          <FaGift className="w-7 h-7 text-slate-blue" />
-          Special offer
-        </h2>
-        <div className="text-sm text-gray-600 mt-0 mb-4">
-          This is a global setting for a special offer. You can also set this at
-          the prompt page level.
-        </div>
-        <div className="mb-4">
-          <div className="flex items-center justify-between mb-2">
-            <label className="block text-lg font-semibold text-indigo-800 flex items-center">
-              Enable Special Offer
-            </label>
-            <button
-              type="button"
-              onClick={() =>
-                setForm((f: any) => ({
-                  ...f,
-                  default_offer_enabled: !f.default_offer_enabled,
-                }))
-              }
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${form.default_offer_enabled ? "bg-indigo-500" : "bg-gray-300"}`}
-              aria-pressed={!!form.default_offer_enabled}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${form.default_offer_enabled ? "translate-x-5" : "translate-x-1"}`}
-              />
-            </button>
           </div>
-          <div
-            className={`border border-indigo-200 p-4 ${!form.default_offer_enabled ? "opacity-60" : ""}`}
-          >
-            <input
-              type="text"
-              name="default_offer_title"
-              value={form.default_offer_title || "Special Offer"}
-              onChange={(e) =>
-                setForm((f: any) => ({
-                  ...f,
-                  default_offer_title: e.target.value,
-                }))
-              }
-              placeholder="Offer Title (e.g., Special Offer)"
-              className="block w-full rounded-md border border-indigo-200 bg-white focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-2 px-3 mb-2 font-semibold"
-              disabled={!form.default_offer_enabled}
-            />
-            <textarea
-              name="default_offer_body"
-              value={form.default_offer_body || ""}
-              onChange={(e) =>
-                setForm((f: any) => ({
-                  ...f,
-                  default_offer_body: e.target.value,
-                }))
-              }
-              placeholder="Get 10% off your next visit"
-              className="block w-full rounded-md border border-indigo-200 bg-white focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-3 px-4"
-              rows={2}
-              disabled={!form.default_offer_enabled}
-            />
-            <input
-              type="url"
-              name="default_offer_url"
-              value={form.default_offer_url || ""}
-              onChange={(e) =>
-                setForm((f: any) => ({
-                  ...f,
-                  default_offer_url: e.target.value,
-                }))
-              }
-              placeholder="Offer URL (e.g., https://yourbusiness.com/claim-reward)"
-              className="block w-full rounded-md border border-indigo-200 bg-white focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-2 px-3 mt-2"
-              disabled={!form.default_offer_enabled}
-            />
-          </div>
-          <div className="text-xs text-gray-500 mt-2">
-            Note: Services like Google and Yelp have policies against providing
-            rewards in exchange for reviews, so it's best not to promise a
-            reward for "x" number of reviews, etc.
-          </div>
-        </div>
-      </div>
-      {/* Social Media Section */}
-      <div className="mb-16">
-        <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
-          <FaShareAlt className="w-7 h-7 text-slate-blue" />
-          Social media
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block font-semibold text-sm text-gray-500 mb-1">
-              Facebook URL
-            </label>
-            <input
-              type="url"
-              name="facebook_url"
-              className="w-full border px-3 py-2 rounded-lg bg-white focus:ring-2 focus:ring-indigo-300"
-              value={form.facebook_url}
-              onChange={handleChange}
-              placeholder="https://facebook.com/yourbusiness"
-            />
-          </div>
-          <div>
-            <label className="block font-semibold text-sm text-gray-500 mb-1">
-              Instagram URL
-            </label>
-            <input
-              type="url"
-              name="instagram_url"
-              className="w-full border px-3 py-2 rounded-lg bg-white focus:ring-2 focus:ring-indigo-300"
-              value={form.instagram_url}
-              onChange={handleChange}
-              placeholder="https://instagram.com/yourbusiness"
-            />
-          </div>
-          <div>
-            <label className="block font-semibold text-sm text-gray-500 mb-1">
-              Bluesky URL
-            </label>
-            <input
-              type="url"
-              name="bluesky_url"
-              className="w-full border px-3 py-2 rounded-lg bg-white focus:ring-2 focus:ring-indigo-300"
-              value={form.bluesky_url}
-              onChange={handleChange}
-              placeholder="https://bsky.app/profile/yourbusiness"
-            />
-          </div>
-          <div>
-            <label className="block font-semibold text-sm text-gray-500 mb-1">
-              TikTok URL
-            </label>
-            <input
-              type="url"
-              name="tiktok_url"
-              className="w-full border px-3 py-2 rounded-lg bg-white focus:ring-2 focus:ring-indigo-300"
-              value={form.tiktok_url}
-              onChange={handleChange}
-              placeholder="https://tiktok.com/@yourbusiness"
-            />
-          </div>
-          <div>
-            <label className="block font-semibold text-sm text-gray-500 mb-1">
-              YouTube URL
-            </label>
-            <input
-              type="url"
-              name="youtube_url"
-              className="w-full border px-3 py-2 rounded-lg bg-white focus:ring-2 focus:ring-indigo-300"
-              value={form.youtube_url}
-              onChange={handleChange}
-              placeholder="https://youtube.com/@yourbusiness"
-            />
-          </div>
-          <div>
-            <label className="block font-semibold text-sm text-gray-500 mb-1">
-              LinkedIn URL
-            </label>
-            <input
-              type="url"
-              name="linkedin_url"
-              className="w-full border px-3 py-2 rounded-lg bg-white focus:ring-2 focus:ring-indigo-300"
-              value={form.linkedin_url}
-              onChange={handleChange}
-              placeholder="https://linkedin.com/company/yourbusiness"
-            />
-          </div>
-          <div>
-            <label className="block font-semibold text-sm text-gray-500 mb-1">
-              Pinterest URL
-            </label>
-            <input
-              type="url"
-              name="pinterest_url"
-              className="w-full border px-3 py-2 rounded-lg bg-white focus:ring-2 focus:ring-indigo-300"
-              value={form.pinterest_url}
-              onChange={handleChange}
-              placeholder="https://pinterest.com/yourbusiness"
-            />
-          </div>
-        </div>
-      </div>
-      {/* Error/Success Messages */}
-      {error && (
-        <div className="p-4 bg-red-50 text-red-700 rounded-lg mb-4">
-          {error}
-        </div>
-      )}
-      {success && (
-        <div className="p-4 bg-green-50 text-green-700 rounded-lg mb-4">
-          {success}
         </div>
       )}
     </form>
