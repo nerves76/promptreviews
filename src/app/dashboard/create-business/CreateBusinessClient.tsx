@@ -80,6 +80,24 @@ export default function CreateBusinessClient() {
       }
     }
 
+    // Ensure user is in account_users table as owner
+    const { error: accountUserError } = await supabase
+      .from("account_users")
+      .upsert({ 
+        account_id: accountId, 
+        user_id: user.id, 
+        role: 'owner' 
+      }, { 
+        onConflict: 'account_id,user_id' 
+      });
+
+    if (accountUserError) {
+      console.error("Error setting up account user:", accountUserError);
+      setError("Failed to set up account access. Please try again.");
+      setLoading(false);
+      return;
+    }
+
     // Create business profile
     console.log("User ID:", accountId);
     console.log("Attempting to create business with data:", {
