@@ -38,8 +38,11 @@ export async function isAdmin(userId?: string, supabaseClient?: any): Promise<bo
         message: error.message,
         details: error.details,
         hint: error.hint,
-        code: error.code
+        code: error.code,
+        fullError: error
       });
+    } else {
+      console.log('isAdmin: No database error, admin found:', !!admin);
     }
     
     return !!admin;

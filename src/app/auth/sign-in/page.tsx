@@ -208,8 +208,16 @@ export default function SignIn() {
           );
 
         if (upsertAccountUserError) {
-          console.error("Account user upsert error:", upsertAccountUserError);
+          console.error("Account user upsert error:", {
+            message: upsertAccountUserError.message,
+            details: upsertAccountUserError.details,
+            hint: upsertAccountUserError.hint,
+            code: upsertAccountUserError.code,
+            fullError: upsertAccountUserError
+          });
           // Don't show error to user, just log it
+        } else {
+          console.log("Account user upsert successful for user:", data.user.id);
         }
       } catch (err) {
         console.error("Account check/creation error:", err);
