@@ -66,25 +66,8 @@ export default function SignUpPage() {
       if (error) {
         setError(error.message);
       } else {
-        // Since email confirmation is disabled, we can sign them in directly
-        if (data.user && !data.user.email_confirmed_at) {
-          // Try to sign them in immediately
-          const { error: signInError } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-          });
-          
-          if (signInError) {
-            setError("Account created but there was an issue signing you in. Please try signing in manually.");
-          } else {
-            // Redirect to dashboard
-            window.location.href = '/dashboard';
-            return;
-          }
-        } else {
-          setEmailSent(true);
-          setMessage('Account created successfully! You can now sign in.');
-        }
+        setEmailSent(true);
+        setMessage('Account created! Please check your email and click the confirmation link to activate your account.');
         // Track sign up event
         trackSignUp('email');
       }

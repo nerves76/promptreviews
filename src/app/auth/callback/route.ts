@@ -9,7 +9,11 @@ export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
 
+  console.log("🔗 Auth callback triggered with URL:", request.url);
+  console.log("📝 Code parameter:", code ? "Present" : "Missing");
+
   if (!code) {
+    console.error("❌ No code parameter found in callback URL");
     return NextResponse.redirect(
       `${requestUrl.origin}/auth/sign-in?error=Invalid code`,
     );
@@ -29,24 +33,28 @@ export async function GET(request: Request) {
       }
     );
 
+    console.log("🔄 Exchanging code for session...");
     const {
       data: { session },
       error: sessionError,
     } = await supabase.auth.exchangeCodeForSession(code);
 
     if (sessionError) {
-      console.error("Session error:", sessionError);
+      console.error("❌ Session exchange error:", sessionError);
       return NextResponse.redirect(
         `${requestUrl.origin}/auth/sign-in?error=${encodeURIComponent(sessionError.message)}`,
       );
     }
 
     if (!session?.user) {
-      console.error("No user in session");
+      console.error("❌ No user in session after code exchange");
       return NextResponse.redirect(
         `${requestUrl.origin}/auth/sign-in?error=No user in session`,
       );
     }
+
+    console.log("✅ Session exchange successful for user:", session.user.email);
+    console.log("📧 Email confirmed at:", session.user.email_confirmed_at);
 
     // Ensure user is linked to an account
     const { id: userId, email } = session.user;
@@ -58,6 +66,7 @@ export async function GET(request: Request) {
     let isNewUser = false;
     if (!accountLinks || accountLinks.length === 0) {
       isNewUser = true;
+      console.log("🆕 Creating new account for user:", email);
       // No account found, create one and link user as owner
       const { data: newAccount, error: createAccountError } = await supabase
         .from("accounts")
@@ -66,6 +75,7 @@ export async function GET(request: Request) {
         .single();
 
       if (!createAccountError && newAccount) {
+        console.log("✅ Account created successfully");
         await supabase
           .from("account_users")
           .insert([
@@ -75,7 +85,12 @@ export async function GET(request: Request) {
               role: "owner",
             },
           ]);
+        console.log("✅ User linked to account as owner");
+      } else {
+        console.error("❌ Error creating account:", createAccountError);
       }
+    } else {
+      console.log("✅ User already has account links");
     }
 
     // Send welcome email for new users
@@ -90,19 +105,21 @@ export async function GET(request: Request) {
         }
 
         await sendWelcomeEmail(email, firstName);
-        console.log("Welcome email sent to:", email);
+        console.log("📧 Welcome email sent to:", email);
       } catch (emailError) {
-        console.error("Error sending welcome email:", emailError);
+        console.error("❌ Error sending welcome email:", emailError);
         // Don't fail the signup if email fails
       }
     }
 
     // Wait for the session to be set
+    console.log("⏳ Waiting for session to be set...");
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
+    console.log("✅ Redirecting to dashboard");
     return NextResponse.redirect(`${requestUrl.origin}/dashboard`);
   } catch (error) {
-    console.error("Error in callback:", error);
+    console.error("❌ Error in callback:", error);
     return NextResponse.redirect(
       `${requestUrl.origin}/auth/sign-in?error=${encodeURIComponent(error instanceof Error ? error.message : "Unknown error")}`,
     );
