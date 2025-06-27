@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createBrowserClient } from "@supabase/ssr";
 import SimpleMarketingNav from "@/app/components/SimpleMarketingNav";
 import { trackSignUp } from '../../../utils/analytics';
+import { supabase } from '../../../utils/supabase';
 
 export default function SignUpPage() {
   const [email, setEmail] = useState("");
@@ -16,10 +17,10 @@ export default function SignUpPage() {
   const [lastName, setLastName] = useState("");
   const [message, setMessage] = useState("");
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  );
+  // Debug logging
+  console.log('Sign-up page - NEXT_PUBLIC_SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+  console.log('Sign-up page - NEXT_PUBLIC_APP_URL:', process.env.NEXT_PUBLIC_APP_URL);
+  console.log('Sign-up page - window.location.origin:', window.location.origin);
 
   const errorMessages: Record<string, string> = {
     "User already registered":
