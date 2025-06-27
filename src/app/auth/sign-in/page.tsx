@@ -102,31 +102,24 @@ export default function SignIn() {
           }
         }
 
-        // Ensure account_users row exists
-        const { data: accountUser, error: accountUserError } = await supabase
+        // Ensure account_users row exists using upsert to avoid RLS issues
+        const { error: upsertAccountUserError } = await supabase
           .from("account_users")
-          .select("*")
-          .eq("user_id", data.user.id)
-          .eq("account_id", data.user.id)
-          .single();
-
-        if (accountUserError && accountUserError.code === "PGRST116") {
-          // No account_users row exists, create one
-          const { error: createAccountUserError } = await supabase
-            .from("account_users")
-            .insert({
+          .upsert(
+            {
               user_id: data.user.id,
               account_id: data.user.id,
               role: "owner",
-            });
+            },
+            {
+              onConflict: "user_id,account_id",
+              ignoreDuplicates: true,
+            }
+          );
 
-          if (createAccountUserError) {
-            console.error("Account user creation error:", createAccountUserError);
-            // Don't show error to user, just log it
-          }
-        } else if (accountUserError) {
-          // Some other error occurred, log it but don't fail the sign-in
-          console.error("Account user check error:", accountUserError);
+        if (upsertAccountUserError) {
+          console.error("Account user upsert error:", upsertAccountUserError);
+          // Don't show error to user, just log it
         }
       } catch (err) {
         console.error("Account check/creation error:", err);
