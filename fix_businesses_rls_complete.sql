@@ -102,7 +102,7 @@ BEGIN
             'TS',
             '12345',
             'US',
-            'Technology',
+            ARRAY['Technology'],
             NOW()
         );
         
