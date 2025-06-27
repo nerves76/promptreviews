@@ -40,7 +40,7 @@ export default function SignIn() {
         console.error("Sign in error:", signInError);
         if (signInError.message.includes("Email not confirmed")) {
           setError(
-            "Please check your email and click the confirmation link before signing in.",
+            "Please check your email and click the confirmation link before signing in. If you've already clicked the link, try refreshing this page or wait a moment and try again.",
           );
         } else if (signInError.message.includes("Invalid login credentials")) {
           setError("Invalid email or password. Please try again.");
