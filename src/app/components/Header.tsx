@@ -65,8 +65,27 @@ export default function Header() {
       // Check if user is admin
       if (user) {
         console.log('Header: Checking admin status for user:', user.id, user.email);
-        const adminStatus = await isAdmin(user.id);
-        console.log('Header: Admin status result:', adminStatus);
+        
+        // Try the local admin check first
+        let adminStatus = false;
+        try {
+          adminStatus = await isAdmin(user.id);
+          console.log('Header: Local admin check result:', adminStatus);
+        } catch (error) {
+          console.error('Header: Local admin check failed, trying API fallback:', error);
+          
+          // Fallback to API endpoint
+          try {
+            const response = await fetch('/api/check-admin');
+            const data = await response.json();
+            adminStatus = data.isAdmin;
+            console.log('Header: API admin check result:', adminStatus);
+          } catch (apiError) {
+            console.error('Header: API admin check also failed:', apiError);
+            adminStatus = false;
+          }
+        }
+        
         setIsAdminUser(adminStatus);
       } else {
         console.log('Header: No user found');
