@@ -10,8 +10,7 @@ SELECT
     COUNT(*) as admin_count
 FROM admins;
 
--- 3. Test with a specific user ID (we'll need to replace this with an actual user ID)
--- First, let's see what users exist
+-- 3. Test with a specific user ID (using the first user from diagnostic results)
 SELECT 
     'Available Users' as info,
     id,
@@ -21,13 +20,13 @@ ORDER BY created_at DESC
 LIMIT 3;
 
 -- 4. Test the exact query that the isAdmin function uses
--- Replace 'USER_ID_HERE' with an actual user ID from the above query
+-- Using the user ID: 5b001922-ca54-4aec-b4ea-581a9515984e (chris@murmurcreative.com)
 SELECT 
     'Exact isAdmin Query Test' as test_name,
     id,
     account_id
 FROM admins
-WHERE account_id = 'USER_ID_HERE'  -- Replace with actual user ID
+WHERE account_id = '5b001922-ca54-4aec-b4ea-581a9515984e'
 LIMIT 1;
 
 -- 5. Re-enable RLS
@@ -39,5 +38,14 @@ SELECT
     id,
     account_id
 FROM admins
-WHERE account_id = 'USER_ID_HERE'  -- Replace with actual user ID
+WHERE account_id = '5b001922-ca54-4aec-b4ea-581a9515984e'
+LIMIT 1;
+
+-- 7. Test with the second user as well
+SELECT 
+    'Second User Test with RLS' as test_name,
+    id,
+    account_id
+FROM admins
+WHERE account_id = 'ffa1452d-658a-4b8a-ad07-d4aaaa537664'
 LIMIT 1; 
