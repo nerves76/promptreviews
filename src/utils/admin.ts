@@ -35,12 +35,16 @@ export async function isAdmin(userId?: string, supabaseClient?: any): Promise<bo
     console.log('isAdmin: Admin query result:', { admin, error });
     
     if (error) {
+      // Log the full error object with all properties
       console.error('isAdmin: Database error details:', {
         message: error.message,
         details: error.details,
         hint: error.hint,
         code: error.code,
-        fullError: error
+        fullError: JSON.stringify(error, null, 2),
+        errorType: typeof error,
+        errorKeys: Object.keys(error || {}),
+        errorString: String(error)
       });
       
       // If it's an RLS policy error, try a different approach
@@ -55,7 +59,13 @@ export async function isAdmin(userId?: string, supabaseClient?: any): Promise<bo
           .maybeSingle(); // Use maybeSingle instead of single to avoid errors
           
         if (altError) {
-          console.error('isAdmin: Alternative approach also failed:', altError);
+          console.error('isAdmin: Alternative approach also failed:', {
+            message: altError.message,
+            details: altError.details,
+            hint: altError.hint,
+            code: altError.code,
+            fullError: JSON.stringify(altError, null, 2)
+          });
           return false;
         }
         
@@ -70,7 +80,14 @@ export async function isAdmin(userId?: string, supabaseClient?: any): Promise<bo
     
     return !!admin;
   } catch (error) {
-    console.error('Error checking admin status:', error);
+    // Catch any unexpected errors and log them properly
+    console.error('isAdmin: Unexpected error checking admin status:', {
+      error: error,
+      errorType: typeof error,
+      errorMessage: error instanceof Error ? error.message : String(error),
+      errorStack: error instanceof Error ? error.stack : undefined,
+      errorString: String(error)
+    });
     return false;
   }
 }

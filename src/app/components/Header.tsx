@@ -69,23 +69,38 @@ export default function Header() {
         // Try the local admin check first
         let adminStatus = false;
         try {
+          console.log('Header: Starting local admin check...');
           adminStatus = await isAdmin(user.id);
-          console.log('Header: Local admin check result:', adminStatus);
+          console.log('Header: Local admin check completed, result:', adminStatus);
         } catch (error) {
-          console.error('Header: Local admin check failed, trying API fallback:', error);
+          console.error('Header: Local admin check failed with error:', {
+            error: error,
+            errorType: typeof error,
+            errorMessage: error instanceof Error ? error.message : String(error),
+            errorStack: error instanceof Error ? error.stack : undefined
+          });
           
           // Fallback to API endpoint
           try {
+            console.log('Header: Trying API fallback for admin check...');
             const response = await fetch('/api/check-admin');
+            if (!response.ok) {
+              throw new Error(`API response not ok: ${response.status} ${response.statusText}`);
+            }
             const data = await response.json();
             adminStatus = data.isAdmin;
-            console.log('Header: API admin check result:', adminStatus);
+            console.log('Header: API admin check completed, result:', adminStatus);
           } catch (apiError) {
-            console.error('Header: API admin check also failed:', apiError);
+            console.error('Header: API admin check also failed:', {
+              error: apiError,
+              errorType: typeof apiError,
+              errorMessage: apiError instanceof Error ? apiError.message : String(apiError)
+            });
             adminStatus = false;
           }
         }
         
+        console.log('Header: Final admin status:', adminStatus);
         setIsAdminUser(adminStatus);
       } else {
         console.log('Header: No user found');
