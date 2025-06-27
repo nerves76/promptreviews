@@ -673,9 +673,8 @@ cd promptreviews
 # Install dependencies
 npm install
 
-# Set up environment variables
-cp .env.example .env.local
-# Edit .env.local with your API keys
+# Set up environment variables in your deployment platform
+# See Environment Variables section below for required variables
 
 # Run development server
 npm run dev
@@ -750,9 +749,7 @@ Ensure all environment variables are set in your deployment platform.
 
 For support or questions, please contact the development team.
 
----
-
-**Note:** This project uses a toggle script for environment variables. Run `./toggle-supabase-keys.sh` to switch between development and production keys. 
+**Note:** This project uses environment variables for configuration. Ensure all required environment variables are set in your deployment platform.
 
 ## Recent Performance Improvements (Latest Update)
 
@@ -806,3 +803,13 @@ This page provides a slider to adjust widget width and test the responsive behav
 - When a user signs up, they will receive a confirmation email.
 - The user must click the confirmation link in their email to activate their account before signing in.
 - This process improves security, prevents spam, and ensures account recovery. 
+
+## Documentation
+
+- [Database Schema](databaseschema.md) - Complete database structure and relationships
+- [Sign-Up Process & Multi-User System](SIGNUP_AND_MULTI_USER_DOCUMENTATION.md) - Comprehensive guide to authentication and multi-user account management
+- [Authentication Cleanup](AUTHENTICATION_CLEANUP.md) - Security standardization and API authentication patterns
+- [Widget System](WIDGET_SYSTEM_DOCUMENTATION.md) - Widget development and customization guide
+- [Widget Dashboard](WIDGET_DASHBOARD_DOCUMENTATION.md) - Dashboard widget management interface
+- [Troubleshooting](TROUBLESHOOTING_DOCUMENTATION.md) - Common issues and solutions
+- [User Documentation](USER_DOCUMENTATION.md) - End-user guide and features 
