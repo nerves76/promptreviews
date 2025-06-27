@@ -27,7 +27,7 @@ import {
   FaRegLightbulb,
 } from "react-icons/fa";
 import { getUserOrMock } from "@/utils/supabase";
-import BusinessForm from "../components/BusinessForm";
+import BusinessProfileForm from "../components/BusinessProfileForm";
 import DashboardCard from "../components/DashboardCard";
 import AppLoader from "@/app/components/AppLoader";
 import PageCard from "@/app/components/PageCard";
@@ -520,7 +520,7 @@ export default function BusinessProfilePage() {
           </button>
         </div>
       </div>
-      <BusinessForm
+      <BusinessProfileForm
         form={form}
         setForm={setForm}
         services={services}
