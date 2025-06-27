@@ -558,13 +558,26 @@ export default function CreateBusinessPage() {
     <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
       <PageCard icon={<FaStore className="w-9 h-9 text-slate-blue" />}>
         <div className="space-y-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Create Your Business Profile
-            </h1>
-            <p className="text-gray-600">
-              Set up your business profile to get started with PromptReviews.
-            </p>
+          <div className="flex justify-between items-start">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Create Your Business Profile
+              </h1>
+              <p className="text-gray-600">
+                Set up your business profile to get started with PromptReviews.
+              </p>
+            </div>
+            
+            {/* Save Button - Top Right */}
+            <button
+              type="submit"
+              form="create-business-form"
+              disabled={loading}
+              className="px-6 py-3 bg-slate-blue text-white rounded-md hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+            >
+              {loading ? "Saving..." : "Save"}
+            </button>
+          </div>
             
             {/* Debug button to manually trigger welcome popup */}
             {isAdminUser && (
@@ -583,7 +596,6 @@ export default function CreateBusinessPage() {
             >
               🧪 Test Welcome Popup
             </button>
-          </div>
 
           {showTrialConfirmation && (
             <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
@@ -665,7 +677,7 @@ export default function CreateBusinessPage() {
                 type="submit"
                 form="create-business-form"
                 disabled={loading}
-                className="px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+                className="px-6 py-3 bg-slate-blue text-white rounded-md hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
               >
                 {loading ? "Saving..." : "Create Business Profile"}
               </button>
