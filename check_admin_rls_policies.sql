@@ -63,12 +63,12 @@ FROM admins;
 -- Show the final state
 SELECT 
     'Final RLS State' as status,
-    schemaname,
-    tablename,
-    rowsecurity,
-    policyname,
-    permissive,
-    cmd
+    t.schemaname,
+    t.tablename,
+    t.rowsecurity,
+    p.policyname,
+    p.permissive,
+    p.cmd
 FROM pg_tables t
 LEFT JOIN pg_policies p ON t.tablename = p.tablename
 WHERE t.tablename = 'admins'; 
