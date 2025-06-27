@@ -193,6 +193,8 @@ export default function SignIn() {
         }
 
         // Ensure account_users row exists using upsert to avoid RLS issues
+        console.log('Attempting account_users upsert for user:', data.user.id);
+        
         const { error: upsertAccountUserError } = await supabase
           .from("account_users")
           .upsert(
@@ -213,8 +215,42 @@ export default function SignIn() {
             details: upsertAccountUserError.details,
             hint: upsertAccountUserError.hint,
             code: upsertAccountUserError.code,
-            fullError: upsertAccountUserError
+            fullError: upsertAccountUserError,
+            errorType: typeof upsertAccountUserError,
+            errorKeys: Object.keys(upsertAccountUserError || {}),
+            errorStringified: JSON.stringify(upsertAccountUserError, null, 2)
           });
+          
+          // Try alternative approach - check if record exists first
+          console.log('Trying alternative approach - checking existing record...');
+          const { data: existingRecord, error: checkError } = await supabase
+            .from("account_users")
+            .select("id")
+            .eq("user_id", data.user.id)
+            .eq("account_id", data.user.id)
+            .maybeSingle();
+            
+          if (checkError) {
+            console.error("Check existing record error:", checkError);
+          } else if (!existingRecord) {
+            console.log('No existing record found, trying simple insert...');
+            const { error: insertError } = await supabase
+              .from("account_users")
+              .insert({
+                user_id: data.user.id,
+                account_id: data.user.id,
+                role: "owner",
+              });
+              
+            if (insertError) {
+              console.error("Simple insert error:", insertError);
+            } else {
+              console.log("Simple insert successful");
+            }
+          } else {
+            console.log("Record already exists, skipping insert");
+          }
+          
           // Don't show error to user, just log it
         } else {
           console.log("Account user upsert successful for user:", data.user.id);
