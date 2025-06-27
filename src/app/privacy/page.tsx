@@ -77,10 +77,10 @@ export default function PrivacyPage() {
         <li>
           Contact us at{" "}
           <a
-            href="mailto:support@promptreviews.com"
+            href="mailto:support@promptreviews.app"
             className="underline text-indigo-700 hover:text-indigo-900"
           >
-            support@promptreviews.com
+            support@promptreviews.app
           </a>{" "}
           for privacy-related requests.
         </li>

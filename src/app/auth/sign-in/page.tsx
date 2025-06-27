@@ -4,6 +4,7 @@ import { createBrowserClient } from "@supabase/ssr";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
+import SimpleMarketingNav from "@/app/components/SimpleMarketingNav";
 import { trackEvent, GA_EVENTS } from '../../../utils/analytics';
 
 export default function SignIn() {
@@ -123,6 +124,9 @@ export default function SignIn() {
             console.error("Account user creation error:", createAccountUserError);
             // Don't show error to user, just log it
           }
+        } else if (accountUserError) {
+          // Some other error occurred, log it but don't fail the sign-in
+          console.error("Account user check error:", accountUserError);
         }
       } catch (err) {
         console.error("Account check/creation error:", err);
@@ -161,6 +165,7 @@ export default function SignIn() {
 
   return (
     <>
+      <SimpleMarketingNav />
       <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-indigo-400 via-indigo-300 to-purple-300">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <h1 className="mt-6 text-center text-3xl font-extrabold text-white">

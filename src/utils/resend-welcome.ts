@@ -35,7 +35,7 @@ export const sendReviewNotificationEmail = async (
   const accountName = accountFirstName || "there";
   const loginUrl = process.env.NEXT_PUBLIC_APP_URL
     ? `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`
-    : "https://promptreviews.com/dashboard";
+    : "https://promptreviews.app/dashboard";
 
   const text = `Hi ${accountName},\n\nYou've got a new Prompt Review.\n\nLog in here to check it out:\n${loginUrl}\n\n:)
 Chris`;

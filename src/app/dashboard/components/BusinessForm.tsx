@@ -276,8 +276,7 @@ export default function BusinessForm({
         <div className="mb-4">
           <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center gap-1">
             Business name *
-            <RobotTooltip text="Made available for AI prompt generation." />
-            <Tooltip text="The official name of your business as you want it to appear to customers." />
+            <RobotTooltip text="The official name of your business as you want it to appear to customers. This information is also made available for AI prompt generation." />
           </label>
           <input
             type="text"
@@ -537,8 +536,9 @@ export default function BusinessForm({
           />
         </div>
         <div className="mb-4">
-          <label className="block font-semibold text-sm text-gray-500 mb-1">
+          <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
             Years in business
+            <RobotTooltip text="Made available for AI prompt generation." />
           </label>
           <input
             type="number"

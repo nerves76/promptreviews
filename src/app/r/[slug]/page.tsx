@@ -1074,6 +1074,12 @@ export default function PromptPage() {
                 
                 // Get icon from configuration
                 const iconConfig = getFallingIcon(promptPage.falling_icon);
+                
+                // Guard clause to ensure iconConfig is defined
+                if (!iconConfig) {
+                  return null;
+                }
+                
                 const IconComponent = iconConfig.icon;
                 
                 // Convert Tailwind color class to hex
@@ -2119,7 +2125,7 @@ export default function PromptPage() {
                       track your progress, and grow your online presence.
                     </p>
                     <a
-                      href="https://promptreviews.com"
+                      href="https://promptreviews.app"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="mt-4 font-medium hover:opacity-80 transition-opacity inline-block underline text-white"
