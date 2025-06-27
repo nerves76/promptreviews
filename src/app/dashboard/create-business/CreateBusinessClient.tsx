@@ -43,6 +43,10 @@ export default function CreateBusinessClient() {
     setError("");
     setSuccess("");
 
+    console.log("Starting business creation process...");
+    console.log("Current user:", user);
+    console.log("Form data:", form);
+
     const supabase = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -54,114 +58,96 @@ export default function CreateBusinessClient() {
     } = await getUserOrMock(supabase);
 
     if (userError || !user) {
-      setError("You must be signed in to create a business profile.");
+      setError("You must be signed in to create a business.");
       setLoading(false);
       return;
     }
 
-    // Create or get account
-    let accountId = user.id;
-    const { data: existingAccount } = await supabase
-      .from("accounts")
-      .select("id")
-      .eq("id", user.id)
-      .single();
-
-    if (!existingAccount) {
-      const { error: accountError } = await supabase
+    try {
+      console.log("Step 1: Checking for existing account...");
+      // Create or get account
+      let accountId = user.id;
+      const { data: existingAccount, error: accountCheckError } = await supabase
         .from("accounts")
-        .insert({ id: user.id });
-      
-      if (accountError) {
-        console.error("Error creating account:", accountError);
-        setError("Failed to create account. Please try again.");
+        .select("id")
+        .eq("id", user.id)
+        .single();
+
+      console.log("Account check result:", { existingAccount, accountCheckError });
+
+      if (accountCheckError && accountCheckError.code !== 'PGRST116') {
+        console.error("Error checking account:", accountCheckError);
+        setError("Failed to check account. Please try again.");
         setLoading(false);
         return;
       }
-    }
 
-    // Ensure user is in account_users table as owner
-    // First check if the user exists in auth.users
-    const { data: authUser, error: authUserError } = await supabase.auth.getUser();
-    
-    if (authUserError || !authUser.user) {
-      console.error("Error getting auth user:", authUserError);
-      setError("Authentication error. Please sign in again.");
-      setLoading(false);
-      return;
-    }
-
-    // Only try to insert into account_users if we have a valid auth user
-    if (authUser.user.id === user.id) {
-      const { error: accountUserError } = await supabase
-        .from("account_users")
-        .upsert({ 
-          account_id: accountId, 
-          user_id: user.id, 
-          role: 'owner' 
-        }, { 
-          onConflict: 'account_id,user_id' 
-        });
-
-      if (accountUserError) {
-        console.error("Error setting up account user:", accountUserError);
-        // Don't fail the entire process if account_users fails
-        console.warn("Account user setup failed, but continuing with business creation");
+      if (!existingAccount) {
+        console.log("Step 2: Creating new account...");
+        const { error: accountError } = await supabase
+          .from("accounts")
+          .insert({ id: user.id });
+        
+        if (accountError) {
+          console.error("Error creating account:", {
+            error: accountError,
+            errorType: typeof accountError,
+            errorKeys: Object.keys(accountError || {}),
+            errorStringified: JSON.stringify(accountError, null, 2)
+          });
+          setError("Failed to create account. Please try again.");
+          setLoading(false);
+          return;
+        }
+        console.log("Account created successfully");
+      } else {
+        console.log("Account already exists");
       }
-    } else {
-      console.warn("User ID mismatch, skipping account_users setup");
-    }
 
-    // Create business profile
-    console.log("User ID:", accountId);
-    console.log("Attempting to create business with data:", {
-      account_id: accountId,
-      name: form.name,
-      business_website: form.business_website,
-      phone: form.phone,
-      business_email: form.business_email,
-      address_street: form.address_street,
-      address_city: form.address_city,
-      address_state: form.address_state,
-      address_zip: form.address_zip,
-      address_country: form.address_country,
-      industry: form.industry,
-      industry_other: form.industry_other,
-    });
+      // Ensure user is in account_users table as owner
+      // First check if the user exists in auth.users
+      const { data: authUser, error: authUserError } = await supabase.auth.getUser();
+      
+      if (authUserError || !authUser.user) {
+        console.error("Error getting auth user:", authUserError);
+        setError("Authentication error. Please sign in again.");
+        setLoading(false);
+        return;
+      }
 
-    // Check if user already has a business
-    console.log("Checking for existing business with account_id:", accountId);
-    const { data: existingBusiness, error: checkError } = await supabase
-      .from("businesses")
-      .select("id")
-      .eq("account_id", accountId)
-      .single();
+      // Only try to insert into account_users if we have a valid auth user
+      if (authUser.user.id === user.id) {
+        const { error: accountUserError } = await supabase
+          .from("account_users")
+          .upsert({ 
+            account_id: accountId, 
+            user_id: user.id, 
+            role: 'owner' 
+          }, { 
+            onConflict: 'account_id,user_id' 
+          });
 
-    console.log("Existing business check result:", { existingBusiness, checkError });
+        if (accountUserError) {
+          console.error("Error setting up account user:", {
+            error: accountUserError,
+            errorType: typeof accountUserError,
+            errorKeys: Object.keys(accountUserError || {}),
+            errorStringified: JSON.stringify(accountUserError, null, 2),
+            message: accountUserError?.message,
+            details: accountUserError?.details,
+            hint: accountUserError?.hint,
+            code: accountUserError?.code
+          });
+          // Don't fail the entire process if account_users fails
+          console.warn("Account user setup failed, but continuing with business creation");
+        }
+      } else {
+        console.warn("User ID mismatch, skipping account_users setup");
+      }
 
-    if (existingBusiness) {
-      setError("You already have a business profile. Please go to your business profile page to update it.");
-      setLoading(false);
-      return;
-    }
-
-    if (checkError && checkError.code !== 'PGRST116') { // PGRST116 is "not found" error
-      console.error("Error checking existing business:", checkError);
-      console.error("Error details:", {
-        message: checkError.message,
-        details: checkError.details,
-        hint: checkError.hint,
-        code: checkError.code,
-        error: JSON.stringify(checkError)
-      });
-      setError(`Error checking existing business profile: ${checkError.message || 'Unknown error'}. Please try again.`);
-      setLoading(false);
-      return;
-    }
-
-    const { error: insertError } = await supabase
-      .from("businesses")
-      .insert({
+      // Create business profile
+      console.log("User ID:", accountId);
+      console.log("Attempting to create business with data:", {
         account_id: accountId,
         name: form.name,
         business_website: form.business_website,
@@ -176,27 +162,83 @@ export default function CreateBusinessClient() {
         industry_other: form.industry_other,
       });
 
-    if (insertError) {
-      console.error("Error creating business:", insertError);
-      console.error("Error details:", {
-        message: insertError.message,
-        details: insertError.details,
-        hint: insertError.hint,
-        code: insertError.code,
-        error: JSON.stringify(insertError)
-      });
-      setError(`Failed to create business profile: ${insertError.message || 'Unknown error'}. Please try again.`);
-      setLoading(false);
-      return;
-    }
+      // Check if user already has a business
+      console.log("Checking for existing business with account_id:", accountId);
+      const { data: existingBusiness, error: checkError } = await supabase
+        .from("businesses")
+        .select("id")
+        .eq("account_id", accountId)
+        .single();
 
-    setSuccess("Business profile created successfully!");
-    setLoading(false);
-    
-    // Redirect to dashboard after a short delay
-    setTimeout(() => {
-      router.push("/dashboard");
-    }, 1500);
+      console.log("Existing business check result:", { existingBusiness, checkError });
+
+      if (existingBusiness) {
+        setError("You already have a business profile. Please go to your business profile page to update it.");
+        setLoading(false);
+        return;
+      }
+
+      if (checkError && checkError.code !== 'PGRST116') { // PGRST116 is "not found" error
+        console.error("Error checking existing business:", {
+          error: checkError,
+          errorType: typeof checkError,
+          errorKeys: Object.keys(checkError || {}),
+          errorStringified: JSON.stringify(checkError, null, 2),
+          message: checkError?.message,
+          details: checkError?.details,
+          hint: checkError?.hint,
+          code: checkError?.code
+        });
+        setError(`Error checking existing business profile: ${checkError.message || 'Unknown error'}. Please try again.`);
+        setLoading(false);
+        return;
+      }
+
+      const { error: insertError } = await supabase
+        .from("businesses")
+        .insert({
+          account_id: accountId,
+          name: form.name,
+          business_website: form.business_website,
+          phone: form.phone,
+          business_email: form.business_email,
+          address_street: form.address_street,
+          address_city: form.address_city,
+          address_state: form.address_state,
+          address_zip: form.address_zip,
+          address_country: form.address_country,
+          industry: form.industry,
+          industry_other: form.industry_other,
+        });
+
+      if (insertError) {
+        console.error("Error creating business:", {
+          error: insertError,
+          errorType: typeof insertError,
+          errorKeys: Object.keys(insertError || {}),
+          errorStringified: JSON.stringify(insertError, null, 2),
+          message: insertError?.message,
+          details: insertError?.details,
+          hint: insertError?.hint,
+          code: insertError?.code
+        });
+        setError(`Failed to create business profile: ${insertError.message || 'Unknown error'}. Please try again.`);
+        setLoading(false);
+        return;
+      }
+
+      setSuccess("Business profile created successfully!");
+      setLoading(false);
+      
+      // Redirect to dashboard after a short delay
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 1500);
+    } catch (error) {
+      console.error("Error in handleSubmit:", error);
+      setError("An error occurred. Please try again later.");
+      setLoading(false);
+    }
   };
 
   return (
