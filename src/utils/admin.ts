@@ -38,13 +38,13 @@ export async function isAdmin(userId?: string, supabaseClient?: any): Promise<bo
       console.error('isAdmin: Basic table access failed:', testErr);
     }
     
-    // Try the admin check with better error handling
-    console.log('isAdmin: Attempting main admin query...');
+    // Use maybeSingle() instead of single() to avoid errors when no admin record is found
+    console.log('isAdmin: Attempting main admin query with maybeSingle...');
     const { data: admin, error } = await client
       .from('admins')
       .select('id')
       .eq('account_id', userToCheck)
-      .single();
+      .maybeSingle(); // Use maybeSingle to avoid errors when no record is found
 
     console.log('isAdmin: Admin query result:', { admin, error });
     
@@ -64,77 +64,35 @@ export async function isAdmin(userId?: string, supabaseClient?: any): Promise<bo
       // Try alternative approaches
       console.log('isAdmin: Trying alternative query approaches...');
       
-      // Approach 1: Use maybeSingle instead of single
+      // Approach 1: Try without single() - get array
       try {
         const { data: adminAlt1, error: altError1 } = await client
           .from('admins')
           .select('id')
-          .eq('account_id', userToCheck)
-          .maybeSingle();
+          .eq('account_id', userToCheck);
           
-        console.log('isAdmin: Alternative approach 1 (maybeSingle):', { admin: adminAlt1, error: altError1 });
-        if (!altError1) {
-          return !!adminAlt1;
+        console.log('isAdmin: Alternative approach 1 (array):', { admin: adminAlt1, error: altError1 });
+        if (!altError1 && adminAlt1 && adminAlt1.length > 0) {
+          return true;
         }
       } catch (altErr1) {
         console.error('isAdmin: Alternative approach 1 failed:', altErr1);
       }
       
-      // Approach 2: Try without single() - get array
+      // Approach 2: Try with different column selection
       try {
         const { data: adminAlt2, error: altError2 } = await client
-          .from('admins')
-          .select('id')
-          .eq('account_id', userToCheck);
-          
-        console.log('isAdmin: Alternative approach 2 (array):', { admin: adminAlt2, error: altError2 });
-        if (!altError2 && adminAlt2 && adminAlt2.length > 0) {
-          return true;
-        }
-      } catch (altErr2) {
-        console.error('isAdmin: Alternative approach 2 failed:', altErr2);
-      }
-      
-      // Approach 3: Try with different column selection
-      try {
-        const { data: adminAlt3, error: altError3 } = await client
           .from('admins')
           .select('*')
           .eq('account_id', userToCheck)
           .maybeSingle();
           
-        console.log('isAdmin: Alternative approach 3 (select *):', { admin: adminAlt3, error: altError3 });
-        if (!altError3) {
-          return !!adminAlt3;
+        console.log('isAdmin: Alternative approach 2 (select *):', { admin: adminAlt2, error: altError2 });
+        if (!altError2) {
+          return !!adminAlt2;
         }
-      } catch (altErr3) {
-        console.error('isAdmin: Alternative approach 3 failed:', altErr3);
-      }
-      
-      // If it's an RLS policy error, try a different approach
-      if (error.code === '42501' || error.message?.includes('permission denied')) {
-        console.log('isAdmin: RLS policy error detected, trying alternative approach');
-        
-        // Try using a service role or different query approach
-        const { data: adminAlt, error: altError } = await client
-          .from('admins')
-          .select('id')
-          .eq('account_id', userToCheck)
-          .maybeSingle(); // Use maybeSingle instead of single to avoid errors
-          
-        if (altError) {
-          console.error('isAdmin: Alternative approach also failed:', {
-            message: altError.message,
-            details: altError.details,
-            hint: altError.hint,
-            code: altError.code,
-            fullError: JSON.stringify(altError, null, 2)
-          });
-          return false;
-        }
-        
-        console.log('isAdmin: Alternative approach result:', { admin: adminAlt });
-        return !!adminAlt;
+      } catch (altErr2) {
+        console.error('isAdmin: Alternative approach 2 failed:', altErr2);
       }
       
       return false;
