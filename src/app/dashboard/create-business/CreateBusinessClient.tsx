@@ -43,10 +43,6 @@ export default function CreateBusinessClient() {
     setError("");
     setSuccess("");
 
-    console.log("Starting business creation process...");
-    console.log("Current user:", user);
-    console.log("Form data:", form);
-
     const supabase = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -56,6 +52,10 @@ export default function CreateBusinessClient() {
       data: { user },
       error: userError,
     } = await getUserOrMock(supabase);
+
+    console.log("Starting business creation process...");
+    console.log("Current user:", user);
+    console.log("Form data:", form);
 
     if (userError || !user) {
       setError("You must be signed in to create a business.");
