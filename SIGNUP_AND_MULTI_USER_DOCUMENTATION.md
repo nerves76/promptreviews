@@ -4,6 +4,42 @@
 
 This document provides comprehensive documentation of the sign-up process and multi-user account system in PromptReviews. The system is designed to support multiple users per account while maintaining proper authentication, authorization, and data isolation.
 
+## Email Confirmation Setup (Long-Term Solution)
+
+### **Configuration for Both Environments**
+
+The system is configured to work seamlessly in both local development and production environments:
+
+**Supabase Configuration (`supabase/config.toml`):**
+```toml
+[auth]
+site_url = "https://app.promptreviews.app"
+additional_redirect_urls = ["https://app.promptreviews.app", "http://localhost:3001"]
+```
+
+**How It Works:**
+1. **Production**: `site_url` points to production domain
+2. **Local Development**: `localhost:3001` is included in `additional_redirect_urls`
+3. **Sign-Up Code**: Always uses `window.location.origin` for `emailRedirectTo`
+
+### **Environment Detection**
+
+The sign-up process automatically detects the environment:
+- **Local Development**: `http://localhost:3001/auth/callback`
+- **Production**: `https://app.promptreviews.app/auth/callback`
+
+### **Deployment Considerations**
+
+**Before Deploying to Production:**
+- Ensure `site_url` is set to `https://app.promptreviews.app`
+- Verify `additional_redirect_urls` includes both production and localhost URLs
+- Run `supabase config push` to update the remote configuration
+
+**For Local Development:**
+- No configuration changes needed
+- Email confirmation links will automatically point to localhost:3001
+- Both environments are supported simultaneously
+
 ## Sign-Up Process Flow
 
 ### 1. User Registration (`/auth/sign-up`)
@@ -31,328 +67,245 @@ This document provides comprehensive documentation of the sign-up process and mu
      },
    }
    ```
-4. User receives confirmation email
-5. User is redirected to confirmation page with instructions
-
-**Key Features**:
-- Email confirmation required before account activation
-- User metadata stored for first/last name
-- Analytics tracking for sign-up events
-- Comprehensive error handling with user-friendly messages
+4. Email confirmation is sent to user's email address
+5. User is redirected to confirmation page
 
 ### 2. Email Confirmation (`/auth/callback`)
 
 **File**: `src/app/auth/callback/route.ts`
 
 **Process**:
-1. User clicks confirmation link in email
-2. Callback route exchanges code for session
-3. **Account Creation**: If user has no existing account:
-   - Creates new `accounts` record with user's email as name
-   - Creates `account_users` record linking user as "owner"
-   - Sends welcome email
-4. **Account Linking**: If user already has account links:
-   - No new account created
-   - User remains linked to existing account(s)
-5. Redirects to dashboard
+1. User clicks email confirmation link
+2. Link points to current environment (localhost:3001 or production)
+3. Supabase processes the confirmation token
+4. User is automatically signed in
+5. Account creation process begins:
+   - Creates account record in `accounts` table
+   - Creates account_user record linking user to account
+   - Creates default business profile
+   - Redirects to plan selection page
 
-**Multi-User Support**:
-- Each new user gets their own account by default
-- Users can be added to multiple accounts later
-- Account ownership is tracked via `account_users` table
+### 3. Account Setup Flow
 
-## Database Schema for Multi-User Support
+**After Email Confirmation**:
+1. **Plan Selection**: User chooses subscription plan
+2. **Business Creation**: User creates their first business
+3. **Dashboard Access**: User gains access to full dashboard
 
-### Core Tables
+## Multi-User Account System
 
-#### `accounts` Table
+### **Database Schema**
+
+**Accounts Table**:
 ```sql
 CREATE TABLE accounts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
-  plan TEXT DEFAULT 'NULL',
-  trial_start TIMESTAMP WITH TIME ZONE,
-  trial_end TIMESTAMP WITH TIME ZONE,
-  custom_prompt_page_count INTEGER DEFAULT 0,
-  contact_count INTEGER DEFAULT 0,
-  first_name TEXT,
-  last_name TEXT,
-  stripe_customer_id TEXT,
-  stripe_subscription_id TEXT,
-  subscription_status TEXT,
-  is_free_account BOOLEAN DEFAULT false,
-  has_had_paid_plan BOOLEAN DEFAULT false,
-  email TEXT,
-  plan_lookup_key TEXT,
-  review_notifications_enabled BOOLEAN DEFAULT true,
-  user_id UUID
+  name TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 ```
 
-#### `account_users` Table
+**Account Users Table**:
 ```sql
 CREATE TABLE account_users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  account_id UUID NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  role TEXT DEFAULT 'member',
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  account_id UUID REFERENCES accounts(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  role TEXT NOT NULL DEFAULT 'member',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   UNIQUE(account_id, user_id)
 );
 ```
 
-### User Roles
+**Businesses Table**:
+```sql
+CREATE TABLE businesses (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  account_id UUID REFERENCES accounts(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  description TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
 
-The system supports three user roles with hierarchical permissions:
+### **User Roles**
 
-1. **Owner** (Level 3)
-   - Full account control
-   - Can manage all users and settings
-   - Can delete account
-   - Can change billing information
+- **Owner**: Full access to account, can manage users and settings
+- **Admin**: Can manage businesses and content, limited user management
+- **Member**: Can view and contribute to businesses
 
-2. **Admin** (Level 2)
-   - Can manage business profiles
-   - Can manage users (except owners)
-   - Can view analytics and reports
-   - Cannot change billing or delete account
+### **Account Management**
 
-3. **Member** (Level 1)
-   - Can view and manage content
-   - Can create/edit prompt pages
-   - Can manage widgets
-   - Cannot manage users or account settings
+**Adding Users to Account**:
+1. Account owner invites user via email
+2. User receives invitation email
+3. User accepts invitation and joins account
+4. User gains access to account's businesses
 
-## Multi-User Account Management
+**User Permissions**:
+- Users can only access businesses within their account
+- RLS policies enforce data isolation between accounts
+- Users can be members of multiple accounts
 
-### Account Utilities (`src/utils/accountUtils.ts`)
+## Security Features
 
-The system provides comprehensive utilities for managing multi-user accounts:
+### **Row Level Security (RLS)**
 
-#### Core Functions
+**Account Isolation**:
+```sql
+-- Users can only access their own account data
+CREATE POLICY "Users can view own account" ON accounts
+  FOR SELECT USING (id IN (
+    SELECT account_id FROM account_users WHERE user_id = auth.uid()
+  ));
+```
 
-**`getUserAccounts(supabase, userId)`**
-- Returns all accounts a user belongs to
-- Used for account switching and permissions
+**Business Access Control**:
+```sql
+-- Users can only access businesses in their account
+CREATE POLICY "Users can view account businesses" ON businesses
+  FOR ALL USING (account_id IN (
+    SELECT account_id FROM account_users WHERE user_id = auth.uid()
+  ));
+```
 
-**`getAccountUsers(supabase, accountId)`**
-- Returns all users in an account
-- Used for user management interface
+### **Authentication Guards**
 
-**`addUserToAccount(supabase, accountId, userId, role)`**
-- Adds a user to an account with specified role
-- Used for inviting team members
+**File**: `src/utils/authGuard.ts`
 
-**`removeUserFromAccount(supabase, accountId, userId)`**
-- Removes a user from an account
-- Used for team management
+**Features**:
+- Session validation
+- Email confirmation checks
+- Account access verification
+- Role-based permissions
 
-**`updateUserRole(supabase, accountId, userId, role)`**
-- Updates a user's role within an account
-- Used for role management
+## Error Handling
 
-**`userHasRole(supabase, accountId, userId, role)`**
-- Checks if user has specific role or higher
-- Used for permission checks
+### **Common Issues**
 
-### Permission System
+1. **Email Not Confirmed**:
+   - Check if user clicked confirmation link
+   - Verify email confirmation is enabled in Supabase
+   - Check browser console for redirect URL logs
 
-The permission system uses role hierarchy:
+2. **Account Creation Failed**:
+   - Verify RLS policies are correctly configured
+   - Check database connection and permissions
+   - Review server logs for detailed error messages
+
+3. **Multi-User Access Issues**:
+   - Verify user is added to account_users table
+   - Check user role and permissions
+   - Ensure RLS policies are working correctly
+
+### **Debugging**
+
+**Enable Logging**:
 ```typescript
-const roleHierarchy = { owner: 3, admin: 2, member: 1 };
+// In sign-up component
+console.log('Sign-up redirect URL:', redirectUrl);
+console.log('Current origin:', window.location.origin);
+
+// In callback route
+console.log('Auth callback triggered');
+console.log('User data:', user);
 ```
 
-Users with higher roles can perform actions of lower roles. For example:
-- Owners can perform all admin and member actions
-- Admins can perform all member actions
-- Members can only perform member-level actions
+## Testing
 
-## Authentication Flow
+### **Local Development Testing**
 
-### 1. Initial Sign-Up
-```
-User Registration → Email Confirmation → Account Creation → Dashboard
-```
+1. **Sign-Up Flow**:
+   ```bash
+   npm run dev
+   # Visit http://localhost:3001/auth/sign-up
+   # Complete sign-up process
+   # Check email confirmation link points to localhost:3001
+   ```
 
-### 2. Subsequent Sign-Ins
-```
-Sign-In → Session Validation → Account Selection → Dashboard
-```
+2. **Email Confirmation**:
+   - Click email confirmation link
+   - Verify redirect to localhost:3001/auth/callback
+   - Check account creation in database
 
-### 3. Multi-Account Access
-```
-User can belong to multiple accounts → Account switcher → Role-based access
-```
+3. **Multi-User Testing**:
+   - Create multiple test accounts
+   - Test user invitations
+   - Verify account isolation
 
-## Security Considerations
+### **Production Testing**
 
-### Row-Level Security (RLS)
+1. **Deploy and Test**:
+   - Ensure `site_url` is set to production domain
+   - Test sign-up flow in production
+   - Verify email confirmation links work
 
-The system uses Supabase RLS policies to ensure data isolation:
+2. **Multi-Environment Verification**:
+   - Test both local and production environments
+   - Verify no cross-environment issues
 
-#### `account_users` RLS Policies
-```sql
--- Users can only see account_users records they're part of
-CREATE POLICY "Users can view their own account memberships" ON account_users
-  FOR SELECT USING (auth.uid() = user_id);
+## Maintenance
 
--- Account owners can manage users in their accounts
-CREATE POLICY "Account owners can manage users" ON account_users
-  FOR ALL USING (
-    EXISTS (
-      SELECT 1 FROM account_users au
-      WHERE au.account_id = account_users.account_id
-      AND au.user_id = auth.uid()
-      AND au.role = 'owner'
-    )
-  );
-```
+### **Regular Tasks**
 
-#### `accounts` RLS Policies
-```sql
--- Users can only see accounts they belong to
-CREATE POLICY "Users can view their accounts" ON accounts
-  FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM account_users
-      WHERE account_id = accounts.id
-      AND user_id = auth.uid()
-    )
-  );
-```
+1. **Configuration Updates**:
+   - Keep Supabase configuration in sync
+   - Update redirect URLs as needed
+   - Monitor authentication logs
 
-### API Authentication
+2. **Database Maintenance**:
+   - Review RLS policies regularly
+   - Monitor account and user growth
+   - Clean up orphaned records
 
-All API routes use the unified authentication utility:
-```typescript
-const { user, supabase: authSupabase, error: authError } = await authenticateApiRequest(request);
-if (authError || !user) {
-  return NextResponse.json({ error: "Authentication required" }, { status: 401 });
-}
-```
+3. **Security Reviews**:
+   - Audit user permissions
+   - Review authentication flows
+   - Test account isolation
 
-## Future Multi-User Features
+### **Monitoring**
 
-### Planned Enhancements
+**Key Metrics**:
+- Sign-up conversion rates
+- Email confirmation success rates
+- Account creation success rates
+- Multi-user adoption rates
 
-1. **Account Invitations**
-   - Email-based invitation system
-   - Role assignment during invitation
-   - Invitation expiration and management
-
-2. **Account Switching**
-   - UI for switching between accounts
-   - Session management for multiple accounts
-   - Account-specific settings
-
-3. **Team Management Interface**
-   - User management dashboard
-   - Role assignment interface
-   - Activity logs and audit trails
-
-4. **Billing Integration**
-   - Account-level billing
-   - User-based usage tracking
-   - Role-based billing permissions
-
-### Implementation Guidelines
-
-When adding new features that support multi-user accounts:
-
-1. **Always check user permissions** using `userHasRole()`
-2. **Use account context** for data isolation
-3. **Implement proper RLS policies** for new tables
-4. **Add audit logging** for user management actions
-5. **Test with multiple users** in the same account
-
-## Testing Multi-User Scenarios
-
-### Test Cases
-
-1. **New User Sign-Up**
-   - Verify account creation
-   - Verify owner role assignment
-   - Verify welcome email
-
-2. **Existing User Sign-In**
-   - Verify account access
-   - Verify role-based permissions
-   - Verify data isolation
-
-3. **Multi-Account User**
-   - Verify account switching
-   - Verify role inheritance
-   - Verify data access controls
-
-4. **User Management**
-   - Verify user invitation
-   - Verify role changes
-   - Verify user removal
-
-### Test Data Setup
-
-```sql
--- Create test accounts
-INSERT INTO accounts (name, email) VALUES 
-  ('Test Account 1', 'test1@example.com'),
-  ('Test Account 2', 'test2@example.com');
-
--- Create test users
-INSERT INTO auth.users (email, encrypted_password) VALUES 
-  ('user1@example.com', 'hashed_password'),
-  ('user2@example.com', 'hashed_password');
-
--- Link users to accounts
-INSERT INTO account_users (account_id, user_id, role) VALUES 
-  ('account1_id', 'user1_id', 'owner'),
-  ('account1_id', 'user2_id', 'member'),
-  ('account2_id', 'user1_id', 'admin');
-```
+**Alerts**:
+- Failed authentication attempts
+- Database connection issues
+- Email delivery failures
 
 ## Troubleshooting
 
-### Common Issues
+### **Email Confirmation Issues**
 
-1. **"User not found in account"**
-   - Check `account_users` table for user-account link
-   - Verify RLS policies are working correctly
+**Problem**: Email links point to wrong environment
+**Solution**: 
+1. Check `supabase/config.toml` site_url setting
+2. Verify `additional_redirect_urls` includes both environments
+3. Run `supabase config push` to update remote configuration
 
-2. **"Insufficient permissions"**
-   - Check user role in `account_users` table
-   - Verify role hierarchy logic
+**Problem**: Email confirmation not working locally
+**Solution**:
+1. Ensure development server is running on port 3001
+2. Check that localhost:3001 is in additional_redirect_urls
+3. Verify emailRedirectTo parameter in sign-up code
 
-3. **"Account not found"**
-   - Check if account exists in `accounts` table
-   - Verify user has access to account via `account_users`
+### **Account Creation Issues**
 
-### Debug Queries
+**Problem**: "Account not found" errors
+**Solution**:
+1. Check account creation in callback route
+2. Verify RLS policies allow account creation
+3. Review database permissions
 
-```sql
--- Check user's accounts
-SELECT a.* FROM accounts a
-JOIN account_users au ON a.id = au.account_id
-WHERE au.user_id = 'user_id_here';
+**Problem**: Multi-user access denied
+**Solution**:
+1. Verify user is in account_users table
+2. Check user role and permissions
+3. Review RLS policies for account access
 
--- Check account users
-SELECT au.*, u.email FROM account_users au
-JOIN auth.users u ON au.user_id = u.id
-WHERE au.account_id = 'account_id_here';
-
--- Check user permissions
-SELECT role FROM account_users
-WHERE account_id = 'account_id_here' AND user_id = 'user_id_here';
-```
-
-## Conclusion
-
-The sign-up process and multi-user account system provide a robust foundation for team collaboration while maintaining security and data isolation. The system is designed to scale from single users to large teams with proper role-based access control.
-
-Key principles:
-- **Security first**: All data access is controlled by RLS policies
-- **Role-based access**: Clear permission hierarchy
-- **Scalable design**: Supports unlimited users per account
-- **Audit trail**: All user management actions are logged
-- **Future-ready**: Architecture supports planned enhancements
-
-For questions or issues related to the multi-user system, refer to the troubleshooting section or contact the development team. 
+This documentation should be updated whenever changes are made to the authentication or multi-user systems. 

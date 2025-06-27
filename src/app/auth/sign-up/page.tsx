@@ -51,11 +51,18 @@ export default function SignUpPage() {
     }
 
     try {
+      // Always use the current origin for email redirects
+      // This works because both localhost:3001 and app.promptreviews.app are in additional_redirect_urls
+      const redirectUrl = `${window.location.origin}/auth/callback`;
+
+      console.log('Sign-up redirect URL:', redirectUrl);
+      console.log('Current origin:', window.location.origin);
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: redirectUrl,
           data: {
             first_name: firstName,
             last_name: lastName,
