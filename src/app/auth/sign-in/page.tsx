@@ -19,6 +19,7 @@ export default function SignIn() {
   const [resetEmail, setResetEmail] = useState("");
   const [resetMessage, setResetMessage] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isForceSigningIn, setIsForceSigningIn] = useState(false);
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -30,6 +31,23 @@ export default function SignIn() {
     setError(null);
     
     try {
+      // First, sign out to clear any cached session data
+      await supabase.auth.signOut();
+      
+      // Clear any local storage that might be cached
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('supabase.auth.token');
+        localStorage.removeItem('supabase.auth.expires_at');
+        localStorage.removeItem('supabase.auth.refresh_token');
+        sessionStorage.removeItem('supabase.auth.token');
+        sessionStorage.removeItem('supabase.auth.expires_at');
+        sessionStorage.removeItem('supabase.auth.refresh_token');
+      }
+      
+      // Wait a moment for the sign out to complete
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Now try to refresh the session via API
       const response = await fetch('/api/refresh-session', {
         method: 'POST',
         headers: {
@@ -40,17 +58,54 @@ export default function SignIn() {
       const data = await response.json();
       
       if (data.success) {
-        setError("Session refreshed! Please try signing in again.");
+        setError("Session cleared and refreshed! Please try signing in again.");
         // Clear the form to encourage retry
         setFormData({ email: "", password: "" });
       } else {
-        setError("Failed to refresh session. Please try again.");
+        setError("Session cleared! Please try signing in again.");
+        // Clear the form anyway since we signed out
+        setFormData({ email: "", password: "" });
       }
     } catch (err) {
       console.error('Error refreshing session:', err);
-      setError("Failed to refresh session. Please try again.");
+      setError("Session cleared! Please try signing in again.");
+      // Clear the form anyway since we signed out
+      setFormData({ email: "", password: "" });
     } finally {
       setIsRefreshing(false);
+    }
+  };
+
+  const handleForceSignIn = async () => {
+    setIsForceSigningIn(true);
+    setError(null);
+    
+    try {
+      const response = await fetch('/api/force-signin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        // Success! Redirect to dashboard
+        router.push("/dashboard");
+        router.refresh();
+      } else {
+        setError(data.error || "Force sign-in failed. Please try again.");
+      }
+    } catch (err) {
+      console.error('Error with force sign-in:', err);
+      setError("Force sign-in failed. Please try again.");
+    } finally {
+      setIsForceSigningIn(false);
     }
   };
 
@@ -68,10 +123,15 @@ export default function SignIn() {
 
       if (signInError) {
         console.error("Sign in error:", signInError);
+        
+        // Handle email confirmation error specifically
         if (signInError.message.includes("Email not confirmed")) {
+          // Since email confirmations are disabled in Supabase config, 
+          // this error shouldn't occur. Let's try a different approach.
           setError(
-            "Please check your email and click the confirmation link before signing in. If you've already clicked the link, try refreshing this page or wait a moment and try again.",
+            "Email confirmation error detected. Since email confirmations are disabled, this may be a caching issue. Please try the refresh button below or contact support.",
           );
+          return;
         } else if (signInError.message.includes("Invalid login credentials")) {
           setError("Invalid email or password. Please try again.");
         } else {
@@ -210,17 +270,25 @@ export default function SignIn() {
               <div className="mb-4 bg-red-50 border border-red-200 rounded-md p-4">
                 <p className="text-red-600">{error}</p>
                 {error.includes("Email not confirmed") && (
-                  <div className="mt-3">
+                  <div className="mt-3 space-y-2">
                     <button
                       type="button"
                       onClick={handleRefreshSession}
                       disabled={isRefreshing}
-                      className="text-sm bg-red-100 hover:bg-red-200 text-red-800 font-medium py-1 px-3 rounded border border-red-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="text-sm bg-red-100 hover:bg-red-200 text-red-800 font-medium py-1 px-3 rounded border border-red-300 disabled:opacity-50 disabled:cursor-not-allowed mr-2"
                     >
                       {isRefreshing ? "Refreshing..." : "Refresh Session"}
                     </button>
+                    <button
+                      type="button"
+                      onClick={handleForceSignIn}
+                      disabled={isForceSigningIn}
+                      className="text-sm bg-blue-100 hover:bg-blue-200 text-blue-800 font-medium py-1 px-3 rounded border border-blue-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isForceSigningIn ? "Signing In..." : "Force Sign In"}
+                    </button>
                     <p className="text-xs text-red-500 mt-1">
-                      Click this if you've already confirmed your email
+                      Try "Refresh Session" first, then "Force Sign In" if that doesn't work
                     </p>
                   </div>
                 )}
