@@ -158,7 +158,7 @@ export default function CreateBusinessClient() {
         address_state: form.address_state,
         address_zip: form.address_zip,
         address_country: form.address_country,
-        industry: form.industry ? [form.industry] : null,
+        industry: form.industry,
         industry_other: form.industry_other,
       });
 
@@ -207,7 +207,7 @@ export default function CreateBusinessClient() {
           address_state: form.address_state,
           address_zip: form.address_zip,
           address_country: form.address_country,
-          industry: form.industry ? [form.industry] : null,
+          industry: form.industry,
           industry_other: form.industry_other,
         });
 
