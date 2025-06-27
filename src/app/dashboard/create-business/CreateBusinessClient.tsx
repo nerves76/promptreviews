@@ -6,9 +6,11 @@ import { createBrowserClient } from "@supabase/ssr";
 import { useAuthGuard } from "@/utils/authGuard";
 import { FaStore } from "react-icons/fa";
 import { getUserOrMock } from "@/utils/supabase";
+import { isAdmin } from "@/utils/admin";
 import SimpleBusinessForm from "../components/SimpleBusinessForm";
 import AppLoader from "@/app/components/AppLoader";
 import PageCard from "@/app/components/PageCard";
+import WelcomePopup from "@/app/components/WelcomePopup";
 
 export default function CreateBusinessClient() {
   useAuthGuard();
@@ -28,6 +30,8 @@ export default function CreateBusinessClient() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [isAdminUser, setIsAdminUser] = useState(false);
+  const [showWelcomePopup, setShowWelcomePopup] = useState(false);
   const router = useRouter();
 
   const handleChange = (
@@ -35,6 +39,33 @@ export default function CreateBusinessClient() {
   ) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Check admin status when component mounts
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      try {
+        const { data: { user } } = await getUserOrMock(supabase);
+        if (user) {
+          const adminStatus = await isAdmin(user.id, supabase);
+          setIsAdminUser(adminStatus);
+        }
+      } catch (error) {
+        console.error("Error checking admin status:", error);
+      }
+    };
+
+    checkAdminStatus();
+  }, []);
+
+  // Handler for the test welcome button
+  const handleTestWelcome = () => {
+    setShowWelcomePopup(true);
+  };
+
+  // Handler for closing the welcome popup
+  const handleCloseWelcome = () => {
+    setShowWelcomePopup(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -265,9 +296,19 @@ export default function CreateBusinessClient() {
           </p>
         </div>
         <div
-          className="flex items-start pr-4 md:pr-6"
+          className="flex items-start pr-4 md:pr-6 gap-2"
           style={{ alignSelf: "flex-start" }}
         >
+          {isAdminUser && (
+            <button
+              type="button"
+              onClick={handleTestWelcome}
+              className="py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue"
+              style={{ marginTop: "0.25rem" }}
+            >
+              Test Welcome
+            </button>
+          )}
           <button
             type="submit"
             form="create-business-form"
@@ -300,6 +341,18 @@ export default function CreateBusinessClient() {
           {loading ? "Creating..." : "Save and Continue"}
         </button>
       </div>
+      {showWelcomePopup && (
+        <WelcomePopup
+          isOpen={showWelcomePopup}
+          onClose={handleCloseWelcome}
+          title="Welcome to PromptReviews!"
+          message="We're excited to help you collect amazing reviews from your customers. [icon] Let's get started by setting up your business profile."
+          imageUrl="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompty-catching-stars.png"
+          imageAlt="Prompty catching stars"
+          buttonText="Get Started"
+          onButtonClick={handleCloseWelcome}
+        />
+      )}
     </PageCard>
   );
 } 

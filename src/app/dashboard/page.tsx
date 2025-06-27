@@ -15,6 +15,7 @@ import TopLoaderOverlay from "../components/TopLoaderOverlay";
 import { Button } from "@/app/components/ui/button";
 import Link from "next/link";
 import QuoteDisplay from "../components/QuoteDisplay";
+import WelcomePopup from "../components/WelcomePopup";
 import { trackEvent, GA_EVENTS } from "../../utils/analytics";
 
 export default function Dashboard() {
@@ -37,6 +38,7 @@ export default function Dashboard() {
   const [account, setAccount] = useState<any>(null);
   const [showPricingModal, setShowPricingModal] = useState(true);
   const [pendingAccountUpdate, setPendingAccountUpdate] = useState(false);
+  const [showWelcomePopup, setShowWelcomePopup] = useState(false);
   const [reviewStats, setReviewStats] = useState({
     total: { week: 0, month: 0, year: 0 },
     verified: { week: 0, month: 0, year: 0 },
@@ -98,7 +100,7 @@ export default function Dashboard() {
           supabase
             .from("accounts")
             .select(
-              "id, plan, is_free_account, subscription_status, first_name, last_name, trial_start, trial_end, custom_prompt_page_count, contact_count, created_at",
+              "id, plan, is_free_account, subscription_status, first_name, last_name, trial_start, trial_end, custom_prompt_page_count, contact_count, created_at, has_seen_welcome",
             )
             .eq("id", session.user.id)
             .single(),
@@ -182,6 +184,12 @@ export default function Dashboard() {
   useEffect(() => {
     if (isLoading) return;
     if (account === null) return;
+    
+    // Show welcome popup for first-time users
+    if (account && !account.has_seen_welcome) {
+      setShowWelcomePopup(true);
+    }
+    
     const paidPlans = ["grower", "builder", "maven"];
     const now = new Date();
     const trialStart = account?.trial_start
@@ -309,6 +317,30 @@ export default function Dashboard() {
     setSavedPromptPageUrl(null);
   };
 
+  // Handler for closing the welcome popup and marking as seen
+  const handleCloseWelcome = async () => {
+    setShowWelcomePopup(false);
+    
+    // Mark welcome as seen in the database
+    if (account && !account.has_seen_welcome) {
+      try {
+        const { error } = await supabase
+          .from("accounts")
+          .update({ has_seen_welcome: true })
+          .eq("id", account.id);
+        
+        if (error) {
+          console.error("Error updating has_seen_welcome:", error);
+        } else {
+          // Update local state
+          setAccount((prev: any) => prev ? { ...prev, has_seen_welcome: true } : null);
+        }
+      } catch (error) {
+        console.error("Error updating has_seen_welcome:", error);
+      }
+    }
+  };
+
   if (isLoading) {
     console.log("Dashboard loading state:", { isLoading, user, account, business });
     return <AppLoader />;
@@ -390,6 +422,20 @@ export default function Dashboard() {
         <PricingModal
           onSelectTier={handleSelectTier}
           currentPlan={account?.plan}
+        />
+      )}
+      
+      {/* Welcome Popup for first-time users */}
+      {showWelcomePopup && (
+        <WelcomePopup
+          isOpen={showWelcomePopup}
+          onClose={handleCloseWelcome}
+          title="Welcome to PromptReviews!"
+          message="We're excited to help you collect amazing reviews from your customers. [icon] Let's get started by setting up your business profile."
+          imageUrl="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompty-catching-stars.png"
+          imageAlt="Prompty catching stars"
+          buttonText="Get Started"
+          onButtonClick={handleCloseWelcome}
         />
       )}
     </div>
