@@ -13,6 +13,12 @@ import PageCard from "@/app/components/PageCard";
 import WelcomePopup from "@/app/components/WelcomePopup";
 
 export default function CreateBusinessClient() {
+  // Initialize supabase client at the top so it's available everywhere
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  );
+
   useAuthGuard();
   const [form, setForm] = useState({
     name: "",
@@ -73,11 +79,6 @@ export default function CreateBusinessClient() {
     setLoading(true);
     setError("");
     setSuccess("");
-
-    const supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    );
 
     const {
       data: { user },
@@ -347,7 +348,16 @@ export default function CreateBusinessClient() {
           isOpen={showWelcomePopup}
           onClose={handleCloseWelcome}
           title="Oh hi there—I'm Prompty!"
-          message="Welcome to Prompt Reviews!\n\nDid you know you're a miracle? Carl Sagan said it best:\n\"The cosmos is within us. We are made of star-stuff. We are a way for the universe to know itself.\"\n\nBeautiful right! There is a flaming gas giant in you too! Wait, that didn't come out right . . . Anyway, I am here to help you get the stars you deserve—on Google, Facebook, TripAdvisor, Clutch—you name it.\n\nHere's your first tip: [icon] <----Click here\n\nOK, that's it for now—let's go get some stars! 🌟"
+          message={`Welcome to Prompt Reviews!
+
+Did you know you're a miracle? Carl Sagan said it best:
+"The cosmos is within us. We are made of star-stuff. We are a way for the universe to know itself."
+
+Beautiful right! There is a flaming gas giant in you too! Wait, that didn't come out right . . . Anyway, I am here to help you get the stars you deserve—on Google, Facebook, TripAdvisor, Clutch—you name it.
+
+Here's your first tip: [icon] <----Click here
+
+OK, that's it for now—let's go get some stars! 🌟`}
           imageUrl="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompty-600kb.png"
           imageAlt="Prompty - Get Reviews"
           buttonText="Let's Go Get Some Stars! 🌟"
