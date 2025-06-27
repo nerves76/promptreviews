@@ -140,6 +140,8 @@ export default function CreateBusinessClient() {
           });
           // Don't fail the entire process if account_users fails
           console.warn("Account user setup failed, but continuing with business creation");
+        } else {
+          console.log("Account user setup completed successfully");
         }
       } else {
         console.warn("User ID mismatch, skipping account_users setup");
