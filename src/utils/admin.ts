@@ -25,6 +25,7 @@ export async function isAdmin(userId?: string, supabaseClient?: any): Promise<bo
 
     console.log('isAdmin: Checking admin status for user ID:', userToCheck);
     
+    // Try the admin check with better error handling
     const { data: admin, error } = await client
       .from('admins')
       .select('id')
@@ -41,6 +42,28 @@ export async function isAdmin(userId?: string, supabaseClient?: any): Promise<bo
         code: error.code,
         fullError: error
       });
+      
+      // If it's an RLS policy error, try a different approach
+      if (error.code === '42501' || error.message?.includes('permission denied')) {
+        console.log('isAdmin: RLS policy error detected, trying alternative approach');
+        
+        // Try using a service role or different query approach
+        const { data: adminAlt, error: altError } = await client
+          .from('admins')
+          .select('id')
+          .eq('account_id', userToCheck)
+          .maybeSingle(); // Use maybeSingle instead of single to avoid errors
+          
+        if (altError) {
+          console.error('isAdmin: Alternative approach also failed:', altError);
+          return false;
+        }
+        
+        console.log('isAdmin: Alternative approach result:', { admin: adminAlt });
+        return !!adminAlt;
+      }
+      
+      return false;
     } else {
       console.log('isAdmin: No database error, admin found:', !!admin);
     }
