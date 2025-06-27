@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { FaImage, FaBuilding, FaList, FaStar, FaGift, FaShareAlt, FaInfoCircle } from "react-icons/fa";
 import Cropper from "react-easy-crop";
-import IndustrySelector from "./IndustrySelector";
-import RobotTooltip from "./RobotTooltip";
+import IndustrySelector from "../../components/IndustrySelector";
+import RobotTooltip from "../../components/RobotTooltip";
 
 function Tooltip({ text }: { text: string }) {
   const [show, setShow] = useState(false);
