@@ -107,7 +107,7 @@ export default function Dashboard() {
           supabase
             .from("businesses")
             .select("*")
-            .eq("id", session.user.id)
+            .eq("account_id", session.user.id)
             .single(),
           
           // Fetch prompt pages

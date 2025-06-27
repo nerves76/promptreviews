@@ -182,7 +182,7 @@ export default function CreateBusinessPage() {
       const { data: businessData } = await supabase
         .from("businesses")
         .select("*")
-        .eq("id", user.id)
+        .eq("account_id", user.id)
         .single();
       setBusiness(businessData);
       
@@ -304,7 +304,6 @@ export default function CreateBusinessPage() {
     const { data: businessData, error: businessError } = await supabase
       .from("businesses")
       .upsert({
-        id: user.id,
         account_id: user.id,
         name: form.name,
         features_or_benefits: Array.isArray(services)
