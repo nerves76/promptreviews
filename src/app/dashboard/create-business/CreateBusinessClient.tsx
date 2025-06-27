@@ -84,7 +84,7 @@ export default function CreateBusinessClient() {
     const { error: insertError } = await supabase
       .from("businesses")
       .insert({
-        account_id: accountId,
+        reviewer_id: accountId,
         name: form.name,
         business_website: form.business_website,
         phone: form.phone,
