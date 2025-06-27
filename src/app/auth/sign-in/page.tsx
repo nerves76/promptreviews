@@ -18,11 +18,41 @@ export default function SignIn() {
   const [showReset, setShowReset] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [resetMessage, setResetMessage] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   );
+
+  const handleRefreshSession = async () => {
+    setIsRefreshing(true);
+    setError(null);
+    
+    try {
+      const response = await fetch('/api/refresh-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setError("Session refreshed! Please try signing in again.");
+        // Clear the form to encourage retry
+        setFormData({ email: "", password: "" });
+      } else {
+        setError("Failed to refresh session. Please try again.");
+      }
+    } catch (err) {
+      console.error('Error refreshing session:', err);
+      setError("Failed to refresh session. Please try again.");
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -179,6 +209,21 @@ export default function SignIn() {
             {error && (
               <div className="mb-4 bg-red-50 border border-red-200 rounded-md p-4">
                 <p className="text-red-600">{error}</p>
+                {error.includes("Email not confirmed") && (
+                  <div className="mt-3">
+                    <button
+                      type="button"
+                      onClick={handleRefreshSession}
+                      disabled={isRefreshing}
+                      className="text-sm bg-red-100 hover:bg-red-200 text-red-800 font-medium py-1 px-3 rounded border border-red-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isRefreshing ? "Refreshing..." : "Refresh Session"}
+                    </button>
+                    <p className="text-xs text-red-500 mt-1">
+                      Click this if you've already confirmed your email
+                    </p>
+                  </div>
+                )}
               </div>
             )}
             {resetMessage && (
