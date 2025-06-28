@@ -116,7 +116,7 @@ export default function CreateBusinessClient() {
     <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
       <PageCard 
         icon={<FaStore className="w-9 h-9 text-slate-blue" />}
-        bottomLeftImage={{
+        bottomRightImage={{
           src: "/images/prompty-catching-stars.png",
           alt: "Prompty catching stars",
           maxWidth: 400,
