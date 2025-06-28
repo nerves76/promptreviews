@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { createBrowserClient } from "@supabase/ssr";
+import { supabase } from "@/utils/supabaseClient";
 import Cropper from "react-easy-crop";
 import type { Area } from "react-easy-crop";
 import { useAuthGuard } from "@/utils/authGuard";
@@ -25,13 +25,20 @@ import {
   FaQuestionCircle,
   FaGift,
   FaRegLightbulb,
+  FaEdit,
+  FaSave,
+  FaTimes,
 } from "react-icons/fa";
 import { getUserOrMock } from "@/utils/supabase";
+import { getAccountIdForUser } from "@/utils/accountUtils";
+import { isAdmin } from "@/utils/admin";
 import BusinessProfileForm from "../components/BusinessProfileForm";
 import DashboardCard from "../components/DashboardCard";
 import AppLoader from "@/app/components/AppLoader";
 import PageCard from "@/app/components/PageCard";
 import imageCompression from 'browser-image-compression';
+import FiveStarSpinner from "@/app/components/FiveStarSpinner";
+import { trackEvent, GA_EVENTS } from "../../../utils/analytics";
 
 function Tooltip({ text }: { text: string }) {
   const [show, setShow] = useState(false);
@@ -135,143 +142,84 @@ export default function BusinessProfilePage() {
   const [copySuccess, setCopySuccess] = useState("");
   const [accountId, setAccountId] = useState<string | null>(null);
 
-  // Helper to validate review URLs for known platforms
-  const validatePlatformUrl = (name: string, url: string) => {
-    if (!name || !url) return "";
-    if (name.toLowerCase() === "google") {
-      return url.match(
-        /^https:\/\/g\.page\/|^https:\/\/search\.google\.com\/local\/write\/review\?placeid=/,
-      )
-        ? ""
-        : "Enter a valid Google review link.";
-    }
-    if (name.toLowerCase() === "facebook") {
-      return url.match(/^https:\/\/www\.facebook\.com\/.+\/reviews/)
-        ? ""
-        : "Enter a valid Facebook review link.";
-    }
-    if (name.toLowerCase() === "yelp") {
-      return url.match(/^https:\/\/www\.yelp\.com\/biz\/[a-zA-Z0-9\-_]+/)
-        ? ""
-        : "Please share a link to your business page on Yelp. Should look like: https://www.yelp.com/biz/your-business";
-    }
-    return "";
-  };
-
-  const handlePlatformChange = (
-    idx: number,
-    field: "name" | "url" | "customPlatform" | "wordCount",
-    value: string,
-  ) => {
-    const newPlatforms = [...platforms];
-    if (field === "name") {
-      newPlatforms[idx].name = value;
-    } else if (field === "url") {
-      newPlatforms[idx].url = value;
-    } else if (field === "customPlatform") {
-      newPlatforms[idx] = { ...newPlatforms[idx], customPlatform: value };
-    } else if (field === "wordCount") {
-      newPlatforms[idx].wordCount = Number(value);
-    }
-    setPlatforms(newPlatforms);
-    // Validate on change
-    const error = validatePlatformUrl(
-      newPlatforms[idx].name,
-      newPlatforms[idx].url,
-    );
-    const newErrors = [...platformErrors];
-    newErrors[idx] = error;
-    setPlatformErrors(newErrors);
-  };
-
-  const addPlatform = () => {
-    setPlatforms([...platforms, { name: "", url: "", wordCount: 200 }]);
-    setPlatformErrors([...platformErrors, ""]);
-  };
-
-  const removePlatform = (idx: number) => {
-    setPlatforms(platforms.filter((_, i) => i !== idx));
-    setPlatformErrors(platformErrors.filter((_, i) => i !== idx));
-  };
-
   useEffect(() => {
-    const fetchProfileAndUser = async () => {
-      const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      );
-      // Fetch user
-      const {
-        data: { user },
-      } = await getUserOrMock(supabase);
-      if (!user) {
-        setError("You must be signed in to view your business profile.");
-        setLoading(false);
-        return;
-      }
-      setAccountId(user.id);
-      // Fetch business profile (existing logic)
-      const { data, error: fetchError } = await supabase
-        .from("businesses")
-        .select("*")
-        .eq("account_id", user.id)
-        .single();
-      if (fetchError) {
-        if (fetchError.code === "PGRST116") {
-          // No rows found
+    const loadBusinessProfile = async () => {
+      try {
+        const { data: { user }, error: userError } = await getUserOrMock(supabase);
+        
+        if (userError || !user) {
+          router.push("/auth/sign-in");
+          return;
+        }
+
+        setAccountId(user.id);
+
+        // Load business profile
+        const { data: businessData, error: businessError } = await supabase
+          .from("businesses")
+          .select("*")
+          .eq("account_id", user.id)
+          .single();
+
+        if (businessError && businessError.code !== 'PGRST116') {
+          console.error("Error loading business profile:", businessError);
+          setError("Failed to load business profile");
           setNoProfile(true);
-          // Automatically log out the user if no business profile is found
           await supabase.auth.signOut();
           router.push("/auth/sign-in");
         } else {
-          setError(fetchError.message);
+          setForm({
+            ...businessData,
+            business_website: businessData.business_website || "",
+            phone: businessData.phone || "",
+            address_street: businessData.address_street || "",
+            address_city: businessData.address_city || "",
+            address_state: businessData.address_state || "",
+            address_zip: businessData.address_zip || "",
+            address_country: businessData.address_country || "",
+            default_offer_url: businessData.default_offer_url || "",
+            business_email: businessData.business_email || "",
+            ai_dos: businessData.ai_dos || "",
+            ai_donts: businessData.ai_donts || "",
+          });
+          setServices(
+            Array.isArray(businessData.features_or_benefits)
+              ? businessData.features_or_benefits
+              : typeof businessData.features_or_benefits === "string" &&
+                  businessData.features_or_benefits.length > 0
+                ? businessData.features_or_benefits.trim().startsWith("[") &&
+                  businessData.features_or_benefits.trim().endsWith("]")
+                  ? (() => {
+                      try {
+                        return JSON.parse(businessData.features_or_benefits);
+                      } catch {
+                        return [businessData.features_or_benefits];
+                      }
+                    })()
+                  : businessData.features_or_benefits.split("\n")
+                : [""],
+          );
+          // Initialize platforms from JSON or fallback
+          let loadedPlatforms = [{ name: "", url: "", wordCount: 200 }];
+          if (Array.isArray(businessData.review_platforms)) {
+            loadedPlatforms = businessData.review_platforms;
+          }
+          setPlatforms(loadedPlatforms);
+          setPlatformErrors(loadedPlatforms.map(() => ""));
+          setLogoUrl(businessData.logo_url || null);
+          setNoProfile(false);
         }
+
         setLoading(false);
-        return;
+      } catch (error) {
+        console.error("Error loading business profile:", error);
+        setError("Failed to load business profile");
+        setLoading(false);
       }
-      setForm({
-        ...data,
-        business_website: data.business_website || "",
-        phone: data.phone || "",
-        address_street: data.address_street || "",
-        address_city: data.address_city || "",
-        address_state: data.address_state || "",
-        address_zip: data.address_zip || "",
-        address_country: data.address_country || "",
-        default_offer_url: data.default_offer_url || "",
-        business_email: data.business_email || "",
-        ai_dos: data.ai_dos || "",
-        ai_donts: data.ai_donts || "",
-      });
-      setServices(
-        Array.isArray(data.features_or_benefits)
-          ? data.features_or_benefits
-          : typeof data.features_or_benefits === "string" &&
-              data.features_or_benefits.length > 0
-            ? data.features_or_benefits.trim().startsWith("[") &&
-              data.features_or_benefits.trim().endsWith("]")
-              ? (() => {
-                  try {
-                    return JSON.parse(data.features_or_benefits);
-                  } catch {
-                    return [data.features_or_benefits];
-                  }
-                })()
-              : data.features_or_benefits.split("\n")
-            : [""],
-      );
-      // Initialize platforms from JSON or fallback
-      let loadedPlatforms = [{ name: "", url: "", wordCount: 200 }];
-      if (Array.isArray(data.review_platforms)) {
-        loadedPlatforms = data.review_platforms;
-      }
-      setPlatforms(loadedPlatforms);
-      setPlatformErrors(loadedPlatforms.map(() => ""));
-      setLogoUrl(data.logo_url || null);
-      setLoading(false);
     };
-    fetchProfileAndUser();
-  }, []);
+
+    loadBusinessProfile();
+  }, [router]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -380,10 +328,6 @@ export default function BusinessProfilePage() {
     setError("");
     setSuccess("");
     setLogoError("");
-    const supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    );
     const {
       data: { user },
       error: userError,

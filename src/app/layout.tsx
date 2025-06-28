@@ -9,6 +9,8 @@ import { Inter, Roboto, Open_Sans, Montserrat, Poppins } from "next/font/google"
 import ClientRoot from "./ClientRoot";
 import AppMain from "./components/AppMain";
 import GoogleAnalytics from "./components/GoogleAnalytics";
+import { Providers } from "@/components/Providers";
+import { AdminProvider } from "@/contexts/AdminContext";
 
 // Initialize Sentry for server-side error tracking
 import * as Sentry from '@sentry/nextjs';
@@ -49,8 +51,8 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "PromptReviews - AI Review Request App",
-  description: "Generate and manage review requests for your business",
+  title: "PromptReviews - Get More Reviews",
+  description: "Get more reviews for your business with our review collection platform",
 };
 
 export default function RootLayout({
@@ -64,9 +66,13 @@ export default function RootLayout({
         <GoogleAnalytics />
       </head>
       <body className={inter.className + " min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 overscroll-x-auto"}>
-        <ClientRoot>
-          <AppMain>{children}</AppMain>
-        </ClientRoot>
+        <Providers>
+          <AdminProvider>
+            <ClientRoot>
+              <AppMain>{children}</AppMain>
+            </ClientRoot>
+          </AdminProvider>
+        </Providers>
       </body>
     </html>
   );

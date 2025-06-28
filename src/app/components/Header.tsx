@@ -4,12 +4,12 @@ import * as React from "react";
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { createBrowserClient } from "@supabase/ssr";
 import { FiMenu, FiX } from "react-icons/fi";
 import { FaUserCircle, FaBell } from "react-icons/fa";
 import { Menu } from "@headlessui/react";
+import { supabase } from "@/utils/supabaseClient";
 import { getUserOrMock } from "@/utils/supabase";
-import { isAdmin } from "../../utils/admin";
+import { useAdmin } from "@/contexts/AdminContext";
 import { trackEvent, GA_EVENTS } from '../../utils/analytics';
 
 /**
@@ -45,70 +45,50 @@ export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
   const [user, setUser] = useState<any>(null);
-  const [isAdminUser, setIsAdminUser] = useState(false);
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  );
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [notifications, setNotifications] = useState<any[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  
+  // Use the centralized admin context instead of local state
+  const { isAdminUser, isLoading: adminLoading } = useAdmin();
 
   useEffect(() => {
     const getUser = async () => {
-      const {
-        data: { user },
-      } = await getUserOrMock(supabase);
-      setUser(user);
-      
-      // Check if user is admin
-      if (user) {
-        console.log('Header: Checking admin status for user:', user.id, user.email);
+      try {
+        const { data: { user }, error } = await getUserOrMock(supabase);
         
-        // Try the local admin check first
-        let adminStatus = false;
-        try {
-          console.log('Header: Starting local admin check...');
-          adminStatus = await isAdmin(user.id);
-          console.log('Header: Local admin check completed, result:', adminStatus);
-        } catch (error) {
-          console.error('Header: Local admin check failed with error:', {
-            error: error,
-            errorType: typeof error,
-            errorMessage: error instanceof Error ? error.message : String(error),
-            errorStack: error instanceof Error ? error.stack : undefined
-          });
-          
-          // Fallback to API endpoint
-          try {
-            console.log('Header: Trying API fallback for admin check...');
-            const response = await fetch('/api/check-admin');
-            if (!response.ok) {
-              throw new Error(`API response not ok: ${response.status} ${response.statusText}`);
-            }
-            const data = await response.json();
-            adminStatus = data.isAdmin;
-            console.log('Header: API admin check completed, result:', adminStatus);
-          } catch (apiError) {
-            console.error('Header: API admin check also failed:', {
-              error: apiError,
-              errorType: typeof apiError,
-              errorMessage: apiError instanceof Error ? apiError.message : String(apiError)
-            });
-            adminStatus = false;
-          }
+        if (error) {
+          console.error('Header: Auth error:', error);
+          setUser(null);
+          return;
         }
         
-        console.log('Header: Final admin status:', adminStatus);
-        setIsAdminUser(adminStatus);
-      } else {
-        console.log('Header: No user found');
+        if (user) {
+          console.log('Header: User found:', user.id);
+          setUser(user);
+        } else {
+          console.log('Header: No user found');
+          setUser(null);
+        }
+      } catch (error) {
+        console.error('Header: Error getting user:', error);
+        setUser(null);
       }
     };
 
     getUser();
-  }, [supabase]);
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Header: Auth state changed:', event, session?.user?.id);
+        setUser(session?.user || null);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   // Add debugging for navigation visibility
   useEffect(() => {

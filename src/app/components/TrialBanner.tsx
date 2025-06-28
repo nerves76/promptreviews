@@ -19,13 +19,21 @@ export default function TrialBanner({ isAdmin = false, showForTesting = false }:
   const [showBanner, setShowBanner] = useState(false);
   const [trialDaysLeft, setTrialDaysLeft] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isClient, setIsClient] = useState(false);
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   );
 
+  // Ensure we're on the client side before accessing browser APIs
   useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isClient) return; // Don't run until we're on the client
+
     if (showForTesting) {
       setShowBanner(true);
       setTrialDaysLeft(7); // Show 7 days for testing
@@ -56,10 +64,8 @@ export default function TrialBanner({ isAdmin = false, showForTesting = false }:
           accountData.has_had_paid_plan === false
         ) {
           // Check if user has dismissed the banner
-          if (
-            typeof window !== "undefined" &&
-            sessionStorage.getItem("hideTrialBanner") === "1"
-          ) {
+          const hideBanner = sessionStorage.getItem("hideTrialBanner") === "1";
+          if (hideBanner) {
             setShowBanner(false);
           } else {
             setShowBanner(true);
@@ -83,16 +89,17 @@ export default function TrialBanner({ isAdmin = false, showForTesting = false }:
     };
 
     fetchTrialStatus();
-  }, [supabase, showForTesting]);
+  }, [supabase, showForTesting, isClient]);
 
   const handleDismissBanner = () => {
     setShowBanner(false);
-    if (typeof window !== "undefined") {
+    if (isClient) {
       sessionStorage.setItem("hideTrialBanner", "1");
     }
   };
 
-  if (loading || !showBanner) {
+  // Don't render anything until we're on the client to prevent hydration mismatch
+  if (!isClient || loading || !showBanner) {
     return null;
   }
 

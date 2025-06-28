@@ -4,6 +4,8 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
+import { createClient } from "@supabase/supabase-js";
+import { getUserOrMock } from "./supabase";
 
 export interface AccountUser {
   account_id: string;
@@ -186,4 +188,96 @@ export async function userHasRole(
 
   const userLevel = roleHierarchy[data.role as keyof typeof roleHierarchy];
   return userLevel >= requiredLevel;
+}
+
+/**
+ * Get the account ID for a given user ID
+ * @param userId - The user ID to get the account for
+ * @param supabaseClient - Optional Supabase client instance. If not provided, creates a new one.
+ * @returns Promise<string | null> - The account ID or null if not found
+ */
+export async function getAccountIdForUser(userId: string, supabaseClient?: any): Promise<string | null> {
+  try {
+    const client = supabaseClient || createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+        }
+      }
+    );
+
+    // First, check if user has an account via account_users table
+    const { data: accountUser, error: accountUserError } = await client
+      .from("account_users")
+      .select("account_id")
+      .eq("user_id", userId)
+      .single();
+
+    if (accountUser && accountUser.account_id) {
+      return accountUser.account_id;
+    }
+
+    // If no account_user record found, check if there's a legacy account record
+    const { data: legacyAccount, error: legacyError } = await client
+      .from("accounts")
+      .select("id")
+      .eq("user_id", userId)
+      .single();
+
+    if (legacyAccount && legacyAccount.id) {
+      // Found a legacy account, create the account_user relationship
+      const { error: insertError } = await client
+        .from("account_users")
+        .insert({
+          account_id: legacyAccount.id,
+          user_id: userId,
+          role: 'owner'
+        });
+
+      if (!insertError) {
+        return legacyAccount.id;
+      }
+    }
+
+    // No account found - this is expected for new users
+    return null;
+  } catch (error) {
+    console.error("Error in getAccountIdForUser:", error);
+    return null;
+  }
+}
+
+/**
+ * Get the account ID for the current user
+ * @param supabaseClient - Optional Supabase client instance. If not provided, creates a new one.
+ * @returns Promise<string | null> - The account ID or null if not found
+ */
+export async function getCurrentUserAccountId(supabaseClient?: any): Promise<string | null> {
+  try {
+    const client = supabaseClient || createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+        }
+      }
+    );
+
+    const { data: { user } } = await getUserOrMock(client);
+    if (!user) {
+      return null;
+    }
+
+    return await getAccountIdForUser(user.id, client);
+  } catch (error) {
+    console.error("Error in getCurrentUserAccountId:", error);
+    return null;
+  }
 } 

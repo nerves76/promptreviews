@@ -72,6 +72,60 @@ When Swiper.js fails to load (network issues, CDN problems), the widget falls ba
 3. Check browser console for loading status
 4. Test with network throttling to simulate slow connections
 
+## Admin User Management
+
+### Admin Delete Functionality
+
+A comprehensive admin user deletion system has been implemented to properly clean up all user-related data when users are deleted. This prevents orphaned data that can cause conflicts when users are recreated.
+
+#### Features
+- **Complete Data Cleanup**: Removes all user-related data across all database tables
+- **Admin-Only Access**: Requires admin privileges to use
+- **Safe Deletion Order**: Follows proper foreign key constraint order
+- **Detailed Logging**: Provides comprehensive cleanup results
+- **User-Friendly Interface**: Web-based admin panel for user management
+
+#### Files Created
+- `src/utils/adminDelete.ts` - Core deletion utility functions
+- `src/app/api/admin/delete-user/route.ts` - Admin-only API endpoint
+- `src/app/admin/page.tsx` - Admin user management interface
+- `test-admin-delete.js` - Test script for verification
+
+#### Cleanup Process
+The deletion process follows this order to respect foreign key constraints:
+
+1. **Child Tables** (widgets, reviews, analytics, etc.)
+   - Analytics events
+   - AI usage records
+   - Widget reviews
+   - Review submissions
+   - Contacts
+   - Prompt pages
+   - Widgets
+   - Businesses
+
+2. **Junction Tables** (account_users)
+
+3. **Parent Tables** (accounts, admins)
+
+4. **Auth User** (Supabase Auth)
+
+#### Usage
+1. Navigate to `/admin` (admin privileges required)
+2. Search for user by email address
+3. Review user information
+4. Click "Delete User & All Data"
+5. Confirm deletion in modal
+6. View detailed cleanup results
+
+#### Testing
+Run the test script to verify functionality:
+```bash
+node test-admin-delete.js <test-email>
+```
+
+This will create a test user with sample data, delete them using the admin API, and verify complete cleanup.
+
 ---
 
 # **PromptReviews Project Cheat Sheet**
@@ -549,3 +603,19 @@ If you need a custom loading message or style, consider extending `AppLoader` or
   - Never render the icon manually inside the form/component.
 - **AI Gen Button:**
   - Use the standardized button: `inline-flex items-center px-4 py-2 border rounded font-semibold shadow text-slate-blue border-slate-blue bg-white hover:bg-slate-blue/10 transition text-sm whitespace-nowrap w-auto min-w-[180px] self-start gap-2` with `<FaMagic />`
+
+## Recent Updates
+
+### Admin User Management System (Latest)
+- **Comprehensive User Deletion**: Created admin-only functionality to completely delete users and all associated data
+- **Safety Features**: Prevents admins from deleting their own accounts
+- **Database Cleanup**: Properly removes data from all related tables (widgets, reviews, businesses, contacts, etc.)
+- **UI Improvements**: Fixed button styling issues (changed `bg-slateblue` to `bg-slate-blue` throughout the app)
+- **API Endpoint**: `/api/admin/delete-user` with proper authentication and validation
+- **Admin Interface**: User-friendly admin page at `/admin` for user management
+
+### Authentication & Account System Fixes
+- **Account ID Resolution**: Fixed issues with user-account relationships using `getAccountIdForUser` utility
+- **RLS Policy Compliance**: Updated all account queries to use proper account-user relationships
+- **Dashboard Stability**: Resolved "multiple rows returned" errors in account queries
+- **Force Sign-in**: Local development bypass for email confirmation (development only)

@@ -1,45 +1,63 @@
 "use client";
 
-import { Suspense, useEffect, useState, useCallback } from "react";
-import { useRouter, usePathname } from "next/navigation";
-import { createBrowserClient } from "@supabase/ssr";
-import Link from "next/link";
-import { Dialog } from "@headlessui/react";
-import { isAccountBlocked } from "@/utils/accountLimits";
+import { useEffect, useState } from "react";
+import { supabase } from "@/utils/supabaseClient";
 import { getUserOrMock } from "@/utils/supabase";
+import { useRouter } from "next/navigation";
+import AppLoader from "@/app/components/AppLoader";
 import { trackEvent, GA_EVENTS } from "../../utils/analytics";
 import TrialBanner from "../components/TrialBanner";
+
+// Use the singleton Supabase client instead of creating a new instance
+// This prevents "Multiple GoTrueClient instances" warnings and ensures proper session persistence
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  );
-
-  const [blocked, setBlocked] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any>(null);
+  const [isClient, setIsClient] = useState(false);
+  const router = useRouter();
+
+  // Ensure we're on the client side before accessing browser APIs
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
-    const fetchAccount = async () => {
-      const {
-        data: { user },
-      } = await getUserOrMock(supabase);
-      if (!user) {
-        setBlocked(false);
+    const checkAuth = async () => {
+      try {
+        const { data: { user }, error } = await getUserOrMock(supabase);
+        
+        if (error || !user) {
+          router.push("/auth/sign-in");
+          return;
+        }
+
+        setUser(user);
         setLoading(false);
-        return;
+      } catch (error) {
+        console.error("Auth check error:", error);
+        router.push("/auth/sign-in");
       }
-      setBlocked(false);
-      setLoading(false);
     };
-    fetchAccount();
-  }, [supabase]);
+
+    checkAuth();
+  }, [router]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <AppLoader />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
 
   const handleSignOut = async () => {
     // Track sign out event
@@ -48,13 +66,11 @@ export default function DashboardLayout({
     });
     
     await supabase.auth.signOut();
-    if (typeof window !== "undefined") {
+    if (isClient) {
       sessionStorage.removeItem("hideTrialBanner");
     }
     router.push("/auth/sign-in");
   };
-
-  if (loading) return <div>{children}</div>;
 
   return (
     <div className="w-full bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 pb-16 md:pb-24 lg:pb-32">

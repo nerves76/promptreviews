@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createBrowserClient } from "@supabase/ssr";
+import { supabase } from "@/utils/supabaseClient";
+import { getUserOrMock } from "@/utils/supabase";
 import { useRouter } from "next/navigation";
 import {
   FaUser,
@@ -13,47 +14,54 @@ import {
   FaUniversity,
 } from "react-icons/fa";
 import Link from "next/link";
-import { getUserOrMock } from "@/utils/supabase";
 import PageCard from "@/app/components/PageCard";
 import AppLoader from "@/app/components/AppLoader";
 import { trackEvent, GA_EVENTS } from "../../utils/analytics";
+import { getAccountIdForUser } from "@/utils/accountUtils";
 
 export default function AccountPage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [account, setAccount] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  );
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const getUserAndAccount = async () => {
+    const loadAccountData = async () => {
       try {
-        const {
-          data: { user },
-        } = await getUserOrMock(supabase);
-        if (!user) {
+        const { data: { user }, error: userError } = await getUserOrMock(supabase);
+        
+        if (userError || !user) {
           router.push("/auth/sign-in");
           return;
         }
+
         setUser(user);
-        // Fetch account from accounts table
-        const { data: accountData } = await supabase
+
+        // Load account data
+        const { data: accountData, error: accountError } = await supabase
           .from("accounts")
           .select("*")
           .eq("id", user.id)
           .single();
-        setAccount(accountData);
+
+        if (accountError) {
+          console.error("Error loading account:", accountError);
+          setError("Failed to load account data");
+        } else {
+          setAccount(accountData);
+        }
+
+        setIsLoading(false);
       } catch (error) {
-        console.error("Error loading user/account:", error);
-      } finally {
+        console.error("Error loading account data:", error);
+        setError("Failed to load account data");
         setIsLoading(false);
       }
     };
-    getUserAndAccount();
-  }, [supabase, router]);
+
+    loadAccountData();
+  }, [router]);
 
   const handleSignOut = async () => {
     // Track sign out event
@@ -61,8 +69,12 @@ export default function AccountPage() {
       timestamp: new Date().toISOString(),
     });
     
-    await supabase.auth.signOut();
-    router.push("/auth/sign-in");
+    try {
+      await supabase.auth.signOut();
+      router.push("/");
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
   };
 
   // Handle notifications toggle (smaller, matches other edit pages)
@@ -87,16 +99,16 @@ export default function AccountPage() {
 
   if (isLoading) {
     return (
-      <div
-        style={{
-          position: "fixed",
-          top: -190,
-          left: 0,
-          width: "100%",
-          zIndex: 9999,
-        }}
-      >
+      <div className="min-h-screen flex flex-col items-center justify-center">
         <AppLoader />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <div className="text-red-600 text-lg">{error}</div>
       </div>
     );
   }
@@ -106,165 +118,61 @@ export default function AccountPage() {
   }
 
   return (
-    <div className="min-h-screen w-full">
-      <div className="min-h-screen flex items-center justify-center pb-12 px-2">
-        <PageCard icon={<FaUser className="w-9 h-9 text-[#1A237E]" />}>
-          <div className="flex items-center justify-between mb-16">
-            <h1 className="text-3xl font-bold text-slate-blue">
-              Account Settings
-            </h1>
+    <div className="min-h-screen bg-gray-50">
+      <PageCard>
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-slate-blue">Account Settings</h1>
+            <p className="text-gray-600 mt-2">Manage your account preferences</p>
           </div>
 
-          <div className="space-y-16 pb-12">
-            <div>
-              <h2 className="text-2xl font-bold flex items-center gap-3 mb-12 text-slate-blue">
-                <FaIdCard className="w-7 h-7 text-slate-blue" />
-                Profile Information
-              </h2>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Account Information */}
+            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Account Information</h3>
+              <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-bold text-gray-700">
-                    First Name
-                  </label>
-                  <div className="mt-1 text-sm text-gray-900">
-                    {user.user_metadata?.first_name || ""}
-                  </div>
+                  <label className="block text-sm font-medium text-gray-700">Email</label>
+                  <p className="mt-1 text-sm text-gray-900">{user?.email}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-gray-700">
-                    Last Name
-                  </label>
-                  <div className="mt-1 text-sm text-gray-900">
-                    {user.user_metadata?.last_name || ""}
-                  </div>
+                  <label className="block text-sm font-medium text-gray-700">Account ID</label>
+                  <p className="mt-1 text-sm text-gray-900">{user?.id}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    User ID
-                  </label>
-                  <div className="mt-1 text-sm text-gray-900">{user.id}</div>
+                  <label className="block text-sm font-medium text-gray-700">Plan</label>
+                  <p className="mt-1 text-sm text-gray-900">{account?.plan || "Free"}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Created</label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {account?.created_at ? new Date(account.created_at).toLocaleDateString() : "Unknown"}
+                  </p>
                 </div>
               </div>
-              <h3 className="text-xl font-bold flex items-center gap-2 mb-6 mt-8 text-slate-blue">
-                <FaEnvelope className="w-6 h-6 text-slate-blue" />
-                Email & Password
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Email
-                  </label>
-                  <div className="mt-1 text-sm text-gray-900 flex items-center gap-2">
-                    {user.email}
-                  </div>
-                  <div className="mt-4">
-                    <ChangeEmail
-                      supabase={supabase}
-                      currentEmail={user.email}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Password
-                  </label>
-                  <div className="mt-1 text-sm text-gray-900 flex items-center gap-2">
-                    ********
-                  </div>
-                  <div className="mt-4">
-                    <ChangePassword supabase={supabase} />
-                  </div>
-                </div>
-              </div>
-              {/* Notifications Section */}
-              <div className="mb-8 mt-12">
-                <h3 className="text-xl font-bold flex items-center gap-2 mb-6 text-slate-blue">
-                  <FaBell className="w-6 h-6 text-slate-blue" />
-                  Notifications
-                </h3>
-                <div className="flex items-center gap-4">
-                  <span className="text-base font-semibold text-slate-blue">
-                    Enable notifications
-                  </span>
-                  <button
-                    type="button"
-                    onClick={handleNotifToggle}
-                    disabled={notifSaving}
-                    className={`relative inline-flex h-5 w-10 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 ${account?.review_notifications_enabled ? "bg-slate-blue" : "bg-gray-300"} ${notifSaving ? "opacity-50 cursor-not-allowed" : ""}`}
-                    aria-pressed={!!account?.review_notifications_enabled}
-                  >
-                    <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${account?.review_notifications_enabled ? "translate-x-5" : "translate-x-1"}`}
-                    />
-                  </button>
-                </div>
-                <p className="text-gray-500 text-sm ml-1 mt-2">
-                  Get notified when you get a new review.
-                </p>
-              </div>
-              {/* Billing Section */}
-              {account?.stripe_customer_id && (
-                <div className="mt-12">
-                  <h3 className="text-xl font-bold flex items-center gap-2 mb-6 text-slate-blue">
-                    <FaUniversity className="w-6 h-6 text-slate-blue" />
-                    Billing
-                  </h3>
-                  <button
-                    onClick={async () => {
-                      setIsLoading(true);
-                      const res = await fetch(
-                        "/api/create-stripe-portal-session",
-                        {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({
-                            customerId: account.stripe_customer_id,
-                          }),
-                        },
-                      );
-                      const data = await res.json();
-                      setIsLoading(false);
-                      if (data.url) {
-                        window.location.href = data.url;
-                      } else {
-                        alert("Could not open billing portal.");
-                      }
-                    }}
-                    disabled={isLoading}
-                    className="px-4 py-2 bg-[#2E4A7D] text-white rounded font-semibold shadow hover:bg-[#4666AF] transition-colors"
-                  >
-                    {isLoading
-                      ? "Loading…"
-                      : "Manage Billing (Invoices & Payment Info)"}
-                  </button>
-                </div>
-              )}
             </div>
 
-            {user.email === "chris@diviner.agency" && (
-              <div>
-                <h2 className="text-2xl font-bold flex items-center gap-3 mb-12 text-slate-blue">
-                  <FaChartLine className="w-7 h-7 text-slate-blue" />
-                  Admin Access
-                </h2>
-                <div className="bg-purple-50 rounded-lg p-6 border border-purple-100">
-                  <p className="text-purple-800 mb-4">
-                    Access comprehensive analytics and management tools for all
-                    accounts.
-                  </p>
-                  <Link
-                    href="/admin"
-                    className="inline-flex items-center gap-2 px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-                  >
-                    <FaChartLine className="w-4 h-4" />
-                    Open Admin Dashboard
-                  </Link>
-                </div>
+            {/* Actions */}
+            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Actions</h3>
+              <div className="space-y-4">
+                <button
+                  onClick={() => router.push("/dashboard")}
+                  className="w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-slate-blue hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue"
+                >
+                  Back to Dashboard
+                </button>
+                <button
+                  onClick={handleSignOut}
+                  className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue"
+                >
+                  Sign Out
+                </button>
               </div>
-            )}
+            </div>
           </div>
-        </PageCard>
-      </div>
+        </div>
+      </PageCard>
     </div>
   );
 }

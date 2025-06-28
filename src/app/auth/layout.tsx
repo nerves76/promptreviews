@@ -1,4 +1,14 @@
-import Head from "next/head";
+/**
+ * Auth Layout Component
+ * This layout provides the structure for authentication pages
+ */
+
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Authentication - PromptReviews",
+  description: "Sign in or sign up for PromptReviews",
+};
 
 export default function AuthLayout({
   children,
@@ -6,14 +16,8 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <>
-      <Head>
-        <link
-          rel="stylesheet"
-          href="https://promptreviews.app/wp-content/themes/astra/assets/css/minified/main.min.css?ver=4.11.1"
-        />
-      </Head>
-      <div className="min-h-screen">{children}</div>
-    </>
+    <div className="min-h-screen">
+      {children}
+    </div>
   );
 }

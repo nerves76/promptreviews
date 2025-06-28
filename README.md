@@ -55,7 +55,50 @@ SENTRY_PROJECT=your_sentry_project_here
 
 # Google Analytics Configuration
 NEXT_PUBLIC_GA_TRACKING_ID=G-22JHGCL1T7
+
+# Application URL
+NEXT_PUBLIC_APP_URL=http://localhost:3001
 ```
+
+## Local Development
+
+### Database Setup
+
+**Important**: This application uses the **production Supabase database** for all environments (local and production). We do not use a local database instance.
+
+### Email Confirmation Bypass
+
+For local development convenience, we've implemented an email confirmation bypass:
+
+- **Local Development** (`localhost:3001`): Users can sign in immediately after account creation
+- **Production** (`app.promptreviews.app`): Normal email confirmation flow
+
+The bypass is automatically detected based on the hostname and provides a user-friendly message explaining the behavior.
+
+### Running Locally
+
+1. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+2. **Start the development server:**
+   ```bash
+   npm run dev
+   ```
+
+3. **Access the application:**
+   - Local: http://localhost:3001
+   - Network: http://192.168.x.x:3001
+
+### Testing User Accounts
+
+For local development testing:
+1. Create a new account using the sign-up form
+2. Sign in immediately (no email confirmation required)
+3. Test all features with the created account
+
+For detailed local development information, see [LOCAL_DEVELOPMENT.md](./LOCAL_DEVELOPMENT.md).
 
 ## Automatic Trial Reminder System
 

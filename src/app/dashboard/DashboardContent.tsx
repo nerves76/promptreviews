@@ -244,13 +244,19 @@ export default function DashboardContent({
 
         console.log("Fetching prompt pages for user:", user.id);
 
+        // Use the account ID from the account prop instead of user ID
+        if (!account?.id) {
+          setError("No account found for user");
+          return;
+        }
+
         // Try a simpler query first
         const { data, error } = await supabase
           .from("prompt_pages")
           .select(
             "id, slug, status, created_at, phone, email, first_name, last_name, is_universal, review_type",
           )
-          .eq("account_id", user.id)
+          .eq("account_id", account.id)
           .order("created_at", { ascending: false });
 
         if (error) {

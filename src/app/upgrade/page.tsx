@@ -27,7 +27,6 @@ const pricingTiers: PricingTier[] = [
     contactLimit: 0,
     promptPageLimit: 3,
     features: [
-      "14-day free trial",
       "3 custom prompt pages",
       "Cannot upload contacts",
       "Basic review management",
@@ -80,6 +79,7 @@ export default function UpgradePage() {
   const [currentPlan, setCurrentPlan] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isExpired, setIsExpired] = useState(false);
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -96,12 +96,18 @@ export default function UpgradePage() {
 
         const { data: account, error: accountError } = await supabase
           .from("accounts")
-          .select("plan, trial_end, is_free")
+          .select("plan, trial_end, has_had_paid_plan")
           .eq("id", user.id)
           .single();
 
         if (accountError) throw accountError;
         setCurrentPlan(account.plan);
+        
+        // Check if account has expired
+        const now = new Date();
+        const trialEnd = account.trial_end ? new Date(account.trial_end) : null;
+        const isTrialExpired = trialEnd && now > trialEnd && account.plan === "free" && account.has_had_paid_plan === false;
+        setIsExpired(isTrialExpired);
       } catch (err) {
         setError("Failed to fetch current plan");
         console.error("Error fetching plan:", err);
@@ -144,6 +150,27 @@ export default function UpgradePage() {
             customer reviews and testimonials.
           </p>
         </div>
+
+        {/* Expired Account Message */}
+        {isExpired && (
+          <div className="mb-8 bg-red-50 border border-red-200 rounded-lg p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <FaRocket className="h-5 w-5 text-red-400" />
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800">
+                  Your trial has expired
+                </h3>
+                <div className="mt-2 text-sm text-red-700">
+                  <p>
+                    Don't lose access to your reviews and analytics. Upgrade now to continue growing your business with authentic customer feedback.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Pricing Tiers */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -211,18 +238,16 @@ export default function UpgradePage() {
         {/* Contact Section */}
         <div className="mt-16 text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            Need a Custom Plan?
+            Need help choosing?
           </h2>
-          <p className="text-gray-600 mb-8">
-            For businesses with unique needs or larger contact lists, we offer
-            custom enterprise solutions.
+          <p className="text-gray-600 mb-6">
+            Our team is here to help you find the perfect plan for your business.
           </p>
           <button
             onClick={() => router.push("/contact")}
-            className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+            className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors"
           >
-            <FaRocket className="mr-2" />
-            Contact Sales
+            Contact Us
           </button>
         </div>
       </div>

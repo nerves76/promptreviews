@@ -211,7 +211,7 @@ export default function AdminAnalyticsPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slateblue mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-blue mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading admin analytics...</p>
         </div>
       </div>
@@ -241,7 +241,7 @@ export default function AdminAnalyticsPage() {
             </Link>
             <Link
               href="/admin/analytics"
-              className="border-b-2 border-slateblue py-2 px-1 text-sm font-medium text-slateblue"
+              className="border-b-2 border-slate-blue py-2 px-1 text-sm font-medium text-slate-blue"
             >
               Analytics
             </Link>
@@ -255,7 +255,7 @@ export default function AdminAnalyticsPage() {
             <select
               value={timeRange}
               onChange={(e) => setTimeRange(e.target.value as any)}
-              className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-slateblue focus:ring-slateblue"
+              className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-slate-blue focus:ring-slate-blue"
             >
               <option value="all">All Time</option>
               <option value="month">This Month</option>
@@ -271,7 +271,7 @@ export default function AdminAnalyticsPage() {
               <div className="bg-white rounded-lg shadow p-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <FaUsers className="h-8 w-8 text-slateblue" />
+                    <FaUsers className="h-8 w-8 text-slate-blue" />
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
@@ -290,7 +290,7 @@ export default function AdminAnalyticsPage() {
               <div className="bg-white rounded-lg shadow p-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <FaBuilding className="h-8 w-8 text-slateblue" />
+                    <FaBuilding className="h-8 w-8 text-slate-blue" />
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
@@ -309,7 +309,7 @@ export default function AdminAnalyticsPage() {
               <div className="bg-white rounded-lg shadow p-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <FaStar className="h-8 w-8 text-slateblue" />
+                    <FaStar className="h-8 w-8 text-slate-blue" />
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
@@ -328,7 +328,7 @@ export default function AdminAnalyticsPage() {
               <div className="bg-white rounded-lg shadow p-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <FaGlobe className="h-8 w-8 text-slateblue" />
+                    <FaGlobe className="h-8 w-8 text-slate-blue" />
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
@@ -348,7 +348,7 @@ export default function AdminAnalyticsPage() {
                   <div key={platform.platform} className="bg-gray-50 rounded-lg p-4">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-gray-700">{platform.platform}</span>
-                      <span className="text-lg font-semibold text-slateblue">{platform.count}</span>
+                      <span className="text-lg font-semibold text-slate-blue">{platform.count}</span>
                     </div>
                   </div>
                 ))}
@@ -399,7 +399,7 @@ export default function AdminAnalyticsPage() {
                 {analytics.businessGrowth.map((month) => (
                   <div key={month.month} className="flex-1 flex flex-col items-center">
                     <div 
-                      className="w-full bg-slateblue rounded-t"
+                      className="w-full bg-slate-blue rounded-t"
                       style={{ 
                         height: `${Math.max(10, (month.count / Math.max(...analytics.businessGrowth.map(m => m.count))) * 200)}px` 
                       }}
@@ -435,7 +435,7 @@ export default function AdminAnalyticsPage() {
         <div className="mt-8 text-center">
           <button
             onClick={() => router.push('/dashboard')}
-            className="text-slateblue hover:text-slateblue/80 font-medium"
+            className="text-slate-blue hover:text-slate-blue/80 font-medium"
           >
             ← Back to Dashboard
           </button>
