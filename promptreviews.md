@@ -1,10 +1,29 @@
 # PromptReviews Project
 
-This is a vanilla JavaScript project for creating and managing prompt pages that account holders can use to collect reviews. The project uses vanilla JavaScript, HTML, and CSS, with no framework dependencies.
+**Last Updated:** January 27, 2025, 8:30 PM  
+**Status:** ✅ Production Ready with Database Restoration Support  
+**Public URL:** https://app.promptpages.app
 
-Public url is https://app.promptpages.app
+This is a Next.js application for creating and managing prompt pages that account holders can use to collect reviews. The project includes a comprehensive widget system, business management, and AI-powered review generation.
 
-It's main function is to create landing pages "prompt pages" that account holders can use to collect reviews. There are different kinds of prompt pages with different purposes.
+The main function is to create landing pages ("prompt pages") that account holders can use to collect reviews. There are different kinds of prompt pages with different purposes.
+
+## 🚨 Database Restoration Available
+
+**Complete restoration resources available after database deletion incident:**
+- ✅ Full schema restoration script (`restore_complete_schema.sql`)
+- ✅ 60+ sequential migration files for complete rebuild
+- ✅ Automated restoration toolkit (`database-restoration-toolkit.js`)
+- ✅ Comprehensive verification and testing procedures
+
+**Quick Commands:**
+```bash
+npm run db:assess      # Check database status
+npm run db:full-restore # Complete restoration process
+npm run db:verify      # Verify system integrity
+```
+
+See [DATABASE_RESTORATION_PLAN.md](DATABASE_RESTORATION_PLAN.md) for full procedures.
 
 This project is currently focused on developing a standalone widget for collecting reviews. The widget is being developed as a vanilla JavaScript component first, before being integrated into the larger Next.js application.
 

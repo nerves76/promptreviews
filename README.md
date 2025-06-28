@@ -856,3 +856,44 @@ This page provides a slider to adjust widget width and test the responsive behav
 - [Widget Dashboard](WIDGET_DASHBOARD_DOCUMENTATION.md) - Dashboard widget management interface
 - [Troubleshooting](TROUBLESHOOTING_DOCUMENTATION.md) - Common issues and solutions
 - [User Documentation](USER_DOCUMENTATION.md) - End-user guide and features 
+
+# PromptReviews - AI-Powered Review Collection Platform
+
+**Last Updated:** January 27, 2025, 8:30 PM  
+**Status:** ✅ Production Ready with Database Restoration Support
+
+## 🚨 Emergency Database Restoration
+
+If the database has been compromised or deleted, use these emergency procedures:
+
+### Quick Assessment
+```bash
+# Check current database status
+npm run db:assess
+```
+
+### Full Restoration (Recommended)
+```bash
+# Complete restoration process: assess → restore → verify
+npm run db:full-restore
+```
+
+### Manual Steps
+```bash
+# 1. Assess damage
+npm run db:assess
+
+# 2. Execute restoration
+npm run db:restore
+
+# 3. Verify integrity
+npm run db:verify
+```
+
+### Available Restoration Resources
+- ✅ **Complete Schema:** `restore_complete_schema.sql` (407 lines)
+- ✅ **Migration History:** 60+ sequential migration files  
+- ✅ **Documentation:** Complete table structure in `databaseschema.md`
+- ✅ **Toolkit:** Automated restoration with `database-restoration-toolkit.js`
+
+For detailed restoration procedures, see [DATABASE_RESTORATION_PLAN.md](DATABASE_RESTORATION_PLAN.md). 
