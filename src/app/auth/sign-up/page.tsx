@@ -35,6 +35,34 @@ export default function SignUpPage() {
     "Unexpected error": "Something went wrong. Please try again.",
   };
 
+  const createAccount = async (userId: string, userEmail: string) => {
+    try {
+      const response = await fetch('/api/create-account', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId,
+          email: userEmail,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Account creation failed:', errorData);
+        throw new Error(errorData.error || 'Failed to create account');
+      }
+
+      const data = await response.json();
+      console.log('Account created successfully:', data);
+      return true;
+    } catch (error) {
+      console.error('Error creating account:', error);
+      return false;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -68,7 +96,21 @@ export default function SignUpPage() {
 
       if (error) {
         setError(error.message);
-      } else {
+      } else if (data.user) {
+        console.log('✅ User created successfully:', data.user.id);
+        
+        // Create account for the new user
+        const accountCreated = await createAccount(
+          data.user.id,
+          data.user.email!
+        );
+
+        if (accountCreated) {
+          console.log('✅ Account created successfully');
+        } else {
+          console.warn('⚠️ Account creation failed, but user was created');
+        }
+
         // LOCAL DEVELOPMENT EMAIL BYPASS
         // Since we use production Supabase for all environments, email confirmations
         // are always enabled on the server side. However, for local development,
