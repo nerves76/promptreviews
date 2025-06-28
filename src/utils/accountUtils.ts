@@ -191,6 +191,92 @@ export async function userHasRole(
 }
 
 /**
+ * Ensure an account exists for a user, creating one if it doesn't exist
+ * @param supabase - Supabase client instance
+ * @param userId - User ID to ensure account for
+ * @returns The account ID
+ */
+export async function ensureAccountExists(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<string> {
+  try {
+    // Check if account already exists
+    const { data: accountData, error: accountError } = await supabase
+      .from("accounts")
+      .select("*")
+      .eq("id", userId)
+      .single();
+
+    if (accountError && accountError.code !== "PGRST116") {
+      console.error("Account check error:", accountError);
+    }
+
+    // If no account exists, create one
+    if (!accountData) {
+      // Get user data to populate account fields
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      
+      if (userError) {
+        console.error("Error getting user data:", userError);
+        throw userError;
+      }
+
+      const user = userData.user;
+      const firstName = user?.user_metadata?.first_name || "";
+      const lastName = user?.user_metadata?.last_name || "";
+      const email = user?.email || "";
+
+      const { error: createError } = await supabase
+        .from("accounts")
+        .insert({
+          id: userId,
+          email,
+          trial_start: new Date().toISOString(),
+          trial_end: new Date(
+            Date.now() + 14 * 24 * 60 * 60 * 1000,
+          ).toISOString(),
+          is_free_account: false,
+          custom_prompt_page_count: 0,
+          contact_count: 0,
+          first_name: firstName,
+          last_name: lastName,
+        });
+
+      if (createError) {
+        console.error("Account creation error:", createError);
+        throw createError;
+      }
+    }
+
+    // Ensure account_users row exists
+    const { error: upsertAccountUserError } = await supabase
+      .from("account_users")
+      .upsert(
+        {
+          user_id: userId,
+          account_id: userId,
+          role: "owner",
+        },
+        {
+          onConflict: "user_id,account_id",
+          ignoreDuplicates: true,
+        }
+      );
+
+    if (upsertAccountUserError) {
+      console.error("Account user upsert error:", upsertAccountUserError);
+      throw upsertAccountUserError;
+    }
+
+    return userId; // Return the account ID (same as user ID for single-user accounts)
+  } catch (err) {
+    console.error("Account setup error:", err);
+    throw err;
+  }
+}
+
+/**
  * Get the account ID for a given user ID
  * @param userId - The user ID to get the account for
  * @param supabaseClient - Optional Supabase client instance. If not provided, creates a new one.
