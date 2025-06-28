@@ -201,19 +201,19 @@ export async function ensureAccountExists(
   userId: string
 ): Promise<string> {
   try {
-    // Check if account already exists
-    const { data: accountData, error: accountError } = await supabase
-      .from("accounts")
-      .select("*")
-      .eq("id", userId)
+    // Check if account already exists via account_users table
+    const { data: accountUser, error: accountUserError } = await supabase
+      .from("account_users")
+      .select("account_id")
+      .eq("user_id", userId)
       .single();
 
-    if (accountError && accountError.code !== "PGRST116") {
-      console.error("Account check error:", accountError);
+    if (accountUser && accountUser.account_id) {
+      return accountUser.account_id;
     }
 
     // If no account exists, create one
-    if (!accountData) {
+    if (!accountUser) {
       // Get user data to populate account fields
       const { data: userData, error: userError } = await supabase.auth.getUser();
       
@@ -227,10 +227,11 @@ export async function ensureAccountExists(
       const lastName = user?.user_metadata?.last_name || "";
       const email = user?.email || "";
 
-      const { error: createError } = await supabase
+      // Create a new account with a generated UUID
+      const { data: newAccount, error: createError } = await supabase
         .from("accounts")
         .insert({
-          id: userId,
+          user_id: userId,
           email,
           trial_start: new Date().toISOString(),
           trial_end: new Date(
@@ -241,35 +242,33 @@ export async function ensureAccountExists(
           contact_count: 0,
           first_name: firstName,
           last_name: lastName,
-        });
+        })
+        .select()
+        .single();
 
       if (createError) {
         console.error("Account creation error:", createError);
         throw createError;
       }
-    }
 
-    // Ensure account_users row exists
-    const { error: upsertAccountUserError } = await supabase
-      .from("account_users")
-      .upsert(
-        {
+      // Create the account_users relationship
+      const { error: upsertAccountUserError } = await supabase
+        .from("account_users")
+        .insert({
           user_id: userId,
-          account_id: userId,
+          account_id: newAccount.id,
           role: "owner",
-        },
-        {
-          onConflict: "user_id,account_id",
-          ignoreDuplicates: true,
-        }
-      );
+        });
 
-    if (upsertAccountUserError) {
-      console.error("Account user upsert error:", upsertAccountUserError);
-      throw upsertAccountUserError;
+      if (upsertAccountUserError) {
+        console.error("Account user creation error:", upsertAccountUserError);
+        throw upsertAccountUserError;
+      }
+
+      return newAccount.id;
     }
 
-    return userId; // Return the account ID (same as user ID for single-user accounts)
+    return accountUser.account_id;
   } catch (err) {
     console.error("Account setup error:", err);
     throw err;
