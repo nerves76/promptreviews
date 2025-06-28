@@ -2,7 +2,7 @@
 
 import { supabase } from "@/utils/supabaseClient";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaGoogle, FaGithub } from "react-icons/fa";
 import AppLoader from "@/app/components/AppLoader";
 import PageCard from "@/app/components/PageCard";
@@ -22,6 +22,12 @@ export default function SignIn() {
   const [resetMessage, setResetMessage] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isForceSigningIn, setIsForceSigningIn] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+
+  // Ensure we're on the client side before accessing browser APIs
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const handleSignIn = async (provider: "google" | "github") => {
     setLoading(true);
@@ -31,7 +37,7 @@ export default function SignIn() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${window.location.origin}/dashboard`,
+          redirectTo: isClient ? `${window.location.origin}/dashboard` : "/dashboard",
         },
       });
 
@@ -54,7 +60,7 @@ export default function SignIn() {
       await supabase.auth.signOut();
       
       // Clear any local storage that might be cached
-      if (typeof window !== 'undefined') {
+      if (isClient) {
         localStorage.removeItem('supabase.auth.token');
         localStorage.removeItem('supabase.auth.expires_at');
         localStorage.removeItem('supabase.auth.refresh_token');
@@ -243,7 +249,7 @@ export default function SignIn() {
         // Handle email confirmation error specifically
         if (signInError.message.includes("Email not confirmed")) {
           // For local development, automatically try force sign-in
-          if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+          if (isClient && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
             console.log('Local development detected, attempting force sign-in...');
             setError("Email not confirmed. Attempting force sign-in...");
             await handleForceSignIn();
@@ -285,7 +291,7 @@ export default function SignIn() {
     setError("");
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: isClient ? `${window.location.origin}/reset-password` : "/reset-password",
       });
       if (error) throw error;
       setResetMessage("Password reset email sent! Check your inbox.");

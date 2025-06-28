@@ -6,10 +6,22 @@
 'use client';
 
 import Script from 'next/script';
+import { useEffect, useState } from 'react';
 
 const GA_TRACKING_ID = 'G-22JHGCL1T7';
 
 export default function GoogleAnalytics() {
+  const [isClient, setIsClient] = useState(false);
+
+  // Ensure we're on the client side before accessing browser APIs
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isClient) {
+    return null;
+  }
+
   return (
     <>
       <Script
