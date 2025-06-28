@@ -12,6 +12,7 @@ import { getUserOrMock } from "@/utils/supabase";
 import { useAdmin } from "@/contexts/AdminContext";
 import { useBusinessProfile } from "@/utils/authGuard";
 import { trackEvent, GA_EVENTS } from '../../utils/analytics';
+import PromptReviewsLogo from "@/app/dashboard/components/PromptReviewsLogo";
 
 const CowboyUserIcon = () => {
   const [imageError, setImageError] = useState(false);
@@ -156,11 +157,7 @@ export default function Header() {
             <div className="flex-shrink-0 flex items-center mr-6">
               <Link href="/dashboard" className="flex items-center">
                 <span className="h-14 w-auto flex items-center p-1" aria-label="PromptReviews Logo">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="130" height="52" viewBox="0 0 375 150">
-                    <g>
-                      <path d="M 20.121094 13.542969 C 19.683594 13.980469 19.675781 14.28125 19.675781 36.160156 L 19.675781 58.339844 L 20.761719 59.425781 L 32.308594 59.425781 L 32.835938 58.898438 C 33.746094 57.988281 33.890625 55.226562 33.089844 54.007812 L 32.71875 53.441406 L 25.652344 53.441406 L 25.652344 19.082031 L 29.082031 19.082031 C 32.183594 19.082031 32.550781 19.042969 32.941406 18.652344 C 33.847656 17.742188 33.855469 14.613281 32.949219 13.652344 L 32.433594 13.097656 L 26.496094 13.097656 C 20.855469 13.097656 20.539062 13.121094 20.121094 13.542969" fill="#2E4A7D" fillRule="evenodd"/>
-                    </g>
-                  </svg>
+                  <PromptReviewsLogo />
                 </span>
               </Link>
             </div>
