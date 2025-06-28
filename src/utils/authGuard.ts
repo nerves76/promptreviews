@@ -6,79 +6,72 @@ import { getAccountIdForUser } from "@/utils/accountUtils";
 
 interface AuthGuardOptions {
   requireBusinessProfile?: boolean;
+  redirectToCreateBusiness?: boolean;
 }
 
 export function useAuthGuard(options: AuthGuardOptions = {}) {
-  const { requireBusinessProfile = true } = options;
+  const { requireBusinessProfile = false, redirectToCreateBusiness = false } = options;
   const router = useRouter();
 
   useEffect(() => {
     const checkAuthAndProfile = async () => {
       const supabase = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        {
-          auth: {
-            persistSession: true,
-            autoRefreshToken: true,
-            detectSessionInUrl: true,
-          }
-        }
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
       );
+
       const {
         data: { user },
+        error: userError,
       } = await getUserOrMock(supabase);
-      if (!user) {
-        await supabase.auth.signOut();
+
+      if (userError || !user) {
         router.push("/auth/sign-in");
         return;
       }
 
-      // Check if user is an admin
+      // Check if user is admin
       const { data: adminData } = await supabase
         .from("admins")
-        .select("*")
+        .select("id")
         .eq("user_id", user.id)
         .single();
 
+      if (adminData) {
+        router.push("/admin");
+        return;
+      }
+
+      // For new users or when redirectToCreateBusiness is true, redirect to create business
+      if (redirectToCreateBusiness) {
+        router.push("/dashboard/create-business");
+        return;
+      }
+
+      // Check if user has a business profile
       if (requireBusinessProfile) {
-        // Get account ID using the utility function
-        const accountId = await getAccountIdForUser(user.id, supabase);
+        const accountId = await getAccountIdForUser(user.id);
         
         if (!accountId) {
-          console.error("No account found for user:", user.id);
-          
-          // If user is an admin, redirect to admin page instead of create-business
-          if (adminData) {
-            router.push("/admin");
-            return;
-          }
-          
+          // New user - redirect to create business page
           router.push("/dashboard/create-business");
           return;
         }
 
-        // Then check for business profile using the account ID
-        const { data: business } = await supabase
+        const { data: businessData } = await supabase
           .from("businesses")
           .select("id")
           .eq("account_id", accountId)
           .single();
-          
-        if (!business) {
-          // If user is an admin, redirect to admin page instead of create-business
-          if (adminData) {
-            router.push("/admin");
-            return;
-          }
-          
+
+        if (!businessData) {
+          // User has account but no business - redirect to create business page
           router.push("/dashboard/create-business");
           return;
         }
       }
     };
+
     checkAuthAndProfile();
-    // Only run on mount
-    // eslint-disable-next-line
-  }, [requireBusinessProfile]);
+  }, [router, requireBusinessProfile, redirectToCreateBusiness]);
 }

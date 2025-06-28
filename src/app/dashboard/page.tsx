@@ -58,11 +58,19 @@ export default function Dashboard() {
     verified: { week: 0, month: 0, year: 0 },
   });
   const [business, setBusiness] = useState<any>(null);
+  const [isNewUser, setIsNewUser] = useState(false);
+  const [showTopLoader, setShowTopLoader] = useState(false);
+  const [accountData, setAccountData] = useState<any>(null);
+  const [businesses, setBusinesses] = useState<any[]>([]);
+  const [currentBusiness, setCurrentBusiness] = useState<any>(null);
+  const [user, setUser] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   // Use the centralized admin context instead of local state
   const { isAdminUser, isLoading: adminLoading } = useAdmin();
 
-  useAuthGuard();
+  // Use auth guard to redirect new users to create business page
+  useAuthGuard({ redirectToCreateBusiness: true });
 
   useEffect(() => {
     const loadDashboardData = async () => {
@@ -82,7 +90,18 @@ export default function Dashboard() {
         const accountId = await getAccountIdForUser(user.id, supabase);
         
         if (!accountId) {
-          setError("No account data found. Please contact support.");
+          // New user - show welcome message and guide to create business
+          setIsNewUser(true);
+          setData({
+            user,
+            account: null,
+            businesses: [],
+            promptPages: [],
+            widgets: [],
+            isAdminUser: isAdminUser,
+            showWelcomePopup: true,
+            accountLimits: null
+          });
           setIsLoading(false);
           return;
         }
@@ -106,6 +125,11 @@ export default function Dashboard() {
           .from("businesses")
           .select("*")
           .eq("account_id", accountId);
+
+        // Check if user has any businesses
+        if (!businesses || businesses.length === 0) {
+          setIsNewUser(true);
+        }
 
         // Load prompt pages
         const { data: promptPages } = await supabase
@@ -416,6 +440,36 @@ export default function Dashboard() {
       <div className="flex justify-center items-center pt-12 pb-4">
         <QuoteDisplay />
       </div>
+      
+      {/* Welcome message for new users */}
+      {isNewUser && (
+        <div className="flex justify-center items-center mb-6">
+          <div className="max-w-2xl w-full bg-white shadow-lg rounded-lg p-6 border-2 border-slate-blue">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Welcome to PromptReviews! 🎉</h2>
+              <p className="text-gray-600 mb-6">
+                We're excited to help you get more reviews for your business. To get started, 
+                you'll need to create your business profile first.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link href="/dashboard/create-business">
+                  <Button className="bg-slate-blue hover:bg-slate-700 text-white px-6 py-3 rounded-lg font-semibold">
+                    <FaStore className="mr-2" />
+                    Create Business Profile
+                  </Button>
+                </Link>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsNewUser(false)}
+                  className="px-6 py-3 rounded-lg font-semibold"
+                >
+                  Skip for Now
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* PageCard with extra top margin to accommodate quotes */}
       <div className="flex justify-center items-start flex-1">
