@@ -1,98 +1,82 @@
 /**
- * API endpoint to force sign-in by confirming email in database
- * This bypasses email confirmation checks when confirmations are disabled
+ * Force Sign-in API Route
+ *
+ * This route allows bypassing email confirmation for local development.
+ * It uses the Supabase service role key to confirm the user and sign them in directly.
+ *
+ * IMPORTANT: This should only be used in local development (localhost/127.0.0.1).
  */
 
-import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+// Initialize Supabase admin client with service role key
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  }
+);
+
+// Initialize regular Supabase client
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  }
+);
 
 export async function POST(request: NextRequest) {
   try {
+    if (process.env.NODE_ENV !== 'development') {
+      return NextResponse.json(
+        { error: 'This endpoint is only available in local development' },
+        { status: 403 }
+      );
+    }
+
     const { email, password } = await request.json();
-    
     if (!email || !password) {
-      return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
+      return NextResponse.json({ error: 'Missing email or password' }, { status: 400 });
     }
-    
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
-    
-    // First, try to sign in normally
-    const { data, error: signInError } = await supabase.auth.signInWithPassword({
+
+    // 1. Find user by email using listUsers
+    const { data: usersData, error: usersError } = await supabaseAdmin.auth.admin.listUsers({
       email,
-      password,
     });
-    
-    if (!signInError && data.user) {
-      // Success! Return the session
-      return NextResponse.json({
-        success: true,
-        user: {
-          id: data.user.id,
-          email: data.user.email,
-          email_confirmed_at: data.user.email_confirmed_at,
-        },
-        session: data.session ? {
-          access_token: data.session.access_token ? 'present' : 'missing',
-          refresh_token: data.session.refresh_token ? 'present' : 'missing',
-          expires_at: data.session.expires_at
-        } : null
-      });
+    if (usersError) {
+      return NextResponse.json({ error: 'Admin API error', details: usersError }, { status: 500 });
     }
-    
-    // If we get an email confirmation error, try to fix it
-    if (signInError && signInError.message.includes("Email not confirmed")) {
-      console.log('Email confirmation error detected, attempting to fix...');
-      
-      // Try to manually confirm the email using admin privileges
-      const { error: updateError } = await supabase
-        .from('auth.users')
-        .update({ 
-          email_confirmed_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .eq('email', email);
-      
-      if (updateError) {
-        console.error('Error updating email confirmation:', updateError);
-        return NextResponse.json({ 
-          error: 'Failed to confirm email. Please contact support.' 
-        }, { status: 500 });
-      }
-      
-      // Now try to sign in again
-      const { data: retryData, error: retryError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      
-      if (retryError) {
-        console.error('Sign in error after email confirmation:', retryError);
-        return NextResponse.json({ error: retryError.message }, { status: 400 });
-      }
-      
-      return NextResponse.json({
-        success: true,
-        user: {
-          id: retryData.user?.id,
-          email: retryData.user?.email,
-          email_confirmed_at: retryData.user?.email_confirmed_at,
-        },
-        session: retryData.session ? {
-          access_token: retryData.session.access_token ? 'present' : 'missing',
-          refresh_token: retryData.session.refresh_token ? 'present' : 'missing',
-          expires_at: retryData.session.expires_at
-        } : null
-      });
+    const user = usersData?.users?.find((u: any) => u.email === email);
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
-    
-    // If it's not an email confirmation error, return the original error
-    return NextResponse.json({ error: signInError.message }, { status: 400 });
-    
-  } catch (error) {
-    console.error('Unexpected error in force-signin:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+
+    // 2. Confirm the user if not confirmed
+    if (!user.email_confirmed_at) {
+      const { error: confirmError } = await supabaseAdmin.auth.admin.updateUserById(user.id, {
+        email_confirm: true,
+      });
+      if (confirmError) {
+        return NextResponse.json({ error: 'Failed to confirm user', details: confirmError }, { status: 500 });
+      }
+    }
+
+    // 3. Sign in the user with their credentials
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      return NextResponse.json({ error: error.message, code: error.code }, { status: 400 });
+    }
+    return NextResponse.json({ success: true, data });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message || 'Unknown error', details: err }, { status: 500 });
   }
 } 

@@ -1,7 +1,7 @@
 "use client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, useRef, Suspense } from "react";
-import { createBrowserClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 import { generateAIReview } from "@/utils/ai";
 import {
   FaFileAlt,
@@ -32,6 +32,7 @@ import PageCard from "../components/PageCard";
 import ProductPromptPageForm from "../components/ProductPromptPageForm";
 import FiveStarSpinner from "../components/FiveStarSpinner";
 import AppLoader from "../components/AppLoader";
+import { supabase } from "@/utils/supabaseClient";
 
 interface ReviewPlatformLink {
   platform: string;
@@ -267,11 +268,6 @@ export default function CreatePromptPageClient() {
   const [showTypeModal, setShowTypeModal] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  );
-
   useEffect(() => {
     const loadBusinessProfile = async () => {
       try {
@@ -362,7 +358,7 @@ export default function CreatePromptPageClient() {
       }
     };
     loadBusinessProfile();
-  }, [supabase]);
+  }, []);
 
   // Set review_type from ?type=... query param on mount
   useEffect(() => {
@@ -556,7 +552,10 @@ export default function CreatePromptPageClient() {
           formData.first_name +
           "-" +
           formData.last_name,
-        Date.now() + "-" + Math.random().toString(36).substring(2, 8),
+        // Only generate unique ID on client side to prevent hydration mismatch
+        typeof window !== "undefined" 
+          ? Date.now() + "-" + Math.random().toString(36).substring(2, 8)
+          : "temp-id",
       );
       if (formData.review_type === "photo") {
         insertData.review_platforms = undefined;

@@ -141,4 +141,4 @@ COMMENT ON COLUMN analytics_events.ip_address IS 'IP address of the user';
 -- Add indexes for better query performance
 CREATE INDEX IF NOT EXISTS idx_analytics_events_metadata ON analytics_events USING gin (metadata);
 CREATE INDEX IF NOT EXISTS idx_analytics_events_platform ON analytics_events(platform);
-CREATE INDEX IF NOT EXISTS idx_prompt_page_events_session_id ON prompt_page_events(session_id); 
+-- Removed problematic index creation for non-existent table 

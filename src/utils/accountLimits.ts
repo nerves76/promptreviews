@@ -1,15 +1,23 @@
 import { SupabaseClient } from "@supabase/supabase-js";
+import { getAccountIdForUser } from "./accountUtils";
 
 export async function checkAccountLimits(
   supabase: SupabaseClient,
   userId: string,
   type: "prompt_page" | "contact",
 ) {
-  // Fetch account
+  // Get account ID using the utility function
+  const accountId = await getAccountIdForUser(userId, supabase);
+  
+  if (!accountId) {
+    return { allowed: false, reason: "Account not found" };
+  }
+
+  // Fetch account using the account ID
   const { data: account, error: accountError } = await supabase
     .from("accounts")
     .select("*")
-    .eq("id", userId)
+    .eq("id", accountId)
     .single();
   if (accountError || !account) {
     return { allowed: false, reason: "Account not found" };
@@ -39,14 +47,14 @@ export async function checkAccountLimits(
     const { count: promptPageCount } = await supabase
       .from("prompt_pages")
       .select("*", { count: "exact", head: true })
-      .eq("account_id", userId)
+      .eq("account_id", accountId)
       .neq("is_universal", true);
     count = promptPageCount || 0;
   } else if (type === "contact") {
     const { count: contactCount } = await supabase
       .from("contacts")
       .select("*", { count: "exact", head: true })
-      .eq("account_id", userId);
+      .eq("account_id", accountId);
     count = contactCount || 0;
   }
   if (limit !== Infinity && count >= limit) {
@@ -63,10 +71,17 @@ export async function isAccountBlocked(
   supabase: any,
   userId: string,
 ): Promise<boolean> {
+  // Get account ID using the utility function
+  const accountId = await getAccountIdForUser(userId, supabase);
+  
+  if (!accountId) {
+    return false;
+  }
+
   const { data: account } = await supabase
     .from("accounts")
     .select("*")
-    .eq("id", userId)
+    .eq("id", accountId)
     .single();
   if (!account) return false;
   const now = new Date();

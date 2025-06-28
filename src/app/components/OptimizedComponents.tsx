@@ -33,7 +33,7 @@ export const OptimizedSpinner = memo(({ size = 'md', className = '' }: { size?: 
   }), []);
 
   return (
-    <div className={`animate-spin rounded-full border-b-2 border-slateblue ${sizeClasses[size]} ${className}`} />
+    <div className={`animate-spin rounded-full border-b-2 border-slate-blue ${sizeClasses[size]} ${className}`} />
   );
 });
 
@@ -97,7 +97,7 @@ export const OptimizedButton = memo(({
     const baseClasses = 'inline-flex items-center justify-center font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2';
     
     const variantClasses = {
-      primary: 'bg-slateblue text-white hover:bg-slateblue/90 focus:ring-slateblue',
+      primary: 'bg-slate-blue text-white hover:bg-slate-blue/90 focus:ring-slate-blue',
       secondary: 'bg-gray-100 text-gray-900 hover:bg-gray-200 focus:ring-gray-500',
       outline: 'border border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-gray-500',
       danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500'
@@ -219,7 +219,7 @@ export const OptimizedInput = memo(({
   [key: string]: any;
 }) => {
   const inputClasses = useMemo(() => {
-    const baseClasses = 'w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-slateblue focus:border-transparent';
+    const baseClasses = 'w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent';
     const errorClasses = error ? 'border-red-300' : 'border-gray-300';
     return `${baseClasses} ${errorClasses} ${className}`;
   }, [error, className]);

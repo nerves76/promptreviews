@@ -2,22 +2,19 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createBrowserClient } from "@supabase/ssr";
 import { useAuthGuard } from "@/utils/authGuard";
 import { FaStore } from "react-icons/fa";
 import { getUserOrMock } from "@/utils/supabase";
-import { isAdmin } from "@/utils/admin";
+import { useAdmin } from "@/contexts/AdminContext";
 import SimpleBusinessForm from "../components/SimpleBusinessForm";
 import AppLoader from "@/app/components/AppLoader";
 import PageCard from "@/app/components/PageCard";
 import WelcomePopup from "@/app/components/WelcomePopup";
+import { supabase } from "@/utils/supabaseClient";
 
 export default function CreateBusinessClient() {
-  // Initialize supabase client at the top so it's available everywhere
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  );
+  // Use the singleton Supabase client instead of creating a new instance
+  // This prevents "Multiple GoTrueClient instances" warnings and ensures proper session persistence
 
   useAuthGuard();
   const [form, setForm] = useState({
@@ -30,15 +27,17 @@ export default function CreateBusinessClient() {
     address_state: "",
     address_zip: "",
     address_country: "",
-    industry: [],
+    industry: "",
     industry_other: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [isAdminUser, setIsAdminUser] = useState(false);
   const [showWelcomePopup, setShowWelcomePopup] = useState(false);
   const router = useRouter();
+  
+  // Use the centralized admin context instead of local state
+  const { isAdminUser, isLoading: adminLoading } = useAdmin();
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -46,23 +45,6 @@ export default function CreateBusinessClient() {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
-
-  // Check admin status when component mounts
-  useEffect(() => {
-    const checkAdminStatus = async () => {
-      try {
-        const { data: { user } } = await getUserOrMock(supabase);
-        if (user) {
-          const adminStatus = await isAdmin(user.id, supabase);
-          setIsAdminUser(adminStatus);
-        }
-      } catch (error) {
-        console.error("Error checking admin status:", error);
-      }
-    };
-
-    checkAdminStatus();
-  }, []);
 
   // Handler for the test welcome button
   const handleTestWelcome = () => {
@@ -72,6 +54,34 @@ export default function CreateBusinessClient() {
   // Handler for closing the welcome popup
   const handleCloseWelcome = () => {
     setShowWelcomePopup(false);
+  };
+
+  // Simple account creation using API endpoint
+  const ensureAccountExists = async (user: any) => {
+    try {
+      console.log("🔍 Creating account via API for user:", user.id);
+      
+      const response = await fetch('/api/create-account', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ user }),
+      });
+
+      const result = await response.json();
+      
+      if (!response.ok) {
+        console.error("❌ API error:", result.error);
+        return false;
+      }
+
+      console.log("✅ Account created successfully via API");
+      return true;
+    } catch (error) {
+      console.error("❌ Account creation error:", error);
+      return false;
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -85,10 +95,6 @@ export default function CreateBusinessClient() {
       error: userError,
     } = await getUserOrMock(supabase);
 
-    console.log("Starting business creation process...");
-    console.log("Current user:", user);
-    console.log("Form data:", form);
-
     if (userError || !user) {
       setError("You must be signed in to create a business.");
       setLoading(false);
@@ -96,115 +102,21 @@ export default function CreateBusinessClient() {
     }
 
     try {
-      console.log("Step 1: Checking for existing account...");
-      // Create or get account
-      let accountId = user.id;
-      const { data: existingAccount, error: accountCheckError } = await supabase
-        .from("accounts")
-        .select("id")
-        .eq("id", user.id)
-        .single();
-
-      console.log("Account check result:", { existingAccount, accountCheckError });
-
-      if (accountCheckError && accountCheckError.code !== 'PGRST116') {
-        console.error("Error checking account:", accountCheckError);
-        setError("Failed to check account. Please try again.");
-        setLoading(false);
-        return;
-      }
-
-      if (!existingAccount) {
-        console.log("Step 2: Creating new account...");
-        const { error: accountError } = await supabase
-          .from("accounts")
-          .insert({ id: user.id });
-        
-        if (accountError) {
-          console.error("Error creating account:", {
-            error: accountError,
-            errorType: typeof accountError,
-            errorKeys: Object.keys(accountError || {}),
-            errorStringified: JSON.stringify(accountError, null, 2)
-          });
-          setError("Failed to create account. Please try again.");
-          setLoading(false);
-          return;
-        }
-        console.log("Account created successfully");
-      } else {
-        console.log("Account already exists");
-      }
-
-      // Ensure user is in account_users table as owner
-      // First check if the user exists in auth.users
-      const { data: authUser, error: authUserError } = await supabase.auth.getUser();
+      // Ensure account exists before creating business
+      const accountCreated = await ensureAccountExists(user);
       
-      if (authUserError || !authUser.user) {
-        console.error("Error getting auth user:", authUserError);
-        setError("Authentication error. Please sign in again.");
+      if (!accountCreated) {
+        setError("Failed to set up account. Please try again.");
         setLoading(false);
         return;
-      }
-
-      // Only try to insert into account_users if we have a valid auth user
-      if (authUser.user.id === user.id) {
-        const { error: accountUserError } = await supabase
-          .from("account_users")
-          .upsert({ 
-            account_id: accountId, 
-            user_id: user.id, 
-            role: 'owner' 
-          }, { 
-            onConflict: 'account_id,user_id' 
-          });
-
-        if (accountUserError) {
-          console.error("Error setting up account user:", {
-            error: accountUserError,
-            errorType: typeof accountUserError,
-            errorKeys: Object.keys(accountUserError || {}),
-            errorStringified: JSON.stringify(accountUserError, null, 2),
-            message: accountUserError?.message,
-            details: accountUserError?.details,
-            hint: accountUserError?.hint,
-            code: accountUserError?.code
-          });
-          // Don't fail the entire process if account_users fails
-          console.warn("Account user setup failed, but continuing with business creation");
-        } else {
-          console.log("Account user setup completed successfully");
-        }
-      } else {
-        console.warn("User ID mismatch, skipping account_users setup");
       }
 
       // Create business profile
-      console.log("User ID:", accountId);
-      console.log("Attempting to create business with data:", {
-        account_id: accountId,
-        name: form.name,
-        business_website: form.business_website,
-        phone: form.phone,
-        business_email: form.business_email,
-        address_street: form.address_street,
-        address_city: form.address_city,
-        address_state: form.address_state,
-        address_zip: form.address_zip,
-        address_country: form.address_country,
-        industry: form.industry,
-        industry_other: form.industry_other,
-      });
-
-      // Check if user already has a business
-      console.log("Checking for existing business with account_id:", accountId);
       const { data: existingBusiness, error: checkError } = await supabase
         .from("businesses")
         .select("id")
-        .eq("account_id", accountId)
+        .eq("owner_id", user.id)
         .single();
-
-      console.log("Existing business check result:", { existingBusiness, checkError });
 
       if (existingBusiness) {
         setError("You already have a business profile. Please go to your business profile page to update it.");
@@ -212,17 +124,8 @@ export default function CreateBusinessClient() {
         return;
       }
 
-      if (checkError && checkError.code !== 'PGRST116') { // PGRST116 is "not found" error
-        console.error("Error checking existing business:", {
-          error: checkError,
-          errorType: typeof checkError,
-          errorKeys: Object.keys(checkError || {}),
-          errorStringified: JSON.stringify(checkError, null, 2),
-          message: checkError?.message,
-          details: checkError?.details,
-          hint: checkError?.hint,
-          code: checkError?.code
-        });
+      if (checkError && checkError.code !== 'PGRST116') {
+        console.error("Error checking existing business:", checkError);
         setError(`Error checking existing business profile: ${checkError.message || 'Unknown error'}. Please try again.`);
         setLoading(false);
         return;
@@ -231,7 +134,7 @@ export default function CreateBusinessClient() {
       const { error: insertError } = await supabase
         .from("businesses")
         .insert({
-          account_id: accountId,
+          owner_id: user.id,
           name: form.name,
           business_website: form.business_website,
           phone: form.phone,
@@ -246,16 +149,7 @@ export default function CreateBusinessClient() {
         });
 
       if (insertError) {
-        console.error("Error creating business:", {
-          error: insertError,
-          errorType: typeof insertError,
-          errorKeys: Object.keys(insertError || {}),
-          errorStringified: JSON.stringify(insertError, null, 2),
-          message: insertError?.message,
-          details: insertError?.details,
-          hint: insertError?.hint,
-          code: insertError?.code
-        });
+        console.error("Error creating business:", insertError);
         setError(`Failed to create business profile: ${insertError.message || 'Unknown error'}. Please try again.`);
         setLoading(false);
         return;

@@ -7,7 +7,6 @@ CREATE INDEX IF NOT EXISTS idx_accounts_trial_end ON accounts(trial_end);
 CREATE INDEX IF NOT EXISTS idx_accounts_created_at ON accounts(created_at);
 
 -- Businesses table indexes
-CREATE INDEX IF NOT EXISTS idx_businesses_account_id ON businesses(account_id);
 CREATE INDEX IF NOT EXISTS idx_businesses_created_at ON businesses(created_at);
 
 -- Prompt pages table indexes (most critical)

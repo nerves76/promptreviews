@@ -3,7 +3,8 @@ CREATE TABLE IF NOT EXISTS admins (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   account_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(account_id)
 );
 
 -- Create index for faster lookups
@@ -40,7 +41,5 @@ CREATE POLICY "Only admins can delete admins" ON admins
     )
   );
 
--- Insert the first admin (you)
-INSERT INTO admins (account_id) 
-VALUES ('f3fa0bb0-feab-4501-8644-c0ca579da96d')
-ON CONFLICT (account_id) DO NOTHING; 
+-- Note: Admin users will be added manually or through the admin interface
+-- Remove the hardcoded insert to avoid conflicts 

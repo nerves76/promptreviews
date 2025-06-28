@@ -1,7 +1,8 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
-import { createBrowserClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 import { trackWidgetCreated } from "../../../../utils/analytics";
+import { getAccountIdForUser } from "@/utils/accountUtils";
 
 export interface Widget {
   id: string;
@@ -21,7 +22,7 @@ export function useWidgets() {
   const fetchWidgets = useCallback(async () => {
     console.log('🔄 useWidgets: Starting fetchWidgets');
     setLoading(true);
-    const supabase = createBrowserClient(
+    const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     );
@@ -36,21 +37,16 @@ export function useWidgets() {
       return;
     }
     
-    // First, get the user's account
-    const { data: account, error: accountError } = await supabase
-      .from("accounts")
-      .select("id")
-      .eq("id", user.id)
-      .single();
-      
+    // Get account ID using the utility function
+    const accountId = await getAccountIdForUser(user.id, supabase);
+    
     console.log('🏢 useWidgets: Account lookup result:', { 
-      account: !!account, 
-      accountId: account?.id,
-      error: accountError?.message 
+      accountId: accountId,
+      hasAccount: !!accountId
     });
     
-    if (accountError || !account) {
-      console.error('❌ useWidgets: Account lookup error:', accountError);
+    if (!accountId) {
+      console.error('❌ useWidgets: No account found for user:', user.id);
       setError('Account not found');
       setLoading(false);
       return;
@@ -60,7 +56,7 @@ export function useWidgets() {
     const { data: widgetsData, error: widgetsError } = await supabase
       .from("widgets")
       .select("*")
-      .eq("account_id", account.id)
+      .eq("account_id", accountId)
       .order("created_at", { ascending: false });
       
     console.log('📊 useWidgets: Widgets query result:', { 
@@ -104,7 +100,7 @@ export function useWidgets() {
   }, [fetchWidgets]);
   
   const createWidget = async (name: string, widgetType: string, theme: any) => {
-    const supabase = createBrowserClient(
+    const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     );
@@ -112,20 +108,16 @@ export function useWidgets() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error("User not authenticated");
 
-    // Get the user's account first
-    const { data: account, error: accountError } = await supabase
-      .from("accounts")
-      .select("id")
-      .eq("id", user.id)
-      .single();
+    // Get account ID using the utility function
+    const accountId = await getAccountIdForUser(user.id, supabase);
       
-    if (accountError || !account) {
+    if (!accountId) {
       throw new Error("Account not found");
     }
 
     const { data, error } = await supabase
       .from("widgets")
-      .insert([{ name, widget_type: widgetType, account_id: account.id, theme }])
+      .insert([{ name, widget_type: widgetType, account_id: accountId, theme }])
       .select()
       .single();
 
@@ -139,7 +131,7 @@ export function useWidgets() {
   };
 
   const updateWidget = async (widgetId: string, updates: Partial<Widget>) => {
-    const supabase = createBrowserClient(
+    const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     );
@@ -157,7 +149,7 @@ export function useWidgets() {
   };
 
   const deleteWidget = async (widgetId: string) => {
-    const supabase = createBrowserClient(
+    const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     );

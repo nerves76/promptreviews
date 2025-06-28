@@ -1,16 +1,18 @@
 "use client";
 
-import { createBrowserClient } from "@supabase/ssr";
+import { supabase } from "@/utils/supabaseClient";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import Link from "next/link";
-import SimpleMarketingNav from "@/app/components/SimpleMarketingNav";
+import { FaGoogle, FaGithub } from "react-icons/fa";
+import AppLoader from "@/app/components/AppLoader";
+import PageCard from "@/app/components/PageCard";
 import { trackEvent, GA_EVENTS } from '../../../utils/analytics';
 
 export default function SignIn() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -21,14 +23,31 @@ export default function SignIn() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isForceSigningIn, setIsForceSigningIn] = useState(false);
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  );
+  const handleSignIn = async (provider: "google" | "github") => {
+    setLoading(true);
+    setError("");
+
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`,
+        },
+      });
+
+      if (error) {
+        setError(error.message);
+      }
+    } catch (error) {
+      setError("An error occurred during sign in");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleRefreshSession = async () => {
     setIsRefreshing(true);
-    setError(null);
+    setError("");
     
     try {
       // First, sign out to clear any cached session data
@@ -78,7 +97,7 @@ export default function SignIn() {
 
   const handleForceSignIn = async () => {
     setIsForceSigningIn(true);
-    setError(null);
+    setError("");
     
     try {
       const response = await fetch('/api/force-signin', {
@@ -95,7 +114,79 @@ export default function SignIn() {
       const data = await response.json();
       
       if (data.success) {
-        // Success! Redirect to dashboard
+        // Success! Now handle account setup like normal sign-in
+        const user = data.user;
+        
+        // Track sign in event
+        trackEvent(GA_EVENTS.SIGN_IN, {
+          method: 'email',
+          timestamp: new Date().toISOString(),
+        });
+
+        // Check if account exists and create if needed
+        try {
+          const { data: accountData, error: accountError } = await supabase
+            .from("accounts")
+            .select("*")
+            .eq("id", user.id)
+            .single();
+
+          if (accountError && accountError.code !== "PGRST116") {
+            console.error("Account check error:", accountError);
+          }
+
+          // If no account exists, create one
+          if (!accountData) {
+            const firstName = user.user_metadata?.first_name || "";
+            const lastName = user.user_metadata?.last_name || "";
+            const email = user.email || "";
+            const { error: createError } = await supabase
+              .from("accounts")
+              .insert({
+                id: user.id,
+                email,
+                trial_start: new Date().toISOString(),
+                trial_end: new Date(
+                  Date.now() + 14 * 24 * 60 * 60 * 1000,
+                ).toISOString(),
+                is_free_account: false,
+                custom_prompt_page_count: 0,
+                contact_count: 0,
+                first_name: firstName,
+                last_name: lastName,
+              });
+
+            if (createError) {
+              console.error("Account creation error:", createError);
+            }
+          }
+
+          // Ensure account_users row exists
+          const { error: upsertAccountUserError } = await supabase
+            .from("account_users")
+            .upsert(
+              {
+                user_id: user.id,
+                account_id: user.id,
+                role: "owner",
+              },
+              {
+                onConflict: "user_id,account_id",
+                ignoreDuplicates: true,
+              }
+            );
+
+          if (upsertAccountUserError) {
+            console.error("Account user upsert error:", upsertAccountUserError);
+          }
+        } catch (err) {
+          console.error("Account setup error:", err);
+        }
+
+        // Wait for the session to be set
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        // Redirect to dashboard
         router.push("/dashboard");
         router.refresh();
       } else {
@@ -109,10 +200,35 @@ export default function SignIn() {
     }
   };
 
+  // Simple account creation using API endpoint
+  const ensureAccountExists = async (user: any) => {
+    try {
+      const response = await fetch('/api/create-account', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ user }),
+      });
+
+      const result = await response.json();
+      
+      if (!response.ok) {
+        console.error("Account creation error:", result.error);
+        return false;
+      }
+
+      return true;
+    } catch (err) {
+      console.error("Account setup error:", err);
+      return false;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError(null);
+    setError("");
 
     try {
       const { data, error: signInError } =
@@ -126,148 +242,38 @@ export default function SignIn() {
         
         // Handle email confirmation error specifically
         if (signInError.message.includes("Email not confirmed")) {
-          // Since email confirmations are disabled in Supabase config, 
-          // this error shouldn't occur. Let's try a different approach.
-          setError(
-            "Email confirmation error detected. Since email confirmations are disabled, this may be a caching issue. Please try the refresh button below or contact support.",
-          );
-          return;
-        } else if (signInError.message.includes("Invalid login credentials")) {
-          setError("Invalid email or password. Please try again.");
+          // For local development, automatically try force sign-in
+          if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            console.log('Local development detected, attempting force sign-in...');
+            setError("Email not confirmed. Attempting force sign-in...");
+            await handleForceSignIn();
+            return;
+          } else {
+            setError("Please check your email and click the confirmation link before signing in.");
+          }
         } else {
           setError(signInError.message);
         }
         return;
       }
 
-      if (!data?.user) {
-        setError("No user data returned");
-        return;
+      if (data.user) {
+        // Track sign in event
+        trackEvent(GA_EVENTS.SIGN_IN, {
+          method: 'email',
+          timestamp: new Date().toISOString(),
+        });
+
+        // Ensure account exists
+        await ensureAccountExists(data.user);
+
+        // Redirect to dashboard
+        router.push("/dashboard");
+        router.refresh();
       }
-
-      // Track sign in event
-      trackEvent(GA_EVENTS.SIGN_IN, {
-        method: 'email',
-        timestamp: new Date().toISOString(),
-      });
-
-      // Check if account exists
-      try {
-        const { data: accountData, error: accountError } = await supabase
-          .from("accounts")
-          .select("*")
-          .eq("id", data.user.id)
-          .single();
-
-        if (accountError && accountError.code !== "PGRST116") {
-          // PGRST116 is "no rows returned"
-          console.error("Account check error:", accountError);
-          // Don't show error to user, just log it
-        }
-
-        // If no account exists, create one
-        if (!accountData) {
-          const firstName = data.user.user_metadata?.first_name || "";
-          const lastName = data.user.user_metadata?.last_name || "";
-          const email = data.user.email || "";
-          const { error: createError } = await supabase
-            .from("accounts")
-            .insert({
-              id: data.user.id,
-              email,
-              trial_start: new Date().toISOString(),
-              trial_end: new Date(
-                Date.now() + 14 * 24 * 60 * 60 * 1000,
-              ).toISOString(),
-              is_free_account: false,
-              custom_prompt_page_count: 0,
-              contact_count: 0,
-              first_name: firstName,
-              last_name: lastName,
-            });
-
-          if (createError) {
-            console.error("Account creation error:", createError);
-            // Don't show error to user, just log it
-          }
-        }
-
-        // Ensure account_users row exists using upsert to avoid RLS issues
-        console.log('Attempting account_users upsert for user:', data.user.id);
-        
-        const { error: upsertAccountUserError } = await supabase
-          .from("account_users")
-          .upsert(
-            {
-              user_id: data.user.id,
-              account_id: data.user.id,
-              role: "owner",
-            },
-            {
-              onConflict: "user_id,account_id",
-              ignoreDuplicates: true,
-            }
-          );
-
-        if (upsertAccountUserError) {
-          console.error("Account user upsert error:", {
-            message: upsertAccountUserError.message,
-            details: upsertAccountUserError.details,
-            hint: upsertAccountUserError.hint,
-            code: upsertAccountUserError.code,
-            fullError: upsertAccountUserError,
-            errorType: typeof upsertAccountUserError,
-            errorKeys: Object.keys(upsertAccountUserError || {}),
-            errorStringified: JSON.stringify(upsertAccountUserError, null, 2)
-          });
-          
-          // Try alternative approach - check if record exists first
-          console.log('Trying alternative approach - checking existing record...');
-          const { data: existingRecord, error: checkError } = await supabase
-            .from("account_users")
-            .select("id")
-            .eq("user_id", data.user.id)
-            .eq("account_id", data.user.id)
-            .maybeSingle();
-            
-          if (checkError) {
-            console.error("Check existing record error:", checkError);
-          } else if (!existingRecord) {
-            console.log('No existing record found, trying simple insert...');
-            const { error: insertError } = await supabase
-              .from("account_users")
-              .insert({
-                user_id: data.user.id,
-                account_id: data.user.id,
-                role: "owner",
-              });
-              
-            if (insertError) {
-              console.error("Simple insert error:", insertError);
-            } else {
-              console.log("Simple insert successful");
-            }
-          } else {
-            console.log("Record already exists, skipping insert");
-          }
-          
-          // Don't show error to user, just log it
-        } else {
-          console.log("Account user upsert successful for user:", data.user.id);
-        }
-      } catch (err) {
-        console.error("Account check/creation error:", err);
-        // Don't show error to user, just log it
-      }
-
-      // Wait for the session to be set
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      router.push("/dashboard");
-      router.refresh();
-    } catch (err) {
-      console.error("Sign in error:", err);
-      setError(err instanceof Error ? err.message : "Failed to sign in");
+    } catch (error) {
+      console.error("Sign in error:", error);
+      setError("An error occurred during sign in");
     } finally {
       setIsLoading(false);
     }
@@ -276,7 +282,7 @@ export default function SignIn() {
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setResetMessage(null);
-    setError(null);
+    setError("");
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
         redirectTo: `${window.location.origin}/reset-password`,
@@ -290,174 +296,181 @@ export default function SignIn() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <AppLoader />
+      </div>
+    );
+  }
+
   return (
-    <>
-      <SimpleMarketingNav />
-      <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-indigo-400 via-indigo-300 to-purple-300">
-        <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <h1 className="mt-6 text-center text-3xl font-extrabold text-white">
-            Sign in to your account
-          </h1>
-          <p className="mt-2 text-center text-sm text-white">
-            Or{" "}
-            <Link
-              href="/auth/sign-up"
-              className="font-medium text-white hover:text-gray-100 underline"
-            >
-              create a new account
-            </Link>
-          </p>
-        </div>
-        <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="bg-white py-8 px-4 shadow rounded w-full">
-            {error && (
-              <div className="mb-4 bg-red-50 border border-red-200 rounded-md p-4">
-                <p className="text-red-600">{error}</p>
-                {error.includes("Email not confirmed") && (
-                  <div className="mt-3 space-y-2">
-                    <button
-                      type="button"
-                      onClick={handleRefreshSession}
-                      disabled={isRefreshing}
-                      className="text-sm bg-red-100 hover:bg-red-200 text-red-800 font-medium py-1 px-3 rounded border border-red-300 disabled:opacity-50 disabled:cursor-not-allowed mr-2"
-                    >
-                      {isRefreshing ? "Refreshing..." : "Refresh Session"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleForceSignIn}
-                      disabled={isForceSigningIn}
-                      className="text-sm bg-blue-100 hover:bg-blue-200 text-blue-800 font-medium py-1 px-3 rounded border border-blue-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isForceSigningIn ? "Signing In..." : "Force Sign In"}
-                    </button>
-                    <p className="text-xs text-red-500 mt-1">
-                      Try "Refresh Session" first, then "Force Sign In" if that doesn't work
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
-            {resetMessage && (
-              <div className="mb-4 bg-green-50 border border-green-200 rounded-md p-4">
-                <p className="text-green-700">{resetMessage}</p>
-              </div>
-            )}
-            {!showReset ? (
-              <>
-                <form className="space-y-6" onSubmit={handleSubmit}>
-                  <div>
-                    <label
-                      htmlFor="email"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Email address
-                    </label>
-                    <div className="mt-1">
-                      <input
-                        id="email"
-                        name="email"
-                        type="email"
-                        autoComplete="email"
-                        required
-                        value={formData.email}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            email: e.target.value,
-                          }))
-                        }
-                        className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="password"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Password
-                    </label>
-                    <div className="mt-1">
-                      <input
-                        id="password"
-                        name="password"
-                        type="password"
-                        autoComplete="current-password"
-                        required
-                        value={formData.password}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            password: e.target.value,
-                          }))
-                        }
-                        className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                      />
-                    </div>
-                    <div className="mt-2 text-right">
-                      <button
-                        type="button"
-                        className="text-indigo-600 hover:text-indigo-900 text-sm underline"
-                        onClick={() => setShowReset(true)}
-                      >
-                        Forgot password?
-                      </button>
-                    </div>
-                  </div>
-                  <div>
-                    <button
-                      type="submit"
-                      disabled={isLoading}
-                      className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-slate-blue hover:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isLoading ? "Signing in..." : "Sign in"}
-                    </button>
-                  </div>
-                </form>
-              </>
-            ) : (
-              <form className="space-y-6" onSubmit={handleResetPassword}>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <PageCard>
+        <div className="max-w-md w-full space-y-8">
+          <div className="text-center">
+            <h1 className="text-3xl font-bold text-slate-blue">Welcome Back</h1>
+            <p className="mt-2 text-gray-600">Sign in to your account</p>
+          </div>
+
+          {error && (
+            <div className="bg-red-50 text-red-700 p-4 rounded-md text-sm">
+              {error}
+            </div>
+          )}
+
+          {resetMessage && (
+            <div className="bg-green-50 text-green-700 p-4 rounded-md text-sm">
+              {resetMessage}
+            </div>
+          )}
+
+          {!showReset ? (
+            <>
+              <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label
-                    htmlFor="resetEmail"
-                    className="block text-sm font-medium text-gray-700"
-                  >
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                     Email address
                   </label>
-                  <div className="mt-1">
-                    <input
-                      id="resetEmail"
-                      name="resetEmail"
-                      type="email"
-                      autoComplete="email"
-                      required
-                      value={resetEmail}
-                      onChange={(e) => setResetEmail(e.target.value)}
-                      className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    />
-                  </div>
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-slate-blue focus:border-slate-blue sm:text-sm"
+                    placeholder="Enter your email"
+                  />
                 </div>
-                <div className="flex items-center justify-between">
-                  <button
-                    type="button"
-                    className="text-indigo-600 hover:text-indigo-900 text-sm underline"
-                    onClick={() => setShowReset(false)}
-                  >
-                    Back to sign in
-                  </button>
+
+                <div>
+                  <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                    Password
+                  </label>
+                  <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    autoComplete="current-password"
+                    required
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-slate-blue focus:border-slate-blue sm:text-sm"
+                    placeholder="Enter your password"
+                  />
+                </div>
+
+                <div>
                   <button
                     type="submit"
-                    className="ml-4 py-2 px-4 bg-slate-blue text-white rounded font-semibold hover:bg-indigo-900"
+                    disabled={isLoading}
+                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-slate-blue hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Send reset email
+                    {isLoading ? "Signing in..." : "Sign in"}
                   </button>
                 </div>
               </form>
-            )}
+
+              <div className="mt-6">
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-300" />
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-2 bg-white text-gray-500">Or continue with</span>
+                  </div>
+                </div>
+
+                <div className="mt-6 space-y-3">
+                  <button
+                    onClick={() => handleSignIn("google")}
+                    disabled={loading}
+                    className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-md shadow-sm bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <FaGoogle className="w-5 h-5" />
+                    Continue with Google
+                  </button>
+
+                  <button
+                    onClick={() => handleSignIn("github")}
+                    disabled={loading}
+                    className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-md shadow-sm bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <FaGithub className="w-5 h-5" />
+                    Continue with GitHub
+                  </button>
+                </div>
+              </div>
+
+              <div className="mt-6 space-y-3">
+                <button
+                  onClick={() => setShowReset(true)}
+                  className="w-full text-sm text-slate-blue hover:text-slate-blue/80 font-medium"
+                >
+                  Forgot your password?
+                </button>
+
+                <button
+                  onClick={handleRefreshSession}
+                  disabled={isRefreshing}
+                  className="w-full text-sm text-gray-500 hover:text-gray-700 font-medium"
+                >
+                  {isRefreshing ? "Refreshing..." : "Clear session & retry"}
+                </button>
+              </div>
+            </>
+          ) : (
+            <form onSubmit={handleResetPassword} className="space-y-4">
+              <div>
+                <label htmlFor="reset-email" className="block text-sm font-medium text-gray-700">
+                  Email address
+                </label>
+                <input
+                  id="reset-email"
+                  name="reset-email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-slate-blue focus:border-slate-blue sm:text-sm"
+                  placeholder="Enter your email"
+                />
+              </div>
+
+              <div className="flex space-x-3">
+                <button
+                  type="submit"
+                  className="flex-1 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-slate-blue hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue"
+                >
+                  Send reset email
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowReset(false)}
+                  className="flex-1 py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue"
+                >
+                  Back to sign in
+                </button>
+              </div>
+            </form>
+          )}
+
+          <div className="text-center">
+            <p className="text-sm text-gray-600">
+              Don't have an account?{" "}
+              <button
+                onClick={() => router.push("/auth/sign-up")}
+                className="text-slate-blue hover:text-slate-blue/80 font-medium"
+              >
+                Sign up
+              </button>
+            </p>
           </div>
         </div>
-      </div>
-    </>
+      </PageCard>
+    </div>
   );
 }

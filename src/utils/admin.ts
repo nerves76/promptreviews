@@ -3,7 +3,7 @@
  * This file contains functions to check if a user is an admin and manage admin-only features
  */
 
-import { supabase } from './supabase';
+import { supabase } from './supabaseClient';
 
 /**
  * Check if the current user is an admin
@@ -17,98 +17,50 @@ export async function isAdmin(userId?: string, supabaseClient?: any): Promise<bo
     let userToCheck = userId;
     
     if (!userToCheck) {
-      const { data: { user } } = await client.auth.getUser();
-      console.log('isAdmin: Current user:', user?.id, user?.email);
-      if (!user) return false;
+      const { data: { user }, error: authError } = await client.auth.getUser();
+      console.log('isAdmin: Auth check result:', { user: user?.id, error: authError?.message });
+      if (authError) {
+        console.log('isAdmin: Auth error, returning false:', authError.message);
+        return false;
+      }
+      if (!user) {
+        console.log('isAdmin: No user found, returning false');
+        return false;
+      }
       userToCheck = user.id;
     }
 
     console.log('isAdmin: Checking admin status for user ID:', userToCheck);
     
-    // First, let's test if we can access the table at all
-    console.log('isAdmin: Testing basic table access...');
-    try {
-      const { data: testData, error: testError } = await client
-        .from('admins')
-        .select('count')
-        .limit(1);
-      
-      console.log('isAdmin: Basic table access test:', { testData, testError });
-    } catch (testErr) {
-      console.error('isAdmin: Basic table access failed:', testErr);
-    }
-    
-    // Use maybeSingle() instead of single() to avoid errors when no admin record is found
-    console.log('isAdmin: Attempting main admin query with maybeSingle...');
+    // Simple, direct query without complex error handling
     const { data: admin, error } = await client
       .from('admins')
       .select('id')
       .eq('account_id', userToCheck)
-      .maybeSingle(); // Use maybeSingle to avoid errors when no record is found
+      .maybeSingle();
 
-    console.log('isAdmin: Admin query result:', { admin, error });
+    console.log('isAdmin: Query result:', { admin: !!admin, error: error?.message });
     
     if (error) {
-      // Log the full error object with all properties
-      console.error('isAdmin: Database error details:', {
+      console.error('isAdmin: Database error:', {
         message: error.message,
         details: error.details,
         hint: error.hint,
-        code: error.code,
-        fullError: JSON.stringify(error, null, 2),
-        errorType: typeof error,
-        errorKeys: Object.keys(error || {}),
-        errorString: String(error)
+        code: error.code
       });
-      
-      // Try alternative approaches
-      console.log('isAdmin: Trying alternative query approaches...');
-      
-      // Approach 1: Try without single() - get array
-      try {
-        const { data: adminAlt1, error: altError1 } = await client
-          .from('admins')
-          .select('id')
-          .eq('account_id', userToCheck);
-          
-        console.log('isAdmin: Alternative approach 1 (array):', { admin: adminAlt1, error: altError1 });
-        if (!altError1 && adminAlt1 && adminAlt1.length > 0) {
-          return true;
-        }
-      } catch (altErr1) {
-        console.error('isAdmin: Alternative approach 1 failed:', altErr1);
-      }
-      
-      // Approach 2: Try with different column selection
-      try {
-        const { data: adminAlt2, error: altError2 } = await client
-          .from('admins')
-          .select('*')
-          .eq('account_id', userToCheck)
-          .maybeSingle();
-          
-        console.log('isAdmin: Alternative approach 2 (select *):', { admin: adminAlt2, error: altError2 });
-        if (!altError2) {
-          return !!adminAlt2;
-        }
-      } catch (altErr2) {
-        console.error('isAdmin: Alternative approach 2 failed:', altErr2);
-      }
-      
+      // Return false on any database error to be safe
       return false;
-    } else {
-      console.log('isAdmin: No database error, admin found:', !!admin);
     }
     
-    return !!admin;
+    const isAdminUser = !!admin;
+    console.log('isAdmin: Final result:', isAdminUser);
+    return isAdminUser;
+    
   } catch (error) {
-    // Catch any unexpected errors and log them properly
-    console.error('isAdmin: Unexpected error checking admin status:', {
+    console.error('isAdmin: Unexpected error:', {
       error: error,
       errorType: typeof error,
-      errorMessage: error instanceof Error ? error.message : String(error),
-      errorStack: error instanceof Error ? error.stack : undefined,
-      errorString: String(error)
+      errorMessage: error instanceof Error ? error.message : String(error)
     });
     return false;
   }

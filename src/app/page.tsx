@@ -1,17 +1,16 @@
 "use client";
 
-import { createBrowserClient } from "@supabase/ssr";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { supabase } from "@/utils/supabaseClient";
 import { getUserOrMock } from "@/utils/supabase";
 import AppLoader from "@/app/components/AppLoader";
 
+// Use the singleton Supabase client instead of creating a new instance
+// This prevents "Multiple GoTrueClient instances" warnings and ensures proper session persistence
+
 export default function Home() {
   const router = useRouter();
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  );
 
   useEffect(() => {
     const getUser = async () => {
@@ -25,7 +24,7 @@ export default function Home() {
       }
     };
     getUser();
-  }, [supabase.auth, router]);
+  }, [router]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center">

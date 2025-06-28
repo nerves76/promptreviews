@@ -10,9 +10,9 @@ CREATE POLICY "Users can associate reviews with their widgets" ON widget_reviews
     WITH CHECK (
         EXISTS (
             SELECT 1 FROM widgets w
-            JOIN accounts a ON w.account_id = a.id
+            JOIN account_users au ON w.account_id = au.account_id
             WHERE w.id = widget_reviews.widget_id
-            AND a.user_id = auth.uid()
+            AND au.user_id = auth.uid()
         )
     );
 
@@ -22,9 +22,9 @@ CREATE POLICY "Users can view their widget reviews" ON widget_reviews
     USING (
         EXISTS (
             SELECT 1 FROM widgets w
-            JOIN accounts a ON w.account_id = a.id
+            JOIN account_users au ON w.account_id = au.account_id
             WHERE w.id = widget_reviews.widget_id
-            AND a.user_id = auth.uid()
+            AND au.user_id = auth.uid()
         )
     );
 
@@ -34,9 +34,9 @@ CREATE POLICY "Users can remove reviews from their widgets" ON widget_reviews
     USING (
         EXISTS (
             SELECT 1 FROM widgets w
-            JOIN accounts a ON w.account_id = a.id
+            JOIN account_users au ON w.account_id = au.account_id
             WHERE w.id = widget_reviews.widget_id
-            AND a.user_id = auth.uid()
+            AND au.user_id = auth.uid()
         )
     );
 

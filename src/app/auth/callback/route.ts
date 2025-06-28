@@ -67,10 +67,25 @@ export async function GET(request: Request) {
     if (!accountLinks || accountLinks.length === 0) {
       isNewUser = true;
       console.log("🆕 Creating new account for user:", email);
-      // No account found, create one and link user as owner
+      
+      // Create account with proper fields
       const { data: newAccount, error: createAccountError } = await supabase
         .from("accounts")
-        .insert([{ name: email }])
+        .insert({
+          id: userId,
+          user_id: userId,
+          email: email,
+          trial_start: new Date().toISOString(),
+          trial_end: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+          is_free_account: false,
+          custom_prompt_page_count: 0,
+          contact_count: 0,
+          first_name: session.user.user_metadata?.first_name || '',
+          last_name: session.user.user_metadata?.last_name || '',
+          plan: 'NULL',
+          has_had_paid_plan: false,
+          review_notifications_enabled: true
+        })
         .select()
         .single();
 
@@ -80,7 +95,7 @@ export async function GET(request: Request) {
           .from("account_users")
           .insert([
             {
-              account_id: newAccount.id,
+              account_id: userId,
               user_id: userId,
               role: "owner",
             },

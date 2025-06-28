@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createBrowserClient } from "@supabase/ssr";
+import { supabase } from "@/utils/supabaseClient";
 import { useAuthGuard } from "@/utils/authGuard";
 import {
   FaChartLine,
@@ -13,6 +13,8 @@ import {
   FaGrinStars,
 } from "react-icons/fa";
 import { getUserOrMock } from "@/utils/supabase";
+import { getAccountIdForUser } from "@/utils/accountUtils";
+import { isAdmin } from "@/utils/admin";
 import PageCard from "@/app/components/PageCard";
 import AppLoader from "@/app/components/AppLoader";
 import {
@@ -25,6 +27,8 @@ import {
   CartesianGrid,
 } from "recharts";
 import { format } from "date-fns";
+import { trackEvent, GA_EVENTS } from "../../../utils/analytics";
+import { useRouter } from "next/navigation";
 
 interface PromptPage {
   id: string;
@@ -102,11 +106,7 @@ export default function AnalyticsPage() {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  );
+  const router = useRouter();
 
   useEffect(() => {
     const fetchPromptPages = async () => {
@@ -131,13 +131,15 @@ export default function AnalyticsPage() {
   }, [supabase]);
 
   useEffect(() => {
-    const fetchAnalytics = async () => {
+    const loadAnalytics = async () => {
       try {
-        setIsLoading(true);
-        const {
-          data: { user },
-        } = await getUserOrMock(supabase);
-        if (!user) return;
+        const { data: { user }, error: userError } = await getUserOrMock(supabase);
+        
+        if (userError || !user) {
+          router.push("/auth/sign-in");
+          return;
+        }
+
         // Get all prompt page IDs for this account
         const { data: pages } = await supabase
           .from("prompt_pages")
@@ -379,8 +381,8 @@ export default function AnalyticsPage() {
         setIsLoading(false);
       }
     };
-    fetchAnalytics();
-  }, [promptPages, timeRange, supabase]);
+    loadAnalytics();
+  }, [promptPages, timeRange, router]);
 
   if (isLoading) {
     return (

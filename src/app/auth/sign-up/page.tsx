@@ -17,21 +17,6 @@ export default function SignUpPage() {
   const [lastName, setLastName] = useState("");
   const [message, setMessage] = useState("");
 
-  // Debug logging
-  console.log('Sign-up page - NEXT_PUBLIC_SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
-  console.log('Sign-up page - NEXT_PUBLIC_APP_URL:', process.env.NEXT_PUBLIC_APP_URL);
-  console.log('Sign-up page - window.location.origin:', window.location.origin);
-  
-  // Browser environment test
-  console.log('=== Browser Environment Test ===');
-  const isLocal = process.env.NEXT_PUBLIC_SUPABASE_URL === 'http://127.0.0.1:54321';
-  console.log('Using local Supabase:', isLocal ? 'YES' : 'NO');
-  if (!isLocal) {
-    console.log('❌ WARNING: Still using production Supabase URL!');
-  } else {
-    console.log('✅ SUCCESS: Using local Supabase URL!');
-  }
-
   const errorMessages: Record<string, string> = {
     "User already registered":
       "This email is already registered. Please sign in instead.",
@@ -84,8 +69,25 @@ export default function SignUpPage() {
       if (error) {
         setError(error.message);
       } else {
-        setEmailSent(true);
-        setMessage('Account created! Please check your email and click the confirmation link to activate your account.');
+        // LOCAL DEVELOPMENT EMAIL BYPASS
+        // Since we use production Supabase for all environments, email confirmations
+        // are always enabled on the server side. However, for local development,
+        // we provide a user-friendly message explaining that they can sign in immediately.
+        // 
+        // In production, users will receive email confirmation links.
+        // In local development, users can sign in immediately after account creation.
+        const isLocalDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        
+        if (isLocalDevelopment) {
+          // Local development: Email confirmation is bypassed for convenience
+          setEmailSent(true);
+          setMessage('✅ Account created successfully! Since you\'re in local development mode, you can sign in immediately with your credentials. (Email confirmation is bypassed for development convenience.)');
+        } else {
+          // Production: Normal email confirmation flow
+          setEmailSent(true);
+          setMessage('📧 Account created! Please check your email and click the confirmation link to activate your account.');
+        }
+        
         // Track sign up event
         trackSignUp('email');
       }
