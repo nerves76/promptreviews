@@ -65,6 +65,14 @@ export default function SimpleBusinessForm({
     address_state: "",
     address_zip: "",
     address_country: "United States",
+    tagline: "",
+    company_values: "",
+    ai_dos: "",
+    ai_donts: "",
+    services_offered: "",
+    differentiators: "",
+    years_in_business: "",
+    industries_served: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -110,6 +118,14 @@ export default function SimpleBusinessForm({
             address_state: form.address_state,
             address_zip: form.address_zip,
             address_country: form.address_country,
+            tagline: form.tagline || null,
+            company_values: form.company_values || null,
+            ai_dos: form.ai_dos || null,
+            ai_donts: form.ai_donts || null,
+            services_offered: form.services_offered || null,
+            differentiators: form.differentiators || null,
+            years_in_business: form.years_in_business || null,
+            industries_served: form.industries_served || null,
           },
         ])
         .select()
