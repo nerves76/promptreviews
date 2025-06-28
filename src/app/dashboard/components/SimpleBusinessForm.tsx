@@ -55,9 +55,8 @@ export default function SimpleBusinessForm({
   const router = useRouter();
   const [form, setForm] = useState({
     name: "",
-    description: "",
+    industries_other: "",
     industry: [],
-    industry_other: "",
     business_website: "",
     business_email: "",
     phone: "",
@@ -97,9 +96,8 @@ export default function SimpleBusinessForm({
           {
             account_id: accountId,
             name: form.name,
-            description: form.description,
             industry: form.industry,
-            industry_other: form.industry_other,
+            industries_other: form.industries_other,
             business_website: form.business_website,
             business_email: form.business_email,
             phone: form.phone,
@@ -115,7 +113,7 @@ export default function SimpleBusinessForm({
 
       if (businessError) {
         console.error("Business creation error:", businessError);
-        setError("Failed to create business. Please try again.");
+        setError(`Failed to create business: ${businessError.message || 'Unknown error'}`);
         setLoading(false);
         return;
       }
@@ -127,7 +125,8 @@ export default function SimpleBusinessForm({
 
     } catch (err) {
       console.error("Error creating business:", err);
-      setError("An unexpected error occurred. Please try again.");
+      const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
+      setError(`Error creating business: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
@@ -316,12 +315,12 @@ export default function SimpleBusinessForm({
             setForm((f: any) => ({
               ...f,
               industry: industries,
-              industry_other: otherValue ?? f.industry_other,
+              industries_other: otherValue ?? f.industries_other,
             }))
           }
-          otherValue={form.industry_other || ""}
+          otherValue={form.industries_other || ""}
           onOtherChange={(val) =>
-            setForm((f: any) => ({ ...f, industry_other: val }))
+            setForm((f: any) => ({ ...f, industries_other: val }))
           }
           industryType={industryType}
           setIndustryType={setIndustryType}

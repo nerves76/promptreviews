@@ -22,12 +22,13 @@ import Image from "next/image";
  * - Pass the icon prop for a floating, breaching icon in the top-left.
  * - Use topRightAction and bottomRightAction for action buttons.
  * - Use bottomLeftImage to add a decorative image at the bottom-left of the card.
+ * - Use bottomRightImage to add a decorative image at the bottom-right of the card.
  * - Wrap in a parent div with min-h-screen flex justify-center for spacing.
  *
  * See DESIGN_GUIDELINES.md for visual rules and examples.
  */
 
-interface BottomLeftImage {
+interface BottomImage {
   src: string;
   alt: string;
   width?: number;
@@ -43,13 +44,15 @@ export default function PageCard({
   topRightAction,
   bottomRightAction,
   bottomLeftImage,
+  bottomRightImage,
 }: {
   icon?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
   topRightAction?: React.ReactNode;
   bottomRightAction?: React.ReactNode;
-  bottomLeftImage?: BottomLeftImage;
+  bottomLeftImage?: BottomImage;
+  bottomRightImage?: BottomImage;
 }) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [showImage, setShowImage] = useState(false);
@@ -59,13 +62,13 @@ export default function PageCard({
 
   // Add a delay before showing the image to prevent it from appearing during initial page load
   useEffect(() => {
-    if (bottomLeftImage) {
+    if (bottomLeftImage || bottomRightImage) {
       const timer = setTimeout(() => {
         setShowImage(true);
       }, 2000); // 2 second delay
       return () => clearTimeout(timer);
     }
-  }, [bottomLeftImage]);
+  }, [bottomLeftImage, bottomRightImage]);
 
   // Dynamically set bottom padding to match image height
   useEffect(() => {
@@ -88,6 +91,10 @@ export default function PageCard({
     display: "block"
   };
 
+  // Determine which image to show and its position
+  const imageToShow = bottomRightImage || bottomLeftImage;
+  const isRightPositioned = !!bottomRightImage;
+
   return (
     <div className="w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-12 mt-12 md:mt-16 lg:mt-20 mb-16 flex justify-center items-start">
       <div
@@ -108,7 +115,7 @@ export default function PageCard({
         <div
           className="content w-full px-1 pt-2 sm:pt-0"
           style={{ 
-            paddingBottom: bottomLeftImage && showImage ? "300px" : undefined
+            paddingBottom: imageToShow && showImage ? "300px" : undefined
           }}
         >
           {children}
@@ -122,15 +129,18 @@ export default function PageCard({
             <div className="h-16" />
           </>
         )}
-        {/* Bottom-left image */}
-        {bottomLeftImage && showImage && (
-          <div className="absolute bottom-0 left-0 z-0 pointer-events-none transition-opacity duration-500" style={{ width: "100%", maxWidth: maxImgPx }}>
+        {/* Bottom image */}
+        {imageToShow && showImage && (
+          <div 
+            className={`absolute bottom-0 z-0 pointer-events-none transition-opacity duration-500 ${isRightPositioned ? 'right-0' : 'left-0'}`} 
+            style={{ width: "100%", maxWidth: maxImgPx }}
+          >
             <Image
               ref={imgRef}
-              src={bottomLeftImage.src}
-              alt={bottomLeftImage.alt}
-              width={bottomLeftImage.maxWidth || maxImgPx}
-              height={bottomLeftImage.maxHeight || maxImgPx}
+              src={imageToShow.src}
+              alt={imageToShow.alt}
+              width={imageToShow.maxWidth || maxImgPx}
+              height={imageToShow.maxHeight || maxImgPx}
               style={{
                 maxWidth: "50%", // Increased from 25% to 50% (doubled)
                 maxHeight: "50%", // Increased from 25% to 50% (doubled)
@@ -139,7 +149,9 @@ export default function PageCard({
                 minWidth: "240px", // Increased from 120px to 240px (doubled)
                 minHeight: "240px", // Increased from 120px to 240px (doubled)
                 objectFit: "contain" as const,
-                display: "block"
+                display: "block",
+                marginLeft: isRightPositioned ? "auto" : "0", // Push image to the right if right-positioned
+                marginRight: isRightPositioned ? "0" : "auto" // Ensure it's flush with the right edge if right-positioned
               }}
               onLoad={() => setImageLoaded(true)}
               priority={false}
