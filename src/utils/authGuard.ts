@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/utils/supabaseClient";
 import { getUserOrMock } from "@/utils/supabase";
 import { getAccountIdForUser } from "@/utils/accountUtils";
 
@@ -15,11 +15,6 @@ export function useAuthGuard(options: AuthGuardOptions = {}) {
 
   useEffect(() => {
     const checkAuthAndProfile = async () => {
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      );
-
       const {
         data: { user },
         error: userError,

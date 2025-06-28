@@ -33,6 +33,22 @@ export default function CreateBusinessClient() {
         setLoading(true);
         setError("");
 
+        // Wait for session to be initialized
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error("Session error:", sessionError);
+          setError("Authentication error. Please sign in again.");
+          setLoading(false);
+          return;
+        }
+
+        if (!session) {
+          setError("No active session. Please sign in.");
+          setLoading(false);
+          return;
+        }
+
         const { data: { user }, error: userError } = await getUserOrMock(supabase);
         
         if (userError || !user) {
@@ -53,7 +69,7 @@ export default function CreateBusinessClient() {
         setLoading(false);
       } catch (error) {
         console.error("Error loading user data:", error);
-        setError("Failed to load user data");
+        setError("Failed to load user data. Please try signing in again.");
         setLoading(false);
       }
     };
