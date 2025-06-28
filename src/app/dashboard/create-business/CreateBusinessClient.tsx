@@ -12,52 +12,38 @@ import PageCard from "@/app/components/PageCard";
 import WelcomePopup from "@/app/components/WelcomePopup";
 import { supabase } from "@/utils/supabaseClient";
 import { ensureAccountExists } from "@/utils/accountUtils";
-import { Button } from "@/app/components/ui/button";
-import { Input } from "@/app/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
-import { Label } from "@/app/components/ui/label";
-import { Textarea } from "@/app/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select";
-import Image from "next/image";
 
 export default function CreateBusinessClient() {
   // Use the singleton Supabase client instead of creating a new instance
   // This prevents "Multiple GoTrueClient instances" warnings and ensures proper session persistence
 
   useAuthGuard();
-  const [formData, setFormData] = useState({
+  const [form, setForm] = useState({
     name: "",
     description: "",
-    industry: "",
+    industry: [],
+    industry_other: "",
     business_website: "",
+    business_email: "",
     phone: "",
     address_street: "",
     address_city: "",
     address_state: "",
     address_zip: "",
-    country: "United States",
+    address_country: "United States",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [showWelcomePopup, setShowWelcomePopup] = useState(false);
+  const [showWelcomePopup, setShowWelcomePopup] = useState(true); // Show popup automatically for new users
   const router = useRouter();
   
   // Use the centralized admin context instead of local state
   const { isAdminUser, isLoading: adminLoading } = useAdmin();
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSelectChange = (name: string, value: string) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  // Handler for the test welcome button
-  const handleTestWelcome = () => {
-    setShowWelcomePopup(true);
+    setForm(prev => ({ ...prev, [name]: value }));
   };
 
   // Handler for closing the welcome popup
@@ -108,16 +94,18 @@ export default function CreateBusinessClient() {
         .insert([
           {
             account_id: accountId,
-            name: formData.name,
-            description: formData.description,
-            industry: formData.industry,
-            business_website: formData.business_website,
-            phone: formData.phone,
-            address_street: formData.address_street,
-            address_city: formData.address_city,
-            address_state: formData.address_state,
-            address_zip: formData.address_zip,
-            country: formData.country,
+            name: form.name,
+            description: form.description,
+            industry: form.industry,
+            industry_other: form.industry_other,
+            business_website: form.business_website,
+            business_email: form.business_email,
+            phone: form.phone,
+            address_street: form.address_street,
+            address_city: form.address_city,
+            address_state: form.address_state,
+            address_zip: form.address_zip,
+            address_country: form.address_country,
           },
         ])
         .select()
@@ -148,189 +136,53 @@ export default function CreateBusinessClient() {
   // Ensure no invisible characters or syntax issues before return
   return (
     <div className="min-h-screen flex flex-col justify-start px-4 sm:px-0">
-      {/* Welcome message for new users */}
-      <div className="flex justify-center items-center pt-12 pb-6">
-        <div className="max-w-2xl w-full bg-white shadow-lg rounded-lg p-6 border-2 border-slate-500">
-          <div className="text-center">
-            <div className="flex justify-center mb-4">
-              <Image
-                src="/images/prompty-catching-stars.png"
-                alt="Prompty catching stars"
-                width={120}
-                height={120}
-                className="rounded-lg"
-              />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Welcome to PromptReviews! 🎉</h2>
-            <p className="text-gray-600 mb-6">
-              We're excited to help you get more reviews for your business. Let's start by setting up your basic business information.
-            </p>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <p className="text-blue-800 text-sm">
-                <strong>What's next?</strong> After you create your business profile, you'll be able to:
+      <div className="flex justify-center items-start pt-12 pb-8">
+        <div className="w-full max-w-4xl">
+          <PageCard>
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-bold text-slate-blue mb-4 flex items-center justify-center gap-3">
+                <FaStore className="w-8 h-8" />
+                Create Your Business Profile
+              </h1>
+              <p className="text-gray-600 max-w-2xl mx-auto">
+                Set up your business information to start collecting reviews and growing your online presence.
               </p>
-              <ul className="text-blue-700 text-sm mt-2 space-y-1">
-                <li>• Create review collection widgets for your website</li>
-                <li>• Upload your customer contact list</li>
-                <li>• Generate beautiful review pages</li>
-                <li>• Track your review performance</li>
-              </ul>
             </div>
-          </div>
+
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
+                {error}
+              </div>
+            )}
+            {success && (
+              <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-6">
+                {success}
+              </div>
+            )}
+
+            <SimpleBusinessForm
+              form={form}
+              setForm={setForm}
+              loading={loading}
+              error={error}
+              success={success}
+              onSubmit={handleSubmit}
+              handleChange={handleChange}
+              formId="create-business-form"
+            />
+
+            <div className="flex justify-end space-x-4 pt-6">
+              <button
+                type="submit"
+                form="create-business-form"
+                disabled={loading}
+                className="bg-slate-blue text-white py-2 px-6 rounded hover:bg-slate-blue/90 transition-colors font-semibold disabled:opacity-50"
+              >
+                {loading ? "Creating..." : "Create Business"}
+              </button>
+            </div>
+          </PageCard>
         </div>
-      </div>
-
-      {/* Business Creation Form */}
-      <div className="flex justify-center items-start pb-8">
-        <Card className="w-full max-w-2xl">
-          <CardHeader>
-            <CardTitle className="text-xl font-semibold">Business Information</CardTitle>
-            <p className="text-gray-600">Tell us about your business to get started</p>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-                  {error}
-                </div>
-              )}
-              {success && (
-                <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
-                  {success}
-                </div>
-              )}
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="name">Business Name *</Label>
-                  <Input
-                    id="name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    required
-                    placeholder="Your Business Name"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="industry">Industry</Label>
-                  <Select value={formData.industry} onValueChange={(value) => handleSelectChange("industry", value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select industry" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="restaurant">Restaurant & Food</SelectItem>
-                      <SelectItem value="healthcare">Healthcare</SelectItem>
-                      <SelectItem value="retail">Retail</SelectItem>
-                      <SelectItem value="services">Professional Services</SelectItem>
-                      <SelectItem value="automotive">Automotive</SelectItem>
-                      <SelectItem value="beauty">Beauty & Wellness</SelectItem>
-                      <SelectItem value="fitness">Fitness & Recreation</SelectItem>
-                      <SelectItem value="education">Education</SelectItem>
-                      <SelectItem value="technology">Technology</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="description">Business Description</Label>
-                <Textarea
-                  id="description"
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  placeholder="Brief description of your business"
-                  rows={3}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="business_website">Website</Label>
-                  <Input
-                    id="business_website"
-                    name="business_website"
-                    type="url"
-                    value={formData.business_website}
-                    onChange={handleInputChange}
-                    placeholder="https://yourwebsite.com"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <Input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    placeholder="(555) 123-4567"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="address_street">Address</Label>
-                <Input
-                  id="address_street"
-                  name="address_street"
-                  value={formData.address_street}
-                  onChange={handleInputChange}
-                  placeholder="123 Main Street"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="address_city">City</Label>
-                  <Input
-                    id="address_city"
-                    name="address_city"
-                    value={formData.address_city}
-                    onChange={handleInputChange}
-                    placeholder="City"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="address_state">State</Label>
-                  <Input
-                    id="address_state"
-                    name="address_state"
-                    value={formData.address_state}
-                    onChange={handleInputChange}
-                    placeholder="State"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="address_zip">ZIP Code</Label>
-                  <Input
-                    id="address_zip"
-                    name="address_zip"
-                    value={formData.address_zip}
-                    onChange={handleInputChange}
-                    placeholder="12345"
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-4 pt-4">
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className="bg-slate-600 hover:bg-slate-700"
-                >
-                  {loading ? "Creating..." : "Create Business"}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
       </div>
 
       {showWelcomePopup && (
