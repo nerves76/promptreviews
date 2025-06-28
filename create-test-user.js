@@ -1,90 +1,178 @@
 /**
- * Create Test User Script
- * This script helps create a test user in Supabase auth for development
+ * Create Test User and Test Signup Flow
+ * 
+ * This script creates a test user and verifies that the signup flow works correctly
  */
 
-require('dotenv').config({ path: '.env.local' });
-const { createClient } = require('@supabase/supabase-js');
+import { createClient } from '@supabase/supabase-js';
 
-// Create Supabase client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
+const SUPABASE_URL = 'http://localhost:54321';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0';
 
 async function createTestUser() {
-  console.log('🔐 Creating test user...\n');
-
+  console.log('👤 Creating test user...');
+  
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  
   try {
-    // Test credentials
-    const email = 'testuser@example.com';
-    const password = 'testpassword123';
-
-    console.log('1. Attempting to create user with email:', email);
-
-    // First, try to sign up a new user
-    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-      email,
-      password,
+    // Create a new user
+    const { data, error } = await supabase.auth.signUp({
+      email: 'test-signup@example.com',
+      password: 'testpassword123',
       options: {
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/callback`
+        data: {
+          first_name: 'Test',
+          last_name: 'User'
+        }
       }
     });
-
-    if (signUpError) {
-      console.log('❌ Sign up error:', signUpError.message);
-      
-      // If user already exists, try to sign in
-      if (signUpError.message.includes('already registered')) {
-        console.log('ℹ️  User already exists, attempting to sign in...');
-        
-        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password
-        });
-
-        if (signInError) {
-          console.log('❌ Sign in error:', signInError.message);
-          console.log('\n💡 Try these solutions:');
-          console.log('1. Use the "Forgot your password?" link to reset the password');
-          console.log('2. Use Google/GitHub OAuth instead');
-          console.log('3. Check if the user exists in your Supabase dashboard');
-          return;
-        }
-
-        console.log('✅ Successfully signed in existing user:', signInData.user.email);
-        console.log('User ID:', signInData.user.id);
-        return;
-      }
-      
-      console.log('\n💡 Try these solutions:');
-      console.log('1. Check your Supabase project settings');
-      console.log('2. Verify your environment variables');
-      console.log('3. Use Google/GitHub OAuth instead');
-      return;
+    
+    if (error) {
+      console.error('❌ User creation failed:', error);
+      return null;
     }
-
-    if (signUpData.user) {
-      console.log('✅ User created successfully!');
-      console.log('Email:', signUpData.user.email);
-      console.log('User ID:', signUpData.user.id);
-      
-      if (signUpData.user.email_confirmed_at) {
-        console.log('✅ Email already confirmed');
-      } else {
-        console.log('⚠️  Email confirmation required');
-        console.log('Check your email for confirmation link');
-      }
-      
-      console.log('\n📝 Test credentials:');
-      console.log('Email:', email);
-      console.log('Password:', password);
-    }
-
-  } catch (error) {
-    console.error('❌ Unexpected error:', error);
+    
+    console.log('✅ User created successfully');
+    console.log('📧 Email:', data.user?.email);
+    console.log('🆔 User ID:', data.user?.id);
+    console.log('✅ Email confirmed:', data.user?.email_confirmed_at ? 'Yes' : 'No');
+    
+    return data.user;
+    
+  } catch (err) {
+    console.error('❌ Exception during user creation:', err);
+    return null;
   }
 }
 
-// Run the script
-createTestUser(); 
+async function checkAccountCreation(user) {
+  console.log('\n🔍 Checking if account was created...');
+  
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  
+  try {
+    // Check if account exists
+    const { data: account, error: accountError } = await supabase
+      .from('accounts')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+    
+    if (accountError) {
+      console.log('❌ Account not found:', accountError.message);
+      return false;
+    }
+    
+    console.log('✅ Account found!');
+    console.log('📋 Account details:', account);
+    return true;
+    
+  } catch (err) {
+    console.error('❌ Exception checking account:', err);
+    return false;
+  }
+}
+
+async function manuallyCreateAccount(user) {
+  console.log('\n🔧 Manually creating account...');
+  
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  
+  try {
+    const { data: account, error: accountError } = await supabase
+      .from('accounts')
+      .insert({
+        id: user.id,
+        plan: 'grower',
+        trial_start: new Date().toISOString(),
+        trial_end: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+        is_free_account: false,
+        custom_prompt_page_count: 0,
+        contact_count: 0
+      })
+      .select()
+      .single();
+    
+    if (accountError) {
+      console.error('❌ Manual account creation failed:', accountError);
+      return false;
+    }
+    
+    console.log('✅ Manual account creation successful');
+    console.log('📋 Account details:', account);
+    return true;
+    
+  } catch (err) {
+    console.error('❌ Exception during manual account creation:', err);
+    return false;
+  }
+}
+
+async function testSignupFlow() {
+  console.log('🧪 Testing complete signup flow...');
+  
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  
+  try {
+    // Create a new user with a different email
+    const { data, error } = await supabase.auth.signUp({
+      email: 'signup-test@example.com',
+      password: 'testpassword123',
+      options: {
+        data: {
+          first_name: 'Signup',
+          last_name: 'Test'
+        }
+      }
+    });
+    
+    if (error) {
+      console.error('❌ Signup failed:', error);
+      return;
+    }
+    
+    console.log('✅ Signup successful');
+    console.log('📧 Email:', data.user?.email);
+    console.log('🆔 User ID:', data.user?.id);
+    
+    // Wait a moment for any background processes
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Check if account was created automatically
+    const accountExists = await checkAccountCreation(data.user);
+    
+    if (!accountExists) {
+      console.log('⚠️ Account was not created automatically');
+      console.log('🔧 This indicates the signup flow needs to be fixed');
+    } else {
+      console.log('✅ Account was created automatically - signup flow is working!');
+    }
+    
+  } catch (err) {
+    console.error('❌ Exception during signup test:', err);
+  }
+}
+
+async function main() {
+  console.log('🚀 Starting signup flow test...\n');
+  
+  // Create a test user
+  const user = await createTestUser();
+  
+  if (user) {
+    // Check if account was created automatically
+    const accountExists = await checkAccountCreation(user);
+    
+    if (!accountExists) {
+      // Manually create account to test the foreign key constraint
+      await manuallyCreateAccount(user);
+    }
+  }
+  
+  // Test the complete signup flow
+  await testSignupFlow();
+  
+  console.log('\n✅ Signup flow test completed');
+}
+
+main().catch(console.error); 

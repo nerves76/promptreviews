@@ -5,87 +5,96 @@
  * using the service role key to bypass RLS restrictions.
  */
 
-import { createClient } from '@supabase/supabase-js';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 
 export async function POST(request: NextRequest) {
   try {
-    const { user } = await request.json();
-    
-    if (!user || !user.id) {
-      return NextResponse.json({ error: 'User data required' }, { status: 400 });
+    const { userId, email } = await request.json();
+
+    if (!userId || !email) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
     }
 
-    // Create service role client
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
     // Check if account already exists
-    const { data: existingAccount } = await supabase
-      .from('accounts')
-      .select('id')
-      .eq('id', user.id)
+    const { data: existingAccount, error: checkError } = await supabase
+      .from("accounts")
+      .select("id")
+      .eq("id", userId)
       .single();
 
-    if (existingAccount) {
-      return NextResponse.json({ 
-        success: true, 
-        account: existingAccount,
-        message: 'Account already exists' 
-      });
+    if (checkError && checkError.code !== 'PGRST116') {
+      console.error("Error checking existing account:", checkError);
+      return NextResponse.json(
+        { error: "Failed to check existing account" },
+        { status: 500 }
+      );
     }
 
-    // Create new account
-    const { data: account, error: accountError } = await supabase
-      .from('accounts')
-      .insert([
-        {
-          id: user.id, // Use the user's UUID as the account ID
-        }
-      ])
+    if (existingAccount) {
+      console.log("Account already exists for user:", userId);
+      return NextResponse.json(
+        { message: "Account already exists" },
+        { status: 200 }
+      );
+    }
+
+    // Create new account with only the fields that exist in the schema
+    const { data: newAccount, error: createError } = await supabase
+      .from("accounts")
+      .insert({
+        id: userId,
+        trial_start: new Date().toISOString(),
+        trial_end: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+        is_free_account: false,
+        custom_prompt_page_count: 0,
+        contact_count: 0,
+        plan: 'grower'
+      })
       .select()
       .single();
 
-    if (accountError) {
-      console.error('Account creation error:', accountError);
-      return NextResponse.json({ 
-        error: 'Failed to create account',
-        details: accountError 
-      }, { status: 500 });
+    if (createError) {
+      console.error("Account creation error:", createError);
+      return NextResponse.json(
+        { error: "Failed to create account" },
+        { status: 500 }
+      );
     }
 
-    // Create account_users record
+    // Create account_users relationship
     const { error: accountUserError } = await supabase
-      .from('account_users')
-      .insert([
-        {
-          account_id: account.id,
-          user_id: user.id,
-          role: 'owner'
-        }
-      ]);
+      .from("account_users")
+      .insert({
+        account_id: userId,
+        user_id: userId,
+        role: "owner",
+      });
 
     if (accountUserError) {
-      console.error('Account user creation error:', accountUserError);
-      return NextResponse.json({ 
-        error: 'Failed to create account user relationship',
-        details: accountUserError 
-      }, { status: 500 });
+      console.error("Error creating account_user relationship:", accountUserError);
+      // Don't fail the request if this fails, as the account was created successfully
     }
 
-    return NextResponse.json({ 
-      success: true, 
-      account,
-      message: 'Account created successfully' 
-    });
+    console.log("✅ Account created successfully for user:", userId);
+    return NextResponse.json(
+      { message: "Account created successfully", account: newAccount },
+      { status: 201 }
+    );
 
   } catch (error) {
-    console.error('Account creation error:', error);
-    return NextResponse.json({ 
-      error: 'Internal server error',
-      details: error 
-    }, { status: 500 });
+    console.error("Unexpected error in create-account:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 } 
