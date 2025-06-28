@@ -7,8 +7,10 @@
  * IMPORTANT: Only use this for client-side operations. For server-side operations, use createServerClient() from utils/supabase.ts.
  */
 
+import { supabase } from './supabase';
+
 // Re-export the client from the main supabase.ts file to ensure a single instance
-export { supabase } from './supabase';
+export { supabase };
 
 // Export the client as default for convenience
 export default supabase; 

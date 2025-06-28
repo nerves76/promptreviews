@@ -108,7 +108,7 @@ export default function DashboardContent({
   useAuthGuard();
   const router = useRouter();
   const [promptPages, setPromptPages] = useState<PromptPage[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedTab, setSelectedTab] = useState<
     "in_queue" | "in_progress" | "complete" | "draft"
@@ -202,6 +202,12 @@ export default function DashboardContent({
   useEffect(() => {
     const fetchPromptPages = async () => {
       try {
+        // Only fetch if we have an account
+        if (!account?.id) {
+          console.log('No account available yet, skipping prompt pages fetch');
+          return;
+        }
+
         // Log environment variables (without exposing the actual values)
         console.log("Environment check:", {
           hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -220,82 +226,38 @@ export default function DashboardContent({
           .from("prompt_pages")
           .select("count")
           .limit(1);
-        console.log("Supabase connection test:", { testData, testError });
 
-        const {
-          data: { user },
-          error: userError,
-        } = await getUserOrMock(supabase);
-        console.log("Auth check:", {
-          hasUser: !!user,
-          userId: user?.id,
-          userError: userError || null,
-        });
-
-        if (userError) {
-          console.error("Auth error:", userError);
-          throw new Error("Authentication error");
+        if (testError) {
+          console.error("Supabase connection test failed:", testError);
+          throw new Error(`Database connection failed: ${testError.message}`);
         }
 
-        if (!user) {
-          setError("You must be signed in to view prompt pages");
-          return;
-        }
+        console.log("Supabase connection test successful");
 
-        console.log("Fetching prompt pages for user:", user.id);
-
-        // Use the account ID from the account prop instead of user ID
-        if (!account?.id) {
-          setError("No account found for user");
-          return;
-        }
-
-        // Try a simpler query first
+        // Fetch prompt pages for the current account
         const { data, error } = await supabase
           .from("prompt_pages")
-          .select(
-            "id, slug, status, created_at, phone, email, first_name, last_name, is_universal, review_type",
-          )
+          .select("*")
           .eq("account_id", account.id)
           .order("created_at", { ascending: false });
 
         if (error) {
-          console.error("Supabase query error:", {
-            message: error.message,
-            details: error.details,
-            hint: error.hint,
-            code: error.code,
-          });
-          throw error;
+          console.error("Error fetching prompt pages:", error);
+          throw new Error(`Failed to fetch prompt pages: ${error.message}`);
         }
 
-        if (!data) {
-          console.log("No data returned from query");
-          setPromptPages([]);
-          return;
-        }
-
-        console.log("Fetched prompt pages:", data);
-        setPromptPages(data);
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : "Failed to load prompt pages";
-        setError(errorMessage);
-        console.error("Error loading prompt pages:", {
-          message: errorMessage,
-          error: err,
-          supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ? "set" : "not set",
-          supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-            ? "set"
-            : "not set",
-        });
-      } finally {
-        setIsLoading(false);
+        console.log("Successfully fetched prompt pages:", data?.length || 0);
+        setPromptPages(data || []);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error loading prompt pages:", error);
+        setError(error instanceof Error ? error.message : "Unknown error occurred");
+        setLoading(false);
       }
     };
 
     fetchPromptPages();
-  }, [supabase]);
+  }, [account?.id]); // Only depend on account.id
 
   useEffect(() => {
     const flag = localStorage.getItem("showPostSaveModal");

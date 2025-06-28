@@ -35,18 +35,12 @@ export async function POST(request: NextRequest) {
         .from('accounts')
         .insert({
           id: user.id,
-          user_id: user.id,
-          email: user.email,
+          plan: 'grower',
           trial_start: new Date().toISOString(),
           trial_end: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
           is_free_account: false,
           custom_prompt_page_count: 0,
-          contact_count: 0,
-          first_name: user.user_metadata?.first_name || '',
-          last_name: user.user_metadata?.last_name || '',
-          plan: 'NULL',
-          has_had_paid_plan: false,
-          review_notifications_enabled: true
+          contact_count: 0
         });
 
       if (accountError) {

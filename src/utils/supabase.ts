@@ -17,7 +17,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true,
-    emailRedirectTo: `${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3001'}/auth/callback`,
+    storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+    storageKey: 'supabase.auth.token',
   }
 });
 
