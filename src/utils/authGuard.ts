@@ -134,3 +134,67 @@ export function useBusinessProfile() {
 
   return { hasBusiness, loading };
 }
+
+/**
+ * Hook to check if user is a new user (no account or no business)
+ * Returns loading state and whether user is new
+ */
+export function useNewUserCheck() {
+  const [isNewUser, setIsNewUser] = useState<boolean | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkNewUser = async () => {
+      try {
+        const {
+          data: { user },
+          error: userError,
+        } = await getUserOrMock(supabase);
+
+        if (userError || !user) {
+          setIsNewUser(false);
+          setLoading(false);
+          return;
+        }
+
+        // Check if user is admin
+        const { data: adminData } = await supabase
+          .from("admins")
+          .select("id")
+          .eq("user_id", user.id)
+          .single();
+
+        if (adminData) {
+          setIsNewUser(false); // Admins are not new users
+          setLoading(false);
+          return;
+        }
+
+        const accountId = await getAccountIdForUser(user.id);
+        
+        if (!accountId) {
+          setIsNewUser(true);
+          setLoading(false);
+          return;
+        }
+
+        const { data: businessData } = await supabase
+          .from("businesses")
+          .select("id")
+          .eq("account_id", accountId)
+          .single();
+
+        setIsNewUser(!businessData);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error checking if user is new:", error);
+        setIsNewUser(false);
+        setLoading(false);
+      }
+    };
+
+    checkNewUser();
+  }, []);
+
+  return { isNewUser, loading };
+}

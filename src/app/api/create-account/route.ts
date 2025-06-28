@@ -29,46 +29,63 @@ export async function POST(request: NextRequest) {
       .eq('id', user.id)
       .single();
 
-    if (!existingAccount) {
-      // Create account with only fields that exist in the schema
-      const { error: accountError } = await supabase
-        .from('accounts')
-        .insert({
-          id: user.id,
-          plan: 'grower',
-          trial_start: new Date().toISOString(),
-          trial_end: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-          is_free_account: false,
-          custom_prompt_page_count: 0,
-          contact_count: 0
-        });
-
-      if (accountError) {
-        console.error('Account creation error:', accountError);
-        return NextResponse.json({ error: 'Failed to create account' }, { status: 500 });
-      }
+    if (existingAccount) {
+      return NextResponse.json({ 
+        success: true, 
+        account: existingAccount,
+        message: 'Account already exists' 
+      });
     }
 
-    // Ensure account_users relationship exists
+    // Create new account
+    const { data: account, error: accountError } = await supabase
+      .from('accounts')
+      .insert([
+        {
+          id: user.id, // Use the user's UUID as the account ID
+        }
+      ])
+      .select()
+      .single();
+
+    if (accountError) {
+      console.error('Account creation error:', accountError);
+      return NextResponse.json({ 
+        error: 'Failed to create account',
+        details: accountError 
+      }, { status: 500 });
+    }
+
+    // Create account_users record
     const { error: accountUserError } = await supabase
       .from('account_users')
-      .upsert({
-        user_id: user.id,
-        account_id: user.id,
-        role: 'owner'
-      }, {
-        onConflict: 'user_id,account_id'
-      });
+      .insert([
+        {
+          account_id: account.id,
+          user_id: user.id,
+          role: 'owner'
+        }
+      ]);
 
     if (accountUserError) {
       console.error('Account user creation error:', accountUserError);
-      return NextResponse.json({ error: 'Failed to create account user relationship' }, { status: 500 });
+      return NextResponse.json({ 
+        error: 'Failed to create account user relationship',
+        details: accountUserError 
+      }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, accountId: user.id });
+    return NextResponse.json({ 
+      success: true, 
+      account,
+      message: 'Account created successfully' 
+    });
 
   } catch (error) {
-    console.error('Create account API error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('Account creation error:', error);
+    return NextResponse.json({ 
+      error: 'Internal server error',
+      details: error 
+    }, { status: 500 });
   }
 } 
