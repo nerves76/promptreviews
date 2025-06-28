@@ -10,18 +10,13 @@
 import React, { useState } from "react";
 import { FaBuilding, FaRobot } from "react-icons/fa";
 import IndustrySelector from "@/app/components/IndustrySelector";
+import { supabase } from "@/utils/supabaseClient";
+import { useRouter } from "next/navigation";
 
 interface SimpleBusinessFormProps {
-  form: any;
-  setForm: (form: any) => void;
-  loading: boolean;
-  error: string;
-  success: string;
-  onSubmit: (e: React.FormEvent) => void;
-  handleChange: (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => void;
-  formId: string;
+  user: any;
+  accountId: string | null;
+  onSuccess: () => void;
 }
 
 // RobotTooltip component for AI-related field explanations
@@ -53,21 +48,104 @@ function RobotTooltip({ text }: { text: string }) {
 }
 
 export default function SimpleBusinessForm({
-  form,
-  setForm,
-  loading,
-  error,
-  success,
-  onSubmit,
-  handleChange,
-  formId,
+  user,
+  accountId,
+  onSuccess,
 }: SimpleBusinessFormProps) {
-  const [industryType, setIndustryType] = useState<"B2B" | "B2C" | "Both">(
-    "Both",
-  );
+  const router = useRouter();
+  const [form, setForm] = useState({
+    name: "",
+    description: "",
+    industry: [],
+    industry_other: "",
+    business_website: "",
+    business_email: "",
+    phone: "",
+    address_street: "",
+    address_city: "",
+    address_state: "",
+    address_zip: "",
+    address_country: "United States",
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [industryType, setIndustryType] = useState<"B2B" | "B2C" | "Both">("Both");
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    setSuccess("");
+
+    if (!accountId) {
+      setError("Account not found. Please try again.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      // Create business
+      const { data: business, error: businessError } = await supabase
+        .from("businesses")
+        .insert([
+          {
+            account_id: accountId,
+            name: form.name,
+            description: form.description,
+            industry: form.industry,
+            industry_other: form.industry_other,
+            business_website: form.business_website,
+            business_email: form.business_email,
+            phone: form.phone,
+            address_street: form.address_street,
+            address_city: form.address_city,
+            address_state: form.address_state,
+            address_zip: form.address_zip,
+            address_country: form.address_country,
+          },
+        ])
+        .select()
+        .single();
+
+      if (businessError) {
+        console.error("Business creation error:", businessError);
+        setError("Failed to create business. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      setSuccess("Business created successfully! Redirecting to dashboard...");
+      
+      // Call the success callback
+      onSuccess();
+
+    } catch (err) {
+      console.error("Error creating business:", err);
+      setError("An unexpected error occurred. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <form onSubmit={onSubmit} className="w-full mx-auto relative" id={formId}>
+    <form onSubmit={handleSubmit} className="w-full mx-auto relative" id="create-business-form">
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
+          {error}
+        </div>
+      )}
+      {success && (
+        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-6">
+          {success}
+        </div>
+      )}
+
       {/* Business Information Section */}
       <div className="mb-16">
         <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
@@ -251,6 +329,17 @@ export default function SimpleBusinessForm({
             </span>
           }
         />
+      </div>
+
+      {/* Submit Button */}
+      <div className="flex justify-end space-x-4 pt-6">
+        <button
+          type="submit"
+          disabled={loading}
+          className="bg-slate-blue text-white py-2 px-6 rounded hover:bg-slate-blue/90 transition-colors font-semibold disabled:opacity-50"
+        >
+          {loading ? "Creating..." : "Create Business"}
+        </button>
       </div>
     </form>
   );
