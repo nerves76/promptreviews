@@ -11,7 +11,7 @@ interface FiveStarSpinnerProps {
 }
 
 export default function FiveStarSpinner({
-  size = 48,
+  size = 18,
   color1 = '#D1D5DB',
   color2 = '#FFD700',
   style,
