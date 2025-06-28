@@ -235,10 +235,11 @@ export default function SimpleBusinessForm({
           <div className="flex gap-2 mb-2">
             <div className="flex flex-col w-32">
               <label
-                className="block text-xs font-medium text-gray-500 mb-1"
+                className="block text-xs font-medium text-gray-500 mb-1 flex items-center gap-1"
                 htmlFor="address_city"
               >
                 City *
+                <RobotTooltip text="Your business city location. This information is made available for AI prompt generation." />
               </label>
               <input
                 type="text"
@@ -253,10 +254,11 @@ export default function SimpleBusinessForm({
             </div>
             <div className="flex flex-col w-20">
               <label
-                className="block text-xs font-medium text-gray-500 mb-1"
+                className="block text-xs font-medium text-gray-500 mb-1 flex items-center gap-1"
                 htmlFor="address_state"
               >
                 State *
+                <RobotTooltip text="Your business state location. This information is made available for AI prompt generation." />
               </label>
               <input
                 type="text"
@@ -271,10 +273,11 @@ export default function SimpleBusinessForm({
             </div>
             <div className="flex flex-col w-24">
               <label
-                className="block text-xs font-medium text-gray-500 mb-1"
+                className="block text-xs font-medium text-gray-500 mb-1 flex items-center gap-1"
                 htmlFor="address_zip"
               >
                 Zip *
+                <RobotTooltip text="Your business zip code. This information is made available for AI prompt generation." />
               </label>
               <input
                 type="text"
