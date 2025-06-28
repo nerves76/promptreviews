@@ -89,6 +89,10 @@ export default function SimpleBusinessForm({
     }
 
     try {
+      console.log("Starting business creation process...");
+      console.log("Account ID:", accountId);
+      console.log("Form data:", form);
+      
       // Create business
       const { data: business, error: businessError } = await supabase
         .from("businesses")
@@ -113,6 +117,12 @@ export default function SimpleBusinessForm({
 
       if (businessError) {
         console.error("Business creation error:", businessError);
+        console.error("Business creation error details:", {
+          code: businessError.code,
+          message: businessError.message,
+          details: businessError.details,
+          hint: businessError.hint
+        });
         setError(`Failed to create business: ${businessError.message || 'Unknown error'}`);
         setLoading(false);
         return;
