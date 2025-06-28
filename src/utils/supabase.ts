@@ -11,6 +11,7 @@ if (!supabaseAnonKey) {
   throw new Error('Missing env.NEXT_PUBLIC_SUPABASE_ANON_KEY');
 }
 
+// Create a single Supabase client instance for the entire app
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
@@ -19,6 +20,9 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     emailRedirectTo: `${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3001'}/auth/callback`,
   }
 });
+
+// Re-export the client for backward compatibility
+export default supabase;
 
 export type PromptPage = {
   id: string;

@@ -1,7 +1,6 @@
 "use client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, useRef, Suspense } from "react";
-import { createClient } from "@supabase/supabase-js";
 import { generateAIReview } from "@/utils/ai";
 import {
   FaFileAlt,
