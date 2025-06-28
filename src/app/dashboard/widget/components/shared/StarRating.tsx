@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 
 interface StarRatingProps {
   rating: number;
@@ -8,11 +8,16 @@ interface StarRatingProps {
 export default function StarRating({ rating, size = 16 }: StarRatingProps) {
   if (typeof rating !== 'number' || isNaN(rating)) return null;
   
+  // Generate stable IDs for gradients to prevent hydration mismatches
+  const gradientIds = useMemo(() => {
+    return Array.from({ length: 5 }, (_, i) => `half-star-gradient-${i + 1}-${rating}-${size}`);
+  }, [rating, size]);
+  
   const stars = [];
   for (let i = 1; i <= 5; i++) {
     const full = i <= Math.floor(rating);
     const half = !full && i - 0.5 <= rating;
-    const gradientId = `half-star-gradient-${i}-${Math.random()}`;
+    const gradientId = gradientIds[i - 1];
     
     stars.push(
       <svg
