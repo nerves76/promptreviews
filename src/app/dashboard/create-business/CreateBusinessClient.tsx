@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuthGuard } from "@/utils/authGuard";
 import { FaStore } from "react-icons/fa";
 import { getUserOrMock } from "@/utils/supabase";
 import { useAdmin } from "@/contexts/AdminContext";
@@ -11,7 +10,7 @@ import AppLoader from "@/app/components/AppLoader";
 import PageCard from "@/app/components/PageCard";
 import WelcomePopup from "@/app/components/WelcomePopup";
 import { supabase } from "@/utils/supabaseClient";
-import { ensureAccountExists } from "@/utils/accountUtils";
+import { ensureAccountExists, getAccountIdForUser } from "@/utils/accountUtils";
 
 export default function CreateBusinessClient() {
   // Use the centralized admin context instead of local state
@@ -23,9 +22,7 @@ export default function CreateBusinessClient() {
   const [showWelcomePopup, setShowWelcomePopup] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [accountId, setAccountId] = useState<string | null>(null);
-
-  // Use auth guard to ensure user is authenticated
-  useAuthGuard();
+  const [isNewUser, setIsNewUser] = useState(false);
 
   useEffect(() => {
     const loadUserData = async () => {
@@ -33,57 +30,102 @@ export default function CreateBusinessClient() {
         setLoading(true);
         setError("");
 
-        // Wait for session to be initialized
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) {
-          console.error("Session error:", sessionError);
-          setError("Authentication error. Please sign in again.");
-          setLoading(false);
-          return;
+        // Wait for session to be initialized with retry logic
+        let session = null;
+        let sessionError = null;
+        let retryCount = 0;
+        const maxRetries = 3;
+
+        while (retryCount < maxRetries) {
+          const { data: { session: currentSession }, error: currentError } = await supabase.auth.getSession();
+          
+          if (currentSession) {
+            session = currentSession;
+            break;
+          }
+          
+          if (currentError) {
+            sessionError = currentError;
+            console.log(`Session attempt ${retryCount + 1} failed:`, currentError);
+          }
+          
+          retryCount++;
+          if (retryCount < maxRetries) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
         }
 
         if (!session) {
-          setError("No active session. Please sign in.");
-          setLoading(false);
+          console.log("No session after retries, redirecting to sign-in");
+          router.push("/auth/sign-in");
           return;
         }
 
+        // Get user data
         const { data: { user }, error: userError } = await getUserOrMock(supabase);
         
         if (userError || !user) {
-          setError("You must be signed in to create a business.");
+          console.log("User error:", userError);
+          setError("Failed to load user data");
           setLoading(false);
           return;
         }
 
         setUser(user);
 
-        // Ensure account exists for the user
-        const accountId = await ensureAccountExists(supabase, user.id);
-        setAccountId(accountId);
+        // Check if user already has an account
+        const accountId = await getAccountIdForUser(user.id, supabase);
+        
+        if (accountId) {
+          // Check if user already has businesses
+          const { data: businesses } = await supabase
+            .from("businesses")
+            .select("id")
+            .eq("account_id", accountId);
 
+          if (businesses && businesses.length > 0) {
+            // User already has businesses, redirect to dashboard
+            console.log("User already has businesses, redirecting to dashboard");
+            router.push("/dashboard");
+            return;
+          }
+        }
+
+        // Set as new user to show welcome popup
+        setIsNewUser(true);
+        
+        // Ensure account exists for the user
+        const finalAccountId = await ensureAccountExists(supabase, user.id);
+        setAccountId(finalAccountId);
+        
         // Show welcome popup for new users
         setShowWelcomePopup(true);
-
+        
         setLoading(false);
       } catch (error) {
         console.error("Error loading user data:", error);
-        setError("Failed to load user data. Please try signing in again.");
+        setError("Failed to load user data");
         setLoading(false);
       }
     };
 
-    // Only load data if admin status is not loading
-    if (!adminLoading) {
-      loadUserData();
-    }
-  }, [adminLoading]);
+    loadUserData();
+  }, [router]);
 
   const handleCloseWelcome = () => {
     setShowWelcomePopup(false);
     if (typeof window !== "undefined") {
       localStorage.setItem("welcomeShown", "true");
+    }
+    
+    // Update account to mark welcome as seen (same as main dashboard)
+    if (user && accountId) {
+      supabase
+        .from("accounts")
+        .update({ has_seen_welcome: true })
+        .eq("id", accountId)
+        .then(() => console.log("Welcome popup marked as seen"))
+        .catch((error) => console.error("Error updating welcome status:", error));
     }
   };
 
@@ -138,12 +180,28 @@ export default function CreateBusinessClient() {
           user={user}
           accountId={accountId}
           onSuccess={() => {
-            router.push("/dashboard");
+            console.log("SimpleBusinessForm onSuccess called, redirecting to dashboard with business created flag");
+            router.push("/dashboard?businessCreated=true");
           }}
         />
 
-        {showWelcomePopup && (
-          <WelcomePopup onClose={handleCloseWelcome} />
+        {isNewUser && showWelcomePopup && (
+          <WelcomePopup 
+            isOpen={showWelcomePopup}
+            onClose={handleCloseWelcome}
+            title="Welcome to PromptReviews!"
+            message={`Did you know you're a star? Carl Sagan said it best:
+
+"The cosmos is within us. We are made of star-stuff. We are a way for the universe to know itself."
+
+Beautiful right! There is a flaming gas giant in you too! Wait, that didn't come out right . . .
+
+Anyway, I am here to help you get the stars you deserve—on Google, Facebook, TripAdvisor, TrustPilot—you name it.
+
+Here's your first tip: [icon] ← Click here`}
+            imageUrl="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompty-600kb.png"
+            buttonText="Let's Wrangle Some Reviews!"
+          />
         )}
       </PageCard>
     </div>

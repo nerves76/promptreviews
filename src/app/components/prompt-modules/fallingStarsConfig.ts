@@ -164,5 +164,5 @@ export const getFallingIcon = (key: string) => {
  */
 export const getFallingIconColor = (key: string) => {
   const icon = FALLING_STARS_ICONS.find((icon) => icon.key === key);
-  return icon?.color || "text-slate-600";
+  return icon?.color || "text-slate-blue";
 };

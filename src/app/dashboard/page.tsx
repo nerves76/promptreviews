@@ -2,12 +2,12 @@
 
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/utils/supabaseClient";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
 import { FaHome } from "react-icons/fa";
 import DashboardContent from "./DashboardContent";
 import { getUserOrMock, getSessionOrMock } from "@/utils/supabase";
-import PricingModal from "../components/PricingModal";
+import PricingModal, { tiers } from "../components/PricingModal";
 import FiveStarSpinner from "../components/FiveStarSpinner";
 import PageCard from "../components/PageCard";
 import AppLoader from "../components/AppLoader";
@@ -15,7 +15,7 @@ import TopLoaderOverlay from "../components/TopLoaderOverlay";
 import { Button } from "@/app/components/ui/button";
 import Link from "next/link";
 import QuoteDisplay from "../components/QuoteDisplay";
-import WelcomePopup from "../components/WelcomePopup";
+import StarfallCelebration from "../components/StarfallCelebration";
 import { trackEvent, GA_EVENTS } from "../../utils/analytics";
 import { getAccountIdForUser } from "@/utils/accountUtils";
 import { useAuthGuard } from "@/utils/authGuard";
@@ -30,12 +30,12 @@ interface DashboardData {
   promptPages: any[];
   widgets: any[];
   isAdminUser: boolean;
-  showWelcomePopup: boolean;
   accountLimits: any;
 }
 
 export default function Dashboard() {
   const router = useRouter();
+  const searchParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
   const [data, setData] = useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -53,6 +53,7 @@ export default function Dashboard() {
   );
   const [showPricingModal, setShowPricingModal] = useState(true);
   const [pendingAccountUpdate, setPendingAccountUpdate] = useState(false);
+  const [showStarfallCelebration, setShowStarfallCelebration] = useState(false);
   const [reviewStats, setReviewStats] = useState({
     total: { week: 0, month: 0, year: 0 },
     verified: { week: 0, month: 0, year: 0 },
@@ -69,10 +70,14 @@ export default function Dashboard() {
   // Use the centralized admin context instead of local state
   const { isAdminUser, isLoading: adminLoading } = useAdmin();
 
-  // Use auth guard to redirect new users to create business page
-  useAuthGuard({ redirectToCreateBusiness: true });
+  // Use auth guard with loading state
+  const { loading: authLoading, shouldRedirect } = useAuthGuard({ redirectToCreateBusiness: true });
 
+  // Always call all useEffect hooks in the same order
   useEffect(() => {
+    // Only load data if admin status is not loading
+    if (adminLoading) return;
+    
     const loadDashboardData = async () => {
       try {
         setIsLoading(true);
@@ -99,7 +104,6 @@ export default function Dashboard() {
             promptPages: [],
             widgets: [],
             isAdminUser: isAdminUser,
-            showWelcomePopup: true,
             accountLimits: null
           });
           setIsLoading(false);
@@ -148,10 +152,6 @@ export default function Dashboard() {
         // Check account limits for prompt pages
         const limits = await checkAccountLimits(supabase, user.id, "prompt_page");
 
-        // Check if welcome popup should be shown
-        const showWelcome = !accountData?.has_seen_welcome && 
-          (typeof window !== "undefined" ? !localStorage.getItem("welcomeShown") : true);
-
         setData({
           user,
           account: accountData,
@@ -159,7 +159,6 @@ export default function Dashboard() {
           promptPages: promptPages || [],
           widgets: widgets || [],
           isAdminUser: adminStatus,
-          showWelcomePopup: showWelcome,
           accountLimits: limits
         });
 
@@ -171,14 +170,12 @@ export default function Dashboard() {
       }
     };
 
-    // Only load data if admin status is not loading
-    if (!adminLoading) {
-      loadDashboardData();
-    }
+    loadDashboardData();
   }, [adminLoading, isAdminUser]);
 
   useEffect(() => {
     if (!data?.user) return;
+    
     const fetchData = async () => {
       try {
         // Get account ID using the utility function
@@ -204,8 +201,7 @@ export default function Dashboard() {
         }
         setData(prev => prev ? { 
           ...prev, 
-          account: accountResult.data,
-          showWelcomePopup: prev.showWelcomePopup // Preserve the welcome popup state
+          account: accountResult.data
         } : null);
 
         // Now fetch business and prompt pages with the correct account ID
@@ -267,51 +263,78 @@ export default function Dashboard() {
     const trialEnd = data?.account?.trial_end ? new Date(data.account.trial_end) : null;
 
     // Check if user is on a paid plan
-    const isPaidUser = paidPlans.includes(data?.account?.plan || "free");
+    const isPaidUser = paidPlans.includes(data?.account?.plan || "");
 
     // Check if trial has expired
     const isTrialExpired =
-      trialEnd && now > trialEnd && data?.account?.plan === "free";
+      trialEnd && now > trialEnd && data?.account?.plan === "grower";
 
-    // Show pricing modal if user is on free plan and trial has expired
-    if (isTrialExpired && !isPaidUser) {
+    // Show pricing modal for new users who need to choose their initial plan
+    // or for users on grower plan with expired trial
+    const shouldShowPricingModal = 
+      // New user who hasn't selected a plan yet (no plan or 'no_plan' and has created a business)
+      ((!data?.account?.plan || data?.account?.plan === 'no_plan') && (data?.businesses?.length || 0) > 0) ||
+      // Or trial has expired
+      (isTrialExpired && !isPaidUser);
+
+    console.log("Pricing modal debug:", {
+      accountPlan: data?.account?.plan,
+      trialStart,
+      trialEnd,
+      businessesLength: data?.businesses?.length,
+      isTrialExpired,
+      isPaidUser,
+      shouldShowPricingModal,
+      condition1: !data?.account?.plan && (data?.businesses?.length || 0) > 0,
+      condition2: isTrialExpired && !isPaidUser,
+      showPricingModalState: showPricingModal
+    });
+
+    if (shouldShowPricingModal) {
+      console.log("Setting pricing modal to show");
       setShowPricingModal(true);
     } else {
+      console.log("Setting pricing modal to hide");
       setShowPricingModal(false);
     }
-  }, [data?.account, isLoading]);
+  }, [isLoading, data?.account, data?.businesses]);
 
   useEffect(() => {
-    if (!data?.user || !business) return;
-
-    // REVIEW STATS SOURCE OF TRUTH:
-    // This should be the only place where review stats are calculated
+    if (!data?.user) return;
+    
     const fetchStats = async () => {
       try {
+        const accountId = await getAccountIdForUser(data.user.id, supabase);
+        if (!accountId) return;
+
+        // Fetch review statistics
         const now = new Date();
         const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
         const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
         const yearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
 
-        // Fetch reviews for the business
         const { data: reviews } = await supabase
-          .from("reviews")
-          .select("*")
-          .eq("business_id", business.id);
+          .from("widget_reviews")
+          .select("id, is_verified")
+          .eq("account_id", accountId);
 
         if (reviews) {
           const stats = {
-            total: {
-              week: reviews.filter(r => new Date(r.created_at) >= weekAgo).length,
-              month: reviews.filter(r => new Date(r.created_at) >= monthAgo).length,
-              year: reviews.filter(r => new Date(r.created_at) >= yearAgo).length,
-            },
-            verified: {
-              week: reviews.filter(r => new Date(r.created_at) >= weekAgo && r.is_verified).length,
-              month: reviews.filter(r => new Date(r.created_at) >= monthAgo && r.is_verified).length,
-              year: reviews.filter(r => new Date(r.created_at) >= yearAgo && r.is_verified).length,
-            },
+            total: { week: 0, month: 0, year: 0 },
+            verified: { week: 0, month: 0, year: 0 },
           };
+
+          reviews.forEach((review) => {
+            // For now, count all reviews as recent since we don't have created_at
+            stats.total.week++;
+            stats.total.month++;
+            stats.total.year++;
+            if (review.is_verified) {
+              stats.verified.week++;
+              stats.verified.month++;
+              stats.verified.year++;
+            }
+          });
 
           setReviewStats(stats);
         }
@@ -321,7 +344,33 @@ export default function Dashboard() {
     };
 
     fetchStats();
-  }, [data?.user, business, supabase]);
+  }, [data?.user, supabase]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("businessCreated") === "true") {
+      setShowPricingModal(true);
+      // Remove the query param from the URL
+      params.delete("businessCreated");
+      const newUrl = window.location.pathname + (params.toString() ? `?${params.toString()}` : "");
+      window.history.replaceState({}, document.title, newUrl);
+    }
+  }, []);
+
+  // Handle loading and redirect states after all hooks are called
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <AppLoader />
+      </div>
+    );
+  }
+
+  // Don't render anything if we're redirecting
+  if (shouldRedirect) {
+    return null;
+  }
 
   const handleCreatePromptPageClick = (
     e: React.MouseEvent<HTMLAnchorElement>,
@@ -343,25 +392,100 @@ export default function Dashboard() {
   const handleSelectTier = async (tierKey: string) => {
     try {
       setPendingAccountUpdate(true);
-      const response = await fetch("/api/update-account-tier", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          tier: tierKey,
-          accountId: data?.account?.id,
-        }),
-      });
-
-      if (response.ok) {
-        // Refresh the page to show updated plan
-        window.location.reload();
-      } else {
-        console.error("Failed to update account tier");
+      
+      // Get current plan and target tier info
+      const currentPlan = data?.account?.plan;
+      const currentTier = tiers.find((t) => t.key === currentPlan);
+      const targetTier = tiers.find((t) => t.key === tierKey);
+      
+      // Determine if this is an upgrade, downgrade, or same plan
+      const isUpgrade = currentTier && targetTier && targetTier.order > currentTier.order;
+      const isDowngrade = currentTier && targetTier && targetTier.order < currentTier.order;
+      const isSamePlan = currentPlan === tierKey;
+      
+      // For Grower plan (free trial), bypass Stripe and update directly
+      if (tierKey === "grower" || isSamePlan) {
+        await supabase
+          .from("accounts")
+          .update({ plan: tierKey })
+          .eq("id", data?.account?.id);
+        
+        // Close the pricing modal
+        setShowPricingModal(false);
+        
+        // Show starfall celebration
+        setShowStarfallCelebration(true);
+        
+        return;
       }
+      
+      // For upgrades, redirect to Stripe checkout
+      if (isUpgrade) {
+        // If user already has a Stripe customer ID, send to billing portal for upgrades
+        if (data?.account?.stripe_customer_id) {
+          const res = await fetch("/api/create-stripe-portal-session", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ customerId: data.account.stripe_customer_id }),
+          });
+          const portalData = await res.json();
+          if (portalData.url) {
+            window.location.href = portalData.url;
+            return;
+          } else {
+            alert("Could not open billing portal.");
+            return;
+          }
+        }
+        
+        // Otherwise, proceed with checkout session (for new users)
+        const email = data?.user?.email;
+        if (!email) {
+          alert("No valid email address found for checkout.");
+          return;
+        }
+        
+        const res = await fetch("/api/create-checkout-session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            plan: tierKey,
+            userId: data?.account?.id,
+            email,
+          }),
+        });
+        
+        const checkoutData = await res.json();
+        if (checkoutData.url) {
+          // Set flag to show success modal after Stripe redirect
+          localStorage.setItem("showPlanSuccess", "1");
+          window.location.href = checkoutData.url;
+          return;
+        } else {
+          alert("Failed to start checkout: " + (checkoutData.error || "Unknown error"));
+          return;
+        }
+      }
+      
+      // For downgrades, update directly (you might want to add confirmation modal here)
+      if (isDowngrade) {
+        await supabase
+          .from("accounts")
+          .update({ plan: tierKey })
+          .eq("id", data?.account?.id);
+        
+        // Close the pricing modal
+        setShowPricingModal(false);
+        
+        // Show starfall celebration
+        setShowStarfallCelebration(true);
+        
+        return;
+      }
+      
     } catch (error) {
       console.error("Error updating account tier:", error);
+      alert("Failed to update account tier. Please try again.");
     } finally {
       setPendingAccountUpdate(false);
     }
@@ -374,21 +498,6 @@ export default function Dashboard() {
   const handleClosePostSaveModal = () => {
     setShowPostSaveModal(false);
     setSavedPromptPageUrl(null);
-  };
-
-  // Handler for closing the welcome popup and marking as seen
-  const handleCloseWelcome = () => {
-    setData(prev => prev ? { ...prev, showWelcomePopup: false } : null);
-    localStorage.setItem("welcomeShown", "true");
-    
-    // Update account to mark welcome as seen
-    if (data?.user) {
-      supabase
-        .from("accounts")
-        .update({ has_seen_welcome: true })
-        .eq("id", data.user.id)
-        .then(() => console.log("Welcome popup marked as seen"));
-    }
   };
 
   const handleSignOut = async () => {
@@ -441,36 +550,6 @@ export default function Dashboard() {
         <QuoteDisplay />
       </div>
       
-      {/* Welcome message for new users */}
-      {isNewUser && (
-        <div className="flex justify-center items-center mb-6">
-          <div className="max-w-2xl w-full bg-white shadow-lg rounded-lg p-6 border-2 border-slate-blue">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Welcome to PromptReviews! 🎉</h2>
-              <p className="text-gray-600 mb-6">
-                We're excited to help you get more reviews for your business. To get started, 
-                you'll need to create your business profile first.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/dashboard/create-business">
-                  <Button className="bg-slate-blue hover:bg-slate-700 text-white px-6 py-3 rounded-lg font-semibold">
-                    <FaStore className="mr-2" />
-                    Create Business Profile
-                  </Button>
-                </Link>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setIsNewUser(false)}
-                  className="px-6 py-3 rounded-lg font-semibold"
-                >
-                  Skip for Now
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      
       {/* PageCard with extra top margin to accommodate quotes */}
       <div className="flex justify-center items-start flex-1">
         <PageCard
@@ -502,6 +581,9 @@ export default function Dashboard() {
             account={data?.account}
             parentLoading={isLoading}
             reviewStats={reviewStats}
+            hasBusiness={!!(data?.businesses && data.businesses.length > 0)}
+            hasCustomPromptPages={!!(data?.promptPages && data.promptPages.filter(p => !p.is_universal).length > 0)}
+            hasUniversalPromptPage={!!(data?.promptPages && data.promptPages.some(p => p.is_universal))}
           />
         </PageCard>
       </div>
@@ -514,28 +596,12 @@ export default function Dashboard() {
         />
       )}
       
-      {/* Welcome Popup for first-time users */}
-      {data?.showWelcomePopup && (
-        <WelcomePopup
-          isOpen={data.showWelcomePopup}
-          onClose={handleCloseWelcome}
-          title="Oh hi there—I'm Prompty!"
-          message={`Welcome to Prompt Reviews!
-
-Did you know you're a miracle? Carl Sagan said it best:
-"The cosmos is within us. We are made of star-stuff. We are a way for the universe to know itself."
-
-Beautiful right! There is a flaming gas giant in you too! Wait, that didn't come out right . . . Anyway, I am here to help you get the stars you deserve—on Google, Facebook, TripAdvisor, Clutch—you name it.
-
-Here's your first tip: [icon] <----Click here
-
-OK, that's it for now—let's go get some stars! 🌟`}
-          imageUrl="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompty-600kb.png"
-          imageAlt="Prompty - Get Reviews"
-          buttonText="Let's Go Get Some Stars! 🌟"
-          onButtonClick={handleCloseWelcome}
-        />
-      )}
+      {/* Starfall Celebration */}
+      <StarfallCelebration 
+        isVisible={showStarfallCelebration}
+        onComplete={() => setShowStarfallCelebration(false)}
+        duration={3000}
+      />
     </div>
   );
 }

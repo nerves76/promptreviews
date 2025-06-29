@@ -21,9 +21,17 @@ export async function GET(request: Request) {
 
   try {
     const cookieStore = await cookies();
-    const supabase = createClient(
+    
+    // Use service key for all operations to avoid JWT signature issues
+    const supabaseService = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    );
+
+    // Use service key for session exchange as well
+    const supabaseForSession = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
       {
         global: {
           headers: {
@@ -37,7 +45,7 @@ export async function GET(request: Request) {
     const {
       data: { session },
       error: sessionError,
-    } = await supabase.auth.exchangeCodeForSession(code);
+    } = await supabaseForSession.auth.exchangeCodeForSession(code);
 
     if (sessionError) {
       console.error("❌ Session exchange error:", sessionError);
@@ -56,9 +64,9 @@ export async function GET(request: Request) {
     console.log("✅ Session exchange successful for user:", session.user.email);
     console.log("📧 Email confirmed at:", session.user.email_confirmed_at);
 
-    // Ensure user is linked to an account
+    // Ensure user is linked to an account using service client
     const { id: userId, email } = session.user;
-    const { data: accountLinks, error: accountLinksError } = await supabase
+    const { data: accountLinks, error: accountLinksError } = await supabaseService
       .from("account_users")
       .select("account_id")
       .eq("user_id", userId);
@@ -66,43 +74,61 @@ export async function GET(request: Request) {
     let isNewUser = false;
     if (!accountLinks || accountLinks.length === 0) {
       isNewUser = true;
-      console.log("🆕 Creating new account for user:", email);
+      console.log("🆕 Creating new account for user:", userId);
       
-      // Create account with proper fields
-      const { data: newAccount, error: createAccountError } = await supabase
+      // Check if account already exists
+      console.log("🔍 Checking if account already exists for user:", userId);
+      const { data: existingAccount, error: accountCheckError } = await supabaseService
         .from("accounts")
-        .insert({
-          id: userId,
-          user_id: userId,
-          email: email,
-          trial_start: new Date().toISOString(),
-          trial_end: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-          is_free_account: false,
-          custom_prompt_page_count: 0,
-          contact_count: 0,
-          first_name: session.user.user_metadata?.first_name || '',
-          last_name: session.user.user_metadata?.last_name || '',
-          plan: 'NULL',
-          has_had_paid_plan: false,
-          review_notifications_enabled: true
-        })
-        .select()
+        .select("id")
+        .eq("id", userId)
         .single();
 
-      if (!createAccountError && newAccount) {
-        console.log("✅ Account created successfully");
-        await supabase
-          .from("account_users")
-          .insert([
-            {
-              account_id: userId,
-              user_id: userId,
-              role: "owner",
-            },
-          ]);
-        console.log("✅ User linked to account as owner");
+      if (accountCheckError) {
+        console.error("❌ Error checking existing account:", accountCheckError);
+        // Continue with account creation even if check fails
+      }
+
+      if (!existingAccount) {
+        console.log("🆕 Creating new account for user:", userId);
+        // Create account with proper fields
+        const { data: newAccount, error: createAccountError } = await supabaseService
+          .from("accounts")
+          .insert({
+            id: userId,
+            user_id: userId, // This field exists in the schema
+            email: email,
+            trial_start: new Date().toISOString(),
+            trial_end: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+            is_free_account: false,
+            custom_prompt_page_count: 0,
+            contact_count: 0,
+            first_name: session.user.user_metadata?.first_name || '',
+            last_name: session.user.user_metadata?.last_name || '',
+            plan: 'grower', // Use proper plan value instead of 'NULL'
+            has_had_paid_plan: false,
+            review_notifications_enabled: true
+          })
+          .select()
+          .single();
+
+        if (!createAccountError && newAccount) {
+          console.log("✅ Account created successfully");
+          await supabaseService
+            .from("account_users")
+            .insert([
+              {
+                account_id: userId,
+                user_id: userId,
+                role: "owner",
+              },
+            ]);
+          console.log("✅ User linked to account as owner");
+        } else {
+          console.error("❌ Error creating account:", createAccountError);
+        }
       } else {
-        console.error("❌ Error creating account:", createAccountError);
+        console.log("✅ Account already exists for user");
       }
     } else {
       console.log("✅ User already has account links");
@@ -131,8 +157,14 @@ export async function GET(request: Request) {
     console.log("⏳ Waiting for session to be set...");
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    console.log("✅ Redirecting to dashboard");
-    return NextResponse.redirect(`${requestUrl.origin}/dashboard`);
+    // Redirect new users to create-business page to show welcome popup
+    // Existing users go to dashboard
+    const redirectUrl = isNewUser 
+      ? `${requestUrl.origin}/dashboard/create-business`
+      : `${requestUrl.origin}/dashboard`;
+    
+    console.log("✅ Redirecting to:", redirectUrl);
+    return NextResponse.redirect(redirectUrl);
   } catch (error) {
     console.error("❌ Error in callback:", error);
     return NextResponse.redirect(

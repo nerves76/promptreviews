@@ -111,7 +111,7 @@ export const DraggableModal: React.FC<DraggableModalProps> = ({
              {onReset && (
                 <button
                    onClick={onReset}
-                   className="px-4 py-1 border border-slate-300 bg-white text-slate-600 rounded-md font-semibold shadow-sm hover:bg-slate-50 transition text-sm"
+                   className="px-4 py-1 border border-slate-300 bg-white text-slate-blue rounded-md font-semibold shadow-sm hover:bg-slate-50 transition text-sm"
                 >
                    {resetLabel}
                </button>

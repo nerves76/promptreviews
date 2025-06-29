@@ -5,29 +5,17 @@
  * to help debug authentication issues.
  */
 
-import { createClient } from '@supabase/supabase-js';
-import dotenv from 'dotenv';
+const { createClient } = require('@supabase/supabase-js');
 
-// Load environment variables
-dotenv.config({ path: '.env.local' });
+// Local Supabase configuration
+const supabaseUrl = 'http://127.0.0.1:54321';
+const supabaseServiceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-if (!supabaseUrl || !supabaseServiceKey) {
-  console.error('Missing required environment variables');
-  process.exit(1);
-}
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 async function checkUsers() {
   try {
-    console.log('Creating Supabase admin client...');
-    
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: { autoRefreshToken: false, persistSession: false }
-    });
-
-    console.log('Checking for existing users...');
+    console.log('Checking users in local Supabase...');
     
     // Use the admin API to list all users
     const adminUrl = `${supabaseUrl}/auth/v1/admin/users`;
@@ -46,45 +34,35 @@ async function checkUsers() {
     }
     
     const data = await response.json();
-    console.log(`Found ${data.users?.length || 0} users in the database:`);
+    console.log(`Found ${data.users?.length || 0} users:`);
     
     if (data.users && data.users.length > 0) {
-      data.users.forEach((user, index) => {
-        console.log(`\nUser ${index + 1}:`);
-        console.log(`  ID: ${user.id}`);
-        console.log(`  Email: ${user.email}`);
-        console.log(`  Email Confirmed: ${user.email_confirmed_at ? 'Yes' : 'No'}`);
-        console.log(`  Created: ${user.created_at}`);
-        console.log(`  Last Sign In: ${user.last_sign_in_at || 'Never'}`);
+      data.users.forEach(user => {
+        console.log(`- ${user.email} (${user.id}) - Created: ${user.created_at}`);
       });
     } else {
       console.log('No users found in the database.');
     }
     
-    // Also check the accounts table
+    // Also check accounts table
     console.log('\nChecking accounts table...');
-    const { data: accounts, error: accountsError } = await supabaseAdmin
+    const { data: accounts, error: accountsError } = await supabase
       .from('accounts')
-      .select('*');
-      
+      .select('id, email, business_name, created_at')
+      .order('created_at', { ascending: false });
+    
     if (accountsError) {
       console.error('Error fetching accounts:', accountsError);
-    } else {
-      console.log(`Found ${accounts?.length || 0} accounts in the database:`);
-      if (accounts && accounts.length > 0) {
-        accounts.forEach((account, index) => {
-          console.log(`\nAccount ${index + 1}:`);
-          console.log(`  ID: ${account.id}`);
-          console.log(`  Email: ${account.email}`);
-          console.log(`  First Name: ${account.first_name}`);
-          console.log(`  Last Name: ${account.last_name}`);
-          console.log(`  Created: ${account.created_at}`);
-        });
-      }
+      return;
     }
     
+    console.log(`Found ${accounts.length} accounts:`);
+    accounts.forEach(account => {
+      console.log(`- ${account.email} (${account.id}) - Business: ${account.business_name} - Created: ${account.created_at}`);
+    });
+    
   } catch (error) {
-    console.error('Error checking users:', error);
+    console.error('Script error:', error);
   }
 }
 

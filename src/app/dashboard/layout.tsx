@@ -18,6 +18,7 @@ export default function DashboardLayout({
 }) {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
+  const [accountData, setAccountData] = useState<any>(null);
   const [isClient, setIsClient] = useState(false);
   const router = useRouter();
 
@@ -37,6 +38,22 @@ export default function DashboardLayout({
         }
 
         setUser(user);
+        
+        // Fetch account data for the TrialBanner
+        try {
+          const { data: account, error: accountError } = await supabase
+            .from('accounts')
+            .select('plan, trial_start, trial_end')
+            .eq('user_id', user.id)
+            .single();
+          
+          console.log("DashboardLayout: Fetched account data:", account);
+          console.log("DashboardLayout: Account error:", accountError);
+          setAccountData(account);
+        } catch (accountError) {
+          console.error("Error fetching account data:", accountError);
+        }
+        
         setLoading(false);
       } catch (error) {
         console.error("Auth check error:", error);
@@ -74,7 +91,7 @@ export default function DashboardLayout({
 
   return (
     <div className="w-full bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 pb-16 md:pb-24 lg:pb-32">
-      <TrialBanner />
+      <TrialBanner accountData={accountData} />
       {children}
     </div>
   );

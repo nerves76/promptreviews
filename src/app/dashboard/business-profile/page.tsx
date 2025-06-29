@@ -105,7 +105,7 @@ export default function BusinessProfilePage() {
     linkedin_url: "",
     pinterest_url: "",
     default_offer_enabled: false,
-    default_offer_title: "Review Rewards",
+    default_offer_title: "Special offer",
     default_offer_body: "",
     default_offer_url: "",
     address_street: "",
@@ -238,6 +238,30 @@ export default function BusinessProfilePage() {
   const removeService = (idx: number) =>
     setServices(services.filter((_, i) => i !== idx));
 
+  const handlePlatformChange = (
+    idx: number,
+    field: "name" | "url" | "customPlatform" | "wordCount",
+    value: string
+  ) => {
+    const newPlatforms = [...platforms];
+    if (field === "wordCount") {
+      newPlatforms[idx] = { ...newPlatforms[idx], wordCount: parseInt(value) || 200 };
+    } else if (field === "customPlatform") {
+      newPlatforms[idx] = { ...newPlatforms[idx], customPlatform: value };
+    } else {
+      newPlatforms[idx] = { ...newPlatforms[idx], [field]: value };
+    }
+    setPlatforms(newPlatforms);
+  };
+
+  const addPlatform = () => {
+    setPlatforms([...platforms, { name: "", url: "", wordCount: 200 }]);
+  };
+
+  const removePlatform = (idx: number) => {
+    setPlatforms(platforms.filter((_, i) => i !== idx));
+  };
+
   // Helper to get cropped image as a blob
   const getCroppedImg = async (imageSrc: string, cropPixels: any) => {
     const image = new window.Image();
@@ -340,25 +364,33 @@ export default function BusinessProfilePage() {
     let uploadedLogoUrl = logoUrl;
     if (logoFile) {
       // Upload to Supabase Storage
-      const filePath = `business-logos/${user.id}.webp`;
+      const filePath = `${user.id}.webp`;
       console.log("Uploading logo to:", filePath, "with file:", logoFile);
+      
+      // Use testimonial-photos bucket for local development since logos bucket doesn't exist locally
+      // In production, we have: logos, testimonial-photos, and products buckets
+      const bucketName = process.env.NODE_ENV === 'development' ? 'testimonial-photos' : 'logos';
+      const uploadPath = filePath;
+      
       const { error: uploadError } = await supabase.storage
-        .from("logos")
-        .upload(filePath, logoFile, {
+        .from(bucketName)
+        .upload(uploadPath, logoFile, {
           upsert: true,
           contentType: "image/webp",
         });
       if (uploadError) {
-        console.error("Supabase upload error:", uploadError);
-        setLogoError("Failed to upload logo.");
-        setLoading(false);
-        return;
+        console.error("Supabase upload error details:", uploadError);
+        console.error("Error message:", uploadError.message);
+        // Continue without logo upload rather than failing the entire save
+        console.warn("Logo upload failed, continuing without logo");
+        setLogoError("Failed to upload logo, but profile will be saved.");
+      } else {
+        const { data: publicUrlData } = supabase.storage
+          .from(bucketName)
+          .getPublicUrl(uploadPath);
+        console.log("Supabase publicUrlData:", publicUrlData);
+        uploadedLogoUrl = publicUrlData?.publicUrl || null;
       }
-      const { data: publicUrlData } = supabase.storage
-        .from("logos")
-        .getPublicUrl(filePath);
-      console.log("Supabase publicUrlData:", publicUrlData);
-      uploadedLogoUrl = publicUrlData?.publicUrl || null;
     }
     const { error: updateError } = await supabase
       .from("businesses")

@@ -3,6 +3,58 @@
 ## Overview
 This document details the troubleshooting process for the "Edit Style" modal functionality in the PromptReviews widget dashboard. The goal was to make the widget preview update in real-time when users modify style settings (colors, borders, shadows, etc.) in the StyleModal.
 
+## Recent Authentication & JWT Issues (Latest)
+
+### Problem Summary
+Users were experiencing "AuthSessionMissingError: Auth session missing!" errors after signup, preventing them from accessing the dashboard and completing the onboarding flow.
+
+### Root Cause Analysis
+The issue was caused by multiple JWT signature errors in the authentication flow:
+1. **JWT Signature Errors**: `/api/create-account` endpoint was using anon key instead of service key
+2. **Session Management**: Users weren't getting proper sessions after signup in local development
+3. **Admin API Errors**: 400 Bad Request errors due to incorrect column name usage
+4. **Auth Guard Issues**: Admin status checking using wrong database column names
+
+### Solutions Implemented
+
+#### 1. Fixed JWT Signature Errors
+- **Problem**: `/api/create-account` endpoint was using anon key causing JWT signature errors
+- **Solution**: Updated endpoint to use Supabase service key for all database operations
+- **Result**: Account creation now works without JWT errors
+
+#### 2. Fixed Auth Session Missing
+- **Problem**: Users weren't getting proper sessions after signup in local development
+- **Solution**: Added auto-signin feature for local development mode
+- **Result**: Users are automatically signed in after account creation
+
+#### 3. Fixed Admin API Errors
+- **Problem**: Admin checks were using wrong column name (`user_id` instead of `account_id`)
+- **Solution**: Updated `isAdmin` function and auth guard to use correct column names
+- **Result**: Admin status checking now works correctly
+
+#### 4. Enhanced Error Handling
+- **Problem**: Limited error logging made debugging difficult
+- **Solution**: Added comprehensive error handling and logging throughout authentication flows
+- **Result**: Better debugging capabilities and user experience
+
+### Files Modified
+- `src/app/api/create-account/route.ts` - Updated to use service key
+- `src/app/auth/sign-up/page.tsx` - Added auto-signin for local development
+- `src/app/auth/callback/route.ts` - Updated to use service key and avoid duplicate account creation
+- `src/utils/admin.ts` - Fixed column name usage in admin checks
+- `src/utils/authGuard.ts` - Fixed admin status checking
+
+### Testing
+Created and used test scripts to verify fixes:
+- `test-signup-flow.js` - Tests complete user signup, account creation, and business creation flow
+- Various database connection and schema testing scripts
+
+### Current Status
+✅ **RESOLVED** - All JWT signature issues fixed
+✅ **RESOLVED** - Auth session missing errors fixed
+✅ **RESOLVED** - Admin API 400 errors fixed
+✅ **RESOLVED** - Complete user onboarding flow working
+
 ## Initial Problem
 The "Edit Style" modal was opening correctly, but changes made to color pickers and other controls were not reflecting in the widget preview in real-time. Only the carousel navigation dots were updating (which used CSS variables), while the rest of the widget elements remained unchanged.
 
@@ -75,6 +127,9 @@ Attempted import error: 'initializeCarousel' is not exported from '../../../../.
 - ✅ StyleModal opens correctly
 - ✅ Import/export issues resolved
 - ✅ All StyleForm controls are present (border, shadow, color pickers, etc.)
+- ✅ **NEW**: Complete user authentication and onboarding flow working
+- ✅ **NEW**: JWT signature issues resolved
+- ✅ **NEW**: Admin API errors fixed
 
 ### What's Broken
 - ❌ Widget preview shows "No widget selected"
@@ -86,6 +141,7 @@ Attempted import error: 'initializeCarousel' is not exported from '../../../../.
 1. `src/app/dashboard/widget/components/StyleForm.tsx` - Restored to named export
 2. `src/app/dashboard/widget/components/StyleModal.tsx` - Updated to named import
 3. Various debugging code added and removed
+4. **NEW**: Authentication-related files updated for JWT fixes
 
 ## Instructions for Next AI Developer
 

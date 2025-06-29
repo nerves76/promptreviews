@@ -35,31 +35,44 @@ export default function SignUpPage() {
     "Unexpected error": "Something went wrong. Please try again.",
   };
 
-  const createAccount = async (userId: string, userEmail: string) => {
-    try {
-      const response = await fetch('/api/create-account', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId,
-          email: userEmail,
-        }),
-      });
+  const createAccount = async (userId: string, userEmail: string, firstName: string, lastName: string) => {
+    console.log('🏗️ Starting account creation with timeout...');
+    
+    // Add timeout to prevent hanging
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Account creation timeout')), 10000); // 10 second timeout
+    });
 
+    const accountCreationPromise = fetch('/api/create-account', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId,
+        email: userEmail,
+        first_name: firstName,
+        last_name: lastName,
+      }),
+    });
+
+    try {
+      const response = await Promise.race([accountCreationPromise, timeoutPromise]) as Response;
+      
+      console.log('🏗️ Account creation response status:', response.status);
+      
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Account creation failed:', errorData);
-        throw new Error(errorData.error || 'Failed to create account');
+        const errorData = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
+        console.error('❌ Account creation failed:', errorData);
+        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
       }
 
       const data = await response.json();
-      console.log('Account created successfully:', data);
+      console.log('✅ Account created successfully:', data);
       return true;
     } catch (error) {
-      console.error('Error creating account:', error);
-      return false;
+      console.error('❌ Account creation error:', error);
+      throw error;
     }
   };
 
@@ -75,6 +88,9 @@ export default function SignUpPage() {
     }
 
     try {
+      console.log('🚀 Starting sign-up process...');
+      console.log('📝 Form data:', { firstName, lastName, email, password: '***' });
+      
       // Always use the current origin for email redirects
       // This works because both localhost:3001 and app.promptreviews.app are in additional_redirect_urls
       const redirectUrl = `${window.location.origin}/auth/callback`;
@@ -82,6 +98,7 @@ export default function SignUpPage() {
       console.log('Sign-up redirect URL:', redirectUrl);
       console.log('Current origin:', window.location.origin);
 
+      console.log('📧 Calling Supabase auth.signUp...');
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -94,23 +111,40 @@ export default function SignUpPage() {
         },
       });
 
+      console.log('📧 Supabase auth.signUp response:', { data, error });
+
       if (error) {
+        console.error('❌ Sign-up error:', error);
         setError(error.message);
+        setLoading(false);
+        return;
       } else if (data.user) {
         console.log('✅ User created successfully:', data.user.id);
+        console.log('📧 User email confirmed:', data.user.email_confirmed_at);
+        console.log('📧 User metadata:', data.user.user_metadata);
         
-        // Create account for the new user
-        const accountCreated = await createAccount(
-          data.user.id,
-          data.user.email!
-        );
+        try {
+          console.log('🏗️ Creating account for user...');
+          // Create account for the new user
+          const accountCreated = await createAccount(
+            data.user.id,
+            data.user.email!,
+            firstName,
+            lastName
+          );
 
-        if (accountCreated) {
-          console.log('✅ Account created successfully');
-        } else {
-          console.warn('⚠️ Account creation failed, but user was created');
+          if (accountCreated) {
+            console.log('✅ Account created successfully');
+          } else {
+            console.log('⚠️ Account creation returned false, but continuing...');
+          }
+        } catch (accountError) {
+          console.error('❌ Account creation failed:', accountError);
+          // Don't fail the entire sign-up process if account creation fails
+          // The user can still sign in and create their account later
+          console.log('🔄 Continuing with sign-up despite account creation failure...');
         }
-
+        
         // LOCAL DEVELOPMENT EMAIL BYPASS
         // Since we use production Supabase for all environments, email confirmations
         // are always enabled on the server side. However, for local development,
@@ -119,24 +153,68 @@ export default function SignUpPage() {
         // In production, users will receive email confirmation links.
         // In local development, users can sign in immediately after account creation.
         const isLocalDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        console.log('🌍 Environment check - isLocalDevelopment:', isLocalDevelopment);
         
         if (isLocalDevelopment) {
-          // Local development: Email confirmation is bypassed for convenience
-          setEmailSent(true);
-          setMessage('✅ Account created successfully! Since you\'re in local development mode, you can sign in immediately with your credentials. (Email confirmation is bypassed for development convenience.)');
+          // Local development: Automatically sign in the user
+          console.log('🔄 Local development mode: Auto-signing in user...');
+          console.log('🔐 Attempting sign-in with:', { email, password: '***' });
+          
+          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
+
+          console.log('🔐 Auto-signin response:', { 
+            signInData: signInData ? { 
+              user: signInData.user ? { 
+                id: signInData.user.id, 
+                email: signInData.user.email,
+                email_confirmed_at: signInData.user.email_confirmed_at
+              } : null,
+              session: !!signInData.session
+            } : null, 
+            signInError 
+          });
+
+          if (signInError) {
+            console.error('❌ Auto-signin failed:', signInError);
+            setEmailSent(true);
+            setMessage('✅ Account created successfully! Please sign in with your credentials.');
+          } else if (signInData.user) {
+            console.log('✅ Auto-signin successful, waiting for session to be established...');
+            
+            // Add a small delay to ensure session is properly established
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            console.log('📍 Redirecting to create business page...');
+            // Redirect to create business page where welcome popup appears
+            window.location.href = '/dashboard/create-business';
+            return;
+          } else {
+            console.error('❌ Auto-signin succeeded but no user data returned');
+            setEmailSent(true);
+            setMessage('✅ Account created successfully! Please sign in with your credentials.');
+          }
         } else {
           // Production: Normal email confirmation flow
+          console.log('🌍 Production mode: Email confirmation flow');
           setEmailSent(true);
           setMessage('📧 Account created! Please check your email and click the confirmation link to activate your account.');
         }
         
         // Track sign up event
+        console.log('📊 Tracking sign up event...');
         trackSignUp('email');
+      } else {
+        console.log('⚠️ No user data returned from sign-up');
+        setError('Sign-up completed but no user data returned. Please check your email for confirmation.');
       }
     } catch (err) {
-      console.error("Unexpected error:", err);
+      console.error("❌ Unexpected error:", err);
       setError("Failed to create account. Please try again.");
     } finally {
+      console.log('🏁 Sign-up process completed, setting loading to false');
       setLoading(false);
     }
   };

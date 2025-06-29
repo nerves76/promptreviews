@@ -193,6 +193,7 @@ export default function SignIn() {
 
       if (accountError && accountError.code !== "PGRST116") {
         console.error("Account check error:", accountError);
+        throw accountError; // Re-throw the error so handleSubmit can catch it
       }
 
       // If no account exists, create one
@@ -218,6 +219,7 @@ export default function SignIn() {
 
         if (createError) {
           console.error("Account creation error:", createError);
+          throw createError; // Re-throw the error so handleSubmit can catch it
         }
       }
 
@@ -238,9 +240,11 @@ export default function SignIn() {
 
       if (upsertAccountUserError) {
         console.error("Account user upsert error:", upsertAccountUserError);
+        throw upsertAccountUserError; // Re-throw the error so handleSubmit can catch it
       }
     } catch (err) {
       console.error("Account setup error:", err);
+      throw err; // Re-throw the error so handleSubmit can catch it
     }
   };
 
@@ -267,16 +271,22 @@ export default function SignIn() {
           timestamp: new Date().toISOString(),
         });
 
-        // Ensure account exists
-        await ensureAccountExists(data.user);
+        try {
+          // Ensure account exists
+          await ensureAccountExists(data.user);
 
-        // Redirect to dashboard
-        router.push("/dashboard");
-        router.refresh();
+          // Redirect to dashboard
+          router.push("/dashboard");
+          router.refresh();
+        } catch (accountError) {
+          console.error("Account setup failed:", accountError);
+          setError("Account setup failed. Please try again or contact support.");
+          return;
+        }
       }
     } catch (err) {
       console.error("Sign in error:", err);
-      setError("An error occurred during sign in");
+      setError("An error occurred during sign in. Please try again.");
     } finally {
       setIsLoading(false);
     }

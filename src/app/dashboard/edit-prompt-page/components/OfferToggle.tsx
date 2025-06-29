@@ -16,7 +16,7 @@ const OfferToggle: React.FC<OfferToggleProps> = ({
     <button
       type="button"
       onClick={() => onChange(!value)}
-      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${value ? "bg-indigo-500" : "bg-gray-300"}`}
+      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${value ? "bg-slate-blue" : "bg-gray-300"}`}
       aria-pressed={!!value}
     >
       <span

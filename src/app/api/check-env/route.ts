@@ -1,10 +1,17 @@
 import { NextResponse } from "next/server";
 
 export async function GET() {
-  const envVars = {
-    url: process.env.NEXT_PUBLIC_SUPABASE_URL || "not set",
-    key: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? "set (hidden)" : "not set",
+  const envCheck = {
+    supabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+    supabaseAnonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    supabaseServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+    nodeEnv: process.env.NODE_ENV,
+    vercelEnv: process.env.VERCEL_ENV,
   };
 
-  return NextResponse.json(envVars);
+  return NextResponse.json({
+    success: true,
+    envCheck,
+    message: "Environment variables check completed"
+  });
 }
