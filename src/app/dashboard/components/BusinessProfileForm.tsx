@@ -697,7 +697,7 @@ export default function BusinessProfileForm({
                   default_offer_enabled: !f.default_offer_enabled,
                 }))
               }
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${form.default_offer_enabled ? "bg-indigo-500" : "bg-gray-300"}`}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${form.default_offer_enabled ? "bg-slate-blue" : "bg-gray-300"}`}
               aria-pressed={!!form.default_offer_enabled}
             >
               <span
