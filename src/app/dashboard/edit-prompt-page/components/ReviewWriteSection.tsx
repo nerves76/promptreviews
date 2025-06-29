@@ -199,8 +199,8 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
                     Platform Name
                   </label>
                   <select
-                    className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                    value={platform.name}
+                    className="w-1/3 border px-3 py-2 rounded-lg bg-white"
+                    value={platform.name || ""}
                     onChange={(e) =>
                       handlePlatformChange(idx, "name", e.target.value)
                     }
@@ -235,8 +235,9 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
                   </label>
                   <Input
                     type="url"
+                    className="w-1/2 border px-3 py-2 rounded-lg bg-white"
                     placeholder="Review URL"
-                    value={platform.url}
+                    value={platform.url || ""}
                     onChange={(e) =>
                       handlePlatformChange(idx, "url", e.target.value)
                     }
@@ -249,8 +250,9 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
                   </label>
                   <Input
                     type="number"
+                    className="w-1/6 border px-3 py-2 rounded-lg bg-white"
                     placeholder="200"
-                    value={platform.wordCount}
+                    value={platform.wordCount || ""}
                     min={20}
                     max={1000}
                     onChange={(e) =>

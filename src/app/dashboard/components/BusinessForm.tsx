@@ -237,7 +237,7 @@ export default function BusinessForm({
             type="text"
             name="name"
             className="w-full border px-3 py-2 rounded"
-            value={form.name}
+            value={form.name || ""}
             onChange={handleChange}
             required
           />
@@ -301,7 +301,7 @@ export default function BusinessForm({
             id="address_street"
             name="address_street"
             className="w-full border px-3 py-2 rounded mb-4"
-            value={form.address_street}
+            value={form.address_street || ""}
             onChange={handleChange}
             required
             placeholder="Street address"
@@ -319,7 +319,7 @@ export default function BusinessForm({
                 id="address_city"
                 name="address_city"
                 className="w-full border px-3 py-2 rounded mb-4"
-                value={form.address_city}
+                value={form.address_city || ""}
                 onChange={handleChange}
                 required
                 placeholder="City"
@@ -337,7 +337,7 @@ export default function BusinessForm({
                 id="address_state"
                 name="address_state"
                 className="w-full border px-3 py-2 rounded mb-4"
-                value={form.address_state}
+                value={form.address_state || ""}
                 onChange={handleChange}
                 required
                 placeholder="State"
@@ -355,7 +355,7 @@ export default function BusinessForm({
                 id="address_zip"
                 name="address_zip"
                 className="w-full border px-3 py-2 rounded mb-4"
-                value={form.address_zip}
+                value={form.address_zip || ""}
                 onChange={handleChange}
                 required
                 placeholder="ZIP"
@@ -373,7 +373,7 @@ export default function BusinessForm({
             id="address_country"
             name="address_country"
             className="w-full border px-3 py-2 rounded"
-            value={form.address_country}
+            value={form.address_country || ""}
             onChange={handleChange}
             required
             placeholder="Country"

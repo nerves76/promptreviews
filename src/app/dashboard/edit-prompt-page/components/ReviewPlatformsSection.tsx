@@ -156,7 +156,7 @@ const ReviewPlatformsSection: React.FC<ReviewPlatformsSectionProps> = ({
             <div className="flex gap-2 items-center">
               <select
                 className="w-1/3 border px-3 py-2 rounded-lg bg-white"
-                value={platform.name}
+                value={platform.name || ""}
                 onChange={(e) =>
                   handlePlatformChange(idx, "name", e.target.value)
                 }
@@ -184,7 +184,7 @@ const ReviewPlatformsSection: React.FC<ReviewPlatformsSectionProps> = ({
                 type="url"
                 className="w-1/2 border px-3 py-2 rounded-lg bg-white"
                 placeholder="Review URL"
-                value={platform.url}
+                value={platform.url || ""}
                 onChange={(e) =>
                   handlePlatformChange(idx, "url", e.target.value)
                 }
@@ -194,7 +194,7 @@ const ReviewPlatformsSection: React.FC<ReviewPlatformsSectionProps> = ({
                 type="number"
                 className="w-1/6 border px-3 py-2 rounded-lg bg-white"
                 placeholder="200"
-                value={platform.wordCount}
+                value={platform.wordCount || ""}
                 min={20}
                 max={1000}
                 onChange={(e) =>

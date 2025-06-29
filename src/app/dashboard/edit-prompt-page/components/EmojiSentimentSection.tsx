@@ -93,7 +93,7 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
           </label>
           <Input
             type="text"
-            value={question}
+            value={question || ""}
             onChange={(e) => onQuestionChange(e.target.value)}
             placeholder="How was your experience?"
             maxLength={80}
@@ -106,7 +106,7 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
             negative emoji):
           </label>
           <Textarea
-            value={feedbackMessage}
+            value={feedbackMessage || ""}
             onChange={(e) => onFeedbackMessageChange(e.target.value)}
             rows={2}
             maxLength={160}
@@ -117,7 +117,7 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
             Thank you message (shown after positive feedback):
           </label>
           <Textarea
-            value={thankYouMessage}
+            value={thankYouMessage || ""}
             onChange={(e) => onThankYouMessageChange(e.target.value)}
             rows={2}
             maxLength={160}

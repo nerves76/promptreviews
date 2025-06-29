@@ -65,7 +65,7 @@ const OfferSection: React.FC<OfferSectionProps> = ({
           </label>
           <Input
             type="text"
-            value={title}
+            value={title || ""}
             onChange={(e) => onTitleChange(e.target.value.slice(0, TITLE_MAX))}
             placeholder="Get 10% off your next visit"
             maxLength={TITLE_MAX}
@@ -81,7 +81,7 @@ const OfferSection: React.FC<OfferSectionProps> = ({
           </label>
           <Input
             type="text"
-            value={description}
+            value={description || ""}
             onChange={(e) =>
               onDescriptionChange(e.target.value.slice(0, DESC_MAX))
             }
@@ -99,7 +99,7 @@ const OfferSection: React.FC<OfferSectionProps> = ({
           </label>
           <Input
             type="url"
-            value={url}
+            value={url || ""}
             onChange={(e) => onUrlChange(e.target.value.slice(0, URL_MAX))}
             placeholder="https://your-website.com/offer"
             maxLength={URL_MAX}
