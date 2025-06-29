@@ -295,6 +295,9 @@ export default function BusinessProfilePage() {
     setLogoError("");
     const file = e.target.files?.[0];
     if (!file) return;
+    
+    console.log("Logo file selected:", file.name, file.size, file.type);
+    
     if (file.size > 10 * 1024 * 1024) { // 10MB
       setLogoError("Please upload an image under 10MB. Large images may fail to process.");
       return;
@@ -303,17 +306,22 @@ export default function BusinessProfilePage() {
       setLogoError("Only PNG, JPG, or WebP images are allowed.");
       return;
     }
+    
     try {
+      console.log("Starting image compression...");
       const compressedFile = await imageCompression(file, {
         maxSizeMB: 0.3, // 300KB
         maxWidthOrHeight: 400,
         useWebWorker: true,
         fileType: 'image/webp', // Always convert to webp
       });
+      console.log("Image compression successful:", compressedFile.size);
+      
       setRawLogoFile(compressedFile);
       setShowCropper(true);
       setLogoUrl(URL.createObjectURL(compressedFile));
     } catch (err) {
+      console.error("Image compression failed:", err);
       setLogoError("Failed to compress image. Please try another file.");
       return;
     }
@@ -327,16 +335,28 @@ export default function BusinessProfilePage() {
   );
 
   const handleCropConfirm = async () => {
-    if (!logoUrl || !croppedAreaPixels) return;
-    const croppedBlob = await getCroppedImg(logoUrl, croppedAreaPixels);
-    const croppedFile = new File(
-      [croppedBlob],
-      (rawLogoFile?.name?.replace(/\.[^.]+$/, '') || "logo") + ".webp",
-      { type: "image/webp" },
-    );
-    setLogoFile(croppedFile);
-    setLogoUrl(URL.createObjectURL(croppedFile));
-    setShowCropper(false);
+    if (!logoUrl || !croppedAreaPixels) {
+      console.error("Missing logoUrl or croppedAreaPixels for crop confirmation");
+      return;
+    }
+    
+    try {
+      console.log("Starting image cropping...");
+      const croppedBlob = await getCroppedImg(logoUrl, croppedAreaPixels);
+      console.log("Image cropping successful, blob size:", croppedBlob.size);
+      
+      const croppedFile = new File(
+        [croppedBlob],
+        (rawLogoFile?.name?.replace(/\.[^.]+$/, '') || "logo") + ".webp",
+        { type: "image/webp" },
+      );
+      setLogoFile(croppedFile);
+      setLogoUrl(URL.createObjectURL(croppedFile));
+      setShowCropper(false);
+    } catch (err) {
+      console.error("Image cropping failed:", err);
+      setLogoError("Failed to crop image. Please try again.");
+    }
   };
 
   const handleCropCancel = () => {
@@ -348,96 +368,125 @@ export default function BusinessProfilePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Starting form submission...");
     setLoading(true);
     setError("");
     setSuccess("");
     setLogoError("");
-    const {
-      data: { user },
-      error: userError,
-    } = await getUserOrMock(supabase);
-    if (userError || !user) {
-      setError("You must be signed in to update your business profile.");
-      setLoading(false);
-      return;
-    }
-    let uploadedLogoUrl = logoUrl;
-    if (logoFile) {
-      // Upload to Supabase Storage
-      const filePath = `${user.id}.webp`;
-      console.log("Uploading logo to:", filePath, "with file:", logoFile);
-      
-      // Use testimonial-photos bucket for local development since logos bucket doesn't exist locally
-      // In production, we have: logos, testimonial-photos, and products buckets
-      const bucketName = process.env.NODE_ENV === 'development' ? 'testimonial-photos' : 'logos';
-      const uploadPath = filePath;
-      
-      const { error: uploadError } = await supabase.storage
-        .from(bucketName)
-        .upload(uploadPath, logoFile, {
-          upsert: true,
-          contentType: "image/webp",
-        });
-      if (uploadError) {
-        console.error("Supabase upload error details:", uploadError);
-        console.error("Error message:", uploadError.message);
-        // Continue without logo upload rather than failing the entire save
-        console.warn("Logo upload failed, continuing without logo");
-        setLogoError("Failed to upload logo, but profile will be saved.");
-      } else {
-        const { data: publicUrlData } = supabase.storage
-          .from(bucketName)
-          .getPublicUrl(uploadPath);
-        console.log("Supabase publicUrlData:", publicUrlData);
-        uploadedLogoUrl = publicUrlData?.publicUrl || null;
+    
+    try {
+      const {
+        data: { user },
+        error: userError,
+      } = await getUserOrMock(supabase);
+      if (userError || !user) {
+        setError("You must be signed in to update your business profile.");
+        setLoading(false);
+        return;
       }
-    }
-    const { error: updateError } = await supabase
-      .from("businesses")
-      .update({
-        name: form.name,
-        company_values: form.company_values,
-        differentiators: form.differentiators,
-        years_in_business: form.years_in_business,
-        industries_served: form.industries_served,
-        taglines: form.taglines,
-        keywords: form.keywords,
-        team_info: form.team_info,
-        review_platforms: platforms,
-        platform_word_counts: form.platform_word_counts,
-        logo_url: uploadedLogoUrl,
-        facebook_url: form.facebook_url,
-        instagram_url: form.instagram_url,
-        bluesky_url: form.bluesky_url,
-        tiktok_url: form.tiktok_url,
-        youtube_url: form.youtube_url,
-        linkedin_url: form.linkedin_url,
-        pinterest_url: form.pinterest_url,
-        default_offer_enabled: form.default_offer_enabled,
-        default_offer_title: form.default_offer_title,
-        default_offer_body: form.default_offer_body,
-        default_offer_url: form.default_offer_url,
-        address_street: form.address_street,
-        address_city: form.address_city,
-        address_state: form.address_state,
-        address_zip: form.address_zip,
-        address_country: form.address_country,
-        phone: form.phone,
-        business_website: form.business_website,
-        offer_learn_more_url: form.offer_learn_more_url,
-        business_email: form.business_email,
-        ai_dos: form.ai_dos,
-        ai_donts: form.ai_donts,
-        services_offered: services,
-      })
-      .eq("account_id", user.id);
-    if (updateError) {
-      setError(updateError.message);
+      
+      console.log("User authenticated, proceeding with logo upload...");
+      let uploadedLogoUrl = logoUrl;
+      
+      if (logoFile) {
+        console.log("Logo file detected, starting upload process...");
+        try {
+          // Upload to Supabase Storage
+          const filePath = `${user.id}.webp`;
+          console.log("Uploading logo to:", filePath, "with file:", logoFile);
+          
+          // Use testimonial-photos bucket for local development since logos bucket doesn't exist locally
+          // In production, we have: logos, testimonial-photos, and products buckets
+          const bucketName = process.env.NODE_ENV === 'development' ? 'testimonial-photos' : 'logos';
+          const uploadPath = filePath;
+          
+          console.log("Using bucket:", bucketName);
+          
+          const { error: uploadError } = await supabase.storage
+            .from(bucketName)
+            .upload(uploadPath, logoFile, {
+              upsert: true,
+              contentType: "image/webp",
+            });
+          
+          if (uploadError) {
+            console.error("Supabase upload error details:", uploadError);
+            console.error("Error message:", uploadError.message);
+            // Continue without logo upload rather than failing the entire save
+            console.warn("Logo upload failed, continuing without logo");
+            setLogoError("Failed to upload logo, but profile will be saved.");
+          } else {
+            console.log("Logo upload successful, getting public URL...");
+            const { data: publicUrlData } = supabase.storage
+              .from(bucketName)
+              .getPublicUrl(uploadPath);
+            console.log("Supabase publicUrlData:", publicUrlData);
+            uploadedLogoUrl = publicUrlData?.publicUrl || null;
+          }
+        } catch (uploadException) {
+          console.error("Exception during logo upload:", uploadException);
+          setLogoError("Failed to upload logo, but profile will be saved.");
+        }
+      } else {
+        console.log("No logo file to upload, proceeding with profile update...");
+      }
+      
+      console.log("Updating business profile in database...");
+      const { error: updateError } = await supabase
+        .from("businesses")
+        .update({
+          name: form.name,
+          company_values: form.company_values,
+          differentiators: form.differentiators,
+          years_in_business: form.years_in_business,
+          industries_served: form.industries_served,
+          taglines: form.taglines,
+          keywords: form.keywords,
+          team_info: form.team_info,
+          review_platforms: platforms,
+          platform_word_counts: form.platform_word_counts,
+          logo_url: uploadedLogoUrl,
+          facebook_url: form.facebook_url,
+          instagram_url: form.instagram_url,
+          bluesky_url: form.bluesky_url,
+          tiktok_url: form.tiktok_url,
+          youtube_url: form.youtube_url,
+          linkedin_url: form.linkedin_url,
+          pinterest_url: form.pinterest_url,
+          default_offer_enabled: form.default_offer_enabled,
+          default_offer_title: form.default_offer_title,
+          default_offer_body: form.default_offer_body,
+          default_offer_url: form.default_offer_url,
+          address_street: form.address_street,
+          address_city: form.address_city,
+          address_state: form.address_state,
+          address_zip: form.address_zip,
+          address_country: form.address_country,
+          phone: form.phone,
+          business_website: form.business_website,
+          offer_learn_more_url: form.offer_learn_more_url,
+          business_email: form.business_email,
+          ai_dos: form.ai_dos,
+          ai_donts: form.ai_donts,
+          services_offered: services,
+        })
+        .eq("account_id", user.id);
+        
+      if (updateError) {
+        console.error("Database update error:", updateError);
+        setError(updateError.message);
+        setLoading(false);
+        return;
+      }
+      
+      console.log("Profile update successful!");
+      setSuccess("Profile updated successfully!");
       setLoading(false);
-      return;
+    } catch (error) {
+      console.error("Unexpected error during form submission:", error);
+      setError("An unexpected error occurred. Please try again.");
+      setLoading(false);
     }
-    setSuccess("Profile updated successfully!");
-    setLoading(false);
   };
 
   if (loading) {
