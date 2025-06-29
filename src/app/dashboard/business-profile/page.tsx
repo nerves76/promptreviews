@@ -197,7 +197,7 @@ export default function BusinessProfilePage() {
                       }
                     })()
                   : businessData.features_or_benefits.split("\n")
-                : [""],
+                : [],
           );
           // Initialize platforms from JSON or fallback
           let loadedPlatforms = [{ name: "", url: "", wordCount: 200 }];
