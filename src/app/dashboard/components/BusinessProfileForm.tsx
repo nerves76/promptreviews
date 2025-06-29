@@ -778,10 +778,13 @@ export default function BusinessProfileForm({
 
       {/* Social Media Section */}
       <div className="mb-16">
-        <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
+        <h2 className="mt-4 mb-2 text-2xl font-bold text-slate-blue flex items-center gap-3">
           <FaShareAlt className="w-7 h-7 text-slate-blue" />
           Social media
         </h2>
+        <div className="text-sm text-gray-600 mb-4">
+          Add social media links to your prompt pages.
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block font-semibold text-sm text-gray-500 mb-1">
