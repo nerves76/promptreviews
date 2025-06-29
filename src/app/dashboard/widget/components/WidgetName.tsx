@@ -51,7 +51,7 @@ export const WidgetName: React.FC<WidgetNameProps> = ({ widget, onSave }) => {
       <div className="flex items-center space-x-2">
         <input
           type="text"
-          value={name}
+          value={name || ""}
           onChange={(e) => setName(e.target.value)}
           onBlur={handleSave}
           onKeyDown={(e) => {

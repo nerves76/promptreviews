@@ -240,7 +240,7 @@ export default function BusinessProfileForm({
             type="text"
             name="name"
             className="w-full border px-3 py-2 rounded"
-            value={form.name}
+            value={form.name || ""}
             onChange={handleChange}
             required
           />
@@ -301,7 +301,7 @@ export default function BusinessProfileForm({
             id="address_street"
             name="address_street"
             className="w-full border px-3 py-2 rounded mb-4"
-            value={form.address_street}
+            value={form.address_street || ""}
             onChange={handleChange}
             required
             placeholder="Street address"
@@ -320,7 +320,7 @@ export default function BusinessProfileForm({
                 id="address_city"
                 name="address_city"
                 className="w-full border px-3 py-2 rounded mb-4"
-                value={form.address_city}
+                value={form.address_city || ""}
                 onChange={handleChange}
                 required
                 placeholder="City"
@@ -339,7 +339,7 @@ export default function BusinessProfileForm({
                 id="address_state"
                 name="address_state"
                 className="w-full border px-3 py-2 rounded mb-4"
-                value={form.address_state}
+                value={form.address_state || ""}
                 onChange={handleChange}
                 required
                 placeholder="State"
@@ -358,7 +358,7 @@ export default function BusinessProfileForm({
                 id="address_zip"
                 name="address_zip"
                 className="w-full border px-3 py-2 rounded mb-4"
-                value={form.address_zip}
+                value={form.address_zip || ""}
                 onChange={handleChange}
                 required
                 placeholder="ZIP"
@@ -376,7 +376,7 @@ export default function BusinessProfileForm({
             id="address_country"
             name="address_country"
             className="w-full border px-3 py-2 rounded"
-            value={form.address_country}
+            value={form.address_country || ""}
             onChange={handleChange}
             required
             placeholder="Country"
@@ -479,8 +479,9 @@ export default function BusinessProfileForm({
           <textarea
             name="company_values"
             className="w-full border px-3 py-2 rounded"
-            value={form.company_values}
+            value={form.company_values || ""}
             onChange={handleChange}
+            placeholder="e.g., Quality, Innovation, Customer Service"
           />
         </div>
         <div className="mb-4">
@@ -491,8 +492,9 @@ export default function BusinessProfileForm({
           <textarea
             name="differentiators"
             className="w-full border px-3 py-2 rounded"
-            value={form.differentiators}
+            value={form.differentiators || ""}
             onChange={handleChange}
+            placeholder="What makes your business unique?"
           />
         </div>
         <div className="mb-4">
@@ -503,10 +505,10 @@ export default function BusinessProfileForm({
           <input
             type="number"
             name="years_in_business"
-            min="0"
             className="w-full border px-3 py-2 rounded"
-            value={form.years_in_business}
+            value={form.years_in_business || ""}
             onChange={handleChange}
+            placeholder="e.g., 5"
           />
         </div>
         <div className="mb-4">
@@ -517,8 +519,9 @@ export default function BusinessProfileForm({
           <textarea
             name="taglines"
             className="w-full border px-3 py-2 rounded"
-            value={form.taglines}
+            value={form.taglines || ""}
             onChange={handleChange}
+            placeholder="e.g., 'Quality you can trust'"
           />
         </div>
         <div className="mb-4">
@@ -551,7 +554,7 @@ export default function BusinessProfileForm({
             className="w-full border px-3 py-2 rounded"
             value={form.ai_dos || ""}
             onChange={handleChange}
-            placeholder="Always refer to us as 'Prompt Reviews'. Always mention our 24/7 support."
+            placeholder="e.g., Mention our 24/7 customer support, Highlight our eco-friendly practices"
           />
         </div>
         <div className="mb-4">
@@ -564,7 +567,7 @@ export default function BusinessProfileForm({
             className="w-full border px-3 py-2 rounded"
             value={form.ai_donts || ""}
             onChange={handleChange}
-            placeholder="Never call us 'PromptReviewz'. Never mention pricing."
+            placeholder="e.g., Don't mention our old location, Don't mention discontinued products"
           />
         </div>
       </div>
@@ -591,7 +594,7 @@ export default function BusinessProfileForm({
             <div key={idx} className="flex gap-2 items-center">
               <select
                 className="w-1/3 border px-3 py-2 rounded-lg bg-white"
-                value={platform.name}
+                value={platform.name || ""}
                 onChange={(e) =>
                   handlePlatformChange(idx, "name", e.target.value)
                 }
@@ -618,7 +621,7 @@ export default function BusinessProfileForm({
                 <input
                   type="text"
                   className="w-1/3 border px-3 py-2 rounded-lg bg-white"
-                  placeholder="Enter platform name"
+                  placeholder="Custom platform name"
                   value={platform.customPlatform || ""}
                   onChange={(e) =>
                     handlePlatformChange(idx, "customPlatform", e.target.value)
@@ -629,7 +632,7 @@ export default function BusinessProfileForm({
                 type="url"
                 className="w-1/2 border px-3 py-2 rounded-lg bg-white"
                 placeholder="Review URL"
-                value={platform.url}
+                value={platform.url || ""}
                 onChange={(e) =>
                   handlePlatformChange(idx, "url", e.target.value)
                 }
@@ -638,7 +641,7 @@ export default function BusinessProfileForm({
                 type="number"
                 className="w-1/6 border px-3 py-2 rounded-lg bg-white"
                 placeholder="Word Count"
-                value={platform.wordCount}
+                value={platform.wordCount || ""}
                 onChange={(e) =>
                   handlePlatformChange(idx, "wordCount", e.target.value)
                 }
@@ -771,7 +774,7 @@ export default function BusinessProfileForm({
               type="url"
               name="facebook_url"
               className="w-full border px-3 py-2 rounded-lg bg-white focus:ring-2 focus:ring-indigo-300"
-              value={form.facebook_url}
+              value={form.facebook_url || ""}
               onChange={handleChange}
               placeholder="https://facebook.com/yourbusiness"
             />
@@ -784,7 +787,7 @@ export default function BusinessProfileForm({
               type="url"
               name="instagram_url"
               className="w-full border px-3 py-2 rounded-lg bg-white focus:ring-2 focus:ring-indigo-300"
-              value={form.instagram_url}
+              value={form.instagram_url || ""}
               onChange={handleChange}
               placeholder="https://instagram.com/yourbusiness"
             />
@@ -797,7 +800,7 @@ export default function BusinessProfileForm({
               type="url"
               name="bluesky_url"
               className="w-full border px-3 py-2 rounded-lg bg-white focus:ring-2 focus:ring-indigo-300"
-              value={form.bluesky_url}
+              value={form.bluesky_url || ""}
               onChange={handleChange}
               placeholder="https://bsky.app/profile/yourbusiness"
             />
@@ -810,7 +813,7 @@ export default function BusinessProfileForm({
               type="url"
               name="tiktok_url"
               className="w-full border px-3 py-2 rounded-lg bg-white focus:ring-2 focus:ring-indigo-300"
-              value={form.tiktok_url}
+              value={form.tiktok_url || ""}
               onChange={handleChange}
               placeholder="https://tiktok.com/@yourbusiness"
             />
@@ -823,7 +826,7 @@ export default function BusinessProfileForm({
               type="url"
               name="youtube_url"
               className="w-full border px-3 py-2 rounded-lg bg-white focus:ring-2 focus:ring-indigo-300"
-              value={form.youtube_url}
+              value={form.youtube_url || ""}
               onChange={handleChange}
               placeholder="https://youtube.com/@yourbusiness"
             />
@@ -836,7 +839,7 @@ export default function BusinessProfileForm({
               type="url"
               name="linkedin_url"
               className="w-full border px-3 py-2 rounded-lg bg-white focus:ring-2 focus:ring-indigo-300"
-              value={form.linkedin_url}
+              value={form.linkedin_url || ""}
               onChange={handleChange}
               placeholder="https://linkedin.com/company/yourbusiness"
             />
@@ -849,7 +852,7 @@ export default function BusinessProfileForm({
               type="url"
               name="pinterest_url"
               className="w-full border px-3 py-2 rounded-lg bg-white focus:ring-2 focus:ring-indigo-300"
-              value={form.pinterest_url}
+              value={form.pinterest_url || ""}
               onChange={handleChange}
               placeholder="https://pinterest.com/yourbusiness"
             />
