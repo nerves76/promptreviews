@@ -391,14 +391,12 @@ export default function BusinessProfilePage() {
       if (logoFile) {
         console.log("Logo file detected, starting upload process...");
         try {
-          // Log environment and bucket name for debugging
-          console.log("NODE_ENV:", process.env.NODE_ENV);
-          const bucketName = process.env.NODE_ENV === 'development' ? 'testimonial-photos' : 'logos';
-          console.log("Using bucket:", bucketName);
-          // If the bucket is not found, skip upload and show a clear error
-          const filePath = `${user.id}.webp`;
+          // Always use the 'logos' bucket and store in 'business-logos/{user.id}.webp' for consistency
+          const bucketName = 'logos';
+          const filePath = `business-logos/${user.id}.webp`;
           const uploadPath = filePath;
-          
+          console.log("Uploading logo to:", bucketName, uploadPath, "with file:", logoFile);
+          // If the bucket is not found, skip upload and show a clear error
           const { error: uploadError } = await supabase.storage
             .from(bucketName)
             .upload(uploadPath, logoFile, {
