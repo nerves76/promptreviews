@@ -156,8 +156,8 @@ export default function Header() {
           <div className="flex items-center">
             <div className="flex-shrink-0 flex items-center mr-6">
               <Link href="/dashboard" className="flex items-center">
-                <span className="h-14 w-auto flex items-center p-1" aria-label="PromptReviews Logo">
-                  <PromptReviewsLogo />
+                <span className="h-16 w-auto flex items-center p-1" aria-label="PromptReviews Logo">
+                  <PromptReviewsLogo size={80} />
                 </span>
               </Link>
             </div>
