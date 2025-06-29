@@ -15,6 +15,67 @@ A modern, customizable review widget system built with Next.js, TypeScript, and 
 - 📈 **Google Analytics 4 integration**
 - ⏰ **Automatic trial reminder system**
 
+## 🚨 Emergency Database Restoration
+
+If the database has been compromised or deleted, use these emergency procedures:
+
+### Quick Assessment
+```bash
+# Check current database status
+npm run db:assess
+```
+
+### Full Restoration (Recommended)
+```bash
+# Complete restoration process: assess → restore → verify
+npm run db:full-restore
+```
+
+### Manual Steps
+```bash
+# 1. Assess damage
+npm run db:assess
+
+# 2. Execute restoration
+npm run db:restore
+
+# 3. Verify integrity
+npm run db:verify
+```
+
+### Available Restoration Resources
+- ✅ **Complete Schema:** `restore_complete_schema.sql` (407 lines)
+- ✅ **Migration History:** 60+ sequential migration files  
+- ✅ **Documentation:** Complete table structure in `databaseschema.md`
+- ✅ **Toolkit:** Automated restoration with `database-restoration-toolkit.js`
+
+For detailed restoration procedures, see [DATABASE_RESTORATION_PLAN.md](DATABASE_RESTORATION_PLAN.md).
+
+## 🛡️ Agent Safety & Code Protection
+
+This project includes comprehensive safety systems to prevent destructive operations:
+
+### **Automated Safety Tools**
+```bash
+# Run safety audits
+npm run safety:full-audit      # Complete system safety check
+npm run safety:check-files     # Validate file integrity
+npm run safety:check-config    # Check configuration safety
+
+# Install Git hooks for automatic protection
+./install-git-hooks.sh
+```
+
+### **AI Agent Guidelines**
+- **[AGENT_SAFETY_GUIDELINES.md](AGENT_SAFETY_GUIDELINES.md)** - Mandatory safety protocols for AI agents
+- **[CODE_PROTECTION_SYSTEM.md](CODE_PROTECTION_SYSTEM.md)** - Comprehensive protection system documentation
+
+### **Automatic Protections**
+- ✅ **Git Pre-commit Hooks** - Block dangerous operations before commits
+- ✅ **Safety Validation** - Automated checks for destructive commands
+- ✅ **Critical File Protection** - Prevent accidental deletion of essential files
+- ✅ **Database Operation Validation** - Block unsafe SQL operations
+
 ## Quick Start
 
 1. Clone the repository

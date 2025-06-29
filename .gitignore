@@ -37,3 +37,28 @@ next-env.d.ts
 .env*
 
 test-supabase-service-role.js
+
+# Supabase
+.branches
+.temp
+.vscode
+
+# IMPORTANT: DO NOT IGNORE THESE SAFETY-CRITICAL FILES
+# These files are essential for code protection and database restoration
+# !CODE_PROTECTION_SYSTEM.md
+# !DATABASE_RESTORATION_PLAN.md
+# !database-restoration-toolkit.js
+# !code-safety-validator.js
+# !restore_complete_schema.sql
+
+# Temporary backup files (but keep the originals)
+*.backup
+*.temp
+*.tmp
+
+# Log files
+*.log
+
+# OS generated files
+Thumbs.db
+ehthumbs.db

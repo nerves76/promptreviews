@@ -16,7 +16,12 @@
     "db:restore": "node database-restoration-toolkit.js --restore",
     "db:verify": "node database-restoration-toolkit.js --verify",
     "db:full-restore": "node database-restoration-toolkit.js --full",
-    "db:test-connection": "node test-db-connection.js"
+    "db:test-connection": "node test-db-connection.js",
+    "safety:check-files": "node code-safety-validator.js --check-files",
+    "safety:check-config": "node code-safety-validator.js --check-config",
+    "safety:check-command": "node code-safety-validator.js --check-command",
+    "safety:full-audit": "node code-safety-validator.js --full-check",
+    "safety:validate-sql": "node code-safety-validator.js --check-db"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.3",
