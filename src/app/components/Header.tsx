@@ -156,8 +156,8 @@ export default function Header() {
           <div className="flex items-center">
             <div className="flex-shrink-0 flex items-center mr-6">
               <Link href="/dashboard" className="flex items-center">
-                <span className="h-16 w-auto flex items-center p-1" aria-label="PromptReviews Logo">
-                  <PromptReviewsLogo size={80} />
+                <span className="h-20 w-auto flex items-center p-1" aria-label="PromptReviews Logo">
+                  <PromptReviewsLogo size={96} />
                 </span>
               </Link>
             </div>
@@ -169,7 +169,7 @@ export default function Header() {
                   isActive("/dashboard")
                     ? "border-slate-blue text-slate-blue"
                     : "border-transparent text-slate-blue hover:border-slate-blue/30 hover:text-slate-blue"
-                } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16`}
+                } inline-flex items-center px-1 pt-1 border-b-4 text-sm font-medium transition-colors duration-200 h-16`}
               >
                 Dashboard
               </Link>
@@ -189,7 +189,7 @@ export default function Header() {
                         : hasBusiness 
                           ? "border-transparent text-slate-blue hover:border-slate-blue/30 hover:text-slate-blue"
                           : "border-transparent text-gray-400 cursor-not-allowed"
-                    } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16 relative group`}
+                    } inline-flex items-center px-1 pt-1 border-b-4 text-sm font-medium transition-colors duration-200 h-16 relative group`}
                     title={!hasBusiness ? "Create your business profile first" : ""}
                   >
                     Prompt pages
@@ -213,7 +213,7 @@ export default function Header() {
                         : hasBusiness 
                           ? "border-transparent text-slate-blue hover:border-slate-blue/30 hover:text-slate-blue"
                           : "border-transparent text-gray-400 cursor-not-allowed"
-                    } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16 relative group`}
+                    } inline-flex items-center px-1 pt-1 border-b-4 text-sm font-medium transition-colors duration-200 h-16 relative group`}
                     title={!hasBusiness ? "Create your business profile first" : ""}
                   >
                     Your business
@@ -237,7 +237,7 @@ export default function Header() {
                         : hasBusiness 
                           ? "border-transparent text-slate-blue hover:border-slate-blue/30 hover:text-slate-blue"
                           : "border-transparent text-gray-400 cursor-not-allowed"
-                    } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16 relative group`}
+                    } inline-flex items-center px-1 pt-1 border-b-4 text-sm font-medium transition-colors duration-200 h-16 relative group`}
                     title={!hasBusiness ? "Create your business profile first" : ""}
                   >
                     Your reviews
@@ -261,7 +261,7 @@ export default function Header() {
                         : hasBusiness 
                           ? "border-transparent text-slate-blue hover:border-slate-blue/30 hover:text-slate-blue"
                           : "border-transparent text-gray-400 cursor-not-allowed"
-                    } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16 relative group`}
+                    } inline-flex items-center px-1 pt-1 border-b-4 text-sm font-medium transition-colors duration-200 h-16 relative group`}
                     title={!hasBusiness ? "Create your business profile first" : ""}
                   >
                     Widgets
