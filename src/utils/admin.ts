@@ -32,7 +32,7 @@ export async function isAdmin(userId?: string, supabaseClient?: any): Promise<bo
 
     console.log('isAdmin: Checking admin status for user ID:', userToCheck);
     
-    // Simple, direct query without complex error handling
+    // Query admins table - account_id column stores user IDs
     const { data: admin, error } = await client
       .from('admins')
       .select('id')

@@ -1,129 +1,148 @@
 /**
- * TrialBanner Component
- * 
- * Displays a countdown banner for users in their free trial period.
- * Positioned above the navigation to be less intrusive than a fixed overlay.
+ * Trial Banner Component
+ * Displays trial information and remaining time for users on trial plans
  */
 
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { createBrowserClient } from '@supabase/ssr';
-import { getUserOrMock } from '../../utils/supabase';
+"use client";
+
+import { useState, useEffect } from "react";
 
 interface TrialBannerProps {
-  isAdmin?: boolean;
-  showForTesting?: boolean;
+  trialEnd?: Date;
+  plan?: string;
+  accountData?: any; // Add accountData prop
 }
 
-export default function TrialBanner({ isAdmin = false, showForTesting = false }: TrialBannerProps) {
-  const [showBanner, setShowBanner] = useState(false);
-  const [trialDaysLeft, setTrialDaysLeft] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [isClient, setIsClient] = useState(false);
+export default function TrialBanner({ 
+  trialEnd: propTrialEnd, 
+  plan: propPlan, 
+  accountData 
+}: TrialBannerProps = {}) {
+  const [timeRemaining, setTimeRemaining] = useState<string>("");
+  const [isVisible, setIsVisible] = useState(true);
+  const [trialEnd, setTrialEnd] = useState<Date | null>(propTrialEnd || null);
+  const [plan, setPlan] = useState<string>(propPlan || "");
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  );
-
-  // Ensure we're on the client side before accessing browser APIs
+  // Use accountData if provided, otherwise use props
   useEffect(() => {
-    setIsClient(true);
-  }, []);
+    if (accountData) {
+      console.log("TrialBanner: Using accountData from props:", accountData);
+      if (accountData.trial_end) {
+        setTrialEnd(new Date(accountData.trial_end));
+      }
+      if (accountData.plan) {
+        setPlan(accountData.plan);
+      }
+    } else if (propTrialEnd && propPlan) {
+      console.log("TrialBanner: Using trial end and plan from props");
+      setTrialEnd(propTrialEnd);
+      setPlan(propPlan);
+    } else {
+      console.log("TrialBanner: No account data provided");
+    }
+  }, [accountData, propTrialEnd, propPlan]);
 
+  // Calculate time remaining
   useEffect(() => {
-    if (!isClient) return; // Don't run until we're on the client
-
-    if (showForTesting) {
-      setShowBanner(true);
-      setTrialDaysLeft(7); // Show 7 days for testing
-      setLoading(false);
+    if (!trialEnd) {
+      console.log("TrialBanner: No trial end date, skipping time calculation");
       return;
     }
 
-    const fetchTrialStatus = async () => {
-      try {
-        const { data: { user } } = await getUserOrMock(supabase);
-        if (!user) {
-          setShowBanner(false);
-          setLoading(false);
-          return;
-        }
+    const updateTimeRemaining = () => {
+      const now = new Date();
+      const timeDiff = trialEnd.getTime() - now.getTime();
+      
+      if (timeDiff <= 0) {
+        setTimeRemaining("Trial expired");
+        return;
+      }
 
-        const { data: accountData } = await supabase
-          .from("accounts")
-          .select("plan, trial_start, trial_end, has_had_paid_plan")
-          .eq("id", user.id)
-          .single();
-
-        if (
-          accountData &&
-          accountData.plan === "grower" &&
-          accountData.trial_end &&
-          new Date(accountData.trial_end) > new Date() &&
-          accountData.has_had_paid_plan === false
-        ) {
-          // Check if user has dismissed the banner
-          const hideBanner = sessionStorage.getItem("hideTrialBanner") === "1";
-          if (hideBanner) {
-            setShowBanner(false);
-          } else {
-            setShowBanner(true);
-          }
-          
-          const now = new Date();
-          const end = new Date(accountData.trial_end);
-          const daysLeft = Math.ceil(
-            (end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
-          );
-          setTrialDaysLeft(daysLeft);
-        } else {
-          setShowBanner(false);
-        }
-      } catch (error) {
-        console.error('Error fetching trial status:', error);
-        setShowBanner(false);
-      } finally {
-        setLoading(false);
+      const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+      
+      if (days > 0) {
+        setTimeRemaining(`${days} day${days !== 1 ? 's' : ''} remaining`);
+      } else {
+        setTimeRemaining("Less than 1 day remaining");
       }
     };
 
-    fetchTrialStatus();
-  }, [supabase, showForTesting, isClient]);
+    updateTimeRemaining();
+    const interval = setInterval(updateTimeRemaining, 60000); // Update every minute
 
-  const handleDismissBanner = () => {
-    setShowBanner(false);
-    if (isClient) {
-      sessionStorage.setItem("hideTrialBanner", "1");
+    return () => clearInterval(interval);
+  }, [trialEnd]);
+
+  // Check if banner should be shown
+  const shouldShow = () => {
+    // Check if user dismissed the banner
+    const hideBanner = sessionStorage.getItem('hideTrialBanner');
+    console.log("TrialBanner: Checked sessionStorage, hideBanner:", hideBanner);
+    
+    if (hideBanner === 'true') {
+      return false;
     }
+
+    // Show for users with no plan (null) or users on trial plans
+    const trialPlans = ['grower', 'builder', 'maven'];
+    if (plan && !trialPlans.includes(plan)) {
+      return false;
+    }
+
+    // Show if trial hasn't expired
+    if (trialEnd && new Date() < trialEnd) {
+      return true;
+    }
+
+    return false;
   };
 
-  // Don't render anything until we're on the client to prevent hydration mismatch
-  if (!isClient || loading || !showBanner) {
+  const handleDismiss = () => {
+    setIsVisible(false);
+    sessionStorage.setItem('hideTrialBanner', 'true');
+  };
+
+  console.log("TrialBanner: Render conditions:", {
+    isVisible,
+    trialEnd: !!trialEnd,
+    plan: !!plan,
+    timeRemaining,
+    shouldShow: shouldShow(),
+    accountData: !!accountData,
+    propTrialEnd: !!propTrialEnd,
+    propPlan: !!propPlan
+  });
+
+  if (!isVisible || !shouldShow()) {
+    console.log("TrialBanner: Not showing banner");
     return null;
   }
 
   return (
-    <div className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 text-yellow-900 px-4 py-3 shadow-md">
-      <div className="max-w-7xl mx-auto flex items-center justify-center gap-4">
-        <div className="flex items-center gap-2">
-          <span className="font-semibold">🎉 You're in a free trial:</span>
-          <span className="font-bold text-lg">
-            {trialDaysLeft} day{trialDaysLeft !== 1 ? "s" : ""} left
-          </span>
+    <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-4 relative">
+      <div className="flex items-center justify-between max-w-7xl mx-auto">
+        <div className="flex items-center space-x-3">
+          <div className="flex-shrink-0">
+            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <div>
+            <p className="font-medium">
+              🎉 You're on a {plan || 'free'} trial! {timeRemaining}
+            </p>
+            <p className="text-sm opacity-90">
+              {plan ? 'Upgrade anytime to unlock all features and continue growing your business' : 'Choose a plan to unlock all features and continue growing your business'}
+            </p>
+          </div>
         </div>
-        <Link
-          href="/dashboard/plan"
-          className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold px-4 py-2 rounded-lg transition-colors shadow-sm"
-        >
-          Upgrade Now
-        </Link>
         <button
-          onClick={handleDismissBanner}
-          className="text-yellow-800 hover:text-yellow-900 text-xl font-bold ml-2"
-          aria-label="Dismiss trial banner"
+          onClick={handleDismiss}
+          className="flex-shrink-0 text-white hover:text-gray-200 transition-colors"
         >
-          ×
+          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+          </svg>
         </button>
       </div>
     </div>

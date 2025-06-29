@@ -68,7 +68,7 @@ const FallingStarsSection: React.FC<FallingStarsSectionProps> = ({
           <button
             onClick={onToggle}
             className={`ml-4 relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 mt-1 ${
-              enabled ? "bg-slate-600" : "bg-gray-200"
+              enabled ? "bg-slate-blue" : "bg-gray-200"
             }`}
           >
             <span
@@ -96,7 +96,7 @@ const FallingStarsSection: React.FC<FallingStarsSectionProps> = ({
                 e.preventDefault();
                 setIsModalOpen(true);
               }}
-              className="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2"
+              className="px-4 py-2 text-sm font-medium text-slate-blue bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2"
             >
               More Icons
             </button>

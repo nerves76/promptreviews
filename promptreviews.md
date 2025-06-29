@@ -8,6 +8,188 @@ It's main function is to create landing pages "prompt pages" that account holder
 
 This project is currently focused on developing a standalone widget for collecting reviews. The widget is being developed as a vanilla JavaScript component first, before being integrated into the larger Next.js application.
 
+## Recent Updates (Latest)
+
+### JWT Signature Issues & Authentication Fixes
+- **Fixed JWT Signature Errors**: Resolved persistent JWT signature errors in `/api/create-account` endpoint by switching from anon key to service key
+- **Fixed Auth Session Missing**: Users now get proper sessions after signup in local development with auto-signin feature
+- **Fixed Admin API Errors**: Resolved 400 Bad Request errors in admin status checking by correcting column name usage
+- **Updated Auth Guard**: Fixed admin status checking in auth guard to use correct database column names
+- **Improved Error Handling**: Added comprehensive error handling and logging for authentication flows
+
+### User Onboarding Flow Improvements
+- **Fixed Welcome Popup Logic**: Welcome popup now only shows on the create-business page for new users, not on the dashboard
+- **Fixed Business Creation Redirect**: Business creation now properly redirects to dashboard after successful creation
+- **Fixed Plan Selection Modal**: Pricing modal now automatically shows for new users who have created a business but haven't selected a plan yet
+- **Added Starfall Celebration**: New users see a celebratory starfall animation after selecting their plan
+- **Enhanced User Experience**: Complete end-to-end flow from signup to full dashboard access
+
+### Complete User Flow
+1. **Sign Up**: User creates account with email/password
+2. **Auto-Signin**: In local development, user is automatically signed in after account creation
+3. **Create Business**: User lands on create-business page with welcome popup
+4. **Dashboard Redirect**: After business creation, user is redirected to dashboard
+5. **Plan Selection**: Pricing modal automatically appears for new users
+6. **Celebration**: Starfall animation plays after plan selection
+7. **Full Access**: User can now access all dashboard features
+
+### Technical Improvements
+- **Service Key Usage**: API endpoints now use Supabase service key for privileged operations
+- **Database Consistency**: Fixed column name mismatches between code and database schema
+- **Error Logging**: Enhanced logging for debugging authentication and database issues
+- **Session Management**: Improved session handling across the application
+- **RLS Policies**: Proper Row Level Security policies for multi-user account system
+
+## Signup Flow & Multi-User Architecture
+
+### Complete Signup Process
+
+The signup flow is designed to support both single-user accounts and future multi-user/multi-business functionality. Here's the complete process:
+
+#### 1. **User Registration** (`/auth/sign-up`)
+- User enters email, password, first name, and last name
+- Frontend validates input and calls Supabase Auth to create user
+- On successful registration, user is automatically signed in (local development)
+- Frontend calls `/api/create-account` to create account record
+
+#### 2. **Account Creation** (`/api/create-account`)
+- **Purpose**: Creates the account record and account_users relationship
+- **Service Key Usage**: Uses Supabase service key to bypass RLS for privileged operations
+- **Data Structure**: Creates account with proper UUID references to `auth.users(id)`
+- **Multi-User Ready**: Sets up account_users record with 'owner' role for future multi-user support
+
+#### 3. **Auth Callback** (`/auth/callback`)
+- **Purpose**: Handles OAuth redirects and ensures account exists
+- **Account Check**: Verifies account exists, creates if missing
+- **Error Handling**: Gracefully handles JWT signature errors and missing accounts
+- **Service Key Usage**: Uses service key for all database operations
+
+#### 4. **Business Creation** (`/dashboard/create-business`)
+- **Welcome Popup**: Shows welcome message for new users
+- **Business Form**: User creates their first business profile
+- **Account Linking**: Business is linked to user's account via `account_id`
+- **Redirect**: After creation, user is redirected to dashboard
+
+#### 5. **Plan Selection**
+- **Automatic Trigger**: Pricing modal appears for new users who haven't selected a plan
+- **Plan Assignment**: User selects plan (grower, starter, etc.)
+- **Celebration**: Starfall animation plays after plan selection
+- **Account Update**: Plan information is saved to accounts table
+
+### Database Architecture for Multi-User/Multi-Business Support
+
+#### **Accounts Table**
+```sql
+- id (UUID, PK, references auth.users(id)): Primary key, also foreign key to auth.users
+- user_id (UUID): The user who created the account (for initial ownership)
+- email, first_name, last_name: User information
+- plan, trial_start, trial_end: Subscription and trial information
+- has_seen_welcome, business_name: User experience flags
+- stripe_customer_id, stripe_subscription_id: Payment integration
+- created_at, updated_at: Timestamps
+```
+
+#### **Account_Users Table** (Multi-User Support)
+```sql
+- id (UUID, PK): Primary key
+- account_id (UUID, FK): References accounts(id)
+- user_id (UUID, FK): References auth.users(id)
+- role (TEXT): 'owner', 'member', 'admin', etc.
+- created_at, updated_at: Timestamps
+```
+
+#### **Businesses Table** (Multi-Business Support)
+```sql
+- id (UUID, PK): Primary key
+- account_id (UUID, FK): References accounts(id) - enables multiple businesses per account
+- name, description, website: Business information
+- created_at, updated_at: Timestamps
+```
+
+### Key Technical Implementation Details
+
+#### **JWT Signature Error Resolution**
+- **Problem**: Local Supabase development had JWT signature mismatches
+- **Solution**: Use service key for all API operations instead of anon key
+- **Implementation**: All `/api/*` routes use `createServerClient` with service key
+- **Benefits**: Bypasses RLS for privileged operations, ensures consistent authentication
+
+#### **Session Management**
+- **Auto-Signin**: In local development, users are automatically signed in after registration
+- **Session Persistence**: Proper session handling across page refreshes and redirects
+- **Error Recovery**: Graceful handling of session expiration and JWT errors
+
+#### **RLS (Row Level Security) Policies**
+- **Accounts**: Users can only access their own account records
+- **Account_Users**: Users can only access account_users records for accounts they belong to
+- **Businesses**: Users can only access businesses linked to their account
+- **Multi-User Ready**: Policies support future role-based access control
+
+#### **Error Handling & Logging**
+- **Comprehensive Logging**: All API endpoints include detailed error logging
+- **Graceful Degradation**: System continues to function even if some operations fail
+- **User Feedback**: Clear error messages and loading states for better UX
+
+### Future Multi-User/Multi-Business Features
+
+The current architecture is designed to support:
+
+#### **Multiple Users Per Account**
+- Account owners can invite team members
+- Role-based permissions (owner, admin, member)
+- Shared access to businesses and prompt pages
+- Team collaboration features
+
+#### **Multiple Businesses Per Account**
+- Users can create and manage multiple business profiles
+- Each business can have its own prompt pages and widgets
+- Business-specific settings and branding
+- Cross-business analytics and reporting
+
+#### **Account Management**
+- Account-level billing and subscription management
+- User invitation and removal workflows
+- Account settings and preferences
+- Audit logs for account activities
+
+### Testing the Signup Flow
+
+#### **Manual Testing**
+1. Visit `/auth/sign-up`
+2. Create account with valid email/password
+3. Verify automatic redirect to create-business page
+4. Create business profile
+5. Verify redirect to dashboard
+6. Confirm plan selection modal appears
+7. Select plan and verify starfall animation
+
+#### **Automated Testing**
+- Test scripts available for end-to-end signup flow verification
+- Database cleanup scripts for testing
+- Admin tools for user management and cleanup
+
+### Common Issues & Solutions
+
+#### **JWT Signature Errors**
+- **Symptom**: "JWSError JWSInvalidSignature" in logs
+- **Cause**: Mismatch between environment variables and Supabase configuration
+- **Solution**: Ensure consistent use of service key in API routes
+
+#### **Auth Session Missing**
+- **Symptom**: "AuthSessionMissingError" after signup
+- **Cause**: Session not properly established or expired
+- **Solution**: Check auth callback and session handling logic
+
+#### **Business Creation Failures**
+- **Symptom**: Business creation returns 500 error
+- **Cause**: RLS policies or foreign key constraints
+- **Solution**: Verify account_id linking and RLS policy configuration
+
+#### **Plan Selection Not Showing**
+- **Symptom**: Pricing modal doesn't appear for new users
+- **Cause**: Logic checking for plan selection status
+- **Solution**: Verify plan selection detection logic in dashboard
+
 ## Development Strategy
 
 ### Phase 1: Widget Development (Current)
@@ -125,6 +307,24 @@ node test-admin-delete.js <test-email>
 ```
 
 This will create a test user with sample data, delete them using the admin API, and verify complete cleanup.
+
+## Testing & Development Tools
+
+### Test Scripts
+- **Signup Flow Testing**: `test-signup-flow.js` - Tests complete user signup, account creation, and business creation flow
+- **Admin Delete Testing**: `test-admin-delete.js` - Tests admin user deletion functionality
+- **Database Connection**: Various scripts for testing database connectivity and schema
+
+### Development Environment
+- **Local Supabase**: Running on port 54321 with local database
+- **Next.js Dev Server**: Running on port 3001
+- **Environment Variables**: Configured for local development with service keys
+
+### Common Issues & Solutions
+- **JWT Signature Errors**: Use service key instead of anon key for API operations
+- **Auth Session Missing**: Ensure proper signin flow and session management
+- **Admin API 400 Errors**: Check column names match database schema
+- **Business Creation Issues**: Verify RLS policies and foreign key constraints
 
 ---
 
@@ -498,7 +698,7 @@ const mergedReviewPlatforms = universalPage.reviewPlatforms?.length
 - **Simplified Interface:** Shows only the selected icon with blue border (no grid of default icons)
 - **"More Icons" Button:** Opens a modal with 50+ icons organized by category
 - **Prompty Integration:** Full-height Prompty image positioned flush with module edges
-- **Consistent Styling:** All icons use slate blue color (`text-slate-600`) for brand consistency
+- **Consistent Styling:** All icons use slate blue color (`text-slate-blue`) for brand consistency
 - **Better Layout:** Toggle positioned further from heading, proper spacing and typography
 - **Category Organization:** Icons organized into 8 categories for easy browsing:
   - **Nature & Weather:** Rainbows, Suns, Moons, Clouds, Snowflakes, Fire, Trees, Leaves, Flowers

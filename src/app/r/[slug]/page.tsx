@@ -906,7 +906,7 @@ export default function PromptPage() {
   const mergedOfferTitle =
     promptPage?.offer_title ||
     businessProfile?.default_offer_title ||
-    "Review Rewards";
+    "Special offer";
   const mergedOfferBody =
     promptPage?.offer_body || businessProfile?.default_offer_body || "";
   const mergedOfferUrl =

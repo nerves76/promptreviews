@@ -12,7 +12,7 @@
  * - Interactive robot icon with tooltip
  */
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { FaRobot } from 'react-icons/fa';
 
 interface WelcomePopupProps {
@@ -37,6 +37,28 @@ export default function WelcomePopup({
   onButtonClick 
 }: WelcomePopupProps) {
   const [showTooltip, setShowTooltip] = useState(false);
+  const tooltipRef = useRef<HTMLDivElement>(null);
+  const iconRef = useRef<HTMLButtonElement>(null);
+
+  // Handle click outside to close tooltip
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        showTooltip &&
+        tooltipRef.current &&
+        !tooltipRef.current.contains(event.target as Node) &&
+        iconRef.current &&
+        !iconRef.current.contains(event.target as Node)
+      ) {
+        setShowTooltip(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showTooltip]);
 
   if (!isOpen) return null;
 
@@ -52,6 +74,7 @@ export default function WelcomePopup({
                 {partIndex < arr.length - 1 && (
                   <span className="relative inline-block align-middle">
                     <button
+                      ref={iconRef}
                       onClick={() => setShowTooltip(!showTooltip)}
                       className="inline-block align-middle text-slate-blue hover:text-indigo-600 focus:outline-none"
                       aria-label="Click for AI tip"
@@ -61,12 +84,15 @@ export default function WelcomePopup({
                       <FaRobot className="inline w-5 h-5 align-middle cursor-pointer" />
                     </button>
                     {showTooltip && (
-                      <div className="absolute z-30 left-1/2 -translate-x-1/2 mt-2 w-80 p-4 bg-white border border-gray-200 rounded-lg shadow-lg text-sm text-gray-700">
+                      <div 
+                        ref={tooltipRef}
+                        className="absolute z-30 left-1/2 -translate-x-1/2 bottom-full mb-2 w-80 p-4 bg-white border border-gray-200 rounded-lg shadow-lg text-sm text-gray-700"
+                      >
                         <span className="block mb-2 font-semibold">You did it! </span>
                         <span className="block mb-2">
                           When you see me <FaRobot className="inline w-5 h-5 text-slate-blue align-middle" /> next to an input it means I can use this info to help you create review templates for your customers and clients. And if you click it you'll see a helpful tip. (But don't worry, using Prompty AI is optional.)
                         </span>
-                        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1 w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent border-b-gray-200"></div>
+                        <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-200"></div>
                       </div>
                     )}
                   </span>

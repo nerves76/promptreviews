@@ -26,6 +26,7 @@ import {
 import { getUserOrMock } from "@/utils/supabase";
 import QRCodeModal from "../components/QRCodeModal";
 import QuoteDisplay from "../components/QuoteDisplay";
+import GettingStarted from "../components/GettingStarted";
 import { useRouter } from "next/navigation";
 import AppLoader from "@/app/components/AppLoader";
 import React from "react";
@@ -54,6 +55,10 @@ interface DashboardContentProps {
     total: { week: number; month: number; year: number };
     verified: { week: number; month: number; year: number };
   };
+  // GettingStarted props
+  hasBusiness: boolean;
+  hasCustomPromptPages: boolean;
+  hasUniversalPromptPage: boolean;
 }
 
 interface PromptPage {
@@ -103,6 +108,9 @@ export default function DashboardContent({
   account,
   parentLoading,
   reviewStats,
+  hasBusiness,
+  hasCustomPromptPages,
+  hasUniversalPromptPage,
 }: DashboardContentProps) {
   console.log("DASHBOARD RENDERED");
   useAuthGuard();
@@ -464,12 +472,12 @@ export default function DashboardContent({
   return (
     <>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-12 w-full gap-2 relative">
-        <h1 className="text-4xl font-bold flex items-center gap-3 text-slate-blue pl-1.5 pt-2">
+        <h1 className="text-4xl font-bold flex items-center gap-3 text-slate-blue pt-2">
           Dashboard
         </h1>
       </div>
       {/* Existing welcome section (standard design) */}
-      <div className="mb-16">
+      <div className="mb-8">
         <h2 className="text-2xl font-bold text-slate-blue">
           Welcome, {userName}!
         </h2>
@@ -478,6 +486,17 @@ export default function DashboardContent({
           reviews to grow your business.
         </p>
       </div>
+
+      {/* Getting Started Checklist */}
+      <GettingStarted 
+        hasBusiness={hasBusiness}
+        hasCustomPromptPages={hasCustomPromptPages}
+        hasUniversalPromptPage={hasUniversalPromptPage}
+        onComplete={() => {
+          // Optional: Handle completion if needed
+          console.log("Getting Started checklist completed!");
+        }}
+      />
 
       {/* Review Stats Section (standard section style) */}
       <div className="mb-16">

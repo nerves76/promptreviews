@@ -856,3 +856,260 @@ This page provides a slider to adjust widget width and test the responsive behav
 - [Widget Dashboard](WIDGET_DASHBOARD_DOCUMENTATION.md) - Dashboard widget management interface
 - [Troubleshooting](TROUBLESHOOTING_DOCUMENTATION.md) - Common issues and solutions
 - [User Documentation](USER_DOCUMENTATION.md) - End-user guide and features 
+
+# PromptReviews - Local Development Setup
+
+## Current Status
+
+This project is transitioning from a production Supabase instance to a local Supabase instance for development. The application is a Next.js-based review management system with Supabase as the backend.
+
+## Environment Configuration
+
+### .env.local File
+- **Status**: ✅ Correctly configured
+- **Local Supabase URL**: `http://127.0.0.1:54321`
+- **Local Supabase Anon Key**: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0`
+- **Local Supabase Service Key**: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU`
+- **Verification**: Values match `supabase status` output
+- **Loading**: Server loads `.env.local` on startup (confirmed by logs: `Reload env: .env.local`)
+
+### Server Environment
+- **Next.js Server**: Running on port 3001
+- **Environment Loading**: ✅ Server loads `.env.local` correctly
+- **Cache Management**: `.next` build cache cleared after environment changes
+- **Restart Protocol**: Server fully stopped and restarted after every environment change
+
+## Supabase Local Instance
+
+### Status
+- **Running**: ✅ Supabase is running locally
+- **API URL**: `http://127.0.0.1:54321` (accessible)
+- **Studio URL**: `http://127.0.0.1:54323` (accessible)
+- **Database**: PostgreSQL running on port 54322
+
+### Database State
+- **Migrations**: All migrations applied successfully
+- **Schema**: Complete schema with all tables created
+- **Users**: Currently empty (after recent reset)
+- **Accounts**: Currently empty (after recent reset)
+
+## Known Issues & Troubleshooting
+
+### 1. JWT Signature Error
+**Error**: `JWSError JWSInvalidSignature` when calling `/api/create-account`
+
+**Root Cause**: JWT token being sent to Supabase does not match the expected signature for the local instance.
+
+**Possible Causes**:
+- User logged in with a JWT from a different Supabase instance (e.g., production)
+- Browser session contains stale authentication data
+- JWT token format mismatch between local and production instances
+
+**Troubleshooting Steps**:
+1. Clear browser storage and cache completely
+2. Sign out from any existing sessions
+3. Clear localStorage and sessionStorage
+4. Try in incognito/private browsing mode
+5. Verify no cached authentication tokens exist
+
+### 2. Browser/Cache Issues
+**Status**: ✅ Tested across multiple browsers
+- **Safari**: Tested
+- **Chrome**: Tested
+- **Incognito Mode**: Tested
+- **Cache Clearing**: Completed
+
+**Result**: Error persists across browsers, confirming it's not a browser cache issue.
+
+### 3. Test/Debug Files
+**Status**: ✅ Cleaned up
+- All test scripts deleted
+- Sentry test page removed
+- No hardcoded test data remains
+- No `"test-user-123"` references in codebase
+
+### 4. Frontend Code
+**Status**: ✅ Correctly configured
+- Sign-up form uses correct user ID from Supabase Auth
+- No hardcoded user IDs
+- API calls use proper authentication flow
+
+## Current Database State
+
+### Users Table
+- **Location**: `auth.users` (Supabase Auth schema)
+- **Current State**: Empty (after recent reset)
+- **Expected**: Should contain users after successful sign-up
+
+### Accounts Table
+- **Location**: `public.accounts`
+- **Current State**: Empty (after recent reset)
+- **Expected**: Should contain account records after successful sign-up
+
+### Account Users Table
+- **Location**: `public.account_users`
+- **Purpose**: Links users to accounts
+- **Current State**: Empty (after recent reset)
+
+## Next Steps
+
+### Immediate Actions Required
+1. **Clear All Authentication State**
+   - Sign out from any existing sessions
+   - Clear browser storage completely
+   - Restart browser
+
+2. **Test Sign-up Flow**
+   - Attempt to create a new user account
+   - Monitor for JWT signature errors
+   - Check if user appears in `auth.users` table
+
+3. **Verify Database State**
+   - Check if user is created in `auth.users`
+   - Check if account is created in `public.accounts`
+   - Check if user-account link is created in `public.account_users`
+
+### If JWT Error Persists
+1. **Check Supabase Configuration**
+   - Verify JWT secret in `supabase/config.toml`
+   - Consider regenerating local Supabase instance
+   - Check for any custom JWT configuration
+
+2. **Alternative Approaches**
+   - Use different browser profile
+   - Test with fresh Supabase instance
+   - Verify no environment variable conflicts
+
+## Development Commands
+
+### Start Local Development
+```bash
+# Start Supabase
+supabase start
+
+# Start Next.js server
+npm run dev
+
+# Check Supabase status
+supabase status
+```
+
+### Database Management
+```bash
+# Reset database (applies all migrations)
+supabase db reset
+
+# Check database schema
+supabase db diff
+
+# View logs
+supabase logs
+```
+
+### Environment Verification
+```bash
+# Check environment variables
+cat .env.local
+
+# Verify Supabase keys match
+supabase status
+```
+
+## Architecture Overview
+
+### Authentication Flow
+1. User signs up via Supabase Auth
+2. User record created in `auth.users`
+3. Account created in `public.accounts`
+4. User linked to account in `public.account_users`
+5. JWT token issued for authenticated requests
+
+### API Endpoints
+- `/api/create-account`: Creates account and links user
+- `/api/auth/*`: Supabase Auth endpoints
+- `/api/widgets/*`: Widget management endpoints
+
+### Database Schema
+- **auth.users**: Supabase Auth user records
+- **public.accounts**: Business accounts
+- **public.account_users**: User-account relationships
+- **public.businesses**: Business profiles
+- **public.contacts**: Contact management
+- **public.review_submissions**: Review data
+
+## Troubleshooting Checklist
+
+- [ ] Supabase running locally
+- [ ] Environment variables correct
+- [ ] Server restarted after env changes
+- [ ] Browser cache cleared
+- [ ] No test data in codebase
+- [ ] Database reset and migrations applied
+- [ ] JWT signature error resolved
+- [ ] User creation working
+- [ ] Account creation working
+- [ ] User-account linking working
+
+## Support
+
+For issues related to:
+- **Supabase**: Check [Supabase Documentation](https://supabase.com/docs)
+- **Next.js**: Check [Next.js Documentation](https://nextjs.org/docs)
+- **Local Development**: Refer to troubleshooting steps above
+
+---
+
+**Last Updated**: January 2025
+**Environment**: Local Development
+**Status**: JWT Signature Error - Under Investigation 
+
+# Automated Signup & Business Creation Testing
+
+## Primary Test Script: `test-signup-quick.js`
+
+This script is the **official and only supported tool** for end-to-end testing of the signup and business creation flow. It simulates a real user by:
+- Creating a user via Supabase Auth
+- Creating an account via the `/api/create-account` endpoint
+- Retrieving the correct `account_id` for the user
+- Creating a business via the `/api/businesses` endpoint (not a direct DB insert)
+- Verifying the business was created in the database
+
+**Usage:**
+```bash
+node test-signup-quick.js
+```
+
+- The script prints a summary with all relevant IDs and emails for easy reference and cleanup.
+- If any step fails, the script will exit with an error and log details for debugging.
+
+**Best Practices:**
+- Run this script after making changes to the signup or business creation flow to ensure everything works as expected.
+- Use the cleanup script below to remove test data after testing.
+
+---
+
+## Test Data Cleanup: `cleanup-test-data.js`
+
+This script removes test data created by the test script. It can clean up specific test data or all test data based on patterns.
+
+**Usage:**
+```bash
+node cleanup-test-data.js
+```
+
+- By default, it will remove all test users, accounts, and businesses matching the test patterns (e.g., emails starting with `test-`).
+- You can also pass a specific email to clean up a single test user and their data.
+
+**Best Practices:**
+- Always run this script after running tests to keep your development and test environments clean.
+- Review the script before running in production environments.
+
+---
+
+## Deprecated Test Scripts
+
+All previous test scripts for signup, account, or business creation have been deleted. Only use the scripts above for testing these flows.
+
+---
+
+*Last updated: 2025-06-29* 

@@ -146,8 +146,10 @@ export default function SimpleBusinessForm({
 
       setSuccess("Business created successfully! Redirecting to dashboard...");
       
+      console.log("Business created successfully, calling onSuccess callback");
       // Call the success callback
       onSuccess();
+      console.log("onSuccess callback completed");
 
     } catch (err) {
       console.error("Error creating business:", err);
