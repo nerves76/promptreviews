@@ -435,7 +435,7 @@ export default function BusinessProfileForm({
       <div className="mb-8">
         <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
           <FaList className="w-7 h-7 text-slate-blue" />
-          Services
+          Services or Offerings
           <RobotTooltip text="Made available for AI prompt generation." />
         </h2>
         <div className="space-y-2">

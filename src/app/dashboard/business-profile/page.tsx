@@ -428,6 +428,7 @@ export default function BusinessProfilePage() {
         business_email: form.business_email,
         ai_dos: form.ai_dos,
         ai_donts: form.ai_donts,
+        services_offered: services,
       })
       .eq("account_id", user.id);
     if (updateError) {
