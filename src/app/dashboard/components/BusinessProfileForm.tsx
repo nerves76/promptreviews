@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FaImage, FaBuilding, FaList, FaStar, FaGift, FaShareAlt, FaInfoCircle } from "react-icons/fa";
+import { FaImage, FaBuilding, FaList, FaStar, FaGift, FaShareAlt, FaInfoCircle, FaTrash } from "react-icons/fa";
 import Cropper from "react-easy-crop";
 import IndustrySelector from "../../components/IndustrySelector";
 import RobotTooltip from "../../components/RobotTooltip";
@@ -438,35 +438,45 @@ export default function BusinessProfileForm({
           Services or Offerings
           <RobotTooltip text="Made available for AI prompt generation." />
         </h2>
-        <div className="space-y-2">
-          {services.map((service, idx) => (
-            <div key={idx} className="flex items-center gap-2">
-              <input
-                type="text"
-                className="w-full border px-3 py-2 rounded"
-                value={service || ""}
-                onChange={(e) => handleServiceChange(idx, e.target.value)}
-                placeholder="e.g., Web Design"
-              />
-              {services.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => removeService(idx)}
-                  className="text-red-600 font-bold"
-                >
-                  &times;
-                </button>
-              )}
-            </div>
-          ))}
+        {/* Only show input fields if there are services, otherwise show just the button */}
+        {services.length === 0 ? (
           <button
             type="button"
-            onClick={addService}
-            className="text-blue-600 underline mt-2"
+            className="inline-flex items-center px-4 py-2 border border-slate-blue text-slate-blue rounded hover:bg-slate-blue hover:text-white transition-colors font-semibold"
+            onClick={() => setServices([""])}
           >
-            + Add Service
+            + Add a Service or Offering
           </button>
-        </div>
+        ) : (
+          <div className="space-y-4">
+            {services.map((service, idx) => (
+              <div key={idx} className="flex items-center gap-2">
+                <input
+                  type="text"
+                  className="w-full border px-3 py-2 rounded"
+                  value={service || ""}
+                  onChange={e => handleServiceChange(idx, e.target.value)}
+                  placeholder="e.g., Web Design"
+                />
+                <button
+                  type="button"
+                  className="text-red-500 hover:text-red-700 px-2"
+                  onClick={() => removeService(idx)}
+                  aria-label="Remove service"
+                >
+                  <FaTrash />
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              className="inline-flex items-center px-4 py-2 border border-slate-blue text-slate-blue rounded hover:bg-slate-blue hover:text-white transition-colors font-semibold mt-2"
+              onClick={() => setServices([...services, ""])}
+            >
+              + Add a Service or Offering
+            </button>
+          </div>
+        )}
       </div>
 
       {/* What Makes Your Business Unique Section */}
