@@ -391,16 +391,13 @@ export default function BusinessProfilePage() {
       if (logoFile) {
         console.log("Logo file detected, starting upload process...");
         try {
-          // Upload to Supabase Storage
-          const filePath = `${user.id}.webp`;
-          console.log("Uploading logo to:", filePath, "with file:", logoFile);
-          
-          // Use testimonial-photos bucket for local development since logos bucket doesn't exist locally
-          // In production, we have: logos, testimonial-photos, and products buckets
+          // Log environment and bucket name for debugging
+          console.log("NODE_ENV:", process.env.NODE_ENV);
           const bucketName = process.env.NODE_ENV === 'development' ? 'testimonial-photos' : 'logos';
-          const uploadPath = filePath;
-          
           console.log("Using bucket:", bucketName);
+          // If the bucket is not found, skip upload and show a clear error
+          const filePath = `${user.id}.webp`;
+          const uploadPath = filePath;
           
           const { error: uploadError } = await supabase.storage
             .from(bucketName)
@@ -410,11 +407,16 @@ export default function BusinessProfilePage() {
             });
           
           if (uploadError) {
-            console.error("Supabase upload error details:", uploadError);
-            console.error("Error message:", uploadError.message);
+            if (uploadError.message && uploadError.message.includes("Bucket not found")) {
+              setLogoError("Logo upload failed: Storage bucket not found in this environment. Please create the bucket or contact support. Profile will be saved without a logo.");
+              console.error("Supabase upload error: Bucket not found. Skipping logo upload.");
+            } else {
+              setLogoError("Failed to upload logo, but profile will be saved.");
+              console.error("Supabase upload error details:", uploadError);
+              console.error("Error message:", uploadError.message);
+            }
             // Continue without logo upload rather than failing the entire save
-            console.warn("Logo upload failed, continuing without logo");
-            setLogoError("Failed to upload logo, but profile will be saved.");
+            uploadedLogoUrl = logoUrl;
           } else {
             console.log("Logo upload successful, getting public URL...");
             const { data: publicUrlData } = supabase.storage
