@@ -199,7 +199,7 @@ export default function BusinessProfileForm({
                   min={1}
                   max={3}
                   step={0.01}
-                  value={zoom}
+                  value={zoom || 1}
                   onChange={(e) => setZoom(Number(e.target.value))}
                   className="w-full"
                 />
@@ -440,7 +440,7 @@ export default function BusinessProfileForm({
               <input
                 type="text"
                 className="w-full border px-3 py-2 rounded"
-                value={service}
+                value={service || ""}
                 onChange={(e) => handleServiceChange(idx, e.target.value)}
                 placeholder="e.g., Web Design"
               />
