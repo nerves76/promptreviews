@@ -588,7 +588,7 @@ export default function BusinessProfileForm({
 
       {/* Review Platforms Section */}
       <div className="mb-16">
-        <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
+        <h2 className="mt-4 mb-2 text-2xl font-bold text-slate-blue flex items-center gap-3">
           <FaStar className="w-7 h-7 text-slate-blue" />
           Review platforms
         </h2>
