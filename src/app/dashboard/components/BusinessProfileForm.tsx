@@ -146,12 +146,16 @@ export default function BusinessProfileForm({
           Logo
         </h2>
         <div className="mb-10 flex flex-col md:flex-row items-center gap-10">
-          {logoUrl && (
+          {logoUrl && logoUrl.trim() !== "" ? (
             <img
               src={logoUrl}
               alt="Business Logo"
               className="rounded-full max-h-32 max-w-32 object-contain border shadow"
             />
+          ) : (
+            <div className="rounded-full max-h-32 max-w-32 w-32 h-32 flex items-center justify-center border shadow bg-gray-50 text-slate-blue text-5xl">
+              <FaImage />
+            </div>
           )}
           <div className="flex-1 w-full max-w-[700px]">
             <label className="block font-bold text-lg text-gray-900 mb-1">
