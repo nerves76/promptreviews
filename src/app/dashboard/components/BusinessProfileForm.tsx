@@ -592,6 +592,9 @@ export default function BusinessProfileForm({
           <FaStar className="w-7 h-7 text-slate-blue" />
           Review platforms
         </h2>
+        <div className="text-sm text-gray-600 mb-4">
+          Get reviews where it matters most. Set up your review platforms here, and they will be made available for any Prompt Page.
+        </div>
         <div className="space-y-4">
           <div className="flex gap-2 items-center mb-2">
             <span className="w-1/3 text-xs font-semibold text-gray-500">
