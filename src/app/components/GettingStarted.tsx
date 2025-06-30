@@ -9,7 +9,7 @@
 import React, { useState, useEffect } from "react";
 import { FaCheck, FaBusinessTime, FaPalette, FaCog, FaPlus, FaShare } from "react-icons/fa";
 import Link from "next/link";
-import { fetchOnboardingTasks, markTaskAsCompleted, markTaskAsIncomplete, initializeDefaultTasks } from "@/utils/onboardingTasks";
+import { fetchOnboardingTasks, markTaskAsCompleted, markTaskAsIncomplete } from "@/utils/onboardingTasks";
 
 interface GettingStartedProps {
   onComplete?: () => void;
@@ -39,11 +39,32 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
   const [isVisible, setIsVisible] = useState(true);
   const [loading, setLoading] = useState(true);
 
-  // Initialize default tasks for new users
+  // Initialize default tasks for new users via API
   useEffect(() => {
-    if (userId) {
-      initializeDefaultTasks(userId).catch(console.error);
-    }
+    const initializeTasks = async () => {
+      if (!userId) return;
+
+      try {
+        const response = await fetch('/api/initialize-onboarding-tasks', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error('Error initializing default tasks:', errorData);
+        } else {
+          const result = await response.json();
+          console.log('Default tasks initialized:', result);
+        }
+      } catch (error) {
+        console.error('Error calling initialize-onboarding-tasks API:', error);
+      }
+    };
+
+    initializeTasks();
   }, [userId]);
 
   // Fetch task completion status from database
