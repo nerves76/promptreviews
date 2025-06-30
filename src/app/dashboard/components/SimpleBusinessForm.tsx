@@ -48,6 +48,76 @@ function RobotTooltip({ text }: { text: string }) {
   );
 }
 
+// Add the mapToDbColumns function from CreatePromptPageClient
+function mapToDbColumns(formData: any): any {
+  const insertData: any = { ...formData };
+  insertData["emoji_sentiment_enabled"] = formData.emojiSentimentEnabled;
+  insertData["emoji_sentiment_question"] = formData.emojiSentimentQuestion;
+  insertData["emoji_feedback_message"] = formData.emojiFeedbackMessage;
+  insertData["emoji_thank_you_message"] = formData.emojiThankYouMessage || "";
+  insertData["ai_button_enabled"] = formData.aiButtonEnabled ?? true;
+  insertData["falling_icon"] = formData.fallingIcon;
+  // Remove camelCase keys
+  delete insertData.emojiSentimentEnabled;
+  delete insertData.emojiSentimentQuestion;
+  delete insertData.emojiFeedbackMessage;
+  delete insertData.emojiThankYouMessage;
+  delete insertData.aiButtonEnabled;
+  delete insertData.fallingEnabled;
+  delete insertData.fallingIcon;
+  delete insertData.emojiLabels;
+  // Filter to only allowed DB columns
+  const allowedColumns = [
+    "id",
+    "account_id",
+    "slug",
+    "client_name",
+    "location",
+    "project_type",
+    "services_offered",
+    "outcomes",
+    "date_completed",
+    "assigned_team_members",
+    "review_platforms",
+    "qr_code_url",
+    "created_at",
+    "is_universal",
+    "team_member",
+    "first_name",
+    "last_name",
+    "phone",
+    "email",
+    "offer_enabled",
+    "offer_title",
+    "offer_body",
+    "category",
+    "friendly_note",
+    "offer_url",
+    "status",
+    "role",
+    "falling_icon",
+    "review_type",
+    "no_platform_review_template",
+    "video_max_length",
+    "video_quality",
+    "video_preset",
+    "video_questions",
+    "video_note",
+    "video_tips",
+    "video_recipient",
+    "emoji_sentiment_enabled",
+    "emoji_sentiment_question",
+    "emoji_feedback_message",
+    "emoji_thank_you_message",
+    "ai_button_enabled",
+    "product_description",
+    "features_or_benefits",
+  ];
+  return Object.fromEntries(
+    Object.entries(insertData).filter(([k]) => allowedColumns.includes(k)),
+  );
+}
+
 export default function SimpleBusinessForm({
   user,
   accountId,
@@ -172,14 +242,24 @@ export default function SimpleBusinessForm({
           services_offered: form.services_offered || null,
         };
 
+        console.log("Universal prompt page data before mapping:", universalPromptPageData);
+        const mappedData = mapToDbColumns(universalPromptPageData);
+        console.log("Universal prompt page data after mapping:", mappedData);
+
         const { data: universalPage, error: universalError } = await supabase
           .from("prompt_pages")
-          .insert([universalPromptPageData])
+          .insert([mappedData])
           .select()
           .single();
 
         if (universalError) {
           console.error("Universal prompt page creation error:", universalError);
+          console.error("Error details:", {
+            code: universalError.code,
+            message: universalError.message,
+            details: universalError.details,
+            hint: universalError.hint
+          });
           // Don't fail the entire process if universal page creation fails
           console.warn("Universal prompt page creation failed, but business was created successfully");
         } else {
@@ -187,6 +267,10 @@ export default function SimpleBusinessForm({
         }
       } catch (universalErr) {
         console.error("Error creating universal prompt page:", universalErr);
+        console.error("Error details:", {
+          message: universalErr instanceof Error ? universalErr.message : 'Unknown error',
+          stack: universalErr instanceof Error ? universalErr.stack : undefined
+        });
         // Don't fail the entire process if universal page creation fails
         console.warn("Universal prompt page creation failed, but business was created successfully");
       }
