@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { createBrowserClient } from "@supabase/ssr";
 import SimpleMarketingNav from "@/app/components/SimpleMarketingNav";
@@ -16,6 +16,32 @@ export default function SignUpPage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [message, setMessage] = useState("");
+  const [debugInfo, setDebugInfo] = useState("");
+
+  // Add debugging for Chrome compatibility
+  useEffect(() => {
+    console.log('🔍 SignUpPage mounted');
+    console.log('🌐 User Agent:', navigator.userAgent);
+    console.log('🌐 Browser:', getBrowserInfo());
+    
+    // Check if we're in Chrome
+    const isChrome = /Chrome/.test(navigator.userAgent) && !/Edge/.test(navigator.userAgent);
+    console.log('🌐 Is Chrome:', isChrome);
+    
+    if (isChrome) {
+      console.log('🔧 Chrome-specific debugging enabled');
+      setDebugInfo(`Chrome detected: ${navigator.userAgent}`);
+    }
+  }, []);
+
+  const getBrowserInfo = () => {
+    const ua = navigator.userAgent;
+    if (ua.includes('Chrome') && !ua.includes('Edge')) return 'Chrome';
+    if (ua.includes('Safari') && !ua.includes('Chrome')) return 'Safari';
+    if (ua.includes('Firefox')) return 'Firefox';
+    if (ua.includes('Edge')) return 'Edge';
+    return 'Unknown';
+  };
 
   const errorMessages: Record<string, string> = {
     "User already registered":
@@ -78,18 +104,67 @@ export default function SignUpPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Prevent double submission
+    if (loading) {
+      console.log('🚫 Form submission blocked - already loading');
+      return;
+    }
+    
+    console.log('🚀 Form submission started');
+    console.log('📝 Form data before validation:', { 
+      firstName: firstName.length, 
+      lastName: lastName.length, 
+      email: email.length, 
+      password: password.length 
+    });
+    
     setLoading(true);
     setError("");
 
-    if (!firstName || !lastName || !email || !password) {
-      setError("All fields are required");
+    // Enhanced validation with better error messages
+    if (!firstName.trim()) {
+      setError("First name is required");
+      setLoading(false);
+      return;
+    }
+    
+    if (!lastName.trim()) {
+      setError("Last name is required");
+      setLoading(false);
+      return;
+    }
+    
+    if (!email.trim()) {
+      setError("Email is required");
+      setLoading(false);
+      return;
+    }
+    
+    if (!password.trim()) {
+      setError("Password is required");
+      setLoading(false);
+      return;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError("Please enter a valid email address");
+      setLoading(false);
+      return;
+    }
+
+    // Password validation
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
       setLoading(false);
       return;
     }
 
     try {
       console.log('🚀 Starting sign-up process...');
-      console.log('📝 Form data:', { firstName, lastName, email, password: '***' });
+      console.log('📝 Form data after validation:', { firstName, lastName, email, password: '***' });
       
       // Always use the current origin for email redirects
       // This works because both localhost:3001 and app.promptreviews.app are in additional_redirect_urls
@@ -99,6 +174,12 @@ export default function SignUpPage() {
       console.log('Current origin:', window.location.origin);
 
       console.log('📧 Calling Supabase auth.signUp...');
+      
+      // Add error handling for Supabase client
+      if (!supabase) {
+        throw new Error('Supabase client not initialized');
+      }
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -111,11 +192,36 @@ export default function SignUpPage() {
         },
       });
 
-      console.log('📧 Supabase auth.signUp response:', { data, error });
+      console.log('📧 Supabase auth.signUp response:', { 
+        data: data ? { 
+          user: data.user ? { 
+            id: data.user.id, 
+            email: data.user.email,
+            email_confirmed_at: data.user.email_confirmed_at
+          } : null,
+          session: !!data.session
+        } : null, 
+        error 
+      });
 
       if (error) {
         console.error('❌ Sign-up error:', error);
-        setError(error.message);
+        
+        // Enhanced error handling for Chrome
+        let errorMessage = error.message;
+        
+        // Map specific error messages
+        if (error.message.includes('User already registered')) {
+          errorMessage = errorMessages["User already registered"];
+        } else if (error.message.includes('Password should be at least 6 characters')) {
+          errorMessage = errorMessages["Password should be at least 6 characters"];
+        } else if (error.message.includes('Email is not valid')) {
+          errorMessage = errorMessages["Email is not valid"];
+        } else if (error.message.includes('Rate limit exceeded')) {
+          errorMessage = errorMessages["Rate limit exceeded"];
+        }
+        
+        setError(errorMessage);
         setLoading(false);
         return;
       } else if (data.user) {
@@ -205,14 +311,33 @@ export default function SignUpPage() {
         
         // Track sign up event
         console.log('📊 Tracking sign up event...');
-        trackSignUp('email');
+        try {
+          trackSignUp('email');
+        } catch (trackError) {
+          console.error('❌ Error tracking sign up:', trackError);
+          // Don't fail the sign-up process if tracking fails
+        }
       } else {
         console.log('⚠️ No user data returned from sign-up');
         setError('Sign-up completed but no user data returned. Please check your email for confirmation.');
       }
     } catch (err) {
       console.error("❌ Unexpected error:", err);
-      setError("Failed to create account. Please try again.");
+      
+      // Enhanced error handling for Chrome
+      let errorMessage = "Failed to create account. Please try again.";
+      
+      if (err instanceof Error) {
+        if (err.message.includes('NetworkError') || err.message.includes('fetch')) {
+          errorMessage = "Network error. Please check your connection and try again.";
+        } else if (err.message.includes('timeout')) {
+          errorMessage = "Request timed out. Please try again.";
+        } else {
+          errorMessage = err.message;
+        }
+      }
+      
+      setError(errorMessage);
     } finally {
       console.log('🏁 Sign-up process completed, setting loading to false');
       setLoading(false);
@@ -270,6 +395,7 @@ export default function SignUpPage() {
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
               autoComplete="given-name"
+              disabled={loading}
             />
           </div>
           <div>
@@ -281,6 +407,7 @@ export default function SignUpPage() {
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
               autoComplete="family-name"
+              disabled={loading}
             />
           </div>
           <div>
@@ -292,6 +419,7 @@ export default function SignUpPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               autoComplete="email"
+              disabled={loading}
             />
           </div>
           <div>
@@ -303,10 +431,11 @@ export default function SignUpPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete="new-password"
+              disabled={loading}
             />
           </div>
           {error && (
-            <div className="text-red-600">
+            <div className="text-red-600 bg-red-50 p-3 rounded border border-red-200">
               {error}
               {error === errorMessages["User already registered"] && (
                 <>
@@ -321,9 +450,37 @@ export default function SignUpPage() {
               )}
             </div>
           )}
+          {debugInfo && (
+            <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
+              Debug: {debugInfo}
+            </div>
+          )}
+          
+          {/* Debug button for Chrome testing */}
+          <button
+            type="button"
+            onClick={() => {
+              console.log('🔍 Debug button clicked');
+              console.log('📝 Current form state:', {
+                firstName,
+                lastName,
+                email,
+                password: password.length,
+                loading,
+                error
+              });
+              console.log('🔧 Supabase client:', !!supabase);
+              console.log('🌐 Window location:', window.location.href);
+              console.log('🌐 User agent:', navigator.userAgent);
+            }}
+            className="w-full py-2 bg-gray-200 text-gray-700 rounded font-semibold hover:bg-gray-300 text-sm"
+          >
+            Debug Form State (Chrome Test)
+          </button>
+          
           <button
             type="submit"
-            className="w-full py-3 bg-slate-blue text-white rounded font-semibold hover:bg-indigo-900"
+            className="w-full py-3 bg-slate-blue text-white rounded font-semibold hover:bg-indigo-900 disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={loading}
           >
             {loading ? "Signing up..." : "Sign Up"}
