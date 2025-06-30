@@ -12,6 +12,7 @@ import { FaBuilding, FaRobot } from "react-icons/fa";
 import IndustrySelector from "@/app/components/IndustrySelector";
 import { supabase } from "@/utils/supabaseClient";
 import { useRouter } from "next/navigation";
+import { slugify } from "@/utils/slugify";
 
 interface SimpleBusinessFormProps {
   user: any;
@@ -145,6 +146,50 @@ export default function SimpleBusinessForm({
       }
 
       setSuccess("Business created successfully! Redirecting to dashboard...");
+      
+      // Create universal prompt page
+      try {
+        console.log("Creating universal prompt page...");
+        const universalSlug = slugify("universal", Date.now().toString(36));
+        
+        const universalPromptPageData = {
+          account_id: accountId,
+          slug: universalSlug,
+          is_universal: true,
+          status: "draft",
+          review_type: "service",
+          offer_enabled: false,
+          offer_title: "",
+          offer_body: "",
+          offer_url: "",
+          emoji_sentiment_enabled: false,
+          emoji_sentiment_question: "How was your experience?",
+          emoji_feedback_message: "We value your feedback! Let us know how we can do better.",
+          emoji_thank_you_message: "Thank you for your feedback!",
+          ai_button_enabled: true,
+          falling_icon: "star",
+          review_platforms: [],
+          services_offered: form.services_offered || null,
+        };
+
+        const { data: universalPage, error: universalError } = await supabase
+          .from("prompt_pages")
+          .insert([universalPromptPageData])
+          .select()
+          .single();
+
+        if (universalError) {
+          console.error("Universal prompt page creation error:", universalError);
+          // Don't fail the entire process if universal page creation fails
+          console.warn("Universal prompt page creation failed, but business was created successfully");
+        } else {
+          console.log("Universal prompt page created successfully:", universalPage);
+        }
+      } catch (universalErr) {
+        console.error("Error creating universal prompt page:", universalErr);
+        // Don't fail the entire process if universal page creation fails
+        console.warn("Universal prompt page creation failed, but business was created successfully");
+      }
       
       console.log("Business created successfully, calling onSuccess callback");
       // Call the success callback
