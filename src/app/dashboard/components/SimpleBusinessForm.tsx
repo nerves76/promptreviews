@@ -66,7 +66,7 @@ function mapToDbColumns(formData: any): any {
   delete insertData.fallingEnabled;
   delete insertData.fallingIcon;
   delete insertData.emojiLabels;
-  // Filter to only allowed DB columns
+  // Filter to only allowed DB columns - updated with all required columns
   const allowedColumns = [
     "id",
     "account_id",
@@ -112,6 +112,10 @@ function mapToDbColumns(formData: any): any {
     "ai_button_enabled",
     "product_description",
     "features_or_benefits",
+    "product_name",
+    "product_photo",
+    "product_subcopy",
+    "show_friendly_note"
   ];
   return Object.fromEntries(
     Object.entries(insertData).filter(([k]) => allowedColumns.includes(k)),
@@ -245,6 +249,35 @@ export default function SimpleBusinessForm({
           falling_icon: "star",
           review_platforms: [],
           services_offered: form.services_offered || null,
+          product_name: "",
+          product_description: "",
+          product_photo: "",
+          product_subcopy: "",
+          features_or_benefits: [],
+          show_friendly_note: true,
+          friendly_note: "",
+          first_name: "",
+          last_name: "",
+          phone: "",
+          email: "",
+          role: "",
+          category: "",
+          client_name: "",
+          location: "",
+          project_type: "",
+          outcomes: "",
+          date_completed: null,
+          assigned_team_members: "",
+          qr_code_url: "",
+          team_member: null,
+          no_platform_review_template: "",
+          video_max_length: null,
+          video_quality: "",
+          video_preset: "",
+          video_questions: [],
+          video_note: "",
+          video_tips: "",
+          video_recipient: ""
         };
 
         console.log("Universal prompt page data before mapping:", universalPromptPageData);
@@ -263,7 +296,12 @@ export default function SimpleBusinessForm({
             code: universalError.code,
             message: universalError.message,
             details: universalError.details,
-            hint: universalError.hint
+            hint: universalError.hint,
+            // Add more detailed error information
+            fullError: JSON.stringify(universalError, null, 2),
+            errorType: typeof universalError,
+            errorKeys: Object.keys(universalError || {}),
+            errorString: String(universalError)
           });
           // Don't fail the entire process if universal page creation fails
           console.warn("Universal prompt page creation failed, but business was created successfully");
@@ -274,7 +312,12 @@ export default function SimpleBusinessForm({
         console.error("Error creating universal prompt page:", universalErr);
         console.error("Error details:", {
           message: universalErr instanceof Error ? universalErr.message : 'Unknown error',
-          stack: universalErr instanceof Error ? universalErr.stack : undefined
+          stack: universalErr instanceof Error ? universalErr.stack : undefined,
+          // Add more detailed error information
+          fullError: JSON.stringify(universalErr, null, 2),
+          errorType: typeof universalErr,
+          errorKeys: Object.keys(universalErr || {}),
+          errorString: String(universalErr)
         });
         // Don't fail the entire process if universal page creation fails
         console.warn("Universal prompt page creation failed, but business was created successfully");
