@@ -47,7 +47,7 @@ export default function Header() {
   const menuRef = useRef<HTMLDivElement>(null);
   
   const { isAdminUser, isLoading: adminLoading } = useAdmin();
-  const { hasBusiness, loading: businessLoading } = useBusinessProfile();
+  const { hasBusiness, loading: businessLoading, refresh: refreshBusinessProfile } = useBusinessProfile();
 
   useEffect(() => {
     const getUser = async () => {
@@ -148,6 +148,23 @@ export default function Header() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showNotifications]);
+
+  // Listen for plan selection events to refresh business profile
+  useEffect(() => {
+    const handlePlanSelection = () => {
+      console.log("Header: Plan selection detected, refreshing business profile");
+      refreshBusinessProfile();
+    };
+
+    // Listen for custom events that indicate plan selection
+    window.addEventListener('planSelected', handlePlanSelection);
+    window.addEventListener('businessCreated', handlePlanSelection);
+
+    return () => {
+      window.removeEventListener('planSelected', handlePlanSelection);
+      window.removeEventListener('businessCreated', handlePlanSelection);
+    };
+  }, [refreshBusinessProfile]);
 
   return (
     <header className="bg-white shadow">

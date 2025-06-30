@@ -85,15 +85,37 @@ export default function TrialBanner({
 
     // Show for users with no plan (null) or users on trial plans
     const trialPlans = ['grower', 'builder', 'maven'];
-    if (plan && !trialPlans.includes(plan)) {
-      return false;
+    
+    // If we have account data, use it
+    if (accountData) {
+      console.log("TrialBanner: Using accountData for plan check:", accountData.plan);
+      
+      // Show for users with no plan or on trial plans
+      if (!accountData.plan || trialPlans.includes(accountData.plan)) {
+        // Check if trial hasn't expired
+        if (accountData.trial_end && new Date() < new Date(accountData.trial_end)) {
+          console.log("TrialBanner: Trial is active, showing banner");
+          return true;
+        }
+        
+        // For grower plan without trial dates, show banner (they might be in trial)
+        if (accountData.plan === 'grower' && !accountData.trial_end) {
+          console.log("TrialBanner: Grower plan without trial dates, showing banner");
+          return true;
+        }
+      }
+    } else if (plan && trialPlans.includes(plan)) {
+      // Fallback to props if no account data
+      console.log("TrialBanner: Using plan prop for trial check:", plan);
+      
+      // Show if trial hasn't expired
+      if (trialEnd && new Date() < trialEnd) {
+        console.log("TrialBanner: Trial is active (from props), showing banner");
+        return true;
+      }
     }
 
-    // Show if trial hasn't expired
-    if (trialEnd && new Date() < trialEnd) {
-      return true;
-    }
-
+    console.log("TrialBanner: Not showing banner - conditions not met");
     return false;
   };
 

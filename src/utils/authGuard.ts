@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/utils/supabaseClient";
 import { getUserOrMock } from "@/utils/supabase";
@@ -161,10 +161,16 @@ export function useAuthGuard(options: AuthGuardOptions = {}): AuthGuardResult {
 export function useBusinessProfile() {
   const [hasBusiness, setHasBusiness] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  const refresh = useCallback(() => {
+    setRefreshTrigger(prev => prev + 1);
+  }, []);
 
   useEffect(() => {
     const checkBusinessProfile = async () => {
       try {
+        setLoading(true);
         const {
           data: { user },
           error: userError,
@@ -213,9 +219,9 @@ export function useBusinessProfile() {
     };
 
     checkBusinessProfile();
-  }, []);
+  }, [refreshTrigger]);
 
-  return { hasBusiness, loading };
+  return { hasBusiness, loading, refresh };
 }
 
 /**
