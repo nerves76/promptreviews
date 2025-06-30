@@ -10,6 +10,7 @@ import React, { useState, useEffect } from "react";
 import { FaCheck, FaBusinessTime, FaPalette, FaCog, FaPlus, FaShare } from "react-icons/fa";
 import Link from "next/link";
 import { fetchOnboardingTasks, markTaskAsCompleted, markTaskAsIncomplete } from "@/utils/onboardingTasks";
+import { createBrowserClient } from '@supabase/ssr';
 
 interface GettingStartedProps {
   onComplete?: () => void;
@@ -45,10 +46,25 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
       if (!userId) return;
 
       try {
+        // Get the authentication token from Supabase
+        const supabase = createBrowserClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        );
+        
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token;
+
+        if (!token) {
+          console.error('No authentication token available');
+          return;
+        }
+
         const response = await fetch('/api/initialize-onboarding-tasks', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
           },
         });
 
@@ -100,7 +116,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             id: "customize-universal",
             title: "Customize your universal prompt options",
             description: "Configure your universal prompt page settings",
-            link: "/dashboard", // This opens the universal prompt modal
+            link: "/dashboard/edit-prompt-page/universal",
             icon: <FaCog className="w-5 h-5" />,
             completed: taskStatus["customize-universal"] || false
           },
@@ -146,7 +162,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             id: "customize-universal",
             title: "Customize your universal prompt options",
             description: "Configure your universal prompt page settings",
-            link: "/dashboard",
+            link: "/dashboard/edit-prompt-page/universal",
             icon: <FaCog className="w-5 h-5" />,
             completed: false
           },

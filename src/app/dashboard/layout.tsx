@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/utils/supabaseClient";
 import { getUserOrMock } from "@/utils/supabase";
+import { getAccountIdForUser } from "@/utils/accountUtils";
 import { useRouter } from "next/navigation";
 import AppLoader from "@/app/components/AppLoader";
 import { trackEvent, GA_EVENTS } from "../../utils/analytics";
@@ -29,10 +30,18 @@ export default function DashboardLayout({
 
   const fetchAccountData = useCallback(async (userId: string) => {
     try {
+      // Get the account ID for the user first
+      const accountId = await getAccountIdForUser(userId, supabase);
+      
+      if (!accountId) {
+        console.log("DashboardLayout: No account found for user:", userId);
+        return;
+      }
+
       const { data: account, error: accountError } = await supabase
         .from('accounts')
         .select('plan, trial_start, trial_end')
-        .eq('user_id', userId)
+        .eq('id', accountId)
         .single();
       
       console.log("DashboardLayout: Fetched account data:", account);
