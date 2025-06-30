@@ -597,6 +597,7 @@ export default function Dashboard() {
             hasBusiness={!!(data?.businesses && data.businesses.length > 0)}
             hasCustomPromptPages={!!(data?.promptPages && data.promptPages.filter(p => !p.is_universal).length > 0)}
             hasUniversalPromptPage={!!(data?.promptPages && data.promptPages.some(p => p.is_universal))}
+            userId={data?.user?.id}
           />
         </PageCard>
       </div>

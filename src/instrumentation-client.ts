@@ -6,15 +6,21 @@
 import * as Sentry from '@sentry/nextjs';
 
 export function register() {
+  // Skip Sentry initialization if disabled
+  if (process.env.DISABLE_SENTRY === 'true') {
+    console.log('Sentry disabled via DISABLE_SENTRY environment variable');
+    return;
+  }
+
   Sentry.init({
     dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
     
-    // Performance monitoring
-    tracesSampleRate: 1.0,
+    // Performance monitoring - reduced sampling for better performance
+    tracesSampleRate: process.env.NODE_ENV === 'development' ? 0.05 : 0.1,
     
-    // Session replay for debugging
-    replaysSessionSampleRate: 0.1,
-    replaysOnErrorSampleRate: 1.0,
+    // Session replay - disabled in development for better performance
+    replaysSessionSampleRate: process.env.NODE_ENV === 'development' ? 0 : 0.05,
+    replaysOnErrorSampleRate: process.env.NODE_ENV === 'development' ? 0 : 0.5,
     
     // Environment configuration
     environment: process.env.NODE_ENV,
@@ -22,8 +28,8 @@ export function register() {
     // Release tracking
     release: process.env.NEXT_PUBLIC_SENTRY_RELEASE,
     
-    // Debug mode in development
-    debug: process.env.NODE_ENV === 'development',
+    // Disable debug mode in all environments for better performance
+    debug: false,
     
     // Before send hook to filter errors
     beforeSend(event, hint) {

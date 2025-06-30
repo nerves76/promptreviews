@@ -39,6 +39,7 @@ import PageCard from "@/app/components/PageCard";
 import imageCompression from 'browser-image-compression';
 import FiveStarSpinner from "@/app/components/FiveStarSpinner";
 import { trackEvent, GA_EVENTS } from "../../../utils/analytics";
+import { markTaskAsCompleted } from "@/utils/onboardingTasks";
 
 function Tooltip({ text }: { text: string }) {
   const [show, setShow] = useState(false);
@@ -141,6 +142,22 @@ export default function BusinessProfilePage() {
   const [rawLogoFile, setRawLogoFile] = useState<File | null>(null);
   const [copySuccess, setCopySuccess] = useState("");
   const [accountId, setAccountId] = useState<string | null>(null);
+
+  // Mark business profile task as completed when user visits this page
+  useEffect(() => {
+    const markBusinessProfileComplete = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await markTaskAsCompleted(user.id, "business-profile");
+        }
+      } catch (error) {
+        console.error("Error marking business profile task as complete:", error);
+      }
+    };
+
+    markBusinessProfileComplete();
+  }, []);
 
   useEffect(() => {
     const loadBusinessProfile = async () => {

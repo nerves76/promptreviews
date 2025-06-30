@@ -59,6 +59,7 @@ interface DashboardContentProps {
   hasBusiness: boolean;
   hasCustomPromptPages: boolean;
   hasUniversalPromptPage: boolean;
+  userId?: string;
 }
 
 interface PromptPage {
@@ -111,6 +112,7 @@ export default function DashboardContent({
   hasBusiness,
   hasCustomPromptPages,
   hasUniversalPromptPage,
+  userId,
 }: DashboardContentProps) {
   console.log("DASHBOARD RENDERED");
   useAuthGuard();
@@ -496,6 +498,7 @@ export default function DashboardContent({
           // Optional: Handle completion if needed
           console.log("Getting Started checklist completed!");
         }}
+        userId={userId}
       />
 
       {/* Review Stats Section (standard section style) */}
