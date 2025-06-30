@@ -8,6 +8,7 @@ import PageCard from "@/app/components/PageCard";
 import offerConfig from "@/app/components/prompt-modules/offerConfig";
 import { createBrowserClient } from "@supabase/ssr";
 import Link from "next/link";
+import { markTaskAsCompleted } from "@/utils/onboardingTasks";
 
 // Helper to normalize platform names to match dropdown options
 const normalizePlatformName = (name: string): string => {
@@ -162,24 +163,34 @@ export default function UniversalEditPromptPage() {
     }).eq("id", universalPage.id);
     if (error) {
       alert("Failed to save: " + error.message);
-    } else {
-      // Fetch the updated universal prompt page to get the slug
-      const { data: updatedPage } = await supabase
-        .from("prompt_pages")
-        .select("slug")
-        .eq("account_id", user.id)
-        .eq("is_universal", true)
-        .single();
-      if (updatedPage?.slug) setSlug(updatedPage.slug);
-      if (updatedPage?.slug) {
-        localStorage.setItem(
-          "showPostSaveModal",
-          JSON.stringify({ url: `/r/${updatedPage.slug}` }),
-        );
-      }
-      // Redirect to dashboard to show the modal
-      window.location.href = "/dashboard";
+      setIsSaving(false);
+      return;
     }
+    
+    // Mark customize-universal task as completed when user successfully saves
+    try {
+      await markTaskAsCompleted(user.id, "customize-universal");
+      console.log("Customize universal task marked as completed");
+    } catch (taskError) {
+      console.error("Error marking customize-universal task as complete:", taskError);
+    }
+    
+    // Fetch the updated universal prompt page to get the slug
+    const { data: updatedPage } = await supabase
+      .from("prompt_pages")
+      .select("slug")
+      .eq("account_id", user.id)
+      .eq("is_universal", true)
+      .single();
+    if (updatedPage?.slug) setSlug(updatedPage.slug);
+    if (updatedPage?.slug) {
+      localStorage.setItem(
+        "showPostSaveModal",
+        JSON.stringify({ url: `/r/${updatedPage.slug}` }),
+      );
+    }
+    // Redirect to dashboard to show the modal
+    window.location.href = "/dashboard";
     setIsSaving(false);
   };
 

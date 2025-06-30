@@ -143,22 +143,6 @@ export default function BusinessProfilePage() {
   const [copySuccess, setCopySuccess] = useState("");
   const [accountId, setAccountId] = useState<string | null>(null);
 
-  // Mark business profile task as completed when user visits this page
-  useEffect(() => {
-    const markBusinessProfileComplete = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          await markTaskAsCompleted(user.id, "business-profile");
-        }
-      } catch (error) {
-        console.error("Error marking business profile task as complete:", error);
-      }
-    };
-
-    markBusinessProfileComplete();
-  }, []);
-
   useEffect(() => {
     const loadBusinessProfile = async () => {
       try {
@@ -498,6 +482,15 @@ export default function BusinessProfilePage() {
       
       console.log("Profile update successful!");
       setSuccess("Profile updated successfully!");
+      
+      // Mark business profile task as completed when user successfully saves
+      try {
+        await markTaskAsCompleted(user.id, "business-profile");
+        console.log("Business profile task marked as completed");
+      } catch (taskError) {
+        console.error("Error marking business profile task as complete:", taskError);
+      }
+      
       setLoading(false);
     } catch (error) {
       console.error("Unexpected error during form submission:", error);
