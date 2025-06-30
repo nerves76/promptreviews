@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { useEffect, useState, useRef } from "react";
+import React, { useState, useEffect } from "react";
+import { useRef } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 import Link from "next/link";
 import { FaGlobe, FaLink, FaTimes, FaPalette, FaPlus } from "react-icons/fa";
@@ -17,6 +17,9 @@ import { FaHandsHelping, FaBoxOpen } from "react-icons/fa";
 import { MdPhotoCamera, MdVideoLibrary, MdEvent } from "react-icons/md";
 import { useRouter } from "next/navigation";
 import QRCodeModal from "../components/QRCodeModal";
+import { supabase } from "@/utils/supabaseClient";
+import { getUserOrMock } from "@/utils/supabase";
+import { getAccountIdForUser } from "@/utils/accountUtils";
 
 const StylePage = dynamic(() => import("../dashboard/style/StyleModalPage"), { ssr: false });
 
@@ -43,10 +46,6 @@ export default function PromptPages() {
   const [showTypeModal, setShowTypeModal] = useState(false);
   const [qrPreviewUrl, setQrPreviewUrl] = useState<string>("");
   const router = useRouter();
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  );
 
   // Prevent background scroll when modal is open
   React.useEffect(() => {
@@ -69,26 +68,36 @@ export default function PromptPages() {
           data: { user },
         } = await supabase.auth.getUser();
         if (!user) throw new Error("Not signed in");
+        
+        // Get the account ID for the user
+        const accountId = await getAccountIdForUser(user.id, supabase);
+        
+        if (!accountId) {
+          throw new Error("No account found for user");
+        }
+
         const { data: businessProfile } = await supabase
           .from("businesses")
           .select("*")
-          .eq("account_id", user.id)
+          .eq("account_id", accountId)
           .single();
         setBusiness(businessProfile);
+        
         const { data: universalPage } = await supabase
           .from("prompt_pages")
           .select("*")
-          .eq("account_id", user.id)
+          .eq("account_id", accountId)
           .eq("is_universal", true)
           .single();
         setUniversalPromptPage(universalPage);
         if (universalPage?.slug) {
           setUniversalUrl(`${window.location.origin}/r/${universalPage.slug}`);
         }
+        
         const { data: pages } = await supabase
           .from("prompt_pages")
           .select("*")
-          .eq("account_id", user.id)
+          .eq("account_id", accountId)
           .eq("is_universal", false)
           .order("created_at", { ascending: false });
         setPromptPages(pages || []);
