@@ -226,6 +226,19 @@ export default function Dashboard() {
         if (promptPagesResult.data) {
           setCustomPromptPages(promptPagesResult.data);
         }
+
+        // Fetch universal prompt page
+        const universalPromptPageResult = await supabase
+          .from("prompt_pages")
+          .select("*")
+          .eq("account_id", accountId)
+          .eq("is_universal", true)
+          .single();
+
+        if (universalPromptPageResult.data) {
+          setUniversalPromptPage(universalPromptPageResult.data);
+          setUniversalUrl(`${window.location.origin}/r/${universalPromptPageResult.data.slug}`);
+        }
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
         setError(`Error fetching dashboard data: ${error}`);
