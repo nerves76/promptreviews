@@ -407,7 +407,14 @@ export default function Dashboard() {
       if (tierKey === "grower" || isSamePlan) {
         await supabase
           .from("accounts")
-          .update({ plan: tierKey })
+          .update({ 
+            plan: tierKey,
+            // Set trial start and end dates for grower plan
+            ...(tierKey === "grower" && {
+              trial_start: new Date().toISOString(),
+              trial_end: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString() // 14 days from now
+            })
+          })
           .eq("id", data?.account?.id);
         
         // Close the pricing modal
@@ -415,6 +422,9 @@ export default function Dashboard() {
         
         // Show starfall celebration
         setShowStarfallCelebration(true);
+        
+        // Dispatch event to refresh navigation state
+        window.dispatchEvent(new CustomEvent('planSelected', { detail: { plan: tierKey } }));
         
         return;
       }
@@ -479,6 +489,9 @@ export default function Dashboard() {
         
         // Show starfall celebration
         setShowStarfallCelebration(true);
+        
+        // Dispatch event to refresh navigation state
+        window.dispatchEvent(new CustomEvent('planSelected', { detail: { plan: tierKey } }));
         
         return;
       }

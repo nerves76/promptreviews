@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/utils/supabaseClient";
 import { getUserOrMock } from "@/utils/supabase";
 import { useRouter } from "next/navigation";
@@ -27,6 +27,22 @@ export default function DashboardLayout({
     setIsClient(true);
   }, []);
 
+  const fetchAccountData = useCallback(async (userId: string) => {
+    try {
+      const { data: account, error: accountError } = await supabase
+        .from('accounts')
+        .select('plan, trial_start, trial_end')
+        .eq('user_id', userId)
+        .single();
+      
+      console.log("DashboardLayout: Fetched account data:", account);
+      console.log("DashboardLayout: Account error:", accountError);
+      setAccountData(account);
+    } catch (accountError) {
+      console.error("Error fetching account data:", accountError);
+    }
+  }, []);
+
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -40,19 +56,7 @@ export default function DashboardLayout({
         setUser(user);
         
         // Fetch account data for the TrialBanner
-        try {
-          const { data: account, error: accountError } = await supabase
-            .from('accounts')
-            .select('plan, trial_start, trial_end')
-            .eq('user_id', user.id)
-            .single();
-          
-          console.log("DashboardLayout: Fetched account data:", account);
-          console.log("DashboardLayout: Account error:", accountError);
-          setAccountData(account);
-        } catch (accountError) {
-          console.error("Error fetching account data:", accountError);
-        }
+        await fetchAccountData(user.id);
         
         setLoading(false);
       } catch (error) {
@@ -62,7 +66,33 @@ export default function DashboardLayout({
     };
 
     checkAuth();
-  }, [router]);
+  }, [router, fetchAccountData]);
+
+  // Listen for plan selection events to refresh account data
+  useEffect(() => {
+    const handlePlanSelection = async () => {
+      console.log("DashboardLayout: Plan selection detected, refreshing account data");
+      if (user) {
+        await fetchAccountData(user.id);
+      }
+    };
+
+    const handleBusinessCreated = async () => {
+      console.log("DashboardLayout: Business created detected, refreshing account data");
+      if (user) {
+        await fetchAccountData(user.id);
+      }
+    };
+
+    // Listen for custom events that indicate plan selection or business creation
+    window.addEventListener('planSelected', handlePlanSelection);
+    window.addEventListener('businessCreated', handleBusinessCreated);
+
+    return () => {
+      window.removeEventListener('planSelected', handlePlanSelection);
+      window.removeEventListener('businessCreated', handleBusinessCreated);
+    };
+  }, [user, fetchAccountData]);
 
   if (loading) {
     return (

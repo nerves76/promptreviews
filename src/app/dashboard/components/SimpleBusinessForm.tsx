@@ -217,6 +217,11 @@ export default function SimpleBusinessForm({
 
       setSuccess("Business created successfully! Redirecting to dashboard...");
       
+      // Dispatch event to refresh navigation state
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent('businessCreated', { detail: { businessId: business.id } }));
+      }
+      
       // Create universal prompt page
       try {
         console.log("Creating universal prompt page...");
