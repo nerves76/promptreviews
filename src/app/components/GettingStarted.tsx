@@ -3,17 +3,20 @@
  * 
  * Displays a checklist of onboarding tasks for new users.
  * Tasks can be marked as completed and the component disappears when all are done.
+ * Now uses database persistence for task completion status.
  */
 
 import React, { useState, useEffect } from "react";
 import { FaCheck, FaBusinessTime, FaPalette, FaCog, FaPlus, FaShare } from "react-icons/fa";
 import Link from "next/link";
+import { fetchOnboardingTasks, markTaskAsCompleted, markTaskAsIncomplete, initializeDefaultTasks } from "@/utils/onboardingTasks";
 
 interface GettingStartedProps {
   onComplete?: () => void;
   hasBusiness: boolean;
   hasCustomPromptPages: boolean;
   hasUniversalPromptPage: boolean;
+  userId?: string;
 }
 
 interface Task {
@@ -29,88 +32,189 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
   onComplete,
   hasBusiness,
   hasCustomPromptPages,
-  hasUniversalPromptPage
+  hasUniversalPromptPage,
+  userId
 }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isVisible, setIsVisible] = useState(true);
+  const [loading, setLoading] = useState(true);
 
+  // Initialize default tasks for new users
   useEffect(() => {
-    // Initialize tasks based on current state
-    const initialTasks: Task[] = [
-      {
-        id: "business-profile",
-        title: "Fill out your business profile",
-        description: "Complete your business information",
-        link: "/dashboard/business-profile",
-        icon: <FaBusinessTime className="w-5 h-5" />,
-        completed: false // User needs to manually complete this
-      },
-      {
-        id: "style-prompt-pages",
-        title: "Style your prompt pages",
-        description: "Match your brand with custom styling",
-        link: "/dashboard/style",
-        icon: <FaPalette className="w-5 h-5" />,
-        completed: false // This will be checked when user visits style page
-      },
-      {
-        id: "customize-universal",
-        title: "Customize your universal prompt options",
-        description: "Configure your universal prompt page settings",
-        link: "/dashboard", // This opens the universal prompt modal
-        icon: <FaCog className="w-5 h-5" />,
-        completed: hasUniversalPromptPage
-      },
-      {
-        id: "create-prompt-page",
-        title: "Create a new prompt page",
-        description: "Build your first custom prompt page",
-        link: "/dashboard/create-prompt-page",
-        icon: <FaPlus className="w-5 h-5" />,
-        completed: hasCustomPromptPages
-      },
-      {
-        id: "share",
-        title: "Share with customers and clients!",
-        description: "Start collecting reviews from your customers",
-        icon: <FaShare className="w-5 h-5" />,
-        completed: false // This will be checked when user shares
-      }
-    ];
+    if (userId) {
+      initializeDefaultTasks(userId).catch(console.error);
+    }
+  }, [userId]);
 
-    setTasks(initialTasks);
-  }, [hasBusiness, hasCustomPromptPages, hasUniversalPromptPage]);
+  // Fetch task completion status from database
+  useEffect(() => {
+    const loadTaskStatus = async () => {
+      if (!userId) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const taskStatus = await fetchOnboardingTasks(userId);
+        
+        // Initialize tasks based on current state and database status
+        const initialTasks: Task[] = [
+          {
+            id: "business-profile",
+            title: "Fill out your business profile",
+            description: "Complete your business information",
+            link: "/dashboard/business-profile",
+            icon: <FaBusinessTime className="w-5 h-5" />,
+            completed: taskStatus["business-profile"] || hasBusiness
+          },
+          {
+            id: "style-prompt-pages",
+            title: "Style your prompt pages",
+            description: "Match your brand with custom styling",
+            link: "/dashboard/style",
+            icon: <FaPalette className="w-5 h-5" />,
+            completed: taskStatus["style-prompt-pages"] || false
+          },
+          {
+            id: "customize-universal",
+            title: "Customize your universal prompt options",
+            description: "Configure your universal prompt page settings",
+            link: "/dashboard", // This opens the universal prompt modal
+            icon: <FaCog className="w-5 h-5" />,
+            completed: taskStatus["customize-universal"] || hasUniversalPromptPage
+          },
+          {
+            id: "create-prompt-page",
+            title: "Create a new prompt page",
+            description: "Build your first custom prompt page",
+            link: "/dashboard/create-prompt-page",
+            icon: <FaPlus className="w-5 h-5" />,
+            completed: taskStatus["create-prompt-page"] || hasCustomPromptPages
+          },
+          {
+            id: "share",
+            title: "Share with customers and clients!",
+            description: "Start collecting reviews from your customers",
+            icon: <FaShare className="w-5 h-5" />,
+            completed: taskStatus["share"] || false
+          }
+        ];
+
+        setTasks(initialTasks);
+      } catch (error) {
+        console.error('Error loading task status:', error);
+        // Fallback to basic task initialization
+        const fallbackTasks: Task[] = [
+          {
+            id: "business-profile",
+            title: "Fill out your business profile",
+            description: "Complete your business information",
+            link: "/dashboard/business-profile",
+            icon: <FaBusinessTime className="w-5 h-5" />,
+            completed: hasBusiness
+          },
+          {
+            id: "style-prompt-pages",
+            title: "Style your prompt pages",
+            description: "Match your brand with custom styling",
+            link: "/dashboard/style",
+            icon: <FaPalette className="w-5 h-5" />,
+            completed: false
+          },
+          {
+            id: "customize-universal",
+            title: "Customize your universal prompt options",
+            description: "Configure your universal prompt page settings",
+            link: "/dashboard",
+            icon: <FaCog className="w-5 h-5" />,
+            completed: hasUniversalPromptPage
+          },
+          {
+            id: "create-prompt-page",
+            title: "Create a new prompt page",
+            description: "Build your first custom prompt page",
+            link: "/dashboard/create-prompt-page",
+            icon: <FaPlus className="w-5 h-5" />,
+            completed: hasCustomPromptPages
+          },
+          {
+            id: "share",
+            title: "Share with customers and clients!",
+            description: "Start collecting reviews from your customers",
+            icon: <FaShare className="w-5 h-5" />,
+            completed: false
+          }
+        ];
+        setTasks(fallbackTasks);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadTaskStatus();
+  }, [userId, hasBusiness, hasCustomPromptPages, hasUniversalPromptPage]);
 
   useEffect(() => {
     // Check if all tasks are completed
     const allCompleted = tasks.every(task => task.completed);
-    if (allCompleted && tasks.length > 0) {
+    if (allCompleted && tasks.length > 0 && !loading) {
       // Hide the component after a short delay
       setTimeout(() => {
         setIsVisible(false);
         onComplete?.();
       }, 1000);
     }
-  }, [tasks, onComplete]);
+  }, [tasks, onComplete, loading]);
 
-  const handleTaskClick = (taskId: string) => {
+  const handleTaskClick = async (taskId: string) => {
+    if (!userId) return;
+
+    const newCompleted = !tasks.find(t => t.id === taskId)?.completed;
+    
+    // Update local state immediately for responsive UI
     setTasks(prevTasks =>
       prevTasks.map(task =>
-        task.id === taskId ? { ...task, completed: !task.completed } : task
+        task.id === taskId ? { ...task, completed: newCompleted } : task
       )
     );
+
+    // Update database
+    try {
+      if (newCompleted) {
+        await markTaskAsCompleted(userId, taskId);
+      } else {
+        await markTaskAsIncomplete(userId, taskId);
+      }
+    } catch (error) {
+      console.error('Error updating task status:', error);
+      // Revert local state if database update failed
+      setTasks(prevTasks =>
+        prevTasks.map(task =>
+          task.id === taskId ? { ...task, completed: !newCompleted } : task
+        )
+      );
+    }
   };
 
-  const handleTaskLinkClick = (taskId: string) => {
+  const handleTaskLinkClick = async (taskId: string) => {
+    if (!userId) return;
+
     // Mark task as completed when user clicks the link
     setTasks(prevTasks =>
       prevTasks.map(task =>
         task.id === taskId ? { ...task, completed: true } : task
       )
     );
+
+    // Update database
+    try {
+      await markTaskAsCompleted(userId, taskId);
+    } catch (error) {
+      console.error('Error marking task as completed:', error);
+    }
   };
 
-  if (!isVisible) {
+  if (!isVisible || loading) {
     return null;
   }
 

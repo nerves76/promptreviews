@@ -158,7 +158,7 @@ export default function BusinessProfileForm({
             </div>
           )}
           <div className="flex-1 w-full max-w-[700px]">
-            <label className="block font-bold text-lg text-gray-900 mb-1">
+            <label className="block font-bold text-lg text-slate-blue mb-1">
               Upload your logo or your face (whichever is more iconic).
             </label>
             <div className="text-sm text-gray-500 mb-2">
