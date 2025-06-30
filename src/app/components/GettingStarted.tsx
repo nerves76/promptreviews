@@ -86,7 +86,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             description: "Complete your business information",
             link: "/dashboard/business-profile",
             icon: <FaBusinessTime className="w-5 h-5" />,
-            completed: taskStatus["business-profile"] || hasBusiness
+            completed: taskStatus["business-profile"] || false
           },
           {
             id: "style-prompt-pages",
@@ -102,7 +102,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             description: "Configure your universal prompt page settings",
             link: "/dashboard", // This opens the universal prompt modal
             icon: <FaCog className="w-5 h-5" />,
-            completed: taskStatus["customize-universal"] || hasUniversalPromptPage
+            completed: taskStatus["customize-universal"] || false
           },
           {
             id: "create-prompt-page",
@@ -110,7 +110,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             description: "Build your first custom prompt page",
             link: "/dashboard/create-prompt-page",
             icon: <FaPlus className="w-5 h-5" />,
-            completed: taskStatus["create-prompt-page"] || hasCustomPromptPages
+            completed: taskStatus["create-prompt-page"] || false
           },
           {
             id: "share",
@@ -132,7 +132,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             description: "Complete your business information",
             link: "/dashboard/business-profile",
             icon: <FaBusinessTime className="w-5 h-5" />,
-            completed: hasBusiness
+            completed: false
           },
           {
             id: "style-prompt-pages",
@@ -148,7 +148,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             description: "Configure your universal prompt page settings",
             link: "/dashboard",
             icon: <FaCog className="w-5 h-5" />,
-            completed: hasUniversalPromptPage
+            completed: false
           },
           {
             id: "create-prompt-page",
@@ -156,7 +156,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             description: "Build your first custom prompt page",
             link: "/dashboard/create-prompt-page",
             icon: <FaPlus className="w-5 h-5" />,
-            completed: hasCustomPromptPages
+            completed: false
           },
           {
             id: "share",
