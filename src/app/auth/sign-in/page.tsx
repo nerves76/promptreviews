@@ -312,7 +312,7 @@ export default function SignIn() {
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
-        <AppLoader />
+        <AppLoader variant="centered" />
       </div>
     );
   }
