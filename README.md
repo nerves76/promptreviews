@@ -14,6 +14,7 @@ A modern, customizable review widget system built with Next.js, TypeScript, and 
 - 🐛 **Error tracking with Sentry**
 - 📈 **Google Analytics 4 integration**
 - ⏰ **Automatic trial reminder system**
+- ✅ **Persistent onboarding tasks system**
 
 ## Quick Start
 
@@ -1109,6 +1110,87 @@ node cleanup-test-data.js
 ## Deprecated Test Scripts
 
 All previous test scripts for signup, account, or business creation have been deleted. Only use the scripts above for testing these flows.
+
+---
+
+*Last updated: 2025-06-29* 
+
+## Onboarding Tasks System
+
+This project includes a comprehensive onboarding system that tracks user progress through key setup tasks with persistent database storage.
+
+### Features
+- ✅ **Database-backed task tracking** with RLS security
+- ✅ **Automatic task completion** when users visit key pages
+- ✅ **Persistent progress** across sessions and page refreshes
+- ✅ **Real-time status updates** in the UI
+- ✅ **Error handling** with graceful fallbacks
+- ✅ **Multi-user support** compatible with account architecture
+
+### Task Types
+
+The system tracks completion of these key onboarding tasks:
+
+- **Business Profile Created** (`business_profile_created`)
+  - Automatically completes when user visits `/dashboard/business-profile`
+  - Tracks business information setup
+
+- **Style Configured** (`style_configured`)
+  - Automatically completes when user visits `/dashboard/style`
+  - Tracks branding and design preferences
+
+- **Prompt Page Created** (`prompt_page_created`)
+  - Automatically completes when user visits `/dashboard/create-prompt-page`
+  - Tracks first prompt page creation
+
+- **Widget Configured** (`widget_configured`)
+  - Automatically completes when user visits `/dashboard/widget`
+  - Tracks widget setup and configuration
+
+- **Contacts Uploaded** (`contacts_uploaded`)
+  - Automatically completes when user visits `/dashboard/contacts`
+  - Tracks contact list management
+
+### Technical Implementation
+
+#### Database Schema
+```sql
+CREATE TABLE onboarding_tasks (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  task_key TEXT NOT NULL,
+  completed BOOLEAN DEFAULT FALSE,
+  completed_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(user_id, task_key)
+);
+```
+
+#### Utility Functions
+- `getOnboardingTasks(userId)` - Fetch all tasks for a user
+- `markTaskComplete(userId, taskKey)` - Mark a specific task as complete
+- `initializeUserTasks(userId)` - Create default task records for new users
+
+#### Component Integration
+- **GettingStarted Component**: Displays task completion status from database
+- **Dashboard Pages**: Pass user ID to enable automatic task completion
+- **Error Recovery**: Falls back to local state if database is unavailable
+
+### Usage
+
+The onboarding tasks system is automatically integrated into the user experience:
+
+1. **New Users**: Task records are created when users first access the dashboard
+2. **Progress Tracking**: The GettingStarted component shows real-time completion status
+3. **Automatic Completion**: Tasks complete when users visit relevant pages
+4. **Persistent Storage**: Progress is saved to database and persists across sessions
+
+### Security
+
+- **RLS Policies**: Users can only access their own task records
+- **Input Validation**: All task keys are validated against allowed values
+- **Error Handling**: Graceful fallbacks prevent system failures
 
 ---
 

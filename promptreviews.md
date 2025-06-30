@@ -10,6 +10,14 @@ This project is currently focused on developing a standalone widget for collecti
 
 ## Recent Updates (Latest)
 
+### Persistent Onboarding Tasks System
+- **Database-Backed Task Tracking**: Implemented `onboarding_tasks` table with RLS policies for secure task completion tracking
+- **Automatic Task Completion**: Tasks automatically complete when users visit key pages (business profile, style, create prompt page)
+- **Persistent Progress**: Onboarding checklist progress now persists across sessions and page refreshes
+- **Utility Functions**: Created `onboardingTasks.ts` utility for database operations with proper error handling
+- **Enhanced UX**: GettingStarted component now fetches and displays real-time task completion status
+- **Multi-User Support**: Task tracking works with the existing account/user architecture
+
 ### JWT Signature Issues & Authentication Fixes
 - **Fixed JWT Signature Errors**: Resolved persistent JWT signature errors in `/api/create-account` endpoint by switching from anon key to service key
 - **Fixed Auth Session Missing**: Users now get proper sessions after signup in local development with auto-signin feature
@@ -32,6 +40,39 @@ This project is currently focused on developing a standalone widget for collecti
 5. **Plan Selection**: Pricing modal automatically appears for new users
 6. **Celebration**: Starfall animation plays after plan selection
 7. **Full Access**: User can now access all dashboard features
+
+### Onboarding Tasks System Architecture
+
+#### **Database Schema**
+```sql
+-- onboarding_tasks table
+- id (UUID, PK): Primary key
+- user_id (UUID, FK): References auth.users(id)
+- task_key (TEXT): Unique identifier for each task
+- completed (BOOLEAN): Task completion status
+- completed_at (TIMESTAMP): When task was completed
+- created_at, updated_at: Timestamps
+```
+
+#### **Task Keys & Automatic Completion**
+- `business_profile_created`: Completes when user visits `/dashboard/business-profile`
+- `style_configured`: Completes when user visits `/dashboard/style`
+- `prompt_page_created`: Completes when user visits `/dashboard/create-prompt-page`
+- `widget_configured`: Completes when user visits `/dashboard/widget`
+- `contacts_uploaded`: Completes when user visits `/dashboard/contacts`
+
+#### **Technical Implementation**
+- **RLS Policies**: Secure access control ensuring users can only see their own tasks
+- **Utility Functions**: `getOnboardingTasks()`, `markTaskComplete()`, `initializeUserTasks()`
+- **Error Handling**: Graceful fallback to local state if database operations fail
+- **Loading States**: Proper loading indicators during task status fetching
+- **Real-time Updates**: Task completion status updates immediately in UI
+
+#### **Component Integration**
+- **GettingStarted Component**: Fetches and displays task completion from database
+- **Dashboard Pages**: Pass user ID to enable automatic task completion
+- **Error Recovery**: Falls back to local state if database is unavailable
+- **Performance**: Efficient database queries with proper indexing
 
 ### Technical Improvements
 - **Service Key Usage**: API endpoints now use Supabase service key for privileged operations
