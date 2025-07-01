@@ -15,6 +15,7 @@ A modern, customizable review widget system built with Next.js, TypeScript, and 
 - 📈 **Google Analytics 4 integration**
 - ⏰ **Automatic trial reminder system**
 - ✅ **Persistent onboarding tasks system**
+- 🚀 **Improved development experience**
 
 ## Quick Start
 
@@ -23,6 +24,31 @@ A modern, customizable review widget system built with Next.js, TypeScript, and 
 3. Set up environment variables (see `.env.local.example`)
 4. Run the development server: `npm run dev`
 5. Open [http://localhost:3001](http://localhost:3001)
+
+## Recent Development Improvements (January 2025)
+
+### Development Server Stability
+- **Port Conflict Resolution**: Automatic detection and resolution of port 3001 conflicts
+- **Sentry Integration**: Properly disabled for local development to reduce noise
+- **Error Handling**: Enhanced error handling for development server startup
+- **Process Management**: Improved process cleanup and restart capabilities
+
+### Sign-Up Flow Enhancements
+- **Auto-Signin for Local Development**: Users are automatically signed in after account creation on localhost
+- **Email Confirmation Bypass**: Local development bypasses email confirmation for faster testing
+- **Improved UX**: FiveStarSpinner positioned closer to navigation instead of vertically centered
+- **Session Management**: Better session establishment and persistence
+
+### API Fixes
+- **Track-Event API**: Fixed cookie options and service client configuration for anonymous events
+- **Prompt-Pages API**: Fixed async params handling for Next.js 15 compatibility
+- **Service Client**: Proper configuration with cookie options for server-side operations
+- **Error Logging**: Enhanced logging for debugging API issues
+
+### Database & Schema
+- **Migration Enforcement**: Automatic migration checking and application on startup
+- **Test Data Management**: Comprehensive cleanup scripts for development environment
+- **Schema Consistency**: All 73 migrations applied and up to date
 
 ## Environment Variables
 
@@ -59,6 +85,9 @@ NEXT_PUBLIC_GA_TRACKING_ID=G-22JHGCL1T7
 
 # Application URL
 NEXT_PUBLIC_APP_URL=http://localhost:3001
+
+# Development Configuration
+DISABLE_SENTRY=true  # Optional: Disable Sentry for local development
 ```
 
 ## Local Development
@@ -98,6 +127,48 @@ For local development testing:
 1. Create a new account using the sign-up form
 2. Sign in immediately (no email confirmation required)
 3. Test all features with the created account
+
+### Development Server Troubleshooting
+
+If you encounter issues starting the development server:
+
+1. **Port 3001 Already in Use**:
+   ```bash
+   # Kill existing processes on port 3001
+   lsof -ti:3001 | xargs kill -9
+   
+   # Or restart the server
+   npm run dev
+   ```
+
+2. **Sentry Integration Errors**:
+   ```bash
+   # Disable Sentry for local development
+   DISABLE_SENTRY=true npm run dev
+   ```
+
+3. **Database Migration Issues**:
+   ```bash
+   # Check migration status
+   npm run check-migrations
+   
+   # Apply missing migrations
+   supabase db push
+   ```
+
+4. **Test Data Cleanup**:
+   ```bash
+   # Clear test data from database
+   node clear-database.js
+   ```
+
+### Development Best Practices
+
+- **Use `DISABLE_SENTRY=true`** for local development to reduce noise
+- **Check migrations** before starting development server
+- **Clear test data** regularly to maintain clean development environment
+- **Monitor console logs** for API errors and debugging information
+- **Test sign-up flow** in incognito mode to ensure proper session handling
 
 For detailed local development information, see [LOCAL_DEVELOPMENT.md](./LOCAL_DEVELOPMENT.md).
 
