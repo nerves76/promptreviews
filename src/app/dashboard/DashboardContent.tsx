@@ -185,8 +185,8 @@ export default function DashboardContent({
       comingSoon: true,
     },
     {
-      key: "experience",
-      label: "Experiences & spaces",
+      key: "event",
+      label: "Events & spaces",
       icon: <MdEvent size={28} color="#1A237E" />,
       description: "For events, rentals, tours, and more.",
       comingSoon: true,

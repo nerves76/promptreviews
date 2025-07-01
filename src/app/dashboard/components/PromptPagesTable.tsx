@@ -189,7 +189,7 @@ export default function PromptPagesTable({
           <option value="">All types</option>
           <option value="service">Service review</option>
           <option value="product">Product review</option>
-          <option value="experience">Experiences & spaces</option>
+          <option value="event">Events & spaces</option>
           <option value="video">Video testimonial</option>
           <option value="photo">Photo + testimonial</option>
         </select>
@@ -265,9 +265,9 @@ export default function PromptPagesTable({
                   {page.review_type === "service" && "Service"}
                   {page.review_type === "photo" && "Photo"}
                   {page.review_type === "video" && "Video"}
-                  {page.review_type === "experience" && "Exp."}
+                  {page.review_type === "event" && "Event"}
                   {page.review_type === "product" && "Product"}
-                  {!["service", "photo", "video", "experience", "product"].includes(page.review_type || "") && (page.review_type ? page.review_type.charAt(0).toUpperCase() + page.review_type.slice(1) : "Service")}
+                  {!["service", "photo", "video", "event", "product"].includes(page.review_type || "") && (page.review_type ? page.review_type.charAt(0).toUpperCase() + page.review_type.slice(1) : "Service")}
                 </td>
                 <td className="whitespace-nowrap px-3 py-4 text-sm flex gap-2 items-center">
                   <div className="mt-[6px] flex gap-2">

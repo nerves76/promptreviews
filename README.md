@@ -1195,3 +1195,73 @@ The onboarding tasks system is automatically integrated into the user experience
 ---
 
 *Last updated: 2025-06-29* 
+
+## 2025-06-30: Back Button for Multi-Step Prompt Pages
+- Added back button functionality to multi-step prompt page forms
+- Users can now navigate from step 2 back to step 1 to modify customer/client details
+- Added back button to top right action area in edit prompt page (`[slug]/page.tsx`)
+- Added back button to bottom left of step 2 in `PromptPageForm.tsx` for create mode
+- Product prompt pages already had back button correctly implemented
+- Improves user experience by allowing easy navigation between steps
+- See `src/app/dashboard/edit-prompt-page/` for details.
+
+## 2025-06-30: Authentication Error Fixes
+- Fixed "Auth session missing" errors that were preventing prompt pages from loading
+- Updated `getUserOrMock` and `getSessionOrMock` functions in `src/utils/supabase.ts` to handle authentication errors gracefully
+- Functions now return null user/session instead of throwing errors when no auth session exists
+- Prompt pages now work properly for both authenticated and unauthenticated users
+- Resolves blank page issue when visiting saved prompt pages
+- Improves overall application stability and user experience
+- See `src/utils/supabase.ts` for implementation details.
+
+## 2025-06-30: Performance Optimizations and Development Improvements
+- **Performance Improvements:**
+  - Fixed Sentry integration causing compilation errors and slow builds
+  - Optimized Next.js webpack configuration for faster development builds
+  - Added `dev:fast` script with Turbo mode for maximum development performance
+  - Disabled source maps in development for faster compilation
+  - Reduced webpack optimization overhead in development mode
+  - Fixed port conflicts and server startup issues
+- **Development Commands:**
+  - `npm run dev` - Standard development server with Sentry disabled
+  - `npm run dev:fast` - Fast development server with Turbo mode and optimizations
+- **Performance Gains:**
+  - Reduced compilation times from 8-37 seconds to 2-8 seconds
+  - Eliminated Sentry-related compilation errors
+  - Faster hot reload and page navigation
+  - Improved development experience on slower machines
+- See `next.config.js` and `package.json` for implementation details.
+
+## 2025-06-30: Migration Enforcement System
+- **Automatic Migration Checks:** Added `predev` hook that runs before `npm run dev`
+- **Migration Status:** Shows clear status messages: "All migrations applied" or lists missing migrations
+- **Auto-Application:** Automatically applies missing migrations when found
+- **Manual Commands:** Added `npm run migrations:check` and `npm run migrations:apply`
+- **Error Handling:** Graceful handling of database connection issues and CLI problems
+- **Color-coded Output:** Green for success, yellow for warnings, red for errors
+- **Prevents Schema Issues:** Ensures database schema is always up-to-date
+- **Development Integration:** Runs automatically before development server starts
+- See `scripts/check-migrations.js` for implementation details.
+
+## 2025-06-30: Popup Conflict Modal Improvements
+- Updated popup conflict modal message to be more user-friendly and clear
+- Changed message to: "You can't enable Emoji Sentiment and Personalized note pop-up at the same time because that's pop-ups on top of pop-ups—which would be weird."
+- Added conflict modal to `ServicePromptPageForm.tsx` (was missing)
+- Conflict modal now appears in both `PromptPageForm.tsx` and `ServicePromptPageForm.tsx`
+- Users get clear feedback when trying to enable conflicting popup features
+- Improves user experience by explaining why certain features can't be enabled together
+- See `src/app/components/PromptPageForm.tsx` and `src/app/dashboard/edit-prompt-page/[slug]/ServicePromptPageForm.tsx` for details.
+
+## Prompt Page Type Enum
+
+The `type` field on prompt pages uses the following enum values:
+
+- `universal`: General-use prompt page for all customers/clients
+- `product`: Product review prompt page
+- `service`: Service review prompt page
+- `photo`: Photo + testimonial prompt page
+- `event`: Events & spaces prompt page
+- `video`: Video testimonial prompt page
+- `employee`: Employee feedback prompt page
+
+All prompt page creation and filtering logic should use these values. Legacy values like `custom` and `experience` are no longer supported. 

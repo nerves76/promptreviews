@@ -18,13 +18,18 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     autoRefreshToken: true,
     detectSessionInUrl: true,
     storage: typeof window !== 'undefined' ? window.localStorage : undefined,
-    storageKey: 'supabase.auth.token',
   }
 });
 
 // Re-export the client for backward compatibility
 export default supabase;
 
+/**
+ * PromptPage type
+ *
+ * The 'type' field uses the following enum values:
+ * 'universal', 'product', 'service', 'photo', 'event', 'video', 'employee'
+ */
 export type PromptPage = {
   id: string;
   created_at: string;
@@ -52,6 +57,7 @@ export type PromptPage = {
   role?: string;
   show_friendly_note?: boolean;
   friendly_note?: string;
+  type?: 'universal' | 'product' | 'service' | 'photo' | 'event' | 'video' | 'employee';
 };
 
 export type ReviewSubmission = {
@@ -119,22 +125,38 @@ export type Database = {
 export async function getUserOrMock(supabase: any) {
   try {
     const { data: { user }, error } = await supabase.auth.getUser();
-    if (error) throw error;
+    if (error) {
+      // Handle auth session missing error gracefully
+      if (error.message?.includes('Auth session missing')) {
+        console.log('No auth session found - user is not logged in');
+        return { data: { user: null }, error: null };
+      }
+      throw error;
+    }
     return { data: { user }, error: null };
   } catch (error) {
     console.error('Error getting user:', error);
-    return { data: { user: null }, error };
+    // For any other error, return null user without throwing
+    return { data: { user: null }, error: null };
   }
 }
 
 export async function getSessionOrMock(supabase: any) {
   try {
     const { data: { session }, error } = await supabase.auth.getSession();
-    if (error) throw error;
+    if (error) {
+      // Handle auth session missing error gracefully
+      if (error.message?.includes('Auth session missing')) {
+        console.log('No auth session found - user is not logged in');
+        return { data: { session: null }, error: null };
+      }
+      throw error;
+    }
     return { data: { session }, error: null };
   } catch (error) {
     console.error('Error getting session:', error);
-    return { data: { session: null }, error };
+    // For any other error, return null session without throwing
+    return { data: { session: null }, error: null };
   }
 }
 

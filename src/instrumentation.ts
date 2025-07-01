@@ -58,7 +58,4 @@ export function register() {
       return event;
     },
   });
-}
-
-// Export request error hook for server-side error tracking
-export const onRequestError = Sentry.captureRequestError; 
+} 

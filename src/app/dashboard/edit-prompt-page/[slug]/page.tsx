@@ -1035,6 +1035,14 @@ export default function EditPromptPage() {
           <div className="flex gap-2">
             <button
               type="button"
+              onClick={() => setStep(1)}
+              className="rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-slate-blue shadow-sm hover:bg-gray-50"
+              disabled={isLoading}
+            >
+              Back
+            </button>
+            <button
+              type="button"
               onClick={() =>
                 formRef.current &&
                 formRef.current.submit &&

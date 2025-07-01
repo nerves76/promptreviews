@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------------
+// Universal Prompt Page Edit Screen
+// This file implements the edit UI for the universal prompt page in the dashboard.
+// It fetches the business and universal prompt page data, merges them, and passes
+// them to the form. Handles nullability of review_platforms (may be null in DB).
+// -----------------------------------------------------------------------------
+
 "use client";
 import React, { useRef, useState } from "react";
 import UniversalPromptPageForm, {
@@ -6,7 +13,7 @@ import UniversalPromptPageForm, {
 import { FaGlobe } from "react-icons/fa";
 import PageCard from "@/app/components/PageCard";
 import offerConfig from "@/app/components/prompt-modules/offerConfig";
-import { createBrowserClient } from "@supabase/ssr";
+import { supabase } from "@/utils/supabaseClient";
 import Link from "next/link";
 import { markTaskAsCompleted } from "@/utils/onboardingTasks";
 import { getAccountIdForUser } from "@/utils/accountUtils";
@@ -20,9 +27,20 @@ const normalizePlatformName = (name: string): string => {
   return name;
 };
 
+/**
+ * Ensures platforms is always an array (never null/undefined) before mapping.
+ * This prevents runtime errors if the DB field is null.
+ * @param platforms Array of platform objects, or null/undefined
+ * @returns Array of normalized platform objects
+ */
+const normalizePlatforms = (platforms: any[] | null | undefined = []) =>
+  (platforms ?? []).map((p) => ({ ...p, name: normalizePlatformName(p.name) }));
+
 export default function UniversalEditPromptPage() {
   const formRef = useRef<any>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [initialData, setInitialData] =
     useState<UniversalPromptFormState | null>(null);
   const [showResetButton, setShowResetButton] = useState(false);
@@ -34,90 +52,131 @@ export default function UniversalEditPromptPage() {
   // Fetch universal prompt page and business profile, then merge
   React.useEffect(() => {
     async function fetchData() {
-      const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      );
-      // Get current user
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        // handle not signed in
-        return;
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        // Get current user
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) {
+          setError("You must be signed in to access this page.");
+          setIsLoading(false);
+          return;
+        }
+        
+        console.log("Current user:", user.id, user.email);
+        
+        // Get correct account ID
+        const accountId = await getAccountIdForUser(user.id, supabase);
+        console.log("Account ID result:", accountId);
+        
+        if (!accountId) {
+          console.error("No account found for user:", user.id);
+          setError("No account found for user");
+          setIsLoading(false);
+          return;
+        }
+        
+        console.log("Fetching data for account:", accountId);
+        
+        // Fetch business profile
+        const { data: businessProfile, error: businessError } = await supabase
+          .from("businesses")
+          .select("*")
+          .eq("account_id", accountId)
+          .single();
+          
+        if (businessError) {
+          console.error("Business fetch error:", businessError);
+        }
+        
+        console.log("Business profile:", businessProfile);
+        
+        // Fetch universal prompt page
+        const { data: universalPage, error: universalError } = await supabase
+          .from("prompt_pages")
+          .select("*")
+          .eq("account_id", accountId)
+          .eq("is_universal", true)
+          .single();
+          
+        if (universalError) {
+          console.error("Universal page fetch error:", universalError);
+          setError("Failed to fetch universal prompt page: " + universalError.message);
+          setIsLoading(false);
+          return;
+        }
+        
+        console.log("Universal prompt page:", universalPage);
+        
+        if (universalPage?.slug) setSlug(universalPage.slug);
+        // Normalize platform names for business and universal platforms
+        const universalPlatforms = normalizePlatforms(universalPage?.review_platforms);
+        const businessPlatforms = normalizePlatforms(businessProfile?.review_platforms);
+        const merged: UniversalPromptFormState = {
+          offerEnabled:
+            universalPage?.offer_enabled ??
+            businessProfile?.default_offer_enabled ??
+            false,
+          offerTitle:
+            universalPage?.offer_title ||
+            businessProfile?.default_offer_title ||
+            "",
+          offerBody:
+            universalPage?.offer_body ||
+            businessProfile?.default_offer_body ||
+            "",
+          offerUrl:
+            universalPage?.offer_url || businessProfile?.default_offer_url || "",
+          emojiSentimentEnabled: universalPage?.emoji_sentiment_enabled ?? false,
+          emojiSentimentQuestion: universalPage?.emoji_sentiment_question || "",
+          emojiFeedbackMessage: universalPage?.emoji_feedback_message || "",
+          emojiThankYouMessage: universalPage?.emoji_thank_you_message || "",
+          emojiLabels: universalPage?.emoji_labels || [
+            "Excellent",
+            "Satisfied",
+            "Neutral",
+            "Unsatisfied",
+            "Frustrated",
+          ],
+          reviewPlatforms: universalPlatforms.length
+            ? universalPlatforms
+            : businessPlatforms,
+          fallingEnabled: !!universalPage?.falling_icon,
+          fallingIcon: universalPage?.falling_icon || "star",
+          aiButtonEnabled: universalPage?.ai_button_enabled !== false,
+        };
+        
+        console.log("Merged form data:", merged);
+        
+        // Show the button if there is a universal override, or if the merged list is empty
+        setShowResetButton(
+          universalPlatforms.length > 0 || merged.reviewPlatforms.length === 0,
+        );
+        setInitialData(merged);
+        setBusinessReviewPlatforms(businessPlatforms);
+        setIsLoading(false);
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        setError("An error occurred while loading the page");
+        setIsLoading(false);
       }
-      // Get correct account ID
-      const accountId = await getAccountIdForUser(user.id, supabase);
-      if (!accountId) return;
-      // Fetch business profile
-      const { data: businessProfile } = await supabase
-        .from("businesses")
-        .select("*")
-        .eq("account_id", accountId)
-        .single();
-      // Fetch universal prompt page
-      const { data: universalPage } = await supabase
-        .from("prompt_pages")
-        .select("*")
-        .eq("account_id", accountId)
-        .eq("is_universal", true)
-        .single();
-      if (universalPage?.slug) setSlug(universalPage.slug);
-      // Normalize platform names for business and universal platforms
-      const normalizePlatforms = (platforms: any[] = []): any[] =>
-        platforms.map((p) => ({ ...p, name: normalizePlatformName(p.name) }));
-      // Merge logic: universal overrides business
-      const universalPlatforms = normalizePlatforms(
-        universalPage?.review_platforms,
-      ) as any[];
-      const businessPlatforms = normalizePlatforms(
-        businessProfile?.review_platforms,
-      ) as any[];
-      const merged: UniversalPromptFormState = {
-        offerEnabled:
-          universalPage?.offer_enabled ??
-          businessProfile?.default_offer_enabled ??
-          false,
-        offerTitle:
-          universalPage?.offer_title ||
-          businessProfile?.default_offer_title ||
-          "",
-        offerBody:
-          universalPage?.offer_body ||
-          businessProfile?.default_offer_body ||
-          "",
-        offerUrl:
-          universalPage?.offer_url || businessProfile?.default_offer_url || "",
-        emojiSentimentEnabled: universalPage?.emoji_sentiment_enabled ?? false,
-        emojiSentimentQuestion: universalPage?.emoji_sentiment_question || "",
-        emojiFeedbackMessage: universalPage?.emoji_feedback_message || "",
-        emojiThankYouMessage: universalPage?.emoji_thank_you_message || "",
-        emojiLabels: universalPage?.emoji_labels || [
-          "Excellent",
-          "Satisfied",
-          "Neutral",
-          "Unsatisfied",
-          "Frustrated",
-        ],
-        reviewPlatforms: universalPlatforms.length
-          ? universalPlatforms
-          : businessPlatforms,
-        fallingEnabled: !!universalPage?.falling_icon,
-        fallingIcon: universalPage?.falling_icon || "star",
-        aiButtonEnabled: universalPage?.ai_button_enabled !== false,
-      };
-      // Show the button if there is a universal override, or if the merged list is empty
-      setShowResetButton(
-        universalPlatforms.length > 0 || merged.reviewPlatforms.length === 0,
-      );
-      setInitialData(merged);
-      setBusinessReviewPlatforms(businessPlatforms);
     }
     fetchData();
   }, []);
 
   const handleSave = () => {
     if (formRef.current && typeof formRef.current.submit === "function") {
+      // Check for review platforms before saving
+      const currentFormState = formRef.current.getCurrentState?.();
+      if (currentFormState && currentFormState.reviewPlatforms.length === 0) {
+        if (!window.confirm("You didn't add a review platform. Are you sure you want to save?")) {
+          return;
+        }
+      }
+      
       setIsSaving(true);
       formRef.current.submit();
       setTimeout(() => setIsSaving(false), 1000); // Simulate save, replace with real logic
@@ -126,10 +185,6 @@ export default function UniversalEditPromptPage() {
 
   const handleFormSave = async (formState: UniversalPromptFormState) => {
     setIsSaving(true);
-    const supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    );
     // Get current user
     const {
       data: { user },
@@ -250,7 +305,18 @@ export default function UniversalEditPromptPage() {
         business.
       </p>
       <div className="pb-16">
-        {initialData && (
+        {isLoading && (
+          <div className="flex items-center justify-center py-8">
+            <div className="text-lg text-gray-600">Loading...</div>
+          </div>
+        )}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+            <div className="text-red-800 font-medium">Error</div>
+            <div className="text-red-600">{error}</div>
+          </div>
+        )}
+        {!isLoading && !error && initialData && (
           <UniversalPromptPageForm
             ref={formRef}
             onSave={handleFormSave}
@@ -260,6 +326,66 @@ export default function UniversalEditPromptPage() {
             businessReviewPlatforms={businessReviewPlatforms}
           />
         )}
+        {!isLoading && !error && !initialData && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <div className="text-yellow-800 font-medium">No Data Available</div>
+            <div className="text-yellow-600">
+              The universal prompt page data could not be loaded. Please try refreshing the page.
+            </div>
+          </div>
+        )}
+      </div>
+      
+      {/* Bottom Action Buttons */}
+      <div className="border-t border-gray-200 pt-6 mt-8 flex justify-between items-center">
+        {/* Reset Button - Bottom Left */}
+        {showResetButton && (
+          <button
+            type="button"
+            className="px-4 py-2 text-sm rounded border-2 border-red-500 text-red-600 bg-white hover:bg-red-50 transition-colors"
+            onClick={() => {
+              if (window.confirm("Are you sure you want to reset to business defaults? Any customizations will be lost.")) {
+                if (formRef.current && typeof formRef.current.getCurrentState === "function") {
+                  const currentState = formRef.current.getCurrentState();
+                  if (currentState) {
+                    // Reset review platforms to business defaults
+                    const updatedState = {
+                      ...currentState,
+                      reviewPlatforms: businessReviewPlatforms
+                    };
+                    // Update the form with reset data
+                    setInitialData(updatedState);
+                  }
+                }
+              }
+            }}
+            title="Reset to Business Defaults"
+          >
+            Reset to Defaults
+          </button>
+        )}
+        
+        {/* Save and View Buttons - Bottom Right */}
+        <div className="flex gap-3">
+          <button
+            type="button"
+            className="px-4 py-2 text-sm rounded bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200 transition-colors"
+            onClick={() => {
+              // Navigate to the universal prompt page preview
+              window.open(`/prompt-pages`, '_blank');
+            }}
+          >
+            View
+          </button>
+          <button
+            type="button"
+            className="px-4 py-2 text-sm rounded bg-slate-blue text-white hover:bg-slate-blue/90 transition-colors"
+            onClick={handleSave}
+            disabled={isSaving}
+          >
+            {isSaving ? "Saving..." : "Save"}
+          </button>
+        </div>
       </div>
     </PageCard>
   );

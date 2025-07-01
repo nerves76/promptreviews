@@ -26,9 +26,5 @@ export default function Home() {
     getUser();
   }, [router]);
 
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center">
-      <AppLoader variant="centered" />
-    </div>
-  );
+  return <AppLoader variant="default" />;
 }
