@@ -60,6 +60,7 @@ interface DashboardContentProps {
   hasCustomPromptPages: boolean;
   hasUniversalPromptPage: boolean;
   userId?: string;
+  setShowStarfallCelebration?: (show: boolean) => void;
 }
 
 interface PromptPage {
@@ -113,6 +114,7 @@ export default function DashboardContent({
   hasCustomPromptPages,
   hasUniversalPromptPage,
   userId,
+  setShowStarfallCelebration,
 }: DashboardContentProps) {
   console.log("DASHBOARD RENDERED");
   useAuthGuard();
@@ -276,10 +278,17 @@ export default function DashboardContent({
         const data = JSON.parse(flag);
         setPostSaveData(data);
         setShowPostSaveModal(true);
+        // Trigger starfall celebration automatically when modal appears
+        setShowStars(true);
+        // Also trigger global starfall celebration
+        setShowStarfallCelebration?.(true);
         localStorage.removeItem("showPostSaveModal");
       } catch {}
     }
-  }, []);
+  }, [setShowStarfallCelebration]);
+
+  // Note: Modal stays open so users can access sharing options
+  // Stars fall automatically when modal appears, but modal remains open
 
   const starProps = useMemo(() => {
     if (!showPostSaveModal) return [];
@@ -468,7 +477,7 @@ export default function DashboardContent({
       : [];
 
   if (isLoading && !parentLoading) {
-    return null;
+    return <AppLoader variant="centered" />;
   }
 
   return (
@@ -812,8 +821,8 @@ export default function DashboardContent({
           {/* Post-save share modal with star fall animation */}
           {showPostSaveModal && postSaveData && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-              {/* Star Falling Animation - behind modal, only after button click */}
-              {starProps.map((props, i) => (
+              {/* Star Falling Animation - always visible when modal is shown */}
+              {showStars && starProps.map((props, i) => (
                 <span
                   key={i}
                   style={{
@@ -839,74 +848,66 @@ export default function DashboardContent({
                   </span>
                 </span>
               ))}
-              {/* Modal content above animation */}
-              {!showStars && (
-                <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center relative z-10 overflow-hidden">
-                  <button
-                    className="absolute top-2 right-2 w-9 h-9 flex items-center justify-center rounded-full bg-white text-red-500 border border-red-200 shadow hover:bg-red-500 hover:text-white transition-colors text-xl z-20"
-                    onClick={() => {
-                      setShowStars(true);
-                      setTimeout(() => {
-                        setShowPostSaveModal(false);
-                        setShowStars(false);
-                      }, 6000);
-                    }}
-                    aria-label="Close"
+              {/* Modal content - always visible */}
+              <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center relative z-10 overflow-hidden">
+                <button
+                  className="absolute top-2 right-2 w-9 h-9 flex items-center justify-center rounded-full bg-white text-red-500 border border-red-200 shadow hover:bg-red-500 hover:text-white transition-colors text-xl z-20"
+                  onClick={() => {
+                    setShowPostSaveModal(false);
+                    setShowStars(false);
+                  }}
+                  aria-label="Close"
+                >
+                  &times;
+                </button>
+                <h2 className="text-2xl font-bold mb-4 text-indigo-800 relative z-10">
+                  Prompt Page Created!
+                </h2>
+                <p className="mb-4 text-gray-700 relative z-10">
+                  Share your new prompt page with your customer:
+                </p>
+                <div className="flex flex-col gap-3 mb-6 relative z-10">
+                  <a
+                    href={postSaveData.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block px-4 py-2 bg-slate-blue text-white rounded-lg font-medium hover:bg-slate-blue/90 transition"
                   >
-                    &times;
-                  </button>
-                  <h2 className="text-2xl font-bold mb-4 text-indigo-800 relative z-10">
-                    Prompt Page Created!
-                  </h2>
-                  <p className="mb-4 text-gray-700 relative z-10">
-                    Share your new prompt page with your customer:
-                  </p>
-                  <div className="flex flex-col gap-3 mb-6 relative z-10">
-                    <a
-                      href={postSaveData.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-block px-4 py-2 bg-slate-blue text-white rounded-lg font-medium hover:bg-slate-blue/90 transition"
+                    View Prompt Page
+                  </a>
+                  {postSaveData.phone && (
+                    <button
+                      className="inline-block px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition"
+                      onClick={() => {
+                        const name = postSaveData.first_name || "[name]";
+                        const businessName = business?.name || "[Business]";
+                        const reviewUrl = `${window.location.origin}${postSaveData.url}`;
+                        const message = `Hi ${name}, do you have 1-3 minutes to leave a review for ${businessName}? I have a review you can use and everything. Positive reviews really help small business get found online. Thanks so much! ${reviewUrl}`;
+                        window.location.href = `sms:${postSaveData.phone}?&body=${encodeURIComponent(message)}`;
+                      }}
                     >
-                      View Prompt Page
+                      Send SMS
+                    </button>
+                  )}
+                  {postSaveData.email && (
+                    <a
+                      href={`mailto:${postSaveData.email}?subject=${encodeURIComponent("Quick Review Request")}&body=${encodeURIComponent(`Hi ${postSaveData.first_name || "[name]"}, do you have 1-3 minutes to leave a review for ${business?.name || "[Business]"}? I have a review you can use and everything. Positive reviews really help small business get found online. Thanks so much! ${window.location.origin}${postSaveData.url}`)}`}
+                      className="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition"
+                    >
+                      Send Email
                     </a>
-                    {postSaveData.phone && (
-                      <button
-                        className="inline-block px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition"
-                        onClick={() => {
-                          const name = postSaveData.first_name || "[name]";
-                          const businessName = business?.name || "[Business]";
-                          const reviewUrl = `${window.location.origin}${postSaveData.url}`;
-                          const message = `Hi ${name}, do you have 1-3 minutes to leave a review for ${businessName}? I have a review you can use and everything. Positive reviews really help small business get found online. Thanks so much! ${reviewUrl}`;
-                          window.location.href = `sms:${postSaveData.phone}?&body=${encodeURIComponent(message)}`;
-                        }}
-                      >
-                        Send SMS
-                      </button>
-                    )}
-                    {postSaveData.email && (
-                      <a
-                        href={`mailto:${postSaveData.email}?subject=${encodeURIComponent("Quick Review Request")}&body=${encodeURIComponent(`Hi ${postSaveData.first_name || "[name]"}, do you have 1-3 minutes to leave a review for ${business?.name || "[Business]"}? I have a review you can use and everything. Positive reviews really help small business get found online. Thanks so much! ${window.location.origin}${postSaveData.url}`)}`}
-                        className="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition"
-                      >
-                        Send Email
-                      </a>
-                    )}
-                  </div>
-                  <button
-                    onClick={() => {
-                      setShowStars(true);
-                      setTimeout(() => {
-                        setShowPostSaveModal(false);
-                        setShowStars(false);
-                      }, 6000);
-                    }}
-                    className="bg-gray-200 text-gray-700 px-6 py-2 rounded hover:bg-gray-300 font-semibold mt-2 relative z-10"
-                  >
-                    Close
-                  </button>
+                  )}
                 </div>
-              )}
+                <button
+                  onClick={() => {
+                    setShowPostSaveModal(false);
+                    setShowStars(false);
+                  }}
+                  className="bg-gray-200 text-gray-700 px-6 py-2 rounded hover:bg-gray-300 font-semibold mt-2 relative z-10"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           )}
         </div>

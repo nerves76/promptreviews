@@ -41,18 +41,31 @@ Since we use the production Supabase database for all environments, email confir
 
 ### Implementation Details
 
-The bypass is implemented in `src/app/auth/sign-up/page.tsx`:
+The bypass is implemented in `src/app/auth/sign-up/page.tsx` and uses the `/api/force-signin` endpoint:
 
 ```typescript
 // LOCAL DEVELOPMENT EMAIL BYPASS
 // Since we use production Supabase for all environments, email confirmations
 // are always enabled on the server side. However, for local development,
-// we provide a user-friendly message explaining that they can sign in immediately.
+// we use the force-signin API to automatically confirm the user's email
+// and sign them in immediately.
 const isLocalDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
 if (isLocalDevelopment) {
-  // Local development: Email confirmation is bypassed for convenience
-  setMessage('✅ Account created successfully! Since you\'re in local development mode, you can sign in immediately with your credentials.');
+  // Local development: Use force-signin API to confirm email and sign in user
+  const forceSignInResponse = await fetch('/api/force-signin', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  });
+  
+  if (forceSignInResponse.ok) {
+    // User is automatically signed in and redirected to dashboard
+    window.location.href = '/dashboard';
+  } else {
+    // Fallback: Show sign-in message
+    setMessage('✅ Account created successfully! You can now sign in with your credentials.');
+  }
 } else {
   // Production: Normal email confirmation flow
   setMessage('📧 Account created! Please check your email and click the confirmation link to activate your account.');
@@ -82,8 +95,10 @@ if (isLocalDevelopment) {
 For local development testing:
 
 1. **Create a new account** using the sign-up form
-2. **Sign in immediately** (no email confirmation required)
+2. **Automatic sign-in** - You'll be automatically signed in and redirected to the dashboard
 3. **Test all features** with the created account
+
+**Note**: The sign-up process now uses the force-signin API to automatically confirm your email and sign you in immediately for local development.
 
 ### Manual Email Confirmation (if needed)
 

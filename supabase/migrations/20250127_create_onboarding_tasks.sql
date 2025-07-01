@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS onboarding_tasks (
 ALTER TABLE onboarding_tasks ENABLE ROW LEVEL SECURITY;
 
 -- Policy: Users can only see their own onboarding tasks
+DROP POLICY IF EXISTS "Users can view their own onboarding tasks" ON onboarding_tasks;
 CREATE POLICY "Users can view their own onboarding tasks" ON onboarding_tasks
   FOR SELECT USING (
     account_id IN (
@@ -25,6 +26,7 @@ CREATE POLICY "Users can view their own onboarding tasks" ON onboarding_tasks
   );
 
 -- Policy: Users can insert their own onboarding tasks
+DROP POLICY IF EXISTS "Users can insert their own onboarding tasks" ON onboarding_tasks;
 CREATE POLICY "Users can insert their own onboarding tasks" ON onboarding_tasks
   FOR INSERT WITH CHECK (
     account_id IN (
@@ -34,6 +36,7 @@ CREATE POLICY "Users can insert their own onboarding tasks" ON onboarding_tasks
   );
 
 -- Policy: Users can update their own onboarding tasks
+DROP POLICY IF EXISTS "Users can update their own onboarding tasks" ON onboarding_tasks;
 CREATE POLICY "Users can update their own onboarding tasks" ON onboarding_tasks
   FOR UPDATE USING (
     account_id IN (
@@ -43,6 +46,7 @@ CREATE POLICY "Users can update their own onboarding tasks" ON onboarding_tasks
   );
 
 -- Policy: Users can delete their own onboarding tasks
+DROP POLICY IF EXISTS "Users can delete their own onboarding tasks" ON onboarding_tasks;
 CREATE POLICY "Users can delete their own onboarding tasks" ON onboarding_tasks
   FOR DELETE USING (
     account_id IN (
@@ -64,6 +68,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Drop the trigger if it exists before creating it
+DROP TRIGGER IF EXISTS trigger_update_onboarding_tasks_updated_at ON onboarding_tasks;
 CREATE TRIGGER trigger_update_onboarding_tasks_updated_at
   BEFORE UPDATE ON onboarding_tasks
   FOR EACH ROW

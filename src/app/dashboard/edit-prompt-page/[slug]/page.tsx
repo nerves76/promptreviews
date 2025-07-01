@@ -1,7 +1,6 @@
 "use client";
 import { useRouter, useParams } from "next/navigation";
 import { useState, useEffect } from "react";
-import { createBrowserClient } from "@supabase/ssr";
 import { generateAIReview } from "@/utils/ai";
 import {
   FaGoogle,
@@ -22,17 +21,18 @@ import {
   FaBoxOpen,
   FaTrophy,
   FaCommentDots,
+  FaCamera,
 } from "react-icons/fa";
 import { IconType } from "react-icons";
 import Link from "next/link";
-import { getUserOrMock, getSessionOrMock } from "@/utils/supabase";
+import { getAccountIdForUser } from "@/utils/accountUtils";
 import IndustrySelector from "@/app/components/IndustrySelector";
 import PromptPageForm from "@/app/components/PromptPageForm";
 import PageCard from "@/app/components/PageCard";
 import EmojiSentimentSection from "../components/EmojiSentimentSection";
 import FallingStarsSection from "@/app/components/FallingStarsSection";
 import DisableAIGenerationSection from "@/app/components/DisableAIGenerationSection";
-import ReviewWriteSection from "../components/ReviewWriteSection";
+import ReviewWriteSection, { ReviewWritePlatform } from "../components/ReviewWriteSection";
 import ServicePromptPageForm, {
   ServicePromptFormState,
 } from "./ServicePromptPageForm";
@@ -40,6 +40,7 @@ import ProductPromptPageForm from "@/app/components/ProductPromptPageForm";
 import React from "react";
 import AppLoader from "@/app/components/AppLoader";
 import RobotTooltip from "@/app/components/RobotTooltip";
+import { supabase } from "@/utils/supabaseClient";
 
 interface ReviewPlatformLink {
   name: string;
@@ -143,7 +144,7 @@ export default function EditPromptPage() {
     role: "",
     industry: [] as string[],
     industry_other: "",
-    review_type: "prompt",
+    type: "custom",
     product_photo: "",
     emojiThankYouMessage: "",
     falling_icon: "",
@@ -179,31 +180,41 @@ export default function EditPromptPage() {
   const [emojiSentimentQuestion, setEmojiSentimentQuestion] = useState(
     "How was your experience?",
   );
+  const [emojiThankYouMessage, setEmojiThankYouMessage] = useState("");
+  const [friendlyNote, setFriendlyNote] = useState("");
 
   // Add state for ServicePromptPageForm
   const formRef = React.useRef<any>(null);
   const [initialData, setInitialData] =
-    useState<Partial<ServicePromptFormState> | null>(null);
+    useState<Partial<ServicePromptFormState> | undefined>(undefined);
   const [showResetButton, setShowResetButton] = useState(false);
   const [businessReviewPlatforms, setBusinessReviewPlatforms] = useState<
-    ReviewPlatformLink[]
+    ReviewWritePlatform[]
   >([]);
   const [accountId, setAccountId] = useState("");
   const [notePopupEnabled, setNotePopupEnabled] = useState(false);
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  );
-
-  // Hoist loadData so it can be called from anywhere
   const loadData = async () => {
     try {
-      const {
-        data: { user },
-      } = await getUserOrMock(supabase);
+      setIsLoading(true);
+      setError(null);
+      // Use the singleton Supabase client for session/auth (matches Universal Prompt page)
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError) {
+        setError("Error fetching user session.");
+        setIsLoading(false);
+        return;
+      }
       if (!user) {
-        console.log("No user found");
+        setError("You must be signed in to access this page.");
+        setIsLoading(false);
+        return;
+      }
+      // Get account ID for user (same as Universal)
+      const accountId = await getAccountIdForUser(user.id, supabase);
+      if (!accountId) {
+        setError("No account found for user.");
+        setIsLoading(false);
         return;
       }
       // Fetch the prompt page data
@@ -212,199 +223,92 @@ export default function EditPromptPage() {
         .select("*")
         .eq("slug", params.slug)
         .single();
-      if (promptError) throw promptError;
-
-      setAccountId(promptData.account_id || "");
-
-      // Debug log
-      console.log("Loaded promptData:", promptData);
-
-      // Set form data from the prompt page, ensuring all string values have defaults
-      let reviewPlatforms = Array.isArray(promptData.review_platforms)
-        ? promptData.review_platforms
-        : [];
-      reviewPlatforms = reviewPlatforms.map((p: any) => ({
-        name: p.name || p.platform || "",
-        url: p.url || "",
-        wordCount: p.wordCount ? Number(p.wordCount) : 200,
-        customInstructions: p.customInstructions || "",
-        reviewText: p.reviewText || "",
-        customPlatform: p.customPlatform || "",
-      }));
-      console.log("Loaded reviewPlatforms:", reviewPlatforms);
-      // If universal and no review platforms, use business profile's
-      if (
-        (promptData.is_universal || isUniversal) &&
-        reviewPlatforms.length === 0
-      ) {
-        // Fetch business profile review platforms
-        const { data: businessData } = await supabase
-          .from("businesses")
-          .select("review_platforms")
-          .eq("account_id", user.id)
-          .single();
-        if (
-          businessData &&
-          Array.isArray(businessData.review_platforms) &&
-          businessData.review_platforms.length > 0
-        ) {
-          reviewPlatforms = businessData.review_platforms.map((p: any) => ({
-            name: p.name || p.platform || "",
-            url: p.url || "",
-            wordCount: p.wordCount ? Number(p.wordCount) : 200,
-            customInstructions: p.customInstructions || "",
-            reviewText: "",
-          }));
-        }
+      if (promptError) {
+        setError("Could not load prompt page data. Please try again.");
+        setIsLoading(false);
+        return;
       }
-      setFormData({
-        first_name: promptData.first_name || "",
-        last_name: promptData.last_name || "",
-        email: promptData.email || "",
-        phone: promptData.phone || "",
-        product_name: promptData.product_name || "",
-        product_description: promptData.product_description || "",
-        features_or_benefits: promptData.features_or_benefits || [""],
-        review_platforms: reviewPlatforms,
-        services_offered: Array.isArray(promptData.services_offered)
-          ? promptData.services_offered
-          : typeof promptData.services_offered === "string" &&
-              promptData.services_offered.length > 0
-            ? [promptData.services_offered]
-            : [],
-        friendly_note: promptData.friendly_note || "",
-        status:
-          promptData.status ||
-          ("in_queue" as "in_queue" | "in_progress" | "complete" | "draft"),
-        role: promptData.role || "",
-        industry: promptData.industry || [],
-        industry_other: promptData.industry_other || "",
-        review_type:
-          (promptData.review_type || "").toLowerCase().trim() === "product"
-            ? "product"
-            : "service",
-        product_photo: promptData.product_photo || "",
-        emojiThankYouMessage: promptData.emoji_thank_you_message || "",
-        falling_icon: promptData.falling_icon || "",
-      });
-      setPhotoUrl(promptData.product_photo || null);
-      setIsUniversal(!!promptData.is_universal || isUniversal);
-      setOfferEnabled(!!promptData.offer_enabled);
-      setOfferTitle(promptData.offer_title || "Special Offer");
-      setOfferBody(promptData.offer_body || "");
-      setOfferUrl(promptData.offer_url || "");
-      if (promptData) {
-        if (promptData.falling_icon) {
-          setFallingIcon(promptData.falling_icon);
-          setLastIcon(promptData.falling_icon);
-          setFallingEnabled(true);
-        } else {
-          setFallingEnabled(false);
-        }
+      if (!promptData) {
+        setError("Prompt page not found.");
+        setIsLoading(false);
+        return;
       }
-      if (promptData.services_offered) {
-        let arr = promptData.services_offered;
-        if (typeof arr === "string") {
-          try {
-            arr = JSON.parse(arr);
-          } catch {
-            arr = arr.split(/\r?\n/);
-          }
-        }
-        if (!Array.isArray(arr)) arr = [];
-        setServices(arr.filter(Boolean));
-        setFormData((prev) => ({
-          ...prev,
-          services_offered: arr.filter(Boolean),
-        }));
-      }
-      setEmojiSentimentEnabled(!!promptData.emoji_sentiment_enabled);
-      setEmojiFeedbackMessage(
-        promptData.emoji_feedback_message ||
-          "We value your feedback! Let us know how we can do better.",
-      );
-      setEmojiSentimentQuestion(
-        promptData.emoji_sentiment_question || "How was your experience?",
-      );
-      setNotePopupEnabled(promptData.show_friendly_note ?? true);
-
-      // Fetch business profile
-      const { data: businessData } = await supabase
+      // Fetch business profile using accountId
+      const { data: businessData, error: businessError } = await supabase
         .from("businesses")
         .select("*")
-        .eq("account_id", user.id)
+        .eq("account_id", accountId)
         .single();
-
-      // Normalize business review platforms
-      const normalizePlatforms = (platforms: any[] = []) =>
-        platforms.map((p) => ({
-          name: p.name || p.platform || "",
-          url: p.url || "",
-          wordCount: p.wordCount ? Number(p.wordCount) : 200,
-          customInstructions: p.customInstructions || "",
-          reviewText: p.reviewText || "",
-          customPlatform: p.customPlatform || "",
-        }));
-      const businessPlatforms = normalizePlatforms(
-        businessData?.review_platforms,
-      );
-      setBusinessReviewPlatforms(businessPlatforms);
-
-      if (businessData) {
-        setBusinessProfile({
-          ...businessData,
-          business_name: businessData.name,
-          services_offered: Array.isArray(businessData.services_offered)
-            ? businessData.services_offered
-            : typeof businessData.services_offered === "string"
-              ? [businessData.services_offered]
-              : [],
-          features_or_benefits: businessData.features_or_benefits || [],
-        });
-        setFormData((prev) => ({
-          ...prev,
-          industry: businessData.industry || [],
-          industry_other: businessData.industry_other || "",
-        }));
+      if (businessError) {
+        setError("Could not load business profile. Please try again.");
+        setIsLoading(false);
+        return;
       }
-
-      // After loading promptData and businessProfile, set initialData for ServicePromptPageForm
-      setInitialData({
-        offerEnabled: offerEnabled,
-        offerTitle: offerTitle,
-        offerBody: offerBody,
-        offerUrl: offerUrl,
-        emojiSentimentEnabled: emojiSentimentEnabled,
-        emojiSentimentQuestion: emojiSentimentQuestion,
-        emojiFeedbackMessage: emojiFeedbackMessage,
-        emojiThankYouMessage: promptData.emoji_thank_you_message || "",
-        emojiLabels: [
-          "Excellent",
-          "Satisfied",
-          "Neutral",
-          "Unsatisfied",
-          "Frustrated",
-        ],
-        reviewPlatforms: (promptData.review_platforms || []).map((p: any) => ({
-          name: p.name || p.platform || "",
-          url: p.url || "",
-          wordCount: p.wordCount ? Number(p.wordCount) : 200,
-          customPlatform: p.customPlatform || "",
-          customInstructions: p.customInstructions || "",
-        })),
-        fallingEnabled: !!promptData.falling_icon,
-        fallingIcon: promptData.falling_icon || "star",
-        aiButtonEnabled: promptData.ai_button_enabled !== false,
+      if (!businessData) {
+        setError("Business profile not found. Please create a business profile first.");
+        setIsLoading(false);
+        return;
+      }
+      // Set the prompt page data to form state
+      setFormData((prev) => ({
+        ...prev,
+        ...promptData,
+        review_platforms: promptData.review_platforms || [],
+        services_offered: Array.isArray(promptData.services_offered)
+          ? promptData.services_offered
+          : typeof promptData.services_offered === "string"
+            ? [promptData.services_offered]
+            : [],
+        features_or_benefits: promptData.features_or_benefits || [],
+        industry: businessData.industry || [],
+        industry_other: businessData.industry_other || "",
+      }));
+      
+      // Set business profile
+      setBusinessProfile({
+        ...businessData,
+        business_name: businessData.name,
+        services_offered: Array.isArray(businessData.services_offered)
+          ? businessData.services_offered
+          : typeof businessData.services_offered === "string"
+            ? [businessData.services_offered]
+            : [],
+        features_or_benefits: businessData.features_or_benefits || [],
       });
-      // Show reset button if there are custom platforms or the list is empty
-      setShowResetButton(
-        (formData.review_platforms && formData.review_platforms.length > 0) ||
-          (businessPlatforms && businessPlatforms.length > 0),
-      );
+      
+      // Set initial data for ServicePromptPageForm
+      setInitialData({
+        ...promptData,
+        review_platforms: promptData.review_platforms || [],
+        services_offered: Array.isArray(promptData.services_offered)
+          ? promptData.services_offered
+          : typeof promptData.services_offered === "string"
+            ? [promptData.services_offered]
+            : [],
+        features_or_benefits: promptData.features_or_benefits || [],
+      });
+      
+      // Set account ID
+      setAccountId(accountId);
+      
+      // Set other state based on prompt page data
+      setOfferEnabled(!!promptData.custom_incentive);
+      setOfferBody(promptData.custom_incentive || "");
+      setOfferTitle(promptData.offer_title || "Special Offer");
+      setOfferUrl(promptData.offer_url || "");
+      setFallingEnabled(!!promptData.falling_icon);
+      setFallingIcon(promptData.falling_icon || "star");
+      setLastIcon(promptData.falling_icon || "star");
+      setEmojiSentimentEnabled(!!promptData.emoji_sentiment_enabled);
+      setEmojiSentimentQuestion(promptData.emoji_sentiment_question || "How was your experience?");
+      setEmojiFeedbackMessage(promptData.emoji_feedback_message || "We value your feedback! Let us know how we can do better.");
+      setEmojiThankYouMessage(promptData.emoji_thank_you_message || "");
+      setNotePopupEnabled(!!promptData.note_popup_enabled);
+      setFriendlyNote(promptData.friendly_note || "");
+      setIsLoading(false);
     } catch (err) {
       console.error("Error loading data:", err);
-      setError("Failed to load page data");
-    } finally {
+      setError("An unexpected error occurred. Please try again.");
       setIsLoading(false);
     }
   };
@@ -573,7 +477,7 @@ export default function EditPromptPage() {
     try {
       const {
         data: { session },
-      } = await getSessionOrMock(supabase);
+      } = await supabase.auth.getSession();
       if (!session) {
         throw new Error("You must be signed in to edit a prompt page");
       }
@@ -649,7 +553,7 @@ export default function EditPromptPage() {
           product_photo: formData.product_photo || null,
           friendly_note: formData.friendly_note || null,
           role: formData.role || null,
-          review_type: formData.review_type || "prompt",
+          type: formData.type || "custom",
           emoji_thank_you_message: formData.emojiThankYouMessage || "",
           falling_icon: formData.falling_icon,
           emoji_sentiment_enabled: emojiSentimentEnabled,
@@ -701,7 +605,7 @@ export default function EditPromptPage() {
         "friendly_note",
         "status",
         "role",
-        "review_type",
+        "type",
         "offer_enabled",
         "offer_title",
         "offer_body",
@@ -769,14 +673,14 @@ export default function EditPromptPage() {
     }
   };
 
-  const handleFormSave = async (formState: ServicePromptFormState | any) => {
+  const handleStep1Save = async (formState: any) => {
     setIsLoading(true);
     setError(null);
     setSuccessMessage(null);
     try {
       const {
         data: { session },
-      } = await getSessionOrMock(supabase);
+      } = await supabase.auth.getSession();
       if (!session) {
         throw new Error("You must be signed in to edit a prompt page");
       }
@@ -788,55 +692,89 @@ export default function EditPromptPage() {
         .single();
       if (fetchError) throw fetchError;
       if (!promptPage) throw new Error("Prompt page not found");
+      
+      // For step 1, only update the basic customer/client fields
+      const updateData = {
+        first_name: formState.first_name,
+        last_name: formState.last_name,
+        email: formState.email,
+        phone: formState.phone,
+        role: formState.role,
+        friendly_note: formState.friendly_note,
+      };
+      
+      // Update the prompt page
+      const { error: updateError } = await supabase
+        .from("prompt_pages")
+        .update(updateData)
+        .eq("id", promptPage.id);
+      
+      if (updateError) {
+        setError(updateError.message);
+        return;
+      }
+      
+      // Update local form data
+      setFormData(prev => ({ ...prev, ...updateData }));
+      
+      // Move to step 2
+      setStep(2);
+      setSuccessMessage("Step 1 saved! Continue to step 2.");
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to update prompt page",
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleStep2Save = async (formState: any) => {
+    console.log("[DEBUG] handleStep2Save called with formState:", formState);
+    setIsLoading(true);
+    setError(null);
+    setSuccessMessage(null);
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error("You must be signed in to edit a prompt page");
+      }
+      // Get the prompt page ID
+      const { data: promptPage, error: fetchError } = await supabase
+        .from("prompt_pages")
+        .select("id, slug")
+        .eq("slug", params.slug)
+        .single();
+      if (fetchError) throw fetchError;
+      if (!promptPage) throw new Error("Prompt page not found");
+      
       let updateData: any;
-      if (formData.review_type === "product") {
+      if (formData.type === "product") {
         // For product pages, formState is a flat object with all fields
         updateData = { ...formData, ...formState };
       } else {
-        // For service pages, formState is ServicePromptFormState
+        // For service pages, formState contains the form data directly
+        // Extract the step 2 fields from the form data
         updateData = {
-          // Step 1 fields
-          first_name: formData.first_name,
-          last_name: formData.last_name,
-          email: formData.email,
-          phone: formData.phone,
-          product_name: formData.product_name,
-          product_description: formData.product_description,
-          product_photo: formData.product_photo,
-          services_offered: formData.services_offered,
-          friendly_note: formData.friendly_note,
-          status: formData.status,
-          role: formData.role,
-          review_type: formData.review_type,
-          // Step 2 fields
-          offer_enabled: formState.offerEnabled,
-          offer_title: formState.offerTitle,
-          offer_body: formState.offerBody,
-          offer_url: formState.offerUrl,
-          emoji_sentiment_enabled: formState.emojiSentimentEnabled,
-          emoji_sentiment_question: formState.emojiSentimentQuestion,
-          emoji_feedback_message: formState.emojiFeedbackMessage,
-          emoji_thank_you_message: formState.emojiThankYouMessage,
-          review_platforms: formState.reviewPlatforms,
-          falling_icon: formState.fallingEnabled ? formState.fallingIcon : null,
-          ai_button_enabled: formState.aiButtonEnabled,
-          show_friendly_note: notePopupEnabled,
+          // Step 2 fields - these come from the form state
+          offer_enabled: formState.offer_enabled || false,
+          offer_title: formState.offer_title || "",
+          offer_body: formState.offer_body || "",
+          offer_url: formState.offer_url || "",
+          emoji_sentiment_enabled: formState.emoji_sentiment_enabled || false,
+          emoji_sentiment_question: formState.emoji_sentiment_question || "How was your experience?",
+          emoji_feedback_message: formState.emoji_feedback_message || "We value your feedback! Let us know how we can do better.",
+          emoji_thank_you_message: formState.emoji_thank_you_message || "",
+          review_platforms: formState.review_platforms || [],
+          falling_icon: formState.falling_icon || null,
+          ai_button_enabled: formState.ai_button_enabled !== false, // Default to true
+          show_friendly_note: formState.show_friendly_note || false,
         };
       }
       // Only include valid columns in the payload
       const validColumns = [
-        "first_name",
-        "last_name",
-        "email",
-        "phone",
-        "product_name",
-        "product_description",
-        "product_photo",
-        "services_offered",
-        "friendly_note",
-        "status",
-        "role",
-        "review_type",
         "offer_enabled",
         "offer_title",
         "offer_body",
@@ -856,10 +794,8 @@ export default function EditPromptPage() {
         ),
       );
       // Debug logs for troubleshooting
-      console.log(
-        "[DEBUG] Service Save review_platforms:",
-        formState.reviewPlatforms,
-      );
+      console.log("[DEBUG] Service Save formState:", formState);
+      console.log("[DEBUG] Service Save updateData:", updateData);
       console.log("[DEBUG] Service Save payload:", payload);
       // Update the prompt page
       const { error: updateError } = await supabase
@@ -874,14 +810,39 @@ export default function EditPromptPage() {
       }
       // Reload latest data from Supabase
       await loadData();
-      // Show share modal or redirect
-      setShowShareModal(true);
+      
+      // Set localStorage flag for post-save modal and redirect to dashboard
+      if (promptPage?.slug) {
+        const modalData = { 
+          url: `/r/${promptPage.slug}`,
+          first_name: formData.first_name,
+          phone: formData.phone,
+          email: formData.email
+        };
+        console.log('🔍 Setting localStorage showPostSaveModal:', modalData);
+        localStorage.setItem(
+          "showPostSaveModal",
+          JSON.stringify(modalData),
+        );
+      }
+      // Redirect to prompt-pages to show the modal
+      console.log('🔍 Redirecting to prompt-pages');
+      window.location.href = "/prompt-pages";
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to update prompt page",
       );
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleFormSave = async (formState: ServicePromptFormState | any) => {
+    // For backward compatibility, route to appropriate step handler
+    if (step === 1) {
+      return handleStep1Save(formState);
+    } else {
+      return handleStep2Save(formState);
     }
   };
 
@@ -984,6 +945,29 @@ export default function EditPromptPage() {
     });
   };
 
+  // Show error state if there's an error
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">
+            Error Loading Page
+          </h1>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <button
+            onClick={() => {
+              setError(null);
+              loadData();
+            }}
+            className="px-4 py-2 bg-slate-blue text-white rounded-md hover:bg-slate-blue/90"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (isLoading) {
     return (
       <div
@@ -1001,8 +985,19 @@ export default function EditPromptPage() {
   }
 
   if (!businessProfile) {
-    return null;
+    console.log('🔍 No businessProfile loaded yet');
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <AppLoader />
+      </div>
+    );
   }
+
+  console.log('🔍 Rendering edit page with:', { 
+    type: formData.type, 
+    businessProfile: !!businessProfile,
+    initialData: !!initialData 
+  });
 
   // Ensure all required fields are present and not undefined
   const safeBusinessProfile = {
@@ -1012,7 +1007,7 @@ export default function EditPromptPage() {
   };
 
   // In the main render, for product pages, render only the unified ProductPromptPageForm and return immediately
-  if (formData.review_type === "product") {
+  if (formData.type === "product") {
     return (
       <PageCard icon={<FaBoxOpen className="w-16 h-16 text-slate-blue" />}>
         <ProductPromptPageForm
@@ -1027,556 +1022,74 @@ export default function EditPromptPage() {
     );
   }
 
+  // For service pages, use the PromptPageForm component (same as photo pages)
+  if (formData.type === "service") {
+    console.log('🔍 Rendering PromptPageForm for service with:', { formData, businessProfile, step });
+    return (
+      <PageCard icon={<FaHandsHelping className="w-9 h-9 text-slate-blue" />}>
+        <PromptPageForm
+          mode="edit"
+          initialData={formData}
+          onSave={handleStep1Save}
+          onPublish={handleStep2Save}
+          pageTitle="Edit Service Prompt Page"
+          supabase={supabase}
+          businessProfile={businessProfile}
+          step={step}
+          onStepChange={setStep}
+        />
+      </PageCard>
+    );
+  }
+
+  // For photo pages, use the PromptPageForm component
+  if (formData.type === "photo") {
+    console.log('🔍 Rendering PromptPageForm for photo with:', { formData, businessProfile, step });
+    return (
+      <PageCard icon={<FaCamera className="w-9 h-9 text-slate-blue" />}>
+        <PromptPageForm
+          mode="edit"
+          initialData={formData}
+          onSave={handleStep1Save}
+          onPublish={handleStep2Save}
+          pageTitle="Edit Photo + Testimonial Prompt Page"
+          supabase={supabase}
+          businessProfile={businessProfile}
+          step={step}
+          onStepChange={setStep}
+        />
+      </PageCard>
+    );
+  }
+
+  // For universal pages, use the ServicePromptPageForm component (similar to service pages)
+  if (formData.type === "universal") {
+    console.log('🔍 Rendering ServicePromptPageForm for universal with:', { initialData, isLoading, businessReviewPlatforms });
+    return (
+      <PageCard icon={<FaHandsHelping className="w-9 h-9 text-slate-blue" />}>
+        <ServicePromptPageForm
+          initialData={initialData}
+          onSave={handleFormSave}
+          isLoading={isLoading}
+          showResetButton={showResetButton}
+          businessReviewPlatforms={businessReviewPlatforms}
+          onGenerateReview={handleGenerateAIReview}
+        />
+      </PageCard>
+    );
+  }
+
+  // Fallback for unknown types
   return (
-    <PageCard
-      icon={<FaHandsHelping className="w-9 h-9 text-slate-blue" />}
-      topRightAction={
-        step === 2 ? (
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setStep(1)}
-              className="rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-slate-blue shadow-sm hover:bg-gray-50"
-              disabled={isLoading}
-            >
-              Back
-            </button>
-            <button
-              type="button"
-              onClick={() =>
-                formRef.current &&
-                formRef.current.submit &&
-                formRef.current.submit()
-              }
-              className="rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90"
-              disabled={isLoading}
-            >
-              Save
-            </button>
-            <a
-              href={params.slug ? `/r/${params.slug}` : "#"}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`px-4 py-2 rounded-md font-medium shadow border border-slate-blue text-slate-blue bg-white hover:bg-slate-50 transition ${!params.slug ? "opacity-50 pointer-events-none" : ""}`}
-              tabIndex={params.slug ? 0 : -1}
-            >
-              View
-            </a>
-          </div>
-        ) : step === 1 ? (
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={handleSaveAndContinue}
-              className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-              disabled={isLoading}
-            >
-              Save & Continue
-            </button>
-          </div>
-        ) : undefined
-      }
-    >
-      <h1 className="text-3xl font-bold text-slate-blue mb-8 mt-2">
-        Service Prompt Page
-      </h1>
-      {step === 1 ? (
-        <div className="space-y-6">
-          <h3 className="text-lg font-semibold text-slate-blue mt-16 mb-2 flex items-center gap-2">
-            <FaUser className="w-6 h-6 text-slate-blue" />
-            Customer/Client Details
-          </h3>
-          <div className="flex gap-4">
-            <div className="flex-1">
-              <label
-                htmlFor="first_name"
-                className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center gap-1"
-              >
-                First name
-                <RobotTooltip text="This field is passed to AI for prompt generation." />
-              </label>
-              <input
-                type="text"
-                id="first_name"
-                value={formData.first_name}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    first_name: e.target.value,
-                  }))
-                }
-                className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                placeholder="First Name"
-                required
-              />
-            </div>
-            <div className="flex-1">
-              <label
-                htmlFor="last_name"
-                className="block text-sm font-medium text-gray-700 mt-4 mb-2"
-              >
-                Last name
-              </label>
-              <input
-                type="text"
-                id="last_name"
-                value={formData.last_name}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    last_name: e.target.value,
-                  }))
-                }
-                className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                placeholder="Last Name"
-                required
-              />
-            </div>
-          </div>
-          <div className="flex gap-4">
-            <div className="flex-1">
-              <label
-                htmlFor="phone"
-                className="block text-sm font-medium text-gray-700 mt-4 mb-2"
-              >
-                Phone Number
-              </label>
-              <input
-                type="tel"
-                id="phone"
-                value={formData.phone || ""}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, phone: e.target.value }))
-                }
-                className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                placeholder="Phone number"
-              />
-            </div>
-            <div className="flex-1">
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700 mt-4 mb-2"
-              >
-                Email
-              </label>
-              <input
-                type="email"
-                id="email"
-                value={formData.email || ""}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, email: e.target.value }))
-                }
-                className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                placeholder="Email address"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label
-              htmlFor="role"
-              className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center gap-1"
-            >
-              Role/position
-              <RobotTooltip text="This field is passed to AI for prompt generation." />
-            </label>
-            <input
-              type="text"
-              id="role"
-              value={formData.role}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, role: e.target.value }))
-              }
-              className="mt-1 block w-full max-w-md rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-              placeholder="e.g., Store Manager, Marketing Director, Student"
-            />
-          </div>
-
-          <div className="mt-20 mb-2 flex items-center gap-2">
-            <FaWrench className="w-5 h-5 text-[#1A237E]" />
-            <h2 className="text-xl font-semibold text-slate-blue flex items-center gap-1">
-              Services provided{" "}
-              <RobotTooltip text="This field is passed to AI for prompt generation." />
-            </h2>
-          </div>
-          <div className="space-y-2">
-            {services.map((service, idx) => (
-              <div key={idx} className="flex items-center gap-2">
-                <input
-                  type="text"
-                  className="w-full border px-3 py-2 rounded"
-                  value={service}
-                  onChange={(e) => {
-                    const newServices = [...services];
-                    newServices[idx] = e.target.value;
-                    setServices(newServices);
-                    setFormData((prev) => ({
-                      ...prev,
-                      services_offered: newServices,
-                    }));
-                  }}
-                  required
-                  placeholder="e.g., Web Design"
-                />
-                {services.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const newServices = services.filter((_, i) => i !== idx);
-                      setServices(newServices);
-                      setFormData((prev) => ({
-                        ...prev,
-                        services_offered: newServices,
-                      }));
-                    }}
-                    className="text-red-600 font-bold"
-                  >
-                    &times;
-                  </button>
-                )}
-              </div>
-            ))}
-            <button
-              type="button"
-              onClick={() => {
-                setServices([...services, ""]);
-                setFormData((prev) => ({
-                  ...prev,
-                  services_offered: [...services, ""],
-                }));
-              }}
-              className="text-blue-600 underline mt-2"
-            >
-              + Add Service
-            </button>
-          </div>
-
-          <div className="mt-10 mb-2 flex items-center gap-2">
-            <FaTrophy className="w-5 h-5 text-[#1A237E]" />
-            <h2 className="text-xl font-semibold text-slate-blue flex items-center gap-1">
-              Outcome{" "}
-              <RobotTooltip text="This field is passed to AI for prompt generation." />
-            </h2>
-          </div>
-          <p className="text-xs text-gray-500 mt-1 mb-5 max-w-[85ch]">
-            Describe the service you provided and how it benefited this
-            individual.
-          </p>
-          <textarea
-            id="product_description"
-            value={formData.product_description}
-            onChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                product_description: e.target.value,
-              }))
-            }
-            rows={4}
-            className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-            placeholder="Describe the outcome for your client"
-            required
-          />
-
-          <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-2 shadow relative mb-8 mt-10">
-            <div className="flex items-center justify-between mb-2 px-2 py-2">
-              <div className="flex items-center gap-3">
-                <FaCommentDots className="w-7 h-7 text-slate-blue" />
-                <span className="text-2xl font-bold text-[#1A237E]">
-                  Personalized note pop-up
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setNotePopupEnabled((v: boolean) => !v)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${notePopupEnabled ? "bg-slate-blue" : "bg-gray-200"}`}
-                aria-pressed={!!notePopupEnabled}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${notePopupEnabled ? "translate-x-5" : "translate-x-1"}`}
-                />
-              </button>
-            </div>
-            <div className="text-sm text-gray-700 mb-3 max-w-[85ch] px-2">
-              This note appears as a pop-up at the top of the review page. Use
-              it to set the context and tone for your customer.
-            </div>
-            {notePopupEnabled && (
-              <textarea
-                id="friendly_note"
-                value={formData.friendly_note}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    friendly_note: e.target.value,
-                  }))
-                }
-                rows={4}
-                className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring shadow-inner"
-                placeholder="Ty! It was so great having you in yesterday. You left your scarf! I can drop it by tomorrow on my way in. Thanks for leaving us a review, we need all the positivity we can get.  :)"
-              />
-            )}
-          </div>
-
-          <div className="flex justify-end items-center mt-8 pt-6 border-t pb-8">
-            <button
-              type="button"
-              onClick={handleSaveAndContinue}
-              className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-              disabled={isLoading}
-            >
-              Save & Continue
-            </button>
-          </div>
-        </div>
-      ) : (
-        <div className="space-y-6">
-          <h3 className="text-lg font-semibold text-slate-blue mt-16 mb-2 flex items-center gap-2">
-            <FaUser className="w-6 h-6 text-slate-blue" />
-            Customer/Client Details
-          </h3>
-          <div className="flex gap-4">
-            <div className="flex-1">
-              <label
-                htmlFor="first_name"
-                className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center gap-1"
-              >
-                First name
-                <RobotTooltip text="This field is passed to AI for prompt generation." />
-              </label>
-              <input
-                type="text"
-                id="first_name"
-                value={formData.first_name}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    first_name: e.target.value,
-                  }))
-                }
-                className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                placeholder="First Name"
-                required
-              />
-            </div>
-            <div className="flex-1">
-              <label
-                htmlFor="last_name"
-                className="block text-sm font-medium text-gray-700 mt-4 mb-2"
-              >
-                Last name
-              </label>
-              <input
-                type="text"
-                id="last_name"
-                value={formData.last_name}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    last_name: e.target.value,
-                  }))
-                }
-                className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                placeholder="Last Name"
-                required
-              />
-            </div>
-          </div>
-          <div className="flex gap-4">
-            <div className="flex-1">
-              <label
-                htmlFor="phone"
-                className="block text-sm font-medium text-gray-700 mt-4 mb-2"
-              >
-                Phone Number
-              </label>
-              <input
-                type="tel"
-                id="phone"
-                value={formData.phone || ""}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, phone: e.target.value }))
-                }
-                className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                placeholder="Phone number"
-              />
-            </div>
-            <div className="flex-1">
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700 mt-4 mb-2"
-              >
-                Email
-              </label>
-              <input
-                type="email"
-                id="email"
-                value={formData.email || ""}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, email: e.target.value }))
-                }
-                className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                placeholder="Email address"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label
-              htmlFor="role"
-              className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center gap-1"
-            >
-              Role/position
-              <RobotTooltip text="This field is passed to AI for prompt generation." />
-            </label>
-            <input
-              type="text"
-              id="role"
-              value={formData.role}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, role: e.target.value }))
-              }
-              className="mt-1 block w-full max-w-md rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-              placeholder="e.g., Store Manager, Marketing Director, Student"
-            />
-          </div>
-
-          <div className="mt-20 mb-2 flex items-center gap-2">
-            <FaWrench className="w-5 h-5 text-[#1A237E]" />
-            <h2 className="text-xl font-semibold text-slate-blue flex items-center gap-1">
-              Services provided{" "}
-              <RobotTooltip text="This field is passed to AI for prompt generation." />
-            </h2>
-          </div>
-          <div className="space-y-2">
-            {services.map((service, idx) => (
-              <div key={idx} className="flex items-center gap-2">
-                <input
-                  type="text"
-                  className="w-full border px-3 py-2 rounded"
-                  value={service}
-                  onChange={(e) => {
-                    const newServices = [...services];
-                    newServices[idx] = e.target.value;
-                    setServices(newServices);
-                    setFormData((prev) => ({
-                      ...prev,
-                      services_offered: newServices,
-                    }));
-                  }}
-                  required
-                  placeholder="e.g., Web Design"
-                />
-                {services.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const newServices = services.filter((_, i) => i !== idx);
-                      setServices(newServices);
-                      setFormData((prev) => ({
-                        ...prev,
-                        services_offered: newServices,
-                      }));
-                    }}
-                    className="text-red-600 font-bold"
-                  >
-                    &times;
-                  </button>
-                )}
-              </div>
-            ))}
-            <button
-              type="button"
-              onClick={() => {
-                setServices([...services, ""]);
-                setFormData((prev) => ({
-                  ...prev,
-                  services_offered: [...services, ""],
-                }));
-              }}
-              className="text-blue-600 underline mt-2"
-            >
-              + Add Service
-            </button>
-          </div>
-
-          <div className="mt-10 mb-2 flex items-center gap-2">
-            <FaTrophy className="w-5 h-5 text-[#1A237E]" />
-            <h2 className="text-xl font-semibold text-slate-blue flex items-center gap-1">
-              Outcome{" "}
-              <RobotTooltip text="This field is passed to AI for prompt generation." />
-            </h2>
-          </div>
-          <p className="text-xs text-gray-500 mt-1 mb-5 max-w-[85ch]">
-            Describe the service you provided and how it benefited this
-            individual.
-          </p>
-          <textarea
-            id="product_description"
-            value={formData.product_description}
-            onChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                product_description: e.target.value,
-              }))
-            }
-            rows={4}
-            className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-            placeholder="Describe the outcome for your client"
-            required
-          />
-
-          <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-2 shadow relative mb-8 mt-10">
-            <div className="flex items-center justify-between mb-2 px-2 py-2">
-              <div className="flex items-center gap-3">
-                <FaCommentDots className="w-7 h-7 text-slate-blue" />
-                <span className="text-2xl font-bold text-[#1A237E]">
-                  Personalized note pop-up
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setNotePopupEnabled((v: boolean) => !v)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${notePopupEnabled ? "bg-slate-blue" : "bg-gray-200"}`}
-                aria-pressed={!!notePopupEnabled}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${notePopupEnabled ? "translate-x-5" : "translate-x-1"}`}
-                />
-              </button>
-            </div>
-            <div className="text-sm text-gray-700 mb-3 max-w-[85ch] px-2">
-              This note appears as a pop-up at the top of the review page. Use
-              it to set the context and tone for your customer.
-            </div>
-            {notePopupEnabled && (
-              <textarea
-                id="friendly_note"
-                value={formData.friendly_note}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    friendly_note: e.target.value,
-                  }))
-                }
-                rows={4}
-                className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring shadow-inner"
-                placeholder="Ty! It was so great having you in yesterday. You left your scarf! I can drop it by tomorrow on my way in. Thanks for leaving us a review, we need all the positivity we can get.  :)"
-              />
-            )}
-          </div>
-
-          <div className="flex justify-end items-center mt-8 pt-6 border-t pb-8">
-            <button
-              type="button"
-              onClick={handleSaveAndContinue}
-              className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-              disabled={isLoading}
-            >
-              Save & Continue
-            </button>
-          </div>
-        </div>
-      )}
+    <PageCard icon={<FaHandsHelping className="w-9 h-9 text-slate-blue" />}>
+      <div className="text-center py-8">
+        <h1 className="text-2xl font-bold text-slate-blue mb-4">
+          Unknown Prompt Page Type
+        </h1>
+        <p className="text-gray-600">
+          This prompt page type ({formData.type}) is not supported for editing.
+        </p>
+      </div>
     </PageCard>
   );
 }

@@ -16,32 +16,10 @@ export default function SignUpPage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [message, setMessage] = useState("");
-  const [debugInfo, setDebugInfo] = useState("");
 
-  // Add debugging for Chrome compatibility
-  useEffect(() => {
-    console.log('🔍 SignUpPage mounted');
-    console.log('🌐 User Agent:', navigator.userAgent);
-    console.log('🌐 Browser:', getBrowserInfo());
-    
-    // Check if we're in Chrome
-    const isChrome = /Chrome/.test(navigator.userAgent) && !/Edge/.test(navigator.userAgent);
-    console.log('🌐 Is Chrome:', isChrome);
-    
-    if (isChrome) {
-      console.log('🔧 Chrome-specific debugging enabled');
-      setDebugInfo(`Chrome detected: ${navigator.userAgent}`);
-    }
-  }, []);
 
-  const getBrowserInfo = () => {
-    const ua = navigator.userAgent;
-    if (ua.includes('Chrome') && !ua.includes('Edge')) return 'Chrome';
-    if (ua.includes('Safari') && !ua.includes('Chrome')) return 'Safari';
-    if (ua.includes('Firefox')) return 'Firefox';
-    if (ua.includes('Edge')) return 'Edge';
-    return 'Unknown';
-  };
+
+
 
   const errorMessages: Record<string, string> = {
     "User already registered":
@@ -262,33 +240,44 @@ export default function SignUpPage() {
         console.log('🌍 Environment check - isLocalDevelopment:', isLocalDevelopment);
         
         if (isLocalDevelopment) {
-          // Local development: Automatically sign in the user
-          console.log('🔄 Local development mode: Auto-signing in user...');
-          console.log('🔐 Attempting sign-in with:', { email, password: '***' });
+          // Local development: Use force-signin API to confirm email and sign in user
+          console.log('🔄 Local development mode: Using force-signin API...');
+          console.log('🔐 Attempting force-signin with:', { email, password: '***' });
           
           try {
-            const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-              email,
-              password,
+            const forceSignInResponse = await fetch('/api/force-signin', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                email,
+                password,
+              }),
             });
             
-            if (signInError) {
-              console.error('❌ Auto-signin failed:', signInError);
+            if (!forceSignInResponse.ok) {
+              const errorData = await forceSignInResponse.json().catch(() => ({ error: 'Failed to parse error response' }));
+              console.error('❌ Force-signin failed:', errorData);
               // Fall back to email confirmation flow
               setEmailSent(true);
-              setMessage('✅ Account created successfully! Please check your email and click the confirmation link to activate your account.');
-            } else if (signInData.user) {
-              console.log('✅ Auto-signin successful:', signInData.user.id);
-              // Redirect to dashboard
-              window.location.href = '/dashboard';
+              setMessage('✅ Account created successfully! You can now sign in with your credentials.');
+            } else {
+              const signInData = await forceSignInResponse.json();
+              console.log('✅ Force-signin successful:', signInData);
+              // Show success message and redirect to dashboard
+              setMessage('✅ Account created and signed in successfully! Redirecting to dashboard...');
+              setTimeout(() => {
+                window.location.href = '/dashboard';
+              }, 1000);
               return;
             }
-          } catch (autoSignInError) {
-            console.error('❌ Auto-signin error:', autoSignInError);
-            // Fall back to email confirmation flow
-            setEmailSent(true);
-            setMessage('✅ Account created successfully! Please check your email and click the confirmation link to activate your account.');
-          }
+                      } catch (forceSignInError) {
+              console.error('❌ Force-signin error:', forceSignInError);
+              // Fall back to email confirmation flow
+              setEmailSent(true);
+              setMessage('✅ Account created successfully! You can now sign in with your credentials.');
+            }
         } else {
           // Production: Show email confirmation message
           console.log('✅ Account created successfully');
@@ -437,33 +426,7 @@ export default function SignUpPage() {
               )}
             </div>
           )}
-          {debugInfo && (
-            <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
-              Debug: {debugInfo}
-            </div>
-          )}
-          
-          {/* Debug button for Chrome testing */}
-          <button
-            type="button"
-            onClick={() => {
-              console.log('🔍 Debug button clicked');
-              console.log('📝 Current form state:', {
-                firstName,
-                lastName,
-                email,
-                password: password.length,
-                loading,
-                error
-              });
-              console.log('🔧 Supabase client:', !!supabase);
-              console.log('🌐 Window location:', window.location.href);
-              console.log('🌐 User agent:', navigator.userAgent);
-            }}
-            className="w-full py-2 bg-gray-200 text-gray-700 rounded font-semibold hover:bg-gray-300 text-sm"
-          >
-            Debug Form State (Chrome Test)
-          </button>
+
           
           <button
             type="submit"

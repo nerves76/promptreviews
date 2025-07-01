@@ -475,13 +475,20 @@ export default function ProductPromptPageForm({
         ) {
           uploadedPhotoUrl = await handleProductPhotoUpload();
         }
-        await onSave({
+        const formDataToSubmit = {
           ...formData,
           product_name: productName,
           product_photo: uploadedPhotoUrl,
           ai_button_enabled: aiReviewEnabled,
-          review_type: "event",
-        });
+          review_type: "product",
+        };
+        
+        if (mode === "create" && step === 2 && onPublish) {
+          await onPublish(formDataToSubmit);
+        } else {
+          await onSave(formDataToSubmit);
+        }
+        
         if (
           mode === "create" &&
           step === 2 &&
@@ -520,24 +527,10 @@ export default function ProductPromptPageForm({
             className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 w-28 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
             disabled={isSaving}
           >
-            {mode === "create"
-              ? isSaving
-                ? "Publishing..."
-                : "Save & publish"
-              : isSaving
-                ? "Saving..."
-                : "Save"}
+            {isSaving
+              ? mode === "create" ? "Publishing..." : "Saving..."
+              : "Save & publish"}
           </button>
-          {formData.slug && (
-            <a
-              href={`/r/${formData.slug}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex justify-center rounded-md border border-slate-blue bg-white py-2 px-4 w-28 text-sm font-medium text-slate-blue shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-            >
-              View
-            </a>
-          )}
         </div>
       )}
       <div>
@@ -1103,13 +1096,9 @@ export default function ProductPromptPageForm({
                   className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 w-28 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
                   disabled={isSaving}
                 >
-                  {mode === "create"
-                    ? isSaving
-                      ? "Publishing..."
-                      : "Save & publish"
-                    : isSaving
-                      ? "Saving..."
-                      : "Save"}
+                  {isSaving
+                    ? mode === "create" ? "Publishing..." : "Saving..."
+                    : "Save & publish"}
                 </button>
                 {formData.slug && (
                   <a
