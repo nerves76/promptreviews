@@ -2,16 +2,13 @@ import { NextResponse } from "next/server";
 import { supabase } from "@/utils/supabase";
 import { sendResendEmail } from "@/utils/resend";
 import { createClient } from "@supabase/supabase-js";
+import { validateReviewSubmission, sanitizeInput } from "@/utils/validation";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    // Log Supabase config and payload
-    console.log("[track-review] Supabase URL:", process.env.NEXT_PUBLIC_SUPABASE_URL || "not set");
-    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || (typeof supabase !== 'undefined' ? 'not set' : 'not set');
-    console.log("[track-review] Supabase anon key (first 8 chars):", anonKey ? anonKey.slice(0, 8) + '...' : 'not set');
-    console.log("[track-review] Payload:", JSON.stringify(body));
-
+    
+    // Input validation
     const {
       promptPageId,
       platform,
@@ -25,6 +22,34 @@ export async function POST(request: Request) {
       email,
       phone,
     } = body;
+
+    // Server-side validation using utility
+    const validation = validateReviewSubmission({
+      promptPageId,
+      platform,
+      first_name,
+      last_name,
+      email,
+      review_content: reviewContent,
+      status
+    });
+
+    if (!validation.isValid) {
+      return NextResponse.json({ 
+        error: "Validation failed", 
+        details: validation.errors 
+      }, { status: 400 });
+    }
+
+    // Sanitize inputs
+    const sanitizedFirstName = first_name ? sanitizeInput(first_name) : '';
+    const sanitizedLastName = last_name ? sanitizeInput(last_name) : '';
+    const sanitizedReviewContent = reviewContent ? sanitizeInput(reviewContent) : '';
+
+    // Log in development only
+    if (process.env.NODE_ENV === 'development') {
+      console.log("[track-review] Validated payload for promptPageId:", promptPageId);
+    }
     const userAgent = request.headers.get("user-agent") || "";
     const ipAddress =
       request.headers.get("x-forwarded-for") ||
@@ -50,9 +75,9 @@ export async function POST(request: Request) {
         business_id, // Always set business_id for stats and dashboard
         platform,
         status,
-        first_name,
-        last_name,
-        review_content: reviewContent,
+        first_name: sanitizedFirstName,
+        last_name: sanitizedLastName,
+        review_content: sanitizedReviewContent,
         prompt_page_type: promptPageType,
         review_type: review_type || (status === "feedback" ? "feedback" : "review"),
         sentiment,

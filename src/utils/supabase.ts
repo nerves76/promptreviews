@@ -1,5 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
-import { Suspense } from "react";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -122,41 +121,50 @@ export type Database = {
   };
 };
 
-export async function getUserOrMock(supabase: any) {
+export async function getUserOrMock(supabase: SupabaseClient) {
   try {
     const { data: { user }, error } = await supabase.auth.getUser();
     if (error) {
-      // Handle auth session missing error gracefully
-      if (error.message?.includes('Auth session missing')) {
-        console.log('No auth session found - user is not logged in');
+      // Handle specific auth errors gracefully
+      if (error.message?.includes('Auth session missing') || 
+          error.message?.includes('JWT expired') ||
+          error.message?.includes('Invalid Refresh Token')) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`[AUTH] Expected auth error: ${error.message}`);
+        }
         return { data: { user: null }, error: null };
       }
-      throw error;
+      // For unexpected errors, preserve the error for debugging
+      console.error('[AUTH] Unexpected user authentication error:', error);
+      return { data: { user: null }, error: error };
     }
     return { data: { user }, error: null };
   } catch (error) {
-    console.error('Error getting user:', error);
-    // For any other error, return null user without throwing
-    return { data: { user: null }, error: null };
+    console.error('[AUTH] Exception getting user:', error);
+    // Return the actual error for better debugging
+    return { data: { user: null }, error: error as Error };
   }
 }
 
-export async function getSessionOrMock(supabase: any) {
+export async function getSessionOrMock(supabase: SupabaseClient) {
   try {
     const { data: { session }, error } = await supabase.auth.getSession();
     if (error) {
-      // Handle auth session missing error gracefully
-      if (error.message?.includes('Auth session missing')) {
-        console.log('No auth session found - user is not logged in');
+      // Handle specific auth errors gracefully
+      if (error.message?.includes('Auth session missing') || 
+          error.message?.includes('JWT expired') ||
+          error.message?.includes('Invalid Refresh Token')) {
         return { data: { session: null }, error: null };
       }
-      throw error;
+      // For unexpected errors, preserve the error for debugging
+      console.error('[AUTH] Unexpected session authentication error:', error);
+      return { data: { session: null }, error: error };
     }
     return { data: { session }, error: null };
   } catch (error) {
-    console.error('Error getting session:', error);
-    // For any other error, return null session without throwing
-    return { data: { session: null }, error: null };
+    console.error('[AUTH] Exception getting session:', error);
+    // Return the actual error for better debugging
+    return { data: { session: null }, error: error as Error };
   }
 }
 

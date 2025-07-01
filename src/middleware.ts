@@ -6,8 +6,12 @@ import { getSessionOrMock } from "@/utils/supabase";
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
 
-  // Only require auth in production
-  if (process.env.NODE_ENV !== "production") {
+  // Allow bypass only for specific development scenarios
+  const isDevelopmentBypass = process.env.NODE_ENV === "development" && 
+                              process.env.DISABLE_AUTH_MIDDLEWARE === "true";
+  
+  if (isDevelopmentBypass) {
+    console.log("[MIDDLEWARE] Auth bypass enabled for development");
     return res;
   }
 

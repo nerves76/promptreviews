@@ -13,10 +13,35 @@ export async function POST(request: NextRequest) {
     
     const { userId, email, first_name, last_name } = await request.json();
 
-    if (!userId || !email) {
-      console.error('[CREATE-ACCOUNT] Missing required fields:', { userId: !!userId, email: !!email });
+    // Input validation
+    if (!userId || typeof userId !== 'string' || userId.trim().length === 0) {
+      console.error('[CREATE-ACCOUNT] Invalid userId:', { userId });
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: "Invalid or missing userId" },
+        { status: 400 }
+      );
+    }
+
+    if (!email || typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      console.error('[CREATE-ACCOUNT] Invalid email:', { email });
+      return NextResponse.json(
+        { error: "Invalid or missing email" },
+        { status: 400 }
+      );
+    }
+
+    if (first_name && (typeof first_name !== 'string' || first_name.length > 100)) {
+      console.error('[CREATE-ACCOUNT] Invalid first_name:', { first_name });
+      return NextResponse.json(
+        { error: "Invalid first_name format" },
+        { status: 400 }
+      );
+    }
+
+    if (last_name && (typeof last_name !== 'string' || last_name.length > 100)) {
+      console.error('[CREATE-ACCOUNT] Invalid last_name:', { last_name });
+      return NextResponse.json(
+        { error: "Invalid last_name format" },
         { status: 400 }
       );
     }

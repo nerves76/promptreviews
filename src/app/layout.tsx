@@ -15,39 +15,22 @@ import { AdminProvider } from "@/contexts/AdminContext";
 // Initialize Sentry for server-side error tracking
 import * as Sentry from '@sentry/nextjs';
 
-// Optimized font loading - only essential fonts
+// Optimized font loading - only load primary font
 const inter = Inter({ 
   subsets: ["latin"],
   display: 'swap',
-  variable: '--font-inter'
+  variable: '--font-inter',
+  preload: true,
+  weight: ["400", "600", "700"]
 });
 
+// Load additional fonts only if needed by specific pages
 const roboto = Roboto({ 
   subsets: ["latin"], 
   weight: ["400", "700"],
   display: 'swap',
-  variable: '--font-roboto'
-});
-
-const openSans = Open_Sans({ 
-  subsets: ["latin"], 
-  weight: ["400", "700"],
-  display: 'swap',
-  variable: '--font-open-sans'
-});
-
-const montserrat = Montserrat({ 
-  subsets: ["latin"], 
-  weight: ["400", "700"],
-  display: 'swap',
-  variable: '--font-montserrat'
-});
-
-const poppins = Poppins({ 
-  subsets: ["latin"], 
-  weight: ["400", "700"],
-  display: 'swap',
-  variable: '--font-poppins'
+  variable: '--font-roboto',
+  preload: false
 });
 
 export const metadata: Metadata = {
