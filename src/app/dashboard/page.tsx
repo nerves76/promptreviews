@@ -536,7 +536,7 @@ export default function Dashboard() {
   };
 
   if (isLoading) {
-    return <FiveStarSpinner />;
+    return <AppLoader variant="centered" />;
   }
 
   if (error) {

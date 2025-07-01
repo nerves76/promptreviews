@@ -97,8 +97,23 @@ export default function SignIn() {
       const data = await response.json();
       
       if (data.success) {
-        // Success! Now handle account setup like normal sign-in
-        const user = data.user;
+        // Success! Now set the session in the browser
+        const user = data.data.user;
+        const session = data.data.session;
+        
+        // Set the session in the Supabase client
+        if (session) {
+          const { error: setSessionError } = await supabase.auth.setSession({
+            access_token: session.access_token,
+            refresh_token: session.refresh_token,
+          });
+
+          if (setSessionError) {
+            console.error('Error setting session:', setSessionError);
+            setError("Failed to set session. Please try again.");
+            return;
+          }
+        }
         
         // Track sign in event
         trackEvent(GA_EVENTS.SIGN_IN, {

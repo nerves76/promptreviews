@@ -177,8 +177,8 @@ export default function PromptPages() {
       comingSoon: true,
     },
     {
-      key: "experience",
-      label: "Experiences & spaces",
+      key: "event",
+      label: "Events & spaces",
       icon: <MdEvent className="w-7 h-7 text-[#1A237E]" />,
       description: "For events, rentals, tours, and more.",
       comingSoon: true,

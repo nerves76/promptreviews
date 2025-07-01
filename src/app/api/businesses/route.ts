@@ -47,7 +47,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { name, account_id } = await request.json();
+    const businessData = await request.json();
+    const { name, account_id } = businessData;
 
     if (!name || !account_id) {
       return NextResponse.json(
@@ -72,14 +73,39 @@ export async function POST(request: NextRequest) {
     const { createClient } = await import('@supabase/supabase-js');
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    // Convert industry string to array if it's a string
+    let industryData = businessData.industry || null;
+    if (industryData && typeof industryData === 'string') {
+      industryData = [industryData];
+    }
+
+    // Prepare business data for insertion, including all fields from the form
+    const insertData = {
+      name,
+      account_id,
+      industry: industryData,
+      industries_other: businessData.industries_other || null,
+      business_website: businessData.business_website || null,
+      business_email: businessData.business_email || null,
+      phone: businessData.phone || null,
+      address_street: businessData.address_street || null,
+      address_city: businessData.address_city || null,
+      address_state: businessData.address_state || null,
+      address_zip: businessData.address_zip || null,
+      address_country: businessData.address_country || null,
+      tagline: businessData.tagline || null,
+      company_values: businessData.company_values || null,
+      ai_dos: businessData.ai_dos || null,
+      ai_donts: businessData.ai_donts || null,
+      services_offered: businessData.services_offered || null,
+      differentiators: businessData.differentiators || null,
+      years_in_business: businessData.years_in_business || null,
+      industries_served: businessData.industries_served || null,
+    };
+
     const { data: business, error } = await supabase
       .from('businesses')
-      .insert([
-        {
-          name,
-          account_id,
-        },
-      ])
+      .insert([insertData])
       .select()
       .single();
 
@@ -95,6 +121,80 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('[BUSINESSES] Business created successfully:', business.id);
+
+    // Create universal prompt page (same logic as SimpleBusinessForm)
+    try {
+      console.log('[BUSINESSES] Creating universal prompt page...');
+      const { slugify } = await import('@/utils/slugify');
+      const universalSlug = slugify("universal", Date.now().toString(36));
+      
+      const universalPromptPageData = {
+        account_id: account_id,
+        slug: universalSlug,
+        is_universal: true,
+        status: "draft",
+        type: "universal",
+        review_type: "service",
+        offer_enabled: false,
+        offer_title: "",
+        offer_body: "",
+        offer_url: "",
+        emoji_sentiment_enabled: false,
+        emoji_sentiment_question: "How was your experience?",
+        emoji_feedback_message: "We value your feedback! Let us know how we can do better.",
+        emoji_thank_you_message: "Thank you for your feedback!",
+        ai_button_enabled: true,
+        falling_icon: "star",
+        review_platforms: [],
+        services_offered: null,
+        product_name: "",
+        product_description: "",
+        product_photo: "",
+        product_subcopy: "",
+        features_or_benefits: [],
+        show_friendly_note: true,
+        friendly_note: "",
+        first_name: "",
+        last_name: "",
+        phone: "",
+        email: "",
+        role: "",
+        category: "",
+        client_name: "",
+        location: "",
+        project_type: "",
+        outcomes: "",
+        date_completed: null,
+        assigned_team_members: "",
+        qr_code_url: "",
+        team_member: null,
+        no_platform_review_template: "",
+        video_max_length: null,
+        video_quality: "",
+        video_preset: "",
+        video_questions: [],
+        video_note: "",
+        video_tips: "",
+        video_recipient: ""
+      };
+
+      const { data: universalPage, error: universalError } = await supabase
+        .from("prompt_pages")
+        .insert([universalPromptPageData])
+        .select()
+        .single();
+
+      if (universalError) {
+        console.error('[BUSINESSES] Universal prompt page creation error:', universalError);
+        console.warn('[BUSINESSES] Universal prompt page creation failed, but business was created successfully');
+      } else {
+        console.log('[BUSINESSES] Universal prompt page created successfully:', universalPage.id);
+      }
+    } catch (universalErr) {
+      console.error('[BUSINESSES] Error creating universal prompt page:', universalErr);
+      console.warn('[BUSINESSES] Universal prompt page creation failed, but business was created successfully');
+    }
+
     return NextResponse.json(business);
   } catch (error) {
     console.error('[BUSINESSES] Unexpected error:', error);

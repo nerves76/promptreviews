@@ -2,9 +2,6 @@ require("dotenv").config({
   path: require("path").resolve(process.cwd(), ".env.local"),
 });
 
-// Import Sentry webpack plugin
-const { withSentryConfig } = require("@sentry/nextjs");
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -12,7 +9,7 @@ const nextConfig = {
     domains: ["lh3.googleusercontent.com", "firebasestorage.googleapis.com", "ltneloufqjktdplodvao.supabase.co"],
   },
   serverExternalPackages: ["@supabase/supabase-js", "openai"],
-  webpack: (config, { isServer }) => {
+  webpack: (config, { isServer, dev }) => {
     if (isServer) {
       // Ensure that the native Supabase client is not bundled for the client
       config.externals = [
@@ -20,6 +17,21 @@ const nextConfig = {
         "@supabase/supabase-js/dist/module/SupabaseClient",
       ];
     }
+    
+    // Optimize for development performance
+    if (dev) {
+      // Reduce bundle analysis overhead
+      config.optimization = {
+        ...config.optimization,
+        removeAvailableModules: false,
+        removeEmptyChunks: false,
+        splitChunks: false,
+      };
+      
+      // Use faster source maps for development
+      config.devtool = 'eval';
+    }
+    
     return config;
   },
   async redirects() {
@@ -50,13 +62,21 @@ const nextConfig = {
   },
 };
 
-// Sentry configuration
-const sentryWebpackPluginOptions = {
-  // Additional config options for the Sentry webpack plugin
-  silent: true, // Suppresses source map upload logs
-  org: process.env.SENTRY_ORG,
-  project: process.env.SENTRY_PROJECT,
-};
+// Only apply Sentry configuration if not disabled
+if (process.env.DISABLE_SENTRY !== 'true') {
+  const { withSentryConfig } = require("@sentry/nextjs");
+  
+  // Sentry configuration
+  const sentryWebpackPluginOptions = {
+    // Additional config options for the Sentry webpack plugin
+    silent: true, // Suppresses source map upload logs
+    org: process.env.SENTRY_ORG,
+    project: process.env.SENTRY_PROJECT,
+  };
 
-// Export with Sentry configuration
-module.exports = withSentryConfig(nextConfig, sentryWebpackPluginOptions);
+  // Export with Sentry configuration
+  module.exports = withSentryConfig(nextConfig, sentryWebpackPluginOptions);
+} else {
+  // Export without Sentry configuration
+  module.exports = nextConfig;
+}

@@ -52,11 +52,24 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
           process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
         );
         
-        const { data: { session } } = await supabase.auth.getSession();
-        const token = session?.access_token;
+        // Wait for session to be available
+        let retries = 0;
+        const maxRetries = 5;
+        let session = null;
+        
+        while (retries < maxRetries) {
+          const { data: { session: currentSession } } = await supabase.auth.getSession();
+          if (currentSession?.access_token) {
+            session = currentSession;
+            break;
+          }
+          retries++;
+          // Wait 500ms before retrying
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
 
-        if (!token) {
-          console.error('No authentication token available');
+        if (!session?.access_token) {
+          console.log('Session not available yet, skipping task initialization');
           return;
         }
 
@@ -64,7 +77,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
+            'Authorization': `Bearer ${session.access_token}`,
           },
         });
 
@@ -80,7 +93,9 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
       }
     };
 
-    initializeTasks();
+    // Add a small delay to ensure session is established
+    const timer = setTimeout(initializeTasks, 1000);
+    return () => clearTimeout(timer);
   }, [userId]);
 
   // Fetch task completion status from database

@@ -93,16 +93,22 @@ async function testSignupAndBusinessFlow() {
 
     // 5. Create business via API (realistic flow)
     console.log('\n5️⃣ Creating business via /api/businesses...');
+    
+    // Test with minimal data (like the form should send)
+    const minimalBusinessData = {
+      name: testBusinessName,
+      account_id: accountId,
+    };
+    
+    console.log('📤 Sending business data:', JSON.stringify(minimalBusinessData, null, 2));
+    
     const businessResponse = await fetch(`${APP_URL}/api/businesses`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${accessToken}`,
       },
-      body: JSON.stringify({
-        name: testBusinessName,
-        account_id: accountId,
-      }),
+      body: JSON.stringify(minimalBusinessData),
     });
 
     if (!businessResponse.ok) {
@@ -126,6 +132,58 @@ async function testSignupAndBusinessFlow() {
     }
 
     console.log('✅ Business verified in database:', verifyBusiness);
+
+    // 6.5. Test full business form data (like the browser form should send)
+    console.log('\n6️⃣.5️⃣ Testing full business form data (browser form simulation)...');
+    
+    const fullBusinessData = {
+      name: `Full Form Business ${Date.now()}`,
+      account_id: accountId,
+      industry: 'technology',
+      industries_other: '',
+      business_website: 'https://example.com',
+      business_email: 'test@example.com',
+      phone: '+1234567890',
+      address_street: '123 Test St',
+      address_city: 'Test City',
+      address_state: 'CA',
+      address_zip: '12345',
+      address_country: 'US',
+      tagline: 'Test tagline',
+      company_values: 'Test values',
+      ai_dos: 'Test AI dos',
+      ai_donts: 'Test AI donts',
+      services_offered: 'Test services',
+      differentiators: 'Test differentiators',
+      years_in_business: '5',
+      industry_experience: 'Test experience',
+      target_audience: 'Test audience',
+      business_goals: 'Test goals',
+      challenges: 'Test challenges',
+      success_metrics: 'Test metrics',
+      budget_range: '10000-50000',
+      timeline: '3-6 months',
+      additional_notes: 'Test notes'
+    };
+    
+    console.log('📤 Sending full business form data:', JSON.stringify(fullBusinessData, null, 2));
+    
+    const fullBusinessResponse = await fetch(`${APP_URL}/api/businesses`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify(fullBusinessData),
+    });
+
+    if (!fullBusinessResponse.ok) {
+      const errorText = await fullBusinessResponse.text();
+      throw new Error(`Full business form creation failed: ${fullBusinessResponse.status} - ${errorText}`);
+    }
+
+    const fullBusinessResult = await fullBusinessResponse.json();
+    console.log('✅ Full business form data processed successfully:', fullBusinessResult);
 
     // 7. Test Grower plan selection (simulating pricing modal)
     console.log('\n7️⃣ Testing Grower plan selection...');
@@ -165,13 +223,153 @@ async function testSignupAndBusinessFlow() {
       throw new Error(`Expected plan to be 'grower', but got: ${updatedAccount.plan}`);
     }
 
-    console.log('\n🎉 All tests passed! Signup and business creation flow works correctly.');
+    // 8. Test Universal Prompt Page functionality
+    console.log('\n8️⃣ Testing Universal Prompt Page functionality...');
+    
+    // Check if universal prompt page exists
+    const { data: universalPages, error: universalError } = await supabase
+      .from('prompt_pages')
+      .select('*')
+      .eq('account_id', accountId)
+      .eq('is_universal', true);
+
+    if (universalError) {
+      throw new Error(`Failed to find universal prompt pages: ${universalError.message}`);
+    }
+
+    if (!universalPages || universalPages.length === 0) {
+      throw new Error('No universal prompt pages found for this account');
+    }
+
+    // Use the most recent universal page
+    const universalPage = universalPages[universalPages.length - 1];
+    console.log(`✅ Found ${universalPages.length} universal prompt page(s), using most recent`);
+
+    console.log('✅ Universal prompt page found:', {
+      id: universalPage.id,
+      slug: universalPage.slug,
+      title: universalPage.title
+    });
+
+    // Test accessing the universal prompt page edit route
+    console.log('\n9️⃣ Testing Universal Prompt Page edit route...');
+    const editPageResponse = await fetch(`${APP_URL}/dashboard/edit-prompt-page/universal`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!editPageResponse.ok) {
+      const errorText = await editPageResponse.text();
+      throw new Error(`Universal prompt page edit route failed: ${editPageResponse.status} - ${errorText}`);
+    }
+
+    console.log('✅ Universal prompt page edit route accessible');
+
+    // 9.5. Test the exact issue you're experiencing - business lookup by account_id
+    console.log('\n9️⃣.5️⃣ Testing business lookup by account_id (debugging your issue)...');
+    
+    // Check if businesses exist for this account
+    const { data: accountBusinesses, error: businessesError } = await supabase
+      .from('businesses')
+      .select('*')
+      .eq('account_id', accountId);
+
+    if (businessesError) {
+      throw new Error(`Failed to lookup businesses for account: ${businessesError.message}`);
+    }
+
+    console.log(`📊 Found ${accountBusinesses.length} businesses for account ${accountId}:`);
+    accountBusinesses.forEach((business, index) => {
+      console.log(`   ${index + 1}. ${business.name} (ID: ${business.id})`);
+    });
+
+    if (accountBusinesses.length === 0) {
+      console.log('⚠️  WARNING: No businesses found for this account! This is the issue you\'re experiencing.');
+      console.log('🔍 Debugging info:');
+      console.log(`   Account ID: ${accountId}`);
+      console.log(`   User ID: ${userId}`);
+      
+      // Check if account exists
+      const { data: accountCheck, error: accountCheckError } = await supabase
+        .from('accounts')
+        .select('*')
+        .eq('id', accountId)
+        .single();
+      
+      if (accountCheckError) {
+        console.log(`   ❌ Account lookup failed: ${accountCheckError.message}`);
+      } else {
+        console.log(`   ✅ Account exists: ${accountCheck.email}`);
+      }
+    } else {
+      console.log('✅ Businesses found - this account has proper business creation.');
+    }
+
+    // Test that the universal prompt page has the expected data structure
+    console.log('\n🔍 Checking universal prompt page data structure...');
+    const expectedFields = [
+      'id', 'account_id', 'slug', 'is_universal', 'created_at', 'updated_at'
+    ];
+    
+    for (const field of expectedFields) {
+      if (!(field in universalPage)) {
+        throw new Error(`Universal prompt page missing required field: ${field}`);
+      }
+    }
+    
+    console.log('✅ Universal prompt page has all required fields');
+
+    // 10. Test the specific failing account ID from your logs
+    console.log('\n🔟 Testing the specific failing account ID from your logs...');
+    const failingAccountId = '7c09e67b-ae0d-4558-bfd1-e53a55cf6355';
+    
+    console.log(`🔍 Checking account: ${failingAccountId}`);
+    
+    // Check if this account exists
+    const { data: failingAccount, error: failingAccountError } = await supabase
+      .from('accounts')
+      .select('*')
+      .eq('id', failingAccountId)
+      .single();
+    
+    if (failingAccountError) {
+      console.log(`❌ Account ${failingAccountId} not found: ${failingAccountError.message}`);
+    } else {
+      console.log(`✅ Account ${failingAccountId} exists: ${failingAccount.email}`);
+      
+      // Check if this account has any businesses
+      const { data: failingAccountBusinesses, error: failingBusinessesError } = await supabase
+        .from('businesses')
+        .select('*')
+        .eq('account_id', failingAccountId);
+      
+      if (failingBusinessesError) {
+        console.log(`❌ Failed to check businesses for account ${failingAccountId}: ${failingBusinessesError.message}`);
+      } else {
+        console.log(`📊 Account ${failingAccountId} has ${failingAccountBusinesses.length} businesses:`);
+        failingAccountBusinesses.forEach((business, index) => {
+          console.log(`   ${index + 1}. ${business.name} (ID: ${business.id})`);
+        });
+        
+        if (failingAccountBusinesses.length === 0) {
+          console.log('⚠️  This confirms the issue: Account exists but has no businesses!');
+          console.log('🔧 This means the business creation form is not working in the browser.');
+        }
+      }
+    }
+
+    console.log('\n🎉 All tests passed! Signup, business creation, and universal prompt page flow works correctly.');
     console.log('\n📋 Test Summary:');
     console.log(`   User ID: ${userId}`);
     console.log(`   Account ID: ${accountId}`);
     console.log(`   Email: ${testEmail}`);
     console.log(`   Business: ${testBusinessName}`);
     console.log(`   Business ID: ${verifyBusiness.id}`);
+    console.log(`   Universal Prompt Page ID: ${universalPage.id}`);
+    console.log(`   Universal Prompt Page Slug: ${universalPage.slug}`);
     
     // Return test data for cleanup
     return {
@@ -180,6 +378,7 @@ async function testSignupAndBusinessFlow() {
       email: testEmail,
       businessId: verifyBusiness.id,
       businessName: testBusinessName,
+      universalPageId: universalPage.id,
     };
 
   } catch (error) {

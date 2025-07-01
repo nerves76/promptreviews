@@ -640,7 +640,6 @@ export default function PromptPageForm({
             onToggle={handleToggleFalling}
             icon={fallingIcon}
             onIconChange={setFallingIcon}
-            description="Enable a fun animation where stars (or other icons) rain down when the prompt page loads. You can choose the icon below."
           />
           <div className="w-full flex justify-end gap-2 mt-8">
             <button
@@ -1007,38 +1006,7 @@ export default function PromptPageForm({
                       />
                     </>
                   )}
-                  <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-2 shadow relative mb-8 mt-10">
-                    <div className="flex items-center justify-between mb-2 px-2 py-2">
-                      <div className="flex items-center gap-3">
-                        <FaCommentDots className="w-7 h-7 text-slate-blue" />
-                        <span className="text-2xl font-bold text-[#1A237E]">
-                          Personalized note pop-up
-                        </span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (emojiSentimentEnabled) {
-                            setShowPopupConflictModal("emoji");
-                            return;
-                          }
-                          setNotePopupEnabled((v: boolean) => !v);
-                        }}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${notePopupEnabled ? "bg-slate-blue" : "bg-gray-200"}`}
-                        aria-pressed={!!notePopupEnabled}
-                        disabled={emojiSentimentEnabled}
-                      >
-                        <span
-                          className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${notePopupEnabled ? "translate-x-5" : "translate-x-1"}`}
-                        />
-                      </button>
-                    </div>
-                    <div className="text-sm text-gray-700 px-2">
-                      This note appears as a pop-up at the top of the review
-                      page. Use it to set the context and tone for your
-                      customer.
-                    </div>
-                  </div>
+
                 </>
               )}
               <div className="w-full flex justify-end gap-2 mt-8">
@@ -1053,8 +1021,6 @@ export default function PromptPageForm({
             </div>
           ) : (
             <div className="space-y-12">
-              {/* --- NEW MODULAR STEP 2 UI (2024) --- */}
-              {/* Review Platforms Section (modular) */}
               <ReviewWriteSection
                 value={formData.review_platforms}
                 onChange={(platforms) =>
@@ -1066,7 +1032,6 @@ export default function PromptPageForm({
                 onGenerateReview={handleGenerateAIReview}
                 hideReviewTemplateFields={isUniversal}
               />
-              {/* Special Offer Section (modular) */}
               <OfferSection
                 enabled={offerEnabled}
                 onToggle={() => setOfferEnabled((v: boolean) => !v)}
@@ -1077,6 +1042,53 @@ export default function PromptPageForm({
                 url={offerUrl}
                 onUrlChange={setOfferUrl}
               />
+              {/* Personalized Note Pop-up Section */}
+              <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-2 shadow relative mb-8">
+                <div className="flex items-center justify-between mb-2 px-2 py-2">
+                  <div className="flex items-center gap-3">
+                    <FaCommentDots className="w-7 h-7 text-slate-blue" />
+                    <span className="text-2xl font-bold text-[#1A237E]">
+                      Personalized note pop-up
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (emojiSentimentEnabled) {
+                        setShowPopupConflictModal("note");
+                        return;
+                      }
+                      setNotePopupEnabled((v: boolean) => !v);
+                    }}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${notePopupEnabled ? "bg-slate-blue" : "bg-gray-200"}`}
+                    aria-pressed={!!notePopupEnabled}
+                    disabled={emojiSentimentEnabled}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${notePopupEnabled ? "translate-x-5" : "translate-x-1"}`}
+                    />
+                  </button>
+                </div>
+                <div className="text-sm text-gray-700 mb-3 max-w-[85ch] px-2">
+                  This note appears as a pop-up at the top of the review page. Use
+                  it to set the context and tone for your customer.
+                </div>
+                {notePopupEnabled && (
+                  <textarea
+                    id="friendly_note"
+                    value={formData.friendly_note}
+                    onChange={(e) =>
+                      setFormData((prev: any) => ({
+                        ...prev,
+                        friendly_note: e.target.value,
+                      }))
+                    }
+                    rows={4}
+                    className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring shadow-inner"
+                    placeholder="Ty! It was so great having you in yesterday. You left your scarf! I can drop it by tomorrow on my way in. Thanks for leaving us a review, we need all the positivity we can get.  :)"
+                  />
+                )}
+              </div>
               {/* Emoji Sentiment Section (modular) */}
               <EmojiSentimentSection
                 enabled={emojiSentimentEnabled}
@@ -1119,29 +1131,50 @@ export default function PromptPageForm({
                 onToggle={handleToggleFalling}
                 icon={fallingIcon}
                 onIconChange={setFallingIcon}
-                description="Enable a fun animation where stars (or other icons) rain down when the prompt page loads. You can choose the icon below."
               />
             </div>
           )}
         </div>
         {(mode !== "create" || step === 2) && (
           <>
-            {/* Bottom right Save & publish/Save button */}
-            <div className="w-full flex justify-end pr-6 pb-4 md:pb-6 mt-8">
-              <button
-                type="submit"
-                className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-                disabled={isSaving}
-              >
-                {mode === "create"
-                  ? isSaving
-                    ? "Publishing..."
-                    : "Save & publish"
-                  : isSaving
-                    ? "Saving..."
-                    : "Save"}
-              </button>
-            </div>
+            {/* Bottom action row: left (Back) and right (Save/View or Save & publish/View) for step 2 */}
+            {step === 2 && mode === "create" && (
+              <div className="w-full flex justify-between items-center pr-2 pb-4 md:pr-6 md:pb-6 mt-8">
+                {/* Bottom left Back button */}
+                <div>
+                  <button
+                    type="button"
+                    className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-slate-blue shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+                    onClick={() => setStep(1)}
+                    disabled={isSaving}
+                  >
+                    Back
+                  </button>
+                </div>
+                {/* Bottom right Save & publish button */}
+                <div>
+                  <button
+                    type="submit"
+                    className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+                    disabled={isSaving}
+                  >
+                    {isSaving ? "Publishing..." : "Save & publish"}
+                  </button>
+                </div>
+              </div>
+            )}
+            {/* Bottom right Save button for edit mode */}
+            {mode !== "create" && (
+              <div className="w-full flex justify-end pr-6 pb-4 md:pb-6 mt-8">
+                <button
+                  type="submit"
+                  className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+                  disabled={isSaving}
+                >
+                  {isSaving ? "Saving..." : "Save"}
+                </button>
+              </div>
+            )}
           </>
         )}
       </form>
@@ -1494,7 +1527,7 @@ export default function PromptPageForm({
                       type="button"
                       onClick={() => {
                         if (emojiSentimentEnabled) {
-                          setShowPopupConflictModal("emoji");
+                          setShowPopupConflictModal("note");
                           return;
                         }
                         setNotePopupEnabled((v: boolean) => !v);
@@ -1508,10 +1541,25 @@ export default function PromptPageForm({
                       />
                     </button>
                   </div>
-                  <div className="text-sm text-gray-700 px-2">
+                  <div className="text-sm text-gray-700 mb-3 max-w-[85ch] px-2">
                     This note appears as a pop-up at the top of the review page.
                     Use it to set the context and tone for your customer.
                   </div>
+                  {notePopupEnabled && (
+                    <textarea
+                      id="friendly_note"
+                      value={formData.friendly_note}
+                      onChange={(e) =>
+                        setFormData((prev: any) => ({
+                          ...prev,
+                          friendly_note: e.target.value,
+                        }))
+                      }
+                      rows={4}
+                      className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring shadow-inner"
+                      placeholder="Ty! It was so great having you in yesterday. You left your scarf! I can drop it by tomorrow on my way in. Thanks for leaving us a review, we need all the positivity we can get.  :)"
+                    />
+                  )}
                 </div>
               </>
             )}
@@ -1527,8 +1575,6 @@ export default function PromptPageForm({
           </div>
         ) : (
           <div className="space-y-12">
-            {/* --- NEW MODULAR STEP 2 UI (2024) --- */}
-            {/* Review Platforms Section (modular) */}
             <ReviewWriteSection
               value={formData.review_platforms}
               onChange={(platforms) =>
@@ -1540,7 +1586,6 @@ export default function PromptPageForm({
               onGenerateReview={handleGenerateAIReview}
               hideReviewTemplateFields={isUniversal}
             />
-            {/* Special Offer Section (modular) */}
             <OfferSection
               enabled={offerEnabled}
               onToggle={() => setOfferEnabled((v: boolean) => !v)}
@@ -1551,6 +1596,53 @@ export default function PromptPageForm({
               url={offerUrl}
               onUrlChange={setOfferUrl}
             />
+            {/* Personalized Note Pop-up Section */}
+            <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-2 shadow relative mb-8">
+              <div className="flex items-center justify-between mb-2 px-2 py-2">
+                <div className="flex items-center gap-3">
+                  <FaCommentDots className="w-7 h-7 text-slate-blue" />
+                  <span className="text-2xl font-bold text-[#1A237E]">
+                    Personalized note pop-up
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (emojiSentimentEnabled) {
+                      setShowPopupConflictModal("note");
+                      return;
+                    }
+                    setNotePopupEnabled((v: boolean) => !v);
+                  }}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${notePopupEnabled ? "bg-slate-blue" : "bg-gray-200"}`}
+                  aria-pressed={!!notePopupEnabled}
+                  disabled={emojiSentimentEnabled}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${notePopupEnabled ? "translate-x-5" : "translate-x-1"}`}
+                  />
+                </button>
+              </div>
+              <div className="text-sm text-gray-700 mb-3 max-w-[85ch] px-2">
+                This note appears as a pop-up at the top of the review page. Use
+                it to set the context and tone for your customer.
+              </div>
+              {notePopupEnabled && (
+                <textarea
+                  id="friendly_note"
+                  value={formData.friendly_note}
+                  onChange={(e) =>
+                    setFormData((prev: any) => ({
+                      ...prev,
+                      friendly_note: e.target.value,
+                    }))
+                  }
+                  rows={4}
+                  className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring shadow-inner"
+                  placeholder="Ty! It was so great having you in yesterday. You left your scarf! I can drop it by tomorrow on my way in. Thanks for leaving us a review, we need all the positivity we can get.  :)"
+                />
+              )}
+            </div>
             {/* Emoji Sentiment Section (modular) */}
             <EmojiSentimentSection
               enabled={emojiSentimentEnabled}
@@ -1593,29 +1685,50 @@ export default function PromptPageForm({
               onToggle={handleToggleFalling}
               icon={fallingIcon}
               onIconChange={setFallingIcon}
-              description="Enable a fun animation where stars (or other icons) rain down when the prompt page loads. You can choose the icon below."
             />
           </div>
         )}
       </div>
       {(mode !== "create" || step === 2) && (
         <>
-          {/* Bottom right Save & publish/Save button */}
-          <div className="w-full flex justify-end pr-6 pb-4 md:pb-6 mt-8">
-            <button
-              type="submit"
-              className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-              disabled={isSaving}
-            >
-              {mode === "create"
-                ? isSaving
-                  ? "Publishing..."
-                  : "Save & publish"
-                : isSaving
-                  ? "Saving..."
-                  : "Save"}
-            </button>
-          </div>
+          {/* Bottom action row: left (Back) and right (Save/View or Save & publish/View) for step 2 */}
+          {step === 2 && mode === "create" && (
+            <div className="w-full flex justify-between items-center pr-2 pb-4 md:pr-6 md:pb-6 mt-8">
+              {/* Bottom left Back button */}
+              <div>
+                <button
+                  type="button"
+                  className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-slate-blue shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+                  onClick={() => setStep(1)}
+                  disabled={isSaving}
+                >
+                  Back
+                </button>
+              </div>
+              {/* Bottom right Save & publish button */}
+              <div>
+                <button
+                  type="submit"
+                  className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+                  disabled={isSaving}
+                >
+                  {isSaving ? "Publishing..." : "Save & publish"}
+                </button>
+              </div>
+            </div>
+          )}
+          {/* Bottom right Save button for edit mode */}
+          {mode !== "create" && (
+            <div className="w-full flex justify-end pr-6 pb-4 md:pb-6 mt-8">
+              <button
+                type="submit"
+                className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+                disabled={isSaving}
+              >
+                {isSaving ? "Saving..." : "Save"}
+              </button>
+            </div>
+          )}
         </>
       )}
       {/* Popup conflict modal */}
@@ -1633,11 +1746,7 @@ export default function PromptPageForm({
               Popup Feature Conflict
             </h2>
             <p className="mb-6 text-gray-700">
-              Two popup features can't be enabled at the same time.
-              <br />
-              {showPopupConflictModal === "emoji"
-                ? "If you disable the Friendly Note, you can turn on Emoji Sentiment."
-                : "If you disable Emoji Sentiment, you can turn on the Popup Note."}
+              You can't enable Emoji Sentiment and Personalized note pop-up at the same time because that's pop-ups on top of pop-ups—which would be weird.
             </p>
             <button
               onClick={() => setShowPopupConflictModal(null)}

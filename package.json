@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3001",
+    "predev": "node scripts/check-migrations.js",
+    "dev": "DISABLE_SENTRY=true next dev -p 3001",
+    "dev:fast": "DISABLE_SENTRY=true NODE_ENV=development next dev -p 3001 --turbo",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -11,7 +13,9 @@
     "build:multi-widget": "terser public/widgets/multi/widget-embed.js -o public/widgets/multi/widget-embed.min.js --compress --mangle",
     "build:single-widget": "terser public/widgets/single/widget-embed.js -o public/widgets/single/widget-embed.min.js --compress --mangle",
     "build:photo-widget": "node scripts/build-photo-widget.js && terser public/widgets/photo/widget-embed.temp.js -o public/widgets/photo/widget-embed.min.js --compress --mangle && rm public/widgets/photo/widget-embed.temp.js",
-    "watch:widget": "nodemon --watch public/widgets/multi/widget-embed.js --watch public/widgets/single/widget-embed.js --watch public/widgets/photo/widget-embed.js --exec 'npm run build:widget'"
+    "watch:widget": "nodemon --watch public/widgets/multi/widget-embed.js --watch public/widgets/single/widget-embed.js --watch public/widgets/photo/widget-embed.js --exec 'npm run build:widget'",
+    "migrations:check": "node scripts/check-migrations.js",
+    "migrations:apply": "supabase db migrate"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.3",

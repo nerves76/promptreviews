@@ -80,11 +80,10 @@ const ProductPromptPageForm = forwardRef<any, ProductPromptPageFormProps>(
       initialData?.emojiSentimentEnabled ?? false,
     );
     const [emojiSentimentQuestion, setEmojiSentimentQuestion] = useState(
-      initialData?.emojiSentimentQuestion ?? "How was your experience?",
+      initialData?.emojiSentimentQuestion || "How was your experience?",
     );
     const [emojiFeedbackMessage, setEmojiFeedbackMessage] = useState(
-      initialData?.emojiFeedbackMessage ??
-        "We value your feedback! Let us know how we can do better.",
+      initialData?.emojiFeedbackMessage || "How can we improve?",
     );
     const [emojiThankYouMessage, setEmojiThankYouMessage] = useState(
       initialData?.emojiThankYouMessage &&
@@ -492,10 +491,7 @@ const ProductPromptPageForm = forwardRef<any, ProductPromptPageFormProps>(
                 />
               </button>
             </div>
-            <div className="text-sm text-gray-700 mb-3 max-w-[85ch] px-2">
-              Enable a fun animation where stars (or other icons) rain down when
-              the prompt page loads. You can choose the icon below.
-            </div>
+
             {/* Icon picker (enabled) */}
             <div className="flex gap-4 px-2 flex-wrap">
               {[
@@ -573,6 +569,53 @@ const ProductPromptPageForm = forwardRef<any, ProductPromptPageFormProps>(
             </div>
           </div>
         </form>
+        
+        {/* Bottom Action Buttons */}
+        <div className="border-t border-gray-200 pt-6 mt-8 flex justify-between items-center">
+          {/* Reset Button - Bottom Left */}
+          {showResetButton && (
+            <button
+              type="button"
+              className="px-4 py-2 text-sm rounded border-2 border-red-500 text-red-600 bg-white hover:bg-red-50 transition-colors"
+              onClick={() => {
+                if (window.confirm("Are you sure you want to reset to business defaults? Any customizations will be lost.")) {
+                  // Reset review platforms to business defaults
+                  setReviewPlatforms(businessReviewPlatforms);
+                }
+              }}
+              title="Reset to Business Defaults"
+            >
+              Reset to Defaults
+            </button>
+          )}
+          
+          {/* Save and View Buttons - Bottom Right */}
+          <div className="flex gap-3">
+            <button
+              type="button"
+              className="px-4 py-2 text-sm rounded bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200 transition-colors"
+              onClick={() => {
+                // Navigate to the product prompt page preview
+                window.open(`/r/${initialData?.product_name || 'preview'}`, '_blank');
+              }}
+            >
+              View
+            </button>
+            <button
+              type="button"
+              className="px-4 py-2 text-sm rounded bg-slate-blue text-white hover:bg-slate-blue/90 transition-colors"
+              onClick={() => {
+                // Trigger form submission
+                const form = document.querySelector('form');
+                if (form) {
+                  form.dispatchEvent(new Event('submit', { bubbles: true }));
+                }
+              }}
+            >
+              Save
+            </button>
+          </div>
+        </div>
       </>
     );
   },

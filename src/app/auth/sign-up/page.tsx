@@ -266,47 +266,34 @@ export default function SignUpPage() {
           console.log('🔄 Local development mode: Auto-signing in user...');
           console.log('🔐 Attempting sign-in with:', { email, password: '***' });
           
-          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-          });
-
-          console.log('🔐 Auto-signin response:', { 
-            signInData: signInData ? { 
-              user: signInData.user ? { 
-                id: signInData.user.id, 
-                email: signInData.user.email,
-                email_confirmed_at: signInData.user.email_confirmed_at
-              } : null,
-              session: !!signInData.session
-            } : null, 
-            signInError 
-          });
-
-          if (signInError) {
-            console.error('❌ Auto-signin failed:', signInError);
-            setEmailSent(true);
-            setMessage('✅ Account created successfully! Please sign in with your credentials.');
-          } else if (signInData.user) {
-            console.log('✅ Auto-signin successful, waiting for session to be established...');
+          try {
+            const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+              email,
+              password,
+            });
             
-            // Add a small delay to ensure session is properly established
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            
-            console.log('📍 Redirecting to create business page...');
-            // Redirect to create business page where welcome popup appears
-            window.location.href = '/dashboard/create-business';
-            return;
-          } else {
-            console.error('❌ Auto-signin succeeded but no user data returned');
+            if (signInError) {
+              console.error('❌ Auto-signin failed:', signInError);
+              // Fall back to email confirmation flow
+              setEmailSent(true);
+              setMessage('✅ Account created successfully! Please check your email and click the confirmation link to activate your account.');
+            } else if (signInData.user) {
+              console.log('✅ Auto-signin successful:', signInData.user.id);
+              // Redirect to dashboard
+              window.location.href = '/dashboard';
+              return;
+            }
+          } catch (autoSignInError) {
+            console.error('❌ Auto-signin error:', autoSignInError);
+            // Fall back to email confirmation flow
             setEmailSent(true);
-            setMessage('✅ Account created successfully! Please sign in with your credentials.');
+            setMessage('✅ Account created successfully! Please check your email and click the confirmation link to activate your account.');
           }
         } else {
-          // Production: Normal email confirmation flow
-          console.log('🌍 Production mode: Email confirmation flow');
+          // Production: Show email confirmation message
+          console.log('✅ Account created successfully');
           setEmailSent(true);
-          setMessage('📧 Account created! Please check your email and click the confirmation link to activate your account.');
+          setMessage('✅ Account created successfully! Please check your email and click the confirmation link to activate your account.');
         }
         
         // Track sign up event

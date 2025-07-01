@@ -88,42 +88,6 @@ const ReviewPlatformsSection: React.FC<ReviewPlatformsSectionProps> = ({
           <FaStar className="w-7 h-7 text-slate-blue" />
           Review platforms
         </h2>
-        {onResetToDefaults && (
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              className="px-3 py-1 text-xs rounded bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200 transition"
-              onClick={onResetToDefaults}
-              title="Reset to Business Defaults"
-            >
-              Reset to Business Defaults
-            </button>
-            <button
-              type="button"
-              className="text-slate-blue hover:text-blue-700"
-              onClick={() => setShowInfo((v) => !v)}
-              aria-label="Show info"
-              tabIndex={0}
-            >
-              <FaInfoCircle className="w-4 h-4" />
-            </button>
-          </div>
-        )}
-        {showInfo && (
-          <div
-            className="absolute z-50 mt-2 right-8 p-3 bg-white border border-gray-300 rounded shadow-lg text-xs text-gray-700 max-w-xs"
-            style={{ minWidth: 220 }}
-          >
-            Resetting will restore this section to your business profile's
-            default settings. Any customizations will be lost.
-            <button
-              className="block mt-2 ml-auto text-xs text-blue-600 underline"
-              onClick={() => setShowInfo(false)}
-            >
-              Close
-            </button>
-          </div>
-        )}
       </div>
       <div className="space-y-10">
         {value.map((platform, idx) => (

@@ -161,6 +161,10 @@ export default function SimpleBusinessForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Form submission started");
+    console.log("Form data:", form);
+    console.log("Account ID:", accountId);
+    
     setLoading(true);
     setError("");
     setSuccess("");
@@ -171,156 +175,76 @@ export default function SimpleBusinessForm({
       return;
     }
 
+    // Check if all required fields are filled
+    const requiredFields = ['name', 'business_email', 'address_street', 'address_city', 'address_state', 'address_zip', 'address_country'];
+    const missingFields = requiredFields.filter(field => !form[field as keyof typeof form]);
+    
+    if (missingFields.length > 0) {
+      console.log("Missing required fields:", missingFields);
+      setError(`Missing required fields: ${missingFields.join(', ')}`);
+      setLoading(false);
+      return;
+    }
+
     try {
-      console.log("Starting business creation process...");
+      console.log("Starting business creation process via API...");
       console.log("Account ID:", accountId);
       console.log("Form data:", form);
       
-      // Create business
-      const { data: business, error: businessError } = await supabase
-        .from("businesses")
-        .insert([
-          {
-            account_id: accountId,
-            name: form.name,
-            industry: form.industry,
-            industries_other: form.industries_other,
-            business_website: form.business_website,
-            business_email: form.business_email,
-            phone: form.phone,
-            address_street: form.address_street,
-            address_city: form.address_city,
-            address_state: form.address_state,
-            address_zip: form.address_zip,
-            address_country: form.address_country,
-            tagline: form.tagline || null,
-            company_values: form.company_values || null,
-            ai_dos: form.ai_dos || null,
-            ai_donts: form.ai_donts || null,
-            services_offered: form.services_offered || null,
-            differentiators: form.differentiators || null,
-            years_in_business: form.years_in_business || null,
-            industries_served: form.industries_served || null,
-          },
-        ])
-        .select()
-        .single();
+      // Create business via API endpoint instead of direct database access
+      const businessData = {
+        name: form.name,
+        account_id: accountId, // Include the account_id that the API expects
+        industry: form.industry,
+        industries_other: form.industries_other,
+        business_website: form.business_website,
+        business_email: form.business_email,
+        phone: form.phone,
+        address_street: form.address_street,
+        address_city: form.address_city,
+        address_state: form.address_state,
+        address_zip: form.address_zip,
+        address_country: form.address_country,
+        tagline: form.tagline || null,
+        company_values: form.company_values || null,
+        ai_dos: form.ai_dos || null,
+        ai_donts: form.ai_donts || null,
+        services_offered: form.services_offered || null,
+        differentiators: form.differentiators || null,
+        years_in_business: form.years_in_business || null,
+        industries_served: form.industries_served || null,
+      };
 
-      if (businessError) {
-        console.error("Business creation error:", businessError);
-        console.error("Business creation error details:", {
-          code: businessError.code,
-          message: businessError.message,
-          details: businessError.details,
-          hint: businessError.hint
-        });
-        setError(`Failed to create business: ${businessError.message || 'Unknown error'}`);
+      console.log("Making API call to /api/businesses");
+      console.log("Request body:", JSON.stringify(businessData, null, 2));
+      
+      const response = await fetch('/api/businesses', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(businessData),
+      });
+      
+      console.log("API response status:", response.status);
+      console.log("API response ok:", response.ok);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error("Business creation API error:", errorData);
+        setError(`Failed to create business: ${errorData.error || response.statusText}`);
         setLoading(false);
         return;
       }
+
+      const business = await response.json();
+      console.log("Business created successfully via API:", business);
 
       setSuccess("Business created successfully! Redirecting to dashboard...");
       
       // Dispatch event to refresh navigation state
       if (typeof window !== "undefined") {
         window.dispatchEvent(new CustomEvent('businessCreated', { detail: { businessId: business.id } }));
-      }
-      
-      // Create universal prompt page
-      try {
-        console.log("Creating universal prompt page...");
-        const universalSlug = slugify("universal", Date.now().toString(36));
-        
-        const universalPromptPageData = {
-          account_id: accountId,
-          slug: universalSlug,
-          is_universal: true,
-          status: "draft",
-          review_type: "service",
-          offer_enabled: false,
-          offer_title: "",
-          offer_body: "",
-          offer_url: "",
-          emoji_sentiment_enabled: false,
-          emoji_sentiment_question: "How was your experience?",
-          emoji_feedback_message: "We value your feedback! Let us know how we can do better.",
-          emoji_thank_you_message: "Thank you for your feedback!",
-          ai_button_enabled: true,
-          falling_icon: "star",
-          review_platforms: [],
-          services_offered: form.services_offered || null,
-          product_name: "",
-          product_description: "",
-          product_photo: "",
-          product_subcopy: "",
-          features_or_benefits: [],
-          show_friendly_note: true,
-          friendly_note: "",
-          first_name: "",
-          last_name: "",
-          phone: "",
-          email: "",
-          role: "",
-          category: "",
-          client_name: "",
-          location: "",
-          project_type: "",
-          outcomes: "",
-          date_completed: null,
-          assigned_team_members: "",
-          qr_code_url: "",
-          team_member: null,
-          no_platform_review_template: "",
-          video_max_length: null,
-          video_quality: "",
-          video_preset: "",
-          video_questions: [],
-          video_note: "",
-          video_tips: "",
-          video_recipient: ""
-        };
-
-        console.log("Universal prompt page data before mapping:", universalPromptPageData);
-        const mappedData = mapToDbColumns(universalPromptPageData);
-        console.log("Universal prompt page data after mapping:", mappedData);
-
-        const { data: universalPage, error: universalError } = await supabase
-          .from("prompt_pages")
-          .insert([mappedData])
-          .select()
-          .single();
-
-        if (universalError) {
-          console.error("Universal prompt page creation error:", universalError);
-          console.error("Error details:", {
-            code: universalError.code,
-            message: universalError.message,
-            details: universalError.details,
-            hint: universalError.hint,
-            // Add more detailed error information
-            fullError: JSON.stringify(universalError, null, 2),
-            errorType: typeof universalError,
-            errorKeys: Object.keys(universalError || {}),
-            errorString: String(universalError)
-          });
-          // Don't fail the entire process if universal page creation fails
-          console.warn("Universal prompt page creation failed, but business was created successfully");
-        } else {
-          console.log("Universal prompt page created successfully:", universalPage);
-        }
-      } catch (universalErr) {
-        console.error("Error creating universal prompt page:", universalErr);
-        console.error("Error details:", {
-          message: universalErr instanceof Error ? universalErr.message : 'Unknown error',
-          stack: universalErr instanceof Error ? universalErr.stack : undefined,
-          // Add more detailed error information
-          fullError: JSON.stringify(universalErr, null, 2),
-          errorType: typeof universalErr,
-          errorKeys: Object.keys(universalErr || {}),
-          errorString: String(universalErr)
-        });
-        // Don't fail the entire process if universal page creation fails
-        console.warn("Universal prompt page creation failed, but business was created successfully");
       }
       
       console.log("Business created successfully, calling onSuccess callback");
@@ -330,9 +254,11 @@ export default function SimpleBusinessForm({
 
     } catch (err) {
       console.error("Error creating business:", err);
+      console.error("Error details:", err);
       const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
       setError(`Error creating business: ${errorMessage}`);
     } finally {
+      console.log("Form submission completed");
       setLoading(false);
     }
   };

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, forwardRef } from "react";
+import { FaCommentDots } from "react-icons/fa";
 import OfferToggle from "../components/OfferToggle";
 import EmojiSentimentSection from "../components/EmojiSentimentSection";
 import ReviewPlatformsSection, {
@@ -24,6 +25,8 @@ export interface UniversalPromptFormState {
   fallingEnabled: boolean;
   fallingIcon: string;
   aiButtonEnabled: boolean;
+  notePopupEnabled: boolean;
+  friendlyNote: string;
 }
 
 interface UniversalPromptPageFormProps {
@@ -55,11 +58,10 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
       initialData?.emojiSentimentEnabled ?? false,
     );
     const [emojiSentimentQuestion, setEmojiSentimentQuestion] = useState(
-      initialData?.emojiSentimentQuestion ?? "How was your experience?",
+      initialData?.emojiSentimentQuestion || "How was your experience?",
     );
     const [emojiFeedbackMessage, setEmojiFeedbackMessage] = useState(
-      initialData?.emojiFeedbackMessage ??
-        "We value your feedback! Let us know how we can do better.",
+      initialData?.emojiFeedbackMessage || "How can we improve?",
     );
     const [emojiThankYouMessage, setEmojiThankYouMessage] = useState(
       initialData?.emojiThankYouMessage &&
@@ -85,9 +87,22 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
     const [fallingIcon, setFallingIcon] = useState(
       initialData?.fallingIcon ?? "star",
     );
-    const [aiButtonEnabled, setAiButtonEnabled] = useState(
-      initialData?.aiButtonEnabled ?? true,
-    );
+      const [aiButtonEnabled, setAiButtonEnabled] = useState(
+    initialData?.aiButtonEnabled ?? true,
+  );
+
+  // Add Personalized Note state
+  const [notePopupEnabled, setNotePopupEnabled] = useState(
+    initialData?.notePopupEnabled ?? false,
+  );
+  const [friendlyNote, setFriendlyNote] = useState(
+    initialData?.friendlyNote ?? "",
+  );
+
+  // Add state for warning modal
+  const [showPopupConflictModal, setShowPopupConflictModal] = useState<
+    null | "emoji" | "note"
+  >(null);
 
     const handleEmojiLabelChange = (index: number, val: string) => {
       setEmojiLabels((labels) => labels.map((l, i) => (i === index ? val : l)));
@@ -112,8 +127,27 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
             fallingEnabled,
             fallingIcon,
             aiButtonEnabled,
+            notePopupEnabled,
+            friendlyNote,
           });
         },
+        getCurrentState: () => ({
+          offerEnabled,
+          offerTitle,
+          offerBody,
+          offerUrl,
+          emojiSentimentEnabled,
+          emojiSentimentQuestion,
+          emojiFeedbackMessage,
+          emojiThankYouMessage,
+          emojiLabels,
+          reviewPlatforms,
+          fallingEnabled,
+          fallingIcon,
+          aiButtonEnabled,
+          notePopupEnabled,
+          friendlyNote,
+        }),
       }),
       [
         offerEnabled,
@@ -134,19 +168,13 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
     );
 
     return (
-      <form
+      <>
+        <form
         className="space-y-8"
         onSubmit={(e) => {
           e.preventDefault();
-          if (reviewPlatforms.length === 0) {
-            if (
-              !window.confirm(
-                "You didn't add a review platform. Are you sure you want to save?",
-              )
-            ) {
-              return;
-            }
-          }
+          // Remove the review platform validation from here
+          // It's now handled in the parent component's Save button
           if (!emojiThankYouMessage || emojiThankYouMessage.trim() === "") {
             alert(
               "Please enter a thank you message for the emoji sentiment module.",
@@ -168,6 +196,8 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
             fallingEnabled,
             fallingIcon,
             aiButtonEnabled,
+            notePopupEnabled,
+            friendlyNote,
           });
         }}
       >
@@ -195,10 +225,58 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
           url={offerUrl}
           onUrlChange={setOfferUrl}
         />
+        {/* Personalized Note Pop-up Section */}
+        <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-2 shadow relative mb-8">
+          <div className="flex items-center justify-between mb-2 px-2 py-2">
+            <div className="flex items-center gap-3">
+              <FaCommentDots className="w-7 h-7 text-slate-blue" />
+              <span className="text-2xl font-bold text-[#1A237E]">
+                Personalized note pop-up
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                if (emojiSentimentEnabled) {
+                  setShowPopupConflictModal("note");
+                  return;
+                }
+                setNotePopupEnabled((v) => !v);
+              }}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${notePopupEnabled ? "bg-slate-blue" : "bg-gray-200"}`}
+              aria-pressed={!!notePopupEnabled}
+              disabled={emojiSentimentEnabled}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${notePopupEnabled ? "translate-x-5" : "translate-x-1"}`}
+              />
+            </button>
+          </div>
+          <div className="text-sm text-gray-700 mb-3 max-w-[85ch] px-2">
+            This note appears as a pop-up at the top of the review page. Use
+            it to set the context and tone for your customer.
+          </div>
+          {notePopupEnabled && (
+            <textarea
+              id="friendly_note"
+              value={friendlyNote}
+              onChange={(e) => setFriendlyNote(e.target.value)}
+              rows={4}
+              className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring shadow-inner"
+              placeholder="Ty! It was so great having you in yesterday. You left your scarf! I can drop it by tomorrow on my way in. Thanks for leaving us a review, we need all the positivity we can get.  :)"
+            />
+          )}
+        </div>
         {/* Emoji Sentiment Section (shared design) */}
         <EmojiSentimentSection
           enabled={emojiSentimentEnabled}
-          onToggle={() => setEmojiSentimentEnabled((v) => !v)}
+          onToggle={() => {
+            if (notePopupEnabled) {
+              setShowPopupConflictModal("emoji");
+              return;
+            }
+            setEmojiSentimentEnabled((v) => !v);
+          }}
           question={emojiSentimentQuestion}
           onQuestionChange={setEmojiSentimentQuestion}
           feedbackMessage={emojiFeedbackMessage}
@@ -207,6 +285,7 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
           onThankYouMessageChange={setEmojiThankYouMessage}
           emojiLabels={emojiLabels}
           onEmojiLabelChange={handleEmojiLabelChange}
+          disabled={!!notePopupEnabled}
         />
         {/* AI Review Generation Toggle */}
         <DisableAIGenerationSection
@@ -222,7 +301,35 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
         />
         {/* No Save button here; Save is handled by parent */}
       </form>
-    );
+      
+      {/* Popup conflict modal */}
+      {showPopupConflictModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center relative">
+            <button
+              className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl"
+              onClick={() => setShowPopupConflictModal(null)}
+              aria-label="Close"
+            >
+              &times;
+            </button>
+            <h2 className="text-2xl font-bold text-red-700 mb-4">
+              Popup Feature Conflict
+            </h2>
+            <p className="mb-6 text-gray-700">
+              You can't enable Emoji Sentiment and Personalized note pop-up at the same time because that's pop-ups on top of pop-ups—which would be weird.
+            </p>
+            <button
+              onClick={() => setShowPopupConflictModal(null)}
+              className="bg-slate-blue text-white px-6 py-2 rounded hover:bg-slate-blue/90 font-semibold mt-2"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  );
   },
 );
 
