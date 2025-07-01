@@ -8,7 +8,8 @@ export async function middleware(req: NextRequest) {
 
   // Only require auth in production
   if (process.env.NODE_ENV !== "production") {
-    return res;
+    // In development, still check session but don't block requests
+    console.log('Middleware: Development mode - checking session but not blocking');
   }
 
   const supabase = createServerClient(
@@ -40,6 +41,11 @@ export async function middleware(req: NextRequest) {
   try {
     const { data: { session: currentSession } } = await supabase.auth.getSession();
     session = currentSession;
+    console.log('Middleware: Session check result:', { 
+      hasSession: !!session, 
+      userId: session?.user?.id,
+      pathname: req.nextUrl.pathname 
+    });
   } catch (error) {
     console.log('Middleware: Session check failed, continuing without session:', error);
     // Continue without session rather than failing

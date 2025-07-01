@@ -30,30 +30,30 @@ export async function POST(request: Request) {
 
     // Get user ID from the request headers (set by the client)
     const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
+    let user = null;
+    
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.replace('Bearer ', '');
+      
+      // Try to verify the token and get user info
+      const { data: { user: tokenUser }, error: authError } = await supabase.auth.getUser(token);
+      
+      if (!authError && tokenUser) {
+        user = tokenUser;
+      }
     }
-
-    const token = authHeader.replace('Bearer ', '');
     
-    // Verify the token and get user info
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Invalid authentication token' },
-        { status: 401 }
-      );
+    // If no user from token, try to get from cookies or other means
+    if (!user) {
+      // For now, let's allow feedback without user ID (anonymous feedback)
+      console.log('No authenticated user found, allowing anonymous feedback');
     }
 
     // Insert feedback into the database
     const { data, error } = await supabase
       .from('feedback')
       .insert({
-        user_id: user.id,
+        user_id: user?.id || null,
         category,
         message: message.trim(),
         email: email?.trim() || null,
@@ -74,7 +74,7 @@ export async function POST(request: Request) {
     console.log('Feedback submitted successfully:', {
       id: data.id,
       category,
-      user_id: user.id,
+      user_id: user?.id || 'anonymous',
       has_email: !!email
     });
 

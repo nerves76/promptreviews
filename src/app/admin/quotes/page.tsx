@@ -345,7 +345,6 @@ export default function AdminQuotesPage() {
             </div>
           )}
         </div>
-      </div>
     </div>
   );
 } 
