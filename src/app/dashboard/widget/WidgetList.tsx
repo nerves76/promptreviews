@@ -88,7 +88,7 @@ export default function WidgetList({
 
     // Use the correct widget-specific container ID for each widget type
     let containerId;
-    switch (widget.widget_type) {
+          switch (widget.type) {
       case 'multi':
         containerId = 'promptreviews-multi-widget';
         break;
@@ -102,7 +102,7 @@ export default function WidgetList({
         containerId = 'promptreviews-widget';
     }
     
-    const embedCode = `<script src="${window.location.origin}/widgets/${widget.widget_type}/widget-embed.min.js"></script>
+          const embedCode = `<script src="${window.location.origin}/widgets/${widget.type}/widget-embed.min.js"></script>
 <div id="${containerId}" data-widget-id="${widgetId}"></div>`;
 
     try {

@@ -181,17 +181,18 @@ export async function createAnnouncement(message: string, buttonText?: string, b
     console.log('createAnnouncement: Deactivate existing announcements result:', { error: deactivateError });
 
     // Prepare announcement data
-    let announcementData: string;
-    if (buttonText && buttonUrl) {
-      // Store as JSON with button info
-      announcementData = JSON.stringify({
-        message,
-        button_text: buttonText,
-        button_url: buttonUrl
-      });
-    } else {
-      // Store as plain message
-      announcementData = message;
+    const announcementData: any = {
+      message,
+      is_active: true,
+      created_by: admin.id
+    };
+
+    // Add button fields if provided
+    if (buttonText && buttonText.trim()) {
+      announcementData.button_text = buttonText.trim();
+    }
+    if (buttonUrl && buttonUrl.trim()) {
+      announcementData.button_url = buttonUrl.trim();
     }
 
     console.log('createAnnouncement: Prepared announcement data:', announcementData);
@@ -199,11 +200,7 @@ export async function createAnnouncement(message: string, buttonText?: string, b
     // Create new announcement
     const { error: insertError } = await client
       .from('announcements')
-      .insert({
-        message: announcementData,
-        is_active: true,
-        created_by: admin.id
-      });
+      .insert(announcementData);
 
     console.log('createAnnouncement: Insert result:', { error: insertError });
     return !insertError;
@@ -632,4 +629,27 @@ export async function deleteFeedback(feedbackId: string, supabaseClient?: any): 
     console.error('Error deleting feedback:', error);
     return false;
   }
+}
+
+/**
+ * Ensure the user is an admin if their email is in the ADMIN_EMAILS env variable.
+ * @param user - The user object (must have id and email)
+ * @param supabaseClient - Optional Supabase client instance
+ */
+export async function ensureAdminForEmail(user: { id: string, email: string }, supabaseClient?: any): Promise<void> {
+  const client = supabaseClient || supabase;
+  const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+  if (!user?.email) return;
+  if (!adminEmails.includes(user.email.toLowerCase())) return;
+
+  // Check if already in admins table
+  const { data: admin, error } = await client
+    .from('admins')
+    .select('id')
+    .eq('account_id', user.id)
+    .maybeSingle();
+  if (admin) return;
+
+  // Insert into admins table
+  await client.from('admins').insert({ account_id: user.id });
 } 

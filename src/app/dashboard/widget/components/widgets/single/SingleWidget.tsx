@@ -14,7 +14,7 @@ const SingleWidget: React.FC<SingleWidgetProps> = ({ data, design }) => {
   // Transform the database widget data to the expected format
   const widgetData: WidgetData = {
     id: data.id,
-    type: data.widget_type as 'multi' | 'single' | 'photo',
+    type: data.type as 'multi' | 'single' | 'photo',
     design: data.theme || {},
     reviews: data.reviews || [],
     slug: data.slug || 'example-business'
@@ -34,7 +34,7 @@ const SingleWidget: React.FC<SingleWidgetProps> = ({ data, design }) => {
   useEffect(() => {
     console.log('🎯 SingleWidget: Component mounted with data:', { 
       widgetId: data.id,
-      widgetType: data.widget_type,
+      widgetType: data.type,
       reviewsCount: reviews?.length, 
       design: currentDesign, 
       slug: slug 
@@ -175,11 +175,15 @@ const SingleWidget: React.FC<SingleWidgetProps> = ({ data, design }) => {
       }
     };
 
-    if (reviews && currentDesign) {
+    if (reviews && reviews.length > 0 && currentDesign) {
       retryCountRef.current = 0; // Reset retry count
       initializeWidget();
     } else {
-      console.log('⚠️ SingleWidget: Missing reviews or design data:', { reviews: !!reviews, design: !!currentDesign });
+      console.log('⚠️ SingleWidget: Missing reviews or design data:', { 
+        reviews: !!reviews, 
+        reviewsLength: reviews?.length, 
+        design: !!currentDesign 
+      });
     }
 
     // Cleanup function
@@ -187,14 +191,26 @@ const SingleWidget: React.FC<SingleWidgetProps> = ({ data, design }) => {
       console.log('🧹 SingleWidget: Component unmounting, setting cleanup flag');
       isMounted = false;
     };
-  }, [reviews, currentDesign, slug, data.id, data.widget_type]);
+  }, [reviews, currentDesign, slug, data.id, data.type]);
 
   if (!reviews || !currentDesign) {
     return <div className="text-center p-4">Loading widget data...</div>;
   }
 
   if (reviews.length === 0) {
-    return <div className="text-center p-4">No reviews to display.</div>;
+    return (
+      <div className="flex items-center justify-center min-h-[200px] text-white text-lg">
+        <div className="text-center">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
+            </svg>
+            <span>Add reviews to your widget</span>
+          </div>
+          <p className="text-sm opacity-80">Click talk bubble icon to add and manage reviews.</p>
+        </div>
+      </div>
+    );
   }
 
   return (

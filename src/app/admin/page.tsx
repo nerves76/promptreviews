@@ -14,7 +14,6 @@ import { getUserOrMock } from "@/utils/supabase";
 import { isAdmin } from "@/utils/admin";
 import { useRouter } from "next/navigation";
 import AppLoader from "@/app/components/AppLoader";
-import PageCard from "@/app/components/PageCard";
 
 interface UserInfo {
   id: string;
@@ -263,64 +262,63 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <PageCard>
-        <div className="max-w-4xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-slate-blue">Admin Dashboard</h1>
-            <p className="text-gray-600 mt-2">Welcome, {user?.email}</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Users</h3>
-              <p className="text-3xl font-bold text-slate-blue">-</p>
-              <p className="text-sm text-gray-600">Total registered users</p>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Businesses</h3>
-              <p className="text-3xl font-bold text-slate-blue">-</p>
-              <p className="text-sm text-gray-600">Total businesses</p>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Widgets</h3>
-              <p className="text-3xl font-bold text-slate-blue">-</p>
-              <p className="text-sm text-gray-600">Total widgets created</p>
-            </div>
-          </div>
-
-          <div className="mt-8 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-            <div className="space-y-4">
-              <button
-                onClick={() => router.push("/admin/users")}
-                className="w-full text-left p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                <h4 className="font-medium text-gray-900">Manage Users</h4>
-                <p className="text-sm text-gray-600">View and manage user accounts</p>
-              </button>
-
-              <button
-                onClick={() => router.push("/admin/businesses")}
-                className="w-full text-left p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                <h4 className="font-medium text-gray-900">Manage Businesses</h4>
-                <p className="text-sm text-gray-600">View and manage business profiles</p>
-              </button>
-
-              <button
-                onClick={() => router.push("/admin/analytics")}
-                className="w-full text-left p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                <h4 className="font-medium text-gray-900">Analytics</h4>
-                <p className="text-sm text-gray-600">View system-wide analytics</p>
-              </button>
-            </div>
-          </div>
+    <div className="max-w-4xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Users</h3>
+          <p className="text-3xl font-bold text-slate-blue">-</p>
+          <p className="text-sm text-gray-600">Total registered users</p>
         </div>
-      </PageCard>
+
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Businesses</h3>
+          <p className="text-3xl font-bold text-slate-blue">-</p>
+          <p className="text-sm text-gray-600">Total businesses</p>
+        </div>
+
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Widgets</h3>
+          <p className="text-3xl font-bold text-slate-blue">-</p>
+          <p className="text-sm text-gray-600">Total widgets created</p>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+        <div className="space-y-4">
+          <button
+            onClick={() => router.push("/admin/announcements")}
+            className="w-full text-left p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <h4 className="font-medium text-gray-900">Manage Announcements</h4>
+            <p className="text-sm text-gray-600">Create and manage banner notifications</p>
+          </button>
+
+          <button
+            onClick={() => router.push("/admin/quotes")}
+            className="w-full text-left p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <h4 className="font-medium text-gray-900">Manage Quotes</h4>
+            <p className="text-sm text-gray-600">Create and manage dashboard quotes</p>
+          </button>
+
+          <button
+            onClick={() => router.push("/admin/feedback")}
+            className="w-full text-left p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <h4 className="font-medium text-gray-900">Manage Feedback</h4>
+            <p className="text-sm text-gray-600">View and manage user feedback</p>
+          </button>
+
+          <button
+            onClick={() => router.push("/admin/analytics")}
+            className="w-full text-left p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <h4 className="font-medium text-gray-900">Analytics</h4>
+            <p className="text-sm text-gray-600">View system-wide analytics</p>
+          </button>
+        </div>
+      </div>
 
       <div className="py-8">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -1,6 +1,9 @@
 "use client";
 import * as React from "react";
-import { createBrowserClient } from "@supabase/ssr";
+import { supabase } from "@/utils/supabaseClient";
+import { getUserOrMock } from "@/utils/supabase";
+import { getAccountIdForUser } from "@/utils/accountUtils";
+import { FaArrowsAlt } from "react-icons/fa";
 
 // Only include fonts that are actually loaded and used in the project
 const fontOptions = [
@@ -75,13 +78,15 @@ function getFontClass(fontName: string) {
 
 interface StylePageProps {
   onClose?: () => void;
+  onStyleUpdate?: (newStyles: any) => void;
 }
 
-export default function StylePage({ onClose }: StylePageProps) {
-  const supabase = React.useMemo(() => createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  ), []);
+export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
+
+  // Draggable modal state
+  const [modalPos, setModalPos] = React.useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = React.useState(false);
+  const [dragOffset, setDragOffset] = React.useState({ x: 0, y: 0 });
 
   const [settings, setSettings] = React.useState({
     primary_font: "Inter",
@@ -95,47 +100,16 @@ export default function StylePage({ onClose }: StylePageProps) {
     card_bg: "#FFFFFF",
     card_text: "#1A1A1A",
   });
+
+  // Update parent component whenever settings change (but not on initial load)
+  const [isInitialized, setIsInitialized] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
   const [success, setSuccess] = React.useState(false);
-
-  // Load current style settings on mount
-  async function fetchSettings() {
-    setLoading(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return setLoading(false);
-    const { data: business } = await supabase
-      .from("businesses")
-      .select("primary_font,secondary_font,primary_color,secondary_color,background_type,background_color,gradient_start,gradient_end,card_bg,card_text")
-      .eq("account_id", user.id)
-      .single();
-    if (business) {
-      setSettings(s => ({
-        ...s,
-        ...business,
-        card_bg: business.card_bg || "#FFFFFF",
-        card_text: business.card_text || "#1A1A1A",
-        background_color: business.background_color || "#FFFFFF"
-      }));
-    }
-    setLoading(false);
-  }
-
+  
   React.useEffect(() => {
-    fetchSettings();
-  }, [supabase]);
-
-  async function handleSave() {
-    setSaving(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      alert("Not signed in");
-      setSaving(false);
-      return;
-    }
-    const { error } = await supabase
-      .from("businesses")
-      .update({
+    if (isInitialized && onStyleUpdate) {
+      onStyleUpdate({
         primary_font: settings.primary_font,
         secondary_font: settings.secondary_font,
         primary_color: settings.primary_color,
@@ -146,15 +120,142 @@ export default function StylePage({ onClose }: StylePageProps) {
         gradient_end: settings.gradient_end,
         card_bg: settings.card_bg,
         card_text: settings.card_text,
-      })
-      .eq("account_id", user.id);
-    setSaving(false);
-    if (error) {
-      alert("Failed to save style settings: " + error.message);
-    } else {
-      setSuccess(true);
-      fetchSettings();
-      setTimeout(() => setSuccess(false), 2000);
+      });
+    }
+  }, [settings, onStyleUpdate, isInitialized]);
+
+  // Mark as initialized after first load
+  React.useEffect(() => {
+    if (!loading) {
+      setIsInitialized(true);
+    }
+  }, [loading]);
+
+  // Load current style settings on mount
+  async function fetchSettings() {
+    setLoading(true);
+    try {
+      const { data: { user }, error } = await getUserOrMock(supabase);
+      if (error || !user) {
+        console.log("No authenticated user found for style settings");
+        setLoading(false);
+        return;
+      }
+
+      // Get the account ID for the user
+      const accountId = await getAccountIdForUser(user.id, supabase);
+      if (!accountId) {
+        console.log("No account found for user");
+        setLoading(false);
+        return;
+      }
+
+      const { data: business } = await supabase
+        .from("businesses")
+        .select("primary_font,secondary_font,primary_color,secondary_color,background_type,background_color,gradient_start,gradient_end,card_bg,card_text")
+        .eq("account_id", accountId)
+        .single();
+      
+      if (business) {
+        setSettings(s => ({
+          ...s,
+          ...business,
+          card_bg: business.card_bg || "#FFFFFF",
+          card_text: business.card_text || "#1A1A1A",
+          background_color: business.background_color || "#FFFFFF"
+        }));
+      }
+    } catch (error) {
+      console.error("Error fetching style settings:", error);
+    }
+    setLoading(false);
+  }
+
+  // Center modal on mount
+  React.useEffect(() => {
+    const modalWidth = 672; // max-w-2xl
+    const modalHeight = 600;
+    const x = Math.max(0, (window.innerWidth - modalWidth) / 2);
+    const y = Math.max(0, (window.innerHeight - modalHeight) / 2);
+    setModalPos({ x, y });
+  }, []);
+
+  // Handle dragging
+  React.useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isDragging) {
+        setModalPos({
+          x: e.clientX - dragOffset.x,
+          y: e.clientY - dragOffset.y,
+        });
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, dragOffset]);
+
+  React.useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  async function handleSave() {
+    setSaving(true);
+    try {
+      const { data: { user }, error } = await getUserOrMock(supabase);
+      if (error || !user) {
+        alert("Not signed in");
+        setSaving(false);
+        return;
+      }
+
+      // Get the account ID for the user
+      const accountId = await getAccountIdForUser(user.id, supabase);
+      if (!accountId) {
+        alert("No account found for user");
+        setSaving(false);
+        return;
+      }
+
+      const { error: updateError } = await supabase
+        .from("businesses")
+        .update({
+          primary_font: settings.primary_font,
+          secondary_font: settings.secondary_font,
+          primary_color: settings.primary_color,
+          secondary_color: settings.secondary_color,
+          background_type: settings.background_type,
+          background_color: settings.background_color,
+          gradient_start: settings.gradient_start,
+          gradient_end: settings.gradient_end,
+          card_bg: settings.card_bg,
+          card_text: settings.card_text,
+        })
+        .eq("account_id", accountId);
+      
+      setSaving(false);
+      if (updateError) {
+        alert("Failed to save style settings: " + updateError.message);
+      } else {
+        setSuccess(true);
+        fetchSettings();
+        setTimeout(() => setSuccess(false), 2000);
+      }
+    } catch (error) {
+      console.error("Error saving style settings:", error);
+      alert("Failed to save style settings. Please try again.");
+      setSaving(false);
     }
   }
 
@@ -175,51 +276,82 @@ export default function StylePage({ onClose }: StylePageProps) {
     }
   }
 
-  return (
-    <div className="bg-white p-8 rounded-2xl shadow max-w-2xl w-full relative" style={{ maxHeight: '80vh' }}>
-      {/* Circular close button that exceeds modal borders */}
-      <button
-        className="absolute -top-6 -right-6 bg-white border border-gray-200 rounded-full shadow-lg shadow-[inset_0_0_8px_0_rgba(0,0,0,0.25)] flex items-center justify-center hover:bg-gray-100 focus:outline-none z-20 transition-colors p-4"
-        style={{ width: 64, height: 64 }}
-        onClick={onClose || (() => window.history.back())}
-        aria-label="Close style modal"
-      >
-        <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (e.target instanceof HTMLElement && e.target.closest('.modal-header')) {
+      setIsDragging(true);
+      setDragOffset({
+        x: e.clientX - modalPos.x,
+        y: e.clientY - modalPos.y,
+      });
+    }
+  };
 
-      <div className="overflow-y-auto" style={{ maxHeight: 'calc(80vh - 2rem)', paddingBottom: '3.5rem' }}>
-        {success && (
-          <div className="mb-4 bg-green-50 border border-green-200 text-green-700 rounded-md p-4 text-center font-medium animate-fadein">
-            Style settings saved!
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+      <div
+        className="bg-white rounded-2xl shadow-xl w-full max-w-2xl pointer-events-auto relative"
+        style={{
+          position: 'absolute',
+          left: modalPos.x,
+          top: modalPos.y,
+          transform: 'none',
+          maxHeight: '80vh',
+        }}
+        onMouseDown={handleMouseDown}
+      >
+        {/* Draggable header */}
+        <div className="modal-header flex items-center justify-between p-4 border-b cursor-move bg-slate-100 rounded-t-2xl">
+          <div className="w-1/3">
+            <h2 className="text-xl font-semibold text-slate-blue">Prompt Page Style</h2>
           </div>
-        )}
-        
-        {/* Top action buttons row */}
-        <div className="flex justify-end gap-4 mb-6">
-          <button
-            className="px-5 py-2 border border-slate-300 bg-white text-slate-blue rounded font-semibold shadow hover:bg-slate-100 transition"
-            style={{ minWidth: 90 }}
-            onClick={handleReset}
-            disabled={saving}
-          >
-            Reset Styles
-          </button>
-          <button
-            className="px-5 py-2 bg-slate-blue text-white rounded font-semibold shadow hover:bg-slate-700 transition"
-            style={{ minWidth: 90 }}
-            onClick={handleSave}
-            disabled={saving}
-          >
-            {saving ? "Saving..." : "Save"}
-          </button>
+          <div className="w-1/3 flex justify-center text-gray-400">
+            <FaArrowsAlt />
+          </div>
+          <div className="w-1/3 flex justify-end items-center gap-2 pr-8">
+            <button
+              className="px-4 py-1 border border-slate-300 bg-white text-slate-blue rounded-md font-semibold shadow-sm hover:bg-slate-50 transition text-sm"
+              onClick={handleReset}
+              disabled={saving}
+            >
+              Reset
+            </button>
+            <button
+              className="px-5 py-2 bg-slate-blue text-white rounded-md font-semibold shadow hover:bg-slate-700 transition"
+              onClick={handleSave}
+              disabled={saving}
+            >
+              {saving ? "Saving..." : "Save"}
+            </button>
+          </div>
         </div>
+
+        {/* Circular close button that exceeds modal borders */}
+        <button
+          className="absolute -top-2 -right-2 bg-white border border-gray-200 rounded-full shadow-md flex items-center justify-center hover:bg-gray-100 focus:outline-none z-20 transition-colors p-2"
+          style={{ width: 32, height: 32 }}
+          onClick={onClose || (() => window.history.back())}
+          aria-label="Close style modal"
+        >
+          <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        <div className="p-6 overflow-y-auto" style={{ maxHeight: 'calc(80vh - 4rem)' }}>
+          {success && (
+            <div className="mb-4 bg-green-50 border border-green-200 text-green-700 rounded-md p-4 text-center font-medium animate-fadein">
+              Style settings saved!
+            </div>
+          )}
         
-        <h2 className="text-2xl font-bold text-slate-blue mb-4">Prompt page style</h2>
-        <p className="text-gray-600 mb-6">
-          Use these settings to make your prompt pages match your brand.
-        </p>
+        <div className="flex items-center gap-2 mb-6">
+          <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <p className="text-sm text-gray-500">
+            Design changes affect all Prompt Pages.
+          </p>
+        </div>
         <div className="relative my-8 p-6 rounded-lg">
           <div className="bg-white rounded-lg shadow p-6 mx-auto" style={{ maxWidth: 800, background: settings.card_bg, color: settings.card_text }}>
             {success && (
@@ -343,12 +475,11 @@ export default function StylePage({ onClose }: StylePageProps) {
         {/* Bottom action buttons row */}
         <div className="flex justify-end gap-4 mt-10">
           <button
-            className="px-5 py-2 border border-slate-300 bg-white text-slate-blue rounded font-semibold shadow hover:bg-slate-100 transition"
-            style={{ minWidth: 90 }}
+            className="px-4 py-1 border border-slate-300 bg-white text-slate-blue rounded-md font-semibold shadow-sm hover:bg-slate-50 transition text-sm"
             onClick={handleReset}
             disabled={saving}
           >
-            Reset Styles
+            Reset
           </button>
           <button
             className="px-5 py-2 bg-slate-blue text-white rounded font-semibold shadow hover:bg-slate-700 transition"
@@ -358,6 +489,7 @@ export default function StylePage({ onClose }: StylePageProps) {
           >
             {saving ? "Saving..." : "Save"}
           </button>
+        </div>
         </div>
       </div>
     </div>

@@ -1,10 +1,17 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { getAccountIdForUser } from '@/utils/accountUtils';
 
 // Initialize Supabase client with public credentials
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
+// Initialize Supabase admin client with service role key for data fetching
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
 /**
@@ -14,7 +21,7 @@ const supabase = createClient(
  *   - Associated reviews
  *   - Any other relevant settings
  *
- * Returns 404 if widget not found, or 500 on server error.
+ * Returns 404 if widget not found, 403 if unauthorized, or 500 on server error.
  *
  * Note: The context argument must be typed as 'any' for compatibility with Next.js App Router API routes.
  */
@@ -28,97 +35,226 @@ export async function GET(
   }
 
   try {
-    // Fetch widget info from 'widgets' table
-    const { data: widget, error: widgetError } = await supabase
-      .from('widgets')
-      .select('*')
-      .eq('id', widgetId)
-      .single();
-
-    if (widgetError || !widget) {
-      return NextResponse.json({ error: 'Widget not found' }, { status: 404 });
-    }
-
-    // First, try to fetch reviews from 'widget_reviews' table
-    let reviews = [];
-    const { data: widgetReviews, error: widgetReviewsError } = await supabase
-      .from('widget_reviews')
-      .select('*')
-      .eq('widget_id', widgetId)
-      .order('created_at', { ascending: false });
-
-    if (widgetReviewsError) {
-      console.error('Error fetching widget reviews:', widgetReviewsError);
-    } else if (widgetReviews && widgetReviews.length > 0) {
-      // Use widget-specific reviews if they exist
-      reviews = widgetReviews;
-      console.log(`Found ${reviews.length} widget-specific reviews`);
-    } else {
-      // Fallback: fetch reviews from review_submissions for this account
-      console.log('No widget-specific reviews found, falling back to review_submissions');
-      const { data: submissionReviews, error: submissionReviewsError } = await supabase
-        .from('review_submissions')
-        .select('*')
-        .eq('business_id', widget.account_id)
-        .order('created_at', { ascending: false })
-        .limit(10); // Limit to prevent too many reviews
-
-      if (submissionReviewsError) {
-        console.error('Error fetching review submissions:', submissionReviewsError);
-      } else if (submissionReviews) {
-        // Transform review_submissions to match widget_reviews format
-        reviews = submissionReviews.map(review => ({
-          id: review.id,
-          widget_id: widgetId,
-          review_id: review.id,
-          first_name: review.first_name,
-          last_name: review.last_name,
-          reviewer_role: review.reviewer_role,
-          review_content: review.review_content,
-          star_rating: 5, // Default to 5 stars
-          platform: review.platform,
-          created_at: review.created_at,
-          updated_at: review.created_at
-        }));
-        console.log(`Found ${reviews.length} review submissions for account`);
+    // Get the user from the request headers (for dashboard requests)
+    const authHeader = req.headers.get('authorization');
+    let userId = null;
+    
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      // This is a dashboard request - authenticate the user
+      const token = authHeader.substring(7);
+      const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+      
+      if (authError || !user) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
+      
+      userId = user.id;
+      
+      // Get account ID for the user
+      const accountId = await getAccountIdForUser(userId, supabase);
+      if (!accountId) {
+        return NextResponse.json({ error: 'Account not found' }, { status: 404 });
+      }
+      
+      // Fetch widget info and verify ownership using admin client to bypass RLS
+      const { data: widget, error: widgetError } = await supabaseAdmin
+        .from('widgets')
+        .select('*')
+        .eq('id', widgetId)
+        .eq('account_id', accountId)
+        .single();
+
+      if (widgetError || !widget) {
+        return NextResponse.json({ error: 'Widget not found or access denied' }, { status: 403 });
+      }
+      
+      // Continue with the rest of the logic using the authenticated widget
+      return await fetchWidgetData(widget, widgetId);
+    } else {
+      // This is a public widget request (for embedding) - fetch without authentication using admin client
+      const { data: widget, error: widgetError } = await supabaseAdmin
+        .from('widgets')
+        .select('*')
+        .eq('id', widgetId)
+        .single();
+
+      if (widgetError || !widget) {
+        return NextResponse.json({ error: 'Widget not found' }, { status: 404 });
+      }
+      
+      // Continue with the rest of the logic using the public widget
+      return await fetchWidgetData(widget, widgetId);
     }
-
-    // Add photo_url field to each review (since the column doesn't exist yet)
-    const reviewsWithPhotoUrl = reviews.map(review => ({
-      ...review,
-      photo_url: review.photo_url || null
-    }));
-
-    // Fetch the universal prompt page slug for the business
-    let businessSlug = null;
-    if (widget.account_id) {
-        const { data: promptPageData, error: slugError } = await supabase
-            .from('prompt_pages')
-            .select('slug')
-            .eq('account_id', widget.account_id)
-            .eq('is_universal', true)
-            .single();
-
-        if (slugError) {
-            console.error('Error fetching business slug:', slugError.message);
-        } else if (promptPageData) {
-            businessSlug = promptPageData.slug;
-        }
-    }
-
-    // Compose the response object
-    const response = {
-      ...widget,
-      design: widget.theme, // Map theme to design for backward compatibility
-      reviews: reviewsWithPhotoUrl,
-      businessSlug: businessSlug,
-    };
-
-    return NextResponse.json(response);
   } catch (err) {
     // Log and return server error
     console.error('[GET /api/widgets/[id]] Error:', err);
+    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+  }
+}
+
+/**
+ * Helper function to fetch widget data and reviews
+ */
+async function fetchWidgetData(widget: any, widgetId: string) {
+  // Only fetch reviews that have been explicitly selected for this widget
+  let reviews = [];
+  const { data: widgetReviews, error: widgetReviewsError } = await supabaseAdmin
+    .from('widget_reviews')
+    .select('*')
+    .eq('widget_id', widgetId)
+    .order('created_at', { ascending: false });
+
+  if (widgetReviewsError) {
+    console.error('Error fetching widget reviews:', widgetReviewsError);
+  } else if (widgetReviews && widgetReviews.length > 0) {
+    // Use only the reviews that have been explicitly selected for this widget
+    reviews = widgetReviews;
+    console.log(`Found ${reviews.length} selected reviews for widget`);
+  } else {
+    // No reviews have been selected for this widget yet
+    console.log('No reviews selected for this widget yet. Use "Manage Reviews" to select which reviews to display.');
+    reviews = [];
+  }
+
+  // Add photo_url field to each review (since the column doesn't exist yet)
+  const reviewsWithPhotoUrl = reviews.map(review => ({
+    ...review,
+    photo_url: review.photo_url || null
+  }));
+
+  // Fetch the universal prompt page slug for the business
+  let businessSlug = null;
+  if (widget.account_id) {
+      const { data: promptPageData, error: slugError } = await supabaseAdmin
+          .from('prompt_pages')
+          .select('slug')
+          .eq('account_id', widget.account_id)
+          .eq('is_universal', true)
+          .single();
+
+      if (slugError) {
+          console.error('Error fetching business slug:', slugError.message);
+      } else if (promptPageData) {
+          businessSlug = promptPageData.slug;
+      }
+  }
+
+  // Compose the response object
+  const response = {
+    ...widget,
+    design: widget.theme, // Map theme to design for backward compatibility
+    reviews: reviewsWithPhotoUrl,
+    businessSlug: businessSlug,
+  };
+
+  return NextResponse.json(response);
+}
+
+/**
+ * PUT /api/widgets/[id]
+ * Updates an existing widget for the authenticated user
+ */
+export async function PUT(
+  req: Request,
+  context: any
+) {
+  const { id: widgetId } = await context.params;
+  if (!widgetId) {
+    return NextResponse.json({ error: 'Missing widget ID' }, { status: 400 });
+  }
+
+  try {
+    const body = await req.json();
+    
+    // Get the user from the request headers
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
+    const token = authHeader.substring(7);
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    
+    // Get account ID for the user
+    const accountId = await getAccountIdForUser(user.id, supabase);
+    if (!accountId) {
+      return NextResponse.json({ error: 'Account not found' }, { status: 404 });
+    }
+    
+    // Update widget and verify ownership using admin client to bypass RLS
+    const { data: widget, error: updateError } = await supabaseAdmin
+      .from('widgets')
+      .update({
+        ...body,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', widgetId)
+      .eq('account_id', accountId)
+      .select()
+      .single();
+
+    if (updateError || !widget) {
+      return NextResponse.json({ error: 'Widget not found or access denied' }, { status: 403 });
+    }
+
+    return NextResponse.json(widget);
+  } catch (err) {
+    console.error('[PUT /api/widgets/[id]] Error:', err);
+    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+  }
+}
+
+/**
+ * DELETE /api/widgets/[id]
+ * Deletes a widget for the authenticated user
+ */
+export async function DELETE(
+  req: Request,
+  context: any
+) {
+  const { id: widgetId } = await context.params;
+  if (!widgetId) {
+    return NextResponse.json({ error: 'Missing widget ID' }, { status: 400 });
+  }
+
+  try {
+    // Get the user from the request headers
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
+    const token = authHeader.substring(7);
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    
+    // Get account ID for the user
+    const accountId = await getAccountIdForUser(user.id, supabase);
+    if (!accountId) {
+      return NextResponse.json({ error: 'Account not found' }, { status: 404 });
+    }
+    
+    // Delete widget and verify ownership using admin client to bypass RLS
+    const { error: deleteError } = await supabaseAdmin
+      .from('widgets')
+      .delete()
+      .eq('id', widgetId)
+      .eq('account_id', accountId);
+
+    if (deleteError) {
+      return NextResponse.json({ error: 'Widget not found or access denied' }, { status: 403 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error('[DELETE /api/widgets/[id]] Error:', err);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 } 

@@ -31,6 +31,13 @@ interface DashboardData {
   widgets: any[];
   isAdminUser: boolean;
   accountLimits: any;
+  reviewStats: {
+    total: { week: number; month: number; year: number };
+    verified: { week: number; month: number; year: number };
+  };
+  universalPromptPage: any;
+  customPromptPages: any[];
+  universalUrl: string;
 }
 
 export default function Dashboard() {
@@ -44,20 +51,11 @@ export default function Dashboard() {
   const [showQR, setShowQR] = useState(false);
   const [copySuccess, setCopySuccess] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [universalPromptPage, setUniversalPromptPage] = useState<any>(null);
-  const [customPromptPages, setCustomPromptPages] = useState<any[]>([]);
-  const [universalUrl, setUniversalUrl] = useState("");
   const [showPostSaveModal, setShowPostSaveModal] = useState(false);
-  const [savedPromptPageUrl, setSavedPromptPageUrl] = useState<string | null>(
-    null,
-  );
+  const [savedPromptPageUrl, setSavedPromptPageUrl] = useState<string | null>(null);
   const [showPricingModal, setShowPricingModal] = useState(true);
   const [pendingAccountUpdate, setPendingAccountUpdate] = useState(false);
   const [showStarfallCelebration, setShowStarfallCelebration] = useState(false);
-  const [reviewStats, setReviewStats] = useState({
-    total: { week: 0, month: 0, year: 0 },
-    verified: { week: 0, month: 0, year: 0 },
-  });
   const [business, setBusiness] = useState<any>(null);
   const [isNewUser, setIsNewUser] = useState(false);
   const [showTopLoader, setShowTopLoader] = useState(false);
@@ -73,12 +71,129 @@ export default function Dashboard() {
   // Use auth guard with loading state
   const { loading: authLoading, shouldRedirect } = useAuthGuard({ redirectToCreateBusiness: true });
 
-  // Always call all useEffect hooks in the same order
+  // Consolidated data loading function
+  const loadAllDashboardData = async (user: any, accountId: string) => {
+    try {
+      // Batch all database queries together for better performance
+      const [
+        accountResult,
+        businessesResult,
+        promptPagesResult,
+        widgetsResult,
+        reviewStatsResult,
+        limitsResult
+      ] = await Promise.all([
+        // Account data
+        supabase
+          .from("accounts")
+          .select("*")
+          .eq("id", accountId)
+          .single(),
+        
+        // Businesses
+        supabase
+          .from("businesses")
+          .select("*")
+          .eq("account_id", accountId),
+        
+        // All prompt pages
+        supabase
+          .from("prompt_pages")
+          .select("*")
+          .eq("account_id", accountId)
+          .order("created_at", { ascending: false }),
+        
+        // Widgets
+        supabase
+          .from("widgets")
+          .select("*")
+          .eq("account_id", accountId)
+          .order("created_at", { ascending: false }),
+        
+        // Review statistics
+        supabase
+          .from("widget_reviews")
+          .select("id, is_verified")
+          .eq("account_id", accountId),
+        
+        // Account limits
+        checkAccountLimits(supabase, user.id, "prompt_page")
+      ]);
+
+      // Process the results
+      const account = accountResult.data;
+      const businesses = businessesResult.data || [];
+      const allPromptPages = promptPagesResult.data || [];
+      const widgets = widgetsResult.data || [];
+      const reviews = reviewStatsResult.data || [];
+      const limits = limitsResult;
+
+      // Separate universal and custom prompt pages
+      const universalPromptPage = allPromptPages.find(pp => pp.is_universal);
+      const customPromptPages = allPromptPages.filter(pp => !pp.is_universal);
+      const universalUrl = universalPromptPage ? `${window.location.origin}/r/${universalPromptPage.slug}` : "";
+
+      // Calculate review statistics
+      const stats = {
+        total: { week: 0, month: 0, year: 0 },
+        verified: { week: 0, month: 0, year: 0 },
+      };
+
+      reviews.forEach((review) => {
+        // For now, count all reviews as recent since we don't have created_at
+        stats.total.week++;
+        stats.total.month++;
+        stats.total.year++;
+        if (review.is_verified) {
+          stats.verified.week++;
+          stats.verified.month++;
+          stats.verified.year++;
+        }
+      });
+
+      // Check if user has any businesses
+      if (!businesses || businesses.length === 0) {
+        setIsNewUser(true);
+      }
+
+      // Set business state
+      if (businesses.length > 0) {
+        setBusiness(businesses[0]);
+      }
+
+      // Compile all data
+      const dashboardData: DashboardData = {
+        user,
+        account,
+        businesses,
+        promptPages: allPromptPages,
+        widgets,
+        isAdminUser,
+        accountLimits: limits,
+        reviewStats: stats,
+        universalPromptPage,
+        customPromptPages,
+        universalUrl
+      };
+
+      setData(dashboardData);
+      setBusinesses(businesses);
+      setAccountData(account);
+      setUser(user);
+      setIsAdmin(isAdminUser);
+
+    } catch (error) {
+      console.error("Error loading dashboard data:", error);
+      setError("Failed to load dashboard data");
+    }
+  };
+
+  // Single useEffect for all data loading
   useEffect(() => {
     // Only load data if admin status is not loading
     if (adminLoading) return;
     
-    const loadDashboardData = async () => {
+    const initializeDashboard = async () => {
       try {
         setIsLoading(true);
         setError(null);
@@ -104,152 +219,31 @@ export default function Dashboard() {
             promptPages: [],
             widgets: [],
             isAdminUser: isAdminUser,
-            accountLimits: null
+            accountLimits: null,
+            reviewStats: { total: { week: 0, month: 0, year: 0 }, verified: { week: 0, month: 0, year: 0 } },
+            universalPromptPage: null,
+            customPromptPages: [],
+            universalUrl: ""
           });
           setIsLoading(false);
           return;
         }
 
-        // Use admin status from context instead of checking here
-        const adminStatus = isAdminUser;
-        
-        // Load account data
-        let accountData = null;
-        if (accountId) {
-          const { data: account } = await supabase
-            .from("accounts")
-            .select("*")
-            .eq("id", accountId)
-            .single();
-          accountData = account;
-        }
-        
-        // Load businesses
-        const { data: businesses } = await supabase
-          .from("businesses")
-          .select("*")
-          .eq("account_id", accountId);
-
-        // Check if user has any businesses
-        if (!businesses || businesses.length === 0) {
-          setIsNewUser(true);
-        }
-
-        // Load prompt pages
-        const { data: promptPages } = await supabase
-          .from("prompt_pages")
-          .select("*")
-          .eq("account_id", accountId)
-          .order("created_at", { ascending: false });
-
-        // Load widgets
-        const { data: widgets } = await supabase
-          .from("widgets")
-          .select("*")
-          .eq("account_id", accountId)
-          .order("created_at", { ascending: false });
-
-        // Check account limits for prompt pages
-        const limits = await checkAccountLimits(supabase, user.id, "prompt_page");
-
-        setData({
-          user,
-          account: accountData,
-          businesses: businesses || [],
-          promptPages: promptPages || [],
-          widgets: widgets || [],
-          isAdminUser: adminStatus,
-          accountLimits: limits
-        });
-
+        // Load all data in parallel
+        await loadAllDashboardData(user, accountId);
         setIsLoading(false);
       } catch (error) {
-        console.error("Error loading dashboard data:", error);
-        setError("Failed to load dashboard data");
+        console.error("Error initializing dashboard:", error);
+        setError("Failed to initialize dashboard");
         setIsLoading(false);
       }
     };
 
-    loadDashboardData();
+    initializeDashboard();
   }, [adminLoading, isAdminUser]);
 
+  // Handle post-save modal flag
   useEffect(() => {
-    if (!data?.user) return;
-    
-    const fetchData = async () => {
-      try {
-        // Get account ID using the utility function
-        const accountId = await getAccountIdForUser(data.user.id, supabase);
-        
-        if (!accountId) {
-          throw new Error("No account data found");
-        }
-
-        // Fetch account details using the account ID
-        const accountResult = await supabase
-          .from("accounts")
-          .select("*")
-          .eq("id", accountId)
-          .single();
-
-        if (accountResult.error) {
-          throw new Error(`Error fetching account: ${accountResult.error.message}`);
-        }
-
-        if (!accountResult.data) {
-          throw new Error("No account data found");
-        }
-        setData(prev => prev ? { 
-          ...prev, 
-          account: accountResult.data
-        } : null);
-
-        // Now fetch business and prompt pages with the correct account ID
-        const businessResult = await supabase
-          .from("businesses")
-          .select("*")
-          .eq("account_id", accountId)
-          .single();
-
-        if (businessResult.data) {
-          setBusiness(businessResult.data);
-        }
-
-        // Fetch custom prompt pages
-        const promptPagesResult = await supabase
-          .from("prompt_pages")
-          .select("*")
-          .eq("account_id", accountId)
-          .neq("is_universal", true)
-          .order("created_at", { ascending: false });
-
-        if (promptPagesResult.data) {
-          setCustomPromptPages(promptPagesResult.data);
-        }
-
-        // Fetch universal prompt page
-        const universalPromptPageResult = await supabase
-          .from("prompt_pages")
-          .select("*")
-          .eq("account_id", accountId)
-          .eq("is_universal", true)
-          .single();
-
-        if (universalPromptPageResult.data) {
-          setUniversalPromptPage(universalPromptPageResult.data);
-          setUniversalUrl(`${window.location.origin}/r/${universalPromptPageResult.data.slug}`);
-        }
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error);
-        setError(`Error fetching dashboard data: ${error}`);
-      }
-    };
-
-    fetchData();
-  }, [data?.user, supabase]);
-
-  useEffect(() => {
-    // Check for post-save modal flag in localStorage
     if (typeof window !== "undefined") {
       const flag = localStorage.getItem("showPostSaveModal");
       if (flag) {
@@ -263,10 +257,9 @@ export default function Dashboard() {
     }
   }, []);
 
+  // Handle pricing modal logic
   useEffect(() => {
-    if (isLoading) return;
-    
-    if (data?.account === null) return;
+    if (isLoading || !data?.account) return;
     
     const paidPlans = ["grower", "builder", "maven"];
     const now = new Date();
@@ -290,75 +283,10 @@ export default function Dashboard() {
       // Or trial has expired
       (isTrialExpired && !isPaidUser);
 
-    console.log("Pricing modal debug:", {
-      accountPlan: data?.account?.plan,
-      trialStart,
-      trialEnd,
-      businessesLength: data?.businesses?.length,
-      isTrialExpired,
-      isPaidUser,
-      shouldShowPricingModal,
-      condition1: !data?.account?.plan && (data?.businesses?.length || 0) > 0,
-      condition2: isTrialExpired && !isPaidUser,
-      showPricingModalState: showPricingModal
-    });
-
-    if (shouldShowPricingModal) {
-      console.log("Setting pricing modal to show");
-      setShowPricingModal(true);
-    } else {
-      console.log("Setting pricing modal to hide");
-      setShowPricingModal(false);
-    }
+    setShowPricingModal(!!shouldShowPricingModal);
   }, [isLoading, data?.account, data?.businesses]);
 
-  useEffect(() => {
-    if (!data?.user) return;
-    
-    const fetchStats = async () => {
-      try {
-        const accountId = await getAccountIdForUser(data.user.id, supabase);
-        if (!accountId) return;
-
-        // Fetch review statistics
-        const now = new Date();
-        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        const yearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
-
-        const { data: reviews } = await supabase
-          .from("widget_reviews")
-          .select("id, is_verified")
-          .eq("account_id", accountId);
-
-        if (reviews) {
-          const stats = {
-            total: { week: 0, month: 0, year: 0 },
-            verified: { week: 0, month: 0, year: 0 },
-          };
-
-          reviews.forEach((review) => {
-            // For now, count all reviews as recent since we don't have created_at
-            stats.total.week++;
-            stats.total.month++;
-            stats.total.year++;
-            if (review.is_verified) {
-              stats.verified.week++;
-              stats.verified.month++;
-              stats.verified.year++;
-            }
-          });
-
-          setReviewStats(stats);
-        }
-      } catch (error) {
-        console.error("Error fetching review stats:", error);
-      }
-    };
-
-    fetchStats();
-  }, [data?.user, supabase]);
-
+  // Handle business created query param
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
@@ -388,15 +316,15 @@ export default function Dashboard() {
   const handleCreatePromptPageClick = (
     e: React.MouseEvent<HTMLAnchorElement>,
   ) => {
-    if (data?.account?.plan === "free" && customPromptPages.length >= 1) {
+    if (data?.account?.plan === "free" && data?.customPromptPages?.length >= 1) {
       e.preventDefault();
       setShowPricingModal(true);
     }
   };
 
   const handleCopyLink = async () => {
-    if (universalUrl) {
-      await navigator.clipboard.writeText(universalUrl);
+    if (data?.universalUrl) {
+      await navigator.clipboard.writeText(data.universalUrl);
       setCopySuccess("Link copied!");
       setTimeout(() => setCopySuccess(""), 2000);
     }
@@ -590,8 +518,8 @@ export default function Dashboard() {
           <DashboardContent
             userName={userName}
             business={business}
-            customPromptPages={customPromptPages}
-            universalPromptPage={universalPromptPage}
+            customPromptPages={data?.customPromptPages || []}
+            universalPromptPage={data?.universalPromptPage}
             createPromptPageRef={createPromptPageRef}
             handleCreatePromptPageClick={handleCreatePromptPageClick}
             showQR={showQR}
@@ -601,12 +529,12 @@ export default function Dashboard() {
             setShowProfileModal={setShowProfileModal}
             showSuccessModal={showSuccessModal}
             setShowSuccessModal={setShowSuccessModal}
-            universalUrl={universalUrl}
+                         universalUrl={data?.universalUrl || ""}
             QRCode={QRCodeSVG}
             setShowQR={setShowQR}
             account={data?.account}
             parentLoading={isLoading}
-            reviewStats={reviewStats}
+                         reviewStats={data?.reviewStats || { total: { week: 0, month: 0, year: 0 }, verified: { week: 0, month: 0, year: 0 } }}
             hasBusiness={!!(data?.businesses && data.businesses.length > 0)}
             hasCustomPromptPages={!!(data?.promptPages && data.promptPages.filter(p => !p.is_universal).length > 0)}
             hasUniversalPromptPage={!!(data?.promptPages && data.promptPages.some(p => p.is_universal))}

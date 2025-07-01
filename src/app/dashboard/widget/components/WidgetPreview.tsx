@@ -41,26 +41,26 @@ export const WidgetPreview = React.memo(function WidgetPreview({ widget, design 
   // Memoize the widget component selection to prevent unnecessary re-renders
   const WidgetComponent = useMemo(() => {
     console.log('🔍 WidgetPreview: Received widget data:', widget);
-    console.log('🔍 WidgetPreview: Widget type:', widget?.widget_type);
-    console.log('🔍 WidgetPreview: Widget type type:', typeof widget?.widget_type);
+    console.log('🔍 WidgetPreview: Widget type:', widget?.type);
+    console.log('🔍 WidgetPreview: Widget type type:', typeof widget?.type);
     console.log('🔍 WidgetPreview: Available components:', Object.keys(WIDGET_COMPONENTS));
-    console.log('🔍 WidgetPreview: Component for this type:', WIDGET_COMPONENTS[widget?.widget_type as string]);
+    console.log('🔍 WidgetPreview: Component for this type:', WIDGET_COMPONENTS[widget?.type as string]);
     
-    if (widget?.widget_type && WIDGET_COMPONENTS[widget.widget_type as string]) {
-      console.log('✅ WidgetPreview: Found widget component for type:', widget.widget_type);
-      console.log('✅ WidgetPreview: Selected component:', WIDGET_COMPONENTS[widget.widget_type as string].name);
-      return WIDGET_COMPONENTS[widget.widget_type as string];
+    if (widget?.type && WIDGET_COMPONENTS[widget.type as string]) {
+      console.log('✅ WidgetPreview: Found widget component for type:', widget.type);
+      console.log('✅ WidgetPreview: Selected component:', WIDGET_COMPONENTS[widget.type as string].name);
+      return WIDGET_COMPONENTS[widget.type as string];
     } else {
-      console.log('❌ WidgetPreview: No widget component found for type:', widget?.widget_type);
+      console.log('❌ WidgetPreview: No widget component found for type:', widget?.type);
       console.log('❌ WidgetPreview: Available types:', Object.keys(WIDGET_COMPONENTS));
-      console.log('❌ WidgetPreview: Widget type exists:', !!widget?.widget_type);
-      console.log('❌ WidgetPreview: Component exists for type:', !!WIDGET_COMPONENTS[widget?.widget_type as string]);
+      console.log('❌ WidgetPreview: Widget type exists:', !!widget?.type);
+      console.log('❌ WidgetPreview: Component exists for type:', !!WIDGET_COMPONENTS[widget?.type as string]);
       return null;
     }
-  }, [widget?.widget_type]);
+  }, [widget?.type]);
 
   // Memoize the widget data to prevent unnecessary re-renders
-  const memoizedWidget = useMemo(() => widget, [widget?.id, widget?.widget_type, widget?.theme, widget?.reviews?.length]);
+  const memoizedWidget = useMemo(() => widget, [widget?.id, widget?.type, widget?.theme, widget?.reviews?.length]);
 
   if (!memoizedWidget || !WidgetComponent) {
     console.log('⚠️ WidgetPreview: No widget selected or component not available');

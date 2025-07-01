@@ -1,5 +1,21 @@
+/**
+ * WidgetEditorForm
+ *
+ * Modal for creating/editing widgets in the dashboard.
+ *
+ * - Only a single action button is shown (Save/Create), no Cancel button.
+ * - The Save/Create button uses the brand's accent color (slate blue) for high visibility:
+ *   - bg-slate-600 (default), hover:bg-slate-700, text-white
+ * - All form fields (inputs, selects) have a clear outline for visibility:
+ *   - border, border-gray-300, focus:border-slate-600, focus:ring-2, focus:ring-slate-400, rounded-md, px-3, py-2
+ *   - This matches the convention used in other forms for clarity and accessibility.
+ * - Button label is always clear: 'Save Widget' (or 'Create Widget' if you want to distinguish modes).
+ *
+ * Last updated: 2025-07-01
+ */
 import React, { useState, useRef, useEffect } from "react";
-import { createBrowserClient } from "@supabase/ssr";
+import { supabase } from "@/utils/supabaseClient";
+import { getAccountIdForUser } from "@/utils/accountUtils";
 
 // Assuming Widget and DesignState types might be needed from a shared types file in the future
 // For now, defining them locally.
@@ -7,7 +23,7 @@ type DesignState = any;
 type Widget = {
   id: string;
   name: string;
-  widget_type: string;
+  type: string;
   theme: DesignState;
 };
 
@@ -21,11 +37,12 @@ interface WidgetEditorFormProps {
 export const WidgetEditorForm: React.FC<WidgetEditorFormProps> = ({ onSaveSuccess, onCancel, widgetToEdit, design }) => {
   const [form, setForm] = useState({ name: "", widgetType: "multi" });
   const [nameError, setNameError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (widgetToEdit) {
-      setForm({ name: widgetToEdit.name, widgetType: widgetToEdit.widget_type || "multi" });
+      setForm({ name: widgetToEdit.name, widgetType: widgetToEdit.type || "multi" });
     } else {
       setForm({ name: "New Widget", widgetType: "multi" });
       setTimeout(() => nameInputRef.current?.focus(), 100);
@@ -33,48 +50,33 @@ export const WidgetEditorForm: React.FC<WidgetEditorFormProps> = ({ onSaveSucces
   }, [widgetToEdit]);
 
   const handleSave = async () => {
-    // This is the logic from lines 336-449 of WidgetList.tsx
-    const supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      alert("You must be signed in to save a widget");
-      return;
-    }
+    setIsLoading(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        alert("You must be signed in to save a widget");
+        return;
+      }
+
       if (!form.name.trim() || form.name.trim().toLowerCase() === "new widget") {
         setNameError("Please enter a unique widget name");
         nameInputRef.current?.focus();
-        return; // Don't throw, just return
+        return;
       }
       setNameError("");
 
-      let { data: accountData } = await supabase.from('accounts').select('id').eq('id', user.id).single();
-      if (!accountData) {
-        const { data: newAccount, error: createError } = await supabase.from('accounts').insert({ id: user.id }).select('id').single();
-        if (createError) {
-             if (createError.code === '23505') {
-                 const { data: existingAccount } = await supabase.from('accounts').select('id').eq('id', user.id).single();
-                 accountData = existingAccount;
-             } else {
-                 throw new Error(`Failed to create account: ${createError.message}`);
-             }
-        } else {
-             accountData = newAccount;
-        }
-      }
-
-      if (!accountData) throw new Error("No account found or created for user");
+      // Use the proper account lookup utility
+      const accountId = await getAccountIdForUser(user.id, supabase);
       
-      const accountId = accountData.id;
+      if (!accountId) {
+        throw new Error("Account not found. Please ensure you have completed the signup process.");
+      }
 
       const widgetData = {
         account_id: accountId,
         name: form.name.trim(),
         theme: design,
-        widget_type: form.widgetType || 'multi',
+        type: form.widgetType || 'multi',
         updated_at: new Date().toISOString(),
       };
 
@@ -88,7 +90,10 @@ export const WidgetEditorForm: React.FC<WidgetEditorFormProps> = ({ onSaveSucces
 
       onSaveSuccess();
     } catch (error: any) {
-      alert(error.message || "An error occurred");
+      console.error('Widget save error:', error);
+      alert(error.message || "An error occurred while saving the widget");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -102,7 +107,8 @@ export const WidgetEditorForm: React.FC<WidgetEditorFormProps> = ({ onSaveSucces
             type="text"
             value={form.name || ""}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+            className="mt-1 block w-full border border-gray-300 focus:border-slate-600 focus:ring-2 focus:ring-slate-400 rounded-md px-3 py-2 shadow-sm"
+            disabled={isLoading}
           />
           {nameError && <p className="text-red-500 text-xs mt-1">{nameError}</p>}
         </div>
@@ -111,18 +117,24 @@ export const WidgetEditorForm: React.FC<WidgetEditorFormProps> = ({ onSaveSucces
           <select
             value={form.widgetType || ""}
             onChange={(e) => setForm({ ...form, widgetType: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-            disabled={!!widgetToEdit}
+            className="mt-1 block w-full border border-gray-300 focus:border-slate-600 focus:ring-2 focus:ring-slate-400 rounded-md px-3 py-2 shadow-sm"
+            disabled={!!widgetToEdit || isLoading}
           >
             <option value="multi">Multi-Card Carousel</option>
             <option value="single">Single Card</option>
-            <option value="photo">Photo Grid</option>
+            <option value="photo">Photo</option>
           </select>
         </div>
       </div>
       <div className="flex justify-end gap-4 mt-6">
-        <button onClick={onCancel} className="px-4 py-2 rounded text-gray-600 hover:bg-gray-100">Cancel</button>
-        <button onClick={handleSave} className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">Save Widget</button>
+        {/* Only show the Save/Create button, styled with slate blue */}
+        <button
+          onClick={handleSave}
+          className="px-4 py-2 bg-slate-600 text-white rounded hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 disabled:opacity-50"
+          disabled={isLoading}
+        >
+          {isLoading ? 'Saving...' : (widgetToEdit ? 'Save Widget' : 'Create Widget')}
+        </button>
       </div>
     </div>
   );

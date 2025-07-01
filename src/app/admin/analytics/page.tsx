@@ -9,7 +9,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { createBrowserClient } from '@supabase/ssr';
 import { isAdmin } from '../../../utils/admin';
 import { FaUsers, FaBuilding, FaStar, FaChartLine, FaCalendarAlt, FaGlobe } from 'react-icons/fa';
@@ -223,30 +222,7 @@ export default function AdminAnalyticsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Admin Analytics</h1>
-          <p className="mt-2 text-gray-600">Site-wide statistics and performance metrics</p>
-        </div>
-
-        {/* Admin Subnav */}
-        <div className="mb-8 border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8">
-            <Link
-              href="/admin"
-              className="border-b-2 border-transparent py-2 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            >
-              Content Management
-            </Link>
-            <Link
-              href="/admin/analytics"
-              className="border-b-2 border-slate-blue py-2 px-1 text-sm font-medium text-slate-blue"
-            >
-              Analytics
-            </Link>
-          </nav>
-        </div>
+    <div className="max-w-7xl mx-auto">
 
         {/* Time Range Selector */}
         <div className="mb-8">
@@ -441,6 +417,5 @@ export default function AdminAnalyticsPage() {
           </button>
         </div>
       </div>
-    </div>
   );
 } 

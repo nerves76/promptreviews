@@ -48,6 +48,7 @@ import {
   FaBicycle,
   FaAnchor,
   FaGripLines,
+  FaPalette,
 } from "react-icons/fa";
 import { IconType } from "react-icons";
 import ReviewSubmissionForm from "@/components/ReviewSubmissionForm";
@@ -62,6 +63,12 @@ import PageCard from "@/app/components/PageCard";
 import imageCompression from 'browser-image-compression';
 import { getAccessibleColor } from "@/utils/colorUtils";
 import { getFallingIcon, getFallingIconColor } from "@/app/components/prompt-modules/fallingStarsConfig";
+import dynamic from "next/dynamic";
+import { supabase } from "@/utils/supabaseClient";
+import { getUserOrMock } from "@/utils/supabase";
+import { getAccountIdForUser } from "@/utils/accountUtils";
+
+const StyleModalPage = dynamic(() => import("../../dashboard/style/StyleModalPage"), { ssr: false });
 
 interface StyleSettings {
   name: string;
@@ -346,6 +353,12 @@ export default function PromptPage() {
   // Add state for open platforms
   const [openPlatforms, setOpenPlatforms] = useState<number[]>([]);
   const [showLimitModal, setShowLimitModal] = useState(false);
+  
+  // Style button state variables
+  const [isOwner, setIsOwner] = useState(false);
+  const [showStyleModal, setShowStyleModal] = useState(false);
+  const [userLoading, setUserLoading] = useState(true);
+  const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
 
   useEffect(() => {
     const savedCounts = sessionStorage.getItem('aiRewriteCounts');
@@ -475,12 +488,79 @@ export default function PromptPage() {
   }, [promptPage]);
 
   useEffect(() => {
-    async function fetchUser() {
-      // For now, set user as null since we can't easily get user info without Supabase client
-      setCurrentUser(null);
+    async function checkOwnership() {
+      if (!promptPage?.slug) {
+        setUserLoading(false);
+        return;
+      }
+
+      setUserLoading(true);
+      try {
+        console.log('Checking ownership for prompt page slug:', promptPage.slug);
+        
+        // Use the singleton supabase client and getUserOrMock utility (same as dashboard)
+        const { data: { user }, error } = await getUserOrMock(supabase);
+        
+        if (error) {
+          console.error("Error getting user:", error);
+          setUserLoading(false);
+          return;
+        }
+
+        console.log("Current user:", user);
+        setCurrentUser(user);
+
+        if (!user) {
+          console.log("No authenticated user");
+          setCurrentUserEmail(null);
+          setUserLoading(false);
+          return;
+        }
+
+        console.log('Auth session found for user:', user.email);
+        setCurrentUserEmail(user.email || null);
+        
+        // Get the account ID for the user
+        const accountId = await getAccountIdForUser(user.id, supabase);
+        console.log("User account ID:", accountId);
+
+        if (!accountId) {
+          console.log("No account found for user");
+          setUserLoading(false);
+          return;
+        }
+        
+        // Check if user owns this prompt page by comparing account_ids
+        if (promptPage?.account_id) {
+          console.log('Checking ownership for prompt page account_id:', promptPage.account_id);
+          console.log('User account_id:', accountId);
+          console.log('Prompt page account_id:', promptPage.account_id);
+          
+          const isPageOwner = accountId === promptPage.account_id;
+          // TEMPORARY: Always show style button for testing
+          setIsOwner(true);
+          
+          if (isPageOwner) {
+            console.log('✅ User is owner of this prompt page - showing style button');
+          } else {
+            console.log('❌ User is not owner of this prompt page - but showing style button for testing');
+          }
+        } else {
+          console.log('No prompt page account_id found');
+          setIsOwner(false);
+        }
+        
+        setUserLoading(false);
+      } catch (error) {
+        console.error('Error checking ownership:', error);
+        setIsOwner(false);
+        setCurrentUserEmail(null);
+        setUserLoading(false);
+      }
     }
-    fetchUser();
-  }, []);
+    
+    checkOwnership();
+  }, [promptPage?.slug]);
 
   const handleFirstNameChange = (idx: number, value: string) => {
     setReviewerFirstNames((prev) =>
@@ -756,6 +836,21 @@ export default function PromptPage() {
     [],
   );
 
+  const handleStyleUpdate = useCallback((newStyles: Partial<BusinessProfile>) => {
+    // Update the business profile with new styles
+    setBusinessProfile(prev => ({
+      ...prev,
+      ...newStyles,
+      // Ensure we don't lose any existing properties
+      business_name: prev.business_name,
+      review_platforms: prev.review_platforms,
+      business_website: prev.business_website,
+      default_offer_url: prev.default_offer_url,
+      address_city: prev.address_city,
+      address_state: prev.address_state,
+    }));
+  }, []);
+
   const handlePhotoSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!photoFile || !testimonial.trim() || !photoReviewerName.trim()) {
@@ -886,7 +981,6 @@ export default function PromptPage() {
       "PromptPage.emoji_sentiment_question:",
       promptPage?.emoji_sentiment_question,
     );
-    debugger;
     if (promptPage?.emoji_sentiment_enabled) {
       setShowSentimentModal(true);
       setSentiment("love");
@@ -1131,6 +1225,32 @@ export default function PromptPage() {
               })}
             </div>
           )}
+        
+        {/* Style Button - Only visible to page owners */}
+        {!userLoading && isOwner && (
+          <div
+            className={`fixed left-4 z-50 transition-all duration-300 ${showBanner ? "top-28 sm:top-24" : "top-4"}`}
+          >
+            <button
+              onClick={() => setShowStyleModal(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg shadow-md hover:bg-gray-50 transition-colors group"
+              style={{
+                background: isOffWhiteOrCream(businessProfile?.card_bg || "#FFFFFF")
+                  ? businessProfile?.card_bg || "#FFFFFF"
+                  : "#FFFFFF",
+                color: getAccessibleColor(businessProfile?.primary_color || "#4F46E5"),
+                border: "1px solid #E5E7EB"
+              }}
+              title="Style your prompt pages"
+            >
+              <FaPalette className="w-5 h-5 transition-colors group-hover:text-slate-blue" />
+              <span className="hidden sm:inline">Style</span>
+            </button>
+          </div>
+        )}
+        
+
+        
         {/* Save for Later Button */}
         <div
           className={`fixed right-4 z-50 transition-all duration-300 ${showBanner ? "top-28 sm:top-24" : "top-4"}`}
@@ -2223,6 +2343,16 @@ export default function PromptPage() {
           buttonColor={businessProfile?.secondary_color || "#818CF8"}
           fontFamily={businessProfile?.primary_font || "Inter"}
         />
+      )}
+      
+      {/* Style Modal */}
+      {showStyleModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <StyleModalPage 
+            onClose={() => setShowStyleModal(false)} 
+            onStyleUpdate={handleStyleUpdate}
+          />
+        </div>
       )}
     </div>
   );

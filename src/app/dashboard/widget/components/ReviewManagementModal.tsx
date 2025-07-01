@@ -1,10 +1,10 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import { createBrowserClient } from "@supabase/ssr";
 import { ChatBubbleLeftIcon } from "@heroicons/react/24/outline";
 import { DraggableModal } from './DraggableModal';
 import AppLoader from "@/app/components/AppLoader";
 import { PhotoUpload } from './PhotoUpload';
+import supabase from '@/utils/supabaseClient';
 
 const WORD_LIMIT = 250;
 const MAX_WIDGET_REVIEWS = 8;
@@ -69,32 +69,68 @@ export function ReviewManagementModal({
   }, [isOpen, widgetId]);
 
   const handleOpenReviewModal = async (widgetId: string) => {
+    console.log('🔍 ReviewManagementModal: Starting to load reviews for widget:', widgetId);
     setLoadingReviews(true);
     setReviewError("");
     
     try {
-      const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      );
-
+      console.log('🔍 ReviewManagementModal: Fetching widget type...');
       // First, fetch the widget to determine its type
       const { data: widgetData, error: widgetError } = await supabase
         .from('widgets')
-        .select('widget_type')
+        .select('type')
         .eq('id', widgetId)
         .single();
 
       if (widgetError) {
         console.error('[DEBUG] Error fetching widget type:', widgetError);
       } else {
-        setWidgetType(widgetData?.widget_type || null);
+        console.log('✅ ReviewManagementModal: Widget type fetched:', widgetData?.type);
+        setWidgetType(widgetData?.type || null);
       }
 
-      // Fetch all available reviews from review_submissions (without account filtering)
+      console.log('🔍 ReviewManagementModal: Fetching review_submissions...');
+      
+      // Get the current user's account ID
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.error('❌ ReviewManagementModal: No authenticated user found');
+        setReviewError("Authentication required");
+        setLoadingReviews(false);
+        return;
+      }
+
+      // Get account ID for the current user
+      const { data: accountUser, error: accountUserError } = await supabase
+        .from('account_users')
+        .select('account_id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (accountUserError || !accountUser?.account_id) {
+        console.error('❌ ReviewManagementModal: No account found for user:', accountUserError);
+        setReviewError("No account found for user");
+        setLoadingReviews(false);
+        return;
+      }
+
+      const accountId = accountUser.account_id;
+      console.log('✅ ReviewManagementModal: Found account ID:', accountId);
+
+      // Fetch reviews from review_submissions for this account by joining with prompt_pages
       const { data: reviews, error: reviewsError } = await supabase
         .from('review_submissions')
-        .select('id, first_name, last_name, reviewer_role, review_content, platform, created_at')
+        .select(`
+          id, 
+          first_name, 
+          last_name, 
+          reviewer_role, 
+          review_content, 
+          platform, 
+          created_at,
+          prompt_pages!inner(account_id)
+        `)
+        .eq('prompt_pages.account_id', accountId)
         .order('created_at', { ascending: false });
 
       if (reviewsError) {
@@ -104,7 +140,10 @@ export function ReviewManagementModal({
         return;
       }
 
+      console.log('✅ ReviewManagementModal: Review submissions fetched:', reviews?.length || 0);
+
       if (!reviews || reviews.length === 0) {
+        console.log('⚠️ ReviewManagementModal: No review submissions found for account:', accountId);
         setAllReviews([]);
         setLoadingReviews(false);
         return;
@@ -120,8 +159,10 @@ export function ReviewManagementModal({
         created_at: r.created_at
       }));
       
+      console.log('✅ ReviewManagementModal: Setting allReviews:', mappedReviews.length);
       setAllReviews(mappedReviews);
 
+      console.log('🔍 ReviewManagementModal: Fetching widget_reviews...');
       // Fetch selected reviews for this widget from widget_reviews
       const { data: widgetReviews, error: widgetReviewsError } = await supabase
         .from("widget_reviews")
@@ -132,6 +173,7 @@ export function ReviewManagementModal({
         .order("order_index", { ascending: true });
 
       if (widgetReviewsError) {
+        console.error('[DEBUG] Error fetching widget_reviews:', widgetReviewsError);
         setSelectedReviews([]);
         setEditedReviews({});
         setEditedNames({});
@@ -142,6 +184,7 @@ export function ReviewManagementModal({
         return;
       }
       
+      console.log('✅ ReviewManagementModal: Widget reviews fetched:', widgetReviews?.length || 0);
       setSelectedReviews(widgetReviews || []);
       
       // Set edited fields to match the widget's current reviews
@@ -167,9 +210,13 @@ export function ReviewManagementModal({
       setEditedRatings(editedRatingsObj);
       setPhotoUploads(photoUploadsObj);
       
+      console.log('✅ ReviewManagementModal: All data loaded successfully');
+      
     } catch (error) {
+      console.error('❌ ReviewManagementModal: Unexpected error:', error);
       setReviewError("Failed to load reviews: " + (error as Error).message);
     } finally {
+      console.log('🔍 ReviewManagementModal: Setting loadingReviews to false');
       setLoadingReviews(false);
     }
   };
@@ -252,6 +299,47 @@ export function ReviewManagementModal({
       return;
     }
     
+    // Check if there's a custom review in the form that needs to be added
+    if (showAddCustomReview && newCustomReview.review_content.trim()) {
+      // Validate the custom review
+      if (wordCount(newCustomReview.review_content) > WORD_LIMIT) {
+        setReviewError(
+          `Custom review is too long. Limit: ${WORD_LIMIT} words.`,
+        );
+        return;
+      }
+      
+      // Add the custom review to selected reviews
+      const customReview = {
+        review_id: crypto.randomUUID(),
+        first_name: newCustomReview.first_name,
+        last_name: newCustomReview.last_name,
+        reviewer_role: newCustomReview.reviewer_role,
+        review_content: newCustomReview.review_content,
+        star_rating: newCustomReview.star_rating,
+        platform: 'custom',
+        created_at: new Date().toISOString(),
+      };
+      
+      // Add to selected reviews and initialize edited fields
+      const updatedSelectedReviews = [customReview, ...selectedReviews];
+      setSelectedReviews(updatedSelectedReviews);
+      setEditedReviews(prev => ({ ...prev, [customReview.review_id]: customReview.review_content }));
+      setEditedNames(prev => ({ ...prev, [customReview.review_id]: `${customReview.first_name} ${customReview.last_name}` }));
+      setEditedRoles(prev => ({ ...prev, [customReview.review_id]: customReview.reviewer_role }));
+      setEditedRatings(prev => ({ ...prev, [customReview.review_id]: customReview.star_rating }));
+      
+      // Reset the custom review form
+      setNewCustomReview({
+        review_content: "",
+        first_name: "",
+        last_name: "",
+        reviewer_role: "",
+        star_rating: null,
+      });
+      setShowAddCustomReview(false);
+    }
+    
     // Validate all selected reviews are within word limit
     for (const review of selectedReviews) {
       const text = editedReviews[review.review_id] ?? review.review_content;
@@ -262,11 +350,6 @@ export function ReviewManagementModal({
         return;
       }
     }
-    
-    const supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    );
     
     // Fetch current widget_reviews for this widget
     const { data: currentWidgetReviews, error: fetchError } = await supabase
@@ -310,8 +393,7 @@ export function ReviewManagementModal({
             ? Math.round(editedRatings[review.review_id]! * 2) / 2
             : (typeof review.star_rating === 'number' ? Math.round(review.star_rating * 2) / 2 : null),
           photo_url: photoUploads[review.review_id] || null,
-        })),
-        { onConflict: 'widget_id,review_id' }
+        }))
       );
 
     if (error) {
@@ -381,6 +463,16 @@ export function ReviewManagementModal({
   };
 
   const { reviews, totalPages, totalReviews } = getFilteredAndSortedReviews();
+
+  console.log('🔍 ReviewManagementModal: Render state:', {
+    isOpen,
+    loadingReviews,
+    allReviewsCount: allReviews.length,
+    selectedReviewsCount: selectedReviews.length,
+    activeTab,
+    widgetType,
+    reviewsCount: reviews.length
+  });
 
   if (!isOpen) return null;
 
@@ -466,7 +558,13 @@ export function ReviewManagementModal({
                   </select>
                 </div>
                 <div className="space-y-2 max-h-96 overflow-y-auto">
-                  {getFilteredAndSortedReviews().reviews.map((review: any) => (
+                  {reviews.length === 0 ? (
+                    <div className="p-4 text-center text-gray-500">
+                      <p>No reviews found for your account.</p>
+                      <p className="text-sm mt-1">Reviews will appear here once they are submitted through your prompt pages.</p>
+                    </div>
+                  ) : (
+                    reviews.map((review: any) => (
                     <div
                       key={review.review_id}
                       className={`p-3 rounded-lg cursor-pointer ${
@@ -488,7 +586,8 @@ export function ReviewManagementModal({
                         )}
                       </div>
                     </div>
-                  ))}
+                  ))
+                  )}
                 </div>
               </div>
             )}
@@ -504,7 +603,7 @@ export function ReviewManagementModal({
                 )}
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-medium text-gray-800">Selected Reviews ({selectedReviews.length}/{MAX_WIDGET_REVIEWS})</h3>
-                   <button
+                  <button
                     onClick={() => setShowAddCustomReview(true)}
                     className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                   >
@@ -578,7 +677,6 @@ export function ReviewManagementModal({
                     </div>
                     <div className="flex justify-end gap-3">
                       <button onClick={() => setShowAddCustomReview(false)} className="text-gray-600">Cancel</button>
-                      <button onClick={handleAddCustomReview} className="px-4 py-2 bg-green-600 text-white rounded-md">Add Review</button>
                     </div>
                   </div>
                 ) : (
@@ -652,9 +750,10 @@ export function ReviewManagementModal({
                           </div>
                           <button
                             onClick={() => handleToggleReview(review)}
-                            className="text-red-500 hover:text-red-700 text-sm font-semibold"
+                            className="text-red-500 hover:text-red-700 text-sm font-semibold px-2 py-1 rounded border border-red-300 hover:bg-red-50"
+                            title="Remove review"
                           >
-                            Remove
+                            Delete
                           </button>
                         </div>
                       </div>

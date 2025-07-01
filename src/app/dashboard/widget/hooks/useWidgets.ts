@@ -1,15 +1,14 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/utils/supabaseClient";
 import { trackWidgetCreated } from "../../../../utils/analytics";
-import { getAccountIdForUser } from "@/utils/accountUtils";
 
 export interface Widget {
   id: string;
   name: string;
   account_id: string;
   created_at: string;
-  widget_type: string;
+  type: string;
   theme: any;
   reviews?: any[];
 }
@@ -22,77 +21,39 @@ export function useWidgets() {
   const fetchWidgets = useCallback(async () => {
     console.log('🔄 useWidgets: Starting fetchWidgets');
     setLoading(true);
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    );
     
-    const { data: { user } } = await supabase.auth.getUser();
-    console.log('👤 useWidgets: User auth result:', { user: !!user, userId: user?.id });
-    
-    if (!user) {
-      console.log('❌ useWidgets: No user found, setting empty widgets');
+    try {
+      // Get the current session token for authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      
+      // Add authorization header if we have a session
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
+      }
+      
+      const response = await fetch('/api/widgets', {
+        headers
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch widgets: ${response.status}`);
+      }
+      
+      const widgetsData = await response.json();
+      console.log('✅ useWidgets: Widgets fetched successfully:', widgetsData);
+      
+      setWidgets(widgetsData || []);
+      setError(null);
+    } catch (err) {
+      console.error('❌ useWidgets: Error fetching widgets:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch widgets');
       setWidgets([]);
+    } finally {
       setLoading(false);
-      return;
     }
-    
-    // Get account ID using the utility function
-    const accountId = await getAccountIdForUser(user.id, supabase);
-    
-    console.log('🏢 useWidgets: Account lookup result:', { 
-      accountId: accountId,
-      hasAccount: !!accountId
-    });
-    
-    if (!accountId) {
-      console.error('❌ useWidgets: No account found for user:', user.id);
-      setError('Account not found');
-      setLoading(false);
-      return;
-    }
-    
-    // Now query widgets using the account_id
-    const { data: widgetsData, error: widgetsError } = await supabase
-      .from("widgets")
-      .select("*")
-      .eq("account_id", accountId)
-      .order("created_at", { ascending: false });
-      
-    console.log('📊 useWidgets: Widgets query result:', { 
-      widgetsCount: widgetsData?.length, 
-      error: widgetsError?.message,
-      widgets: widgetsData 
-    });
-      
-    if (widgetsError) {
-      console.error('❌ useWidgets: Widgets query error:', widgetsError);
-      setError(widgetsError.message);
-      setLoading(false);
-      return;
-    }
-
-    console.log('🔄 useWidgets: Fetching reviews for widgets...');
-    const widgetsWithReviews = await Promise.all(
-      (widgetsData || []).map(async (widget) => {
-        const { data: reviews, error: reviewsError } = await supabase
-          .from("widget_reviews")
-          .select("*")
-          .eq("widget_id", widget.id)
-          .order("created_at", { ascending: false });
-        
-        console.log(`📝 useWidgets: Reviews for widget ${widget.id}:`, { 
-          reviewsCount: reviews?.length, 
-          error: reviewsError?.message 
-        });
-        
-        return { ...widget, reviews: reviews || [] };
-      })
-    );
-
-    console.log('✅ useWidgets: Final widgets with reviews:', widgetsWithReviews);
-    setWidgets(widgetsWithReviews);
-    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -100,67 +61,103 @@ export function useWidgets() {
   }, [fetchWidgets]);
   
   const createWidget = async (name: string, widgetType: string, theme: any) => {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    );
-    
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("User not authenticated");
-
-    // Get account ID using the utility function
-    const accountId = await getAccountIdForUser(user.id, supabase);
+    try {
+      // Get the current session token for authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
       
-    if (!accountId) {
-      throw new Error("Account not found");
+      // Add authorization header if we have a session
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
+      }
+      
+      const response = await fetch('/api/widgets', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ name, type: widgetType, theme })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to create widget: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // Track widget creation
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        trackWidgetCreated(widgetType, user.id);
+      }
+      
+      fetchWidgets(); // Refresh after creating
+      return data;
+    } catch (err) {
+      console.error('❌ useWidgets: Error creating widget:', err);
+      throw err;
     }
-
-    const { data, error } = await supabase
-      .from("widgets")
-      .insert([{ name, widget_type: widgetType, account_id: accountId, theme }])
-      .select()
-      .single();
-
-    if (error) throw error;
-    
-    // Track widget creation
-    trackWidgetCreated(widgetType, user.id);
-    
-    fetchWidgets(); // Refresh after creating
-    return data;
   };
 
   const updateWidget = async (widgetId: string, updates: Partial<Widget>) => {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    );
-
-    const { data, error } = await supabase
-      .from("widgets")
-      .update(updates)
-      .eq("id", widgetId)
-      .select()
-      .single();
-
-    if (error) throw error;
-    fetchWidgets(); // Refresh after updating
-    return data;
+    try {
+      // Get the current session token for authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      
+      // Add authorization header if we have a session
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
+      }
+      
+      const response = await fetch(`/api/widgets/${widgetId}`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify(updates)
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to update widget: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      fetchWidgets(); // Refresh after updating
+      return data;
+    } catch (err) {
+      console.error('❌ useWidgets: Error updating widget:', err);
+      throw err;
+    }
   };
 
   const deleteWidget = async (widgetId: string) => {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    );
-
-    const { error } = await supabase
-      .from("widgets")
-      .delete()
-      .eq("id", widgetId);
-
-    if (error) throw error;
-    fetchWidgets(); // Refresh after deleting
+    try {
+      // Get the current session token for authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      
+      // Add authorization header if we have a session
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
+      }
+      
+      const response = await fetch(`/api/widgets/${widgetId}`, {
+        method: 'DELETE',
+        headers
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to delete widget: ${response.status}`);
+      }
+      
+      fetchWidgets(); // Refresh after deleting
+    } catch (err) {
+      console.error('❌ useWidgets: Error deleting widget:', err);
+      throw err;
+    }
   };
 
   const saveWidgetName = async (id: string, name: string) => {
