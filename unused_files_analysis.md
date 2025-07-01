@@ -28,7 +28,6 @@ These appear to be development/debugging scripts not integrated into the applica
 - `test-force-signin-final.js` (2.1KB)
 - `test-force-signin.js` (3.4KB)
 - `test-onboarding-api.js` (6.1KB)
-- `test-signup-quick.js` (14KB)
 - `test-supabase-service-role.js` (717B)
 - `test-universal-page.js` (5.3KB)
 - `test-universal-prompt-creation.js` (9.5KB)
