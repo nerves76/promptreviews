@@ -611,6 +611,7 @@ export default function Dashboard() {
             hasCustomPromptPages={!!(data?.promptPages && data.promptPages.filter(p => !p.is_universal).length > 0)}
             hasUniversalPromptPage={!!(data?.promptPages && data.promptPages.some(p => p.is_universal))}
             userId={data?.user?.id}
+            setShowStarfallCelebration={setShowStarfallCelebration}
           />
         </PageCard>
       </div>

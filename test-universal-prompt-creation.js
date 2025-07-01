@@ -33,6 +33,12 @@ function mapToDbColumns(formData) {
   insertData["emoji_thank_you_message"] = formData.emojiThankYouMessage || "";
   insertData["ai_button_enabled"] = formData.aiButtonEnabled ?? true;
   insertData["falling_icon"] = formData.fallingIcon;
+  
+  // Map review_type to type for database
+  if (formData.review_type) {
+    insertData["type"] = formData.review_type;
+  }
+  
   // Remove camelCase keys
   delete insertData.emojiSentimentEnabled;
   delete insertData.emojiSentimentQuestion;
@@ -42,6 +48,7 @@ function mapToDbColumns(formData) {
   delete insertData.fallingEnabled;
   delete insertData.fallingIcon;
   delete insertData.emojiLabels;
+  
   // Filter to only allowed DB columns
   const allowedColumns = [
     "id",
@@ -73,6 +80,7 @@ function mapToDbColumns(formData) {
     "role",
     "falling_icon",
     "review_type",
+    "type",
     "no_platform_review_template",
     "video_max_length",
     "video_quality",

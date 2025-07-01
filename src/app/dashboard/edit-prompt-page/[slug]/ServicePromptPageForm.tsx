@@ -168,6 +168,23 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
 
     return (
       <>
+        {/* Top right Save & publish button */}
+        <div className="absolute top-4 right-8 z-20 flex gap-2">
+          <button
+            type="button"
+            className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+            onClick={() => {
+              // Trigger form submission
+              const form = document.querySelector('form');
+              if (form) {
+                form.dispatchEvent(new Event('submit', { bubbles: true }));
+              }
+            }}
+          >
+            Save & publish
+          </button>
+        </div>
+        
         <form
           className="space-y-8"
           onSubmit={(e) => {
@@ -435,7 +452,7 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
                 }
               }}
             >
-              Save
+              Save & publish
             </button>
           </div>
         </div>

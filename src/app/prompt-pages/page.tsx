@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useRef } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 import Link from "next/link";
-import { FaGlobe, FaLink, FaTimes, FaPalette, FaPlus } from "react-icons/fa";
+import { FaGlobe, FaLink, FaTimes, FaPalette, FaPlus, FaCheck } from "react-icons/fa";
 import { MdDownload } from "react-icons/md";
 import PageCard from "@/app/components/PageCard";
 import UniversalPromptPageForm from "../dashboard/edit-prompt-page/universal/UniversalPromptPageForm";
@@ -17,6 +17,7 @@ import { FaHandsHelping, FaBoxOpen } from "react-icons/fa";
 import { MdPhotoCamera, MdVideoLibrary, MdEvent } from "react-icons/md";
 import { useRouter } from "next/navigation";
 import QRCodeModal from "../components/QRCodeModal";
+import StarfallCelebration from "@/app/components/StarfallCelebration";
 import { supabase } from "@/utils/supabaseClient";
 import { getUserOrMock } from "@/utils/supabase";
 import { getAccountIdForUser } from "@/utils/accountUtils";
@@ -45,6 +46,11 @@ export default function PromptPages() {
   const [showStyleModal, setShowStyleModal] = useState(false);
   const [showTypeModal, setShowTypeModal] = useState(false);
   const [qrPreviewUrl, setQrPreviewUrl] = useState<string>("");
+  const [showStarfallCelebration, setShowStarfallCelebration] = useState(false);
+  const [showPostSaveModal, setShowPostSaveModal] = useState(false);
+  const [postSaveData, setPostSaveData] = useState<any>(null);
+  const [showStars, setShowStars] = useState(false);
+
   const router = useRouter();
 
   // Prevent background scroll when modal is open
@@ -109,6 +115,25 @@ export default function PromptPages() {
     }
     fetchData();
   }, [supabase]);
+
+  // Handle post-save modal and starfall celebration
+  useEffect(() => {
+    const flag = localStorage.getItem("showPostSaveModal");
+    if (flag) {
+      try {
+        const data = JSON.parse(flag);
+        setPostSaveData(data);
+        setShowPostSaveModal(true);
+        // Trigger starfall celebration automatically when modal appears
+        setShowStars(true);
+        // Also trigger global starfall celebration
+        setShowStarfallCelebration(true);
+        localStorage.removeItem("showPostSaveModal");
+      } catch {}
+    }
+  }, []);
+
+
 
   const handleSort = (field: "first_name" | "last_name" | "review_type") => {
     if (sortField === field) {
@@ -189,6 +214,19 @@ export default function PromptPages() {
     setShowTypeModal(false);
     router.push(`/create-prompt-page?type=${typeKey}`);
   }
+
+  const starProps = useMemo(() => {
+    const props = [];
+    for (let i = 0; i < 50; i++) {
+      props.push({
+        left: Math.random() * 100 + "%",
+        top: Math.random() * 20 + "%",
+        color: ["#FFD700", "#FFA500", "#FF6347", "#FF69B4", "#87CEEB"][Math.floor(Math.random() * 5)],
+        fontSize: Math.random() * 20 + 20 + "px",
+      });
+    }
+    return props;
+  }, []);
 
   if (loading) {
     return (
@@ -288,6 +326,7 @@ export default function PromptPages() {
                         <MdDownload size={22} color="#fff" />
                         QR code
                       </button>
+
                       {copySuccess && (
                         <span className="ml-2 text-green-600 text-xs font-semibold">
                           {copySuccess}
@@ -339,6 +378,130 @@ export default function PromptPages() {
           <StylePage onClose={() => setShowStyleModal(false)} />
         </div>
       )}
+
+      {/* Global Starfall Celebration */}
+      {showStarfallCelebration && (
+        <StarfallCelebration
+          isVisible={showStarfallCelebration}
+          onComplete={() => setShowStarfallCelebration(false)}
+        />
+      )}
+
+      {/* Post-save share modal with star fall animation */}
+      {showPostSaveModal && postSaveData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          {/* Star Falling Animation - behind modal, only after button click */}
+          {starProps.map((props, i) => (
+            <span
+              key={i}
+              style={{
+                position: "absolute",
+                left: props.left,
+                top: props.top,
+                pointerEvents: "none",
+                zIndex: 50,
+              }}
+            >
+              <span
+                className="absolute animate-fall"
+                style={{
+                  color: props.color,
+                  fontSize: props.fontSize,
+                  left: 0,
+                  top: 0,
+                }}
+              >
+                ⭐
+              </span>
+            </span>
+          ))}
+
+          {/* Modal Content */}
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 relative z-50">
+            <div className="p-6">
+              <div className="text-center mb-6">
+                <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
+                  <FaCheck className="h-6 w-6 text-green-600" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  Prompt Page Published! 🎉
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Your prompt page is now live and ready to collect reviews.
+                </p>
+              </div>
+
+              {/* Sharing Options */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <span className="text-sm font-medium text-gray-700">Share Link</span>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(postSaveData.url);
+                    }}
+                    className="text-slate-blue hover:text-slate-blue/80 text-sm font-medium"
+                  >
+                    Copy
+                  </button>
+                </div>
+
+                {/* Conditional SMS link */}
+                {postSaveData.phone && (
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <span className="text-sm font-medium text-gray-700">Send SMS</span>
+                    <a
+                      href={`sms:${postSaveData.phone}?body=Hi ${postSaveData.first_name || 'there'}, I'd love to get your feedback! Please leave a review here: ${postSaveData.url}`}
+                      className="text-slate-blue hover:text-slate-blue/80 text-sm font-medium"
+                    >
+                      Send
+                    </a>
+                  </div>
+                )}
+
+                {/* Conditional Email link */}
+                {postSaveData.email && (
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <span className="text-sm font-medium text-gray-700">Send Email</span>
+                    <a
+                      href={`mailto:${postSaveData.email}?subject=Please leave a review&body=Hi ${postSaveData.first_name || 'there'},%0D%0A%0D%0AI'd love to get your feedback! Please leave a review here: ${postSaveData.url}%0D%0A%0D%0AThank you!`}
+                      className="text-slate-blue hover:text-slate-blue/80 text-sm font-medium"
+                    >
+                      Send
+                    </a>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <span className="text-sm font-medium text-gray-700">View Prompt Page</span>
+                  <a
+                    href={postSaveData.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-slate-blue hover:text-slate-blue/80 text-sm font-medium"
+                  >
+                    Open
+                  </a>
+                </div>
+              </div>
+
+              <div className="mt-6 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowPostSaveModal(false);
+                    setShowStars(false);
+                    setPostSaveData(null);
+                  }}
+                  className="bg-slate-blue text-white px-4 py-2 rounded-md hover:bg-slate-blue/90 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </>
   );
 } 

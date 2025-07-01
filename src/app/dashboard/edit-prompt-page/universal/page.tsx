@@ -168,22 +168,30 @@ export default function UniversalEditPromptPage() {
   }, []);
 
   const handleSave = () => {
-    if (formRef.current && typeof formRef.current.submit === "function") {
-      // Check for review platforms before saving
-      const currentFormState = formRef.current.getCurrentState?.();
+    console.log('🔍 handleSave called');
+    
+    // Check for review platforms before saving
+    if (formRef.current && typeof formRef.current.getCurrentState === "function") {
+      const currentFormState = formRef.current.getCurrentState();
+      console.log('🔍 Current form state:', currentFormState);
       if (currentFormState && currentFormState.reviewPlatforms.length === 0) {
         if (!window.confirm("You didn't add a review platform. Are you sure you want to save?")) {
           return;
         }
       }
-      
-      setIsSaving(true);
-      formRef.current.submit();
-      setTimeout(() => setIsSaving(false), 1000); // Simulate save, replace with real logic
+    }
+    
+    // Trigger form submission (same as Service Prompt Page)
+    const form = document.querySelector('form');
+    console.log('🔍 Form element found:', !!form);
+    if (form) {
+      console.log('🔍 Dispatching submit event');
+      form.dispatchEvent(new Event('submit', { bubbles: true }));
     }
   };
 
   const handleFormSave = async (formState: UniversalPromptFormState) => {
+    console.log('🔍 handleFormSave called with:', formState);
     setIsSaving(true);
     // Get current user
     const {
@@ -250,13 +258,21 @@ export default function UniversalEditPromptPage() {
       .single();
     if (updatedPage?.slug) setSlug(updatedPage.slug);
     if (updatedPage?.slug) {
+      const modalData = { 
+        url: `/r/${updatedPage.slug}`,
+        first_name: "", // Universal pages don't have specific customer info
+        phone: "",
+        email: ""
+      };
+      console.log('🔍 Setting localStorage showPostSaveModal:', modalData);
       localStorage.setItem(
         "showPostSaveModal",
-        JSON.stringify({ url: `/r/${updatedPage.slug}` }),
+        JSON.stringify(modalData),
       );
     }
-    // Redirect to dashboard to show the modal
-    window.location.href = "/dashboard";
+    // Redirect to prompt-pages to show the modal
+    console.log('🔍 Redirecting to prompt-pages');
+    window.location.href = "/prompt-pages";
     setIsSaving(false);
   };
 
@@ -267,25 +283,12 @@ export default function UniversalEditPromptPage() {
       onClick={handleSave}
       disabled={isSaving}
     >
-      {isSaving ? "Saving..." : "Save"}
+      {isSaving ? "Saving..." : "Save & publish"}
     </button>
-  );
-
-  const viewButton = (
-    <Link
-      href={slug ? `/r/${slug}` : "#"}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={`px-6 py-2 rounded-lg font-semibold shadow border border-slate-blue text-slate-blue bg-white hover:bg-slate-50 transition ml-2 ${!slug ? "opacity-50 pointer-events-none" : ""}`}
-      tabIndex={slug ? 0 : -1}
-    >
-      View
-    </Link>
   );
 
   const actionButtons = (
     <div className="flex gap-3">
-      {viewButton}
       {saveButton}
     </div>
   );
@@ -365,25 +368,15 @@ export default function UniversalEditPromptPage() {
           </button>
         )}
         
-        {/* Save and View Buttons - Bottom Right */}
+        {/* Save Button - Bottom Right */}
         <div className="flex gap-3">
-          <button
-            type="button"
-            className="px-4 py-2 text-sm rounded bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200 transition-colors"
-            onClick={() => {
-              // Navigate to the universal prompt page preview
-              window.open(`/prompt-pages`, '_blank');
-            }}
-          >
-            View
-          </button>
           <button
             type="button"
             className="px-4 py-2 text-sm rounded bg-slate-blue text-white hover:bg-slate-blue/90 transition-colors"
             onClick={handleSave}
             disabled={isSaving}
           >
-            {isSaving ? "Saving..." : "Save"}
+            {isSaving ? "Saving..." : "Save & publish"}
           </button>
         </div>
       </div>

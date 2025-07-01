@@ -89,6 +89,8 @@ export default function PromptPageForm({
   businessProfile,
   isUniversal = false,
   onPublishSuccess,
+  step = 1,
+  onStepChange,
   ...rest
 }: {
   mode: "create" | "edit";
@@ -100,6 +102,8 @@ export default function PromptPageForm({
   businessProfile: any;
   isUniversal?: boolean;
   onPublishSuccess?: (slug: string) => void;
+  step?: number;
+  onStepChange?: (step: number) => void;
   [key: string]: any;
 }) {
   const router = useRouter();
@@ -112,7 +116,27 @@ export default function PromptPageForm({
     show_friendly_note: initialData.show_friendly_note ?? true,
   });
 
+  // Debug log for formData changes
   useEffect(() => {
+    console.log("[DEBUG] formData updated:", {
+      first_name: formData.first_name,
+      last_name: formData.last_name,
+      phone: formData.phone,
+      email: formData.email,
+      role: formData.role,
+    });
+  }, [formData.first_name, formData.last_name, formData.phone, formData.email, formData.role]);
+
+  useEffect(() => {
+    console.log("[DEBUG] PromptPageForm useEffect - initialData:", initialData);
+    console.log("[DEBUG] Customer details from initialData:", {
+      first_name: initialData.first_name,
+      last_name: initialData.last_name,
+      phone: initialData.phone,
+      email: initialData.email,
+      role: initialData.role,
+    });
+    
     setFormData({
       ...initialData,
       emojiThankYouMessage:
@@ -143,6 +167,10 @@ export default function PromptPageForm({
         "We value your feedback! Let us know how we can do better.",
     );
     setNotePopupEnabled(initialData.show_friendly_note ?? true);
+    setFallingEnabled(!!initialData.falling_icon);
+    setFallingIcon(initialData.falling_icon || "star");
+    setNoPlatformReviewTemplate(initialData.no_platform_review_template || "");
+    setServices(initialData.features_or_benefits || []);
   }, [initialData]);
 
   // Ensure slug is set for the View button
@@ -163,7 +191,7 @@ export default function PromptPageForm({
     }
   }, [formData.slug, initialData.slug]);
 
-  const [step, setStep] = useState(1);
+
   const [formError, setFormError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
@@ -171,17 +199,19 @@ export default function PromptPageForm({
   const [services, setServices] = useState<string[]>(
     initialData.features_or_benefits || [],
   );
-  const [emojiSentimentEnabled, setEmojiSentimentEnabled] = useState(false);
+  const [emojiSentimentEnabled, setEmojiSentimentEnabled] = useState(
+    initialData.emoji_sentiment_enabled ?? initialData.emojiSentimentEnabled ?? false,
+  );
   const [emojiSentimentQuestion, setEmojiSentimentQuestion] = useState(
-    "How was your experience?",
+    initialData.emoji_sentiment_question ?? initialData.emojiSentimentQuestion ?? "How was your experience?",
   );
   const [emojiFeedbackMessage, setEmojiFeedbackMessage] = useState(
-    "We value your feedback! Let us know how we can do better.",
+    initialData.emoji_feedback_message ?? initialData.emojiFeedbackMessage ?? "We value your feedback! Let us know how we can do better.",
   );
   const [generatingReview, setGeneratingReview] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [noPlatformReviewTemplate, setNoPlatformReviewTemplate] = useState(
-    formData.no_platform_review_template || "",
+    initialData.no_platform_review_template || "",
   );
   const [aiLoadingPhoto, setAiLoadingPhoto] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -190,9 +220,13 @@ export default function PromptPageForm({
       ? initialData.aiReviewEnabled
       : true,
   );
-  const [fallingEnabled, setFallingEnabled] = useState(true);
+  const [fallingEnabled, setFallingEnabled] = useState(
+    !!initialData.falling_icon
+  );
   const [iconUpdating, setIconUpdating] = useState(false);
-  const [fallingIcon, setFallingIcon] = useState("star"); // default icon key
+  const [fallingIcon, setFallingIcon] = useState(
+    initialData.falling_icon || "star"
+  ); // default icon key
 
   // Special Offer state
   const [offerEnabled, setOfferEnabled] = useState(
@@ -333,7 +367,9 @@ export default function PromptPageForm({
       setFormError("Please enter at least an email or phone number.");
       return;
     }
-    setStep(2);
+
+    // Call onSave to save step 1 data
+    onSave(formData);
   };
 
   const handleToggleFalling = () => {
@@ -437,9 +473,31 @@ export default function PromptPageForm({
               ...formData,
               aiReviewEnabled,
               show_friendly_note: notePopupEnabled,
+              friendly_note: formData.friendly_note,
             });
           }}
         >
+          {/* Top right button */}
+          <div className="absolute top-4 right-8 z-20 flex gap-2">
+            {step === 1 ? (
+              <button
+                type="button"
+                className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+                onClick={handleStep1Continue}
+                disabled={isSaving}
+              >
+                {isSaving ? "Saving..." : "Save & continue"}
+              </button>
+            ) : (
+              <button
+                type="submit"
+                className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+                disabled={isSaving}
+              >
+                {isSaving ? "Publishing..." : "Save & publish"}
+              </button>
+            )}
+          </div>
           <h1 className="text-4xl font-bold mb-4 flex items-center gap-3 text-slate-blue">
             {pageTitle || "Photo + Testimonial"}
           </h1>
@@ -467,7 +525,7 @@ export default function PromptPageForm({
               <input
                 type="text"
                 id="first_name"
-                value={formData.first_name}
+                value={formData.first_name || ""}
                 onChange={(e) =>
                   setFormData((prev: any) => ({
                     ...prev,
@@ -489,7 +547,7 @@ export default function PromptPageForm({
               <input
                 type="text"
                 id="last_name"
-                value={formData.last_name}
+                value={formData.last_name || ""}
                 onChange={(e) =>
                   setFormData((prev: any) => ({
                     ...prev,
@@ -547,29 +605,6 @@ export default function PromptPageForm({
           </div>
           <div className="mb-4">
             <label
-              htmlFor="friendly_note"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Personalized note
-            </label>
-            {notePopupEnabled && (
-              <textarea
-                id="friendly_note"
-                value={formData.friendly_note}
-                onChange={(e) =>
-                  setFormData((prev: any) => ({
-                    ...prev,
-                    friendly_note: e.target.value,
-                  }))
-                }
-                rows={4}
-                className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring shadow-inner"
-                placeholder="Ty! It was so great having you in yesterday. You left your scarf! I can drop it by tomorrow on my way in. Thanks for leaving us a review, we need all the positivity we can get.  :)"
-              />
-            )}
-          </div>
-          <div className="mb-4">
-            <label
               htmlFor="testimonial"
               className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1"
             >
@@ -606,6 +641,7 @@ export default function PromptPageForm({
               </button>
             </div>
           )}
+
           {/* AI Generate On/Off Module */}
           <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-2 shadow relative mb-8 mt-10">
             <div className="flex flex-row justify-between items-start px-2 py-2">
@@ -660,44 +696,44 @@ export default function PromptPageForm({
       </>
     );
   }
-  if (formData.review_type === "service" && mode === "create") {
+  if (formData.review_type === "service") {
     return (
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          onSave({ ...formData, ai_button_enabled: aiReviewEnabled });
+          const formDataToSubmit = { ...formData, ai_button_enabled: aiReviewEnabled };
+          
+          if (step === 2 && onPublish) {
+            onPublish(formDataToSubmit);
+          } else {
+            onSave(formDataToSubmit);
+          }
         }}
       >
         <h1 className="text-4xl font-bold mb-10 mt-2 text-slate-blue">
-          Create service prompt page
+          {mode === "create" ? "Create service prompt page" : "Edit service prompt page"}
         </h1>
-        {/* Top right button group for step 1 create flow */}
-        {mode === "create" && step === 1 && (
-          <div className="absolute top-4 right-8 z-20 flex gap-2">
+        {/* Top right button group */}
+        <div className="absolute top-4 right-8 z-20 flex gap-2">
+          {step === 1 ? (
             <button
               type="button"
               className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
               onClick={handleStep1Continue}
               disabled={isSaving}
             >
-              Continue
+              {isSaving ? "Saving..." : "Save & continue"}
             </button>
-          </div>
-        )}
-        {/* Top right Save & publish button for step 2 create flow */}
-        {mode === "create" &&
-          formData.review_type === "service" &&
-          step === 2 && (
-            <div className="absolute top-4 right-8 z-20 flex gap-2">
-              <button
-                type="submit"
-                className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-                disabled={isSaving}
-              >
-                {isSaving ? "Publishing..." : "Save & publish"}
-              </button>
-            </div>
-          )}
+          ) : step === 2 ? (
+            <button
+              type="submit"
+              className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+              disabled={isSaving}
+            >
+              {isSaving ? "Publishing..." : "Save & publish"}
+            </button>
+          ) : null}
+        </div>
         <div>
           {step === 1 ? (
             <div className="custom-space-y">
@@ -728,7 +764,7 @@ export default function PromptPageForm({
                       <input
                         type="text"
                         id="first_name"
-                        value={formData.first_name}
+                        value={formData.first_name || ""}
                         onChange={(e) =>
                           setFormData((prev: any) => ({
                             ...prev,
@@ -738,6 +774,7 @@ export default function PromptPageForm({
                         className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
                         placeholder="First name"
                         required
+                        onFocus={() => console.log("[DEBUG] First name field focused, value:", formData.first_name)}
                       />
                     </div>
                     <div className="flex-1">
@@ -750,7 +787,7 @@ export default function PromptPageForm({
                       <input
                         type="text"
                         id="last_name"
-                        value={formData.last_name}
+                        value={formData.last_name || ""}
                         onChange={(e) =>
                           setFormData((prev: any) => ({
                             ...prev,
@@ -992,7 +1029,7 @@ export default function PromptPageForm({
                       </p>
                       <textarea
                         id="product_description"
-                        value={formData.product_description}
+                        value={formData.product_description || ""}
                         onChange={(e) =>
                           setFormData((prev: any) => ({
                             ...prev,
@@ -1015,7 +1052,7 @@ export default function PromptPageForm({
                   className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
                   onClick={handleStep1Continue}
                 >
-                  Continue
+                  Save & continue
                 </button>
               </div>
             </div>
@@ -1076,7 +1113,7 @@ export default function PromptPageForm({
                 {notePopupEnabled && (
                   <textarea
                     id="friendly_note"
-                    value={formData.friendly_note}
+                    value={formData.friendly_note || ""}
                     onChange={(e) =>
                       setFormData((prev: any) => ({
                         ...prev,
@@ -1145,7 +1182,7 @@ export default function PromptPageForm({
                   <button
                     type="button"
                     className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-slate-blue shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-                    onClick={() => setStep(1)}
+                    onClick={() => onStepChange?.(1)}
                     disabled={isSaving}
                   >
                     Back
@@ -1163,16 +1200,30 @@ export default function PromptPageForm({
                 </div>
               </div>
             )}
-            {/* Bottom right Save button for edit mode */}
-            {mode !== "create" && (
-              <div className="w-full flex justify-end pr-6 pb-4 md:pb-6 mt-8">
-                <button
-                  type="submit"
-                  className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-                  disabled={isSaving}
-                >
-                  {isSaving ? "Saving..." : "Save"}
-                </button>
+            {/* Bottom action row for edit mode step 2 */}
+            {mode !== "create" && step === 2 && (
+              <div className="w-full flex justify-between items-center pr-2 pb-4 md:pr-6 md:pb-6 mt-8">
+                {/* Bottom left Back button */}
+                <div>
+                  <button
+                    type="button"
+                    className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-slate-blue shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+                    onClick={() => onStepChange?.(1)}
+                    disabled={isSaving}
+                  >
+                    Back
+                  </button>
+                </div>
+                {/* Bottom right Save & publish button */}
+                <div>
+                  <button
+                    type="submit"
+                    className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+                    disabled={isSaving}
+                  >
+                    {isSaving ? "Publishing..." : "Save & publish"}
+                  </button>
+                </div>
               </div>
             )}
           </>
@@ -1194,19 +1245,7 @@ export default function PromptPageForm({
       <h1 className="text-4xl font-bold mb-8 flex items-center gap-3 text-slate-blue">
         {pageTitle}
       </h1>
-      {/* Top right button group for step 1 create flow */}
-      {mode === "create" && step === 1 && (
-        <div className="absolute top-4 right-8 z-20 flex gap-2">
-          <button
-            type="button"
-            className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-            onClick={handleStep1Continue}
-            disabled={isSaving}
-          >
-            Continue
-          </button>
-        </div>
-      )}
+
       <div>
         {step === 1 ? (
           <div className="custom-space-y">
@@ -1237,7 +1276,7 @@ export default function PromptPageForm({
                     <input
                       type="text"
                       id="first_name"
-                      value={formData.first_name}
+                      value={formData.first_name || ""}
                       onChange={(e) =>
                         setFormData((prev: any) => ({
                           ...prev,
@@ -1259,7 +1298,7 @@ export default function PromptPageForm({
                     <input
                       type="text"
                       id="last_name"
-                      value={formData.last_name}
+                      value={formData.last_name || ""}
                       onChange={(e) =>
                         setFormData((prev: any) => ({
                           ...prev,
@@ -1501,7 +1540,7 @@ export default function PromptPageForm({
                     </p>
                     <textarea
                       id="product_description"
-                      value={formData.product_description}
+                      value={formData.product_description || ""}
                       onChange={(e) =>
                         setFormData((prev: any) => ({
                           ...prev,
@@ -1515,52 +1554,7 @@ export default function PromptPageForm({
                     />
                   </>
                 )}
-                <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-2 shadow relative mb-8 mt-10">
-                  <div className="flex items-center justify-between mb-2 px-2 py-2">
-                    <div className="flex items-center gap-3">
-                      <FaCommentDots className="w-7 h-7 text-slate-blue" />
-                      <span className="text-2xl font-bold text-[#1A237E]">
-                        Personalized note pop-up
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (emojiSentimentEnabled) {
-                          setShowPopupConflictModal("note");
-                          return;
-                        }
-                        setNotePopupEnabled((v: boolean) => !v);
-                      }}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${notePopupEnabled ? "bg-slate-blue" : "bg-gray-200"}`}
-                      aria-pressed={!!notePopupEnabled}
-                      disabled={emojiSentimentEnabled}
-                    >
-                      <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${notePopupEnabled ? "translate-x-5" : "translate-x-1"}`}
-                      />
-                    </button>
-                  </div>
-                  <div className="text-sm text-gray-700 mb-3 max-w-[85ch] px-2">
-                    This note appears as a pop-up at the top of the review page.
-                    Use it to set the context and tone for your customer.
-                  </div>
-                  {notePopupEnabled && (
-                    <textarea
-                      id="friendly_note"
-                      value={formData.friendly_note}
-                      onChange={(e) =>
-                        setFormData((prev: any) => ({
-                          ...prev,
-                          friendly_note: e.target.value,
-                        }))
-                      }
-                      rows={4}
-                      className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring shadow-inner"
-                      placeholder="Ty! It was so great having you in yesterday. You left your scarf! I can drop it by tomorrow on my way in. Thanks for leaving us a review, we need all the positivity we can get.  :)"
-                    />
-                  )}
-                </div>
+
               </>
             )}
             <div className="w-full flex justify-end gap-2 mt-8">
@@ -1630,7 +1624,7 @@ export default function PromptPageForm({
               {notePopupEnabled && (
                 <textarea
                   id="friendly_note"
-                  value={formData.friendly_note}
+                  value={formData.friendly_note || ""}
                   onChange={(e) =>
                     setFormData((prev: any) => ({
                       ...prev,
@@ -1689,17 +1683,32 @@ export default function PromptPageForm({
           </div>
         )}
       </div>
-      {(mode !== "create" || step === 2) && (
+      {/* Bottom buttons */}
+      {/* Step 1 bottom button - Save & continue */}
+      {step === 1 && (
+        <div className="w-full flex justify-end pr-6 pb-4 md:pb-6 mt-8">
+          <button
+            type="button"
+            className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+            onClick={handleStep1Continue}
+            disabled={isSaving}
+          >
+            {isSaving ? "Saving..." : "Save & continue"}
+          </button>
+        </div>
+      )}
+      {/* Step 2 bottom buttons */}
+      {step === 2 && (
         <>
-          {/* Bottom action row: left (Back) and right (Save/View or Save & publish/View) for step 2 */}
-          {step === 2 && mode === "create" && (
+          {/* Bottom action row for step 2 create mode */}
+          {mode === "create" && (
             <div className="w-full flex justify-between items-center pr-2 pb-4 md:pr-6 md:pb-6 mt-8">
               {/* Bottom left Back button */}
               <div>
                 <button
                   type="button"
                   className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-slate-blue shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-                  onClick={() => setStep(1)}
+                  onClick={() => onStepChange?.(1)}
                   disabled={isSaving}
                 >
                   Back
@@ -1717,16 +1726,30 @@ export default function PromptPageForm({
               </div>
             </div>
           )}
-          {/* Bottom right Save button for edit mode */}
-          {mode !== "create" && (
-            <div className="w-full flex justify-end pr-6 pb-4 md:pb-6 mt-8">
-              <button
-                type="submit"
-                className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-                disabled={isSaving}
-              >
-                {isSaving ? "Saving..." : "Save"}
-              </button>
+          {/* Bottom action row for step 2 edit mode */}
+          {mode === "edit" && (
+            <div className="w-full flex justify-between items-center pr-2 pb-4 md:pr-6 md:pb-6 mt-8">
+              {/* Bottom left Back button */}
+              <div>
+                <button
+                  type="button"
+                  className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-slate-blue shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+                  onClick={() => onStepChange?.(1)}
+                  disabled={isSaving}
+                >
+                  Back
+                </button>
+              </div>
+              {/* Bottom right Save & publish button */}
+              <div>
+                <button
+                  type="submit"
+                  className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+                  disabled={isSaving}
+                >
+                  {isSaving ? "Publishing..." : "Save & publish"}
+                </button>
+              </div>
             </div>
           )}
         </>

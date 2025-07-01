@@ -118,6 +118,12 @@ function mapToDbColumns(formData: any): any {
   insertData["emoji_thank_you_message"] = formData.emojiThankYouMessage || "";
   insertData["ai_button_enabled"] = formData.aiButtonEnabled ?? true;
   insertData["falling_icon"] = formData.fallingIcon;
+  
+  // Map review_type to type for database
+  if (formData.review_type) {
+    insertData["type"] = formData.review_type;
+  }
+  
   // Remove camelCase keys
   delete insertData.emojiSentimentEnabled;
   delete insertData.emojiSentimentQuestion;
@@ -127,6 +133,7 @@ function mapToDbColumns(formData: any): any {
   delete insertData.fallingEnabled;
   delete insertData.fallingIcon;
   delete insertData.emojiLabels;
+  
   // Remove type-specific fields if not relevant
   if (formData.review_type === "service") {
     delete insertData.features_or_benefits;
@@ -136,6 +143,7 @@ function mapToDbColumns(formData: any): any {
     delete insertData.services_offered;
     delete insertData.product_description;
   }
+  
   // Filter to only allowed DB columns (from your schema)
   const allowedColumns = [
     "id",
@@ -167,6 +175,7 @@ function mapToDbColumns(formData: any): any {
     "role",
     "falling_icon",
     "review_type",
+    "type",
     "no_platform_review_template",
     "video_max_length",
     "video_quality",
@@ -540,8 +549,14 @@ export default function CreatePromptPageClient() {
         .eq("account_id", user.id)
         .single();
       if (!businessData) throw new Error("No business found");
+      // Ensure all customer/client fields are present
       let insertData: any = {
         ...formData,
+        first_name: formData.first_name || "",
+        last_name: formData.last_name || "",
+        phone: formData.phone || "",
+        email: formData.email || "",
+        role: formData.role || "",
         account_id: user.id,
         status: "draft",
       };
@@ -591,6 +606,12 @@ export default function CreatePromptPageClient() {
         delete insertData.video_recipient;
       }
       insertData = mapToDbColumns(insertData);
+      // Double-check customer/client fields are present in insertData
+      insertData.first_name = formData.first_name || "";
+      insertData.last_name = formData.last_name || "";
+      insertData.phone = formData.phone || "";
+      insertData.email = formData.email || "";
+      insertData.role = formData.role || "";
       const { data, error } = await supabase
         .from("prompt_pages")
         .insert([insertData])
@@ -598,18 +619,10 @@ export default function CreatePromptPageClient() {
         .single();
       if (error) throw error;
       if (data && data.slug) {
+        console.log("[DEBUG] handleStep1Submit setting createdSlug to:", data.slug);
         setCreatedSlug(data.slug);
         setStep(2);
-        localStorage.setItem(
-          "showPostSaveModal",
-          JSON.stringify({
-            url: `/r/${data.slug}`,
-            phone: formData.phone,
-            email: formData.email,
-            first_name: formData.first_name,
-          }),
-        );
-        router.push("/dashboard");
+        setSaveSuccess("Step 1 saved! Continue to step 2.");
         return;
       }
       setSaveSuccess("Step 1 saved! Continue to next step.");
@@ -625,11 +638,15 @@ export default function CreatePromptPageClient() {
   };
 
   const handleStep2Submit = async (formData: any) => {
+    console.log("[DEBUG] handleStep2Submit called with createdSlug:", createdSlug);
     setSaveError(null);
     setSaveSuccess(null);
     setIsSaving(true);
     try {
-      if (!createdSlug) throw new Error("No prompt page slug found.");
+      if (!createdSlug) {
+        console.error("[DEBUG] createdSlug is null/undefined");
+        throw new Error("No prompt page slug found.");
+      }
       const {
         data: { user },
       } = await getUserOrMock(supabase);
@@ -656,10 +673,15 @@ export default function CreatePromptPageClient() {
         setSavedPromptPageUrl(`/r/${data.slug}`);
         localStorage.setItem(
           "showPostSaveModal",
-          JSON.stringify({ url: `/r/${data.slug}` }),
+          JSON.stringify({ 
+            url: `/r/${data.slug}`,
+            first_name: formData.first_name,
+            phone: formData.phone,
+            email: formData.email
+          }),
         );
-        console.log("[DEBUG] handleStep2Submit redirecting to /dashboard");
-        router.push("/dashboard");
+        console.log("[DEBUG] handleStep2Submit redirecting to /prompt-pages");
+        router.push("/prompt-pages");
         return;
       }
       setSaveSuccess("Prompt page updated successfully!");
@@ -687,6 +709,7 @@ export default function CreatePromptPageClient() {
     );
   }
   if (formData.review_type === "service") {
+    console.log("[DEBUG] Service page render - createdSlug:", createdSlug, "step:", step);
     // Ensure all required fields for service are present
     const serviceInitialData = {
       ...initialFormData,
@@ -728,6 +751,8 @@ export default function CreatePromptPageClient() {
             pageTitle="Create service prompt page"
             supabase={supabase}
             businessProfile={businessProfile}
+            step={step}
+            onStepChange={setStep}
           />
         </PageCard>
       </div>
@@ -762,6 +787,8 @@ export default function CreatePromptPageClient() {
             pageTitle="Photo + Testimonial"
             supabase={supabase}
             businessProfile={businessProfile}
+            step={step}
+            onStepChange={setStep}
           />
         </PageCard>
       </div>
@@ -861,6 +888,8 @@ export default function CreatePromptPageClient() {
             pageTitle="Create Your Prompt Page"
             supabase={supabase}
             businessProfile={businessProfile}
+            step={step}
+            onStepChange={setStep}
           />
         </PageCard>
       </div>

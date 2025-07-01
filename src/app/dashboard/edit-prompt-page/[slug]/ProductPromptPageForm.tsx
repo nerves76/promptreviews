@@ -589,18 +589,8 @@ const ProductPromptPageForm = forwardRef<any, ProductPromptPageFormProps>(
             </button>
           )}
           
-          {/* Save and View Buttons - Bottom Right */}
+          {/* Save Button - Bottom Right */}
           <div className="flex gap-3">
-            <button
-              type="button"
-              className="px-4 py-2 text-sm rounded bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200 transition-colors"
-              onClick={() => {
-                // Navigate to the product prompt page preview
-                window.open(`/r/${initialData?.product_name || 'preview'}`, '_blank');
-              }}
-            >
-              View
-            </button>
             <button
               type="button"
               className="px-4 py-2 text-sm rounded bg-slate-blue text-white hover:bg-slate-blue/90 transition-colors"
@@ -612,7 +602,7 @@ const ProductPromptPageForm = forwardRef<any, ProductPromptPageFormProps>(
                 }
               }}
             >
-              Save
+              Save & publish
             </button>
           </div>
         </div>

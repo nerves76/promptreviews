@@ -15,15 +15,15 @@ This project is currently focused on developing a standalone widget for collecti
 - **Fixed Development Server Issues**: Resolved port 3001 conflicts and Sentry integration errors
 - **Fixed Track-Event API**: Added missing cookie options and proper service client configuration
 - **Fixed Async Params**: Updated prompt-pages API to properly await params in Next.js 15
-- **Improved Local Development**: Auto-signin feature now works properly for local development
+- **Improved Local Development**: Enhanced auto-signin feature using force-signin API for reliable local development
 - **Database Cleanup**: Added comprehensive test data cleanup for development environment
 
 ### Sign-Up Flow Improvements
-- **Auto-Signin for Local Development**: Users are automatically signed in after account creation when on localhost
-- **Email Confirmation Bypass**: Local development bypasses email confirmation for faster testing
-- **Proper Redirect Flow**: Users are redirected to dashboard after successful sign-up
-- **Error Handling**: Enhanced error handling for duplicate account creation attempts
-- **Session Management**: Improved session establishment and persistence
+- **Enhanced Auto-Signin for Local Development**: Users are automatically signed in after account creation using the force-signin API when on localhost
+- **Email Confirmation Bypass**: Local development bypasses email confirmation for faster testing using server-side email confirmation
+- **Proper Redirect Flow**: Users are redirected to dashboard after successful sign-up with success message
+- **Error Handling**: Enhanced error handling for duplicate account creation attempts and sign-in failures
+- **Session Management**: Improved session establishment and persistence with proper email confirmation handling
 
 ### API Fixes & Improvements
 - **Track-Event API**: Fixed cookie options and service client configuration for anonymous events
