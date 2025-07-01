@@ -8,37 +8,84 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/utils/supabaseClient";
-import { getUserOrMock } from "@/utils/supabase";
-import { useAdmin } from "@/contexts/AdminContext";
+import { getActiveAnnouncement } from "@/utils/admin";
 
-// Use the singleton Supabase client instead of creating a new instance
-// This prevents "Multiple GoTrueClient instances" warnings and ensures proper session persistence
+interface Announcement {
+  id: string;
+  message: string;
+  button_text?: string;
+  button_url?: string;
+  is_active: boolean;
+  created_at: string;
+}
 
 export default function AnnouncementBanner() {
+  const [announcement, setAnnouncement] = useState<Announcement | null>(null);
   const [isVisible, setIsVisible] = useState(false);
-  
-  // Use the centralized admin context instead of local state
-  const { isAdminUser, isLoading: adminLoading } = useAdmin();
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Show banner for admin users
-    if (isAdminUser) {
-      setIsVisible(true);
-    }
-  }, [isAdminUser]);
+    loadActiveAnnouncement();
+  }, []);
 
-  if (!isVisible) {
+  const loadActiveAnnouncement = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Get the most recent active announcement
+      const { data: announcements, error } = await supabase
+        .from('announcements')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned"
+        console.error('Error fetching active announcement:', error);
+      }
+
+      if (announcements) {
+        setAnnouncement(announcements);
+        setIsVisible(true);
+      } else {
+        setIsVisible(false);
+      }
+    } catch (error) {
+      console.error('Error loading announcement:', error);
+      setIsVisible(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDismiss = () => {
+    setIsVisible(false);
+    // Store dismissal in session storage to prevent showing again this session
+    if (announcement) {
+      sessionStorage.setItem(`announcement-dismissed-${announcement.id}`, 'true');
+    }
+  };
+
+  // Check if this announcement was dismissed
+  useEffect(() => {
+    if (announcement && sessionStorage.getItem(`announcement-dismissed-${announcement.id}`) === 'true') {
+      setIsVisible(false);
+    }
+  }, [announcement]);
+
+  if (isLoading || !isVisible || !announcement) {
     return null;
   }
 
   return (
-    <div className="bg-yellow-50 border-b border-yellow-200">
+    <div className="bg-blue-50 border-b border-blue-200">
       <div className="max-w-7xl mx-auto py-3 px-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between flex-wrap">
           <div className="w-0 flex-1 flex items-center">
-            <span className="flex p-2 rounded-lg bg-yellow-100">
+            <span className="flex p-2 rounded-lg bg-blue-100">
               <svg
-                className="h-5 w-5 text-yellow-600"
+                className="h-5 w-5 text-blue-600"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
@@ -48,21 +95,30 @@ export default function AnnouncementBanner() {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
             </span>
-            <p className="ml-3 font-medium text-sm text-yellow-800">
-              <span className="md:hidden">Admin mode active</span>
-              <span className="hidden md:inline">
-                You are currently in admin mode. You can access admin features and see additional controls.
-              </span>
-            </p>
+            <div className="ml-3">
+              <p className="text-sm font-medium text-blue-800">
+                {announcement.message}
+              </p>
+              {announcement.button_text && announcement.button_url && (
+                <a
+                  href={announcement.button_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-blue-600 hover:text-blue-500 underline mt-1 inline-block"
+                >
+                  {announcement.button_text}
+                </a>
+              )}
+            </div>
           </div>
           <div className="order-3 mt-2 flex-shrink-0 w-full sm:order-2 sm:mt-0 sm:w-auto">
             <button
-              onClick={() => setIsVisible(false)}
-              className="flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-yellow-800 bg-yellow-100 hover:bg-yellow-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+              onClick={handleDismiss}
+              className="flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-blue-800 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               Dismiss
             </button>
