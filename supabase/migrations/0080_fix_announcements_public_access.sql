@@ -7,6 +7,7 @@
 
 -- Drop the existing restrictive policy
 DROP POLICY IF EXISTS "Allow all users to read active announcements" ON public.announcements;
+DROP POLICY IF EXISTS "Allow public read access to active announcements" ON public.announcements;
 
 -- Create new policy that allows public read access to active announcements
 CREATE POLICY "Allow public read access to active announcements" ON public.announcements
@@ -23,6 +24,7 @@ CREATE POLICY "Allow public read access to active announcements" ON public.annou
 
 -- Drop the existing restrictive policy
 DROP POLICY IF EXISTS "Allow all users to read active quotes" ON public.quotes;
+DROP POLICY IF EXISTS "Allow public read access to active quotes" ON public.quotes;
 
 -- Create new policy that allows public read access to active quotes
 CREATE POLICY "Allow public read access to active quotes" ON public.quotes

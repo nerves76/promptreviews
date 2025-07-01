@@ -10,6 +10,17 @@ This project is currently focused on developing a standalone widget for collecti
 
 ## Recent Updates (Latest)
 
+### Team Management Feature (January 2025)
+- **Plan-Based User Limits**: Added team management with plan-based user limits (Grower: 1 user, Builder: 3 users, Maven: 5 users)
+- **Account Invitations System**: Implemented invitation system with email-based team member invitations
+- **Team Page UI**: Created comprehensive team management page with members list, invitations, and role management
+- **Database Schema**: Added `max_users` to accounts table and `account_invitations` table with RLS policies
+- **API Routes**: Created `/api/team/members`, `/api/team/invitations`, and `/api/team/invite` endpoints
+- **User Display**: Team members display shows both account owner name (first_name + last_name) and business name
+- **Role Management**: Support for 'owner' and 'member' roles with proper permissions
+- **Invitation Management**: Send, view, and cancel invitations with expiration handling
+- **Plan Enforcement**: Automatic user limit enforcement based on account plan
+
 ### Sticky Style Button for Prompt Page Owners (January 2025)
 - **Added Sticky Style Button**: Logged-in users who own a prompt page now see a sticky "Style" button in the top-left corner
 - **Real-time Style Editing**: Users can edit their prompt page styles directly from the public page and see changes immediately

@@ -59,21 +59,24 @@ export default function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
     setSubmitStatus('idle');
 
     try {
-      // Get the current session
-      const { data: { session }, error: sessionError } = await getSessionOrMock(supabase);
+      // Try to get the current session (optional)
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
-      if (sessionError || !session) {
-        console.error('No session found:', sessionError);
-        setSubmitStatus('error');
-        return;
+      // Prepare headers
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      
+      // Add authorization header if we have a session
+      if (session && !sessionError) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
       }
+
+      // Headers are already prepared above
 
       const response = await fetch('/api/feedback', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        },
+        headers,
         body: JSON.stringify({
           category,
           message: message.trim(),
