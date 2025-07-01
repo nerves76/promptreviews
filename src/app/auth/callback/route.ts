@@ -135,6 +135,7 @@ export async function GET(request: Request) {
     }
 
     // Send welcome email for new users
+    console.log("🔍 Welcome email check:", { isNewUser, email: !!email });
     if (isNewUser && email) {
       try {
         // Extract first name from user metadata or email
@@ -145,12 +146,23 @@ export async function GET(request: Request) {
           firstName = email.split("@")[0];
         }
 
-        await sendWelcomeEmail(email, firstName);
-        console.log("📧 Welcome email sent to:", email);
-      } catch (emailError) {
-        console.error("❌ Error sending welcome email:", emailError);
-        // Don't fail the signup if email fails
-      }
+        console.log("📧 Attempting to send welcome email to:", email, "with name:", firstName);
+        const emailResult = await sendWelcomeEmail(email, firstName);
+        
+        if (emailResult.success) {
+          console.log("✅ Welcome email sent successfully to:", email);
+        } else {
+          console.error("❌ Welcome email failed:", emailResult.error);
+        }
+              } catch (emailError) {
+          console.error("❌ Error sending welcome email:", emailError);
+          if (emailError instanceof Error) {
+            console.error("Email error details:", emailError.message, emailError.stack);
+          }
+          // Don't fail the signup if email fails
+        }
+    } else {
+      console.log("⏭️ Skipping welcome email:", { isNewUser, hasEmail: !!email });
     }
 
     // Wait for the session to be set
