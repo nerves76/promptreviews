@@ -421,7 +421,19 @@ console.log('🔄 Working Multi Widget Script Loading...', new Date().toISOStrin
     console.log('🎯 renderMultiWidget called with', reviews.length, 'reviews');
 
     if (!reviews || reviews.length === 0) {
-      container.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">No reviews to display.</div>';
+      container.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: center; min-height: 200px; color: white; font-size: 18px;">
+          <div style="text-align: center;">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px;">
+              <svg style="width: 24px; height: 24px;" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd" />
+              </svg>
+              <span>Add reviews to your widget</span>
+            </div>
+            <p style="font-size: 14px; opacity: 0.8;">Click talk bubble icon to add and manage reviews.</p>
+          </div>
+        </div>
+      `;
       return;
     }
     

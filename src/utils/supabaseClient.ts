@@ -1,16 +1,39 @@
 /**
- * Supabase Client Singleton
+ * Supabase Client Configuration
  * 
- * This file re-exports the single, shared Supabase client instance from utils/supabase.ts
- * This prevents the "Multiple GoTrueClient instances" warning and ensures proper session persistence.
- * 
- * IMPORTANT: Only use this for client-side operations. For server-side operations, use createServerClient() from utils/supabase.ts.
+ * Centralized Supabase client instance with optimized session handling
+ * to prevent multiple GoTrueClient instances and session conflicts.
  */
 
-import { supabase } from './supabase';
+import { createClient } from '@supabase/supabase-js';
 
-// Re-export the client from the main supabase.ts file to ensure a single instance
-export { supabase };
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-// Export the client as default for convenience
+if (!supabaseUrl) {
+  throw new Error('Missing env.NEXT_PUBLIC_SUPABASE_URL');
+}
+if (!supabaseAnonKey) {
+  throw new Error('Missing env.NEXT_PUBLIC_SUPABASE_ANON_KEY');
+}
+
+// Create a single Supabase client instance with optimized auth configuration
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+    storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+    storageKey: 'promptreviews-auth-token', // Unique storage key to prevent conflicts
+    flowType: 'pkce', // Use PKCE flow for better security
+    debug: process.env.NODE_ENV === 'development',
+  },
+  global: {
+    headers: {
+      'X-Client-Info': 'promptreviews-web',
+    },
+  },
+});
+
+// Re-export for backward compatibility
 export default supabase; 

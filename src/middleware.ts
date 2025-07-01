@@ -35,10 +35,15 @@ export async function middleware(req: NextRequest) {
     },
   );
 
-  // Refresh session if expired - required for Server Components
-  const {
-    data: { session },
-  } = await getSessionOrMock(supabase);
+  // Get session with better error handling
+  let session = null;
+  try {
+    const { data: { session: currentSession } } = await supabase.auth.getSession();
+    session = currentSession;
+  } catch (error) {
+    console.log('Middleware: Session check failed, continuing without session:', error);
+    // Continue without session rather than failing
+  }
 
   // Protect dashboard routes and specific subpages in production only
   const protectedDashboardSubpages = [

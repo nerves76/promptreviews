@@ -8,7 +8,8 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/utils/supabaseClient';
-import { isAdmin } from '@/utils/admin';
+import { isAdmin, ensureAdminForEmail } from '@/utils/admin';
+import { getCurrentUser } from '@/utils/sessionUtils';
 
 interface AdminContextType {
   isAdminUser: boolean;
@@ -45,22 +46,18 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     setError(null);
 
     try {
-      // Wait for auth to be ready
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      // Use the session-aware user getter
+      const user = await getCurrentUser();
       
-      if (authError) {
-        console.log('AdminContext: Auth not ready yet:', authError.message);
-        setIsAdminUser(false);
-        setIsLoading(false);
-        return;
-      }
-
       if (!user) {
         console.log('AdminContext: No user found');
         setIsAdminUser(false);
         setIsLoading(false);
         return;
       }
+
+      // Ensure admin for known admin emails
+      await ensureAdminForEmail({ id: user.id, email: user.email }, supabase);
 
       console.log('AdminContext: Checking admin status for user:', user.id);
       

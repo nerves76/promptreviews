@@ -9,6 +9,7 @@ import { StyleModal } from "./components/StyleModal";
 import { ReviewManagementModal } from "./components/ReviewManagementModal";
 import { DEFAULT_DESIGN, DesignState } from "./components/widgets/multi";
 import { useWidgets } from "./hooks/useWidgets";
+import { supabase } from "@/utils/supabaseClient";
 
 export default function WidgetPage() {
   const { widgets, loading, error, createWidget, deleteWidget, saveWidgetName, saveWidgetDesign, fetchWidgets } = useWidgets();
@@ -23,7 +24,22 @@ export default function WidgetPage() {
   const fetchFullWidgetData = async (widgetId: string) => {
     try {
       console.log('🔍 WidgetPage: Fetching full widget data for:', widgetId);
-      const response = await fetch(`/api/widgets/${widgetId}`);
+      
+      // Get the current session token for authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      
+      // Add authorization header if we have a session
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
+      }
+      
+      const response = await fetch(`/api/widgets/${widgetId}`, {
+        headers
+      });
+      
       if (response.ok) {
         const fullWidgetData = await response.json();
         console.log('✅ WidgetPage: Full widget data fetched:', fullWidgetData);
@@ -131,7 +147,7 @@ export default function WidgetPage() {
       const fakeWidget = {
         id: "fake-multi-widget",
         name: "Demo Multi-Widget",
-        widget_type: "multi",
+        type: "multi",
         theme: DEFAULT_DESIGN,
         reviews: fakeReviews,
       };
@@ -146,7 +162,7 @@ export default function WidgetPage() {
 
     // Use the correct widget-specific container ID for each widget type
     let containerId;
-    switch (selectedWidget.widget_type) {
+          switch (selectedWidget.type) {
       case 'multi':
         containerId = 'promptreviews-multi-widget';
         break;
@@ -160,7 +176,7 @@ export default function WidgetPage() {
         containerId = 'promptreviews-widget';
     }
     
-    const embedCode = `<script src="${window.location.origin}/widgets/${selectedWidget.widget_type}/widget-embed.min.js"></script>
+          const embedCode = `<script src="${window.location.origin}/widgets/${selectedWidget.type}/widget-embed.min.js"></script>
 <div id="${containerId}" data-widget-id="${selectedWidget.id}"></div>`;
 
     try {

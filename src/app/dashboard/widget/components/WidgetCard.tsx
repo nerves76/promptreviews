@@ -8,7 +8,7 @@ interface WidgetCardProps {
   widget: {
     id: string;
     name: string;
-    widget_type: string;
+    type: string;
     theme: any;
   };
   isSelected: boolean;
@@ -46,15 +46,15 @@ export function WidgetCard({
             className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
             style={{
               backgroundColor: 
-                widget.widget_type === 'single' ? '#60A5FA' :
-                widget.widget_type === 'multi' ? '#34D399' :
-                widget.widget_type === 'photo' ? '#A78BFA' : '#6B7280',
+                widget.type === 'single' ? '#60A5FA' :
+                widget.type === 'multi' ? '#34D399' :
+                widget.type === 'photo' ? '#A78BFA' : '#6B7280',
               color: 'white'
             }}
           >
-            {widget.widget_type === 'single' && 'Single Card'}
-            {widget.widget_type === 'multi' && 'Multi Card'}
-            {widget.widget_type === 'photo' && 'Photo'}
+            {widget.type === 'single' && 'Single Card'}
+            {widget.type === 'multi' && 'Multi Card'}
+            {widget.type === 'photo' && 'Photo'}
           </span>
         </div>
         

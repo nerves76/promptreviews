@@ -10,6 +10,14 @@ This project is currently focused on developing a standalone widget for collecti
 
 ## Recent Updates (Latest)
 
+### Sticky Style Button for Prompt Page Owners (January 2025)
+- **Added Sticky Style Button**: Logged-in users who own a prompt page now see a sticky "Style" button in the top-left corner
+- **Real-time Style Editing**: Users can edit their prompt page styles directly from the public page and see changes immediately
+- **Owner-Only Visibility**: Button only appears for authenticated users who own the prompt page (account_id match)
+- **Consistent Design**: Button matches the existing save button styling and positioning
+- **Modal Integration**: Reuses existing StyleModalPage component for consistent editing experience
+- **Responsive Design**: Button adapts to mobile screens and adjusts position when offer banner is visible
+
 ### Sign-Up Flow & Development Server Fixes (January 2025)
 - **Fixed FiveStarSpinner Positioning**: Moved spinner from vertically centered to positioned closer to navigation (48 units from top) for better UX
 - **Fixed Development Server Issues**: Resolved port 3001 conflicts and Sentry integration errors

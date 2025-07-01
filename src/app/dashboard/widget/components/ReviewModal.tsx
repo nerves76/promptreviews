@@ -79,7 +79,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
 
   if (!isOpen) return null;
 
-  const isPhotoWidget = selectedWidget && widgets.find(w => w.id === selectedWidget)?.widget_type === 'photo';
+      const isPhotoWidget = selectedWidget && widgets.find(w => w.id === selectedWidget)?.type === 'photo';
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
