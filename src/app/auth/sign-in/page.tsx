@@ -111,25 +111,13 @@ export default function SignIn() {
           timestamp: new Date().toISOString(),
         });
 
-        try {
-          console.log("Sign-in successful, checking session...");
-          
-          // Get the current session to verify it's set
-          const { data: sessionData } = await supabase.auth.getSession();
-          console.log("Current session:", sessionData);
-          
-          // Set loading to false before redirect
-          setIsLoading(false);
-          
-          console.log("Redirecting to dashboard...");
-          // Use window.location instead of router for more reliable redirect
-          window.location.href = "/dashboard";
-        } catch (redirectError) {
-          console.error("Redirect failed:", redirectError);
-          setError("Sign-in successful but redirect failed. Please try again.");
-          setIsLoading(false);
-          return;
-        }
+        console.log("Sign-in successful, redirecting to dashboard...");
+        
+        // Set loading to false before redirect
+        setIsLoading(false);
+        
+        // Use window.location for immediate redirect
+        window.location.href = "/dashboard";
       }
     } catch (err) {
       console.error("Sign in error:", err);
