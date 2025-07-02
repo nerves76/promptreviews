@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
         role: invitation.role,
         created_at: invitation.created_at,
         expires_at: invitation.expires_at,
-        invited_by: invitation.auth_users?.email,
+        invited_by: invitation.auth_users?.[0]?.email,
         is_expired: new Date(invitation.expires_at) < new Date()
       }))
     });

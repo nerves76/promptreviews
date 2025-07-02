@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
 import { FaCheck, FaRocket, FaUsers, FaCrown, FaStar } from "react-icons/fa";
 import { useAuthGuard } from "@/utils/authGuard";
-import { getUserOrMock } from "@/utils/supabase";
+import { getUserOrMock } from "@/utils/supabaseClient";
 import FiveStarSpinner from "@/app/components/FiveStarSpinner";
 
 interface PricingTier {
@@ -107,7 +107,7 @@ export default function UpgradePage() {
         const now = new Date();
         const trialEnd = account.trial_end ? new Date(account.trial_end) : null;
         const isTrialExpired = trialEnd && now > trialEnd && account.plan === "free" && account.has_had_paid_plan === false;
-        setIsExpired(isTrialExpired);
+        setIsExpired(Boolean(isTrialExpired));
       } catch (err) {
         setError("Failed to fetch current plan");
         console.error("Error fetching plan:", err);

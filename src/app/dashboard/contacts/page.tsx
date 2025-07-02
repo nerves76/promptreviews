@@ -14,7 +14,7 @@ import {
   FaTimesCircle,
   FaTimes,
 } from "react-icons/fa";
-import { getSessionOrMock } from "@/utils/supabase";
+import { getSessionOrMock } from "@/utils/supabaseClient";
 import AppLoader from "@/app/components/AppLoader";
 import PageCard from "@/app/components/PageCard";
 import TopLoaderOverlay from "@/app/components/TopLoaderOverlay";

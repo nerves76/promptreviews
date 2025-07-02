@@ -5,7 +5,7 @@ import Link from "next/link";
 import { createBrowserClient } from "@supabase/ssr";
 import SimpleMarketingNav from "@/app/components/SimpleMarketingNav";
 import { trackSignUp } from '../../../utils/analytics';
-import { supabase } from '../../../utils/supabase';
+import { supabase } from '../../../utils/supabaseClient';
 
 export default function SignUpPage() {
   const [email, setEmail] = useState("");
@@ -145,7 +145,7 @@ export default function SignUpPage() {
       console.log('📝 Form data after validation:', { firstName, lastName, email, password: '***' });
       
       // Always use the current origin for email redirects
-      // This works because both localhost:3001 and app.promptreviews.app are in additional_redirect_urls
+      // This works because both localhost:3002 and app.promptreviews.app are in additional_redirect_urls
       const redirectUrl = `${window.location.origin}/auth/callback`;
 
       console.log('Sign-up redirect URL:', redirectUrl);

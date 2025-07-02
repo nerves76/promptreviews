@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getSessionOrMock } from "@/utils/supabase";
+import { getSessionOrMock } from "@/utils/supabaseClient";
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
@@ -85,7 +85,10 @@ export async function middleware(req: NextRequest) {
   if (req.nextUrl.pathname.startsWith("/api")) {
     if (
       req.nextUrl.pathname === "/api/track-event" ||
-      req.nextUrl.pathname === "/api/track-review"
+      req.nextUrl.pathname === "/api/track-review" ||
+      req.nextUrl.pathname === "/api/force-signin" ||
+      req.nextUrl.pathname === "/api/refresh-session" ||
+      req.nextUrl.pathname === "/api/check-env"
     ) {
       return res;
     }

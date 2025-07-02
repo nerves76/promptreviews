@@ -8,7 +8,7 @@
 import { useState } from 'react';
 import { FaTimes, FaBug, FaLightbulb, FaComment } from 'react-icons/fa';
 import { createBrowserClient } from '@supabase/ssr';
-import { getSessionOrMock } from '../../utils/supabase';
+import { getSessionOrMock } from '@/utils/supabaseClient';
 import { trackEvent } from '../../utils/analytics';
 
 interface FeedbackModalProps {

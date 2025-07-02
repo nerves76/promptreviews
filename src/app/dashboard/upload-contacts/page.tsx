@@ -14,7 +14,7 @@ import {
 } from "react-icons/fa";
 import { Dialog } from "@headlessui/react";
 import { useRouter } from "next/navigation";
-import { getUserOrMock, getSessionOrMock } from "@/utils/supabase";
+import { getUserOrMock, getSessionOrMock } from "@/utils/supabaseClient";
 import AppLoader from "@/app/components/AppLoader";
 
 export default function UploadContactsPage() {

@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "predev": "node scripts/check-migrations.js",
-    "dev": "DISABLE_SENTRY=true next dev -p 3001",
-    "dev:fast": "DISABLE_SENTRY=true NODE_ENV=development next dev -p 3001 --turbo",
+    "dev": "DISABLE_SENTRY=true next dev -p 3002",
+    "dev:fast": "DISABLE_SENTRY=true NODE_ENV=development next dev -p 3002 --turbo",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

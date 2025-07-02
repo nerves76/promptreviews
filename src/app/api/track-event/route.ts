@@ -9,7 +9,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
-import { getUserOrMock } from "@/utils/supabase";
+import { getUserOrMock } from "@/utils/supabaseClient";
 
 export async function POST(req: NextRequest) {
   try {
@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
       getAll: async () => {
         return nextCookies.getAll().map(({ name, value }) => ({ name, value }));
       },
-      setAll: async (cookies) => {
+      setAll: async (cookies: any) => {
         // This is a no-op for server-side operations
         return;
       },

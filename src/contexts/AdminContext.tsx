@@ -57,7 +57,9 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
       }
 
       // Ensure admin for known admin emails
-      await ensureAdminForEmail({ id: user.id, email: user.email }, supabase);
+      if (user.email) {
+        await ensureAdminForEmail({ id: user.id, email: user.email }, supabase);
+      }
 
       console.log('AdminContext: Checking admin status for user:', user.id);
       

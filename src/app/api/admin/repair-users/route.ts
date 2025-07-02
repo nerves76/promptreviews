@@ -10,13 +10,13 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { checkAdminPrivileges } from '@/utils/admin';
+import { isAdmin } from '@/utils/admin';
 
 export async function POST(request: NextRequest) {
   try {
     // Check admin privileges
-    const adminCheck = await checkAdminPrivileges();
-    if (!adminCheck.isAdmin) {
+    const isAdminUser = await isAdmin();
+    if (!isAdminUser) {
       return NextResponse.json(
         { error: 'Admin privileges required' },
         { status: 403 }

@@ -65,7 +65,7 @@ import { getAccessibleColor } from "@/utils/colorUtils";
 import { getFallingIcon, getFallingIconColor } from "@/app/components/prompt-modules/fallingStarsConfig";
 import dynamic from "next/dynamic";
 import { supabase } from "@/utils/supabaseClient";
-import { getUserOrMock } from "@/utils/supabase";
+import { getUserOrMock } from "@/utils/supabaseClient";
 import { getAccountIdForUser } from "@/utils/accountUtils";
 
 const StyleModalPage = dynamic(() => import("../../dashboard/style/StyleModalPage"), { ssr: false });

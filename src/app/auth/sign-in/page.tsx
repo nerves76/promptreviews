@@ -265,21 +265,47 @@ export default function SignIn() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Form submitted, setting loading to true");
     setIsLoading(true);
     setError("");
 
+    // Add a timeout to prevent infinite loading
+    const timeoutId = setTimeout(() => {
+      console.log("Timeout reached, forcing loading to false");
+      setIsLoading(false);
+      setError("Login timed out. Please try again.");
+    }, 10000); // 10 second timeout
+
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      console.log("Starting sign in process...");
+      console.log("Using supabase client:", supabase);
+      console.log("Attempting sign in with email:", formData.email);
+      
+      // Add a timeout to prevent infinite loading
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error("Sign-in timeout")), 15000);
+      });
+      
+      const signInPromise = supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password,
       });
+      
+      const { data, error } = await Promise.race([signInPromise, timeoutPromise]);
+      console.log("Sign in response:", { data, error });
+
+      clearTimeout(timeoutId);
 
       if (error) {
+        console.error("Sign in error:", error);
         setError(error.message);
+        setIsLoading(false);
         return;
       }
 
       if (data.user) {
+        console.log("User signed in successfully:", data.user.id);
+        
         // Track sign in event
         trackEvent(GA_EVENTS.SIGN_IN, {
           method: 'email',
@@ -287,22 +313,29 @@ export default function SignIn() {
         });
 
         try {
-          // Ensure account exists
-          await ensureAccountExists(data.user);
-
-          // Redirect to dashboard
-          router.push("/dashboard");
-          router.refresh();
-        } catch (accountError) {
-          console.error("Account setup failed:", accountError);
-          setError("Account setup failed. Please try again or contact support.");
+          console.log("Sign-in successful, checking session...");
+          
+          // Get the current session to verify it's set
+          const { data: sessionData } = await supabase.auth.getSession();
+          console.log("Current session:", sessionData);
+          
+          // Set loading to false before redirect
+          setIsLoading(false);
+          
+          console.log("Redirecting to dashboard...");
+          // Use window.location instead of router for more reliable redirect
+          window.location.href = "/dashboard";
+        } catch (redirectError) {
+          console.error("Redirect failed:", redirectError);
+          setError("Sign-in successful but redirect failed. Please try again.");
+          setIsLoading(false);
           return;
         }
       }
     } catch (err) {
+      clearTimeout(timeoutId);
       console.error("Sign in error:", err);
       setError("An error occurred during sign in. Please try again.");
-    } finally {
       setIsLoading(false);
     }
   };
@@ -417,6 +450,32 @@ export default function SignIn() {
                 >
                   {isRefreshing ? "Refreshing..." : "Clear session & retry"}
                 </button>
+
+                {/* Temporary debug button */}
+                <button
+                  onClick={async () => {
+                    console.log("Testing direct sign in...");
+                    try {
+                      const { data, error } = await supabase.auth.signInWithPassword({
+                        email: formData.email,
+                        password: formData.password,
+                      });
+                      console.log("Direct sign in result:", { data, error });
+                      if (data?.user) {
+                        window.location.href = "/dashboard";
+                      } else {
+                        setError(error?.message || "Sign in failed");
+                      }
+                    } catch (err) {
+                      console.error("Direct sign in error:", err);
+                      setError("Sign in failed");
+                    }
+                  }}
+                  className="w-full text-sm text-blue-600 hover:text-blue-700 font-medium"
+                >
+                  Test Direct Sign-in
+                </button>
+
               </div>
             </>
           ) : (

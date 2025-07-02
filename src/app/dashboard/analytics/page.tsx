@@ -12,7 +12,7 @@ import {
   FaAngry,
   FaGrinStars,
 } from "react-icons/fa";
-import { getUserOrMock } from "@/utils/supabase";
+import { getUserOrMock } from "@/utils/supabaseClient";
 import { getAccountIdForUser } from "@/utils/accountUtils";
 import { isAdmin } from "@/utils/admin";
 import PageCard from "@/app/components/PageCard";

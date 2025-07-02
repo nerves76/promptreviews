@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/utils/supabase";
-import type { ReviewSubmission } from "@/utils/supabase";
+import { supabase } from "@/utils/supabaseClient";
+import type { ReviewSubmission } from "@/utils/supabaseClient";
 
 interface AnalyticsData {
   totalClicks: number;
