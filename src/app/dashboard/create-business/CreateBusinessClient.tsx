@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FaStore } from "react-icons/fa";
-import { getUserOrMock } from "@/utils/supabase";
+import { getUserOrMock } from "@/utils/supabaseClient";
 import { useAdmin } from "@/contexts/AdminContext";
 import SimpleBusinessForm from "../components/SimpleBusinessForm";
 import AppLoader from "@/app/components/AppLoader";
@@ -120,12 +120,17 @@ export default function CreateBusinessClient() {
     
     // Update account to mark welcome as seen (same as main dashboard)
     if (user && accountId) {
-      supabase
-        .from("accounts")
-        .update({ has_seen_welcome: true })
-        .eq("id", accountId)
-        .then(() => console.log("Welcome popup marked as seen"))
-        .catch((error) => console.error("Error updating welcome status:", error));
+      (async () => {
+        try {
+          await supabase
+            .from("accounts")
+            .update({ has_seen_welcome: true })
+            .eq("id", accountId);
+          console.log("Welcome popup marked as seen");
+        } catch (error) {
+          console.error("Error updating welcome status:", error);
+        }
+      })();
     }
   };
 

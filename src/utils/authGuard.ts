@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/utils/supabaseClient";
-import { getUserOrMock } from "@/utils/supabase";
+import { getUserOrMock } from "@/utils/supabaseClient";
 import { getAccountIdForUser } from "@/utils/accountUtils";
 
 interface AuthGuardOptions {
@@ -62,8 +62,8 @@ export function useAuthGuard(options: AuthGuardOptions = {}): AuthGuardResult {
         if (userError) {
           console.log("Auth guard: User error:", userError);
           // If it's an AuthSessionMissingError, wait a bit more
-          if (userError && typeof userError === 'object' && 'message' in userError && 
-              typeof userError.message === 'string' && userError.message.includes('Auth session missing')) {
+          if (userError && typeof userError === 'object' && 'message' in (userError as any) && 
+              typeof (userError as any).message === 'string' && (userError as any).message.includes('Auth session missing')) {
             console.log("Auth guard: Auth session missing, waiting...");
             await new Promise(resolve => setTimeout(resolve, 1500));
             

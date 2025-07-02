@@ -19,7 +19,7 @@ import { useRouter } from "next/navigation";
 import QRCodeModal from "../components/QRCodeModal";
 import StarfallCelebration from "@/app/components/StarfallCelebration";
 import { supabase } from "@/utils/supabaseClient";
-import { getUserOrMock } from "@/utils/supabase";
+import { getUserOrMock } from "@/utils/supabaseClient";
 import { getAccountIdForUser } from "@/utils/accountUtils";
 
 const StylePage = dynamic(() => import("../dashboard/style/StyleModalPage"), { ssr: false });

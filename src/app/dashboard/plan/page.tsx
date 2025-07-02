@@ -58,7 +58,7 @@ export default function PlanPage() {
       const now = new Date();
       const trialEnd = accountData?.trial_end ? new Date(accountData.trial_end) : null;
       const isTrialExpired = trialEnd && now > trialEnd && accountData?.plan === "free" && accountData?.has_had_paid_plan === false;
-      setIsExpired(isTrialExpired);
+      setIsExpired(Boolean(isTrialExpired));
       
       setIsLoading(false);
     };
@@ -372,12 +372,7 @@ export default function PlanPage() {
 
       {/* Star Animation Overlay */}
       {starAnimation && (
-        <TopLoaderOverlay
-          message="Setting up your account..."
-          onComplete={() => {
-            setStarAnimation(false);
-          }}
-        />
+        <TopLoaderOverlay />
       )}
     </>
   );

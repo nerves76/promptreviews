@@ -100,22 +100,22 @@ export async function GET(request: NextRequest) {
       members: members.map(member => ({
         user_id: member.user_id,
         role: member.role,
-        email: member.auth_users?.email,
-        first_name: member.accounts?.first_name || '',
-        last_name: member.accounts?.last_name || '',
-        business_name: member.accounts?.business_name || '',
+        email: member.auth_users?.[0]?.email,
+        first_name: member.accounts?.[0]?.first_name || '',
+        last_name: member.accounts?.[0]?.last_name || '',
+        business_name: member.accounts?.[0]?.business_name || '',
         created_at: member.created_at,
         is_current_user: member.user_id === user.id
       })),
       account: {
-        id: accountUser.accounts.id,
-        first_name: accountUser.accounts.first_name,
-        last_name: accountUser.accounts.last_name,
-        business_name: accountUser.accounts.business_name,
-        plan: accountUser.accounts.plan,
-        max_users: accountUser.accounts.max_users,
+        id: accountUser.accounts?.[0]?.id,
+        first_name: accountUser.accounts?.[0]?.first_name,
+        last_name: accountUser.accounts?.[0]?.last_name,
+        business_name: accountUser.accounts?.[0]?.business_name,
+        plan: accountUser.accounts?.[0]?.plan,
+        max_users: accountUser.accounts?.[0]?.max_users,
         current_users: userCount || members.length,
-        can_add_more: (userCount || members.length) < accountUser.accounts.max_users
+        can_add_more: (userCount || members.length) < (accountUser.accounts?.[0]?.max_users ?? 0)
       },
       current_user_role: accountUser.role
     });

@@ -23,7 +23,7 @@ import {
   MdVideoLibrary,
   MdPhotoCamera,
 } from "react-icons/md";
-import { getUserOrMock } from "@/utils/supabase";
+import { getUserOrMock } from "@/utils/supabaseClient";
 import QRCodeModal from "../components/QRCodeModal";
 import QuoteDisplay from "../components/QuoteDisplay";
 import GettingStarted from "../components/GettingStarted";

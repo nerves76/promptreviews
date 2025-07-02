@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/utils/supabase";
+import { supabase } from "@/utils/supabaseClient";
 import OpenAI from "openai";
 
 export async function POST(request: Request) {

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/utils/supabaseClient";
-import { getUserOrMock } from "@/utils/supabase";
+import { getUserOrMock } from "@/utils/supabaseClient";
 import { getAccountIdForUser } from "@/utils/accountUtils";
 import { useRouter } from "next/navigation";
 import AppLoader from "@/app/components/AppLoader";

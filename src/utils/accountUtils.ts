@@ -5,7 +5,7 @@
 
 import { SupabaseClient } from '@supabase/supabase-js';
 import { createClient } from "@supabase/supabase-js";
-import { getUserOrMock } from "./supabase";
+import { getUserOrMock } from "./supabaseClient";
 
 export interface AccountUser {
   account_id: string;
@@ -47,7 +47,7 @@ export async function getUserAccounts(
     throw error;
   }
 
-  return data?.map(item => item.accounts).filter(Boolean) || [];
+  return data?.map(item => item.accounts).filter(Boolean).flat() || [];
 }
 
 /**

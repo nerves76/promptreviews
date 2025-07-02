@@ -102,9 +102,9 @@ export async function POST(request: NextRequest) {
         { 
           error: 'User limit reached',
           details: {
-            current_users: accountUser.accounts.max_users,
-            max_users: accountUser.accounts.max_users,
-            plan: accountUser.accounts.plan
+            current_users: accountUser.accounts?.[0]?.max_users,
+            max_users: accountUser.accounts?.[0]?.max_users,
+            plan: accountUser.accounts?.[0]?.plan
           }
         },
         { status: 400 }
@@ -112,13 +112,21 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user is already a member
+    const { data: usersList, error: usersListError } = await supabase.auth.admin.listUsers();
+    if (usersListError) {
+      return NextResponse.json(
+        { error: 'Failed to fetch users', details: usersListError },
+        { status: 500 }
+      );
+    }
+    const foundUser = usersList.users.find(u => u.email === email.trim());
+    const foundUserId = foundUser?.id;
+
     const { data: existingMember, error: memberCheckError } = await supabase
       .from('account_users')
       .select('user_id')
       .eq('account_id', accountUser.account_id)
-      .eq('user_id', (
-        await supabase.auth.admin.getUserByEmail(email.trim())
-      ).data.user?.id)
+      .eq('user_id', foundUserId || '')
       .single();
 
     if (existingMember) {
