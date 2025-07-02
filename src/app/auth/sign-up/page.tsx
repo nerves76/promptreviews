@@ -232,7 +232,7 @@ export default function SignUpPage() {
         // Show email confirmation message
         console.log('✅ Account created successfully');
         setEmailSent(true);
-        setMessage('✅ Account created successfully! Please check your email and click the confirmation link to activate your account.');
+        setMessage('Please check your email and click the confirmation link to activate your account.');
         
         // Track sign up event
         console.log('📊 Tracking sign up event...');
