@@ -77,26 +77,26 @@ export default function SignIn() {
     try {
       console.log("📧 Attempting sign in with email:", formData.email);
       
-      // Check if user is already signed in
-      const { data: { session: existingSession } } = await supabase.auth.getSession();
-      if (existingSession && existingSession.user) {
-        console.log("ℹ️  User already has active session, redirecting to dashboard...");
-        router.push("/dashboard");
-        return;
-      }
+      // Skip session check for now to debug the issue
+      console.log("🔍 Skipping session check, proceeding with sign-in...");
       
       // Use the singleton Supabase client for sign-in
+      console.log("🔐 Starting signInWithPassword call...");
       const { data, error } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password,
       });
+      
+      console.log("🔄 signInWithPassword completed, data:", data, "error:", error);
 
       if (error) {
-        throw new Error(error.message);
+        console.error("❌ Sign in failed:", error.message);
+        setError(error.message);
+        return;
       }
 
       if (data.user && data.session) {
-        console.log("✅ Sign-in successful!");
+        console.log("✅ Sign in successful! User:", data.user.email);
         console.log("👤 User ID:", data.user.id);
         console.log("🔑 Session expires:", new Date(data.session.expires_at! * 1000).toISOString());
         
@@ -110,10 +110,9 @@ export default function SignIn() {
           console.warn("Analytics tracking failed:", trackError);
         }
 
-        // Use Next.js router for navigation instead of window.location
-        console.log("🚀 Redirecting to dashboard...");
+        console.log("🔄 Redirecting to dashboard...");
         router.push("/dashboard");
-        
+        return;
       } else {
         throw new Error('Sign in failed - no user data or session returned');
       }
