@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { createBrowserClient } from '@supabase/ssr';
+import { supabase } from '@/utils/supabaseClient';
 import { MAX_WIDGET_REVIEWS } from '@/lib/constants';
 import { ReviewList } from './ReviewList';
 import { PhotoUpload } from './PhotoUpload';

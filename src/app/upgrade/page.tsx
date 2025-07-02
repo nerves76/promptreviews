@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { createBrowserClient } from "@supabase/ssr";
+import { supabase } from "@/utils/supabaseClient";
 import { FaCheck, FaRocket, FaUsers, FaCrown, FaStar } from "react-icons/fa";
 import { useAuthGuard } from "@/utils/authGuard";
 import { getUserOrMock } from "@/utils/supabaseClient";
@@ -81,10 +81,7 @@ export default function UpgradePage() {
   const [error, setError] = useState<string | null>(null);
   const [isExpired, setIsExpired] = useState(false);
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  );
+  // Using singleton Supabase client from supabaseClient.ts
 
   useEffect(() => {
     const fetchCurrentPlan = async () => {

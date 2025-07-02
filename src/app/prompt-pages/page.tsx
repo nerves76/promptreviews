@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { useRef } from "react";
-import { createBrowserClient } from "@supabase/ssr";
+import { supabase } from "@/utils/supabaseClient";
 import Link from "next/link";
 import { FaGlobe, FaLink, FaTimes, FaPalette, FaPlus, FaCheck } from "react-icons/fa";
 import { MdDownload } from "react-icons/md";

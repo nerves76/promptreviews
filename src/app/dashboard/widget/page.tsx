@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useMemo } from "react";
-import { createBrowserClient } from "@supabase/ssr";
+import { supabase } from "@/utils/supabaseClient";
 import WidgetList from "./WidgetList";
 import PageCard from "@/app/components/PageCard";
 import { FaPlus, FaEdit, FaRegComment, FaCode, FaCheck } from "react-icons/fa";
