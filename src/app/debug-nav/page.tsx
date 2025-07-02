@@ -6,10 +6,11 @@ import { supabase } from '@/utils/supabaseClient';
 import { getUserOrMock } from '@/utils/supabaseClient';
 import { getAccountIdForUser } from '@/utils/accountUtils';
 
-export default function DebugNavPage() {
+export default function DebugNav() {
   const { hasBusiness, loading, refresh } = useBusinessProfile();
   const [debugInfo, setDebugInfo] = useState<any>({});
   const [isChecking, setIsChecking] = useState(false);
+  const [result, setResult] = useState("");
 
   const manualCheck = async () => {
     setIsChecking(true);
@@ -59,50 +60,101 @@ export default function DebugNavPage() {
     }));
   };
 
+  const forceShowPlanModal = () => {
+    // Force trigger the plan selection modal
+    window.location.href = "/dashboard?businessCreated=true";
+  };
+
+  const clearAllStorageFlags = () => {
+    if (typeof window !== "undefined") {
+      // Clear any leftover localStorage flags
+      localStorage.removeItem("showBusinessCreatedCelebration");
+      localStorage.removeItem("showPlanSuccess");
+      localStorage.removeItem("showPostSaveModal");
+      
+      setResult("✅ Cleared all localStorage flags");
+    }
+  };
+
+  const refreshNavigation = () => {
+    // Force refresh business profile in Header
+    window.dispatchEvent(new CustomEvent('businessCreated'));
+    window.dispatchEvent(new CustomEvent('planSelected', { detail: { plan: 'grower' } }));
+    
+    setResult("✅ Dispatched navigation refresh events");
+  };
+
   useEffect(() => {
     manualCheck();
   }, []);
 
   return (
-    <div className="max-w-4xl mx-auto p-8">
-      <h1 className="text-3xl font-bold mb-6">Navigation Debug Page</h1>
-      
-      <div className="bg-white rounded-lg shadow p-6 mb-6">
-        <h2 className="text-xl font-semibold mb-4">Current Navigation State</h2>
-        <div className="space-y-2">
-          <p><strong>Has Business:</strong> {hasBusiness ? '✅ Yes' : '❌ No'}</p>
-          <p><strong>Loading:</strong> {loading ? '⏳ Yes' : '✅ No'}</p>
-        </div>
-      </div>
+    <div className="min-h-screen bg-gray-50 p-8">
+      <div className="max-w-2xl mx-auto">
+        <h1 className="text-3xl font-bold mb-8">🐛 Navigation Debug Tools</h1>
+        
+        <div className="space-y-4">
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h2 className="text-xl font-semibold mb-4">Quick Fixes for Existing Account</h2>
+            
+            <div className="space-y-3">
+              <button
+                onClick={forceShowPlanModal}
+                className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
+              >
+                🎯 Force Show Plan Selection Modal
+              </button>
+              
+              <button
+                onClick={clearAllStorageFlags}
+                className="w-full bg-yellow-600 text-white py-2 px-4 rounded hover:bg-yellow-700"
+              >
+                🧹 Clear All Storage Flags
+              </button>
+              
+              <button
+                onClick={refreshNavigation}
+                className="w-full bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700"
+              >
+                🔄 Force Navigation Refresh
+              </button>
+            </div>
+          </div>
+          
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h2 className="text-xl font-semibold mb-4">Authentication Diagnostics</h2>
+            <p className="text-gray-600 mb-4">
+              Test authentication directly to diagnose login issues.
+            </p>
+            
+            <button
+              onClick={() => window.location.href = "/auth-test"}
+              className="w-full bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-700 mb-3"
+            >
+              🔐 Test Authentication
+            </button>
+            
+            <button
+              onClick={() => window.location.href = "/debug-cookies"}
+              className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 mb-3"
+            >
+              🍪 Debug Cookies
+            </button>
+            
+            <button
+              onClick={() => window.location.href = "/sign-out"}
+              className="w-full bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700"
+            >
+              🚪 Sign Out & Start Fresh
+            </button>
+          </div>
 
-      <div className="bg-white rounded-lg shadow p-6 mb-6">
-        <h2 className="text-xl font-semibold mb-4">Manual Actions</h2>
-        <div className="space-x-4">
-          <button 
-            onClick={triggerRefresh}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            🔄 Force Refresh Navigation
-          </button>
-          <button 
-            onClick={manualCheck}
-            disabled={isChecking}
-            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50"
-          >
-            {isChecking ? '⏳ Checking...' : '🔍 Manual Business Check'}
-          </button>
+          {result && (
+            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+              {result}
+            </div>
+          )}
         </div>
-      </div>
-
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold mb-4">Debug Information</h2>
-        <pre className="bg-gray-100 p-4 rounded text-sm overflow-auto">
-          {JSON.stringify(debugInfo, null, 2)}
-        </pre>
-      </div>
-      
-      <div className="mt-6">
-        <a href="/dashboard" className="text-blue-600 underline">← Back to Dashboard</a>
       </div>
     </div>
   );
