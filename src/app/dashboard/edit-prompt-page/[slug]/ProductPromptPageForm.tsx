@@ -24,7 +24,7 @@ import OfferSection from "../components/OfferSection";
 import DisableAIGenerationSection from "@/app/components/DisableAIGenerationSection";
 import Cropper from "react-easy-crop";
 import type { Area } from "react-easy-crop";
-import { createBrowserClient } from "@supabase/ssr";
+import { supabase } from "@/utils/supabaseClient";
 import SectionHeader from "@/app/components/SectionHeader";
 
 export interface ProductPromptFormState {
@@ -135,10 +135,7 @@ const ProductPromptPageForm = forwardRef<any, ProductPromptPageFormProps>(
     const [rawProductPhotoFile, setRawProductPhotoFile] = useState<File | null>(
       null,
     );
-    const supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    );
+    // Using singleton Supabase client from supabaseClient.ts
 
     const handleEmojiLabelChange = (index: number, val: string) => {
       setEmojiLabels((labels) => labels.map((l, i) => (i === index ? val : l)));
