@@ -20,7 +20,6 @@ export default function SignIn() {
   const [resetEmail, setResetEmail] = useState("");
   const [resetMessage, setResetMessage] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isForceSigningIn, setIsForceSigningIn] = useState(false);
   const [isClient, setIsClient] = useState(false);
 
   // Ensure we're on the client side before accessing browser APIs
@@ -78,223 +77,23 @@ export default function SignIn() {
     }
   };
 
-  const handleForceSignIn = async () => {
-    setIsForceSigningIn(true);
-    setError("");
-    
-    try {
-      const response = await fetch('/api/force-signin', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-        }),
-      });
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        // Success! Now set the session in the browser
-        const user = data.data.user;
-        const session = data.data.session;
-        
-        // Set the session in the Supabase client
-        if (session) {
-          const { error: setSessionError } = await supabase.auth.setSession({
-            access_token: session.access_token,
-            refresh_token: session.refresh_token,
-          });
-
-          if (setSessionError) {
-            console.error('Error setting session:', setSessionError);
-            setError("Failed to set session. Please try again.");
-            return;
-          }
-        }
-        
-        // Track sign in event
-        trackEvent(GA_EVENTS.SIGN_IN, {
-          method: 'email',
-          timestamp: new Date().toISOString(),
-        });
-
-        // Check if account exists and create if needed
-        try {
-          const { data: accountData, error: accountError } = await supabase
-            .from("accounts")
-            .select("*")
-            .eq("id", user.id)
-            .single();
-
-          if (accountError && accountError.code !== "PGRST116") {
-            console.error("Account check error:", accountError);
-          }
-
-          // If no account exists, create one
-          if (!accountData) {
-            const firstName = user.user_metadata?.first_name || "";
-            const lastName = user.user_metadata?.last_name || "";
-            const email = user.email || "";
-            const { error: createError } = await supabase
-              .from("accounts")
-              .insert({
-                id: user.id,
-                email,
-                trial_start: new Date().toISOString(),
-                trial_end: new Date(
-                  Date.now() + 14 * 24 * 60 * 60 * 1000,
-                ).toISOString(),
-                is_free_account: false,
-                custom_prompt_page_count: 0,
-                contact_count: 0,
-                first_name: firstName,
-                last_name: lastName,
-              });
-
-            if (createError) {
-              console.error("Account creation error:", createError);
-            }
-          }
-
-          // Ensure account_users row exists
-          const { error: upsertAccountUserError } = await supabase
-            .from("account_users")
-            .upsert(
-              {
-                user_id: user.id,
-                account_id: user.id,
-                role: "owner",
-              },
-              {
-                onConflict: "user_id,account_id",
-                ignoreDuplicates: true,
-              }
-            );
-
-          if (upsertAccountUserError) {
-            console.error("Account user upsert error:", upsertAccountUserError);
-          }
-        } catch (err) {
-          console.error("Account setup error:", err);
-        }
-
-        // Wait for the session to be set
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        // Redirect to dashboard
-        router.push("/dashboard");
-        router.refresh();
-      } else {
-        setError(data.error || "Force sign-in failed. Please try again.");
-      }
-    } catch (err) {
-      console.error('Error during force sign-in:', err);
-      setError("Force sign-in failed. Please try again.");
-    } finally {
-      setIsForceSigningIn(false);
-    }
-  };
-
-  const ensureAccountExists = async (user: any) => {
-    try {
-      const { data: accountData, error: accountError } = await supabase
-        .from("accounts")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-
-      if (accountError && accountError.code !== "PGRST116") {
-        console.error("Account check error:", accountError);
-        throw accountError; // Re-throw the error so handleSubmit can catch it
-      }
-
-      // If no account exists, create one
-      if (!accountData) {
-        const firstName = user.user_metadata?.first_name || "";
-        const lastName = user.user_metadata?.last_name || "";
-        const email = user.email || "";
-        const { error: createError } = await supabase
-          .from("accounts")
-          .insert({
-            id: user.id,
-            email,
-            trial_start: new Date().toISOString(),
-            trial_end: new Date(
-              Date.now() + 14 * 24 * 60 * 60 * 1000,
-            ).toISOString(),
-            is_free_account: false,
-            custom_prompt_page_count: 0,
-            contact_count: 0,
-            first_name: firstName,
-            last_name: lastName,
-          });
-
-        if (createError) {
-          console.error("Account creation error:", createError);
-          throw createError; // Re-throw the error so handleSubmit can catch it
-        }
-      }
-
-      // Ensure account_users row exists
-      const { error: upsertAccountUserError } = await supabase
-        .from("account_users")
-        .upsert(
-          {
-            user_id: user.id,
-            account_id: user.id,
-            role: "owner",
-          },
-          {
-            onConflict: "user_id,account_id",
-            ignoreDuplicates: true,
-          }
-        );
-
-      if (upsertAccountUserError) {
-        console.error("Account user upsert error:", upsertAccountUserError);
-        throw upsertAccountUserError; // Re-throw the error so handleSubmit can catch it
-      }
-    } catch (err) {
-      console.error("Account setup error:", err);
-      throw err; // Re-throw the error so handleSubmit can catch it
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Form submitted, setting loading to true");
     setIsLoading(true);
     setError("");
 
-    // Add a timeout to prevent infinite loading
-    const timeoutId = setTimeout(() => {
-      console.log("Timeout reached, forcing loading to false");
-      setIsLoading(false);
-      setError("Login timed out. Please try again.");
-    }, 10000); // 10 second timeout
-
     try {
       console.log("Starting sign in process...");
       console.log("Using supabase client:", supabase);
       console.log("Attempting sign in with email:", formData.email);
       
-      // Add a timeout to prevent infinite loading
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error("Sign-in timeout")), 15000);
-      });
-      
-      const signInPromise = supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password,
       });
       
-      const { data, error } = await Promise.race([signInPromise, timeoutPromise]);
       console.log("Sign in response:", { data, error });
-
-      clearTimeout(timeoutId);
 
       if (error) {
         console.error("Sign in error:", error);
@@ -333,7 +132,6 @@ export default function SignIn() {
         }
       }
     } catch (err) {
-      clearTimeout(timeoutId);
       console.error("Sign in error:", err);
       setError("An error occurred during sign in. Please try again.");
       setIsLoading(false);
@@ -450,32 +248,6 @@ export default function SignIn() {
                 >
                   {isRefreshing ? "Refreshing..." : "Clear session & retry"}
                 </button>
-
-                {/* Temporary debug button */}
-                <button
-                  onClick={async () => {
-                    console.log("Testing direct sign in...");
-                    try {
-                      const { data, error } = await supabase.auth.signInWithPassword({
-                        email: formData.email,
-                        password: formData.password,
-                      });
-                      console.log("Direct sign in result:", { data, error });
-                      if (data?.user) {
-                        window.location.href = "/dashboard";
-                      } else {
-                        setError(error?.message || "Sign in failed");
-                      }
-                    } catch (err) {
-                      console.error("Direct sign in error:", err);
-                      setError("Sign in failed");
-                    }
-                  }}
-                  className="w-full text-sm text-blue-600 hover:text-blue-700 font-medium"
-                >
-                  Test Direct Sign-in
-                </button>
-
               </div>
             </>
           ) : (
