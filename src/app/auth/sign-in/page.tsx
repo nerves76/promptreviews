@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { supabase } from "@/utils/supabaseClient";
+import { supabase, clearAuthSession } from "@/utils/supabaseClient";
 import { trackEvent, GA_EVENTS } from '../../../utils/analytics';
 import SimpleMarketingNav from "@/app/components/SimpleMarketingNav";
 
@@ -31,15 +31,9 @@ export default function SignIn() {
     setError("");
     
     try {
-      // Clear any local storage that might be cached
-      if (isClient) {
-        localStorage.removeItem('supabase.auth.token');
-        localStorage.removeItem('supabase.auth.expires_at');
-        localStorage.removeItem('supabase.auth.refresh_token');
-        sessionStorage.removeItem('supabase.auth.token');
-        sessionStorage.removeItem('supabase.auth.expires_at');
-        sessionStorage.removeItem('supabase.auth.refresh_token');
-      }
+      // Clear session using the new utility
+      clearAuthSession();
+      await supabase.auth.signOut();
       
       setError("Session cleared! Please try signing in again.");
       setFormData({ email: "", password: "" });
@@ -54,54 +48,54 @@ export default function SignIn() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted, setting loading to true");
+    console.log("🚀 Starting sign in process...");
     setIsLoading(true);
     setError("");
 
     try {
-      console.log("Starting sign in process...");
-      console.log("Attempting sign in with email:", formData.email);
+      console.log("📧 Attempting sign in with email:", formData.email);
       
-      // Use a direct API call instead of Supabase client
-      const response = await fetch('/api/auth/signin', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-        }),
+      // Clear any existing session first to avoid conflicts
+      await supabase.auth.signOut();
+      
+      // Use the singleton Supabase client
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
       });
-      
-      const data = await response.json();
-      console.log("Sign in response:", data);
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Sign in failed');
+      if (error) {
+        throw new Error(error.message);
       }
 
-      if (data.success) {
-        console.log("User signed in successfully");
+      if (data.user && data.session) {
+        console.log("✅ Sign-in successful!");
+        console.log("👤 User ID:", data.user.id);
+        console.log("🔑 Session expires:", new Date(data.session.expires_at! * 1000).toISOString());
         
         // Track sign in event
-        trackEvent(GA_EVENTS.SIGN_IN, {
-          method: 'email',
-          timestamp: new Date().toISOString(),
-        });
+        try {
+          trackEvent(GA_EVENTS.SIGN_IN, {
+            method: 'email',
+            timestamp: new Date().toISOString(),
+          });
+        } catch (trackError) {
+          console.warn("Analytics tracking failed:", trackError);
+        }
 
-        console.log("Sign-in successful, redirecting to dashboard...");
+        // Wait for session to be properly persisted, then redirect
+        console.log("🚀 Redirecting to dashboard...");
         
-        // Set loading to false before redirect
-        setIsLoading(false);
+        // Use a longer delay to ensure session persistence
+        setTimeout(() => {
+          window.location.href = "/dashboard";
+        }, 200);
         
-        // Use window.location for immediate redirect
-        window.location.href = "/dashboard";
       } else {
-        throw new Error(data.error || 'Sign in failed');
+        throw new Error('Sign in failed - no user data or session returned');
       }
     } catch (err) {
-      console.error("Sign in error:", err);
+      console.error("❌ Sign in error:", err);
       setError(err instanceof Error ? err.message : "An error occurred during sign in. Please try again.");
       setIsLoading(false);
     }

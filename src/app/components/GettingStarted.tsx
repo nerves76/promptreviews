@@ -10,7 +10,7 @@ import React, { useState, useEffect } from "react";
 import { FaCheck, FaBusinessTime, FaPalette, FaCog, FaPlus, FaShare } from "react-icons/fa";
 import Link from "next/link";
 import { fetchOnboardingTasks, markTaskAsCompleted, markTaskAsIncomplete } from "@/utils/onboardingTasks";
-import { createBrowserClient } from '@supabase/ssr';
+import { supabase } from '@/utils/supabaseClient';
 
 interface GettingStartedProps {
   onComplete?: () => void;
@@ -47,10 +47,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
 
       try {
         // Get the authentication token from Supabase
-        const supabase = createBrowserClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-        );
+        // Using singleton Supabase client from supabaseClient.ts
         
         // Wait for session to be available
         let retries = 0;

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState, useRef, useCallback } from "react";
-import { createBrowserClient } from "@supabase/ssr";
+import { supabase } from "@/utils/supabaseClient";
 import PricingModal from "../../components/PricingModal";
 import AppLoader from "@/app/components/AppLoader";
 import { useRouter } from "next/navigation";
@@ -22,10 +22,7 @@ export default function PlanPage() {
   const [isExpired, setIsExpired] = useState(false);
   const prevPlanRef = useRef<string | null>(null);
   const router = useRouter();
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  // Using singleton Supabase client from supabaseClient.ts
 
   useEffect(() => {
     const fetchAccount = async () => {

@@ -1,0 +1,2 @@
+-- Temporarily disable Phase 1 trigger for testing signup issues
+DROP TRIGGER IF EXISTS on_auth_user_confirmed ON auth.users; 

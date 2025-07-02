@@ -5,13 +5,8 @@
  * Provides functions to fetch, mark as complete, and check completion status.
  */
 
-import { createBrowserClient } from '@supabase/ssr';
+import { supabase } from '@/utils/supabaseClient';
 import { getAccountIdForUser } from './accountUtils';
-
-const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 export interface OnboardingTask {
   id: string;

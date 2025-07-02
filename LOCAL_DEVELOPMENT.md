@@ -6,17 +6,34 @@ This document explains how to set up and run the PromptReviews application for l
 
 ## Database Setup
 
-**Important**: This application uses the **production Supabase database** for all environments (local and production). We do not use a local database instance.
+This application supports both **local Supabase database** (recommended for development) and **remote Supabase database** configurations.
+
+### Local Development (Recommended)
+
+For local development, use the local Supabase instance:
+
+```bash
+# Start local Supabase services
+supabase start
+
+# Check status
+supabase status
+```
 
 ### Environment Variables
 
 Create a `.env.local` file in the root directory with the following variables:
 
 ```bash
-# Supabase Configuration (Production Database)
-NEXT_PUBLIC_SUPABASE_URL=https://kkejemfchqaprtihvgon.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
+# For Local Development (when using supabase start)
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
+
+# For Remote Development (optional - when connecting directly to production)
+# NEXT_PUBLIC_SUPABASE_URL=https://kkejemfchqaprtihvgon.supabase.co
+# NEXT_PUBLIC_SUPABASE_ANON_KEY=your_remote_anon_key_here
+# SUPABASE_SERVICE_ROLE_KEY=your_remote_service_role_key_here
 
 # Application URL
 NEXT_PUBLIC_APP_URL=http://localhost:3001
@@ -24,52 +41,43 @@ NEXT_PUBLIC_APP_URL=http://localhost:3001
 # Other required variables...
 ```
 
-## Email Confirmation Bypass
+## Email Confirmation
 
-### How It Works
+### Local Development
 
-Since we use the production Supabase database for all environments, email confirmations are always enabled on the server side. However, we've implemented a **local development bypass** for convenience:
+When using the local Supabase instance, email confirmations are **disabled by default** in `supabase/config.toml`:
 
-1. **Local Development** (`localhost:3001` or `127.0.0.1`):
-   - Users can sign in immediately after account creation
-   - A friendly message explains that email confirmation is bypassed
-   - No actual email confirmation is required
+```toml
+[auth.email]
+# If enabled, users need to confirm their email address before signing in.
+enable_confirmations = false
+```
 
-2. **Production** (`app.promptreviews.app`):
-   - Normal email confirmation flow
-   - Users must confirm their email before signing in
+This means:
+- ✅ Users can sign in immediately after account creation
+- ✅ No email confirmation required locally
+- ✅ Simplified development workflow
 
-### Implementation Details
+### Production
 
-The bypass is implemented in `src/app/auth/sign-up/page.tsx` and uses the `/api/force-signin` endpoint:
+In production, email confirmations are enabled:
+- ✅ Normal email confirmation flow
+- ✅ Users must confirm their email before signing in
+- ✅ Real emails sent via configured SMTP
 
-```typescript
-// LOCAL DEVELOPMENT EMAIL BYPASS
-// Since we use production Supabase for all environments, email confirmations
-// are always enabled on the server side. However, for local development,
-// we use the force-signin API to automatically confirm the user's email
-// and sign them in immediately.
-const isLocalDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+### Database Migrations
 
-if (isLocalDevelopment) {
-  // Local development: Use force-signin API to confirm email and sign in user
-  const forceSignInResponse = await fetch('/api/force-signin', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
-  });
-  
-  if (forceSignInResponse.ok) {
-    // User is automatically signed in and redirected to dashboard
-    window.location.href = '/dashboard';
-  } else {
-    // Fallback: Show sign-in message
-    setMessage('✅ Account created successfully! You can now sign in with your credentials.');
-  }
-} else {
-  // Production: Normal email confirmation flow
-  setMessage('📧 Account created! Please check your email and click the confirmation link to activate your account.');
-}
+When developing locally, use the standard Supabase migration workflow:
+
+```bash
+# Reset local database with all migrations
+supabase db reset
+
+# Apply new migrations to local database
+supabase db reset
+
+# Push migrations to remote database (production)
+supabase db push
 ```
 
 ## Running the Application
@@ -79,13 +87,24 @@ if (isLocalDevelopment) {
    npm install
    ```
 
-2. **Start the development server:**
+2. **Start local Supabase services:**
+   ```bash
+   supabase start
+   ```
+
+3. **Verify Supabase is running:**
+   ```bash
+   supabase status
+   ```
+
+4. **Start the development server:**
    ```bash
    npm run dev
    ```
 
-3. **Access the application:**
+5. **Access the application:**
    - Local: http://localhost:3001
+   - Local Supabase Studio: http://127.0.0.1:54323
    - Network: http://192.168.x.x:3001
 
 ## Development Workflow
@@ -95,52 +114,95 @@ if (isLocalDevelopment) {
 For local development testing:
 
 1. **Create a new account** using the sign-up form
-2. **Automatic sign-in** - You'll be automatically signed in and redirected to the dashboard
+2. **Immediate sign-in** - No email confirmation required locally
 3. **Test all features** with the created account
 
-**Note**: The sign-up process now uses the force-signin API to automatically confirm your email and sign you in immediately for local development.
+### Local Database Management
 
-### Manual Email Confirmation (if needed)
+```bash
+# Reset local database (applies all migrations)
+supabase db reset
 
-If you need to test the email confirmation flow:
+# View local database in Studio
+open http://127.0.0.1:54323
 
-1. Go to the [Supabase Dashboard](https://supabase.com/dashboard)
-2. Navigate to Authentication > Users
-3. Find your test user
-4. Click "Confirm" to manually confirm the email
+# Check migration status
+supabase migration list
+
+# Generate new migration
+supabase migration new <migration_name>
+```
+
+### Deploying Changes
+
+1. **Test locally first:**
+   ```bash
+   supabase db reset
+   npm run dev
+   ```
+
+2. **Push to production:**
+   ```bash
+   supabase db push
+   ```
 
 ## Important Notes
 
-- **No local database**: We use the production Supabase instance for all environments
-- **Email bypass**: Only affects the user experience, not the actual database behavior
-- **Environment detection**: Based on `window.location.hostname`
-- **Production behavior**: Unchanged - users still need email confirmation in production
+- **Local database recommended**: Use `supabase start` for development
+- **Migration-first workflow**: Always create migrations for schema changes
+- **Email confirmations disabled locally**: Simplifies development workflow
+- **Production parity**: Local Supabase mirrors production configuration
+- **Environment variables**: Use local URLs when developing with `supabase start`
 
 ## Troubleshooting
 
 ### "Invalid login credentials" error
 
 This usually means:
-1. The user account doesn't exist in the production database
+1. The user account doesn't exist in the local database
 2. The password is incorrect
-3. The account was created but not properly saved
+3. The local database needs to be reset
 
-**Solution**: Create a new account using the sign-up form.
+**Solution**: 
+```bash
+supabase db reset
+# Then create a new account using the sign-up form
+```
 
-### Email confirmation links pointing to production
+### Local Supabase not starting
 
-This is expected behavior since we use the production Supabase instance. The local development bypass handles this by allowing immediate sign-in.
+If `supabase start` fails:
+1. Check Docker is running
+2. Check if ports 54321-54326 are available
+3. Try stopping and restarting:
+   ```bash
+   supabase stop
+   supabase start
+   ```
+
+### Migration sync issues
+
+If you get migration history errors:
+```bash
+# Reset local to match migrations
+supabase db reset
+
+# Or repair migration history
+supabase migration repair --status applied <migration_name>
+```
 
 ## File Structure
 
-- `src/app/auth/sign-up/page.tsx` - Contains the email bypass logic
-- `src/utils/supabase.ts` - Supabase client configuration
+- `src/app/auth/sign-up/page.tsx` - User registration form
+- `src/utils/supabaseClient.ts` - Supabase client configuration
 - `.env.local` - Environment variables (not committed to git)
-- `supabase/config.toml` - Local Supabase configuration (not used for database)
+- `supabase/config.toml` - Local Supabase configuration
+- `supabase/migrations/` - Database migration files
 
 ## Security Considerations
 
-- The email bypass only affects the user interface
-- Server-side email confirmation is still enabled
-- Production users must still confirm their email
-- The bypass is only active for localhost development 
+- Local development uses separate database from production
+- Email confirmations disabled locally for convenience
+- Production users must confirm their email
+- Use local service keys only for development
+- Never commit real production keys to git 

@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { RefObject, useState, useEffect, useMemo } from "react";
-import { createBrowserClient } from "@supabase/ssr";
+import { supabase } from "@/utils/supabaseClient";
 import { useAuthGuard } from "@/utils/authGuard";
 import {
   FaGlobe,
@@ -153,10 +153,7 @@ export default function DashboardContent({
   const [copyLinkId, setCopyLinkId] = useState<string | null>(null);
   const [showStars, setShowStars] = useState(false);
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  );
+  // Using singleton Supabase client from supabaseClient.ts
 
   const promptTypes = [
     {

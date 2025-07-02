@@ -83,15 +83,16 @@ export async function middleware(req: NextRequest) {
 
   // Protect API routes, but allow public access to /api/track-event and /api/track-review
   if (req.nextUrl.pathname.startsWith("/api")) {
-    if (
-      req.nextUrl.pathname === "/api/track-event" ||
-      req.nextUrl.pathname === "/api/track-review" ||
-      req.nextUrl.pathname === "/api/force-signin" ||
-      req.nextUrl.pathname === "/api/refresh-session" ||
-      req.nextUrl.pathname === "/api/check-env"
-    ) {
-      return res;
-    }
+      if (
+    req.nextUrl.pathname === "/api/track-event" ||
+    req.nextUrl.pathname === "/api/track-review" ||
+    req.nextUrl.pathname === "/api/force-signin" ||
+    req.nextUrl.pathname === "/api/refresh-session" ||
+    req.nextUrl.pathname === "/api/check-env" ||
+    req.nextUrl.pathname.startsWith("/api/auth/")
+  ) {
+    return res;
+  }
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

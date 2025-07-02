@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuthGuard } from "@/utils/authGuard";
-import { createBrowserClient } from "@supabase/ssr";
+import { supabase } from "@/utils/supabaseClient";
 import {
   FaDownload,
   FaUpload,
@@ -57,10 +57,7 @@ export default function UploadContactsPage() {
   const [selectedContactForPrompt, setSelectedContactForPrompt] =
     useState<any>(null);
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  );
+  // Using singleton Supabase client from supabaseClient.ts
 
   useEffect(() => {
     const checkAuth = async () => {

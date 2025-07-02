@@ -8,7 +8,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createBrowserClient } from '@supabase/ssr';
+import { supabase } from '@/utils/supabaseClient';
 
 interface TrialReminderLog {
   id: string;
@@ -35,10 +35,7 @@ export default function TrialRemindersPage() {
     today: 0
   });
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  // Using singleton Supabase client from supabaseClient.ts
 
   useEffect(() => {
     fetchLogs();

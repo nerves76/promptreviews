@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { createBrowserClient } from '@supabase/ssr';
+import { supabase } from '@/utils/supabaseClient';
 
 interface EmailTemplate {
   id: string;
@@ -26,10 +26,7 @@ export default function EmailTemplatesSection() {
   const [sendingReminders, setSendingReminders] = useState(false);
   const [reminderResults, setReminderResults] = useState<any>(null);
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  // Using singleton Supabase client from supabaseClient.ts
 
   useEffect(() => {
     fetchTemplates();

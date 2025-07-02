@@ -11,50 +11,191 @@
  * - Server-side client creation function
  */
 
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-
-if (!supabaseUrl) {
-  throw new Error('Missing env.NEXT_PUBLIC_SUPABASE_URL');
-}
-if (!supabaseAnonKey) {
-  throw new Error('Missing env.NEXT_PUBLIC_SUPABASE_ANON_KEY');
+interface SessionMock {
+  access_token: string;
+  refresh_token: string;
+  expires_at: number;
+  user: User;
 }
 
-// Singleton pattern to prevent multiple client instances in development
-let supabaseInstance: SupabaseClient | null = null;
+// Global singleton instance
+let _supabaseInstance: SupabaseClient | null = null;
+let _instanceCounter = 0;
+let _creationStack = new Map<number, string>();
 
-function createSupabaseClient(): SupabaseClient {
-  if (supabaseInstance) {
-    return supabaseInstance;
+// Create a true singleton Supabase client
+export const supabase = (() => {
+  if (!_supabaseInstance) {
+    const instanceId = _instanceCounter++;
+    const stack = new Error().stack || 'No stack trace available';
+    _creationStack.set(instanceId, stack);
+    
+    console.log(`🔧 Creating new Supabase client instance #${instanceId}`);
+    
+    // Show calling location in development
+    if (process.env.NODE_ENV === 'development') {
+      const callerLine = stack.split('\n')[2];
+      console.log(`📍 Creation location:`, callerLine?.trim() || 'Unknown');
+      
+      // Warn if we see multiple instances
+      if (instanceId > 0) {
+        console.warn(`⚠️  WARNING: Multiple Supabase client instances detected!`);
+        console.warn(`⚠️  Previous instances: ${Array.from(_creationStack.keys()).slice(0, -1).join(', ')}`);
+        console.warn(`⚠️  This can cause session conflicts. Use singleton from supabaseClient.ts`);
+      }
+    }
+    
+    _supabaseInstance = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        auth: {
+          // Enhanced persistence configuration
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+          storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+          storageKey: 'promptreviews-auth-token'
+        },
+        global: {
+          headers: {
+            'X-Client-Info': `promptreviews-web-singleton-${instanceId}`
+          }
+        }
+      }
+    );
+
+    console.log(`✅ Supabase client created successfully`);
+  } else {
+    console.log(`♻️  Reusing existing Supabase client instance #${_instanceCounter - 1}`);
   }
+  
+  return _supabaseInstance;
+})();
 
-  supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: true,
-      storage: typeof window !== 'undefined' ? window.localStorage : undefined,
-      storageKey: 'promptreviews-auth-token', // Unique storage key to prevent conflicts
-      flowType: 'pkce', // Use PKCE flow for better security
-      debug: process.env.NODE_ENV === 'development',
-    },
-    global: {
-      headers: {
-        'X-Client-Info': 'promptreviews-web',
-      },
-    },
-  });
-
-  return supabaseInstance;
+// Debug function to show all client creation locations
+export function debugClientInstances() {
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`🔍 Total Supabase instances created: ${_instanceCounter}`);
+    _creationStack.forEach((stack, id) => {
+      console.log(`Instance #${id}:`, stack.split('\n')[2]?.trim());
+    });
+  }
 }
 
-// Export the singleton instance
-export const supabase = createSupabaseClient();
+// Enhanced session getter with better error handling
+export async function getSessionOrMock(client: SupabaseClient) {
+  try {
+    console.log('🔍 Getting session...');
+    const { data: { session }, error } = await client.auth.getSession();
+    
+    if (error) {
+      console.error('❌ Session error:', error);
+      throw error;
+    }
+    
+    if (session) {
+      console.log('✅ Active session found:', { 
+        userId: session.user.id, 
+        expiresAt: new Date(session.expires_at! * 1000).toISOString() 
+      });
+    } else {
+      console.log('ℹ️  No active session');
+    }
+    
+    return { data: { session }, error: null };
+  } catch (error) {
+    console.error('💥 Session check failed:', error);
+    return { data: { session: null }, error };
+  }
+}
 
-// Re-export for backward compatibility
+// Enhanced user getter
+export async function getUserOrMock(client: SupabaseClient) {
+  try {
+    console.log('👤 Getting user...');
+    const { data: { user }, error } = await client.auth.getUser();
+    
+    if (error) {
+      console.error('❌ User error:', error);
+      throw error;
+    }
+    
+    if (user) {
+      console.log('✅ User found:', user.id);
+    } else {
+      console.log('ℹ️  No user found');
+    }
+    
+    return { data: { user }, error: null };
+  } catch (error) {
+    console.error('💥 User check failed:', error);
+    return { data: { user: null }, error };
+  }
+}
+
+// Session cleanup utility
+export function clearAuthSession() {
+  console.log('🧹 Clearing auth session...');
+  
+  if (typeof window !== 'undefined') {
+    // Clear all possible auth storage locations
+    const storageKeys = [
+      'promptreviews-auth-token',
+      'supabase.auth.token',
+      'sb-auth-token',
+      'sb-access-token',
+      'sb-refresh-token'
+    ];
+    
+    storageKeys.forEach(key => {
+      localStorage.removeItem(key);
+      sessionStorage.removeItem(key);
+    });
+    
+    console.log('✅ Auth storage cleared');
+  }
+}
+
+// Test authentication function
+export async function testAuth(email: string, password: string) {
+  console.log('🧪 Testing authentication...');
+  
+  try {
+    // Clear any existing session first
+    await supabase.auth.signOut();
+    clearAuthSession();
+    
+    // Attempt sign in
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+    
+    if (error) {
+      console.error('❌ Auth test failed:', error);
+      return { success: false, error: error.message };
+    }
+    
+    if (data.user && data.session) {
+      console.log('✅ Auth test successful!', {
+        userId: data.user.id,
+        hasSession: !!data.session
+      });
+      return { success: true, user: data.user, session: data.session };
+    }
+    
+    console.error('❌ Auth test failed: No user or session returned');
+    return { success: false, error: 'No user or session returned' };
+    
+  } catch (error) {
+    console.error('💥 Auth test error:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}
+
 export default supabase;
 
 /**
@@ -156,56 +297,14 @@ export type Database = {
 };
 
 /**
- * Get user with error handling for missing auth sessions
- * @param supabase - Supabase client instance
- * @returns User data or null if no session
- */
-export async function getUserOrMock(supabase: any) {
-  try {
-    const { data: { user }, error } = await supabase.auth.getUser();
-    if (error) {
-      // Handle auth session missing error gracefully
-      if (error.message?.includes('Auth session missing')) {
-        console.log('No auth session found - user is not logged in');
-        return { data: { user: null }, error: null };
-      }
-      throw error;
-    }
-    return { data: { user }, error: null };
-  } catch (error) {
-    console.error('Error getting user:', error);
-    // For any other error, return null user without throwing
-    return { data: { user: null }, error: null };
-  }
-}
-
-/**
- * Get session with error handling for missing auth sessions
- * @param supabase - Supabase client instance
- * @returns Session data or null if no session
- */
-export async function getSessionOrMock(supabase: any) {
-  try {
-    const { data: { session }, error } = await supabase.auth.getSession();
-    if (error) {
-      // Handle auth session missing error gracefully
-      if (error.message?.includes('Auth session missing')) {
-        console.log('No auth session found - user is not logged in');
-        return { data: { session: null }, error: null };
-      }
-      throw error;
-    }
-    return { data: { session }, error: null };
-  } catch (error) {
-    console.error('Error getting session:', error);
-    // For any other error, return null session without throwing
-    return { data: { session: null }, error: null };
-  }
-}
-
-/**
  * Create a Supabase client for server-side operations
  */
 export function createServerClient() {
-  return createClient(supabaseUrl, supabaseAnonKey);
+  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+    },
+  });
 } 
