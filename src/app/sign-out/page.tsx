@@ -1,16 +1,13 @@
 "use client";
 
 import { useEffect } from "react";
-import { createBrowserClient } from "@supabase/ssr";
+import { supabase } from "@/utils/supabaseClient";
 import { trackEvent, GA_EVENTS } from "../../utils/analytics";
 
 export default function SignOut() {
   useEffect(() => {
     const signOut = async () => {
-      const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      );
+      // Using singleton Supabase client from supabaseClient.ts
       
       // Track sign out event
       trackEvent(GA_EVENTS.SIGN_OUT, {

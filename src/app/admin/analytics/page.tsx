@@ -9,15 +9,11 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { createBrowserClient } from '@supabase/ssr';
+import { supabase } from '@/utils/supabaseClient';
 import { isAdmin } from '../../../utils/admin';
 import { FaUsers, FaBuilding, FaStar, FaChartLine, FaCalendarAlt, FaGlobe } from 'react-icons/fa';
 
-// Use the same Supabase client as the admin page
-const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-);
+// Using singleton Supabase client from supabaseClient.ts
 
 interface AdminAnalytics {
   totalUsers: number;

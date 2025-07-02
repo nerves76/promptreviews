@@ -55,13 +55,17 @@ export default function DashboardLayout({
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        console.log("🔍 DashboardLayout: Checking authentication...");
+        
         const { data: { user }, error } = await getUserOrMock(supabase);
         
         if (error || !user) {
+          console.log("❌ DashboardLayout: No authenticated user, redirecting to sign-in");
           router.push("/auth/sign-in");
           return;
         }
 
+        console.log("✅ DashboardLayout: User authenticated:", user.id);
         setUser(user);
         
         // Fetch account data for the TrialBanner
@@ -69,7 +73,7 @@ export default function DashboardLayout({
         
         setLoading(false);
       } catch (error) {
-        console.error("Auth check error:", error);
+        console.error("💥 DashboardLayout: Auth check error:", error);
         router.push("/auth/sign-in");
       }
     };

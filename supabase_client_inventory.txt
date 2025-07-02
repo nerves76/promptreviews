@@ -1,0 +1,136 @@
+src//middleware.ts:1:import { createServerClient } from "@supabase/ssr";
+src//middleware.ts:15:  const supabase = createServerClient(
+src//app/prompt-pages/page.tsx:5:import { createBrowserClient } from "@supabase/ssr";
+src//app/upgrade/page.tsx:5:import { createBrowserClient } from "@supabase/ssr";
+src//app/upgrade/page.tsx:84:  const supabase = createBrowserClient(
+src//app/auth/callback/route.ts:3:import { createClient } from "@supabase/supabase-js";
+src//app/auth/callback/route.ts:26:    const supabaseService = createClient(
+src//app/auth/callback/route.ts:32:    const supabaseForSession = createClient(
+src//app/admin/trial-reminders/page.tsx:11:import { createBrowserClient } from '@supabase/ssr';
+src//app/admin/trial-reminders/page.tsx:38:  const supabase = createBrowserClient(
+src//app/admin/analytics/page.tsx:12:import { createBrowserClient } from '@supabase/ssr';
+src//app/admin/analytics/page.tsx:17:const supabase = createBrowserClient(
+src//app/dashboard/testimonials/page.tsx:4:import { createBrowserClient } from "@supabase/ssr";
+src//app/dashboard/testimonials/page.tsx:246:  const supabase = createBrowserClient(
+src//app/dashboard/widget/components/WidgetName.tsx:2:import { createBrowserClient } from '@supabase/ssr';
+src//app/dashboard/widget/components/WidgetName.tsx:24:      const supabase = createBrowserClient(
+src//app/dashboard/widget/components/ReviewModal.tsx:2:import { createBrowserClient } from '@supabase/ssr';
+src//app/dashboard/widget/page.tsx:3:import { createBrowserClient } from "@supabase/ssr";
+src//app/dashboard/DashboardContent.tsx:4:import { createBrowserClient } from "@supabase/ssr";
+src//app/dashboard/DashboardContent.tsx:156:  const supabase = createBrowserClient(
+src//app/dashboard/plan/page.tsx:3:import { createBrowserClient } from "@supabase/ssr";
+src//app/dashboard/plan/page.tsx:25:  const supabase = createBrowserClient(
+src//app/dashboard/contacts/page.tsx:5:import { createBrowserClient } from "@supabase/ssr";
+src//app/dashboard/contacts/page.tsx:60:  const supabase = createBrowserClient(
+src//app/dashboard/upload-contacts/page.tsx:5:import { createBrowserClient } from "@supabase/ssr";
+src//app/dashboard/upload-contacts/page.tsx:35:  const supabase = createBrowserClient(
+src//app/dashboard/edit-prompt-page/[slug]/ProductPromptPageForm.tsx:27:import { createBrowserClient } from "@supabase/ssr";
+src//app/dashboard/edit-prompt-page/[slug]/ProductPromptPageForm.tsx:138:    const supabase = createBrowserClient(
+src//app/dashboard/reviews/page.tsx:4:import { createBrowserClient } from "@supabase/ssr";
+src//app/dashboard/reviews/page.tsx:298:  const supabase = createBrowserClient(
+src//app/components/FeedbackModal.tsx:10:import { createBrowserClient } from '@supabase/ssr';
+src//app/components/FeedbackModal.tsx:49:  const supabase = createBrowserClient(
+src//app/components/EmailTemplatesSection.tsx:8:import { createBrowserClient } from '@supabase/ssr';
+src//app/components/EmailTemplatesSection.tsx:29:  const supabase = createBrowserClient(
+src//app/components/QuoteDisplay.tsx:9:import { createBrowserClient } from '@supabase/ssr';
+src//app/components/QuoteDisplay.tsx:14:const supabase = createBrowserClient(
+src//app/components/GettingStarted.tsx:13:import { createBrowserClient } from '@supabase/ssr';
+src//app/components/GettingStarted.tsx:50:        const supabase = createBrowserClient(
+src//app/api/upload-photo/route.ts:2:import { createClient } from "@supabase/supabase-js";
+src//app/api/upload-photo/route.ts:4:const supabase = createClient(
+src//app/api/stripe-webhook/route.ts:3:import { createClient } from "@supabase/supabase-js";
+src//app/api/stripe-webhook/route.ts:34:  const supabase = createClient(
+src//app/api/prompt-pages/create-prompt-for-contact.ts:2:import { createServerClient } from "@supabase/ssr";
+src//app/api/prompt-pages/create-prompt-for-contact.ts:7:  const supabase = createServerClient(
+src//app/api/prompt-pages/route.ts:4:import { createServerClient } from "@supabase/ssr";
+src//app/api/prompt-pages/route.ts:12:    const supabase = createServerClient(
+src//app/api/prompt-pages/[slug]/route.ts:37:    const { createClient } = await import('@supabase/supabase-js');
+src//app/api/prompt-pages/[slug]/route.ts:38:    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+src//app/api/prompt-pages/[slug]/route.ts:101:    const { createClient } = await import('@supabase/supabase-js');
+src//app/api/prompt-pages/[slug]/route.ts:102:    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+src//app/api/businesses/[accountId]/route.ts:37:    const { createClient } = await import('@supabase/supabase-js');
+src//app/api/businesses/[accountId]/route.ts:38:    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+src//app/api/businesses/route.ts:23:    const { createClient } = await import('@supabase/supabase-js');
+src//app/api/businesses/route.ts:24:    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+src//app/api/businesses/route.ts:73:    const { createClient } = await import('@supabase/supabase-js');
+src//app/api/businesses/route.ts:74:    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+src//app/api/send-trial-reminders/route.ts:8:import { createServerClient } from '@supabase/ssr';
+src//app/api/send-trial-reminders/route.ts:16:    const supabase = createServerClient(
+src//app/api/debug-session/route.ts:3:import { createServerClient } from "@supabase/ssr";
+src//app/api/debug-session/route.ts:13:  const supabase = createServerClient(
+src//app/api/create-checkout-session/route.ts:3:import { createClient } from "@supabase/supabase-js";
+src//app/api/create-checkout-session/route.ts:32:    const supabase = createClient(
+src//app/api/track-review/route.ts:4:import { createClient } from "@supabase/supabase-js";
+src//app/api/track-review/route.ts:107:      const supabaseAdmin = createClient(
+src//app/api/email-templates/route.ts:8:import { createServerClient } from '@supabase/ssr';
+src//app/api/email-templates/route.ts:16:    const supabase = createServerClient(
+src//app/api/email-templates/route.ts:71:    const supabase = createServerClient(
+src//app/api/refresh-session/route.ts:6:import { createClient } from '@supabase/supabase-js';
+src//app/api/refresh-session/route.ts:14:    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+src//app/api/admin/repair-users/route.ts:12:import { createClient } from '@supabase/supabase-js';
+src//app/api/admin/repair-users/route.ts:46:    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+src//app/api/admin/delete-user/route.ts:14:import { createClient } from '@supabase/supabase-js';
+src//app/api/admin/delete-user/route.ts:18:const supabaseAdmin = createClient(
+src//app/api/initialize-onboarding-tasks/route.ts:9:import { createClient } from '@supabase/supabase-js';
+src//app/api/initialize-onboarding-tasks/route.ts:44:      supabase = createClient(
+src//app/api/initialize-onboarding-tasks/route.ts:70:    const serviceClient = createClient(
+src//app/api/feedback/route.ts:2:import { createClient } from '@supabase/supabase-js';
+src//app/api/feedback/route.ts:5:const supabase = createClient(
+src//app/api/track-event/route.ts:9:import { createServerClient } from "@supabase/ssr";
+src//app/api/track-event/route.ts:10:import { createClient } from "@supabase/supabase-js";
+src//app/api/track-event/route.ts:28:    const supabaseAnon = createServerClient(
+src//app/api/track-event/route.ts:88:    const supabaseService = createClient(
+src//app/api/team/invite/route.ts:8:import { createServerClient } from '@supabase/ssr';
+src//app/api/team/invite/route.ts:15:  const supabase = createServerClient(
+src//app/api/team/members/route.ts:8:import { createServerClient } from '@supabase/ssr';
+src//app/api/team/members/route.ts:14:  const supabase = createServerClient(
+src//app/api/team/invitations/route.ts:8:import { createServerClient } from '@supabase/ssr';
+src//app/api/team/invitations/route.ts:14:  const supabase = createServerClient(
+src//app/api/team/invitations/route.ts:108:  const supabase = createServerClient(
+src//app/api/upload-widget-photo/route.ts:2:import { createClient } from "@supabase/supabase-js";
+src//app/api/upload-widget-photo/route.ts:4:const supabase = createClient(
+src//app/api/generate-review/route.ts:3:import { createBrowserClient } from "@supabase/ssr";
+src//app/api/generate-review/route.ts:46:      const supabase = createBrowserClient(
+src//app/api/check-admin/route.ts:6:import { createClient } from '@supabase/supabase-js';
+src//app/api/check-admin/route.ts:14:    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+src//app/api/check-ownership/[slug]/route.ts:2:import { createClient } from "@supabase/supabase-js";
+src//app/api/check-ownership/[slug]/route.ts:22:    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+src//app/api/review-submissions/verify/route.ts:2:import { createServerClient } from "@supabase/ssr";
+src//app/api/review-submissions/verify/route.ts:12:  const supabase = createServerClient(
+src//app/api/review-submissions/route.ts:26:    const { createClient } = await import('@supabase/supabase-js');
+src//app/api/review-submissions/route.ts:27:    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+src//app/api/check-schema/route.ts:3:import { createClient } from "@supabase/supabase-js";
+src//app/api/check-schema/route.ts:8:    const supabase = createClient(
+src//app/api/widgets/upload-photo/route.ts:2:import { createClient } from "@supabase/supabase-js";
+src//app/api/widgets/upload-photo/route.ts:4:const supabase = createClient(
+src//app/api/widgets/route.ts:7:import { createClient } from '@supabase/supabase-js';
+src//app/api/widgets/route.ts:11:const supabase = createClient(
+src//app/api/widgets/[id]/route.ts:2:import { createClient } from '@supabase/supabase-js';
+src//app/api/widgets/[id]/route.ts:6:const supabase = createClient(
+src//app/api/widgets/[id]/route.ts:12:const supabaseAdmin = createClient(
+src//app/api/widgets/debug/route.ts:2:import { createClient } from '@supabase/supabase-js';
+src//app/api/widgets/debug/route.ts:5:const supabase = createClient(
+src//app/api/cron/send-trial-reminders/route.ts:11:import { createClient } from '@supabase/supabase-js';
+src//app/api/cron/send-trial-reminders/route.ts:37:    const supabase = createClient(
+src//app/reset-password/page.tsx:4:import { createBrowserClient } from "@supabase/ssr";
+src//app/reset-password/page.tsx:15:  const supabase = createBrowserClient(
+src//app/sign-out/page.tsx:4:import { createBrowserClient } from "@supabase/ssr";
+src//app/sign-out/page.tsx:10:      const supabase = createBrowserClient(
+src//utils/emailTemplates.ts:7:import { createClient } from '@supabase/supabase-js';
+src//utils/emailTemplates.ts:35:  const supabase = createClient(
+src//utils/emailTemplates.ts:159:  const supabase = createClient(
+src//utils/emailTemplates.ts:184:  const supabase = createClient(
+src//utils/accountUtils.ts:7:import { createClient } from "@supabase/supabase-js";
+src//utils/accountUtils.ts:286:    const client = supabaseClient || createClient(
+src//utils/accountUtils.ts:346:    const client = supabaseClient || createClient(
+src//utils/supabaseClient.ts:14:import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
+src//utils/supabaseClient.ts:32:    _supabaseInstance = createClient(
+src//utils/supabaseClient.ts:274:export function createServerClient() {
+src//utils/supabaseClient.ts:275:  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+src//utils/adminDelete.ts:15:import { createClient } from '@supabase/supabase-js';
+src//utils/adminDelete.ts:18:const supabaseAdmin = createClient(
+src//utils/apiAuth.ts:12:import { createClient } from '@supabase/supabase-js';
+src//utils/apiAuth.ts:30:    const supabase = createClient(
+src//utils/apiAuth.ts:77:      supabase: createClient(
+src//utils/onboardingTasks.ts:8:import { createBrowserClient } from '@supabase/ssr';
+src//utils/onboardingTasks.ts:11:const supabase = createBrowserClient(

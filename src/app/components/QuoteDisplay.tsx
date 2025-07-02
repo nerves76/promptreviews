@@ -6,15 +6,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createBrowserClient } from '@supabase/ssr';
+import { supabase } from '@/utils/supabaseClient';
 import { getAllActiveQuotes } from '../../utils/admin';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
-// Use the same Supabase client pattern as other components
-const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-);
+// Using singleton Supabase client from supabaseClient.ts
 
 // Simple caching for quotes to improve performance
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes

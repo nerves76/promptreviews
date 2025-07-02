@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { createBrowserClient } from "@supabase/ssr";
 import SimpleMarketingNav from "@/app/components/SimpleMarketingNav";
 import { trackSignUp } from '../../../utils/analytics';
 import { supabase } from '../../../utils/supabaseClient';
@@ -39,46 +38,8 @@ export default function SignUpPage() {
     "Unexpected error": "Something went wrong. Please try again.",
   };
 
-  const createAccount = async (userId: string, userEmail: string, firstName: string, lastName: string) => {
-    console.log('🏗️ Starting account creation with timeout...');
-    
-    // Add timeout to prevent hanging
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Account creation timeout')), 10000); // 10 second timeout
-    });
-
-    const accountCreationPromise = fetch('/api/create-account', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId,
-        email: userEmail,
-        first_name: firstName,
-        last_name: lastName,
-      }),
-    });
-
-    try {
-      const response = await Promise.race([accountCreationPromise, timeoutPromise]) as Response;
-      
-      console.log('🏗️ Account creation response status:', response.status);
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
-        console.error('❌ Account creation failed:', errorData);
-        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      console.log('✅ Account created successfully:', data);
-      return true;
-    } catch (error) {
-      console.error('❌ Account creation error:', error);
-      throw error;
-    }
-  };
+  // Account creation is now handled automatically by Phase 1 database triggers
+  // No manual createAccount function needed anymore
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -206,33 +167,12 @@ export default function SignUpPage() {
         console.log('✅ User created successfully:', data.user.id);
         console.log('📧 User email confirmed:', data.user.email_confirmed_at);
         console.log('📧 User metadata:', data.user.user_metadata);
-        
-        try {
-          console.log('🏗️ Creating account for user...');
-          // Create account for the new user
-          const accountCreated = await createAccount(
-            data.user.id,
-            data.user.email!,
-            firstName,
-            lastName
-          );
-
-          if (accountCreated) {
-            console.log('✅ Account created successfully');
-          } else {
-            console.log('⚠️ Account creation returned false, but continuing...');
-          }
-        } catch (accountError) {
-          console.error('❌ Account creation failed:', accountError);
-          // Don't fail the entire sign-up process if account creation fails
-          // The user can still sign in and create their account later
-          console.log('🔄 Continuing with sign-up despite account creation failure...');
-        }
+        console.log('🔧 Phase 1 triggers will handle account creation automatically when email is confirmed');
         
         // Show email confirmation message
-        console.log('✅ Account created successfully');
+        console.log('✅ Sign-up completed, waiting for email confirmation');
         setEmailSent(true);
-        setMessage('Please check your email and click the confirmation link to activate your account.');
+        setMessage('Please check your email and click the confirmation link to activate your account. Your account will be set up automatically when you confirm your email.');
         
         // Track sign up event
         console.log('📊 Tracking sign up event...');

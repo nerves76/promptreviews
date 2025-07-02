@@ -7,7 +7,7 @@
 
 import { useState } from 'react';
 import { FaTimes, FaBug, FaLightbulb, FaComment } from 'react-icons/fa';
-import { createBrowserClient } from '@supabase/ssr';
+import { supabase } from '@/utils/supabaseClient';
 import { getSessionOrMock } from '@/utils/supabaseClient';
 import { trackEvent } from '../../utils/analytics';
 
@@ -46,10 +46,7 @@ export default function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  // Using singleton Supabase client from supabaseClient.ts
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
