@@ -48,6 +48,12 @@ export default function Header() {
   
   const { isAdminUser, isLoading: adminLoading } = useAdmin();
   const { hasBusiness, loading: businessLoading, refresh: refreshBusinessProfile } = useBusinessProfile();
+  
+  // Force refresh business profile on component mount for existing users
+  useEffect(() => {
+    console.log("🔄 Header: Force refreshing business profile for existing users");
+    refreshBusinessProfile();
+  }, [refreshBusinessProfile]);
 
   useEffect(() => {
     const getUser = async () => {

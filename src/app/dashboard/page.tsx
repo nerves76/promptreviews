@@ -298,26 +298,7 @@ export default function Dashboard() {
       window.history.replaceState({}, document.title, newUrl);
     }
     
-    // Check for business creation celebration flag
-    const celebrationFlag = localStorage.getItem("showBusinessCreatedCelebration");
-    if (celebrationFlag) {
-      try {
-        const celebrationData = JSON.parse(celebrationFlag);
-        console.log("🎉 Business creation celebration detected:", celebrationData);
-        
-        // Remove the flag immediately to prevent repeated celebrations
-        localStorage.removeItem("showBusinessCreatedCelebration");
-        
-        // Trigger starfall celebration after a short delay for better UX
-        setTimeout(() => {
-          setShowStarfallCelebration(true);
-          console.log("✨ Starfall celebration triggered for business creation");
-        }, 1000);
-      } catch (error) {
-        console.error("Error parsing celebration flag:", error);
-        localStorage.removeItem("showBusinessCreatedCelebration");
-      }
-    }
+
   }, []);
 
   // Handle loading and redirect states after all hooks are called
