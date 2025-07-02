@@ -250,9 +250,19 @@ export default function SimpleBusinessForm({
 
       setSuccess("Business created successfully! Redirecting to dashboard...");
       
+      // Set flag for starfall celebration when user reaches dashboard
+      if (typeof window !== "undefined") {
+        localStorage.setItem("showBusinessCreatedCelebration", JSON.stringify({
+          type: "business_created",
+          businessId: business.id,
+          timestamp: new Date().toISOString()
+        }));
+      }
+      
       // Dispatch event to refresh navigation state
       if (typeof window !== "undefined") {
         window.dispatchEvent(new CustomEvent('businessCreated', { detail: { businessId: business.id } }));
+        console.log("🎉 Dispatched businessCreated event for navigation refresh");
       }
       
       console.log("Business created successfully, calling onSuccess callback");

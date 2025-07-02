@@ -164,12 +164,14 @@ export function useBusinessProfile() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const refresh = useCallback(() => {
+    console.log("📊 useBusinessProfile: Refresh triggered, incrementing trigger");
     setRefreshTrigger(prev => prev + 1);
   }, []);
 
   useEffect(() => {
     const checkBusinessProfile = async () => {
       try {
+        console.log("📊 useBusinessProfile: Starting business profile check, trigger:", refreshTrigger);
         setLoading(true);
         const {
           data: { user },
@@ -177,10 +179,13 @@ export function useBusinessProfile() {
         } = await getUserOrMock(supabase);
 
         if (userError || !user) {
+          console.log("📊 useBusinessProfile: No user found, setting hasBusiness to false");
           setHasBusiness(false);
           setLoading(false);
           return;
         }
+
+        console.log("📊 useBusinessProfile: User found:", user.id);
 
         // Check if user is admin
         const { data: adminData } = await supabase
@@ -190,29 +195,36 @@ export function useBusinessProfile() {
           .single();
 
         if (adminData) {
+          console.log("📊 useBusinessProfile: User is admin, setting hasBusiness to true");
           setHasBusiness(true); // Admins can access everything
           setLoading(false);
           return;
         }
 
         const accountId = await getAccountIdForUser(user.id);
+        console.log("📊 useBusinessProfile: Account ID:", accountId);
         
         if (!accountId) {
+          console.log("📊 useBusinessProfile: No account ID found, setting hasBusiness to false");
           setHasBusiness(false);
           setLoading(false);
           return;
         }
 
-        const { data: businessData } = await supabase
+        const { data: businessData, error: businessError } = await supabase
           .from("businesses")
-          .select("id")
+          .select("id, name")
           .eq("account_id", accountId)
           .single();
 
-        setHasBusiness(!!businessData);
+        console.log("📊 useBusinessProfile: Business query result:", { businessData, businessError });
+
+        const hasBusinessResult = !!businessData;
+        console.log("📊 useBusinessProfile: Setting hasBusiness to:", hasBusinessResult);
+        setHasBusiness(hasBusinessResult);
         setLoading(false);
       } catch (error) {
-        console.error("Error checking business profile:", error);
+        console.error("📊 useBusinessProfile: Error checking business profile:", error);
         setHasBusiness(false);
         setLoading(false);
       }
