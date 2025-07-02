@@ -151,18 +151,30 @@ export default function Header() {
 
   // Listen for plan selection events to refresh business profile
   useEffect(() => {
-    const handlePlanSelection = () => {
+    const handlePlanSelection = (event?: CustomEvent) => {
       console.log("Header: Plan selection detected, refreshing business profile");
+      console.log("Header: Event details:", event?.detail);
       refreshBusinessProfile();
+    };
+
+    const handleBusinessCreated = (event?: CustomEvent) => {
+      console.log("🏢 Header: Business created event detected, refreshing business profile");
+      console.log("🏢 Header: Business creation details:", event?.detail);
+      
+      // Force refresh with a small delay to ensure database has updated
+      setTimeout(() => {
+        console.log("🔄 Header: Executing delayed business profile refresh");
+        refreshBusinessProfile();
+      }, 500);
     };
 
     // Listen for custom events that indicate plan selection
     window.addEventListener('planSelected', handlePlanSelection);
-    window.addEventListener('businessCreated', handlePlanSelection);
+    window.addEventListener('businessCreated', handleBusinessCreated);
 
     return () => {
       window.removeEventListener('planSelected', handlePlanSelection);
-      window.removeEventListener('businessCreated', handlePlanSelection);
+      window.removeEventListener('businessCreated', handleBusinessCreated);
     };
   }, [refreshBusinessProfile]);
 
