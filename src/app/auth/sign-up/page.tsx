@@ -229,61 +229,10 @@ export default function SignUpPage() {
           console.log('🔄 Continuing with sign-up despite account creation failure...');
         }
         
-        // LOCAL DEVELOPMENT EMAIL BYPASS
-        // Since we use production Supabase for all environments, email confirmations
-        // are always enabled on the server side. However, for local development,
-        // we provide a user-friendly message explaining that they can sign in immediately.
-        // 
-        // In production, users will receive email confirmation links.
-        // In local development, users can sign in immediately after account creation.
-        const isLocalDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        console.log('🌍 Environment check - isLocalDevelopment:', isLocalDevelopment);
-        
-        if (isLocalDevelopment) {
-          // Local development: Use force-signin API to confirm email and sign in user
-          console.log('🔄 Local development mode: Using force-signin API...');
-          console.log('🔐 Attempting force-signin with:', { email, password: '***' });
-          
-          try {
-            const forceSignInResponse = await fetch('/api/force-signin', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                email,
-                password,
-              }),
-            });
-            
-            if (!forceSignInResponse.ok) {
-              const errorData = await forceSignInResponse.json().catch(() => ({ error: 'Failed to parse error response' }));
-              console.error('❌ Force-signin failed:', errorData);
-              // Fall back to email confirmation flow
-              setEmailSent(true);
-              setMessage('✅ Account created successfully! You can now sign in with your credentials.');
-            } else {
-              const signInData = await forceSignInResponse.json();
-              console.log('✅ Force-signin successful:', signInData);
-              // Show success message and redirect to dashboard
-              setMessage('✅ Account created and signed in successfully! Redirecting to dashboard...');
-              setTimeout(() => {
-                window.location.href = '/dashboard';
-              }, 1000);
-              return;
-            }
-                      } catch (forceSignInError) {
-              console.error('❌ Force-signin error:', forceSignInError);
-              // Fall back to email confirmation flow
-              setEmailSent(true);
-              setMessage('✅ Account created successfully! You can now sign in with your credentials.');
-            }
-        } else {
-          // Production: Show email confirmation message
-          console.log('✅ Account created successfully');
-          setEmailSent(true);
-          setMessage('✅ Account created successfully! Please check your email and click the confirmation link to activate your account.');
-        }
+        // Show email confirmation message
+        console.log('✅ Account created successfully');
+        setEmailSent(true);
+        setMessage('✅ Account created successfully! Please check your email and click the confirmation link to activate your account.');
         
         // Track sign up event
         console.log('📊 Tracking sign up event...');
