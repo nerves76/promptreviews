@@ -82,12 +82,23 @@ export default function SignIn() {
       
       // Use the singleton Supabase client for sign-in
       console.log("🔐 Starting signInWithPassword call...");
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: formData.email,
-        password: formData.password,
-      });
       
-      console.log("🔄 signInWithPassword completed, data:", data, "error:", error);
+      let signInResult;
+      try {
+        signInResult = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+        console.log("🔄 signInWithPassword completed successfully!");
+        console.log("🔍 Full result object:", signInResult);
+      } catch (signInError) {
+        console.error("💥 Exception in signInWithPassword:", signInError);
+        throw signInError;
+      }
+      
+      const { data, error } = signInResult;
+      console.log("🔄 Extracted data:", data);
+      console.log("🔄 Extracted error:", error);
 
       if (error) {
         console.error("❌ Sign in failed:", error.message);
@@ -99,6 +110,18 @@ export default function SignIn() {
         console.log("✅ Sign in successful! User:", data.user.email);
         console.log("👤 User ID:", data.user.id);
         console.log("🔑 Session expires:", new Date(data.session.expires_at! * 1000).toISOString());
+        
+        // Set cookies for SSR compatibility
+        console.log("🍪 Setting session cookies for SSR...");
+        try {
+          // Set access token cookie
+          document.cookie = `sb-access-token=${data.session.access_token}; Path=/; Max-Age=3600; SameSite=Lax`;
+          // Set refresh token cookie  
+          document.cookie = `sb-refresh-token=${data.session.refresh_token}; Path=/; Max-Age=604800; SameSite=Lax`;
+          console.log("✅ Session cookies set successfully");
+        } catch (cookieError) {
+          console.warn("⚠️ Failed to set cookies:", cookieError);
+        }
         
         // Track sign in event
         try {

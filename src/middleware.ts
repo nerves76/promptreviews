@@ -36,15 +36,32 @@ export async function middleware(req: NextRequest) {
     },
   );
 
-  // Get session with better error handling
+  // Get session with better error handling and manual cookie check
   let session = null;
   try {
     const { data: { session: currentSession } } = await supabase.auth.getSession();
     session = currentSession;
+    
+    // If no session from supabase, check manual cookies as fallback
+    if (!session) {
+      const accessToken = req.cookies.get('sb-access-token')?.value;
+      const refreshToken = req.cookies.get('sb-refresh-token')?.value;
+      
+      if (accessToken && refreshToken) {
+        console.log('Middleware: Found manual session cookies, treating as authenticated');
+        // Create a mock session for middleware purposes
+        session = { 
+          access_token: accessToken, 
+          user: { id: 'cookie-user' } 
+        } as any;
+      }
+    }
+    
     console.log('Middleware: Session check result:', { 
       hasSession: !!session, 
       userId: session?.user?.id,
-      pathname: req.nextUrl.pathname 
+      pathname: req.nextUrl.pathname,
+      hasManualCookies: !!(req.cookies.get('sb-access-token') && req.cookies.get('sb-refresh-token'))
     });
   } catch (error) {
     console.log('Middleware: Session check failed, continuing without session:', error);
