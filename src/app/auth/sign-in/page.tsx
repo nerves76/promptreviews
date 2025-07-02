@@ -26,6 +26,28 @@ export default function SignIn() {
     setIsClient(true);
   }, []);
 
+  // Check if user is already authenticated and redirect
+  useEffect(() => {
+    const checkAuthAndRedirect = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (session && session.user && !error) {
+          console.log("✅ User already authenticated, redirecting to dashboard...");
+          console.log("👤 Existing session for user:", session.user.id);
+          router.push("/dashboard");
+          return;
+        }
+      } catch (error) {
+        console.log("ℹ️  No existing session found, staying on sign-in page");
+      }
+    };
+
+    if (isClient) {
+      checkAuthAndRedirect();
+    }
+  }, [isClient, router]);
+
   const handleRefreshSession = async () => {
     setIsRefreshing(true);
     setError("");
@@ -55,10 +77,15 @@ export default function SignIn() {
     try {
       console.log("📧 Attempting sign in with email:", formData.email);
       
-      // Clear any existing session first to avoid conflicts
-      await supabase.auth.signOut();
+      // Check if user is already signed in
+      const { data: { session: existingSession } } = await supabase.auth.getSession();
+      if (existingSession && existingSession.user) {
+        console.log("ℹ️  User already has active session, redirecting to dashboard...");
+        router.push("/dashboard");
+        return;
+      }
       
-      // Use the singleton Supabase client
+      // Use the singleton Supabase client for sign-in
       const { data, error } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password,
@@ -83,13 +110,9 @@ export default function SignIn() {
           console.warn("Analytics tracking failed:", trackError);
         }
 
-        // Wait for session to be properly persisted, then redirect
+        // Use Next.js router for navigation instead of window.location
         console.log("🚀 Redirecting to dashboard...");
-        
-        // Use a longer delay to ensure session persistence
-        setTimeout(() => {
-          window.location.href = "/dashboard";
-        }, 200);
+        router.push("/dashboard");
         
       } else {
         throw new Error('Sign in failed - no user data or session returned');
@@ -97,6 +120,7 @@ export default function SignIn() {
     } catch (err) {
       console.error("❌ Sign in error:", err);
       setError(err instanceof Error ? err.message : "An error occurred during sign in. Please try again.");
+    } finally {
       setIsLoading(false);
     }
   };
