@@ -1,9 +1,8 @@
 "use client";
 
-import { supabase } from "@/utils/supabaseClient";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import AppLoader from "@/app/components/AppLoader";
+import { supabase } from "@/utils/supabaseClient";
 import { trackEvent, GA_EVENTS } from '../../../utils/analytics';
 import SimpleMarketingNav from "@/app/components/SimpleMarketingNav";
 
@@ -32,9 +31,6 @@ export default function SignIn() {
     setError("");
     
     try {
-      // First, sign out to clear any cached session data
-      await supabase.auth.signOut();
-      
       // Clear any local storage that might be cached
       if (isClient) {
         localStorage.removeItem('supabase.auth.token');
@@ -45,32 +41,11 @@ export default function SignIn() {
         sessionStorage.removeItem('supabase.auth.refresh_token');
       }
       
-      // Wait a moment for the sign out to complete
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Now try to refresh the session via API
-      const response = await fetch('/api/refresh-session', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        setError("Session cleared and refreshed! Please try signing in again.");
-        // Clear the form to encourage retry
-        setFormData({ email: "", password: "" });
-      } else {
-        setError("Session cleared! Please try signing in again.");
-        // Clear the form anyway since we signed out
-        setFormData({ email: "", password: "" });
-      }
-    } catch (err) {
-      console.error('Error refreshing session:', err);
       setError("Session cleared! Please try signing in again.");
-      // Clear the form anyway since we signed out
+      setFormData({ email: "", password: "" });
+    } catch (err) {
+      console.error('Error clearing session:', err);
+      setError("Session cleared! Please try signing in again.");
       setFormData({ email: "", password: "" });
     } finally {
       setIsRefreshing(false);
@@ -85,25 +60,29 @@ export default function SignIn() {
 
     try {
       console.log("Starting sign in process...");
-      console.log("Using supabase client:", supabase);
       console.log("Attempting sign in with email:", formData.email);
       
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: formData.email,
-        password: formData.password,
+      // Use a direct API call instead of Supabase client
+      const response = await fetch('/api/auth/signin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
       });
       
-      console.log("Sign in response:", { data, error });
+      const data = await response.json();
+      console.log("Sign in response:", data);
 
-      if (error) {
-        console.error("Sign in error:", error);
-        setError(error.message);
-        setIsLoading(false);
-        return;
+      if (!response.ok) {
+        throw new Error(data.error || 'Sign in failed');
       }
 
-      if (data.user) {
-        console.log("User signed in successfully:", data.user.id);
+      if (data.success) {
+        console.log("User signed in successfully");
         
         // Track sign in event
         trackEvent(GA_EVENTS.SIGN_IN, {
@@ -118,10 +97,12 @@ export default function SignIn() {
         
         // Use window.location for immediate redirect
         window.location.href = "/dashboard";
+      } else {
+        throw new Error(data.error || 'Sign in failed');
       }
     } catch (err) {
       console.error("Sign in error:", err);
-      setError("An error occurred during sign in. Please try again.");
+      setError(err instanceof Error ? err.message : "An error occurred during sign in. Please try again.");
       setIsLoading(false);
     }
   };
@@ -146,7 +127,7 @@ export default function SignIn() {
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
-        <AppLoader variant="centered" />
+        <div className="text-white text-lg">Loading...</div>
       </div>
     );
   }
