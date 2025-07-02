@@ -42,10 +42,21 @@ export async function middleware(req: NextRequest) {
     const { data: { session: currentSession } } = await supabase.auth.getSession();
     session = currentSession;
     
+    // Debug: Show all cookies for diagnosis
+    const allCookies = req.cookies.getAll();
+    console.log('Middleware: All cookies found:', allCookies.map(c => `${c.name}=${c.value.substring(0, 20)}...`));
+    
     // If no session from supabase, check manual cookies as fallback
     if (!session) {
       const accessToken = req.cookies.get('sb-access-token')?.value;
       const refreshToken = req.cookies.get('sb-refresh-token')?.value;
+      
+      console.log('Middleware: Manual cookie check:', {
+        hasAccessToken: !!accessToken,
+        hasRefreshToken: !!refreshToken,
+        accessTokenLength: accessToken?.length || 0,
+        refreshTokenLength: refreshToken?.length || 0
+      });
       
       if (accessToken && refreshToken) {
         console.log('Middleware: Found manual session cookies, treating as authenticated');
@@ -54,14 +65,20 @@ export async function middleware(req: NextRequest) {
           access_token: accessToken, 
           user: { id: 'cookie-user' } 
         } as any;
+      } else {
+        console.log('Middleware: No manual cookies found, checking for any Supabase-related cookies...');
+        const supabaseCookies = allCookies.filter(c => c.name.startsWith('sb-'));
+        console.log('Middleware: Supabase cookies:', supabaseCookies.map(c => c.name));
       }
+    } else {
+      console.log('Middleware: Found valid Supabase session');
     }
     
-    console.log('Middleware: Session check result:', { 
+    console.log('Middleware: Final session check result:', { 
       hasSession: !!session, 
       userId: session?.user?.id,
       pathname: req.nextUrl.pathname,
-      hasManualCookies: !!(req.cookies.get('sb-access-token') && req.cookies.get('sb-refresh-token'))
+      sessionType: session ? (session.user?.id === 'cookie-user' ? 'manual-cookie' : 'supabase') : 'none'
     });
   } catch (error) {
     console.log('Middleware: Session check failed, continuing without session:', error);
