@@ -11,22 +11,49 @@ export default function ResetPassword() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [sessionValid, setSessionValid] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<string>("");
   const router = useRouter();
 
   // Check if user has a valid session (authenticated via reset link)
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-          setError("Your session has expired or the reset link is invalid. Please request a new password reset.");
-          setTimeout(() => router.push("/auth/sign-in"), 3000);
+        console.log("🔍 Checking session...");
+        setDebugInfo("Checking session...");
+        
+        // Log current URL for debugging
+        const currentUrl = window.location.href;
+        console.log("📍 Current URL:", currentUrl);
+        setDebugInfo(`Current URL: ${currentUrl}\n\nChecking session...`);
+        
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        console.log("📋 Session data:", session);
+        console.log("❌ Session error:", error);
+        
+        if (error) {
+          console.error("Session error:", error);
+          setDebugInfo(`Session error: ${error.message}`);
+          setError(`Session error: ${error.message}`);
           return;
         }
+        
+        if (!session) {
+          console.log("❌ No session found");
+          setDebugInfo("No session found. This could mean:\n1. The reset link is invalid\n2. The reset link expired\n3. Port mismatch between link and current page");
+          setError("Your session has expired or the reset link is invalid. Please request a new password reset.");
+          setTimeout(() => router.push("/auth/sign-in"), 5000);
+          return;
+        }
+        
+        console.log("✅ Valid session found:", session.user?.email);
+        setDebugInfo(`✅ Valid session found for: ${session.user?.email}`);
         setSessionValid(true);
       } catch (err) {
+        console.error("Unexpected error:", err);
+        setDebugInfo(`Unexpected error: ${err}`);
         setError("Failed to validate session. Please try the password reset process again.");
-        setTimeout(() => router.push("/auth/sign-in"), 3000);
+        setTimeout(() => router.push("/auth/sign-in"), 5000);
       }
     };
     
@@ -79,6 +106,18 @@ export default function ResetPassword() {
           <div className="text-center">
             <h2 className="text-3xl font-extrabold text-white">Validating reset link...</h2>
             <p className="mt-2 text-white">Please wait while we verify your password reset link.</p>
+            
+            {/* Debug info for troubleshooting */}
+            {debugInfo && (
+              <div className="mt-4 bg-white/20 backdrop-blur rounded-lg p-4">
+                <details className="text-left">
+                  <summary className="font-medium cursor-pointer text-white mb-2">Debug Info (click to expand)</summary>
+                  <pre className="text-xs text-white whitespace-pre-wrap font-mono bg-black/20 p-2 rounded">
+                    {debugInfo}
+                  </pre>
+                </details>
+              </div>
+            )}
           </div>
         </div>
       </div>
