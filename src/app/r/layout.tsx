@@ -15,7 +15,7 @@ export default function PublicPromptLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className={`${inter.className} min-h-screen overscroll-x-auto`}>
+            <div className={`${inter.className} min-h-screen`}>
       {children}
     </div>
   );
