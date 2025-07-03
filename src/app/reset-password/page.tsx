@@ -13,12 +13,6 @@ export default function ResetPassword() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [code, setCode] = useState<string | null>(null);
-  const [isClient, setIsClient] = useState(false);
-
-  // Ensure we're on the client side to fix hydration issues
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   // Extract the code from URL parameters
   useEffect(() => {
@@ -52,10 +46,10 @@ export default function ResetPassword() {
     
     setIsLoading(true);
     try {
-      // Use verifyOtp for password reset with the new password included
+      // Use verifyOtp for password reset with token_hash (not token)
       const { error } = await supabase.auth.verifyOtp({
         type: 'recovery',
-        token: code,
+        token_hash: code,
         options: {
           password: password
         }
@@ -85,8 +79,8 @@ export default function ResetPassword() {
     }
   };
 
-  // Show loading state while we check for the code or client-side rendering
-  if ((code === null && !error) || !isClient) {
+  // Show loading state while we check for the code
+  if (code === null && !error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-400 via-indigo-300 to-purple-300 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
