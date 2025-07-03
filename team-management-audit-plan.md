@@ -23,13 +23,13 @@ The team management feature is partially implemented but has critical issues pre
 - User reports "Failed to load team data" when visiting as a Grower user
 - Complex joins in the API query that may fail if account relationships are missing
 
-#### 2. **Inappropriate Access Control**
-**Issue**: Grower users (max 1 user) should not access team management at all since they cannot add team members.
+#### 2. **Poor Upgrade Messaging**
+**Issue**: Grower users can access team management but get no clear indication of plan limitations or upgrade paths.
 
 **Current Problem**:
-- Team link is visible to all users in navigation
-- No plan-based access restrictions
-- Poor UX for single-user plans
+- No upgrade messaging for plan limitations
+- Missing conversion opportunities for higher plans
+- Poor UX when users hit plan limits
 
 #### 3. **Database Migration Status**
 **Issue**: The team management migration may not have been applied to all environments.
@@ -70,15 +70,15 @@ WHERE max_users IS NULL;
 -- (Already defined in migration file)
 ```
 
-#### 1.2 Add Plan-Based Access Control
+#### 1.2 Add Plan-Based Upgrade Messaging
 **Frontend Changes**:
-- Hide team navigation for Grower users
-- Add plan validation in team page component
-- Redirect Grower users with appropriate messaging
+- Show team page with current status for all users
+- Add prominent upgrade messaging for plan limitations
+- Display clear benefits of upgrading for team features
 
 **API Changes**:
-- Add plan validation to team endpoints
-- Return specific error messages for insufficient plan
+- Return plan information with team data
+- Provide clear messaging for plan limitations
 
 #### 1.3 Improve Error Handling
 - Better error messages in APIs
@@ -88,9 +88,9 @@ WHERE max_users IS NULL;
 ### Phase 2: Enhanced User Experience (Medium Priority)
 
 #### 2.1 Navigation Improvements
-- Conditional team link visibility based on plan
-- Plan upgrade prompts for Grower users
-- Better visual indicators of team capabilities
+- Keep team link visible for all users
+- Add plan indicators in team section
+- Better visual hierarchy showing current vs available features
 
 #### 2.2 API Robustness
 - Simplify database queries to prevent join failures
@@ -131,10 +131,10 @@ WHERE max_users IS NULL;
 2. Add plan-based validation to all team endpoints
 3. Improve error handling and messaging
 
-### Step 3: Frontend Access Control
-1. Add plan-based navigation visibility
-2. Implement team page access restrictions
-3. Create appropriate messaging for Grower users
+### Step 3: Frontend Upgrade Messaging
+1. Keep team page accessible for all plans
+2. Add prominent upgrade messaging for Grower users
+3. Show current team status and plan limitations clearly
 
 ### Step 4: UI/UX Improvements
 1. Add plan upgrade prompts
@@ -151,7 +151,7 @@ WHERE max_users IS NULL;
 ### High Risk
 - Database migration not applied correctly
 - API failures affecting existing users
-- Poor user experience for majority of users (Grower plan)
+- Missing upgrade conversion opportunities
 
 ### Medium Risk
 - Complex database queries causing performance issues
@@ -166,8 +166,8 @@ WHERE max_users IS NULL;
 
 ### Immediate (Phase 1)
 - ✅ Grower users no longer see "Failed to load" errors
-- ✅ Team page loads correctly for Builder/Maven users  
-- ✅ Proper access control based on plan
+- ✅ Team page loads correctly for all plan types
+- ✅ Clear upgrade messaging for plan limitations
 
 ### Short-term (Phase 2)
 - ✅ Improved user experience for all plan types
