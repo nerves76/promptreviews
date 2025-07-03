@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabaseClient';
+import { createClient, createServiceRoleClient } from '@/utils/supabaseClient';
 import { getAccountIdForUser } from '@/utils/accountUtils';
 
 // Initialize Supabase client with public credentials
 const supabase = createClient();
 
 // Initialize Supabase admin client with service role key for data fetching
-const supabaseAdmin = createClient(true);
+const supabaseAdmin = createServiceRoleClient();
 
 /**
  * GET /api/widgets/[id]
