@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { createServerSupabaseClient, createClient, getUserOrMock } from '@/utils/supabaseClient';
+import { createServerSupabaseClient, createServiceRoleClient, getUserOrMock } from '@/utils/supabaseClient';
 import { cookies } from "next/headers";
 
 export async function POST(req: NextRequest) {
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     
     if (user) {
       // Do not record event for logged-in users to avoid duplicate tracking
-      return NextResponse.json({ message: "Event not tracked for authenticated users" }, { status: 204 });
+      return NextResponse.json({ message: "Event not tracked for authenticated users" }, { status: 200 });
     }
 
     const body = await req.json();
@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
     console.log(`[TRACK-EVENT] Tracking ${eventType} for prompt page: ${promptPageId}`);
 
     // Use service key for database operations to bypass RLS
-    const supabaseService = createClient(true); // true = use service role
+    const supabaseService = createServiceRoleClient(); // use service role
 
     // Insert event
     const { error } = await supabaseService.from("analytics_events").insert({
