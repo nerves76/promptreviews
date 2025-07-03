@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/utils/supabaseClient";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function ResetPassword() {
   const [password, setPassword] = useState("");
@@ -11,31 +11,95 @@ export default function ResetPassword() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const [code, setCode] = useState<string | null>(null);
 
-  // Using singleton Supabase client from supabaseClient.ts
+  // Extract the code from URL parameters
+  useEffect(() => {
+    const codeParam = searchParams.get('code');
+    if (codeParam) {
+      setCode(codeParam);
+    } else {
+      setError("Invalid password reset link. Please request a new password reset.");
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSuccess(null);
+    
+    if (!code) {
+      setError("Invalid password reset link. Please request a new password reset.");
+      return;
+    }
+    
     if (password !== confirmPassword) {
       setError("Passwords do not match");
       return;
     }
+    
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters long");
+      return;
+    }
+    
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.updateUser({ password });
-      if (error) throw error;
-      setSuccess("Password updated! You can now sign in.");
+      // Use verifyOtp for password reset with the code from the email
+      const { error } = await supabase.auth.verifyOtp({
+        type: 'recovery',
+        token: code,
+        options: {
+          redirectTo: `${window.location.origin}/auth/sign-in`
+        }
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      // Now update the password since we have a valid session
+      const { error: updateError } = await supabase.auth.updateUser({ 
+        password: password 
+      });
+      
+      if (updateError) {
+        throw updateError;
+      }
+      
+      setSuccess("Password updated successfully! Redirecting to sign in...");
       setTimeout(() => router.push("/auth/sign-in"), 2000);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to update password",
-      );
+    } catch (err: any) {
+      console.error('Password reset error:', err);
+      
+      // Handle specific error cases
+      if (err.message?.includes('expired')) {
+        setError("Password reset link has expired. Please request a new one.");
+      } else if (err.message?.includes('invalid')) {
+        setError("Invalid password reset link. Please request a new one.");
+      } else if (err.message?.includes('already_used')) {
+        setError("This password reset link has already been used. Please request a new one.");
+      } else {
+        setError(err.message || "Failed to reset password. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Show loading state while we check for the code
+  if (code === null && !error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-400 via-indigo-300 to-purple-300 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <div className="sm:mx-auto sm:w-full sm:max-w-md">
+          <div className="text-center">
+            <div className="text-white text-lg">Loading...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-400 via-indigo-300 to-purple-300 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -74,6 +138,7 @@ export default function ResetPassword() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  disabled={isLoading || !!error}
                 />
               </div>
             </div>
@@ -94,19 +159,30 @@ export default function ResetPassword() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  disabled={isLoading || !!error}
                 />
               </div>
             </div>
             <div>
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoading || !!error || !code}
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#452F9F] hover:bg-[#452F9F]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#452F9F] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? "Updating..." : "Reset password"}
               </button>
             </div>
           </form>
+          {error && (
+            <div className="mt-4 text-center">
+              <button
+                onClick={() => router.push("/auth/sign-in")}
+                className="text-sm text-[#452F9F] hover:text-[#452F9F]/80 font-medium"
+              >
+                Back to sign in
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
