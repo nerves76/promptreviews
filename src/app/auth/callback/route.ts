@@ -7,9 +7,11 @@ export const dynamic = "force-dynamic";
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
+  const next = requestUrl.searchParams.get("next");
 
-  console.log("🔗 Auth callback for password reset triggered");
+  console.log("🔗 Auth callback triggered");
   console.log("📝 Code parameter:", code ? "Present" : "Missing");
+  console.log("📍 Next parameter:", next);
 
   if (code) {
     try {
@@ -25,17 +27,30 @@ export async function GET(request: Request) {
         );
       }
       
-      console.log("✅ Session exchange successful for user:", data.user?.email);
+      if (data.user) {
+        console.log("✅ Session established for user:", data.user.email);
+      }
       
     } catch (error) {
-      console.error("❌ Error in password reset callback:", error);
+      console.error("❌ Error in auth callback:", error);
       return NextResponse.redirect(
-        `${requestUrl.origin}/auth/sign-in?error=${encodeURIComponent("Password reset failed")}`,
+        `${requestUrl.origin}/auth/sign-in?error=${encodeURIComponent("Authentication failed")}`,
       );
     }
   }
 
-  // Redirect to reset password page
-  console.log("✅ Redirecting to reset password page");
-  return NextResponse.redirect(`${requestUrl.origin}/reset-password`);
+  // Determine where to redirect
+  let redirectUrl;
+  if (next === '/reset-password') {
+    redirectUrl = `${requestUrl.origin}/reset-password`;
+    console.log("🔄 Redirecting to reset password page");
+  } else if (next) {
+    redirectUrl = `${requestUrl.origin}${next}`;
+    console.log("🔄 Redirecting to:", next);
+  } else {
+    redirectUrl = `${requestUrl.origin}/dashboard`;
+    console.log("🔄 Redirecting to dashboard (default)");
+  }
+
+  return NextResponse.redirect(redirectUrl);
 }
