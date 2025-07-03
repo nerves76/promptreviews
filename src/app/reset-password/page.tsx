@@ -12,9 +12,17 @@ export default function ResetPassword() {
   const [success, setSuccess] = useState("");
   const [hasSession, setHasSession] = useState(false);
   const [checking, setChecking] = useState(true);
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
 
+  // Prevent hydration mismatch by only rendering after mount
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+    
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       console.log("Reset password session check:", !!session);
@@ -22,7 +30,7 @@ export default function ResetPassword() {
       setChecking(false);
     };
     checkSession();
-  }, []);
+  }, [mounted]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,7 +67,8 @@ export default function ResetPassword() {
     }
   };
 
-  if (checking) {
+  // Don't render anything until mounted to prevent hydration mismatch
+  if (!mounted || checking) {
     return (
       <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
         <div className="text-white text-lg">Loading...</div>
