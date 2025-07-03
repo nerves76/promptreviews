@@ -32,16 +32,10 @@ export async function GET(request: Request) {
   try {
     const cookieStore = await cookies();
     
-    // Use service key for all operations to avoid JWT signature issues
-    const supabaseService = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    );
-
-    // Use service key for session exchange as well
+    // Use regular client for session exchange (not service role)
     const supabaseForSession = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         global: {
           headers: {
@@ -49,6 +43,12 @@ export async function GET(request: Request) {
           },
         },
       }
+    );
+
+    // Use service key for database operations
+    const supabaseService = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
     );
 
     console.log("🔄 Exchanging code for session...");
@@ -59,12 +59,20 @@ export async function GET(request: Request) {
 
     if (sessionError) {
       console.error("❌ Session exchange error:", sessionError);
+      console.log("🔍 Error message for debugging:", JSON.stringify(sessionError.message));
+      console.log("🔍 Full error object:", JSON.stringify(sessionError));
       
       // Check if this might be a password reset code that was incorrectly routed here
-      if (sessionError.message?.includes('invalid request') || 
-          sessionError.message?.includes('code verifier') ||
-          sessionError.message?.includes('both auth code and code verifier should be non-empty')) {
-        console.log("🔄 Session exchange failed - likely password reset code, redirecting");
+      const errorMessage = sessionError.message || '';
+      const isPasswordResetCode = errorMessage.includes('invalid request') || 
+                                  errorMessage.includes('code verifier') ||
+                                  errorMessage.includes('both auth code and code verifier should be non-empty') ||
+                                  errorMessage.includes('validation_failed');
+      
+      console.log("🔍 Is password reset code?", isPasswordResetCode);
+      
+      if (isPasswordResetCode) {
+        console.log("🔄 Session exchange failed - likely password reset code, redirecting to reset-password");
         return NextResponse.redirect(
           `${requestUrl.origin}/reset-password?code=${code}`,
         );
