@@ -160,23 +160,32 @@ export default function SignIn() {
     }
   };
 
-    const handleResetPassword = async (e: React.FormEvent) => {
+  const handlePasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
-    setResetMessage(null);
-    setError("");
+    if (!resetEmail) {
+      setError('Please enter your email address');
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+
     try {
-      // Use auth callback URL so the code gets properly exchanged for a session
-      const redirectUrl = `${window.location.origin}/auth/callback`;
-      
       const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: redirectUrl,
+        redirectTo: `${window.location.origin}/reset-password`,
       });
-      if (error) throw error;
-      setResetMessage("Password reset email sent! Check your inbox.");
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to send reset email",
-      );
+
+      if (error) {
+        setError(error.message);
+      } else {
+        setError(''); // Clear any existing errors
+        // Show success message
+        alert('Password reset email sent! Check your inbox and click the link to reset your password.');
+      }
+    } catch (error) {
+      setError('An unexpected error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -276,7 +285,7 @@ export default function SignIn() {
               </div>
             </>
           ) : (
-            <form onSubmit={handleResetPassword} className="space-y-4">
+            <form onSubmit={handlePasswordReset} className="space-y-4">
               <div>
                 <label className="block font-medium mb-1">Email</label>
                 <input
