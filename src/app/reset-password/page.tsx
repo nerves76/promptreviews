@@ -13,6 +13,12 @@ export default function ResetPassword() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [code, setCode] = useState<string | null>(null);
+  const [isClient, setIsClient] = useState(false);
+
+  // Ensure we're on the client side to fix hydration issues
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   // Extract the code from URL parameters
   useEffect(() => {
@@ -46,26 +52,17 @@ export default function ResetPassword() {
     
     setIsLoading(true);
     try {
-      // Use verifyOtp for password reset with the code from the email
+      // Use verifyOtp for password reset with the new password included
       const { error } = await supabase.auth.verifyOtp({
         type: 'recovery',
         token: code,
         options: {
-          redirectTo: `${window.location.origin}/auth/sign-in`
+          password: password
         }
       });
       
       if (error) {
         throw error;
-      }
-      
-      // Now update the password since we have a valid session
-      const { error: updateError } = await supabase.auth.updateUser({ 
-        password: password 
-      });
-      
-      if (updateError) {
-        throw updateError;
       }
       
       setSuccess("Password updated successfully! Redirecting to sign in...");
@@ -88,8 +85,8 @@ export default function ResetPassword() {
     }
   };
 
-  // Show loading state while we check for the code
-  if (code === null && !error) {
+  // Show loading state while we check for the code or client-side rendering
+  if ((code === null && !error) || !isClient) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-400 via-indigo-300 to-purple-300 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
