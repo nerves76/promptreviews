@@ -165,8 +165,13 @@ export default function SignIn() {
     setResetMessage(null);
     setError("");
     try {
+      // Always use absolute URL to ensure direct routing to reset page
+      const redirectUrl = typeof window !== 'undefined' 
+        ? `${window.location.origin}/reset-password`
+        : `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3002'}/reset-password`;
+        
       const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: isClient ? `${window.location.origin}/reset-password` : "/reset-password",
+        redirectTo: redirectUrl,
       });
       if (error) throw error;
       setResetMessage("Password reset email sent! Check your inbox.");
