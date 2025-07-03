@@ -5,7 +5,7 @@
  * This endpoint uses the service role key to bypass RLS policies.
  */
 
-import { createServerSupabaseClient, createClient } from '@/utils/supabaseClient';
+import { createServerSupabaseClient, createClient, createServiceRoleClient } from '@/utils/supabaseClient';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -62,16 +62,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Create a service role client for database operations
-    const serviceClient = createClient(true); // true = use service role
+    const serviceClient = createServiceRoleClient();
 
-    // Get the account ID for the user
-    const { data: accountUsers, error: accountError } = await serviceClient
-      .from('account_users')
-      .select('account_id')
+    // Get the account ID for the user (using accounts table directly)
+    const { data: account, error: accountError } = await serviceClient
+      .from('accounts')
+      .select('id')
       .eq('user_id', user.id)
       .single();
 
-    if (accountError || !accountUsers) {
+    if (accountError || !account) {
       console.error('Error getting account for user:', accountError);
       return NextResponse.json(
         { error: 'Account not found for user' },
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const accountId = accountUsers.account_id;
+    const accountId = account.id;
 
     // Define default tasks
     const defaultTasks = [
