@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { supabase } from "@/utils/supabaseClient";
+import { supabase, getUserOrMock } from "@/utils/supabaseClient";
 import { useAuthGuard } from "@/utils/authGuard";
 import {
   FaChartLine,
@@ -12,7 +12,6 @@ import {
   FaAngry,
   FaGrinStars,
 } from "react-icons/fa";
-import { getUserOrMock } from "@/utils/supabaseClient";
 import { getAccountIdForUser } from "@/utils/accountUtils";
 import { isAdmin } from "@/utils/admin";
 import PageCard from "@/app/components/PageCard";

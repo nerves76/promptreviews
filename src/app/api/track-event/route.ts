@@ -6,10 +6,8 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@supabase/ssr";
-import { createClient } from '@/utils/supabaseClient';
+import { createServerClient, createClient, getUserOrMock } from '@/utils/supabaseClient';
 import { cookies } from "next/headers";
-import { getUserOrMock } from "@/utils/supabaseClient";
 
 export async function POST(req: NextRequest) {
   try {
@@ -25,11 +23,7 @@ export async function POST(req: NextRequest) {
     };
     
     // Use anon key for user authentication check
-    const supabaseAnon = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      { cookies: supabaseCookies },
-    );
+    const supabaseAnon = createServerClient();
 
     // Check if user is logged in
     const {
@@ -85,10 +79,7 @@ export async function POST(req: NextRequest) {
     console.log(`[TRACK-EVENT] Tracking ${eventType} for prompt page: ${promptPageId}`);
 
     // Use service key for database operations to bypass RLS
-    const supabaseService = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    );
+    const supabaseService = createClient(true); // true = use service role
 
     // Insert event
     const { error } = await supabaseService.from("analytics_events").insert({

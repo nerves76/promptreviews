@@ -6,22 +6,11 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@/utils/supabaseClient";
 
 export async function GET(request: NextRequest) {
   try {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !supabaseServiceKey) {
-      console.error('[BUSINESSES] Missing Supabase configuration');
-      return NextResponse.json(
-        { error: "Server configuration error" },
-        { status: 500 }
-      );
-    }
-
-    const { createClient } = await import('@supabase/supabase-js');
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createClient(true); // true = use service role
 
     const { data: businesses, error } = await supabase
       .from('businesses')
@@ -59,19 +48,7 @@ export async function POST(request: NextRequest) {
 
     console.log(`[BUSINESSES] Creating business: ${name} for account: ${account_id}`);
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !supabaseServiceKey) {
-      console.error('[BUSINESSES] Missing Supabase configuration');
-      return NextResponse.json(
-        { error: "Server configuration error" },
-        { status: 500 }
-      );
-    }
-
-    const { createClient } = await import('@supabase/supabase-js');
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createClient(true); // true = use service role
 
     // Convert industry string to array if it's a string
     let industryData = businessData.industry || null;

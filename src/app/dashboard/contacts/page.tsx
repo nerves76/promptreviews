@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuthGuard } from "@/utils/authGuard";
-import { supabase } from "@/utils/supabaseClient";
+import { supabase, getSessionOrMock } from "@/utils/supabaseClient";
 import {
   FaDownload,
   FaUpload,
@@ -14,7 +14,6 @@ import {
   FaTimesCircle,
   FaTimes,
 } from "react-icons/fa";
-import { getSessionOrMock } from "@/utils/supabaseClient";
 import AppLoader from "@/app/components/AppLoader";
 import PageCard from "@/app/components/PageCard";
 import TopLoaderOverlay from "@/app/components/TopLoaderOverlay";

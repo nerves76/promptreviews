@@ -1,9 +1,9 @@
 {
-  "timestamp": "2025-07-03T13:24:02.914Z",
+  "timestamp": "2025-07-03T13:27:58.406Z",
   "stats": {
-    "filesProcessed": 11,
-    "duplicatesRemoved": 4,
-    "directClientsReplaced": 8,
+    "filesProcessed": 0,
+    "duplicatesRemoved": 0,
+    "directClientsReplaced": 0,
     "architecturalViolationsFixed": 0,
     "errors": []
   },
