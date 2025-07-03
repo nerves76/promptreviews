@@ -294,39 +294,29 @@ export function ReviewManagementModal({
   };
 
   const handleSaveReviews = async () => {
-    if (!widgetId) {
-      setReviewError("No widget selected");
-      return;
-    }
+    if (!widgetId) return;
     
-    // Check if there's a custom review in the form that needs to be added
-    if (showAddCustomReview && newCustomReview.review_content.trim()) {
-      // Validate the custom review
-      if (wordCount(newCustomReview.review_content) > WORD_LIMIT) {
-        setReviewError(
-          `Custom review is too long. Limit: ${WORD_LIMIT} words.`,
-        );
-        return;
-      }
-      
-      // Add the custom review to selected reviews
+    // Add new custom review if it exists and is valid
+    if (
+      newCustomReview.review_content?.trim() &&
+      newCustomReview.first_name?.trim() &&
+      newCustomReview.star_rating !== null
+    ) {
       const customReview = {
         review_id: crypto.randomUUID(),
-        first_name: newCustomReview.first_name,
-        last_name: newCustomReview.last_name,
-        reviewer_role: newCustomReview.reviewer_role,
-        review_content: newCustomReview.review_content,
+        first_name: newCustomReview.first_name.trim(),
+        last_name: newCustomReview.last_name?.trim() || '',
+        reviewer_role: newCustomReview.reviewer_role?.trim() || '',
+        review_content: newCustomReview.review_content.trim(),
         star_rating: newCustomReview.star_rating,
         platform: 'custom',
         created_at: new Date().toISOString(),
       };
       
-      // Add to selected reviews and initialize edited fields
-      const updatedSelectedReviews = [customReview, ...selectedReviews];
-      setSelectedReviews(updatedSelectedReviews);
-      setEditedReviews(prev => ({ ...prev, [customReview.review_id]: customReview.review_content }));
-      setEditedNames(prev => ({ ...prev, [customReview.review_id]: `${customReview.first_name} ${customReview.last_name}` }));
+      selectedReviews.unshift(customReview);
+      setEditedNames(prev => ({ ...prev, [customReview.review_id]: `${customReview.first_name} ${customReview.last_name}`.trim() }));
       setEditedRoles(prev => ({ ...prev, [customReview.review_id]: customReview.reviewer_role }));
+      setEditedReviews(prev => ({ ...prev, [customReview.review_id]: customReview.review_content }));
       setEditedRatings(prev => ({ ...prev, [customReview.review_id]: customReview.star_rating }));
       
       // Reset the custom review form
@@ -351,59 +341,54 @@ export function ReviewManagementModal({
       }
     }
     
-    // Fetch current widget_reviews for this widget
-    const { data: currentWidgetReviews, error: fetchError } = await supabase
-      .from("widget_reviews")
-      .select("id, review_id")
-      .eq("widget_id", widgetId);
-      
-    if (fetchError) {
-      setReviewError("Failed to fetch widget reviews: " + fetchError.message);
-      return;
-    }
-    
-    const currentIds = (currentWidgetReviews || []).map((r) => r.review_id);
-    // Delete unselected reviews for this widget
-    const selectedIds = selectedReviews.map((r) => r.review_id);
-    if (currentIds.length > 0) {
-      const idsToDelete = currentIds.filter((id) => !selectedIds.includes(id));
-      if (idsToDelete.length > 0) {
-        await supabase
-          .from("widget_reviews")
-          .delete()
-          .eq("widget_id", widgetId)
-          .in("review_id", idsToDelete);
-      }
-    }
-    
-    // Insert new reviews
-    const { error } = await supabase
-      .from("widget_reviews")
-      .upsert(
-        selectedReviews.map((review, index) => ({
-          widget_id: widgetId,
-          review_id: review.review_id,
-          review_content: editedReviews[review.review_id] ?? review.review_content,
-          first_name: (editedNames[review.review_id] ?? `${review.first_name || ''} ${review.last_name || ''}`.trim()).split(' ')[0],
-          last_name: (editedNames[review.review_id] ?? `${review.first_name || ''} ${review.last_name || ''}`.trim()).split(' ').slice(1).join(' '),
-          reviewer_role: editedRoles[review.review_id] ?? review.reviewer_role,
-          platform: review.platform,
-          order_index: index,
-          star_rating: (editedRatings[review.review_id] !== undefined && editedRatings[review.review_id] !== null)
-            ? Math.round(editedRatings[review.review_id]! * 2) / 2
-            : (typeof review.star_rating === 'number' ? Math.round(review.star_rating * 2) / 2 : null),
-          photo_url: photoUploads[review.review_id] || null,
-        }))
-      );
+    // Prepare reviews for API call
+    const reviewsToSave = selectedReviews.map((review, index) => ({
+      review_id: review.review_id,
+      review_content: editedReviews[review.review_id] ?? review.review_content,
+      first_name: (editedNames[review.review_id] ?? `${review.first_name || ''} ${review.last_name || ''}`.trim()).split(' ')[0],
+      last_name: (editedNames[review.review_id] ?? `${review.first_name || ''} ${review.last_name || ''}`.trim()).split(' ').slice(1).join(' '),
+      reviewer_role: editedRoles[review.review_id] ?? review.reviewer_role,
+      platform: review.platform,
+      star_rating: (editedRatings[review.review_id] !== undefined && editedRatings[review.review_id] !== null)
+        ? Math.round(editedRatings[review.review_id]! * 2) / 2
+        : (typeof review.star_rating === 'number' ? Math.round(review.star_rating * 2) / 2 : null),
+      photo_url: photoUploads[review.review_id] || null,
+    }));
 
-    if (error) {
-      console.error("Error saving widget reviews:", error, JSON.stringify(error));
-      alert("Failed to save reviews. Please try again.\n" + JSON.stringify(error));
-      return;
+    try {
+      // Get current session for authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        setReviewError("Authentication required. Please refresh the page and try again.");
+        return;
+      }
+
+      // Call the new API route
+      const response = await fetch(`/api/widgets/${widgetId}/reviews`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({ reviews: reviewsToSave })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("API error:", errorData);
+        setReviewError(`Failed to save reviews: ${errorData.error || 'Unknown error'}`);
+        return;
+      }
+
+      const result = await response.json();
+      console.log("Reviews saved successfully:", result);
+      
+      onClose();
+      if (onReviewsChange) onReviewsChange();
+    } catch (error) {
+      console.error("Error saving widget reviews:", error);
+      setReviewError("Failed to save reviews. Please try again.");
     }
-    
-    onClose();
-    if (onReviewsChange) onReviewsChange();
   };
 
   const getFilteredAndSortedReviews = () => {
