@@ -180,6 +180,8 @@ export default function TeamPage() {
 
   const { members, invitations, account, current_user_role } = teamData;
   const isOwner = current_user_role === 'owner';
+  const isGrowerPlan = account.plan === 'grower';
+  const needsUpgrade = account.max_users <= 1;
 
   return (
     <div className="max-w-6xl mx-auto p-6">
@@ -188,20 +190,88 @@ export default function TeamPage() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Team Management</h1>
           <p className="text-gray-600 mt-1">
-            Manage your team members and invitations
+            {needsUpgrade 
+              ? "Collaborate with your team by adding team members"
+              : "Manage your team members and invitations"
+            }
           </p>
         </div>
-        {isOwner && (
-          <div className="text-right">
-            <p className="text-sm text-gray-500">
-              {account.current_users} of {account.max_users} users
-            </p>
-            <p className="text-sm text-gray-500 capitalize">
-              {account.plan} plan
-            </p>
-          </div>
-        )}
+        <div className="text-right">
+          <p className="text-sm text-gray-500">
+            {account.current_users} of {account.max_users} users
+          </p>
+          <p className="text-sm text-gray-500 capitalize">
+            {account.plan} plan
+          </p>
+        </div>
       </div>
+
+      {/* Upgrade Banner for Grower Users */}
+      {needsUpgrade && isOwner && (
+        <div className="mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-blue-900 mb-2">
+                🚀 Ready to grow your team?
+              </h3>
+              <p className="text-blue-800 mb-4">
+                Your current {account.plan} plan supports {account.max_users} user. Upgrade to add team members and collaborate more effectively.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div className="bg-white rounded-lg p-4 border border-blue-100">
+                  <h4 className="font-semibold text-blue-900 mb-2">Builder Plan - $35/month</h4>
+                  <ul className="text-sm text-blue-800 space-y-1">
+                    <li>• Up to 3 team members</li>
+                    <li>• 50 prompt pages</li>
+                    <li>• 1,000 contacts</li>
+                    <li>• Advanced analytics</li>
+                  </ul>
+                </div>
+                <div className="bg-white rounded-lg p-4 border border-blue-100">
+                  <h4 className="font-semibold text-blue-900 mb-2">Maven Plan - $100/month</h4>
+                  <ul className="text-sm text-blue-800 space-y-1">
+                    <li>• Up to 5 team members</li>
+                    <li>• 500 prompt pages</li>
+                    <li>• 10,000 contacts</li>
+                    <li>• Premium features</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <button
+              onClick={() => router.push('/dashboard/plan')}
+              className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 font-semibold transition-colors"
+            >
+              Upgrade Now
+            </button>
+            <button
+              onClick={() => router.push('/dashboard/plan')}
+              className="bg-white text-blue-600 px-6 py-2 rounded-md border border-blue-300 hover:bg-blue-50 font-semibold transition-colors"
+            >
+              Compare Plans
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Plan Limitation Message for Non-Owners */}
+      {needsUpgrade && !isOwner && (
+        <div className="mb-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <UserIcon className="w-8 h-8 text-blue-600" />
+            </div>
+            <div className="ml-4">
+              <h3 className="text-lg font-medium text-blue-900">Team Collaboration Available</h3>
+              <p className="text-blue-800 mt-1">
+                Your account is on the {account.plan} plan (1 user). Ask your account owner to upgrade to Builder or Maven plan to add more team members.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Error/Success Messages */}
       {error && (
@@ -216,14 +286,23 @@ export default function TeamPage() {
         </div>
       )}
 
-      {/* Invite Form (Owners Only) */}
+      {/* Invite Form */}
       {isOwner && (
         <div className="bg-white border border-gray-200 rounded-lg p-6 mb-8">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
             Invite Team Member
           </h2>
           
-          {!account.can_add_more && (
+          {needsUpgrade ? (
+            <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-blue-800">
+                <span className="font-medium">Team collaboration is available with Builder or Maven plans!</span> 
+                <span className="block mt-1 text-sm">
+                  Invite colleagues to help manage your reviews and grow your business together.
+                </span>
+              </p>
+            </div>
+          ) : !account.can_add_more && (
             <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
               <p className="text-yellow-800">
                 You've reached your user limit ({account.max_users} users). 
@@ -249,10 +328,10 @@ export default function TeamPage() {
                   id="email"
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
-                  placeholder="colleague@company.com"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder={needsUpgrade ? "colleague@company.com (upgrade to enable)" : "colleague@company.com"}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
                   required
-                  disabled={!account.can_add_more || inviting}
+                  disabled={!account.can_add_more || inviting || needsUpgrade}
                 />
               </div>
               
@@ -264,8 +343,8 @@ export default function TeamPage() {
                   id="role"
                   value={inviteRole}
                   onChange={(e) => setInviteRole(e.target.value as 'member' | 'owner')}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  disabled={inviting}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
+                  disabled={inviting || needsUpgrade}
                 >
                   <option value="member">Member</option>
                   <option value="owner">Owner</option>
@@ -273,20 +352,30 @@ export default function TeamPage() {
               </div>
               
               <div className="flex items-end">
-                <button
-                  type="submit"
-                  disabled={!account.can_add_more || inviting || !inviteEmail.trim()}
-                  className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                >
-                  {inviting ? (
-                    'Sending...'
-                  ) : (
-                    <>
-                      <PlusIcon className="w-4 h-4 mr-2" />
-                      Send Invitation
-                    </>
-                  )}
-                </button>
+                {needsUpgrade ? (
+                  <button
+                    type="button"
+                    onClick={() => router.push('/dashboard/plan')}
+                    className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 font-semibold transition-colors"
+                  >
+                    Upgrade to Invite
+                  </button>
+                ) : (
+                  <button
+                    type="submit"
+                    disabled={!account.can_add_more || inviting || !inviteEmail.trim()}
+                    className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                  >
+                    {inviting ? (
+                      'Sending...'
+                    ) : (
+                      <>
+                        <PlusIcon className="w-4 h-4 mr-2" />
+                        Send Invitation
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             </div>
           </form>
