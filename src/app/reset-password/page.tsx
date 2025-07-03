@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/utils/supabaseClient";
 
 export default function ResetPassword() {
@@ -10,81 +10,45 @@ export default function ResetPassword() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [sessionValid, setSessionValid] = useState(false);
-  const [debugInfo, setDebugInfo] = useState<string>("");
-  const [isVerifying, setIsVerifying] = useState(true);
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
+  const [hasSession, setHasSession] = useState(false);
   const router = useRouter();
-  const searchParams = useSearchParams();
 
-  // Handle OTP verification and session establishment
+  // Check if user has a valid session from the reset link
   useEffect(() => {
-    const verifyResetCode = async () => {
+    const checkSession = async () => {
       try {
-        console.log("🔍 Starting reset password verification...");
+        console.log("🔍 Checking for established session...");
         
-        // Log current URL for debugging
-        const currentUrl = window.location.href;
-        console.log("📍 Current URL:", currentUrl);
-        setDebugInfo(`Current URL: ${currentUrl}\n\nStarting verification...`);
+        const { data: { session }, error } = await supabase.auth.getSession();
         
-        // Get the verification code from URL parameters
-        const code = searchParams.get('code');
-        console.log("🔑 Verification code:", code);
-        
-        if (!code) {
-          console.log("❌ No verification code found in URL");
-          setDebugInfo("❌ No verification code found in URL. This usually means:\n1. Invalid reset link\n2. Link was copied incorrectly\n3. Link has expired");
-          setError("Invalid reset link. Please request a new password reset.");
-          setIsVerifying(false);
-          setTimeout(() => router.push("/auth/sign-in"), 3000);
-          return;
-        }
-        
-        setDebugInfo(`Found verification code: ${code}\n\nVerifying with Supabase...`);
-        
-        // Verify the OTP code to establish a session
-        console.log("� Verifying OTP code...");
-        const { data, error } = await supabase.auth.verifyOtp({
-          token_hash: code,
-          type: 'recovery'
-        });
-        
-        console.log("📋 Verification result:", { data, error });
+        console.log("Session check result:", { session: !!session, error });
         
         if (error) {
-          console.error("❌ OTP verification failed:", error);
-          setDebugInfo(`❌ OTP verification failed: ${error.message}\n\nThis could mean:\n1. The reset link has expired\n2. The code has already been used\n3. Invalid verification code`);
-          setError(`Verification failed: ${error.message}. Please request a new password reset.`);
-          setIsVerifying(false);
-          setTimeout(() => router.push("/auth/sign-in"), 3000);
+          console.error("Session error:", error);
+          setError(`Session error: ${error.message}`);
+          setIsCheckingSession(false);
           return;
         }
         
-        if (!data.user) {
-          console.log("❌ No user data returned from verification");
-          setDebugInfo("❌ No user data returned from verification");
-          setError("Failed to verify reset link. Please request a new password reset.");
-          setIsVerifying(false);
-          setTimeout(() => router.push("/auth/sign-in"), 3000);
-          return;
+        if (session && session.user) {
+          console.log("✅ Valid session found for user:", session.user.email);
+          setHasSession(true);
+        } else {
+          console.log("❌ No valid session found");
+          setError("No valid session found. Please click the password reset link from your email, or request a new password reset.");
         }
         
-        console.log("✅ OTP verification successful for user:", data.user.email);
-        setDebugInfo(`✅ OTP verification successful!\nUser: ${data.user.email}\nSession established successfully.`);
-        setSessionValid(true);
-        setIsVerifying(false);
-        
+        setIsCheckingSession(false);
       } catch (err) {
-        console.error("💥 Unexpected error during verification:", err);
-        setDebugInfo(`💥 Unexpected error: ${err}\n\nPlease try requesting a new password reset.`);
-        setError("An unexpected error occurred. Please try requesting a new password reset.");
-        setIsVerifying(false);
-        setTimeout(() => router.push("/auth/sign-in"), 3000);
+        console.error("Unexpected error checking session:", err);
+        setError("Failed to check session. Please try again.");
+        setIsCheckingSession(false);
       }
     };
     
-    verifyResetCode();
-  }, [searchParams, router]);
+    checkSession();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,14 +72,7 @@ export default function ResetPassword() {
       
       if (error) {
         console.error("❌ Password update failed:", error);
-        if (error.message.includes('Auth session missing')) {
-          setError("Your session has expired. Please try the password reset process again.");
-          setTimeout(() => router.push("/auth/sign-in"), 2000);
-        } else if (error.message.includes('Password should be')) {
-          setError("Password does not meet security requirements. Please choose a stronger password.");
-        } else {
-          setError(error.message);
-        }
+        setError(error.message);
       } else {
         console.log("✅ Password updated successfully");
         setSuccess("Password updated successfully! You can now sign in with your new password.");
@@ -129,26 +86,14 @@ export default function ResetPassword() {
     }
   };
 
-  // Show verification loading state
-  if (isVerifying) {
+  // Show loading while checking session
+  if (isCheckingSession) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-400 via-indigo-300 to-purple-300 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <div className="text-center">
-            <h2 className="text-3xl font-extrabold text-white">Verifying reset link...</h2>
-            <p className="mt-2 text-white">Please wait while we verify your password reset link.</p>
-            
-            {/* Debug info for troubleshooting */}
-            {debugInfo && (
-              <div className="mt-4 bg-white/20 backdrop-blur rounded-lg p-4">
-                <details className="text-left">
-                  <summary className="font-medium cursor-pointer text-white mb-2">Debug Info (click to expand)</summary>
-                  <pre className="text-xs text-white whitespace-pre-wrap font-mono bg-black/20 p-2 rounded">
-                    {debugInfo}
-                  </pre>
-                </details>
-              </div>
-            )}
+            <h2 className="text-3xl font-extrabold text-white">Checking session...</h2>
+            <p className="mt-2 text-white">Please wait while we verify your access.</p>
           </div>
         </div>
       </div>
@@ -167,6 +112,9 @@ export default function ResetPassword() {
           {error && (
             <div className="mb-4 bg-red-50 border border-red-200 rounded-md p-4">
               <p className="text-red-600">{error}</p>
+              <p className="text-sm text-red-500 mt-2">
+                If you continue having issues, please request a new password reset from the sign-in page.
+              </p>
             </div>
           )}
           {success && (
@@ -175,7 +123,7 @@ export default function ResetPassword() {
             </div>
           )}
           
-          {sessionValid && (
+          {hasSession && (
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div>
                 <label
