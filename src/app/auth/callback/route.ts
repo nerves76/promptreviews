@@ -8,14 +8,24 @@ export const dynamic = "force-dynamic";
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
+  const type = requestUrl.searchParams.get("type");
 
   console.log("🔗 Auth callback triggered with URL:", request.url);
   console.log("📝 Code parameter:", code ? "Present" : "Missing");
+  console.log("📝 Type parameter:", type || "Not specified");
 
   if (!code) {
     console.error("❌ No code parameter found in callback URL");
     return NextResponse.redirect(
       `${requestUrl.origin}/auth/sign-in?error=Invalid code`,
+    );
+  }
+
+  // Handle password reset codes - redirect to reset-password page
+  if (type === 'recovery') {
+    console.log("🔄 Password reset detected (type=recovery), redirecting to reset-password page");
+    return NextResponse.redirect(
+      `${requestUrl.origin}/reset-password?code=${code}`,
     );
   }
 
@@ -49,6 +59,17 @@ export async function GET(request: Request) {
 
     if (sessionError) {
       console.error("❌ Session exchange error:", sessionError);
+      
+      // Check if this might be a password reset code that was incorrectly routed here
+      if (sessionError.message?.includes('invalid request') || 
+          sessionError.message?.includes('code verifier') ||
+          sessionError.message?.includes('both auth code and code verifier should be non-empty')) {
+        console.log("🔄 Session exchange failed - likely password reset code, redirecting");
+        return NextResponse.redirect(
+          `${requestUrl.origin}/reset-password?code=${code}`,
+        );
+      }
+      
       return NextResponse.redirect(
         `${requestUrl.origin}/auth/sign-in?error=${encodeURIComponent(sessionError.message)}`,
       );
