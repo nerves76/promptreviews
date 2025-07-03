@@ -11,43 +11,58 @@ export default function ResetPassword() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
-  const [hasSession, setHasSession] = useState(false);
+  const [hasValidSession, setHasValidSession] = useState(false);
   const router = useRouter();
 
-  // Check if user has a valid session from the reset link
   useEffect(() => {
-    const checkSession = async () => {
+    const checkSessionAndEstablish = async () => {
       try {
-        console.log("🔍 Checking for established session...");
+        console.log("🔍 Checking for active session...");
         
+        // First, check if we already have a session
         const { data: { session }, error } = await supabase.auth.getSession();
         
-        console.log("Session check result:", { session: !!session, error });
-        
-        if (error) {
-          console.error("Session error:", error);
-          setError(`Session error: ${error.message}`);
+        if (session?.user) {
+          console.log("✅ Found existing session for:", session.user.email);
+          setHasValidSession(true);
           setIsCheckingSession(false);
           return;
         }
         
-        if (session && session.user) {
-          console.log("✅ Valid session found for user:", session.user.email);
-          setHasSession(true);
+        // If no session, check URL for auth tokens and try to establish one
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
+        
+        if (accessToken && refreshToken) {
+          console.log("🔑 Found tokens in URL, setting session...");
+          
+          const { data, error: sessionError } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+          
+          if (sessionError) {
+            console.error("❌ Error setting session:", sessionError);
+            setError("Failed to establish session from reset link. Please request a new password reset.");
+          } else if (data.user) {
+            console.log("✅ Session established for:", data.user.email);
+            setHasValidSession(true);
+          }
         } else {
-          console.log("❌ No valid session found");
-          setError("No valid session found. Please click the password reset link from your email, or request a new password reset.");
+          console.log("❌ No session found and no tokens in URL");
+          setError("No valid session found. Please click the password reset link from your email.");
         }
         
-        setIsCheckingSession(false);
       } catch (err) {
-        console.error("Unexpected error checking session:", err);
-        setError("Failed to check session. Please try again.");
+        console.error("💥 Error checking session:", err);
+        setError("Failed to verify session. Please try again.");
+      } finally {
         setIsCheckingSession(false);
       }
     };
     
-    checkSession();
+    checkSessionAndEstablish();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -76,6 +91,10 @@ export default function ResetPassword() {
       } else {
         console.log("✅ Password updated successfully");
         setSuccess("Password updated successfully! You can now sign in with your new password.");
+        
+        // Sign out to clear the reset session
+        await supabase.auth.signOut();
+        
         setTimeout(() => router.push("/auth/sign-in"), 2000);
       }
     } catch (err) {
@@ -86,14 +105,13 @@ export default function ResetPassword() {
     }
   };
 
-  // Show loading while checking session
   if (isCheckingSession) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-400 via-indigo-300 to-purple-300 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <div className="text-center">
-            <h2 className="text-3xl font-extrabold text-white">Checking session...</h2>
-            <p className="mt-2 text-white">Please wait while we verify your access.</p>
+            <h2 className="text-3xl font-extrabold text-white">Verifying access...</h2>
+            <p className="mt-2 text-white">Please wait while we verify your password reset link.</p>
           </div>
         </div>
       </div>
@@ -112,9 +130,20 @@ export default function ResetPassword() {
           {error && (
             <div className="mb-4 bg-red-50 border border-red-200 rounded-md p-4">
               <p className="text-red-600">{error}</p>
-              <p className="text-sm text-red-500 mt-2">
-                If you continue having issues, please request a new password reset from the sign-in page.
-              </p>
+              <div className="mt-3 flex gap-2">
+                <a 
+                  href="/debug-reset" 
+                  className="text-sm text-blue-600 hover:text-blue-800 underline"
+                >
+                  Debug Info
+                </a>
+                <a 
+                  href="/auth/sign-in" 
+                  className="text-sm text-blue-600 hover:text-blue-800 underline"
+                >
+                  Request New Reset
+                </a>
+              </div>
             </div>
           )}
           {success && (
@@ -123,13 +152,10 @@ export default function ResetPassword() {
             </div>
           )}
           
-          {hasSession && (
+          {hasValidSession ? (
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div>
-                <label
-                  htmlFor="password"
-                  className="block text-sm font-medium text-gray-700"
-                >
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                   New password
                 </label>
                 <div className="mt-1">
@@ -147,10 +173,7 @@ export default function ResetPassword() {
                 </div>
               </div>
               <div>
-                <label
-                  htmlFor="confirm-password"
-                  className="block text-sm font-medium text-gray-700"
-                >
+                <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700">
                   Confirm new password
                 </label>
                 <div className="mt-1">
@@ -177,16 +200,27 @@ export default function ResetPassword() {
                 </button>
               </div>
             </form>
+          ) : (
+            <div className="text-center">
+              <p className="text-gray-600 mb-4">
+                Unable to verify your password reset session.
+              </p>
+              <div className="space-y-2">
+                <a 
+                  href="/debug-reset" 
+                  className="block w-full text-center py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  Debug Information
+                </a>
+                <a 
+                  href="/auth/sign-in" 
+                  className="block w-full text-center py-2 px-4 border border-transparent rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+                >
+                  Request New Password Reset
+                </a>
+              </div>
+            </div>
           )}
-          
-          <div className="mt-6 text-center">
-            <button
-              onClick={() => router.push("/auth/sign-in")}
-              className="text-sm text-gray-600 hover:text-gray-800 underline"
-            >
-              Back to Sign In
-            </button>
-          </div>
         </div>
       </div>
     </div>

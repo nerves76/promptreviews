@@ -1,7 +1,6 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-import { sendWelcomeEmail } from "@/utils/resend-welcome";
+import { supabase } from "@/utils/supabaseClient";
 
 export const dynamic = "force-dynamic";
 
@@ -9,166 +8,34 @@ export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
 
-  console.log("🔗 Auth callback triggered with URL:", request.url);
+  console.log("🔗 Auth callback for password reset triggered");
   console.log("📝 Code parameter:", code ? "Present" : "Missing");
 
-  if (!code) {
-    console.error("❌ No code parameter found in callback URL");
-    return NextResponse.redirect(
-      `${requestUrl.origin}/auth/sign-in?error=Invalid code`,
-    );
-  }
-
-  try {
-    const cookieStore = await cookies();
-    
-    // Use service key for all operations to avoid JWT signature issues
-    const supabaseService = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    );
-
-    // Use service key for session exchange as well
-    const supabaseForSession = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      {
-        global: {
-          headers: {
-            cookie: cookieStore.toString(),
-          },
-        },
-      }
-    );
-
-    console.log("🔄 Exchanging code for session...");
-    const {
-      data: { session },
-      error: sessionError,
-    } = await supabaseForSession.auth.exchangeCodeForSession(code);
-
-    if (sessionError) {
-      console.error("❌ Session exchange error:", sessionError);
-      return NextResponse.redirect(
-        `${requestUrl.origin}/auth/sign-in?error=${encodeURIComponent(sessionError.message)}`,
-      );
-    }
-
-    if (!session?.user) {
-      console.error("❌ No user in session after code exchange");
-      return NextResponse.redirect(
-        `${requestUrl.origin}/auth/sign-in?error=No user in session`,
-      );
-    }
-
-    console.log("✅ Session exchange successful for user:", session.user.email);
-    console.log("📧 Email confirmed at:", session.user.email_confirmed_at);
-
-    // Ensure user is linked to an account using service client
-    const { id: userId, email } = session.user;
-    const { data: accountLinks, error: accountLinksError } = await supabaseService
-      .from("account_users")
-      .select("account_id")
-      .eq("user_id", userId);
-
-    let isNewUser = false;
-    if (!accountLinks || accountLinks.length === 0) {
-      isNewUser = true;
-      console.log("🆕 Creating new account for user:", userId);
+  if (code) {
+    try {
+      console.log("🔄 Exchanging code for session...");
       
-      // Check if account already exists
-      console.log("🔍 Checking if account already exists for user:", userId);
-      const { data: existingAccount, error: accountCheckError } = await supabaseService
-        .from("accounts")
-        .select("id")
-        .eq("id", userId)
-        .single();
-
-      if (accountCheckError) {
-        console.error("❌ Error checking existing account:", accountCheckError);
-        // Continue with account creation even if check fails
+      // Use the code to establish a session
+      const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+      
+      if (error) {
+        console.error("❌ Session exchange error:", error);
+        return NextResponse.redirect(
+          `${requestUrl.origin}/auth/sign-in?error=${encodeURIComponent(error.message)}`,
+        );
       }
-
-      if (!existingAccount) {
-        console.log("🆕 Creating new account for user:", userId);
-        // Create account with proper fields
-        const { data: newAccount, error: createAccountError } = await supabaseService
-          .from("accounts")
-          .insert({
-            id: userId,
-            user_id: userId, // This field exists in the schema
-            email: email,
-            trial_start: new Date().toISOString(),
-            trial_end: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-            is_free_account: false,
-            custom_prompt_page_count: 0,
-            contact_count: 0,
-            first_name: session.user.user_metadata?.first_name || '',
-            last_name: session.user.user_metadata?.last_name || '',
-            plan: 'grower', // Use proper plan value instead of 'NULL'
-            has_had_paid_plan: false,
-            review_notifications_enabled: true
-          })
-          .select()
-          .single();
-
-        if (!createAccountError && newAccount) {
-          console.log("✅ Account created successfully");
-          await supabaseService
-            .from("account_users")
-            .insert([
-              {
-                account_id: userId,
-                user_id: userId,
-                role: "owner",
-              },
-            ]);
-          console.log("✅ User linked to account as owner");
-        } else {
-          console.error("❌ Error creating account:", createAccountError);
-        }
-      } else {
-        console.log("✅ Account already exists for user");
-      }
-    } else {
-      console.log("✅ User already has account links");
+      
+      console.log("✅ Session exchange successful for user:", data.user?.email);
+      
+    } catch (error) {
+      console.error("❌ Error in password reset callback:", error);
+      return NextResponse.redirect(
+        `${requestUrl.origin}/auth/sign-in?error=${encodeURIComponent("Password reset failed")}`,
+      );
     }
-
-    // Send welcome email for new users
-    if (isNewUser && email) {
-      try {
-        // Extract first name from user metadata or email
-        let firstName = "there";
-        if (session.user.user_metadata?.first_name) {
-          firstName = session.user.user_metadata.first_name;
-        } else if (email) {
-          firstName = email.split("@")[0];
-        }
-
-        await sendWelcomeEmail(email, firstName);
-        console.log("📧 Welcome email sent to:", email);
-      } catch (emailError) {
-        console.error("❌ Error sending welcome email:", emailError);
-        // Don't fail the signup if email fails
-      }
-    }
-
-    // Wait for the session to be set
-    console.log("⏳ Waiting for session to be set...");
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    // Redirect new users to create-business page to show welcome popup
-    // Existing users go to dashboard
-    const redirectUrl = isNewUser 
-      ? `${requestUrl.origin}/dashboard/create-business`
-      : `${requestUrl.origin}/dashboard`;
-    
-    console.log("✅ Redirecting to:", redirectUrl);
-    return NextResponse.redirect(redirectUrl);
-  } catch (error) {
-    console.error("❌ Error in callback:", error);
-    return NextResponse.redirect(
-      `${requestUrl.origin}/auth/sign-in?error=${encodeURIComponent(error instanceof Error ? error.message : "Unknown error")}`,
-    );
   }
+
+  // Redirect to reset password page
+  console.log("✅ Redirecting to reset password page");
+  return NextResponse.redirect(`${requestUrl.origin}/reset-password`);
 }
