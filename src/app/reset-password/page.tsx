@@ -24,9 +24,12 @@ export default function ResetPassword() {
         
         if (code) {
           console.log('Password reset code found, exchanging for session...');
+          console.log('Code:', code);
           
           // Use exchangeCodeForSession for password reset
           const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+          
+          console.log('Exchange result:', { data, error });
           
           if (error) {
             console.error('Error exchanging code for session:', error);
@@ -35,9 +38,14 @@ export default function ResetPassword() {
             return;
           }
 
-          if (data.session) {
+          if (data && data.session) {
             console.log('Password reset session established for:', data.user?.email);
             setIsAuthenticated(true);
+            setCheckingAuth(false);
+            return;
+          } else {
+            console.log('No session returned from exchange, data:', data);
+            setError("Failed to establish session. Please try clicking the reset link again.");
             setCheckingAuth(false);
             return;
           }
