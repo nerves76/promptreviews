@@ -181,6 +181,31 @@ export async function isAuthenticated(): Promise<boolean> {
 }
 
 /**
+ * Create a service role client for admin operations that bypass RLS
+ * This should only be used in server-side API routes for admin operations
+ */
+export function createServiceRoleClient(): SupabaseClient {
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error('SUPABASE_SERVICE_ROLE_KEY environment variable is required for service role operations');
+  }
+  
+  console.log('🔑 Creating Supabase service role client (bypasses RLS)');
+  
+  const { createClient } = require('@supabase/supabase-js');
+  
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    }
+  );
+}
+
+/**
  * Enhanced session getter with better error handling
  */
 export async function getSessionOrMock(client: SupabaseClient) {

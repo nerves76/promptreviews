@@ -6,11 +6,11 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/utils/supabaseClient";
+import { createServiceRoleClient } from "@/utils/supabaseClient";
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createClient(true); // true = use service role
+    const supabase = createServiceRoleClient();
 
     const { data: businesses, error } = await supabase
       .from('businesses')
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
 
     console.log(`[BUSINESSES] Creating business: ${name} for account: ${account_id}`);
 
-    const supabase = createClient(true); // true = use service role
+    const supabase = createServiceRoleClient();
 
     // Convert industry string to array if it's a string
     let industryData = businessData.industry || null;
