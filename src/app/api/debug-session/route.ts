@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { createServerClient } from "@supabase/ssr";
-import { getSessionOrMock } from "@/utils/supabaseClient";
+import { createServerClient, getSessionOrMock } from "@/utils/supabaseClient";
 
 export async function GET() {
   const cookieStore = await cookies();
@@ -10,17 +9,7 @@ export async function GET() {
     allCookies[cookie.name] = cookie.value;
   }
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get: (name) => cookieStore.get(name)?.value,
-        set: () => {},
-        remove: () => {},
-      },
-    },
-  );
+  const supabase = createServerClient();
 
   const {
     data: { session },

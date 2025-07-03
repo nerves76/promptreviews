@@ -10,8 +10,7 @@
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { supabase } from "@/utils/supabaseClient";
-import { getUserOrMock } from "@/utils/supabaseClient";
+import { supabase, getUserOrMock } from "@/utils/supabaseClient";
 import { isAdmin } from "@/utils/admin";
 import { useRouter } from "next/navigation";
 import AppLoader from "@/app/components/AppLoader";

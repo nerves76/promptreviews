@@ -1,12 +1,11 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { supabase } from "@/utils/supabaseClient";
+import { supabase, getUserOrMock, getSessionOrMock } from "@/utils/supabaseClient";
 import { useRouter, useSearchParams } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
 import { FaHome } from "react-icons/fa";
 import DashboardContent from "./DashboardContent";
-import { getUserOrMock, getSessionOrMock } from "@/utils/supabaseClient";
 import PricingModal, { tiers } from "../components/PricingModal";
 import FiveStarSpinner from "../components/FiveStarSpinner";
 import PageCard from "../components/PageCard";

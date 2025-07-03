@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { RefObject, useState, useEffect, useMemo } from "react";
-import { supabase } from "@/utils/supabaseClient";
+import { supabase, getUserOrMock } from "@/utils/supabaseClient";
 import { useAuthGuard } from "@/utils/authGuard";
 import {
   FaGlobe,
@@ -23,7 +23,6 @@ import {
   MdVideoLibrary,
   MdPhotoCamera,
 } from "react-icons/md";
-import { getUserOrMock } from "@/utils/supabaseClient";
 import QRCodeModal from "../components/QRCodeModal";
 import QuoteDisplay from "../components/QuoteDisplay";
 import GettingStarted from "../components/GettingStarted";

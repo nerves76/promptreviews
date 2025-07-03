@@ -8,30 +8,13 @@
           "type": "supabaseClient import",
           "category": "util-import",
           "line": 4,
-          "content": "import { supabase } from \"@/utils/supabaseClient\";",
+          "content": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
           "context": {
             "before": [
               "",
               "import { useEffect, useState } from \"react\";"
             ],
-            "current": "import { supabase } from \"@/utils/supabaseClient\";",
-            "after": [
-              "import { getUserOrMock } from \"@/utils/supabaseClient\";",
-              "import { useRouter } from \"next/navigation\";"
-            ]
-          }
-        },
-        {
-          "type": "supabaseClient import",
-          "category": "util-import",
-          "line": 5,
-          "content": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
-          "context": {
-            "before": [
-              "import { useEffect, useState } from \"react\";",
-              "import { supabase } from \"@/utils/supabaseClient\";"
-            ],
-            "current": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
+            "current": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
             "after": [
               "import { useRouter } from \"next/navigation\";",
               "import {"
@@ -42,17 +25,11 @@
       "imports": [
         {
           "line": 4,
-          "statement": "import { supabase } from \"@/utils/supabaseClient\""
-        },
-        {
-          "line": 5,
-          "statement": "import { getUserOrMock } from \"@/utils/supabaseClient\""
+          "statement": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\""
         }
       ],
-      "hasMultiplePatterns": true,
-      "recommendations": [
-        "CONSOLIDATE: Multiple client creation patterns in single file"
-      ]
+      "hasMultiplePatterns": false,
+      "recommendations": []
     },
     {
       "path": "src/app/admin/analytics/page.tsx",
@@ -155,30 +132,13 @@
           "type": "supabaseClient import",
           "category": "util-import",
           "line": 13,
-          "content": "import { supabase } from \"@/utils/supabaseClient\";",
+          "content": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
           "context": {
             "before": [
               "import { usePathname } from 'next/navigation';",
               "import Link from 'next/link';"
             ],
-            "current": "import { supabase } from \"@/utils/supabaseClient\";",
-            "after": [
-              "import { getUserOrMock } from \"@/utils/supabaseClient\";",
-              "import { isAdmin } from \"@/utils/admin\";"
-            ]
-          }
-        },
-        {
-          "type": "supabaseClient import",
-          "category": "util-import",
-          "line": 14,
-          "content": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
-          "context": {
-            "before": [
-              "import Link from 'next/link';",
-              "import { supabase } from \"@/utils/supabaseClient\";"
-            ],
-            "current": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
+            "current": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
             "after": [
               "import { isAdmin } from \"@/utils/admin\";",
               "import { useRouter } from \"next/navigation\";"
@@ -189,17 +149,11 @@
       "imports": [
         {
           "line": 13,
-          "statement": "import { supabase } from \"@/utils/supabaseClient\""
-        },
-        {
-          "line": 14,
-          "statement": "import { getUserOrMock } from \"@/utils/supabaseClient\""
+          "statement": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\""
         }
       ],
-      "hasMultiplePatterns": true,
-      "recommendations": [
-        "CONSOLIDATE: Multiple client creation patterns in single file"
-      ]
+      "hasMultiplePatterns": false,
+      "recommendations": []
     },
     {
       "path": "src/app/admin/page.tsx",
@@ -209,30 +163,13 @@
           "type": "supabaseClient import",
           "category": "util-import",
           "line": 12,
-          "content": "import { supabase } from \"@/utils/supabaseClient\";",
+          "content": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
           "context": {
             "before": [
               "",
               "import { useState, useEffect } from 'react';"
             ],
-            "current": "import { supabase } from \"@/utils/supabaseClient\";",
-            "after": [
-              "import { getUserOrMock } from \"@/utils/supabaseClient\";",
-              "import { isAdmin } from \"@/utils/admin\";"
-            ]
-          }
-        },
-        {
-          "type": "supabaseClient import",
-          "category": "util-import",
-          "line": 13,
-          "content": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
-          "context": {
-            "before": [
-              "import { useState, useEffect } from 'react';",
-              "import { supabase } from \"@/utils/supabaseClient\";"
-            ],
-            "current": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
+            "current": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
             "after": [
               "import { isAdmin } from \"@/utils/admin\";",
               "import { useRouter } from \"next/navigation\";"
@@ -243,17 +180,11 @@
       "imports": [
         {
           "line": 12,
-          "statement": "import { supabase } from \"@/utils/supabaseClient\""
-        },
-        {
-          "line": 13,
-          "statement": "import { getUserOrMock } from \"@/utils/supabaseClient\""
+          "statement": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\""
         }
       ],
-      "hasMultiplePatterns": true,
-      "recommendations": [
-        "CONSOLIDATE: Multiple client creation patterns in single file"
-      ]
+      "hasMultiplePatterns": false,
+      "recommendations": []
     },
     {
       "path": "src/app/admin/quotes/page.tsx",
@@ -472,14 +403,14 @@
         {
           "type": "createClient",
           "category": "direct",
-          "line": 24,
-          "content": "const supabase = createClient(supabaseUrl, supabaseServiceKey);",
+          "line": 13,
+          "content": "const supabase = createClient(true); // true = use service role",
           "context": {
             "before": [
-              "",
-              "    const { createClient } = await import('@supabase/supabase-js');"
+              "export async function GET(request: NextRequest) {",
+              "  try {"
             ],
-            "current": "    const supabase = createClient(supabaseUrl, supabaseServiceKey);",
+            "current": "    const supabase = createClient(true); // true = use service role",
             "after": [
               "",
               "    const { data: businesses, error } = await supabase"
@@ -489,25 +420,48 @@
         {
           "type": "createClient",
           "category": "direct",
-          "line": 74,
-          "content": "const supabase = createClient(supabaseUrl, supabaseServiceKey);",
+          "line": 51,
+          "content": "const supabase = createClient(true); // true = use service role",
           "context": {
             "before": [
-              "",
-              "    const { createClient } = await import('@supabase/supabase-js');"
+              "    console.log(`[BUSINESSES] Creating business: ${name} for account: ${account_id}`);",
+              ""
             ],
-            "current": "    const supabase = createClient(supabaseUrl, supabaseServiceKey);",
+            "current": "    const supabase = createClient(true); // true = use service role",
             "after": [
               "",
               "    // Convert industry string to array if it's a string"
             ]
           }
+        },
+        {
+          "type": "supabaseClient import",
+          "category": "util-import",
+          "line": 9,
+          "content": "import { createClient } from \"@/utils/supabaseClient\";",
+          "context": {
+            "before": [
+              "",
+              "import { NextRequest, NextResponse } from \"next/server\";"
+            ],
+            "current": "import { createClient } from \"@/utils/supabaseClient\";",
+            "after": [
+              "",
+              "export async function GET(request: NextRequest) {"
+            ]
+          }
         }
       ],
-      "imports": [],
+      "imports": [
+        {
+          "line": 9,
+          "statement": "import { createClient } from \"@/utils/supabaseClient\""
+        }
+      ],
       "hasMultiplePatterns": true,
       "recommendations": [
-        "CONSOLIDATE: Multiple client creation patterns in single file"
+        "CONSOLIDATE: Multiple client creation patterns in single file",
+        "STANDARDIZE: Mixed client types (direct + SSR)"
       ]
     },
     {
@@ -672,31 +626,31 @@
         {
           "type": "createServerClient",
           "category": "ssr-server",
-          "line": 13,
-          "content": "const supabase = createServerClient(",
+          "line": 12,
+          "content": "const supabase = createServerClient();",
           "context": {
             "before": [
               "  }",
               ""
             ],
-            "current": "  const supabase = createServerClient(",
+            "current": "  const supabase = createServerClient();",
             "after": [
-              "    process.env.NEXT_PUBLIC_SUPABASE_URL!,",
-              "    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,"
+              "",
+              "  const {"
             ]
           }
         },
         {
           "type": "supabaseClient import",
           "category": "util-import",
-          "line": 4,
-          "content": "import { getSessionOrMock } from \"@/utils/supabaseClient\";",
+          "line": 3,
+          "content": "import { createServerClient, getSessionOrMock } from \"@/utils/supabaseClient\";",
           "context": {
             "before": [
-              "import { cookies } from \"next/headers\";",
-              "import { createServerClient } from \"@supabase/ssr\";"
+              "import { NextResponse } from \"next/server\";",
+              "import { cookies } from \"next/headers\";"
             ],
-            "current": "import { getSessionOrMock } from \"@/utils/supabaseClient\";",
+            "current": "import { createServerClient, getSessionOrMock } from \"@/utils/supabaseClient\";",
             "after": [
               "",
               "export async function GET() {"
@@ -707,11 +661,7 @@
       "imports": [
         {
           "line": 3,
-          "statement": "import { createServerClient } from \"@supabase/ssr\""
-        },
-        {
-          "line": 4,
-          "statement": "import { getSessionOrMock } from \"@/utils/supabaseClient\""
+          "statement": "import { createServerClient, getSessionOrMock } from \"@/utils/supabaseClient\""
         }
       ],
       "hasMultiplePatterns": true,
@@ -727,34 +677,51 @@
         {
           "type": "createServerClient",
           "category": "ssr-server",
-          "line": 16,
-          "content": "const supabase = createServerClient(",
+          "line": 13,
+          "content": "const supabase = createServerClient();",
           "context": {
             "before": [
-              "    const cookieStore = await cookies();",
-              "    "
+              "export async function GET(request: NextRequest) {",
+              "  try {"
             ],
-            "current": "    const supabase = createServerClient(",
+            "current": "    const supabase = createServerClient();",
             "after": [
-              "      process.env.NEXT_PUBLIC_SUPABASE_URL!,",
-              "      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,"
+              "    ",
+              "    // Check if user is admin"
             ]
           }
         },
         {
           "type": "createServerClient",
           "category": "ssr-server",
-          "line": 71,
-          "content": "const supabase = createServerClient(",
+          "line": 45,
+          "content": "const supabase = createServerClient();",
           "context": {
             "before": [
-              "    const cookieStore = await cookies();",
-              "    "
+              "export async function POST(request: NextRequest) {",
+              "  try {"
             ],
-            "current": "    const supabase = createServerClient(",
+            "current": "    const supabase = createServerClient();",
             "after": [
-              "      process.env.NEXT_PUBLIC_SUPABASE_URL!,",
-              "      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,"
+              "    ",
+              "    // Check if user is admin"
+            ]
+          }
+        },
+        {
+          "type": "supabaseClient import",
+          "category": "util-import",
+          "line": 8,
+          "content": "import { createServerClient } from '@/utils/supabaseClient';",
+          "context": {
+            "before": [
+              "",
+              "import { NextRequest, NextResponse } from 'next/server';"
+            ],
+            "current": "import { createServerClient } from '@/utils/supabaseClient';",
+            "after": [
+              "import { getAllEmailTemplates, updateEmailTemplate } from '../../../utils/emailTemplates';",
+              ""
             ]
           }
         }
@@ -762,12 +729,13 @@
       "imports": [
         {
           "line": 8,
-          "statement": "import { createServerClient } from '@supabase/ssr'"
+          "statement": "import { createServerClient } from '@/utils/supabaseClient'"
         }
       ],
       "hasMultiplePatterns": true,
       "recommendations": [
-        "CONSOLIDATE: Multiple client creation patterns in single file"
+        "CONSOLIDATE: Multiple client creation patterns in single file",
+        "STANDARDIZE: Mixed client types (direct + SSR)"
       ]
     },
     {
@@ -1198,34 +1166,51 @@
         {
           "type": "createServerClient",
           "category": "ssr-server",
-          "line": 14,
-          "content": "const supabase = createServerClient(",
+          "line": 12,
+          "content": "const supabase = createServerClient();",
           "context": {
             "before": [
-              "export async function GET(request: NextRequest) {",
-              "  const cookieStore = cookies() as any;"
+              "",
+              "export async function GET(request: NextRequest) {"
             ],
-            "current": "  const supabase = createServerClient(",
+            "current": "  const supabase = createServerClient();",
             "after": [
-              "    process.env.NEXT_PUBLIC_SUPABASE_URL!,",
-              "    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,"
+              "",
+              "  try {"
             ]
           }
         },
         {
           "type": "createServerClient",
           "category": "ssr-server",
-          "line": 108,
-          "content": "const supabase = createServerClient(",
+          "line": 95,
+          "content": "const supabase = createServerClient();",
           "context": {
             "before": [
-              "export async function DELETE(request: NextRequest) {",
-              "  const cookieStore = cookies() as any;"
+              "",
+              "export async function DELETE(request: NextRequest) {"
             ],
-            "current": "  const supabase = createServerClient(",
+            "current": "  const supabase = createServerClient();",
             "after": [
-              "    process.env.NEXT_PUBLIC_SUPABASE_URL!,",
-              "    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,"
+              "",
+              "  try {"
+            ]
+          }
+        },
+        {
+          "type": "supabaseClient import",
+          "category": "util-import",
+          "line": 8,
+          "content": "import { createServerClient } from '@/utils/supabaseClient';",
+          "context": {
+            "before": [
+              " */",
+              ""
+            ],
+            "current": "import { createServerClient } from '@/utils/supabaseClient';",
+            "after": [
+              "import { NextRequest, NextResponse } from 'next/server';",
+              ""
             ]
           }
         }
@@ -1233,12 +1218,13 @@
       "imports": [
         {
           "line": 8,
-          "statement": "import { createServerClient } from '@supabase/ssr'"
+          "statement": "import { createServerClient } from '@/utils/supabaseClient'"
         }
       ],
       "hasMultiplePatterns": true,
       "recommendations": [
-        "CONSOLIDATE: Multiple client creation patterns in single file"
+        "CONSOLIDATE: Multiple client creation patterns in single file",
+        "STANDARDIZE: Mixed client types (direct + SSR)"
       ]
     },
     {
@@ -1310,68 +1296,51 @@
         {
           "type": "createClient",
           "category": "direct",
-          "line": 88,
-          "content": "const supabaseService = createClient(",
+          "line": 82,
+          "content": "const supabaseService = createClient(true); // true = use service role",
           "context": {
             "before": [
               "",
               "    // Use service key for database operations to bypass RLS"
             ],
-            "current": "    const supabaseService = createClient(",
+            "current": "    const supabaseService = createClient(true); // true = use service role",
             "after": [
-              "      process.env.NEXT_PUBLIC_SUPABASE_URL!,",
-              "      process.env.SUPABASE_SERVICE_ROLE_KEY!,"
+              "",
+              "    // Insert event"
             ]
           }
         },
         {
           "type": "createServerClient",
           "category": "ssr-server",
-          "line": 28,
-          "content": "const supabaseAnon = createServerClient(",
+          "line": 26,
+          "content": "const supabaseAnon = createServerClient();",
           "context": {
             "before": [
               "    ",
               "    // Use anon key for user authentication check"
             ],
-            "current": "    const supabaseAnon = createServerClient(",
-            "after": [
-              "      process.env.NEXT_PUBLIC_SUPABASE_URL!,",
-              "      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,"
-            ]
-          }
-        },
-        {
-          "type": "supabaseClient import",
-          "category": "util-import",
-          "line": 10,
-          "content": "import { createClient } from '@/utils/supabaseClient';",
-          "context": {
-            "before": [
-              "import { NextRequest, NextResponse } from \"next/server\";",
-              "import { createServerClient } from \"@supabase/ssr\";"
-            ],
-            "current": "import { createClient } from '@/utils/supabaseClient';",
-            "after": [
-              "import { cookies } from \"next/headers\";",
-              "import { getUserOrMock } from \"@/utils/supabaseClient\";"
-            ]
-          }
-        },
-        {
-          "type": "supabaseClient import",
-          "category": "util-import",
-          "line": 12,
-          "content": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
-          "context": {
-            "before": [
-              "import { createClient } from '@/utils/supabaseClient';",
-              "import { cookies } from \"next/headers\";"
-            ],
-            "current": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
+            "current": "    const supabaseAnon = createServerClient();",
             "after": [
               "",
-              "export async function POST(req: NextRequest) {"
+              "    // Check if user is logged in"
+            ]
+          }
+        },
+        {
+          "type": "supabaseClient import",
+          "category": "util-import",
+          "line": 9,
+          "content": "import { createServerClient, createClient, getUserOrMock } from '@/utils/supabaseClient';",
+          "context": {
+            "before": [
+              "",
+              "import { NextRequest, NextResponse } from \"next/server\";"
+            ],
+            "current": "import { createServerClient, createClient, getUserOrMock } from '@/utils/supabaseClient';",
+            "after": [
+              "import { cookies } from \"next/headers\";",
+              ""
             ]
           }
         }
@@ -1379,15 +1348,7 @@
       "imports": [
         {
           "line": 9,
-          "statement": "import { createServerClient } from \"@supabase/ssr\""
-        },
-        {
-          "line": 10,
-          "statement": "import { createClient } from '@/utils/supabaseClient'"
-        },
-        {
-          "line": 12,
-          "statement": "import { getUserOrMock } from \"@/utils/supabaseClient\""
+          "statement": "import { createServerClient, createClient, getUserOrMock } from '@/utils/supabaseClient'"
         }
       ],
       "hasMultiplePatterns": true,
@@ -1403,17 +1364,17 @@
         {
           "type": "createClient",
           "category": "direct",
-          "line": 107,
-          "content": "const supabaseAdmin = createClient(",
+          "line": 106,
+          "content": "const supabaseAdmin = createClient(true); // true = use service role",
           "context": {
             "before": [
               "        promptPage?.account_id,",
               "      );"
             ],
-            "current": "      const supabaseAdmin = createClient(",
+            "current": "      const supabaseAdmin = createClient(true); // true = use service role",
             "after": [
-              "        process.env.NEXT_PUBLIC_SUPABASE_URL!,",
-              "        process.env.SUPABASE_SERVICE_ROLE_KEY!,"
+              "      const { data: account } = await supabaseAdmin",
+              "        .from(\"accounts\")"
             ]
           }
         },
@@ -1421,32 +1382,15 @@
           "type": "supabaseClient import",
           "category": "util-import",
           "line": 2,
-          "content": "import { supabase } from \"@/utils/supabaseClient\";",
+          "content": "import { supabase, createClient } from \"@/utils/supabaseClient\";",
           "context": {
             "before": [
               "import { NextResponse } from \"next/server\";"
             ],
-            "current": "import { supabase } from \"@/utils/supabaseClient\";",
+            "current": "import { supabase, createClient } from \"@/utils/supabaseClient\";",
             "after": [
               "import { sendResendEmail } from \"@/utils/resend\";",
-              "import { createClient } from '@/utils/supabaseClient';"
-            ]
-          }
-        },
-        {
-          "type": "supabaseClient import",
-          "category": "util-import",
-          "line": 4,
-          "content": "import { createClient } from '@/utils/supabaseClient';",
-          "context": {
-            "before": [
-              "import { supabase } from \"@/utils/supabaseClient\";",
-              "import { sendResendEmail } from \"@/utils/resend\";"
-            ],
-            "current": "import { createClient } from '@/utils/supabaseClient';",
-            "after": [
-              "",
-              "export async function POST(request: Request) {"
+              ""
             ]
           }
         }
@@ -1454,11 +1398,7 @@
       "imports": [
         {
           "line": 2,
-          "statement": "import { supabase } from \"@/utils/supabaseClient\""
-        },
-        {
-          "line": 4,
-          "statement": "import { createClient } from '@/utils/supabaseClient'"
+          "statement": "import { supabase, createClient } from \"@/utils/supabaseClient\""
         }
       ],
       "hasMultiplePatterns": true,
@@ -1537,33 +1477,33 @@
           "type": "createClient",
           "category": "direct",
           "line": 6,
-          "content": "const supabase = createClient(",
+          "content": "const supabase = createClient();",
           "context": {
             "before": [
               "",
               "// Initialize Supabase client with public credentials"
             ],
-            "current": "const supabase = createClient(",
+            "current": "const supabase = createClient();",
             "after": [
-              "  process.env.NEXT_PUBLIC_SUPABASE_URL!,",
-              "  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!"
+              "",
+              "// Initialize Supabase admin client with service role key for data fetching"
             ]
           }
         },
         {
           "type": "createClient",
           "category": "direct",
-          "line": 12,
-          "content": "const supabaseAdmin = createClient(",
+          "line": 9,
+          "content": "const supabaseAdmin = createClient(true);",
           "context": {
             "before": [
               "",
               "// Initialize Supabase admin client with service role key for data fetching"
             ],
-            "current": "const supabaseAdmin = createClient(",
+            "current": "const supabaseAdmin = createClient(true);",
             "after": [
-              "  process.env.NEXT_PUBLIC_SUPABASE_URL!,",
-              "  process.env.SUPABASE_SERVICE_ROLE_KEY!"
+              "",
+              "/**"
             ]
           }
         },
@@ -1946,30 +1886,13 @@
           "type": "supabaseClient import",
           "category": "util-import",
           "line": 10,
-          "content": "import { supabase } from '@/utils/supabaseClient';",
+          "content": "import { supabase, getSessionOrMock } from '@/utils/supabaseClient';",
           "context": {
             "before": [
               "import { useState } from 'react';",
               "import { FaTimes, FaBug, FaLightbulb, FaComment } from 'react-icons/fa';"
             ],
-            "current": "import { supabase } from '@/utils/supabaseClient';",
-            "after": [
-              "import { getSessionOrMock } from '@/utils/supabaseClient';",
-              "import { trackEvent } from '../../utils/analytics';"
-            ]
-          }
-        },
-        {
-          "type": "supabaseClient import",
-          "category": "util-import",
-          "line": 11,
-          "content": "import { getSessionOrMock } from '@/utils/supabaseClient';",
-          "context": {
-            "before": [
-              "import { FaTimes, FaBug, FaLightbulb, FaComment } from 'react-icons/fa';",
-              "import { supabase } from '@/utils/supabaseClient';"
-            ],
-            "current": "import { getSessionOrMock } from '@/utils/supabaseClient';",
+            "current": "import { supabase, getSessionOrMock } from '@/utils/supabaseClient';",
             "after": [
               "import { trackEvent } from '../../utils/analytics';",
               ""
@@ -1980,17 +1903,11 @@
       "imports": [
         {
           "line": 10,
-          "statement": "import { supabase } from '@/utils/supabaseClient'"
-        },
-        {
-          "line": 11,
-          "statement": "import { getSessionOrMock } from '@/utils/supabaseClient'"
+          "statement": "import { supabase, getSessionOrMock } from '@/utils/supabaseClient'"
         }
       ],
-      "hasMultiplePatterns": true,
-      "recommendations": [
-        "CONSOLIDATE: Multiple client creation patterns in single file"
-      ]
+      "hasMultiplePatterns": false,
+      "recommendations": []
     },
     {
       "path": "src/app/components/GettingStarted.tsx",
@@ -2031,30 +1948,13 @@
           "type": "supabaseClient import",
           "category": "util-import",
           "line": 10,
-          "content": "import { supabase } from \"@/utils/supabaseClient\";",
+          "content": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
           "context": {
             "before": [
               "import { FaUserCircle, FaBell } from \"react-icons/fa\";",
               "import { Menu } from \"@headlessui/react\";"
             ],
-            "current": "import { supabase } from \"@/utils/supabaseClient\";",
-            "after": [
-              "import { getUserOrMock } from \"@/utils/supabaseClient\";",
-              "import { useAdmin } from \"@/contexts/AdminContext\";"
-            ]
-          }
-        },
-        {
-          "type": "supabaseClient import",
-          "category": "util-import",
-          "line": 11,
-          "content": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
-          "context": {
-            "before": [
-              "import { Menu } from \"@headlessui/react\";",
-              "import { supabase } from \"@/utils/supabaseClient\";"
-            ],
-            "current": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
+            "current": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
             "after": [
               "import { useAdmin } from \"@/contexts/AdminContext\";",
               "import { useBusinessProfile } from \"@/utils/authGuard\";"
@@ -2065,17 +1965,11 @@
       "imports": [
         {
           "line": 10,
-          "statement": "import { supabase } from \"@/utils/supabaseClient\""
-        },
-        {
-          "line": 11,
-          "statement": "import { getUserOrMock } from \"@/utils/supabaseClient\""
+          "statement": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\""
         }
       ],
-      "hasMultiplePatterns": true,
-      "recommendations": [
-        "CONSOLIDATE: Multiple client creation patterns in single file"
-      ]
+      "hasMultiplePatterns": false,
+      "recommendations": []
     },
     {
       "path": "src/app/components/QuoteDisplay.tsx",
@@ -2116,33 +2010,16 @@
           "type": "supabaseClient import",
           "category": "util-import",
           "line": 26,
-          "content": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
+          "content": "import { getUserOrMock, supabase } from \"@/utils/supabaseClient\";",
           "context": {
             "before": [
               "import { checkAccountLimits } from \"@/utils/accountLimits\";",
               "import { Dialog } from \"@headlessui/react\";"
             ],
-            "current": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
+            "current": "import { getUserOrMock, supabase } from \"@/utils/supabaseClient\";",
             "after": [
               "import dynamic from \"next/dynamic\";",
               "import { slugify } from \"@/utils/slugify\";"
-            ]
-          }
-        },
-        {
-          "type": "supabaseClient import",
-          "category": "util-import",
-          "line": 34,
-          "content": "import { supabase } from \"@/utils/supabaseClient\";",
-          "context": {
-            "before": [
-              "import FiveStarSpinner from \"../components/FiveStarSpinner\";",
-              "import AppLoader from \"../components/AppLoader\";"
-            ],
-            "current": "import { supabase } from \"@/utils/supabaseClient\";",
-            "after": [
-              "",
-              "interface ReviewPlatformLink {"
             ]
           }
         }
@@ -2150,17 +2027,11 @@
       "imports": [
         {
           "line": 26,
-          "statement": "import { getUserOrMock } from \"@/utils/supabaseClient\""
-        },
-        {
-          "line": 34,
-          "statement": "import { supabase } from \"@/utils/supabaseClient\""
+          "statement": "import { getUserOrMock, supabase } from \"@/utils/supabaseClient\""
         }
       ],
-      "hasMultiplePatterns": true,
-      "recommendations": [
-        "CONSOLIDATE: Multiple client creation patterns in single file"
-      ]
+      "hasMultiplePatterns": false,
+      "recommendations": []
     },
     {
       "path": "src/app/dashboard/DashboardContent.tsx",
@@ -2170,33 +2041,16 @@
           "type": "supabaseClient import",
           "category": "util-import",
           "line": 4,
-          "content": "import { supabase } from \"@/utils/supabaseClient\";",
+          "content": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
           "context": {
             "before": [
               "import Link from \"next/link\";",
               "import { RefObject, useState, useEffect, useMemo } from \"react\";"
             ],
-            "current": "import { supabase } from \"@/utils/supabaseClient\";",
+            "current": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
             "after": [
               "import { useAuthGuard } from \"@/utils/authGuard\";",
               "import {"
-            ]
-          }
-        },
-        {
-          "type": "supabaseClient import",
-          "category": "util-import",
-          "line": 26,
-          "content": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
-          "context": {
-            "before": [
-              "  MdPhotoCamera,",
-              "} from \"react-icons/md\";"
-            ],
-            "current": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
-            "after": [
-              "import QRCodeModal from \"../components/QRCodeModal\";",
-              "import QuoteDisplay from \"../components/QuoteDisplay\";"
             ]
           }
         }
@@ -2204,17 +2058,11 @@
       "imports": [
         {
           "line": 4,
-          "statement": "import { supabase } from \"@/utils/supabaseClient\""
-        },
-        {
-          "line": 26,
-          "statement": "import { getUserOrMock } from \"@/utils/supabaseClient\""
+          "statement": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\""
         }
       ],
-      "hasMultiplePatterns": true,
-      "recommendations": [
-        "CONSOLIDATE: Multiple client creation patterns in single file"
-      ]
+      "hasMultiplePatterns": false,
+      "recommendations": []
     },
     {
       "path": "src/app/dashboard/analytics/page.tsx",
@@ -2224,33 +2072,16 @@
           "type": "supabaseClient import",
           "category": "util-import",
           "line": 4,
-          "content": "import { supabase } from \"@/utils/supabaseClient\";",
+          "content": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
           "context": {
             "before": [
               "",
               "import { useState, useEffect } from \"react\";"
             ],
-            "current": "import { supabase } from \"@/utils/supabaseClient\";",
+            "current": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
             "after": [
               "import { useAuthGuard } from \"@/utils/authGuard\";",
               "import {"
-            ]
-          }
-        },
-        {
-          "type": "supabaseClient import",
-          "category": "util-import",
-          "line": 15,
-          "content": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
-          "context": {
-            "before": [
-              "  FaGrinStars,",
-              "} from \"react-icons/fa\";"
-            ],
-            "current": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
-            "after": [
-              "import { getAccountIdForUser } from \"@/utils/accountUtils\";",
-              "import { isAdmin } from \"@/utils/admin\";"
             ]
           }
         }
@@ -2258,17 +2089,11 @@
       "imports": [
         {
           "line": 4,
-          "statement": "import { supabase } from \"@/utils/supabaseClient\""
-        },
-        {
-          "line": 15,
-          "statement": "import { getUserOrMock } from \"@/utils/supabaseClient\""
+          "statement": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\""
         }
       ],
-      "hasMultiplePatterns": true,
-      "recommendations": [
-        "CONSOLIDATE: Multiple client creation patterns in single file"
-      ]
+      "hasMultiplePatterns": false,
+      "recommendations": []
     },
     {
       "path": "src/app/dashboard/business-profile/page.tsx",
@@ -2278,33 +2103,16 @@
           "type": "supabaseClient import",
           "category": "util-import",
           "line": 5,
-          "content": "import { supabase } from \"@/utils/supabaseClient\";",
+          "content": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
           "context": {
             "before": [
               "import { useEffect, useState, useRef, useCallback } from \"react\";",
               "import { useRouter } from \"next/navigation\";"
             ],
-            "current": "import { supabase } from \"@/utils/supabaseClient\";",
+            "current": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
             "after": [
               "import Cropper from \"react-easy-crop\";",
               "import type { Area } from \"react-easy-crop\";"
-            ]
-          }
-        },
-        {
-          "type": "supabaseClient import",
-          "category": "util-import",
-          "line": 32,
-          "content": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
-          "context": {
-            "before": [
-              "  FaTimes,",
-              "} from \"react-icons/fa\";"
-            ],
-            "current": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
-            "after": [
-              "import { getAccountIdForUser } from \"@/utils/accountUtils\";",
-              "import { isAdmin } from \"@/utils/admin\";"
             ]
           }
         }
@@ -2312,17 +2120,11 @@
       "imports": [
         {
           "line": 5,
-          "statement": "import { supabase } from \"@/utils/supabaseClient\""
-        },
-        {
-          "line": 32,
-          "statement": "import { getUserOrMock } from \"@/utils/supabaseClient\""
+          "statement": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\""
         }
       ],
-      "hasMultiplePatterns": true,
-      "recommendations": [
-        "CONSOLIDATE: Multiple client creation patterns in single file"
-      ]
+      "hasMultiplePatterns": false,
+      "recommendations": []
     },
     {
       "path": "src/app/dashboard/components/Analytics.tsx",
@@ -2417,33 +2219,16 @@
           "type": "supabaseClient import",
           "category": "util-import",
           "line": 5,
-          "content": "import { supabase } from \"@/utils/supabaseClient\";",
+          "content": "import { supabase, getSessionOrMock } from \"@/utils/supabaseClient\";",
           "context": {
             "before": [
               "import { useState, useEffect } from \"react\";",
               "import { useAuthGuard } from \"@/utils/authGuard\";"
             ],
-            "current": "import { supabase } from \"@/utils/supabaseClient\";",
+            "current": "import { supabase, getSessionOrMock } from \"@/utils/supabaseClient\";",
             "after": [
               "import {",
               "  FaDownload,"
-            ]
-          }
-        },
-        {
-          "type": "supabaseClient import",
-          "category": "util-import",
-          "line": 17,
-          "content": "import { getSessionOrMock } from \"@/utils/supabaseClient\";",
-          "context": {
-            "before": [
-              "  FaTimes,",
-              "} from \"react-icons/fa\";"
-            ],
-            "current": "import { getSessionOrMock } from \"@/utils/supabaseClient\";",
-            "after": [
-              "import AppLoader from \"@/app/components/AppLoader\";",
-              "import PageCard from \"@/app/components/PageCard\";"
             ]
           }
         }
@@ -2451,17 +2236,11 @@
       "imports": [
         {
           "line": 5,
-          "statement": "import { supabase } from \"@/utils/supabaseClient\""
-        },
-        {
-          "line": 17,
-          "statement": "import { getSessionOrMock } from \"@/utils/supabaseClient\""
+          "statement": "import { supabase, getSessionOrMock } from \"@/utils/supabaseClient\""
         }
       ],
-      "hasMultiplePatterns": true,
-      "recommendations": [
-        "CONSOLIDATE: Multiple client creation patterns in single file"
-      ]
+      "hasMultiplePatterns": false,
+      "recommendations": []
     },
     {
       "path": "src/app/dashboard/create-business/CreateBusinessClient.tsx",
@@ -2703,30 +2482,13 @@
           "type": "supabaseClient import",
           "category": "util-import",
           "line": 4,
-          "content": "import { supabase } from \"@/utils/supabaseClient\";",
+          "content": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
           "context": {
             "before": [
               "",
               "import { useEffect, useState, useCallback } from \"react\";"
             ],
-            "current": "import { supabase } from \"@/utils/supabaseClient\";",
-            "after": [
-              "import { getUserOrMock } from \"@/utils/supabaseClient\";",
-              "import { getAccountIdForUser } from \"@/utils/accountUtils\";"
-            ]
-          }
-        },
-        {
-          "type": "supabaseClient import",
-          "category": "util-import",
-          "line": 5,
-          "content": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
-          "context": {
-            "before": [
-              "import { useEffect, useState, useCallback } from \"react\";",
-              "import { supabase } from \"@/utils/supabaseClient\";"
-            ],
-            "current": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
+            "current": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
             "after": [
               "import { getAccountIdForUser } from \"@/utils/accountUtils\";",
               "import { useRouter } from \"next/navigation\";"
@@ -2737,17 +2499,11 @@
       "imports": [
         {
           "line": 4,
-          "statement": "import { supabase } from \"@/utils/supabaseClient\""
-        },
-        {
-          "line": 5,
-          "statement": "import { getUserOrMock } from \"@/utils/supabaseClient\""
+          "statement": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\""
         }
       ],
-      "hasMultiplePatterns": true,
-      "recommendations": [
-        "CONSOLIDATE: Multiple client creation patterns in single file"
-      ]
+      "hasMultiplePatterns": false,
+      "recommendations": []
     },
     {
       "path": "src/app/dashboard/page.tsx",
@@ -2757,33 +2513,16 @@
           "type": "supabaseClient import",
           "category": "util-import",
           "line": 4,
-          "content": "import { supabase } from \"@/utils/supabaseClient\";",
+          "content": "import { supabase, getUserOrMock, getSessionOrMock } from \"@/utils/supabaseClient\";",
           "context": {
             "before": [
               "",
               "import { useEffect, useState, useRef } from \"react\";"
             ],
-            "current": "import { supabase } from \"@/utils/supabaseClient\";",
+            "current": "import { supabase, getUserOrMock, getSessionOrMock } from \"@/utils/supabaseClient\";",
             "after": [
               "import { useRouter, useSearchParams } from \"next/navigation\";",
               "import { QRCodeSVG } from \"qrcode.react\";"
-            ]
-          }
-        },
-        {
-          "type": "supabaseClient import",
-          "category": "util-import",
-          "line": 9,
-          "content": "import { getUserOrMock, getSessionOrMock } from \"@/utils/supabaseClient\";",
-          "context": {
-            "before": [
-              "import { FaHome } from \"react-icons/fa\";",
-              "import DashboardContent from \"./DashboardContent\";"
-            ],
-            "current": "import { getUserOrMock, getSessionOrMock } from \"@/utils/supabaseClient\";",
-            "after": [
-              "import PricingModal, { tiers } from \"../components/PricingModal\";",
-              "import FiveStarSpinner from \"../components/FiveStarSpinner\";"
             ]
           }
         }
@@ -2791,17 +2530,11 @@
       "imports": [
         {
           "line": 4,
-          "statement": "import { supabase } from \"@/utils/supabaseClient\""
-        },
-        {
-          "line": 9,
-          "statement": "import { getUserOrMock, getSessionOrMock } from \"@/utils/supabaseClient\""
+          "statement": "import { supabase, getUserOrMock, getSessionOrMock } from \"@/utils/supabaseClient\""
         }
       ],
-      "hasMultiplePatterns": true,
-      "recommendations": [
-        "CONSOLIDATE: Multiple client creation patterns in single file"
-      ]
+      "hasMultiplePatterns": false,
+      "recommendations": []
     },
     {
       "path": "src/app/dashboard/plan/page.tsx",
@@ -4343,9 +4076,9 @@
   ],
   "summary": {
     "totalFiles": 221,
-    "totalInstances": 159,
+    "totalInstances": 148,
     "byCategory": {
-      "util-import": 98,
+      "util-import": 87,
       "direct": 46,
       "ssr-server": 14,
       "ssr-browser": 1
@@ -4356,182 +4089,20 @@
     },
     "problematicFiles": [
       {
-        "path": "src/app/account/page.tsx",
-        "type": "tsx",
-        "instances": [
-          {
-            "type": "supabaseClient import",
-            "category": "util-import",
-            "line": 4,
-            "content": "import { supabase } from \"@/utils/supabaseClient\";",
-            "context": {
-              "before": [
-                "",
-                "import { useEffect, useState } from \"react\";"
-              ],
-              "current": "import { supabase } from \"@/utils/supabaseClient\";",
-              "after": [
-                "import { getUserOrMock } from \"@/utils/supabaseClient\";",
-                "import { useRouter } from \"next/navigation\";"
-              ]
-            }
-          },
-          {
-            "type": "supabaseClient import",
-            "category": "util-import",
-            "line": 5,
-            "content": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
-            "context": {
-              "before": [
-                "import { useEffect, useState } from \"react\";",
-                "import { supabase } from \"@/utils/supabaseClient\";"
-              ],
-              "current": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
-              "after": [
-                "import { useRouter } from \"next/navigation\";",
-                "import {"
-              ]
-            }
-          }
-        ],
-        "imports": [
-          {
-            "line": 4,
-            "statement": "import { supabase } from \"@/utils/supabaseClient\""
-          },
-          {
-            "line": 5,
-            "statement": "import { getUserOrMock } from \"@/utils/supabaseClient\""
-          }
-        ],
-        "hasMultiplePatterns": true,
-        "recommendations": [
-          "CONSOLIDATE: Multiple client creation patterns in single file"
-        ]
-      },
-      {
-        "path": "src/app/admin/layout.tsx",
-        "type": "tsx",
-        "instances": [
-          {
-            "type": "supabaseClient import",
-            "category": "util-import",
-            "line": 13,
-            "content": "import { supabase } from \"@/utils/supabaseClient\";",
-            "context": {
-              "before": [
-                "import { usePathname } from 'next/navigation';",
-                "import Link from 'next/link';"
-              ],
-              "current": "import { supabase } from \"@/utils/supabaseClient\";",
-              "after": [
-                "import { getUserOrMock } from \"@/utils/supabaseClient\";",
-                "import { isAdmin } from \"@/utils/admin\";"
-              ]
-            }
-          },
-          {
-            "type": "supabaseClient import",
-            "category": "util-import",
-            "line": 14,
-            "content": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
-            "context": {
-              "before": [
-                "import Link from 'next/link';",
-                "import { supabase } from \"@/utils/supabaseClient\";"
-              ],
-              "current": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
-              "after": [
-                "import { isAdmin } from \"@/utils/admin\";",
-                "import { useRouter } from \"next/navigation\";"
-              ]
-            }
-          }
-        ],
-        "imports": [
-          {
-            "line": 13,
-            "statement": "import { supabase } from \"@/utils/supabaseClient\""
-          },
-          {
-            "line": 14,
-            "statement": "import { getUserOrMock } from \"@/utils/supabaseClient\""
-          }
-        ],
-        "hasMultiplePatterns": true,
-        "recommendations": [
-          "CONSOLIDATE: Multiple client creation patterns in single file"
-        ]
-      },
-      {
-        "path": "src/app/admin/page.tsx",
-        "type": "tsx",
-        "instances": [
-          {
-            "type": "supabaseClient import",
-            "category": "util-import",
-            "line": 12,
-            "content": "import { supabase } from \"@/utils/supabaseClient\";",
-            "context": {
-              "before": [
-                "",
-                "import { useState, useEffect } from 'react';"
-              ],
-              "current": "import { supabase } from \"@/utils/supabaseClient\";",
-              "after": [
-                "import { getUserOrMock } from \"@/utils/supabaseClient\";",
-                "import { isAdmin } from \"@/utils/admin\";"
-              ]
-            }
-          },
-          {
-            "type": "supabaseClient import",
-            "category": "util-import",
-            "line": 13,
-            "content": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
-            "context": {
-              "before": [
-                "import { useState, useEffect } from 'react';",
-                "import { supabase } from \"@/utils/supabaseClient\";"
-              ],
-              "current": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
-              "after": [
-                "import { isAdmin } from \"@/utils/admin\";",
-                "import { useRouter } from \"next/navigation\";"
-              ]
-            }
-          }
-        ],
-        "imports": [
-          {
-            "line": 12,
-            "statement": "import { supabase } from \"@/utils/supabaseClient\""
-          },
-          {
-            "line": 13,
-            "statement": "import { getUserOrMock } from \"@/utils/supabaseClient\""
-          }
-        ],
-        "hasMultiplePatterns": true,
-        "recommendations": [
-          "CONSOLIDATE: Multiple client creation patterns in single file"
-        ]
-      },
-      {
         "path": "src/app/api/businesses/route.ts",
         "type": "ts",
         "instances": [
           {
             "type": "createClient",
             "category": "direct",
-            "line": 24,
-            "content": "const supabase = createClient(supabaseUrl, supabaseServiceKey);",
+            "line": 13,
+            "content": "const supabase = createClient(true); // true = use service role",
             "context": {
               "before": [
-                "",
-                "    const { createClient } = await import('@supabase/supabase-js');"
+                "export async function GET(request: NextRequest) {",
+                "  try {"
               ],
-              "current": "    const supabase = createClient(supabaseUrl, supabaseServiceKey);",
+              "current": "    const supabase = createClient(true); // true = use service role",
               "after": [
                 "",
                 "    const { data: businesses, error } = await supabase"
@@ -4541,25 +4112,48 @@
           {
             "type": "createClient",
             "category": "direct",
-            "line": 74,
-            "content": "const supabase = createClient(supabaseUrl, supabaseServiceKey);",
+            "line": 51,
+            "content": "const supabase = createClient(true); // true = use service role",
             "context": {
               "before": [
-                "",
-                "    const { createClient } = await import('@supabase/supabase-js');"
+                "    console.log(`[BUSINESSES] Creating business: ${name} for account: ${account_id}`);",
+                ""
               ],
-              "current": "    const supabase = createClient(supabaseUrl, supabaseServiceKey);",
+              "current": "    const supabase = createClient(true); // true = use service role",
               "after": [
                 "",
                 "    // Convert industry string to array if it's a string"
               ]
             }
+          },
+          {
+            "type": "supabaseClient import",
+            "category": "util-import",
+            "line": 9,
+            "content": "import { createClient } from \"@/utils/supabaseClient\";",
+            "context": {
+              "before": [
+                "",
+                "import { NextRequest, NextResponse } from \"next/server\";"
+              ],
+              "current": "import { createClient } from \"@/utils/supabaseClient\";",
+              "after": [
+                "",
+                "export async function GET(request: NextRequest) {"
+              ]
+            }
           }
         ],
-        "imports": [],
+        "imports": [
+          {
+            "line": 9,
+            "statement": "import { createClient } from \"@/utils/supabaseClient\""
+          }
+        ],
         "hasMultiplePatterns": true,
         "recommendations": [
-          "CONSOLIDATE: Multiple client creation patterns in single file"
+          "CONSOLIDATE: Multiple client creation patterns in single file",
+          "STANDARDIZE: Mixed client types (direct + SSR)"
         ]
       },
       {
@@ -4569,31 +4163,31 @@
           {
             "type": "createServerClient",
             "category": "ssr-server",
-            "line": 13,
-            "content": "const supabase = createServerClient(",
+            "line": 12,
+            "content": "const supabase = createServerClient();",
             "context": {
               "before": [
                 "  }",
                 ""
               ],
-              "current": "  const supabase = createServerClient(",
+              "current": "  const supabase = createServerClient();",
               "after": [
-                "    process.env.NEXT_PUBLIC_SUPABASE_URL!,",
-                "    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,"
+                "",
+                "  const {"
               ]
             }
           },
           {
             "type": "supabaseClient import",
             "category": "util-import",
-            "line": 4,
-            "content": "import { getSessionOrMock } from \"@/utils/supabaseClient\";",
+            "line": 3,
+            "content": "import { createServerClient, getSessionOrMock } from \"@/utils/supabaseClient\";",
             "context": {
               "before": [
-                "import { cookies } from \"next/headers\";",
-                "import { createServerClient } from \"@supabase/ssr\";"
+                "import { NextResponse } from \"next/server\";",
+                "import { cookies } from \"next/headers\";"
               ],
-              "current": "import { getSessionOrMock } from \"@/utils/supabaseClient\";",
+              "current": "import { createServerClient, getSessionOrMock } from \"@/utils/supabaseClient\";",
               "after": [
                 "",
                 "export async function GET() {"
@@ -4604,11 +4198,7 @@
         "imports": [
           {
             "line": 3,
-            "statement": "import { createServerClient } from \"@supabase/ssr\""
-          },
-          {
-            "line": 4,
-            "statement": "import { getSessionOrMock } from \"@/utils/supabaseClient\""
+            "statement": "import { createServerClient, getSessionOrMock } from \"@/utils/supabaseClient\""
           }
         ],
         "hasMultiplePatterns": true,
@@ -4624,34 +4214,51 @@
           {
             "type": "createServerClient",
             "category": "ssr-server",
-            "line": 16,
-            "content": "const supabase = createServerClient(",
+            "line": 13,
+            "content": "const supabase = createServerClient();",
             "context": {
               "before": [
-                "    const cookieStore = await cookies();",
-                "    "
+                "export async function GET(request: NextRequest) {",
+                "  try {"
               ],
-              "current": "    const supabase = createServerClient(",
+              "current": "    const supabase = createServerClient();",
               "after": [
-                "      process.env.NEXT_PUBLIC_SUPABASE_URL!,",
-                "      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,"
+                "    ",
+                "    // Check if user is admin"
               ]
             }
           },
           {
             "type": "createServerClient",
             "category": "ssr-server",
-            "line": 71,
-            "content": "const supabase = createServerClient(",
+            "line": 45,
+            "content": "const supabase = createServerClient();",
             "context": {
               "before": [
-                "    const cookieStore = await cookies();",
-                "    "
+                "export async function POST(request: NextRequest) {",
+                "  try {"
               ],
-              "current": "    const supabase = createServerClient(",
+              "current": "    const supabase = createServerClient();",
               "after": [
-                "      process.env.NEXT_PUBLIC_SUPABASE_URL!,",
-                "      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,"
+                "    ",
+                "    // Check if user is admin"
+              ]
+            }
+          },
+          {
+            "type": "supabaseClient import",
+            "category": "util-import",
+            "line": 8,
+            "content": "import { createServerClient } from '@/utils/supabaseClient';",
+            "context": {
+              "before": [
+                "",
+                "import { NextRequest, NextResponse } from 'next/server';"
+              ],
+              "current": "import { createServerClient } from '@/utils/supabaseClient';",
+              "after": [
+                "import { getAllEmailTemplates, updateEmailTemplate } from '../../../utils/emailTemplates';",
+                ""
               ]
             }
           }
@@ -4659,12 +4266,13 @@
         "imports": [
           {
             "line": 8,
-            "statement": "import { createServerClient } from '@supabase/ssr'"
+            "statement": "import { createServerClient } from '@/utils/supabaseClient'"
           }
         ],
         "hasMultiplePatterns": true,
         "recommendations": [
-          "CONSOLIDATE: Multiple client creation patterns in single file"
+          "CONSOLIDATE: Multiple client creation patterns in single file",
+          "STANDARDIZE: Mixed client types (direct + SSR)"
         ]
       },
       {
@@ -4791,34 +4399,51 @@
           {
             "type": "createServerClient",
             "category": "ssr-server",
-            "line": 14,
-            "content": "const supabase = createServerClient(",
+            "line": 12,
+            "content": "const supabase = createServerClient();",
             "context": {
               "before": [
-                "export async function GET(request: NextRequest) {",
-                "  const cookieStore = cookies() as any;"
+                "",
+                "export async function GET(request: NextRequest) {"
               ],
-              "current": "  const supabase = createServerClient(",
+              "current": "  const supabase = createServerClient();",
               "after": [
-                "    process.env.NEXT_PUBLIC_SUPABASE_URL!,",
-                "    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,"
+                "",
+                "  try {"
               ]
             }
           },
           {
             "type": "createServerClient",
             "category": "ssr-server",
-            "line": 108,
-            "content": "const supabase = createServerClient(",
+            "line": 95,
+            "content": "const supabase = createServerClient();",
             "context": {
               "before": [
-                "export async function DELETE(request: NextRequest) {",
-                "  const cookieStore = cookies() as any;"
+                "",
+                "export async function DELETE(request: NextRequest) {"
               ],
-              "current": "  const supabase = createServerClient(",
+              "current": "  const supabase = createServerClient();",
               "after": [
-                "    process.env.NEXT_PUBLIC_SUPABASE_URL!,",
-                "    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,"
+                "",
+                "  try {"
+              ]
+            }
+          },
+          {
+            "type": "supabaseClient import",
+            "category": "util-import",
+            "line": 8,
+            "content": "import { createServerClient } from '@/utils/supabaseClient';",
+            "context": {
+              "before": [
+                " */",
+                ""
+              ],
+              "current": "import { createServerClient } from '@/utils/supabaseClient';",
+              "after": [
+                "import { NextRequest, NextResponse } from 'next/server';",
+                ""
               ]
             }
           }
@@ -4826,12 +4451,13 @@
         "imports": [
           {
             "line": 8,
-            "statement": "import { createServerClient } from '@supabase/ssr'"
+            "statement": "import { createServerClient } from '@/utils/supabaseClient'"
           }
         ],
         "hasMultiplePatterns": true,
         "recommendations": [
-          "CONSOLIDATE: Multiple client creation patterns in single file"
+          "CONSOLIDATE: Multiple client creation patterns in single file",
+          "STANDARDIZE: Mixed client types (direct + SSR)"
         ]
       },
       {
@@ -4841,68 +4467,51 @@
           {
             "type": "createClient",
             "category": "direct",
-            "line": 88,
-            "content": "const supabaseService = createClient(",
+            "line": 82,
+            "content": "const supabaseService = createClient(true); // true = use service role",
             "context": {
               "before": [
                 "",
                 "    // Use service key for database operations to bypass RLS"
               ],
-              "current": "    const supabaseService = createClient(",
+              "current": "    const supabaseService = createClient(true); // true = use service role",
               "after": [
-                "      process.env.NEXT_PUBLIC_SUPABASE_URL!,",
-                "      process.env.SUPABASE_SERVICE_ROLE_KEY!,"
+                "",
+                "    // Insert event"
               ]
             }
           },
           {
             "type": "createServerClient",
             "category": "ssr-server",
-            "line": 28,
-            "content": "const supabaseAnon = createServerClient(",
+            "line": 26,
+            "content": "const supabaseAnon = createServerClient();",
             "context": {
               "before": [
                 "    ",
                 "    // Use anon key for user authentication check"
               ],
-              "current": "    const supabaseAnon = createServerClient(",
-              "after": [
-                "      process.env.NEXT_PUBLIC_SUPABASE_URL!,",
-                "      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,"
-              ]
-            }
-          },
-          {
-            "type": "supabaseClient import",
-            "category": "util-import",
-            "line": 10,
-            "content": "import { createClient } from '@/utils/supabaseClient';",
-            "context": {
-              "before": [
-                "import { NextRequest, NextResponse } from \"next/server\";",
-                "import { createServerClient } from \"@supabase/ssr\";"
-              ],
-              "current": "import { createClient } from '@/utils/supabaseClient';",
-              "after": [
-                "import { cookies } from \"next/headers\";",
-                "import { getUserOrMock } from \"@/utils/supabaseClient\";"
-              ]
-            }
-          },
-          {
-            "type": "supabaseClient import",
-            "category": "util-import",
-            "line": 12,
-            "content": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
-            "context": {
-              "before": [
-                "import { createClient } from '@/utils/supabaseClient';",
-                "import { cookies } from \"next/headers\";"
-              ],
-              "current": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
+              "current": "    const supabaseAnon = createServerClient();",
               "after": [
                 "",
-                "export async function POST(req: NextRequest) {"
+                "    // Check if user is logged in"
+              ]
+            }
+          },
+          {
+            "type": "supabaseClient import",
+            "category": "util-import",
+            "line": 9,
+            "content": "import { createServerClient, createClient, getUserOrMock } from '@/utils/supabaseClient';",
+            "context": {
+              "before": [
+                "",
+                "import { NextRequest, NextResponse } from \"next/server\";"
+              ],
+              "current": "import { createServerClient, createClient, getUserOrMock } from '@/utils/supabaseClient';",
+              "after": [
+                "import { cookies } from \"next/headers\";",
+                ""
               ]
             }
           }
@@ -4910,15 +4519,7 @@
         "imports": [
           {
             "line": 9,
-            "statement": "import { createServerClient } from \"@supabase/ssr\""
-          },
-          {
-            "line": 10,
-            "statement": "import { createClient } from '@/utils/supabaseClient'"
-          },
-          {
-            "line": 12,
-            "statement": "import { getUserOrMock } from \"@/utils/supabaseClient\""
+            "statement": "import { createServerClient, createClient, getUserOrMock } from '@/utils/supabaseClient'"
           }
         ],
         "hasMultiplePatterns": true,
@@ -4934,17 +4535,17 @@
           {
             "type": "createClient",
             "category": "direct",
-            "line": 107,
-            "content": "const supabaseAdmin = createClient(",
+            "line": 106,
+            "content": "const supabaseAdmin = createClient(true); // true = use service role",
             "context": {
               "before": [
                 "        promptPage?.account_id,",
                 "      );"
               ],
-              "current": "      const supabaseAdmin = createClient(",
+              "current": "      const supabaseAdmin = createClient(true); // true = use service role",
               "after": [
-                "        process.env.NEXT_PUBLIC_SUPABASE_URL!,",
-                "        process.env.SUPABASE_SERVICE_ROLE_KEY!,"
+                "      const { data: account } = await supabaseAdmin",
+                "        .from(\"accounts\")"
               ]
             }
           },
@@ -4952,32 +4553,15 @@
             "type": "supabaseClient import",
             "category": "util-import",
             "line": 2,
-            "content": "import { supabase } from \"@/utils/supabaseClient\";",
+            "content": "import { supabase, createClient } from \"@/utils/supabaseClient\";",
             "context": {
               "before": [
                 "import { NextResponse } from \"next/server\";"
               ],
-              "current": "import { supabase } from \"@/utils/supabaseClient\";",
+              "current": "import { supabase, createClient } from \"@/utils/supabaseClient\";",
               "after": [
                 "import { sendResendEmail } from \"@/utils/resend\";",
-                "import { createClient } from '@/utils/supabaseClient';"
-              ]
-            }
-          },
-          {
-            "type": "supabaseClient import",
-            "category": "util-import",
-            "line": 4,
-            "content": "import { createClient } from '@/utils/supabaseClient';",
-            "context": {
-              "before": [
-                "import { supabase } from \"@/utils/supabaseClient\";",
-                "import { sendResendEmail } from \"@/utils/resend\";"
-              ],
-              "current": "import { createClient } from '@/utils/supabaseClient';",
-              "after": [
-                "",
-                "export async function POST(request: Request) {"
+                ""
               ]
             }
           }
@@ -4985,11 +4569,7 @@
         "imports": [
           {
             "line": 2,
-            "statement": "import { supabase } from \"@/utils/supabaseClient\""
-          },
-          {
-            "line": 4,
-            "statement": "import { createClient } from '@/utils/supabaseClient'"
+            "statement": "import { supabase, createClient } from \"@/utils/supabaseClient\""
           }
         ],
         "hasMultiplePatterns": true,
@@ -5006,33 +4586,33 @@
             "type": "createClient",
             "category": "direct",
             "line": 6,
-            "content": "const supabase = createClient(",
+            "content": "const supabase = createClient();",
             "context": {
               "before": [
                 "",
                 "// Initialize Supabase client with public credentials"
               ],
-              "current": "const supabase = createClient(",
+              "current": "const supabase = createClient();",
               "after": [
-                "  process.env.NEXT_PUBLIC_SUPABASE_URL!,",
-                "  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!"
+                "",
+                "// Initialize Supabase admin client with service role key for data fetching"
               ]
             }
           },
           {
             "type": "createClient",
             "category": "direct",
-            "line": 12,
-            "content": "const supabaseAdmin = createClient(",
+            "line": 9,
+            "content": "const supabaseAdmin = createClient(true);",
             "context": {
               "before": [
                 "",
                 "// Initialize Supabase admin client with service role key for data fetching"
               ],
-              "current": "const supabaseAdmin = createClient(",
+              "current": "const supabaseAdmin = createClient(true);",
               "after": [
-                "  process.env.NEXT_PUBLIC_SUPABASE_URL!,",
-                "  process.env.SUPABASE_SERVICE_ROLE_KEY!"
+                "",
+                "/**"
               ]
             }
           },
@@ -5134,330 +4714,6 @@
         ]
       },
       {
-        "path": "src/app/components/FeedbackModal.tsx",
-        "type": "tsx",
-        "instances": [
-          {
-            "type": "supabaseClient import",
-            "category": "util-import",
-            "line": 10,
-            "content": "import { supabase } from '@/utils/supabaseClient';",
-            "context": {
-              "before": [
-                "import { useState } from 'react';",
-                "import { FaTimes, FaBug, FaLightbulb, FaComment } from 'react-icons/fa';"
-              ],
-              "current": "import { supabase } from '@/utils/supabaseClient';",
-              "after": [
-                "import { getSessionOrMock } from '@/utils/supabaseClient';",
-                "import { trackEvent } from '../../utils/analytics';"
-              ]
-            }
-          },
-          {
-            "type": "supabaseClient import",
-            "category": "util-import",
-            "line": 11,
-            "content": "import { getSessionOrMock } from '@/utils/supabaseClient';",
-            "context": {
-              "before": [
-                "import { FaTimes, FaBug, FaLightbulb, FaComment } from 'react-icons/fa';",
-                "import { supabase } from '@/utils/supabaseClient';"
-              ],
-              "current": "import { getSessionOrMock } from '@/utils/supabaseClient';",
-              "after": [
-                "import { trackEvent } from '../../utils/analytics';",
-                ""
-              ]
-            }
-          }
-        ],
-        "imports": [
-          {
-            "line": 10,
-            "statement": "import { supabase } from '@/utils/supabaseClient'"
-          },
-          {
-            "line": 11,
-            "statement": "import { getSessionOrMock } from '@/utils/supabaseClient'"
-          }
-        ],
-        "hasMultiplePatterns": true,
-        "recommendations": [
-          "CONSOLIDATE: Multiple client creation patterns in single file"
-        ]
-      },
-      {
-        "path": "src/app/components/Header.tsx",
-        "type": "tsx",
-        "instances": [
-          {
-            "type": "supabaseClient import",
-            "category": "util-import",
-            "line": 10,
-            "content": "import { supabase } from \"@/utils/supabaseClient\";",
-            "context": {
-              "before": [
-                "import { FaUserCircle, FaBell } from \"react-icons/fa\";",
-                "import { Menu } from \"@headlessui/react\";"
-              ],
-              "current": "import { supabase } from \"@/utils/supabaseClient\";",
-              "after": [
-                "import { getUserOrMock } from \"@/utils/supabaseClient\";",
-                "import { useAdmin } from \"@/contexts/AdminContext\";"
-              ]
-            }
-          },
-          {
-            "type": "supabaseClient import",
-            "category": "util-import",
-            "line": 11,
-            "content": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
-            "context": {
-              "before": [
-                "import { Menu } from \"@headlessui/react\";",
-                "import { supabase } from \"@/utils/supabaseClient\";"
-              ],
-              "current": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
-              "after": [
-                "import { useAdmin } from \"@/contexts/AdminContext\";",
-                "import { useBusinessProfile } from \"@/utils/authGuard\";"
-              ]
-            }
-          }
-        ],
-        "imports": [
-          {
-            "line": 10,
-            "statement": "import { supabase } from \"@/utils/supabaseClient\""
-          },
-          {
-            "line": 11,
-            "statement": "import { getUserOrMock } from \"@/utils/supabaseClient\""
-          }
-        ],
-        "hasMultiplePatterns": true,
-        "recommendations": [
-          "CONSOLIDATE: Multiple client creation patterns in single file"
-        ]
-      },
-      {
-        "path": "src/app/create-prompt-page/CreatePromptPageClient.tsx",
-        "type": "tsx",
-        "instances": [
-          {
-            "type": "supabaseClient import",
-            "category": "util-import",
-            "line": 26,
-            "content": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
-            "context": {
-              "before": [
-                "import { checkAccountLimits } from \"@/utils/accountLimits\";",
-                "import { Dialog } from \"@headlessui/react\";"
-              ],
-              "current": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
-              "after": [
-                "import dynamic from \"next/dynamic\";",
-                "import { slugify } from \"@/utils/slugify\";"
-              ]
-            }
-          },
-          {
-            "type": "supabaseClient import",
-            "category": "util-import",
-            "line": 34,
-            "content": "import { supabase } from \"@/utils/supabaseClient\";",
-            "context": {
-              "before": [
-                "import FiveStarSpinner from \"../components/FiveStarSpinner\";",
-                "import AppLoader from \"../components/AppLoader\";"
-              ],
-              "current": "import { supabase } from \"@/utils/supabaseClient\";",
-              "after": [
-                "",
-                "interface ReviewPlatformLink {"
-              ]
-            }
-          }
-        ],
-        "imports": [
-          {
-            "line": 26,
-            "statement": "import { getUserOrMock } from \"@/utils/supabaseClient\""
-          },
-          {
-            "line": 34,
-            "statement": "import { supabase } from \"@/utils/supabaseClient\""
-          }
-        ],
-        "hasMultiplePatterns": true,
-        "recommendations": [
-          "CONSOLIDATE: Multiple client creation patterns in single file"
-        ]
-      },
-      {
-        "path": "src/app/dashboard/DashboardContent.tsx",
-        "type": "tsx",
-        "instances": [
-          {
-            "type": "supabaseClient import",
-            "category": "util-import",
-            "line": 4,
-            "content": "import { supabase } from \"@/utils/supabaseClient\";",
-            "context": {
-              "before": [
-                "import Link from \"next/link\";",
-                "import { RefObject, useState, useEffect, useMemo } from \"react\";"
-              ],
-              "current": "import { supabase } from \"@/utils/supabaseClient\";",
-              "after": [
-                "import { useAuthGuard } from \"@/utils/authGuard\";",
-                "import {"
-              ]
-            }
-          },
-          {
-            "type": "supabaseClient import",
-            "category": "util-import",
-            "line": 26,
-            "content": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
-            "context": {
-              "before": [
-                "  MdPhotoCamera,",
-                "} from \"react-icons/md\";"
-              ],
-              "current": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
-              "after": [
-                "import QRCodeModal from \"../components/QRCodeModal\";",
-                "import QuoteDisplay from \"../components/QuoteDisplay\";"
-              ]
-            }
-          }
-        ],
-        "imports": [
-          {
-            "line": 4,
-            "statement": "import { supabase } from \"@/utils/supabaseClient\""
-          },
-          {
-            "line": 26,
-            "statement": "import { getUserOrMock } from \"@/utils/supabaseClient\""
-          }
-        ],
-        "hasMultiplePatterns": true,
-        "recommendations": [
-          "CONSOLIDATE: Multiple client creation patterns in single file"
-        ]
-      },
-      {
-        "path": "src/app/dashboard/analytics/page.tsx",
-        "type": "tsx",
-        "instances": [
-          {
-            "type": "supabaseClient import",
-            "category": "util-import",
-            "line": 4,
-            "content": "import { supabase } from \"@/utils/supabaseClient\";",
-            "context": {
-              "before": [
-                "",
-                "import { useState, useEffect } from \"react\";"
-              ],
-              "current": "import { supabase } from \"@/utils/supabaseClient\";",
-              "after": [
-                "import { useAuthGuard } from \"@/utils/authGuard\";",
-                "import {"
-              ]
-            }
-          },
-          {
-            "type": "supabaseClient import",
-            "category": "util-import",
-            "line": 15,
-            "content": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
-            "context": {
-              "before": [
-                "  FaGrinStars,",
-                "} from \"react-icons/fa\";"
-              ],
-              "current": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
-              "after": [
-                "import { getAccountIdForUser } from \"@/utils/accountUtils\";",
-                "import { isAdmin } from \"@/utils/admin\";"
-              ]
-            }
-          }
-        ],
-        "imports": [
-          {
-            "line": 4,
-            "statement": "import { supabase } from \"@/utils/supabaseClient\""
-          },
-          {
-            "line": 15,
-            "statement": "import { getUserOrMock } from \"@/utils/supabaseClient\""
-          }
-        ],
-        "hasMultiplePatterns": true,
-        "recommendations": [
-          "CONSOLIDATE: Multiple client creation patterns in single file"
-        ]
-      },
-      {
-        "path": "src/app/dashboard/business-profile/page.tsx",
-        "type": "tsx",
-        "instances": [
-          {
-            "type": "supabaseClient import",
-            "category": "util-import",
-            "line": 5,
-            "content": "import { supabase } from \"@/utils/supabaseClient\";",
-            "context": {
-              "before": [
-                "import { useEffect, useState, useRef, useCallback } from \"react\";",
-                "import { useRouter } from \"next/navigation\";"
-              ],
-              "current": "import { supabase } from \"@/utils/supabaseClient\";",
-              "after": [
-                "import Cropper from \"react-easy-crop\";",
-                "import type { Area } from \"react-easy-crop\";"
-              ]
-            }
-          },
-          {
-            "type": "supabaseClient import",
-            "category": "util-import",
-            "line": 32,
-            "content": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
-            "context": {
-              "before": [
-                "  FaTimes,",
-                "} from \"react-icons/fa\";"
-              ],
-              "current": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
-              "after": [
-                "import { getAccountIdForUser } from \"@/utils/accountUtils\";",
-                "import { isAdmin } from \"@/utils/admin\";"
-              ]
-            }
-          }
-        ],
-        "imports": [
-          {
-            "line": 5,
-            "statement": "import { supabase } from \"@/utils/supabaseClient\""
-          },
-          {
-            "line": 32,
-            "statement": "import { getUserOrMock } from \"@/utils/supabaseClient\""
-          }
-        ],
-        "hasMultiplePatterns": true,
-        "recommendations": [
-          "CONSOLIDATE: Multiple client creation patterns in single file"
-        ]
-      },
-      {
         "path": "src/app/dashboard/components/Analytics.tsx",
         "type": "tsx",
         "instances": [
@@ -5504,60 +4760,6 @@
           {
             "line": 5,
             "statement": "import type { ReviewSubmission } from \"@/utils/supabaseClient\""
-          }
-        ],
-        "hasMultiplePatterns": true,
-        "recommendations": [
-          "CONSOLIDATE: Multiple client creation patterns in single file"
-        ]
-      },
-      {
-        "path": "src/app/dashboard/contacts/page.tsx",
-        "type": "tsx",
-        "instances": [
-          {
-            "type": "supabaseClient import",
-            "category": "util-import",
-            "line": 5,
-            "content": "import { supabase } from \"@/utils/supabaseClient\";",
-            "context": {
-              "before": [
-                "import { useState, useEffect } from \"react\";",
-                "import { useAuthGuard } from \"@/utils/authGuard\";"
-              ],
-              "current": "import { supabase } from \"@/utils/supabaseClient\";",
-              "after": [
-                "import {",
-                "  FaDownload,"
-              ]
-            }
-          },
-          {
-            "type": "supabaseClient import",
-            "category": "util-import",
-            "line": 17,
-            "content": "import { getSessionOrMock } from \"@/utils/supabaseClient\";",
-            "context": {
-              "before": [
-                "  FaTimes,",
-                "} from \"react-icons/fa\";"
-              ],
-              "current": "import { getSessionOrMock } from \"@/utils/supabaseClient\";",
-              "after": [
-                "import AppLoader from \"@/app/components/AppLoader\";",
-                "import PageCard from \"@/app/components/PageCard\";"
-              ]
-            }
-          }
-        ],
-        "imports": [
-          {
-            "line": 5,
-            "statement": "import { supabase } from \"@/utils/supabaseClient\""
-          },
-          {
-            "line": 17,
-            "statement": "import { getSessionOrMock } from \"@/utils/supabaseClient\""
           }
         ],
         "hasMultiplePatterns": true,
@@ -5666,114 +4868,6 @@
           {
             "line": 34,
             "statement": "import { supabase } from \"@/utils/supabaseClient\""
-          }
-        ],
-        "hasMultiplePatterns": true,
-        "recommendations": [
-          "CONSOLIDATE: Multiple client creation patterns in single file"
-        ]
-      },
-      {
-        "path": "src/app/dashboard/layout.tsx",
-        "type": "tsx",
-        "instances": [
-          {
-            "type": "supabaseClient import",
-            "category": "util-import",
-            "line": 4,
-            "content": "import { supabase } from \"@/utils/supabaseClient\";",
-            "context": {
-              "before": [
-                "",
-                "import { useEffect, useState, useCallback } from \"react\";"
-              ],
-              "current": "import { supabase } from \"@/utils/supabaseClient\";",
-              "after": [
-                "import { getUserOrMock } from \"@/utils/supabaseClient\";",
-                "import { getAccountIdForUser } from \"@/utils/accountUtils\";"
-              ]
-            }
-          },
-          {
-            "type": "supabaseClient import",
-            "category": "util-import",
-            "line": 5,
-            "content": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
-            "context": {
-              "before": [
-                "import { useEffect, useState, useCallback } from \"react\";",
-                "import { supabase } from \"@/utils/supabaseClient\";"
-              ],
-              "current": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
-              "after": [
-                "import { getAccountIdForUser } from \"@/utils/accountUtils\";",
-                "import { useRouter } from \"next/navigation\";"
-              ]
-            }
-          }
-        ],
-        "imports": [
-          {
-            "line": 4,
-            "statement": "import { supabase } from \"@/utils/supabaseClient\""
-          },
-          {
-            "line": 5,
-            "statement": "import { getUserOrMock } from \"@/utils/supabaseClient\""
-          }
-        ],
-        "hasMultiplePatterns": true,
-        "recommendations": [
-          "CONSOLIDATE: Multiple client creation patterns in single file"
-        ]
-      },
-      {
-        "path": "src/app/dashboard/page.tsx",
-        "type": "tsx",
-        "instances": [
-          {
-            "type": "supabaseClient import",
-            "category": "util-import",
-            "line": 4,
-            "content": "import { supabase } from \"@/utils/supabaseClient\";",
-            "context": {
-              "before": [
-                "",
-                "import { useEffect, useState, useRef } from \"react\";"
-              ],
-              "current": "import { supabase } from \"@/utils/supabaseClient\";",
-              "after": [
-                "import { useRouter, useSearchParams } from \"next/navigation\";",
-                "import { QRCodeSVG } from \"qrcode.react\";"
-              ]
-            }
-          },
-          {
-            "type": "supabaseClient import",
-            "category": "util-import",
-            "line": 9,
-            "content": "import { getUserOrMock, getSessionOrMock } from \"@/utils/supabaseClient\";",
-            "context": {
-              "before": [
-                "import { FaHome } from \"react-icons/fa\";",
-                "import DashboardContent from \"./DashboardContent\";"
-              ],
-              "current": "import { getUserOrMock, getSessionOrMock } from \"@/utils/supabaseClient\";",
-              "after": [
-                "import PricingModal, { tiers } from \"../components/PricingModal\";",
-                "import FiveStarSpinner from \"../components/FiveStarSpinner\";"
-              ]
-            }
-          }
-        ],
-        "imports": [
-          {
-            "line": 4,
-            "statement": "import { supabase } from \"@/utils/supabaseClient\""
-          },
-          {
-            "line": 9,
-            "statement": "import { getUserOrMock, getSessionOrMock } from \"@/utils/supabaseClient\""
           }
         ],
         "hasMultiplePatterns": true,

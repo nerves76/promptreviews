@@ -23,7 +23,7 @@ import {
 } from "react-icons/fa";
 import { checkAccountLimits } from "@/utils/accountLimits";
 import { Dialog } from "@headlessui/react";
-import { getUserOrMock } from "@/utils/supabaseClient";
+import { getUserOrMock, supabase } from "@/utils/supabaseClient";
 import dynamic from "next/dynamic";
 import { slugify } from "@/utils/slugify";
 import PromptPageForm from "../components/PromptPageForm";
@@ -31,7 +31,6 @@ import PageCard from "../components/PageCard";
 import ProductPromptPageForm from "../components/ProductPromptPageForm";
 import FiveStarSpinner from "../components/FiveStarSpinner";
 import AppLoader from "../components/AppLoader";
-import { supabase } from "@/utils/supabaseClient";
 
 interface ReviewPlatformLink {
   platform: string;
