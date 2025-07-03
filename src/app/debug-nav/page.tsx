@@ -84,6 +84,55 @@ export default function DebugNav() {
     setResult("✅ Dispatched navigation refresh events");
   };
 
+  const forceEnableNavigation = () => {
+    console.log("🚀 Force enabling navigation...");
+    
+    // Directly modify the DOM to enable navigation links
+    if (typeof window !== "undefined") {
+      // Find all disabled navigation links and enable them
+      const disabledLinks = document.querySelectorAll('nav a[class*="opacity-50"], nav button[disabled]');
+      disabledLinks.forEach(link => {
+        // Remove disabled styling
+        link.classList.remove('opacity-50', 'cursor-not-allowed');
+        link.classList.add('opacity-100', 'cursor-pointer');
+        
+        // Remove disabled attribute
+        if (link.hasAttribute('disabled')) {
+          link.removeAttribute('disabled');
+        }
+        
+        // Make links clickable
+        if (link.getAttribute('aria-disabled') === 'true') {
+          link.setAttribute('aria-disabled', 'false');
+        }
+      });
+      
+      // Force refresh any business profile hooks
+      window.dispatchEvent(new CustomEvent('forceNavigationEnable'));
+      console.log("✅ Navigation links force-enabled");
+      setResult("✅ Navigation links have been force-enabled! Try clicking them now.");
+    }
+  };
+
+  const testDirectNavigation = () => {
+    const links = [
+      '/dashboard/analytics',
+      '/dashboard/business-profile', 
+      '/dashboard/style',
+      '/dashboard/contacts',
+      '/dashboard/reviews',
+      '/dashboard/widget'
+    ];
+    
+    console.log("🧪 Testing navigation links...");
+    links.forEach(link => {
+      console.log(`Testing: ${link}`);
+    });
+    
+    // Try navigating to analytics directly
+    window.location.href = '/dashboard/analytics';
+  };
+
   useEffect(() => {
     manualCheck();
   }, []);
@@ -147,6 +196,29 @@ export default function DebugNav() {
             >
               🚪 Sign Out & Start Fresh
             </button>
+          </div>
+
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h2 className="text-xl font-semibold mb-4">Navigation Override</h2>
+            <p className="text-gray-600 mb-4">
+              Force enable navigation if the modal isn't working properly.
+            </p>
+            
+            <div className="space-y-3">
+              <button
+                onClick={forceEnableNavigation}
+                className="w-full bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700"
+              >
+                🚀 Force Enable Navigation
+              </button>
+              
+              <button
+                onClick={testDirectNavigation}
+                className="w-full bg-indigo-600 text-white py-2 px-4 rounded hover:bg-indigo-700"
+              >
+                🧪 Test Direct Navigation
+              </button>
+            </div>
           </div>
 
           {result && (

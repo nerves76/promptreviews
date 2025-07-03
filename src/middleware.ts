@@ -46,29 +46,43 @@ export async function middleware(req: NextRequest) {
     const allCookies = req.cookies.getAll();
     console.log('Middleware: All cookies found:', allCookies.map(c => `${c.name}=${c.value.substring(0, 20)}...`));
     
-    // If no session from supabase, check manual cookies as fallback
+    // If no session from supabase, check for authentication cookies
     if (!session) {
+      // Check for manual cookies first
       const accessToken = req.cookies.get('sb-access-token')?.value;
       const refreshToken = req.cookies.get('sb-refresh-token')?.value;
       
-      console.log('Middleware: Manual cookie check:', {
-        hasAccessToken: !!accessToken,
-        hasRefreshToken: !!refreshToken,
-        accessTokenLength: accessToken?.length || 0,
-        refreshTokenLength: refreshToken?.length || 0
+      // Check for actual Supabase auth token (format: sb-{project-ref}-auth-token)
+      const supabaseAuthCookie = allCookies.find(c => 
+        c.name.startsWith('sb-') && c.name.endsWith('-auth-token')
+      );
+      
+      console.log('Middleware: Cookie detection:', {
+        hasManualAccessToken: !!accessToken,
+        hasManualRefreshToken: !!refreshToken,
+        hasSupabaseAuthCookie: !!supabaseAuthCookie,
+        supabaseAuthCookieName: supabaseAuthCookie?.name,
+        supabaseAuthCookieLength: supabaseAuthCookie?.value?.length || 0
       });
       
-      if (accessToken && refreshToken) {
+      if (supabaseAuthCookie) {
+        console.log('Middleware: Found Supabase auth cookie, treating as authenticated');
+        // Create a mock session for middleware purposes
+        session = { 
+          access_token: supabaseAuthCookie.value, 
+          user: { id: 'supabase-cookie-user' } 
+        } as any;
+      } else if (accessToken && refreshToken) {
         console.log('Middleware: Found manual session cookies, treating as authenticated');
         // Create a mock session for middleware purposes
         session = { 
           access_token: accessToken, 
-          user: { id: 'cookie-user' } 
+          user: { id: 'manual-cookie-user' } 
         } as any;
       } else {
-        console.log('Middleware: No manual cookies found, checking for any Supabase-related cookies...');
+        console.log('Middleware: No authentication cookies found');
         const supabaseCookies = allCookies.filter(c => c.name.startsWith('sb-'));
-        console.log('Middleware: Supabase cookies:', supabaseCookies.map(c => c.name));
+        console.log('Middleware: All Supabase cookies:', supabaseCookies.map(c => c.name));
       }
     } else {
       console.log('Middleware: Found valid Supabase session');
