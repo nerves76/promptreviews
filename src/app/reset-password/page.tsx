@@ -103,10 +103,14 @@ export default function ResetPassword() {
     
     setIsLoading(true);
     try {
+      console.log('Starting password update...');
+      
       // Use the 2024 Supabase method - user is already authenticated
       const { data, error } = await supabase.auth.updateUser({
         password: password
       });
+      
+      console.log('Password update response:', { data, error });
       
       if (error) {
         throw error;
@@ -117,6 +121,7 @@ export default function ResetPassword() {
       
       // Sign out the user after password update and redirect to sign in
       setTimeout(async () => {
+        console.log('Signing out and redirecting...');
         await supabase.auth.signOut();
         router.push("/auth/sign-in?message=Password updated successfully. Please sign in with your new password.");
       }, 2000);
