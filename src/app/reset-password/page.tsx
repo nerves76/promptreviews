@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/utils/supabaseClient";
 
 export default function ResetPassword() {
@@ -12,53 +12,79 @@ export default function ResetPassword() {
   const [success, setSuccess] = useState<string | null>(null);
   const [sessionValid, setSessionValid] = useState(false);
   const [debugInfo, setDebugInfo] = useState<string>("");
+  const [isVerifying, setIsVerifying] = useState(true);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
-  // Check if user has a valid session (authenticated via reset link)
+  // Handle OTP verification and session establishment
   useEffect(() => {
-    const checkSession = async () => {
+    const verifyResetCode = async () => {
       try {
-        console.log("🔍 Checking session...");
-        setDebugInfo("Checking session...");
+        console.log("🔍 Starting reset password verification...");
         
         // Log current URL for debugging
         const currentUrl = window.location.href;
         console.log("📍 Current URL:", currentUrl);
-        setDebugInfo(`Current URL: ${currentUrl}\n\nChecking session...`);
+        setDebugInfo(`Current URL: ${currentUrl}\n\nStarting verification...`);
         
-        const { data: { session }, error } = await supabase.auth.getSession();
+        // Get the verification code from URL parameters
+        const code = searchParams.get('code');
+        console.log("🔑 Verification code:", code);
         
-        console.log("📋 Session data:", session);
-        console.log("❌ Session error:", error);
+        if (!code) {
+          console.log("❌ No verification code found in URL");
+          setDebugInfo("❌ No verification code found in URL. This usually means:\n1. Invalid reset link\n2. Link was copied incorrectly\n3. Link has expired");
+          setError("Invalid reset link. Please request a new password reset.");
+          setIsVerifying(false);
+          setTimeout(() => router.push("/auth/sign-in"), 3000);
+          return;
+        }
+        
+        setDebugInfo(`Found verification code: ${code}\n\nVerifying with Supabase...`);
+        
+        // Verify the OTP code to establish a session
+        console.log("� Verifying OTP code...");
+        const { data, error } = await supabase.auth.verifyOtp({
+          token_hash: code,
+          type: 'recovery'
+        });
+        
+        console.log("📋 Verification result:", { data, error });
         
         if (error) {
-          console.error("Session error:", error);
-          setDebugInfo(`Session error: ${error.message}`);
-          setError(`Session error: ${error.message}`);
+          console.error("❌ OTP verification failed:", error);
+          setDebugInfo(`❌ OTP verification failed: ${error.message}\n\nThis could mean:\n1. The reset link has expired\n2. The code has already been used\n3. Invalid verification code`);
+          setError(`Verification failed: ${error.message}. Please request a new password reset.`);
+          setIsVerifying(false);
+          setTimeout(() => router.push("/auth/sign-in"), 3000);
           return;
         }
         
-        if (!session) {
-          console.log("❌ No session found");
-          setDebugInfo("No session found. This could mean:\n1. The reset link is invalid\n2. The reset link expired\n3. Port mismatch between link and current page");
-          setError("Your session has expired or the reset link is invalid. Please request a new password reset.");
-          setTimeout(() => router.push("/auth/sign-in"), 5000);
+        if (!data.user) {
+          console.log("❌ No user data returned from verification");
+          setDebugInfo("❌ No user data returned from verification");
+          setError("Failed to verify reset link. Please request a new password reset.");
+          setIsVerifying(false);
+          setTimeout(() => router.push("/auth/sign-in"), 3000);
           return;
         }
         
-        console.log("✅ Valid session found:", session.user?.email);
-        setDebugInfo(`✅ Valid session found for: ${session.user?.email}`);
+        console.log("✅ OTP verification successful for user:", data.user.email);
+        setDebugInfo(`✅ OTP verification successful!\nUser: ${data.user.email}\nSession established successfully.`);
         setSessionValid(true);
+        setIsVerifying(false);
+        
       } catch (err) {
-        console.error("Unexpected error:", err);
-        setDebugInfo(`Unexpected error: ${err}`);
-        setError("Failed to validate session. Please try the password reset process again.");
-        setTimeout(() => router.push("/auth/sign-in"), 5000);
+        console.error("💥 Unexpected error during verification:", err);
+        setDebugInfo(`💥 Unexpected error: ${err}\n\nPlease try requesting a new password reset.`);
+        setError("An unexpected error occurred. Please try requesting a new password reset.");
+        setIsVerifying(false);
+        setTimeout(() => router.push("/auth/sign-in"), 3000);
       }
     };
     
-    checkSession();
-  }, [router]);
+    verifyResetCode();
+  }, [searchParams, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,8 +103,11 @@ export default function ResetPassword() {
     
     setIsLoading(true);
     try {
+      console.log("🔄 Updating password...");
       const { error } = await supabase.auth.updateUser({ password });
+      
       if (error) {
+        console.error("❌ Password update failed:", error);
         if (error.message.includes('Auth session missing')) {
           setError("Your session has expired. Please try the password reset process again.");
           setTimeout(() => router.push("/auth/sign-in"), 2000);
@@ -88,23 +117,25 @@ export default function ResetPassword() {
           setError(error.message);
         }
       } else {
+        console.log("✅ Password updated successfully");
         setSuccess("Password updated successfully! You can now sign in with your new password.");
         setTimeout(() => router.push("/auth/sign-in"), 2000);
       }
     } catch (err) {
+      console.error("💥 Unexpected error updating password:", err);
       setError(err instanceof Error ? err.message : "Failed to update password");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Show loading state while validating session
-  if (!sessionValid && !error) {
+  // Show verification loading state
+  if (isVerifying) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-400 via-indigo-300 to-purple-300 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <div className="text-center">
-            <h2 className="text-3xl font-extrabold text-white">Validating reset link...</h2>
+            <h2 className="text-3xl font-extrabold text-white">Verifying reset link...</h2>
             <p className="mt-2 text-white">Please wait while we verify your password reset link.</p>
             
             {/* Debug info for troubleshooting */}
