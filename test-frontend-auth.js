@@ -20,7 +20,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 // Create the same client configuration as the frontend
 const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    storageKey: 'promptreviews-auth-token',
+    // Use standard Supabase storage key for compatibility
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,

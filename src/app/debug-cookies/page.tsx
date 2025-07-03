@@ -51,23 +51,16 @@ export default function DebugCookies() {
             
             <div className="space-y-3">
               <div>
-                <strong>Supabase Access Token:</strong>
+                <strong>Supabase Auth Token:</strong>
                 <span className="ml-2 text-sm font-mono bg-gray-100 px-2 py-1 rounded">
-                  {parsedCookies['sb-access-token'] ? '✅ Present' : '❌ Missing'}
-                </span>
-              </div>
-              
-              <div>
-                <strong>Supabase Refresh Token:</strong>
-                <span className="ml-2 text-sm font-mono bg-gray-100 px-2 py-1 rounded">
-                  {parsedCookies['sb-refresh-token'] ? '✅ Present' : '❌ Missing'}
+                  {Object.keys(parsedCookies).find(key => key.startsWith('sb-') && key.endsWith('-auth-token')) ? '✅ Present' : '❌ Missing'}
                 </span>
               </div>
               
               <div>
                 <strong>Authentication Status:</strong>
                 <span className="ml-2 text-sm font-mono bg-gray-100 px-2 py-1 rounded">
-                  {(parsedCookies['sb-access-token'] && parsedCookies['sb-refresh-token']) ? 
+                  {Object.keys(parsedCookies).find(key => key.startsWith('sb-') && key.endsWith('-auth-token')) ? 
                     '✅ Should be authenticated' : 
                     '❌ Not authenticated'}
                 </span>

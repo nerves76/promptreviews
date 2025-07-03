@@ -1,8 +1,10 @@
 # Local Development Guide
 
+**Last Updated: January 7, 2025, 6:15 AM PST**
+
 ## Overview
 
-This document explains how to set up and run the PromptReviews application for local development.
+This document explains how to set up and run the PromptReviews application for local development with enhanced safety checks and Supabase client consolidation.
 
 ## Database Setup
 
@@ -36,7 +38,7 @@ SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhY
 # SUPABASE_SERVICE_ROLE_KEY=your_remote_service_role_key_here
 
 # Application URL
-NEXT_PUBLIC_APP_URL=http://localhost:3001
+NEXT_PUBLIC_APP_URL=http://localhost:3002
 
 # Other required variables...
 ```
@@ -97,17 +99,38 @@ supabase db push
    supabase status
    ```
 
-4. **Start the development server:**
+4. **Start the development server with safety checks:**
+   ```bash
+   npm run dev:clean
+   ```
+   
+   Or for faster development (skip safety checks):
    ```bash
    npm run dev
    ```
 
 5. **Access the application:**
-   - Local: http://localhost:3001
+   - Local: http://localhost:3002
    - Local Supabase Studio: http://127.0.0.1:54323
-   - Network: http://192.168.x.x:3001
+   - Network: http://192.168.x.x:3002
 
 ## Development Workflow
+
+### Enhanced Development Process
+
+For comprehensive local development:
+
+1. **Safety Check First** (recommended):
+   ```bash
+   npm run safety:full-audit
+   ```
+   This runs authentication checks, migration verification, and linting.
+
+2. **Supabase Client Health Check** (optional):
+   ```bash
+   npm run audit:supabase-clients
+   ```
+   Analyzes Supabase client usage patterns for consolidation opportunities.
 
 ### Testing User Accounts
 

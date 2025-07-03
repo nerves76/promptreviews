@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
-import { createBrowserClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 
 export const dynamic = "force-dynamic";
 
@@ -42,10 +42,10 @@ export async function POST(request: Request) {
         (usage.prompt_tokens / 1000) * inputPrice +
         (usage.completion_tokens / 1000) * outputPrice;
 
-      // Insert into ai_usage table
-      const supabase = createBrowserClient(
+      // Insert into ai_usage table (using service role for API route)
+      const supabase = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!,
       );
       await supabase.from("ai_usage").insert({
         user_id: user_id || null,

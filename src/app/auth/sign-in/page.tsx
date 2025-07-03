@@ -26,28 +26,6 @@ export default function SignIn() {
     setIsClient(true);
   }, []);
 
-  // Check if user is already authenticated and redirect
-  useEffect(() => {
-    const checkAuthAndRedirect = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (session && session.user && !error) {
-          console.log("✅ User already authenticated, redirecting to dashboard...");
-          console.log("👤 Existing session for user:", session.user.id);
-          router.push("/dashboard");
-          return;
-        }
-      } catch (error) {
-        console.log("ℹ️  No existing session found, staying on sign-in page");
-      }
-    };
-
-    if (isClient) {
-      checkAuthAndRedirect();
-    }
-  }, [isClient, router]);
-
   const handleRefreshSession = async () => {
     setIsRefreshing(true);
     setError("");
@@ -68,6 +46,34 @@ export default function SignIn() {
     }
   };
 
+  const validateSession = async (maxRetries = 3, delayMs = 1000) => {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`🔍 Session validation attempt ${attempt}/${maxRetries}...`);
+        
+        const response = await fetch('/api/auth/session');
+        const sessionData = await response.json();
+        
+        if (sessionData.authenticated && sessionData.user) {
+          console.log('✅ Session validation successful!');
+          return sessionData;
+        }
+        
+        if (attempt < maxRetries) {
+          console.log(`⏳ Session not ready, waiting ${delayMs}ms before retry...`);
+          await new Promise(resolve => setTimeout(resolve, delayMs));
+        }
+      } catch (error) {
+        console.warn(`❌ Session validation attempt ${attempt} failed:`, error);
+        if (attempt < maxRetries) {
+          await new Promise(resolve => setTimeout(resolve, delayMs));
+        }
+      }
+    }
+    
+    throw new Error('Session validation failed after all retries');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log("🚀 Starting sign in process...");
@@ -77,50 +83,55 @@ export default function SignIn() {
     try {
       console.log("📧 Attempting sign in with email:", formData.email);
       
-      // Skip session check for now to debug the issue
-      console.log("🔍 Skipping session check, proceeding with sign-in...");
-      
-      // Use the singleton Supabase client for sign-in
-      console.log("🔐 Starting signInWithPassword call...");
+      // Use server-side API route for proper SSR cookie handling
+      console.log("🔐 Starting API sign-in call...");
       
       let signInResult;
       try {
-        signInResult = await supabase.auth.signInWithPassword({
-          email: formData.email,
-          password: formData.password,
+        const response = await fetch('/api/auth/signin', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: formData.email,
+            password: formData.password,
+          }),
         });
-        console.log("🔄 signInWithPassword completed successfully!");
-        console.log("🔍 Full result object:", signInResult);
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Sign in failed');
+        }
+        
+        signInResult = await response.json();
+        console.log("🔄 API sign-in completed successfully!");
       } catch (signInError) {
-        console.error("💥 Exception in signInWithPassword:", signInError);
+        console.error("💥 Exception in API sign-in:", signInError);
         throw signInError;
       }
       
-      const { data, error } = signInResult;
-      console.log("🔄 Extracted data:", data);
-      console.log("🔄 Extracted error:", error);
+      const { user, session, error } = signInResult;
 
       if (error) {
-        console.error("❌ Sign in failed:", error.message);
-        setError(error.message);
+        console.error("❌ Sign in failed:", error);
+        setError(error);
         return;
       }
 
-      if (data.user && data.session) {
-        console.log("✅ Sign in successful! User:", data.user.email);
-        console.log("👤 User ID:", data.user.id);
-        console.log("🔑 Session expires:", new Date(data.session.expires_at! * 1000).toISOString());
+      if (user && session) {
+        console.log("✅ Sign in successful! User:", user.email);
+        console.log("👤 User ID:", user.id);
+        console.log("🔑 Session expires:", new Date(session.expires_at * 1000).toISOString());
         
-        // Set cookies for SSR compatibility
-        console.log("🍪 Setting session cookies for SSR...");
+        // Wait for session to be properly established and validated
+        console.log("🔄 Validating session establishment...");
         try {
-          // Set access token cookie
-          document.cookie = `sb-access-token=${data.session.access_token}; Path=/; Max-Age=3600; SameSite=Lax`;
-          // Set refresh token cookie  
-          document.cookie = `sb-refresh-token=${data.session.refresh_token}; Path=/; Max-Age=604800; SameSite=Lax`;
-          console.log("✅ Session cookies set successfully");
-        } catch (cookieError) {
-          console.warn("⚠️ Failed to set cookies:", cookieError);
+          await validateSession();
+          console.log("✅ Session validated successfully!");
+        } catch (validationError) {
+          console.warn("⚠️  Session validation failed, but proceeding:", validationError);
+          // Continue anyway - session might still work
         }
         
         // Track sign in event
@@ -134,14 +145,16 @@ export default function SignIn() {
         }
 
         console.log("🔄 Redirecting to dashboard...");
-        router.push("/dashboard");
+        
+        // Use replace instead of push to prevent back button issues
+        router.replace("/dashboard");
         return;
       } else {
-        throw new Error('Sign in failed - no user data or session returned');
+        setError("Sign in failed. Please check your credentials.");
       }
-    } catch (err) {
-      console.error("❌ Sign in error:", err);
-      setError(err instanceof Error ? err.message : "An error occurred during sign in. Please try again.");
+    } catch (error: any) {
+      console.error("💥 Sign in process failed:", error);
+      setError(error.message || "An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }

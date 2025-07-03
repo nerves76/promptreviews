@@ -6,7 +6,7 @@
  */
 
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@/utils/supabaseClient';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 

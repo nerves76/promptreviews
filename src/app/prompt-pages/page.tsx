@@ -18,7 +18,6 @@ import { MdPhotoCamera, MdVideoLibrary, MdEvent } from "react-icons/md";
 import { useRouter } from "next/navigation";
 import QRCodeModal from "../components/QRCodeModal";
 import StarfallCelebration from "@/app/components/StarfallCelebration";
-import { supabase } from "@/utils/supabaseClient";
 import { getUserOrMock } from "@/utils/supabaseClient";
 import { getAccountIdForUser } from "@/utils/accountUtils";
 

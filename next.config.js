@@ -3,6 +3,8 @@ require("dotenv").config({
 });
 
 /** @type {import('next').NextConfig} */
+const path = require('path');
+
 const nextConfig = {
   reactStrictMode: true,
   images: {
@@ -28,10 +30,25 @@ const nextConfig = {
         splitChunks: false,
       };
       
-      // Use faster source maps for development
-      config.devtool = 'eval';
+      // Use faster but safer source maps for development
+      config.devtool = 'eval-cheap-module-source-map';
     }
-    
+
+    // Suppress specific warnings that don't affect functionality
+    config.ignoreWarnings = [
+      // Ignore OpenTelemetry dynamic require warnings
+      /Critical dependency: the request of a dependency is an expression/,
+      /node_modules\/@opentelemetry/,
+      /node_modules\/@sentry.*build.*instrumentation/,
+      /node_modules\/@prisma\/instrumentation/
+    ];
+
+    // Add alias for cleaner imports
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': path.resolve(__dirname, 'src'),
+    };
+
     return config;
   },
   async redirects() {

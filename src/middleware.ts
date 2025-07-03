@@ -1,7 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getSessionOrMock } from "@/utils/supabaseClient";
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
@@ -12,144 +11,78 @@ export async function middleware(req: NextRequest) {
     console.log('Middleware: Development mode - checking session but not blocking');
   }
 
+  // Create Supabase client with proper cookie handling (Next.js 15 async compatible)
+  const { cookies } = await import('next/headers');
+  const cookieStore = await cookies();
+  
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get: (name) => req.cookies.get(name)?.value,
+        get: (name) => {
+          const value = cookieStore.get(name)?.value;
+          return value;
+        },
         set: (name, value, options) => {
-          res.cookies.set({
-            name,
-            value,
-            ...options,
-          });
+          // In middleware, we use response cookies
+          res.cookies.set({ name, value, ...options });
         },
         remove: (name, options) => {
-          res.cookies.set({
-            name,
-            value: "",
-            ...options,
-          });
+          res.cookies.set({ name, value: '', ...options });
         },
       },
-    },
+    }
   );
 
-  // Get session with better error handling and manual cookie check
-  let session = null;
   try {
-    const { data: { session: currentSession } } = await supabase.auth.getSession();
-    session = currentSession;
+    // Use getUser() instead of getSession() for better security
+    const { data: { user }, error } = await supabase.auth.getUser();
     
-    // Debug: Show all cookies for diagnosis
-    const allCookies = req.cookies.getAll();
-    console.log('Middleware: All cookies found:', allCookies.map(c => `${c.name}=${c.value.substring(0, 20)}...`));
-    
-    // If no session from supabase, check for authentication cookies
-    if (!session) {
-      // Check for manual cookies first
-      const accessToken = req.cookies.get('sb-access-token')?.value;
-      const refreshToken = req.cookies.get('sb-refresh-token')?.value;
-      
-      // Check for actual Supabase auth token (format: sb-{project-ref}-auth-token)
-      const supabaseAuthCookie = allCookies.find(c => 
-        c.name.startsWith('sb-') && c.name.endsWith('-auth-token')
-      );
-      
-      console.log('Middleware: Cookie detection:', {
-        hasManualAccessToken: !!accessToken,
-        hasManualRefreshToken: !!refreshToken,
-        hasSupabaseAuthCookie: !!supabaseAuthCookie,
-        supabaseAuthCookieName: supabaseAuthCookie?.name,
-        supabaseAuthCookieLength: supabaseAuthCookie?.value?.length || 0
-      });
-      
-      if (supabaseAuthCookie) {
-        console.log('Middleware: Found Supabase auth cookie, treating as authenticated');
-        // Create a mock session for middleware purposes
-        session = { 
-          access_token: supabaseAuthCookie.value, 
-          user: { id: 'supabase-cookie-user' } 
-        } as any;
-      } else if (accessToken && refreshToken) {
-        console.log('Middleware: Found manual session cookies, treating as authenticated');
-        // Create a mock session for middleware purposes
-        session = { 
-          access_token: accessToken, 
-          user: { id: 'manual-cookie-user' } 
-        } as any;
-      } else {
-        console.log('Middleware: No authentication cookies found');
-        const supabaseCookies = allCookies.filter(c => c.name.startsWith('sb-'));
-        console.log('Middleware: All Supabase cookies:', supabaseCookies.map(c => c.name));
-      }
-    } else {
-      console.log('Middleware: Found valid Supabase session');
+    if (error) {
+      console.log('Middleware: User authentication check failed:', error.message);
     }
-    
-    console.log('Middleware: Final session check result:', { 
-      hasSession: !!session, 
-      userId: session?.user?.id,
-      pathname: req.nextUrl.pathname,
-      sessionType: session ? (session.user?.id === 'cookie-user' ? 'manual-cookie' : 'supabase') : 'none'
+
+    const hasSession = !!user && !error;
+    const userId = user?.id;
+
+    console.log('Middleware: Session check result:', {
+      hasSession,
+      userId,
+      pathname: req.nextUrl.pathname
     });
-  } catch (error) {
-    console.log('Middleware: Session check failed, continuing without session:', error);
-    // Continue without session rather than failing
-  }
 
-  // Protect dashboard routes and specific subpages in production only
-  const protectedDashboardSubpages = [
-    "/dashboard/analytics",
-    "/dashboard/business-profile",
-    "/dashboard/style",
-    "/dashboard/contacts",
-  ];
-
-  if (req.nextUrl.pathname.startsWith("/dashboard")) {
-    if (!session) {
-      const isUniversal = req.nextUrl.pathname.startsWith(
-        "/dashboard/universal",
-      );
-      const isPrompt = req.nextUrl.pathname.startsWith(
-        "/dashboard/prompt-pages",
-      );
-      const isProtectedSubpage = protectedDashboardSubpages.some((subpage) =>
-        req.nextUrl.pathname.startsWith(subpage),
-      );
-      if (
-        !isUniversal &&
-        !isPrompt &&
-        (req.nextUrl.pathname === "/dashboard" || isProtectedSubpage)
-      ) {
-        const redirectUrl = new URL("/auth/sign-in", req.url);
-        return NextResponse.redirect(redirectUrl);
-      }
+    // In development, log but don't redirect
+    if (process.env.NODE_ENV !== "production") {
+      return res;
     }
-  }
 
-  // Protect API routes, but allow public access to /api/track-event and /api/track-review
-  if (req.nextUrl.pathname.startsWith("/api")) {
-      if (
-    req.nextUrl.pathname === "/api/track-event" ||
-    req.nextUrl.pathname === "/api/track-review" ||
-    req.nextUrl.pathname === "/api/force-signin" ||
-    req.nextUrl.pathname === "/api/refresh-session" ||
-    req.nextUrl.pathname === "/api/check-env" ||
-    req.nextUrl.pathname.startsWith("/api/auth/")
-  ) {
+    // In production, redirect if no session
+    if (!hasSession) {
+      console.log('Middleware: Redirecting unauthenticated user to sign-in');
+      const signInUrl = new URL('/auth/sign-in', req.url);
+      return NextResponse.redirect(signInUrl);
+    }
+
     return res;
-  }
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  } catch (error) {
+    console.error('Middleware: Unexpected error:', error);
+    
+    // In development, continue anyway
+    if (process.env.NODE_ENV !== "production") {
+      return res;
     }
-  }
 
-  return res;
+    // In production, redirect to sign-in on error
+    const signInUrl = new URL('/auth/sign-in', req.url);
+    return NextResponse.redirect(signInUrl);
+  }
 }
 
 // Configure which routes to run middleware on
 export const config = {
-  matcher: ["/dashboard/:path*", "/api/:path*"],
+  matcher: [
+    '/dashboard/:path*',
+    '/api/((?!auth|upload|stripe-webhook|check-admin|check-env|track-event|track-review|create-checkout-session|create-stripe-portal-session|email-templates|debug-session).*)',
+  ],
 };

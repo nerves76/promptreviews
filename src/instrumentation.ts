@@ -6,9 +6,9 @@
 import * as Sentry from '@sentry/nextjs';
 
 export function register() {
-  // Skip Sentry initialization if disabled
-  if (process.env.DISABLE_SENTRY === 'true') {
-    console.log('Sentry disabled via DISABLE_SENTRY environment variable');
+  // Skip Sentry initialization if disabled or in development
+  if (process.env.DISABLE_SENTRY === 'true' || process.env.NODE_ENV === 'development') {
+    console.log('Sentry disabled via DISABLE_SENTRY environment variable or development mode');
     return;
   }
 
