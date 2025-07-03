@@ -17,7 +17,23 @@ export async function middleware(req: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get: (name) => req.cookies.get(name)?.value,
+        get: (name) => {
+          // Map our custom cookie names to what Supabase SSR expects
+          if (name === 'supabase-auth-token') {
+            // Try the standard name first, then our custom names
+            return req.cookies.get('supabase-auth-token')?.value || 
+                   req.cookies.get('sb-access-token')?.value;
+          }
+          if (name === 'supabase-auth-token-refresh') {
+            return req.cookies.get('supabase-auth-token-refresh')?.value || 
+                   req.cookies.get('sb-refresh-token')?.value;
+          }
+          if (name === 'supabase-auth-token-expires-at') {
+            return req.cookies.get('supabase-auth-token-expires-at')?.value;
+          }
+          // For any other cookie, return as-is
+          return req.cookies.get(name)?.value;
+        },
         set: (name, value, options) => {
           res.cookies.set({
             name,
@@ -44,7 +60,13 @@ export async function middleware(req: NextRequest) {
     console.log('Middleware: Session check result:', { 
       hasSession: !!session, 
       userId: session?.user?.id,
-      pathname: req.nextUrl.pathname 
+      pathname: req.nextUrl.pathname,
+      cookies: {
+        'sb-access-token': !!req.cookies.get('sb-access-token'),
+        'sb-refresh-token': !!req.cookies.get('sb-refresh-token'),
+        'supabase-auth-token': !!req.cookies.get('supabase-auth-token'),
+        'supabase-auth-token-refresh': !!req.cookies.get('supabase-auth-token-refresh'),
+      }
     });
   } catch (error) {
     console.log('Middleware: Session check failed, continuing without session:', error);
@@ -75,9 +97,12 @@ export async function middleware(req: NextRequest) {
         !isPrompt &&
         (req.nextUrl.pathname === "/dashboard" || isProtectedSubpage)
       ) {
+        console.log('Middleware: Redirecting to sign-in, no session found for protected route');
         const redirectUrl = new URL("/auth/sign-in", req.url);
         return NextResponse.redirect(redirectUrl);
       }
+    } else {
+      console.log('Middleware: Session found, allowing access to dashboard');
     }
   }
 
@@ -88,11 +113,14 @@ export async function middleware(req: NextRequest) {
       req.nextUrl.pathname === "/api/track-review" ||
       req.nextUrl.pathname === "/api/force-signin" ||
       req.nextUrl.pathname === "/api/refresh-session" ||
-      req.nextUrl.pathname === "/api/check-env"
+      req.nextUrl.pathname === "/api/check-env" ||
+      req.nextUrl.pathname === "/api/auth/signin" ||
+      req.nextUrl.pathname === "/api/debug-auth"
     ) {
       return res;
     }
     if (!session) {
+      console.log('Middleware: Blocking API access, no session found for:', req.nextUrl.pathname);
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
   }

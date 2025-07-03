@@ -47,25 +47,39 @@ export async function POST(request: NextRequest) {
 
     // Set cookies for the session
     const response = NextResponse.json(
-      { success: true, user: data.user },
+      { success: true, user: data.user, session: data.session },
       { status: 200 }
     );
 
-    // Set the session cookies
+    // Set the session cookies with Supabase-compatible names
     if (data.session) {
-      response.cookies.set('sb-access-token', data.session.access_token, {
+      // Use standard Supabase cookie names that work with SSR
+      response.cookies.set('supabase-auth-token', data.session.access_token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
         maxAge: 60 * 60 * 24 * 7, // 7 days
+        path: '/',
       });
 
-      response.cookies.set('sb-refresh-token', data.session.refresh_token, {
+      response.cookies.set('supabase-auth-token-refresh', data.session.refresh_token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
         maxAge: 60 * 60 * 24 * 7, // 7 days
+        path: '/',
       });
+
+      // Set expiry cookie
+      if (data.session.expires_at) {
+        response.cookies.set('supabase-auth-token-expires-at', data.session.expires_at.toString(), {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: 60 * 60 * 24 * 7, // 7 days
+          path: '/',
+        });
+      }
     }
 
     return response;

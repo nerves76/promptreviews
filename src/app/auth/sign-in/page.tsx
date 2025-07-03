@@ -84,6 +84,20 @@ export default function SignIn() {
       if (data.success) {
         console.log("User signed in successfully");
         
+        // Sync session with client if session data is returned
+        if (data.session) {
+          console.log("Syncing session with client...");
+          try {
+            await supabase.auth.setSession({
+              access_token: data.session.access_token,
+              refresh_token: data.session.refresh_token
+            });
+            console.log("Session synced successfully");
+          } catch (syncError) {
+            console.warn("Session sync failed, but continuing:", syncError);
+          }
+        }
+        
         // Track sign in event
         trackEvent(GA_EVENTS.SIGN_IN, {
           method: 'email',
