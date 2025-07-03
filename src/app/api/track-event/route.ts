@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient, createClient, getUserOrMock } from '@/utils/supabaseClient';
+import { createServerSupabaseClient, createClient, getUserOrMock } from '@/utils/supabaseClient';
 import { cookies } from "next/headers";
 
 export async function POST(req: NextRequest) {
@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     };
     
     // Use anon key for user authentication check
-    const supabaseAnon = createServerClient();
+    const supabaseAnon = await createServerSupabaseClient();
 
     // Check if user is logged in
     const {
