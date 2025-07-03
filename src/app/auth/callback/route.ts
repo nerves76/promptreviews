@@ -19,8 +19,8 @@ export async function GET(request: Request) {
     );
   }
 
-  // Password reset codes should go directly to /reset-password via URL configuration
-  // This callback is only for sign-up/sign-in session exchange
+  // This callback handles both sign-up/sign-in AND password reset codes
+  // Password reset codes will be processed here and then redirected to reset-password page
 
   try {
     const cookieStore = await cookies();
@@ -66,6 +66,17 @@ export async function GET(request: Request) {
 
     console.log("✅ Session exchange successful for user:", session.user.email);
     console.log("📧 Email confirmed at:", session.user.email_confirmed_at);
+    
+    // Check if this is a password reset flow
+    // Password resets have a specific URL parameter or can be detected by checking if user exists
+    const urlHasType = requestUrl.searchParams.has('type');
+    const isPasswordReset = urlHasType || requestUrl.searchParams.get('type') === 'recovery';
+    
+    // If this looks like a password reset, redirect to reset-password page
+    if (isPasswordReset) {
+      console.log("🔑 Password reset detected, redirecting to reset-password page");
+      return NextResponse.redirect(`${requestUrl.origin}/reset-password`);
+    }
 
     // Ensure user is linked to an account using service client
     const { id: userId, email } = session.user;

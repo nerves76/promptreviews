@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/utils/supabaseClient";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 export default function ResetPassword() {
   const [password, setPassword] = useState("");
@@ -13,65 +13,35 @@ export default function ResetPassword() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const router = useRouter();
-  const searchParams = useSearchParams();
 
-  // Handle URL parameters and establish session
+  // Check for existing session (codes are handled by auth callback)
   useEffect(() => {
-    const handlePasswordReset = async () => {
+    const checkSession = async () => {
       try {
-        // Check if we have URL parameters (from email link)
-        const code = searchParams.get('code');
+        console.log('Checking for active session...');
         
-        if (code) {
-          console.log('Password reset code found, exchanging for session...');
-          console.log('Code:', code);
-          
-          // Use exchangeCodeForSession for password reset
-          const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-          
-          console.log('Exchange result:', { data, error });
-          
-          if (error) {
-            console.error('Error exchanging code for session:', error);
-            setError("Invalid or expired password reset link. Please request a new one.");
-            setCheckingAuth(false);
-            return;
-          }
-
-          if (data && data.session) {
-            console.log('Password reset session established for:', data.user?.email);
-            setIsAuthenticated(true);
-            setCheckingAuth(false);
-            return;
-          } else {
-            console.log('No session returned from exchange, data:', data);
-            setError("Failed to establish session. Please try clicking the reset link again.");
-            setCheckingAuth(false);
-            return;
-          }
-        }
-
-        // If no code, check for existing session
+        // Check for existing session (password reset codes are handled by auth callback)
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
           console.error('Auth check error:', sessionError);
           setError("Authentication failed. Please click the password reset link in your email again.");
         } else if (session && session.user) {
-          console.log('Existing session found for password reset:', session.user.email);
+          console.log('Active session found for password reset:', session.user.email);
           setIsAuthenticated(true);
         } else {
+          console.log('No active session found');
           setError("No active session found. Please click the password reset link in your email to continue.");
         }
       } catch (err) {
         console.error('Password reset setup failed:', err);
-        setError("Failed to verify password reset link. Please try clicking the reset link again.");
+        setError("Failed to verify session. Please try clicking the reset link again.");
       } finally {
         setCheckingAuth(false);
       }
     };
 
-    handlePasswordReset();
+    checkSession();
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -87,7 +57,7 @@ export default function ResetPassword() {
     });
 
     return () => subscription.unsubscribe();
-  }, [searchParams]);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
