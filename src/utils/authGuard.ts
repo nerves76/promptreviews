@@ -103,58 +103,65 @@ export function useBusinessProfile() {
   const [loading, setLoading] = useState(true);
   const [hasBusiness, setHasBusiness] = useState(false);
   const [businessId, setBusinessId] = useState<string | null>(null);
+  const [refreshCounter, setRefreshCounter] = useState(0);
+
+  const checkBusinessProfile = async () => {
+    try {
+      console.log('📊 useBusinessProfile: Checking business profile...');
+      
+      const supabase = createClient();
+      
+      // Get current user first
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+      if (userError || !user) {
+        console.log('❌ useBusinessProfile: No authenticated user');
+        setLoading(false);
+        return;
+      }
+
+      console.log('📊 useBusinessProfile: User found:', user.id);
+
+      // Check for business account
+      const { data: accounts, error: accountError } = await supabase
+        .from('accounts')
+        .select('id')
+        .eq('user_id', user.id)
+        .limit(1);
+
+      if (accountError) {
+        console.error('❌ useBusinessProfile: Error checking accounts:', accountError);
+        setLoading(false);
+        return;
+      }
+
+      if (accounts && accounts.length > 0) {
+        console.log('✅ useBusinessProfile: Business profile found:', accounts[0].id);
+        setHasBusiness(true);
+        setBusinessId(accounts[0].id);
+      } else {
+        console.log('📊 useBusinessProfile: No account found, setting hasBusiness to false');
+        setHasBusiness(false);
+        setBusinessId(null);
+      }
+
+      setLoading(false);
+
+    } catch (error) {
+      console.error('💥 useBusinessProfile: Unexpected error:', error);
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const checkBusinessProfile = async () => {
-      try {
-        console.log('📊 useBusinessProfile: Checking business profile...');
-        
-        const supabase = createClient();
-        
-        // Get current user first
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-
-        if (userError || !user) {
-          console.log('❌ useBusinessProfile: No authenticated user');
-          setLoading(false);
-          return;
-        }
-
-        console.log('📊 useBusinessProfile: User found:', user.id);
-
-        // Check for business account
-        const { data: accounts, error: accountError } = await supabase
-          .from('accounts')
-          .select('id')
-          .eq('user_id', user.id)
-          .limit(1);
-
-        if (accountError) {
-          console.error('❌ useBusinessProfile: Error checking accounts:', accountError);
-          setLoading(false);
-          return;
-        }
-
-        if (accounts && accounts.length > 0) {
-          console.log('✅ useBusinessProfile: Business profile found:', accounts[0].id);
-          setHasBusiness(true);
-          setBusinessId(accounts[0].id);
-        } else {
-          console.log('📊 useBusinessProfile: No account found, setting hasBusiness to false');
-          setHasBusiness(false);
-          setBusinessId(null);
-        }
-
-        setLoading(false);
-
-      } catch (error) {
-        console.error('💥 useBusinessProfile: Unexpected error:', error);
-        setLoading(false);
-      }
-    };
-
     checkBusinessProfile();
-  }, []);
+  }, [refreshCounter]);
 
-  return { loading, hasBusiness, businessId };
+  const refresh = () => {
+    console.log('🔄 useBusinessProfile: Manual refresh triggered');
+    setLoading(true);
+    setRefreshCounter(prev => prev + 1);
+  };
+
+  return { loading, hasBusiness, businessId, refresh };
 }

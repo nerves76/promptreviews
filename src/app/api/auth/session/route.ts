@@ -5,7 +5,7 @@ export async function GET(request: NextRequest) {
   try {
     console.log('🔍 Session API: Checking session status...');
     
-    // Create server client with proper cookie handling (now async)
+    // Create server client with proper cookie handling
     const supabase = await createServerSupabaseClient();
     
     // Get the current user (more secure than getSession)

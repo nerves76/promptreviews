@@ -153,7 +153,9 @@ export default function Header() {
     const handlePlanSelection = (event?: CustomEvent) => {
       console.log("Header: Plan selection detected, refreshing business profile");
       console.log("Header: Event details:", event?.detail);
-      refreshBusinessProfile();
+      if (refreshBusinessProfile) {
+        refreshBusinessProfile();
+      }
     };
 
     const handleBusinessCreated = (event?: CustomEvent) => {
@@ -163,7 +165,9 @@ export default function Header() {
       // Force refresh with a small delay to ensure database has updated
       setTimeout(() => {
         console.log("🔄 Header: Executing delayed business profile refresh");
-        refreshBusinessProfile();
+        if (refreshBusinessProfile) {
+          refreshBusinessProfile();
+        }
       }, 500);
     };
 
@@ -175,7 +179,7 @@ export default function Header() {
       window.removeEventListener('planSelected', handlePlanSelection);
       window.removeEventListener('businessCreated', handleBusinessCreated);
     };
-  }, []); // Remove refreshBusinessProfile dependency to prevent re-renders
+  }, [refreshBusinessProfile]); // Include refreshBusinessProfile in dependencies
 
   return (
     <header className="bg-white shadow">
