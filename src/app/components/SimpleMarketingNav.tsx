@@ -1,18 +1,16 @@
 import React from "react";
 import Link from "next/link";
 import { FaArrowLeft } from "react-icons/fa";
+import PromptReviewsLogo from "@/app/dashboard/components/PromptReviewsLogo";
 
 export default function SimpleMarketingNav() {
   return (
     <nav className="w-full bg-white shadow-sm z-50 sticky top-0">
       <div className="mx-auto max-w-[1000px] w-full flex items-center justify-between px-4 py-2">
-        <Link href="/">
-          <img
-            src="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompt-reviews-get-more-reviews-logo.png"
-            alt="Prompt Reviews Logo"
-            className="h-10 w-auto max-w-full object-contain"
-            style={{ maxWidth: "200px" }}
-          />
+        <Link href="/" className="flex items-center">
+          <span className="h-10 w-auto flex items-center" aria-label="PromptReviews Logo">
+            <PromptReviewsLogo size={64} />
+          </span>
         </Link>
         {/* Main nav content */}
         <div className="flex-1 flex justify-end">
