@@ -5,11 +5,11 @@
  * Only account owners can view and manage invitations.
  */
 
-import { createServerClient } from '@/utils/supabaseClient';
+import { createServerSupabaseClient } from '@/utils/supabaseClient';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
-  const supabase = createServerClient();
+  const supabase = await createServerSupabaseClient();
 
   try {
     // Get the current user
@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  const supabase = createServerClient();
+  const supabase = await createServerSupabaseClient();
 
   try {
     // Get the current user

@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from "next/headers";
-import { createServerClient, getSessionOrMock } from "@/utils/supabaseClient";
+import { createServerSupabaseClient, getSessionOrMock } from "@/utils/supabaseClient";
 
 export async function GET() {
   const cookieStore = await cookies();
@@ -9,7 +9,7 @@ export async function GET() {
     allCookies[cookie.name] = cookie.value;
   }
 
-  const supabase = createServerClient();
+  const supabase = await createServerSupabaseClient();
 
   const {
     data: { session },

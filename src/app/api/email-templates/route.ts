@@ -5,12 +5,12 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@/utils/supabaseClient';
+import { createServerSupabaseClient } from '@/utils/supabaseClient';
 import { getAllEmailTemplates, updateEmailTemplate } from '../../../utils/emailTemplates';
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createServerClient();
+    const supabase = await createServerSupabaseClient();
     
     // Check if user is admin
     const { data: { user } } = await supabase.auth.getUser();
@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createServerClient();
+    const supabase = await createServerSupabaseClient();
     
     // Check if user is admin
     const { data: { user } } = await supabase.auth.getUser();
