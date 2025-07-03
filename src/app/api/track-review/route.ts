@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabase, createClient } from "@/utils/supabaseClient";
+import { supabase, createServiceRoleClient } from "@/utils/supabaseClient";
 import { sendResendEmail } from "@/utils/resend";
 
 export async function POST(request: Request) {
@@ -103,7 +103,7 @@ export async function POST(request: Request) {
         "promptPage.account_id:",
         promptPage?.account_id,
       );
-      const supabaseAdmin = createClient(true); // true = use service role
+      const supabaseAdmin = createServiceRoleClient(); // use service role
       const { data: account } = await supabaseAdmin
         .from("accounts")
         .select("email, review_notifications_enabled, first_name")
