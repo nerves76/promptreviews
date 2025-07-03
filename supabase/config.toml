@@ -172,7 +172,7 @@ otp_expiry = 3600
 
 # Use Mailgun SMTP server
 [auth.email.smtp]
-enabled = false
+enabled = true
 host = "smtp.mailgun.org"
 port = 587
 user = "chris@mg.promptreviews.app"
