@@ -1,86 +1,51 @@
-import { cookies } from "next/headers";
-import { NextResponse } from "next/server";
-import { createClient } from '@/utils/supabaseClient';
+import { NextRequest, NextResponse } from 'next/server';
+import { createServerSupabaseClient } from '@/utils/supabaseClient';
 import { sendWelcomeEmail } from "@/utils/resend-welcome";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
-  const code = requestUrl.searchParams.get("code");
+  const code = requestUrl.searchParams.get('code');
+  const next = requestUrl.searchParams.get('next');
 
-  console.log("🔗 Auth callback triggered with URL:", request.url);
-  console.log("📝 Code parameter:", code ? "Present" : "Missing");
+  console.log('🔗 Auth callback triggered with URL:', request.url);
+  console.log('📝 Code parameter:', code ? 'Present' : 'Missing');
+  console.log('🔄 Next parameter:', next || 'None');
 
   if (!code) {
-    console.error("❌ No code parameter found in callback URL");
-    return NextResponse.redirect(
-      `${requestUrl.origin}/auth/sign-in?error=Invalid code`,
-    );
+    console.log('❌ No code provided, redirecting to sign-in');
+    return NextResponse.redirect(`${requestUrl.origin}/auth/sign-in?error=missing_code`);
   }
 
-  // This callback handles both sign-up/sign-in AND password reset codes
-  // Password reset codes will be processed here and then redirected to reset-password page
-
   try {
-    const cookieStore = await cookies();
-    
-    // Use regular client for session exchange (not service role)
-    const supabaseForSession = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        global: {
-          headers: {
-            cookie: cookieStore.toString(),
-          },
-        },
-      }
-    );
+    const supabase = await createServerSupabaseClient();
+    console.log('🔄 Exchanging code for session...');
 
-    // Use service key for database operations
-    const supabaseService = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    );
+    const { data: { user, session }, error } = await supabase.auth.exchangeCodeForSession(code);
 
-    console.log("🔄 Exchanging code for session...");
-    const {
-      data: { session },
-      error: sessionError,
-    } = await supabaseForSession.auth.exchangeCodeForSession(code);
-
-    if (sessionError) {
-      console.error("❌ Session exchange error:", sessionError);
-      return NextResponse.redirect(
-        `${requestUrl.origin}/auth/sign-in?error=${encodeURIComponent(sessionError.message)}`,
-      );
+    if (error) {
+      console.log('❌ Session exchange error:', error);
+      return NextResponse.redirect(`${requestUrl.origin}/auth/sign-in?error=${encodeURIComponent(error.message)}`);
     }
 
-    if (!session?.user) {
-      console.error("❌ No user in session after code exchange");
-      return NextResponse.redirect(
-        `${requestUrl.origin}/auth/sign-in?error=No user in session`,
-      );
+    if (!user || !session) {
+      console.log('❌ No user or session after exchange');
+      return NextResponse.redirect(`${requestUrl.origin}/auth/sign-in?error=exchange_failed`);
     }
 
-    console.log("✅ Session exchange successful for user:", session.user.email);
-    console.log("📧 Email confirmed at:", session.user.email_confirmed_at);
-    
-    // Check if this is a password reset flow
-    // Password resets have a specific URL parameter or can be detected by checking if user exists
-    const urlHasType = requestUrl.searchParams.has('type');
-    const isPasswordReset = urlHasType || requestUrl.searchParams.get('type') === 'recovery';
-    
-    // If this looks like a password reset, redirect to reset-password page
-    if (isPasswordReset) {
-      console.log("🔑 Password reset detected, redirecting to reset-password page");
-      return NextResponse.redirect(`${requestUrl.origin}/reset-password`);
+    console.log('✅ Session exchange successful for user:', user.email);
+    console.log('📧 Email confirmed at:', user.email_confirmed_at);
+
+    // If there's a next parameter, redirect there (e.g., for password reset)
+    if (next) {
+      console.log('🔄 Redirecting to next page:', next);
+      return NextResponse.redirect(`${requestUrl.origin}${next}`);
     }
 
-    // Ensure user is linked to an account using service client
-    const { id: userId, email } = session.user;
-    const { data: accountLinks, error: accountLinksError } = await supabaseService
+    // For sign-up/sign-in (no next parameter), handle account creation
+    const { id: userId, email } = user;
+    const { data: accountLinks, error: accountLinksError } = await supabase
       .from("account_users")
       .select("account_id")
       .eq("user_id", userId);
@@ -91,35 +56,29 @@ export async function GET(request: Request) {
       console.log("🆕 Creating new account for user:", userId);
       
       // Check if account already exists
-      console.log("🔍 Checking if account already exists for user:", userId);
-      const { data: existingAccount, error: accountCheckError } = await supabaseService
+      const { data: existingAccount, error: accountCheckError } = await supabase
         .from("accounts")
         .select("id")
         .eq("id", userId)
         .single();
 
-      if (accountCheckError) {
-        console.error("❌ Error checking existing account:", accountCheckError);
-        // Continue with account creation even if check fails
-      }
-
       if (!existingAccount) {
         console.log("🆕 Creating new account for user:", userId);
         // Create account with proper fields
-        const { data: newAccount, error: createAccountError } = await supabaseService
+        const { data: newAccount, error: createAccountError } = await supabase
           .from("accounts")
           .insert({
             id: userId,
-            user_id: userId, // This field exists in the schema
+            user_id: userId,
             email: email,
             trial_start: new Date().toISOString(),
             trial_end: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
             is_free_account: false,
             custom_prompt_page_count: 0,
             contact_count: 0,
-            first_name: session.user.user_metadata?.first_name || '',
-            last_name: session.user.user_metadata?.last_name || '',
-            plan: 'grower', // Use proper plan value instead of 'NULL'
+            first_name: user.user_metadata?.first_name || '',
+            last_name: user.user_metadata?.last_name || '',
+            plan: 'grower',
             has_had_paid_plan: false,
             review_notifications_enabled: true
           })
@@ -128,7 +87,7 @@ export async function GET(request: Request) {
 
         if (!createAccountError && newAccount) {
           console.log("✅ Account created successfully");
-          await supabaseService
+          await supabase
             .from("account_users")
             .insert([
               {
@@ -151,10 +110,9 @@ export async function GET(request: Request) {
     // Send welcome email for new users
     if (isNewUser && email) {
       try {
-        // Extract first name from user metadata or email
         let firstName = "there";
-        if (session.user.user_metadata?.first_name) {
-          firstName = session.user.user_metadata.first_name;
+        if (user.user_metadata?.first_name) {
+          firstName = user.user_metadata.first_name;
         } else if (email) {
           firstName = email.split("@")[0];
         }
@@ -163,7 +121,6 @@ export async function GET(request: Request) {
         console.log("📧 Welcome email sent to:", email);
       } catch (emailError) {
         console.error("❌ Error sending welcome email:", emailError);
-        // Don't fail the signup if email fails
       }
     }
 
@@ -171,18 +128,16 @@ export async function GET(request: Request) {
     console.log("⏳ Waiting for session to be set...");
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    // Redirect new users to create-business page to show welcome popup
-    // Existing users go to dashboard
+    // Redirect new users to create-business page, existing users to dashboard
     const redirectUrl = isNewUser 
       ? `${requestUrl.origin}/dashboard/create-business`
       : `${requestUrl.origin}/dashboard`;
     
     console.log("✅ Redirecting to:", redirectUrl);
     return NextResponse.redirect(redirectUrl);
+
   } catch (error) {
-    console.error("❌ Error in callback:", error);
-    return NextResponse.redirect(
-      `${requestUrl.origin}/auth/sign-in?error=${encodeURIComponent(error instanceof Error ? error.message : "Unknown error")}`,
-    );
+    console.error('❌ Unexpected error in auth callback:', error);
+    return NextResponse.redirect(`${requestUrl.origin}/auth/sign-in?error=callback_error`);
   }
 }
