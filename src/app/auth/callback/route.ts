@@ -8,11 +8,9 @@ export const dynamic = "force-dynamic";
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
-  const type = requestUrl.searchParams.get("type");
 
   console.log("🔗 Auth callback triggered with URL:", request.url);
   console.log("📝 Code parameter:", code ? "Present" : "Missing");
-  console.log("📝 Type parameter:", type || "Not specified");
 
   if (!code) {
     console.error("❌ No code parameter found in callback URL");
@@ -21,13 +19,8 @@ export async function GET(request: Request) {
     );
   }
 
-  // Handle password reset codes - redirect to reset-password page
-  if (type === 'recovery') {
-    console.log("🔄 Password reset detected (type=recovery), redirecting to reset-password page");
-    return NextResponse.redirect(
-      `${requestUrl.origin}/reset-password?code=${code}`,
-    );
-  }
+  // Password reset codes should go directly to /reset-password via URL configuration
+  // This callback is only for sign-up/sign-in session exchange
 
   try {
     const cookieStore = await cookies();
@@ -59,25 +52,6 @@ export async function GET(request: Request) {
 
     if (sessionError) {
       console.error("❌ Session exchange error:", sessionError);
-      console.log("🔍 Error message for debugging:", JSON.stringify(sessionError.message));
-      console.log("🔍 Full error object:", JSON.stringify(sessionError));
-      
-      // Check if this might be a password reset code that was incorrectly routed here
-      const errorMessage = sessionError.message || '';
-      const isPasswordResetCode = errorMessage.includes('invalid request') || 
-                                  errorMessage.includes('code verifier') ||
-                                  errorMessage.includes('both auth code and code verifier should be non-empty') ||
-                                  errorMessage.includes('validation_failed');
-      
-      console.log("🔍 Is password reset code?", isPasswordResetCode);
-      
-      if (isPasswordResetCode) {
-        console.log("🔄 Session exchange failed - likely password reset code, redirecting to reset-password");
-        return NextResponse.redirect(
-          `${requestUrl.origin}/reset-password?code=${code}`,
-        );
-      }
-      
       return NextResponse.redirect(
         `${requestUrl.origin}/auth/sign-in?error=${encodeURIComponent(sessionError.message)}`,
       );
