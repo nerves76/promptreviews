@@ -488,4 +488,6 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
   },
 );
 
+ServicePromptPageForm.displayName = 'ServicePromptPageForm';
+
 export default ServicePromptPageForm;

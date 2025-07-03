@@ -6,12 +6,12 @@ interface StarRatingProps {
 }
 
 export default function StarRating({ rating, size = 16 }: StarRatingProps) {
-  if (typeof rating !== 'number' || isNaN(rating)) return null;
-  
   // Generate stable IDs for gradients to prevent hydration mismatches
   const gradientIds = useMemo(() => {
     return Array.from({ length: 5 }, (_, i) => `half-star-gradient-${i + 1}-${rating}-${size}`);
   }, [rating, size]);
+  
+  if (typeof rating !== 'number' || isNaN(rating)) return null;
   
   const stars = [];
   for (let i = 1; i <= 5; i++) {

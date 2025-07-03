@@ -160,16 +160,14 @@ export default function SignIn() {
     }
   };
 
-  const handleResetPassword = async (e: React.FormEvent) => {
+    const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setResetMessage(null);
     setError("");
     try {
-      // Always use absolute URL to ensure direct routing to reset page
-      const redirectUrl = typeof window !== 'undefined' 
-        ? `${window.location.origin}/reset-password`
-        : `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3002'}/reset-password`;
-        
+      // Use the current origin for the redirect URL
+      const redirectUrl = `${window.location.origin}/reset-password`;
+      
       const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
         redirectTo: redirectUrl,
       });

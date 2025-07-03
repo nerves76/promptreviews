@@ -608,4 +608,6 @@ const ProductPromptPageForm = forwardRef<any, ProductPromptPageFormProps>(
   },
 );
 
+ProductPromptPageForm.displayName = 'ProductPromptPageForm';
+
 export default ProductPromptPageForm;

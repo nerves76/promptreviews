@@ -249,4 +249,6 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
   },
 );
 
+UniversalPromptPageForm.displayName = 'UniversalPromptPageForm';
+
 export default UniversalPromptPageForm;
