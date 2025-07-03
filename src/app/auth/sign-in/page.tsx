@@ -165,8 +165,8 @@ export default function SignIn() {
     setResetMessage(null);
     setError("");
     try {
-      // Use the current origin for the redirect URL
-      const redirectUrl = `${window.location.origin}/reset-password`;
+      // Use auth callback URL so the code gets properly exchanged for a session
+      const redirectUrl = `${window.location.origin}/auth/callback`;
       
       const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
         redirectTo: redirectUrl,
