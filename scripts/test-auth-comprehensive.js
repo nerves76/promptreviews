@@ -12,7 +12,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 // Test credentials
 const TEST_EMAIL = 'nerves76@gmail.com';
-const TEST_PASSWORD = 'Prcamus9721!';
+const TEST_PASSWORD = 'TempPassword123!';
 
 async function testAuthenticationFlow() {
   console.log('🧪 COMPREHENSIVE AUTHENTICATION TEST');
