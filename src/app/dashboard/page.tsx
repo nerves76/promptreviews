@@ -52,7 +52,7 @@ export default function Dashboard() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showPostSaveModal, setShowPostSaveModal] = useState(false);
   const [savedPromptPageUrl, setSavedPromptPageUrl] = useState<string | null>(null);
-  const [showPricingModal, setShowPricingModal] = useState(true);
+  const [showPricingModal, setShowPricingModal] = useState(false);
   const [pendingAccountUpdate, setPendingAccountUpdate] = useState(false);
   const [showStarfallCelebration, setShowStarfallCelebration] = useState(false);
   const [business, setBusiness] = useState<any>(null);
