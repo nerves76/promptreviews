@@ -9,7 +9,6 @@ import { StyleModal } from "./components/StyleModal";
 import { ReviewManagementModal } from "./components/ReviewManagementModal";
 import { DEFAULT_DESIGN, DesignState } from "./components/widgets/multi";
 import { useWidgets } from "./hooks/useWidgets";
-import { supabase } from "@/utils/supabaseClient";
 
 export default function WidgetPage() {
   const { widgets, loading, error, createWidget, deleteWidget, saveWidgetName, saveWidgetDesign, fetchWidgets } = useWidgets();

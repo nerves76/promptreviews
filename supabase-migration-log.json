@@ -1,0 +1,11 @@
+{
+  "timestamp": "2025-07-03T13:24:02.914Z",
+  "stats": {
+    "filesProcessed": 11,
+    "duplicatesRemoved": 4,
+    "directClientsReplaced": 8,
+    "architecturalViolationsFixed": 0,
+    "errors": []
+  },
+  "migrations": []
+}

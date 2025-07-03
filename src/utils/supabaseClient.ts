@@ -1,91 +1,188 @@
 /**
- * Supabase Client Configuration
+ * Supabase Client Configuration - SSR Compatible
  * 
- * Centralized Supabase client instance with optimized session handling
- * to prevent multiple GoTrueClient instances and session conflicts.
+ * This file provides both server-side and client-side Supabase clients
+ * with proper cookie handling for Next.js SSR applications.
  * 
- * This file contains:
- * - Primary Supabase client instance with optimized auth configuration
- * - Type definitions for database entities
- * - Utility functions for user and session management
- * - Server-side client creation function
+ * Key features:
+ * - Server-side client for API routes with cookie handling
+ * - Client-side client that can read server-side cookies
+ * - Shared cookie format between client and server
+ * - Proper session synchronization
+ * - Enhanced singleton pattern with debugging
  */
 
-import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
+import { createBrowserClient } from '@supabase/ssr'
+import { createServerClient } from '@supabase/ssr'
+import { SupabaseClient, User } from '@supabase/supabase-js'
 
-interface SessionMock {
-  access_token: string;
-  refresh_token: string;
-  expires_at: number;
-  user: User;
+// Enhanced singleton tracking
+let _browserClient: SupabaseClient | null = null;
+let _instanceCount = 0;
+let _creationStack: string[] = [];
+
+/**
+ * Enhanced debug logging for client creation
+ */
+function logClientCreation(instanceId: number, creationLocation: string) {
+  _instanceCount++;
+  console.log(`🔧 Creating Supabase client instance #${instanceId} (Total: ${_instanceCount})`);
+  console.log(`📍 Creation location: ${creationLocation}`);
+  
+  if (_instanceCount > 1) {
+    console.warn(`⚠️  WARNING: Multiple Supabase client instances detected! This may cause auth issues.`);
+    console.warn(`📚 Previous creation locations:`, _creationStack);
+  }
+  
+  _creationStack.push(creationLocation);
 }
 
-// Global singleton instance
-let _supabaseInstance: SupabaseClient | null = null;
-let _instanceCounter = 0;
-let _creationStack = new Map<number, string>();
-
-// Create a true singleton Supabase client
-export const supabase = (() => {
-  if (!_supabaseInstance) {
-    const instanceId = _instanceCounter++;
-    const stack = new Error().stack || 'No stack trace available';
-    _creationStack.set(instanceId, stack);
+/**
+ * Create a browser client for client-side usage
+ * This client can read server-side cookies and maintain session state
+ * 
+ * SINGLETON PATTERN: Only one instance should exist per application
+ */
+export function createClient(): SupabaseClient {
+  if (!_browserClient) {
+    const instanceId = Math.floor(Math.random() * 1000);
+    const creationLocation = new Error().stack?.split('\n')[2]?.trim() || 'Unknown location';
     
-    console.log(`🔧 Creating new Supabase client instance #${instanceId}`);
+    logClientCreation(instanceId, creationLocation);
     
-    // Show calling location in development
-    if (process.env.NODE_ENV === 'development') {
-      const callerLine = stack.split('\n')[2];
-      console.log(`📍 Creation location:`, callerLine?.trim() || 'Unknown');
-      
-      // Warn if we see multiple instances
-      if (instanceId > 0) {
-        console.warn(`⚠️  WARNING: Multiple Supabase client instances detected!`);
-        console.warn(`⚠️  Previous instances: ${Array.from(_creationStack.keys()).slice(0, -1).join(', ')}`);
-        console.warn(`⚠️  This can cause session conflicts. Use singleton from supabaseClient.ts`);
-      }
-    }
-    
-    _supabaseInstance = createClient(
+    _browserClient = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         auth: {
-          // Enhanced persistence configuration
           persistSession: true,
           autoRefreshToken: true,
           detectSessionInUrl: true,
-          storage: typeof window !== 'undefined' ? window.localStorage : undefined,
-          storageKey: 'promptreviews-auth-token'
         },
-        global: {
-          headers: {
-            'X-Client-Info': `promptreviews-web-singleton-${instanceId}`
+        realtime: {
+          params: {
+            eventsPerSecond: 10
           }
         }
       }
     );
-
-    console.log(`✅ Supabase client created successfully`);
+    
+    console.log('✅ Supabase browser client created successfully');
   } else {
-    console.log(`♻️  Reusing existing Supabase client instance #${_instanceCounter - 1}`);
+    console.log('♻️  Reusing existing Supabase browser client (singleton pattern)');
   }
   
-  return _supabaseInstance;
-})();
-
-// Debug function to show all client creation locations
-export function debugClientInstances() {
-  if (process.env.NODE_ENV === 'development') {
-    console.log(`🔍 Total Supabase instances created: ${_instanceCounter}`);
-    _creationStack.forEach((stack, id) => {
-      console.log(`Instance #${id}:`, stack.split('\n')[2]?.trim());
-    });
-  }
+  return _browserClient;
 }
 
-// Enhanced session getter with better error handling
+/**
+ * Create a server client for API routes and middleware
+ * This handles cookies properly for SSR with Next.js 15 async cookies API
+ */
+export async function createServerSupabaseClient() {
+  // Import cookies dynamically to avoid client-side import issues
+  const { cookies } = require('next/headers');
+  
+  // Await the cookies() call for Next.js 15 compatibility
+  const cookieStore = await cookies();
+  
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get: (name) => {
+          return cookieStore.get(name)?.value;
+        },
+        set: (name, value, options) => {
+          cookieStore.set({ name, value, ...options });
+        },
+        remove: (name, options) => {
+          cookieStore.set({ name, value: '', ...options });
+        },
+      },
+    },
+  );
+}
+
+/**
+ * Get client instance statistics for debugging
+ */
+export function getClientStats() {
+  return {
+    hasInstance: !!_browserClient,
+    instanceCount: _instanceCount,
+    creationStack: _creationStack
+  };
+}
+
+/**
+ * Reset client instance (for testing/debugging only)
+ */
+export function resetClientInstance() {
+  console.log('🔄 Resetting Supabase client instance');
+  _browserClient = null;
+  _instanceCount = 0;
+  _creationStack = [];
+}
+
+/**
+ * Legacy exports for backward compatibility
+ * These maintain the existing API surface
+ * 
+ * NOTE: Lazy initialization to prevent immediate client creation
+ */
+let _legacyInstance: SupabaseClient | null = null;
+export const supabase = new Proxy({} as SupabaseClient, {
+  get(target, prop) {
+    if (!_legacyInstance) {
+      console.log('📢 Legacy supabase export accessed - creating client via proxy');
+      _legacyInstance = createClient();
+    }
+    return (_legacyInstance as any)[prop];
+  }
+});
+
+/**
+ * Clear authentication session
+ * This removes all authentication cookies and resets the client state
+ */
+export async function clearAuthSession() {
+  const client = createClient();
+  await client.auth.signOut();
+  
+  // Clear any manual cookies that might exist
+  if (typeof document !== 'undefined') {
+    document.cookie = 'sb-access-token=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/;';
+    document.cookie = 'sb-refresh-token=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/;';
+  }
+  
+  // Reset the singleton instance
+  _browserClient = null;
+}
+
+/**
+ * Get current user from session
+ * This is a convenience function for client-side components
+ */
+export async function getCurrentUser(): Promise<User | null> {
+  const client = createClient();
+  const { data: { user } } = await client.auth.getUser();
+  return user;
+}
+
+/**
+ * Utility function to check if user is authenticated
+ */
+export async function isAuthenticated(): Promise<boolean> {
+  const client = createClient();
+  const { data: { session } } = await client.auth.getSession();
+  return !!session;
+}
+
+/**
+ * Enhanced session getter with better error handling
+ */
 export async function getSessionOrMock(client: SupabaseClient) {
   try {
     console.log('🔍 Getting session...');
@@ -112,7 +209,9 @@ export async function getSessionOrMock(client: SupabaseClient) {
   }
 }
 
-// Enhanced user getter
+/**
+ * Enhanced user getter
+ */
 export async function getUserOrMock(client: SupabaseClient) {
   try {
     console.log('👤 Getting user...');
@@ -136,40 +235,21 @@ export async function getUserOrMock(client: SupabaseClient) {
   }
 }
 
-// Session cleanup utility
-export function clearAuthSession() {
-  console.log('🧹 Clearing auth session...');
-  
-  if (typeof window !== 'undefined') {
-    // Clear all possible auth storage locations
-    const storageKeys = [
-      'promptreviews-auth-token',
-      'supabase.auth.token',
-      'sb-auth-token',
-      'sb-access-token',
-      'sb-refresh-token'
-    ];
-    
-    storageKeys.forEach(key => {
-      localStorage.removeItem(key);
-      sessionStorage.removeItem(key);
-    });
-    
-    console.log('✅ Auth storage cleared');
-  }
-}
-
-// Test authentication function
+/**
+ * Test authentication function
+ */
 export async function testAuth(email: string, password: string) {
   console.log('🧪 Testing authentication...');
   
   try {
+    const client = createClient();
+    
     // Clear any existing session first
-    await supabase.auth.signOut();
+    await client.auth.signOut();
     clearAuthSession();
     
     // Attempt sign in
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await client.auth.signInWithPassword({
       email,
       password
     });
@@ -294,17 +374,4 @@ export type Database = {
       };
     };
   };
-};
-
-/**
- * Create a Supabase client for server-side operations
- */
-export function createServerClient() {
-  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-      detectSessionInUrl: false,
-    },
-  });
-} 
+}; 

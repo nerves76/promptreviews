@@ -4,7 +4,7 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from '@/utils/supabaseClient';
 import { getUserOrMock } from "./supabaseClient";
 
 export interface AccountUser {

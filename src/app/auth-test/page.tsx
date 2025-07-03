@@ -68,7 +68,6 @@ export default function AuthTest() {
     try {
       setMessage("Attempting sign in...");
       
-      const { supabase } = await import("@/utils/supabaseClient");
       
       const { data, error } = await supabase.auth.signInWithPassword({
         email: testEmail,
@@ -85,9 +84,7 @@ export default function AuthTest() {
         setUser(data.user);
         setSession(data.session);
         
-        // Set cookies manually for testing
-        document.cookie = `sb-access-token=${data.session.access_token}; Path=/; Max-Age=3600; SameSite=Lax`;
-        document.cookie = `sb-refresh-token=${data.session.refresh_token}; Path=/; Max-Age=604800; SameSite=Lax`;
+        // Session is now handled automatically by Supabase
       }
     } catch (err) {
       setMessage(`Exception: ${err}`);
@@ -96,15 +93,12 @@ export default function AuthTest() {
 
   const testSignOut = async () => {
     try {
-      const { supabase } = await import("@/utils/supabaseClient");
       await supabase.auth.signOut();
       setUser(null);
       setSession(null);
       setMessage("Signed out successfully");
       
-      // Clear cookies
-      document.cookie = "sb-access-token=; Path=/; Max-Age=0";
-      document.cookie = "sb-refresh-token=; Path=/; Max-Age=0";
+      // Session cleanup is now handled automatically by Supabase
     } catch (err) {
       setMessage(`Sign out error: ${err}`);
     }

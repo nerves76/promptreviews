@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from '@/utils/supabaseClient';
 import { sendWelcomeEmail } from "@/utils/resend-welcome";
 
 export const dynamic = "force-dynamic";

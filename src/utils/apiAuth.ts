@@ -9,7 +9,7 @@
  */
 
 import { NextRequest } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@/utils/supabaseClient';
 import { User } from '@supabase/supabase-js';
 
 interface AuthResult {

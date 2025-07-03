@@ -1,8 +1,6 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/utils/supabaseClient";
-import { getUserOrMock } from "@/utils/supabaseClient";
-import { getAccountIdForUser } from "@/utils/accountUtils";
+import { createClient } from "@/utils/supabaseClient";
 
 interface AuthGuardOptions {
   requireBusinessProfile?: boolean;
@@ -22,280 +20,141 @@ export function useAuthGuard(options: AuthGuardOptions = {}): AuthGuardResult {
 
   useEffect(() => {
     const checkAuthAndProfile = async () => {
-      setLoading(true);
-      setShouldRedirect(false);
-      
       try {
-        // First check if we have a session
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        console.log('🔐 useAuthGuard: Starting authentication check...');
         
-        if (sessionError) {
-          console.log("Auth guard: Session error:", sessionError);
-          // Don't redirect immediately on session error, give it more time
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          
-          // Try again
-          const { data: { session: retrySession }, error: retryError } = await supabase.auth.getSession();
-          if (retryError || !retrySession) {
-            console.log("Auth guard: Still no session after retry, redirecting to sign-in");
-            setShouldRedirect(true);
-            router.push("/auth/sign-in");
-            setLoading(false);
-            return;
-          }
-        }
+        // Use the new SSR-compatible client
+        const supabase = createClient();
+        
+        // Get the current user using the same method as the server
+        const { data: { user }, error } = await supabase.auth.getUser();
 
-        if (!session) {
-          console.log("Auth guard: No session found, redirecting to sign-in");
+        if (error) {
+          console.log('❌ useAuthGuard: Authentication check failed:', error.message);
           setShouldRedirect(true);
-          router.push("/auth/sign-in");
           setLoading(false);
           return;
-        }
-
-        // Get user data
-        const {
-          data: { user },
-          error: userError,
-        } = await getUserOrMock(supabase);
-
-        if (userError) {
-          console.log("Auth guard: User error:", userError);
-          // If it's an AuthSessionMissingError, wait a bit more
-          if (userError && typeof userError === 'object' && 'message' in (userError as any) && 
-              typeof (userError as any).message === 'string' && (userError as any).message.includes('Auth session missing')) {
-            console.log("Auth guard: Auth session missing, waiting...");
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            
-            // Try again
-            const {
-              data: { user: retryUser },
-              error: retryError,
-            } = await getUserOrMock(supabase);
-            
-            if (retryError || !retryUser) {
-              console.log("Auth guard: Still no user after retry, redirecting to sign-in");
-              setShouldRedirect(true);
-              router.push("/auth/sign-in");
-              setLoading(false);
-              return;
-            }
-          } else {
-            console.log("Auth guard: User error, redirecting to sign-in");
-            setShouldRedirect(true);
-            router.push("/auth/sign-in");
-            setLoading(false);
-            return;
-          }
         }
 
         if (!user) {
-          console.log("Auth guard: No user found, redirecting to sign-in");
+          console.log('ℹ️  useAuthGuard: No authenticated user found, redirecting to sign-in');
           setShouldRedirect(true);
-          router.push("/auth/sign-in");
           setLoading(false);
           return;
         }
 
-        // If we need to check for business profile
-        if (requireBusinessProfile || redirectToCreateBusiness) {
-          try {
-            // Get account ID
-            const accountId = await getAccountIdForUser(user.id, supabase);
-            
-            if (!accountId) {
-              console.log("Auth guard: No account found, redirecting to create business");
-              setShouldRedirect(true);
-              router.push("/dashboard/create-business");
-              setLoading(false);
-              return;
-            }
+        console.log('✅ useAuthGuard: User authenticated:', user.id);
 
-            // Check for businesses
-            const { data: businesses, error: businessError } = await supabase
-              .from("businesses")
-              .select("id")
-              .eq("account_id", accountId);
+        // If we require business profile, check for it
+        if (requireBusinessProfile) {
+          console.log('📊 useAuthGuard: Checking business profile requirement...');
+          
+          // Check for existing account/business
+          const { data: accounts, error: accountError } = await supabase
+            .from('accounts')
+            .select('id')
+            .eq('user_id', user.id)
+            .limit(1);
 
-            if (businessError) {
-              console.log("Auth guard: Business check error:", businessError);
-              // Don't redirect on error, let the user continue
-              setLoading(false);
-              return;
-            }
+          if (accountError) {
+            console.error('❌ useAuthGuard: Error checking business profile:', accountError);
+            // Don't redirect on database errors, just log them
+            setLoading(false);
+            return;
+          }
 
-            if (!businesses || businesses.length === 0) {
-              console.log("Auth guard: No businesses found, redirecting to create business");
-              setShouldRedirect(true);
-              router.push("/dashboard/create-business");
-              setLoading(false);
-              return;
-            }
-          } catch (error) {
-            console.log("Auth guard: Error checking business profile:", error);
-            // Don't redirect on error, let the user continue
+          const hasBusiness = accounts && accounts.length > 0;
+          console.log('📊 useAuthGuard: Business profile check result:', { hasBusiness });
+
+          if (!hasBusiness && redirectToCreateBusiness) {
+            console.log('🔄 useAuthGuard: No business profile found, redirecting to create business');
+            router.push('/dashboard/create-business');
             setLoading(false);
             return;
           }
         }
 
-        // User is authenticated and has required profile
+        console.log('✅ useAuthGuard: Authentication and profile checks passed');
         setLoading(false);
+        
       } catch (error) {
-        console.log("Auth guard: Unexpected error:", error);
-        // Don't redirect on unexpected errors, let the user continue
+        console.error('💥 useAuthGuard: Unexpected error:', error);
+        setShouldRedirect(true);
         setLoading(false);
       }
     };
 
     checkAuthAndProfile();
-  }, [router, requireBusinessProfile, redirectToCreateBusiness]);
+  }, [requireBusinessProfile, redirectToCreateBusiness, router]);
+
+  // Handle redirect outside of the main effect to avoid loops
+  useEffect(() => {
+    if (shouldRedirect && !loading) {
+      console.log('🔄 useAuthGuard: Redirecting to sign-in page');
+      router.push('/auth/sign-in');
+    }
+  }, [shouldRedirect, loading, router]);
 
   return { loading, shouldRedirect };
 }
 
-/**
- * Hook to check if user has a business profile
- * Returns loading state and whether user has business
- */
+// Business profile hook - separate from auth guard for cleaner separation
 export function useBusinessProfile() {
-  const [hasBusiness, setHasBusiness] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
-
-  const refresh = useCallback(() => {
-    console.log("📊 useBusinessProfile: Refresh triggered, incrementing trigger");
-    setRefreshTrigger(prev => prev + 1);
-  }, []);
+  const [hasBusiness, setHasBusiness] = useState(false);
+  const [businessId, setBusinessId] = useState<string | null>(null);
 
   useEffect(() => {
     const checkBusinessProfile = async () => {
       try {
-        console.log("📊 useBusinessProfile: Starting business profile check, trigger:", refreshTrigger);
-        setLoading(true);
-        const {
-          data: { user },
-          error: userError,
-        } = await getUserOrMock(supabase);
+        console.log('📊 useBusinessProfile: Checking business profile...');
+        
+        const supabase = createClient();
+        
+        // Get current user first
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
 
         if (userError || !user) {
-          console.log("📊 useBusinessProfile: No user found, setting hasBusiness to false");
+          console.log('❌ useBusinessProfile: No authenticated user');
+          setLoading(false);
+          return;
+        }
+
+        console.log('📊 useBusinessProfile: User found:', user.id);
+
+        // Check for business account
+        const { data: accounts, error: accountError } = await supabase
+          .from('accounts')
+          .select('id')
+          .eq('user_id', user.id)
+          .limit(1);
+
+        if (accountError) {
+          console.error('❌ useBusinessProfile: Error checking accounts:', accountError);
+          setLoading(false);
+          return;
+        }
+
+        if (accounts && accounts.length > 0) {
+          console.log('✅ useBusinessProfile: Business profile found:', accounts[0].id);
+          setHasBusiness(true);
+          setBusinessId(accounts[0].id);
+        } else {
+          console.log('📊 useBusinessProfile: No account found, setting hasBusiness to false');
           setHasBusiness(false);
-          setLoading(false);
-          return;
+          setBusinessId(null);
         }
 
-        console.log("📊 useBusinessProfile: User found:", user.id);
-
-        // Check if user is admin
-        const { data: adminData } = await supabase
-          .from("admins")
-          .select("id")
-          .eq("account_id", user.id)
-          .single();
-
-        if (adminData) {
-          console.log("📊 useBusinessProfile: User is admin, setting hasBusiness to true");
-          setHasBusiness(true); // Admins can access everything
-          setLoading(false);
-          return;
-        }
-
-        const accountId = await getAccountIdForUser(user.id);
-        console.log("📊 useBusinessProfile: Account ID:", accountId);
-        
-        if (!accountId) {
-          console.log("📊 useBusinessProfile: No account ID found, setting hasBusiness to false");
-          setHasBusiness(false);
-          setLoading(false);
-          return;
-        }
-
-        const { data: businessData, error: businessError } = await supabase
-          .from("businesses")
-          .select("id, name")
-          .eq("account_id", accountId)
-          .single();
-
-        console.log("📊 useBusinessProfile: Business query result:", { businessData, businessError });
-
-        const hasBusinessResult = !!businessData;
-        console.log("📊 useBusinessProfile: Setting hasBusiness to:", hasBusinessResult);
-        setHasBusiness(hasBusinessResult);
         setLoading(false);
+
       } catch (error) {
-        console.error("📊 useBusinessProfile: Error checking business profile:", error);
-        setHasBusiness(false);
+        console.error('💥 useBusinessProfile: Unexpected error:', error);
         setLoading(false);
       }
     };
 
     checkBusinessProfile();
-  }, [refreshTrigger]);
-
-  return { hasBusiness, loading, refresh };
-}
-
-/**
- * Hook to check if user is a new user (no account or no business)
- * Returns loading state and whether user is new
- */
-export function useNewUserCheck() {
-  const [isNewUser, setIsNewUser] = useState<boolean | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const checkNewUser = async () => {
-      try {
-        const {
-          data: { user },
-          error: userError,
-        } = await getUserOrMock(supabase);
-
-        if (userError || !user) {
-          setIsNewUser(false);
-          setLoading(false);
-          return;
-        }
-
-        // Check if user is admin
-        const { data: adminData } = await supabase
-          .from("admins")
-          .select("id")
-          .eq("account_id", user.id)
-          .single();
-
-        if (adminData) {
-          setIsNewUser(false); // Admins are not new users
-          setLoading(false);
-          return;
-        }
-
-        const accountId = await getAccountIdForUser(user.id);
-        
-        if (!accountId) {
-          setIsNewUser(true);
-          setLoading(false);
-          return;
-        }
-
-        const { data: businessData } = await supabase
-          .from("businesses")
-          .select("id")
-          .eq("account_id", accountId)
-          .single();
-
-        setIsNewUser(!businessData);
-        setLoading(false);
-      } catch (error) {
-        console.error("Error checking if user is new:", error);
-        setIsNewUser(false);
-        setLoading(false);
-      }
-    };
-
-    checkNewUser();
   }, []);
 
-  return { isNewUser, loading };
+  return { loading, hasBusiness, businessId };
 }
