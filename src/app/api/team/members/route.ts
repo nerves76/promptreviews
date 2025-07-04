@@ -6,6 +6,7 @@
  */
 
 import { createServerClient } from '@supabase/ssr';
+import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -20,6 +21,15 @@ export async function GET(request: NextRequest) {
         set: () => {},
         remove: () => {},
       },
+    }
+  );
+
+  // Create admin client for auth operations
+  const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      auth: { autoRefreshToken: false, persistSession: false }
     }
   );
 
@@ -53,24 +63,20 @@ export async function GET(request: NextRequest) {
       .single();
 
     if (accountError || !accountUser) {
+      console.error('Error fetching account user:', accountError);
       return NextResponse.json(
         { error: 'Account not found' },
         { status: 404 }
       );
     }
 
-    // Get all team members for this account
-    const { data: members, error: membersError } = await supabase
+    // Get all team members for this account (without auth_users join)
+    const { data: accountUsers, error: accountUsersError } = await supabase
       .from('account_users')
       .select(`
         user_id,
         role,
         created_at,
-        auth_users (
-          id,
-          email,
-          user_metadata
-        ),
         accounts (
           first_name,
           last_name,
@@ -80,13 +86,45 @@ export async function GET(request: NextRequest) {
       .eq('account_id', accountUser.account_id)
       .order('created_at', { ascending: true });
 
-    if (membersError) {
-      console.error('Error fetching team members:', membersError);
+    if (accountUsersError) {
+      console.error('Error fetching account users:', accountUsersError);
       return NextResponse.json(
         { error: 'Failed to fetch team members' },
         { status: 500 }
       );
     }
+
+    // Get auth user details using admin client
+    const { data: authUsers, error: authUsersError } = await supabaseAdmin.auth.admin.listUsers();
+    
+    if (authUsersError) {
+      console.error('Error fetching auth users:', authUsersError);
+      return NextResponse.json(
+        { error: 'Failed to fetch user details' },
+        { status: 500 }
+      );
+    }
+
+    // Create a map for quick lookup of auth users by ID
+    const authUserMap = new Map();
+    authUsers.users.forEach(authUser => {
+      authUserMap.set(authUser.id, authUser);
+    });
+
+    // Merge account_users with auth user details
+    const members = accountUsers.map(accountUserEntry => {
+      const authUser = authUserMap.get(accountUserEntry.user_id);
+      return {
+        user_id: accountUserEntry.user_id,
+        role: accountUserEntry.role,
+        email: authUser?.email || '',
+        first_name: accountUserEntry.accounts?.[0]?.first_name || '',
+        last_name: accountUserEntry.accounts?.[0]?.last_name || '',
+        business_name: accountUserEntry.accounts?.[0]?.business_name || '',
+        created_at: accountUserEntry.created_at,
+        is_current_user: accountUserEntry.user_id === user.id
+      };
+    });
 
     // Get current user count
     const { data: userCount, error: countError } = await supabase
@@ -97,16 +135,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({
-      members: members.map(member => ({
-        user_id: member.user_id,
-        role: member.role,
-        email: member.auth_users?.[0]?.email,
-        first_name: member.accounts?.[0]?.first_name || '',
-        last_name: member.accounts?.[0]?.last_name || '',
-        business_name: member.accounts?.[0]?.business_name || '',
-        created_at: member.created_at,
-        is_current_user: member.user_id === user.id
-      })),
+      members,
       account: {
         id: accountUser.accounts?.[0]?.id,
         first_name: accountUser.accounts?.[0]?.first_name,
