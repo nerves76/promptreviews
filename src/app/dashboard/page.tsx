@@ -552,7 +552,7 @@ export default function Dashboard() {
   };
 
   if (isLoading) {
-    return <AppLoader variant="centered" />;
+    return <AppLoader variant="compact" />;
   }
 
   if (error) {
