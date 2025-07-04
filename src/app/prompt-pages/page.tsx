@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useRef } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 import Link from "next/link";
-import { FaGlobe, FaLink, FaTimes, FaPalette, FaPlus, FaCheck } from "react-icons/fa";
+import { FaGlobe, FaLink, FaTimes, FaPalette, FaPlus, FaCheck, FaMapMarkerAlt, FaEdit, FaTrash } from "react-icons/fa";
 import { MdDownload } from "react-icons/md";
 import PageCard from "@/app/components/PageCard";
 import UniversalPromptPageForm from "../dashboard/edit-prompt-page/universal/UniversalPromptPageForm";
@@ -18,9 +18,12 @@ import { MdPhotoCamera, MdVideoLibrary, MdEvent } from "react-icons/md";
 import { useRouter } from "next/navigation";
 import QRCodeModal from "../components/QRCodeModal";
 import StarfallCelebration from "@/app/components/StarfallCelebration";
+import BusinessLocationModal from "@/app/components/BusinessLocationModal";
 import { supabase } from "@/utils/supabaseClient";
 import { getUserOrMock } from "@/utils/supabaseClient";
 import { getAccountIdForUser } from "@/utils/accountUtils";
+import { BusinessLocation } from "@/types/business";
+import { canCreateLocation, getLocationLimit } from "@/utils/locationUtils";
 
 const StylePage = dynamic(() => import("../dashboard/style/StyleModalPage"), { ssr: false });
 
@@ -29,6 +32,7 @@ export default function PromptPages() {
   const [promptPages, setPromptPages] = useState<any[]>([]);
   const [universalPromptPage, setUniversalPromptPage] = useState<any>(null);
   const [business, setBusiness] = useState<any>(null);
+  const [account, setAccount] = useState<any>(null);
   const [universalUrl, setUniversalUrl] = useState("");
   const [copySuccess, setCopySuccess] = useState("");
   const [qrModal, setQrModal] = useState<{
@@ -50,6 +54,13 @@ export default function PromptPages() {
   const [showPostSaveModal, setShowPostSaveModal] = useState(false);
   const [postSaveData, setPostSaveData] = useState<any>(null);
   const [showStars, setShowStars] = useState(false);
+  
+  // Business Location State
+  const [businessLocations, setBusinessLocations] = useState<BusinessLocation[]>([]);
+  const [locationPromptPages, setLocationPromptPages] = useState<any[]>([]);
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState<BusinessLocation | null>(null);
+  const [locationModalMode, setLocationModalMode] = useState<'create' | 'edit'>('create');
 
   const router = useRouter();
 
@@ -82,6 +93,14 @@ export default function PromptPages() {
           throw new Error("No account found for user");
         }
 
+        // Fetch account data for tier information
+        const { data: accountData } = await supabase
+          .from("accounts")
+          .select("*")
+          .eq("id", accountId)
+          .single();
+        setAccount(accountData);
+
         const { data: businessProfile } = await supabase
           .from("businesses")
           .select("*")
@@ -98,6 +117,25 @@ export default function PromptPages() {
         setUniversalPromptPage(universalPage);
         if (universalPage?.slug) {
           setUniversalUrl(`${window.location.origin}/r/${universalPage.slug}`);
+        }
+        
+        // Fetch business locations if Maven tier
+        if (accountData?.plan === 'maven') {
+          const response = await fetch('/api/business-locations');
+          if (response.ok) {
+            const locations = await response.json();
+            setBusinessLocations(locations);
+            
+            // Fetch location-specific prompt pages
+            const { data: locationPages } = await supabase
+              .from("prompt_pages")
+              .select("*")
+              .eq("account_id", accountId)
+              .eq("is_universal", true)
+              .is("business_location_id", false)
+              .order("created_at", { ascending: false });
+            setLocationPromptPages(locationPages || []);
+          }
         }
         
         const { data: pages } = await supabase
@@ -214,6 +252,66 @@ export default function PromptPages() {
     setShowTypeModal(false);
     router.push(`/create-prompt-page?type=${typeKey}`);
   }
+
+  // Business Location Handlers
+  const handleCreateLocation = () => {
+    setSelectedLocation(null);
+    setLocationModalMode('create');
+    setShowLocationModal(true);
+  };
+
+  const handleEditLocation = (location: BusinessLocation) => {
+    setSelectedLocation(location);
+    setLocationModalMode('edit');
+    setShowLocationModal(true);
+  };
+
+  const handleDeleteLocation = async (location: BusinessLocation) => {
+    if (!confirm(`Are you sure you want to delete "${location.name}"? This will also delete all associated prompt pages.`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/business-locations/${location.id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setBusinessLocations(prev => prev.filter(l => l.id !== location.id));
+        setLocationPromptPages(prev => prev.filter(p => p.business_location_id !== location.id));
+      } else {
+        const error = await response.json();
+        alert(`Failed to delete location: ${error.error}`);
+      }
+    } catch (error) {
+      alert('Failed to delete location');
+    }
+  };
+
+  const handleLocationSave = (location: BusinessLocation) => {
+    if (locationModalMode === 'create') {
+      setBusinessLocations(prev => [...prev, location]);
+    } else {
+      setBusinessLocations(prev => prev.map(l => l.id === location.id ? location : l));
+    }
+    setShowLocationModal(false);
+    setSelectedLocation(null);
+  };
+
+  const handleCopyLocationLink = async (location: BusinessLocation) => {
+    // Find the location-specific universal prompt page
+    const locationPage = locationPromptPages.find(p => p.business_location_id === location.id);
+    if (locationPage?.slug) {
+      const url = `${window.location.origin}/r/${locationPage.slug}`;
+      try {
+        await navigator.clipboard.writeText(url);
+        setCopySuccess(`Location link copied!`);
+        setTimeout(() => setCopySuccess(""), 2000);
+      } catch (err) {
+        window.prompt("Copy this location link:", url);
+      }
+    }
+  };
 
   const starProps = useMemo(() => {
     const props = [];
@@ -347,13 +445,144 @@ export default function PromptPages() {
             />
           </div>
         </PageCard>
+
+        {/* Business Locations Section - Only for Maven tier */}
+        {account?.plan === 'maven' && (
+          <PageCard icon={<FaMapMarkerAlt className="text-3xl text-slate-blue" />}>
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                <div>
+                  <h2 className="text-2xl md:text-3xl font-bold text-slate-blue mb-2">Business Locations</h2>
+                  <p className="text-gray-600 text-sm max-w-2xl">
+                    Create location-specific prompt pages for your multiple business locations. Each location gets its own universal prompt page.
+                  </p>
+                </div>
+                <div className="flex gap-2 mt-2 md:mt-0">
+                  <button
+                    type="button"
+                    onClick={handleCreateLocation}
+                    disabled={!canCreateLocation(account?.plan || '', businessLocations.length)}
+                    className="bg-slate-blue text-white rounded font-semibold px-4 py-2 hover:bg-slate-blue/90 transition whitespace-nowrap flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <FaPlus className="w-4 h-4" />
+                    Add Location
+                  </button>
+                </div>
+              </div>
+
+              {/* Location Limit Indicator */}
+              <div className="flex items-center justify-between bg-blue-50 rounded-lg p-3 text-sm">
+                <span className="text-gray-600">
+                  Locations: {businessLocations.length} / {getLocationLimit(account?.plan || '')}
+                </span>
+                {businessLocations.length >= getLocationLimit(account?.plan || '') && (
+                  <span className="text-orange-600 font-medium">Limit reached</span>
+                )}
+              </div>
+
+              {/* Locations Grid */}
+              {businessLocations.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {businessLocations.map((location) => {
+                    const locationPage = locationPromptPages.find(p => p.business_location_id === location.id);
+                    return (
+                      <div key={location.id} className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-gray-900 text-lg">{location.name}</h3>
+                            {location.business_name && (
+                              <p className="text-gray-600 text-sm">{location.business_name}</p>
+                            )}
+                            {location.address_street && (
+                              <p className="text-gray-500 text-xs mt-1">
+                                {location.address_street}, {location.address_city}
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex gap-1 ml-2">
+                            <button
+                              onClick={() => handleEditLocation(location)}
+                              className="p-1.5 text-gray-400 hover:text-slate-blue transition-colors"
+                              title="Edit location"
+                            >
+                              <FaEdit className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteLocation(location)}
+                              className="p-1.5 text-gray-400 hover:text-red-600 transition-colors"
+                              title="Delete location"
+                            >
+                              <FaTrash className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Location Actions */}
+                        <div className="flex flex-wrap gap-2 mt-3">
+                          {locationPage ? (
+                            <>
+                              <Link
+                                href={`/r/${locationPage.slug}`}
+                                className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded hover:bg-blue-200 transition-colors"
+                              >
+                                View Page
+                              </Link>
+                              <Link
+                                href={`/dashboard/edit-prompt-page/location/${location.id}`}
+                                className="text-xs bg-slate-blue text-white px-2 py-1 rounded hover:bg-slate-blue/90 transition-colors"
+                              >
+                                Edit Page
+                              </Link>
+                              <button
+                                onClick={() => handleCopyLocationLink(location)}
+                                className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded hover:bg-gray-200 transition-colors"
+                              >
+                                Copy Link
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setQrModal({
+                                    open: true,
+                                    url: `${window.location.origin}/r/${locationPage.slug}`,
+                                    clientName: location.business_name || location.name,
+                                  });
+                                }}
+                                className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded hover:bg-gray-200 transition-colors"
+                              >
+                                QR Code
+                              </button>
+                            </>
+                          ) : (
+                            <span className="text-xs text-gray-500 italic">Setting up prompt page...</span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
+                  <FaMapMarkerAlt className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No locations yet</h3>
+                  <p className="text-gray-600 mb-4">Create your first business location to get started.</p>
+                  <button
+                    onClick={handleCreateLocation}
+                    className="bg-slate-blue text-white px-4 py-2 rounded-md hover:bg-slate-blue/90 transition-colors"
+                  >
+                    Add Your First Location
+                  </button>
+                </div>
+              )}
+            </div>
+          </PageCard>
+        )}
         <div className="w-full max-w-[1000px] mx-auto mb-12">
           {/* Prompt Pages Table (replica of dashboard) */}
           <div className="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
             <PromptPagesTable
               promptPages={promptPages}
               business={business}
-              account={business}
+              account={account || business}
               universalUrl={universalUrl}
               onStatusUpdate={async (pageId, newStatus) => {
                 await supabase.from("prompt_pages").update({ status: newStatus }).eq("id", pageId);
@@ -378,6 +607,17 @@ export default function PromptPages() {
           <StylePage onClose={() => setShowStyleModal(false)} />
         </div>
       )}
+
+      {/* Business Location Modal */}
+      <BusinessLocationModal
+        isOpen={showLocationModal}
+        onClose={() => setShowLocationModal(false)}
+        onSave={handleLocationSave}
+        location={selectedLocation}
+        mode={locationModalMode}
+        accountPlan={account?.plan || ''}
+        currentLocationCount={businessLocations.length}
+      />
 
       {/* Global Starfall Celebration */}
       {showStarfallCelebration && (
