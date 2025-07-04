@@ -1,5 +1,5 @@
+import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
-import { supabase } from "@/utils/supabaseClient";
 
 export const dynamic = "force-dynamic";
 
@@ -11,13 +11,17 @@ export async function GET(request: Request) {
   console.log("🔗 Auth callback triggered");
   console.log("📝 Code parameter:", code ? "Present" : "Missing");
   console.log("📍 Next parameter:", next);
-  console.log("🌐 Full URL:", request.url);
 
   if (code) {
     try {
-      console.log("🔄 Exchanging code for session...");
+      console.log("🔄 Creating Supabase client for session exchange...");
       
-      // Exchange code for session
+      // Create a fresh client for the auth callback
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
+      
       console.log("🔄 Calling exchangeCodeForSession...");
       const { data, error } = await supabase.auth.exchangeCodeForSession(code);
       
@@ -28,27 +32,21 @@ export async function GET(request: Request) {
         );
       }
       
-      console.log("✅ Session exchange result:", {
+      console.log("✅ Session exchange success:", {
         hasUser: !!data.user,
         hasSession: !!data.session,
         userEmail: data.user?.email
       });
       
-      if (data.user) {
-        console.log("✅ Session established for user:", data.user.email);
-      }
-      
     } catch (error) {
-      console.error("❌ Error in auth callback:", error);
+      console.error("❌ Auth callback error:", error);
       return NextResponse.redirect(
         `${requestUrl.origin}/auth/sign-in?error=${encodeURIComponent("Authentication failed")}`,
       );
     }
-  } else {
-    console.log("⚠️ No code parameter found in callback");
   }
 
-  // Determine where to redirect
+  // Determine redirect destination
   let redirectUrl;
   if (next === '/reset-password') {
     redirectUrl = `${requestUrl.origin}/reset-password`;
@@ -61,6 +59,6 @@ export async function GET(request: Request) {
     console.log("🔄 Redirecting to dashboard (default)");
   }
 
-  console.log("🎯 Final redirect URL:", redirectUrl);
+  console.log("🎯 Final redirect:", redirectUrl);
   return NextResponse.redirect(redirectUrl);
 }
