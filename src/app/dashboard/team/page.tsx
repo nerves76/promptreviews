@@ -9,7 +9,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { PlusIcon, XMarkIcon, UserIcon, EnvelopeIcon, ClockIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, XMarkIcon, UserIcon, EnvelopeIcon, ClockIcon, QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
 
 interface TeamMember {
   user_id: string;
@@ -59,6 +59,7 @@ export default function TeamPage() {
   const [inviting, setInviting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [showRoleTooltip, setShowRoleTooltip] = useState(false);
 
   // Fetch team data
   const fetchTeamData = async () => {
@@ -257,9 +258,40 @@ export default function TeamPage() {
               </div>
               
               <div>
-                <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
-                  Role
-                </label>
+                <div className="flex items-center mb-1">
+                  <label htmlFor="role" className="block text-sm font-medium text-gray-700">
+                    Role
+                  </label>
+                  <div className="relative ml-2">
+                    <button
+                      type="button"
+                      onMouseEnter={() => setShowRoleTooltip(true)}
+                      onMouseLeave={() => setShowRoleTooltip(false)}
+                      onClick={() => setShowRoleTooltip(!showRoleTooltip)}
+                      className="text-gray-400 hover:text-gray-600 focus:outline-none"
+                      aria-label="Role information"
+                    >
+                      <QuestionMarkCircleIcon className="w-4 h-4" />
+                    </button>
+                    {showRoleTooltip && (
+                      <div className="absolute z-10 w-72 p-3 bg-white border border-gray-200 rounded-lg shadow-lg left-0 top-6">
+                        <div className="text-sm">
+                          <div className="font-medium text-gray-900 mb-2">Role Permissions:</div>
+                          <div className="space-y-2">
+                            <div>
+                              <span className="font-medium text-purple-800">Owner:</span>
+                              <span className="text-gray-700 ml-1">Full access to account settings, billing, team management, and all businesses</span>
+                            </div>
+                            <div>
+                              <span className="font-medium text-gray-800">Member:</span>
+                              <span className="text-gray-700 ml-1">Can view and contribute to businesses, but cannot manage account settings or team members</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
                 <select
                   id="role"
                   value={inviteRole}
