@@ -33,6 +33,24 @@ function ResetPasswordContent() {
         console.log("🔍 Checking authentication status...");
         console.log("🔍 Current URL:", window.location.href);
         
+        // Check URL parameters for direct verification (fallback method)
+        const urlParams = new URLSearchParams(window.location.search);
+        const emailFromUrl = urlParams.get('email');
+        const verifiedFromUrl = urlParams.get('verified');
+        
+        if (emailFromUrl && verifiedFromUrl === 'true') {
+          console.log("✅ Direct verification from URL parameters");
+          console.log("✅ Email from URL:", emailFromUrl);
+          setIsAuthenticated(true);
+          setUserEmail(emailFromUrl);
+          setIsCheckingAuth(false);
+          
+          // Clean up the URL to remove the parameters
+          window.history.replaceState({}, document.title, window.location.pathname);
+          
+          return;
+        }
+        
         // Add a small delay to allow cookies to be set from redirect
         console.log("⏳ Waiting for cookies to settle after redirect...");
         await new Promise(resolve => setTimeout(resolve, 1000));

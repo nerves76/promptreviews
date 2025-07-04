@@ -57,8 +57,15 @@ export async function GET(request: NextRequest) {
       console.log('🔄 Password reset or special flow detected, redirecting to:', next);
       console.log('🔄 Skipping account creation logic for this flow');
       
+      // For password reset, add the user email as a query parameter to help with verification
+      const redirectUrl = new URL(`${requestUrl.origin}${next}`);
+      redirectUrl.searchParams.set('email', user.email || '');
+      redirectUrl.searchParams.set('verified', 'true');
+      
+      console.log('🔗 Redirecting to:', redirectUrl.toString());
+      
       // Create the redirect response
-      const redirectResponse = NextResponse.redirect(`${requestUrl.origin}${next}`);
+      const redirectResponse = NextResponse.redirect(redirectUrl.toString());
       
       // Wait a moment to ensure cookies are set before redirect
       console.log('⏳ Waiting for cookies to be set before redirect...');
