@@ -1,4 +1,5 @@
-import { createClient } from "@supabase/supabase-js";
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -16,11 +17,8 @@ export async function GET(request: Request) {
     try {
       console.log("🔄 Creating Supabase client for session exchange...");
       
-      // Create a fresh client for the auth callback
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      );
+      // Create route handler client that properly handles cookies
+      const supabase = createRouteHandlerClient({ cookies });
       
       console.log("🔄 Calling exchangeCodeForSession...");
       const { data, error } = await supabase.auth.exchangeCodeForSession(code);

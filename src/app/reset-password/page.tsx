@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/utils/supabaseClient";
-import { useClientOnly } from "@/hooks/useClientOnly";
 
 export default function ResetPassword() {
   const [password, setPassword] = useState("");
@@ -13,11 +12,15 @@ export default function ResetPassword() {
   const [success, setSuccess] = useState("");
   const [hasSession, setHasSession] = useState(false);
   const [checking, setChecking] = useState(true);
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
-  const isClient = useClientOnly();
 
   useEffect(() => {
-    if (!isClient) return;
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
     
     const checkSession = async () => {
       try {
@@ -50,7 +53,7 @@ export default function ResetPassword() {
     };
     
     checkSession();
-  }, [isClient]);
+  }, [mounted]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,8 +90,8 @@ export default function ResetPassword() {
     }
   };
 
-  // Don't render anything until client-side to prevent hydration mismatch
-  if (!isClient || checking) {
+  // Don't render anything until mounted to prevent hydration mismatch
+  if (!mounted || checking) {
     return (
       <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
         <div className="text-white text-lg">
