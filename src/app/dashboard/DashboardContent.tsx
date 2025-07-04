@@ -477,7 +477,7 @@ export default function DashboardContent({
       : [];
 
   if (isLoading && !parentLoading) {
-    return <AppLoader variant="centered" />;
+    return <AppLoader variant="compact" />;
   }
 
   return (
