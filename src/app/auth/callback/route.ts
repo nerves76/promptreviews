@@ -11,6 +11,11 @@ export async function GET(request: Request) {
   console.log("🔗 Auth callback triggered");
   console.log("📝 Code parameter:", code ? "Present" : "Missing");
   console.log("📍 Next parameter:", next);
+  
+  // DEBUG: Log what environment variables we're actually seeing
+  console.log("🔍 Environment Debug:");
+  console.log("  SUPABASE_URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
+  console.log("  SUPABASE_KEY:", process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? "SET" : "NOT SET");
 
   if (code) {
     try {
@@ -18,8 +23,8 @@ export async function GET(request: Request) {
       
       // Create a fresh client for the auth callback
       const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        "http://127.0.0.1:54321",
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0"
       );
       
       console.log("🔄 Calling exchangeCodeForSession...");
