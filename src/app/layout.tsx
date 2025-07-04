@@ -64,7 +64,10 @@ export default function RootLayout({
       <head>
         <GoogleAnalytics />
       </head>
-      <body className={`${inter.className} min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600`}>
+      <body 
+        className={`${inter.className} min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600`}
+        style={{ overscrollBehaviorX: 'auto' }}
+      >
         <Providers>
           <AdminProvider>
             <AppMain>{children}</AppMain>
