@@ -9,6 +9,7 @@ The password reset functionality was failing due to several interconnected issue
 3. **Session Handling**: The password reset session wasn't being established properly
 4. **Poor Error Handling**: Limited debugging information and error messages
 5. **Hydration Error**: Client-side JavaScript was modifying body element styles causing React hydration mismatches
+6. **HMR Conflicts**: Hot Module Replacement in development mode was causing client-side routing errors
 
 ## What Was Fixed
 
@@ -37,6 +38,16 @@ The password reset functionality was failing due to several interconnected issue
 - **Problem**: Client-side JavaScript was modifying the body element's `overscroll-behavior-x` style
 - **Solution**: Added `suppressHydrationWarning={true}` to the body element
 - **Result**: Prevents React hydration mismatches caused by external scripts
+
+### 5. HMR Conflicts Fix (`src/app/reset-password/page.tsx`)
+- **Problem**: Hot Module Replacement was causing client-side routing errors during development
+- **Solution**: Added comprehensive error handling for:
+  - Window availability checks (SSR safety)
+  - History API error handling
+  - Router navigation fallbacks
+  - Component error state management
+  - Safe subscription cleanup
+- **Result**: Reset password page now works reliably in development mode
 
 ## How The Fixed Flow Works
 
@@ -95,6 +106,7 @@ supabase.auth.resetPasswordForEmail('nerves76@gmail.com', {
 ✅ **Session Detection**: Multiple methods ensure reliable detection  
 ✅ **Password Update**: Users can successfully update passwords  
 ✅ **Hydration**: No more React hydration errors  
+✅ **HMR Conflicts**: Development mode errors resolved  
 ✅ **Error Handling**: Comprehensive error catching and user feedback  
 
 **The password reset functionality is now fully working and robust!** 🎉 
