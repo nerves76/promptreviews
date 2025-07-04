@@ -83,15 +83,21 @@ export default function TrialBanner({
       return false;
     }
 
-    // Show for users with no plan (null) or users on trial plans
-    const trialPlans = ['grower', 'builder', 'maven'];
+    // Only grower is a trial plan - builder and maven are paid plans
+    const paidPlans = ['builder', 'maven'];
     
     // If we have account data, use it
     if (accountData) {
       console.log("TrialBanner: Using accountData for plan check:", accountData.plan);
       
-      // Show for users with no plan or on trial plans
-      if (!accountData.plan || trialPlans.includes(accountData.plan)) {
+      // Never show banner for paid plans
+      if (paidPlans.includes(accountData.plan)) {
+        console.log("TrialBanner: User is on paid plan, hiding banner");
+        return false;
+      }
+      
+      // Show for users with no plan or on grower (trial) plan
+      if (!accountData.plan || accountData.plan === 'grower') {
         // Check if trial hasn't expired
         if (accountData.trial_end && new Date() < new Date(accountData.trial_end)) {
           console.log("TrialBanner: Trial is active, showing banner");
@@ -103,13 +109,25 @@ export default function TrialBanner({
           console.log("TrialBanner: Grower plan without trial dates, showing banner");
           return true;
         }
+        
+        // For users with no plan, show banner
+        if (!accountData.plan) {
+          console.log("TrialBanner: No plan set, showing banner");
+          return true;
+        }
       }
-    } else if (plan && trialPlans.includes(plan)) {
+    } else if (plan) {
       // Fallback to props if no account data
       console.log("TrialBanner: Using plan prop for trial check:", plan);
       
-      // Show if trial hasn't expired
-      if (trialEnd && new Date() < trialEnd) {
+      // Never show banner for paid plans
+      if (paidPlans.includes(plan)) {
+        console.log("TrialBanner: Paid plan from props, hiding banner");
+        return false;
+      }
+      
+      // Show if trial hasn't expired for grower plan
+      if (plan === 'grower' && trialEnd && new Date() < trialEnd) {
         console.log("TrialBanner: Trial is active (from props), showing banner");
         return true;
       }
@@ -145,9 +163,11 @@ export default function TrialBanner({
       <div className="flex items-center justify-between max-w-7xl mx-auto">
         <div className="flex items-center space-x-3">
           <div className="flex-shrink-0">
-            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-            </svg>
+            <img
+              src="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/small-prompty-success.png"
+              alt="Prompty"
+              className="w-6 h-6 object-contain"
+            />
           </div>
           <div>
             <p className="font-medium">
