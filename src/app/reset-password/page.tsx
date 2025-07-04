@@ -13,20 +13,25 @@ function ResetPasswordContent() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [userEmail, setUserEmail] = useState("");
+  const [componentError, setComponentError] = useState("");
   const router = useRouter();
 
   useEffect(() => {
-    // Set up auth state change listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("🔄 Auth state change detected:", event);
-      if (session && session.user) {
-        console.log("✅ Session established via auth state change for user:", session.user.email);
-        setIsAuthenticated(true);
-        setUserEmail(session.user.email || "");
-        setIsCheckingAuth(false);
-        setError("");
-      }
-    });
+    // Prevent execution during SSR or if window is not available
+    if (typeof window === 'undefined') return;
+    
+    try {
+      // Set up auth state change listener
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        console.log("🔄 Auth state change detected:", event);
+        if (session && session.user) {
+          console.log("✅ Session established via auth state change for user:", session.user.email);
+          setIsAuthenticated(true);
+          setUserEmail(session.user.email || "");
+          setIsCheckingAuth(false);
+          setError("");
+        }
+      });
 
     const checkAuthStatus = async () => {
       try {
@@ -45,8 +50,12 @@ function ResetPasswordContent() {
           setUserEmail(emailFromUrl);
           setIsCheckingAuth(false);
           
-          // Clean up the URL to remove the parameters
-          window.history.replaceState({}, document.title, window.location.pathname);
+          // Clean up the URL to remove the parameters (safely)
+          try {
+            window.history.replaceState({}, document.title, window.location.pathname);
+          } catch (historyError) {
+            console.log("History API not available or blocked:", historyError);
+          }
           
           return;
         }
@@ -150,8 +159,18 @@ function ResetPasswordContent() {
 
     // Cleanup subscription on component unmount
     return () => {
-      subscription.unsubscribe();
+      try {
+        subscription.unsubscribe();
+      } catch (cleanupError) {
+        console.log("Cleanup error:", cleanupError);
+      }
     };
+    
+    } catch (componentError) {
+      console.error("Component initialization error:", componentError);
+      setComponentError("An error occurred while initializing the reset password page. Please refresh and try again.");
+      setIsCheckingAuth(false);
+    }
   }, []);
 
   const handlePasswordUpdate = async (e: React.FormEvent) => {
@@ -206,7 +225,17 @@ function ResetPasswordContent() {
       } else {
         console.log("✅ Password updated successfully");
         alert("Password updated successfully! You can now sign in with your new password.");
-        router.push("/auth/sign-in");
+        
+        // Safely navigate to sign-in page
+        try {
+          router.push("/auth/sign-in");
+        } catch (routerError) {
+          console.log("Router navigation error:", routerError);
+          // Fallback to window location if router fails
+          if (typeof window !== 'undefined') {
+            window.location.href = "/auth/sign-in";
+          }
+        }
       }
     } catch (error) {
       console.error("❌ Error updating password:", error);
@@ -215,6 +244,38 @@ function ResetPasswordContent() {
       setIsLoading(false);
     }
   };
+
+  if (componentError) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <div className="sm:mx-auto sm:w-full sm:max-w-md">
+          <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+            <div className="text-center">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              <h2 className="mt-4 text-xl font-semibold text-gray-900">
+                Component Error
+              </h2>
+              <p className="mt-2 text-sm text-gray-600">
+                {componentError}
+              </p>
+              <div className="mt-6">
+                <button
+                  onClick={() => window.location.reload()}
+                  className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  Refresh Page
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (isCheckingAuth) {
     return (
@@ -346,7 +407,18 @@ function ResetPasswordContent() {
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <div className="sm:mx-auto sm:w-full sm:max-w-md">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <h2 className="mt-4 text-xl font-semibold text-gray-900">
+              Loading...
+            </h2>
+          </div>
+        </div>
+      </div>
+    }>
       <ResetPasswordContent />
     </Suspense>
   );
