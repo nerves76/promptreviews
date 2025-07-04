@@ -44,6 +44,7 @@ interface DashboardContentProps {
   setShowProfileModal: (show: boolean) => void;
   showSuccessModal: boolean;
   setShowSuccessModal: (show: boolean) => void;
+  handleCloseSuccessModal?: () => void;
   universalUrl: string;
   QRCode: any;
   setShowQR: (show: boolean) => void;
@@ -60,6 +61,7 @@ interface DashboardContentProps {
   hasUniversalPromptPage: boolean;
   userId?: string;
   setShowStarfallCelebration?: (show: boolean) => void;
+  paymentChangeType?: string | null;
 }
 
 interface PromptPage {
@@ -103,6 +105,7 @@ export default function DashboardContent({
   setShowProfileModal,
   showSuccessModal,
   setShowSuccessModal,
+  handleCloseSuccessModal,
   universalUrl,
   QRCode,
   setShowQR,
@@ -114,6 +117,7 @@ export default function DashboardContent({
   hasUniversalPromptPage,
   userId,
   setShowStarfallCelebration,
+  paymentChangeType,
 }: DashboardContentProps) {
   console.log("DASHBOARD RENDERED");
   useAuthGuard();
@@ -691,33 +695,68 @@ export default function DashboardContent({
           {/* Success Modal for Payment Confirmation */}
           {showSuccessModal && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-              <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center relative overflow-hidden">
+              <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center relative">
                 <button
-                  className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl"
-                  onClick={() => setShowSuccessModal(false)}
-                  aria-label="Close"
+                  onClick={handleCloseSuccessModal || (() => setShowSuccessModal(false))}
+                  className="absolute -top-3 -right-3 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-50"
+                  style={{ width: 48, height: 48 }}
+                  aria-label="Close modal"
                 >
-                  &times;
+                  <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                 </button>
-                <h2 className="text-2xl font-bold mb-4 text-indigo-800 relative z-10">
-                  It's official.
-                </h2>
-                <p className="mb-6 text-lg text-gray-700 font-semibold relative z-10">
-                  You're a{" "}
-                  {account?.plan
-                    ? account.plan.charAt(0).toUpperCase() +
-                      account.plan.slice(1)
-                    : "Member"}
-                  .<br />
-                  Now let's get some amazing reviews and boost your online
-                  presence!
-                </p>
-                <button
-                  onClick={() => setShowSuccessModal(false)}
-                  className="bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700 font-semibold mt-2 relative z-10"
-                >
-                  Let's Go!
-                </button>
+                {paymentChangeType === "downgrade" ? (
+                  <>
+                    <h2 className="text-2xl font-bold mb-4 text-gray-800 relative z-10">
+                      Plan Updated
+                    </h2>
+                    <p className="mb-6 text-lg text-gray-700 relative z-10">
+                      Your plan has been updated to{" "}
+                      {account?.plan
+                        ? account.plan.charAt(0).toUpperCase() +
+                          account.plan.slice(1)
+                        : "your new plan"}
+                      .
+                    </p>
+                                         <button
+                       onClick={handleCloseSuccessModal || (() => setShowSuccessModal(false))}
+                       className="bg-gray-600 text-white px-6 py-2 rounded hover:bg-gray-700 font-semibold mt-2 relative z-10"
+                     >
+                       Continue
+                     </button>
+                  </>
+                ) : (
+                  <>
+                    {/* Crompty Image */}
+                    <div className="mb-6 flex justify-center">
+                      <img
+                        src="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/small-prompty-success.png"
+                        alt="Crompty Success"
+                        className="w-24 h-24 object-contain"
+                      />
+                    </div>
+                    <h2 className="text-2xl font-bold mb-4 text-indigo-800 relative z-10">
+                      It's official.
+                    </h2>
+                    <p className="mb-6 text-lg text-gray-700 font-semibold relative z-10">
+                      You're a{" "}
+                      {account?.plan
+                        ? account.plan.charAt(0).toUpperCase() +
+                          account.plan.slice(1)
+                        : "Member"}
+                      .<br />
+                      Now let's get some amazing reviews and boost your online
+                      presence!
+                    </p>
+                    <button
+                      onClick={handleCloseSuccessModal || (() => setShowSuccessModal(false))}
+                      className="bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700 font-semibold mt-2 relative z-10"
+                    >
+                      Let's Go!
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           )}
