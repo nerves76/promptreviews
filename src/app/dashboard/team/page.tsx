@@ -194,10 +194,10 @@ export default function TeamPage() {
         </div>
         {isOwner && (
           <div className="text-right">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-white">
               {account.current_users} of {account.max_users} users
             </p>
-            <p className="text-sm text-gray-500 capitalize">
+            <p className="text-sm text-white capitalize">
               {account.plan} plan
             </p>
           </div>
