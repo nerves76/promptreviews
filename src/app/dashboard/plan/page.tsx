@@ -51,11 +51,11 @@ export default function PlanPage() {
       setCurrentPlan(accountData?.plan || null);
       prevPlanRef.current = accountData?.plan || null;
       
-      // Check if account has expired
-      const now = new Date();
-      const trialEnd = accountData?.trial_end ? new Date(accountData.trial_end) : null;
-      const isTrialExpired = trialEnd && now > trialEnd && accountData?.plan === "free" && accountData?.has_had_paid_plan === false;
-      setIsExpired(Boolean(isTrialExpired));
+          // Check if account has expired
+    const now = new Date();
+    const trialEnd = accountData?.trial_end ? new Date(accountData.trial_end) : null;
+    const isTrialExpired = trialEnd && now > trialEnd && accountData?.plan === "grower" && accountData?.has_had_paid_plan === false;
+    setIsExpired(Boolean(isTrialExpired));
       
       setIsLoading(false);
     };
@@ -68,6 +68,7 @@ export default function PlanPage() {
       const prevPlan = prevPlanRef.current;
       const currentTier = tiers.find((t) => t.key === prevPlan);
       const targetTier = tiers.find((t) => t.key === tierKey);
+      
       const isUpgrade =
         currentTier && targetTier && targetTier.order > currentTier.order;
       const isDowngrade =
@@ -109,10 +110,10 @@ export default function PlanPage() {
             email,
           }),
         });
+        
         const data = await res.json();
         if (data.url) {
-          // Set flag to show success modal after Stripe redirect
-          localStorage.setItem("showPlanSuccess", "1");
+          // Redirect to Stripe checkout
           window.location.href = data.url;
           return;
         } else {
@@ -148,15 +149,27 @@ export default function PlanPage() {
     [account, isNewUser, router],
   );
 
-  // Show success modal after Stripe redirect if flag is set
+  // Show success modal after successful Stripe payment
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (localStorage.getItem("showPlanSuccess") === "1") {
+    
+    // Clean up any leftover localStorage flags that might cause false popups
+    localStorage.removeItem("showPlanSuccess");
+    
+    const params = new URLSearchParams(window.location.search);
+    
+    // Only show success modal if returning from successful Stripe payment
+    if (params.get("success") === "1") {
       setStarAnimation(true);
       setShowSuccessModal(true);
-      localStorage.removeItem("showPlanSuccess");
+      setLastAction("upgrade");
+      
+      // Clean up the URL
+      params.delete("success");
+      const newUrl = window.location.pathname + (params.toString() ? `?${params.toString()}` : "");
+      window.history.replaceState({}, document.title, newUrl);
     }
-  }, [isNewUser, router]);
+  }, []);
 
   // Confirm downgrade handler
   const handleConfirmDowngrade = async () => {
@@ -302,11 +315,29 @@ export default function PlanPage() {
       {/* Success Modal */}
       {showSuccessModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8 max-w-md mx-4 text-center">
-            <div className="text-6xl mb-4">🎉</div>
+          <div className="bg-white rounded-lg p-8 max-w-md mx-4 text-center relative">
+            {/* Standardized close button */}
+            <button
+              onClick={() => setShowSuccessModal(false)}
+              className="absolute top-4 right-4 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow duration-200 border border-gray-200"
+              aria-label="Close modal"
+            >
+              <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            
+            {/* Crompty Image */}
+            <div className="mb-6 flex justify-center">
+              <img
+                src="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/small-prompty-success.png"
+                alt="Crompty Success"
+                className="w-24 h-24 object-contain"
+              />
+            </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
               {lastAction === "new"
-                ? "Welcome to PromptReviews!"
+                ? "Welcome to Prompt Reviews!"
                 : lastAction === "upgrade"
                 ? "Plan Upgraded Successfully!"
                 : "Plan Updated Successfully!"}
