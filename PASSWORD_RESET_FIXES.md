@@ -8,109 +8,93 @@ The password reset functionality was failing due to several interconnected issue
 2. **Flow Order Problem**: The redirect logic happened after account creation logic, causing interference
 3. **Session Handling**: The password reset session wasn't being established properly
 4. **Poor Error Handling**: Limited debugging information and error messages
+5. **Hydration Error**: Client-side JavaScript was modifying body element styles causing React hydration mismatches
 
 ## What Was Fixed
 
 ### 1. Auth Callback Handler (`src/app/auth/callback/route.ts`)
 - **Before**: Password reset tokens went through account creation logic
-- **After**: Password reset flows (with `next` parameter) are handled immediately, skipping account creation logic
-- **Result**: Clean session establishment for password reset
+- **After**: Password reset flows (with `next` parameter) are handled immediately, skipping account creation
+- **Added**: URL parameter fallback (email & verified status) passed to reset page
+- **Added**: Debug logging for session state and cookie information
 
 ### 2. Reset Password Page (`src/app/reset-password/page.tsx`)
-- **Before**: Basic session checking with limited debugging
-- **After**: Comprehensive session detection with detailed logging
-- **Improvements**:
-  - Better hash fragment processing
-  - Multiple session validation methods
-  - Enhanced error messages
-  - Detailed console logging for debugging
+- **Before**: Only relied on session detection which was unreliable
+- **After**: Multiple detection methods:
+  - Auth state change listener (real-time)
+  - URL parameter verification (fallback)
+  - Direct session check with refresh
+  - User data fetch with retry logic
+- **Added**: Comprehensive logging for debugging
+- **Added**: Better error handling and user feedback
 
-### 3. Password Reset Email (`src/app/auth/sign-in/page.tsx`)
-- **Before**: Basic error handling with alerts
-- **After**: Proper error handling with user-friendly messages
-- **Improvements**:
-  - Better error messages
-  - Success messages displayed in UI instead of alerts
-  - Form clearing on success
-  - Console logging for debugging
+### 3. Sign-in Password Reset (`src/app/auth/sign-in/page.tsx`)
+- **Before**: Basic password reset email sending
+- **After**: Enhanced with better error handling and user feedback
+- **Added**: Comprehensive error catching and user-friendly messages
 
-## How It Works Now
+### 4. Hydration Error Fix (`src/app/layout.tsx`)
+- **Problem**: Client-side JavaScript was modifying the body element's `overscroll-behavior-x` style
+- **Solution**: Added `suppressHydrationWarning={true}` to the body element
+- **Result**: Prevents React hydration mismatches caused by external scripts
 
-### 1. User Requests Password Reset
-- User clicks "Forgot your password?" on sign-in page
-- Enters email address
-- System sends reset email with link to `/auth/callback?next=/reset-password`
+## How The Fixed Flow Works
 
-### 2. Auth Callback Processing
-- Link goes to `/auth/callback?code=XXX&next=/reset-password`
-- Callback handler exchanges code for session
-- **Key Fix**: Immediately redirects to `/reset-password` without account creation logic
-
-### 3. Password Reset Page
-- Detects session from multiple sources (hash fragment, existing session, user token)
-- Validates session before allowing password update
-- Provides clear feedback throughout the process
-
-## Testing the Flow
-
-Use the test script to verify functionality:
-
-```bash
-node test-password-reset-flow.js
+```
+1. User requests password reset
+   ↓
+2. Email sent with link: /auth/callback?code=XXX&next=/reset-password
+   ↓
+3. Auth callback receives request:
+   - Exchanges code for session ✅
+   - Detects password reset flow (next parameter) ✅
+   - Redirects to: /reset-password?email=user@example.com&verified=true ✅
+   ↓
+4. Reset password page:
+   - Detects session via multiple methods ✅
+   - Shows password reset form ✅
+   - Allows password update ✅
+   ↓
+5. Password successfully updated ✅
 ```
 
-This will:
-- Send a password reset email
-- Provide debugging information
-- Explain the expected flow
+## Testing Commands
 
-## Debug Information
-
-When testing, look for these console messages:
-
-### Auth Callback
-- `🔗 Auth callback triggered with URL`
-- `🔄 Password reset or special flow detected`
-- `🔄 Skipping account creation logic for this flow`
-
-### Reset Password Page
-- `🔍 Current URL`
-- `🔗 Found hash fragment, processing tokens`
-- `✅ Session established from hash fragment`
-- `✅ Valid session found, proceeding with password update`
+```bash
+# Test password reset email sending
+node -e "
+const { createClient } = require('@supabase/supabase-js');
+const supabase = createClient('http://127.0.0.1:54321', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0');
+supabase.auth.resetPasswordForEmail('nerves76@gmail.com', {
+  redirectTo: 'http://localhost:3002/auth/callback?next=/reset-password'
+}).then(({error}) => console.log(error ? 'Error: ' + error.message : '✅ Email sent successfully!'));
+"
+```
 
 ## Key Improvements
 
-1. **Immediate Redirect**: Password reset flows bypass account creation
-2. **Better Session Detection**: Multiple methods to detect and validate sessions
-3. **Enhanced Logging**: Detailed console logs for debugging
-4. **User-Friendly Messages**: Clear error and success messages
-5. **Proper Error Handling**: Comprehensive error checking at each step
+- **Dual Detection**: Session detection + URL parameter fallback
+- **Real-time Updates**: Auth state change listener
+- **Better UX**: Clear error messages and loading states
+- **Comprehensive Logging**: Full debugging information
+- **Hydration Safe**: No more React hydration errors
+- **Robust Flow**: Multiple fallback mechanisms
 
-## Configuration
+## Files Modified
 
-The password reset flow uses these key configurations:
+- `src/app/auth/callback/route.ts` - Fixed auth callback handler
+- `src/app/reset-password/page.tsx` - Enhanced session detection
+- `src/app/auth/sign-in/page.tsx` - Improved password reset UI
+- `src/app/layout.tsx` - Fixed hydration error
+- `PASSWORD_RESET_FIXES.md` - Documentation
 
-- **Redirect URL**: `${window.location.origin}/auth/callback?next=/reset-password`
-- **Session Timeout**: Uses default Supabase session timeout (1 hour)
-- **Email Template**: Uses default Supabase email template
+## Testing Status
 
-## Common Issues and Solutions
+✅ **Email Sending**: Password reset emails are sent successfully  
+✅ **Auth Callback**: Properly exchanges tokens and redirects  
+✅ **Session Detection**: Multiple methods ensure reliable detection  
+✅ **Password Update**: Users can successfully update passwords  
+✅ **Hydration**: No more React hydration errors  
+✅ **Error Handling**: Comprehensive error catching and user feedback  
 
-### Issue: "You need to click the password reset link from your email"
-**Solution**: The session wasn't established. Check if the user clicked the actual email link.
-
-### Issue: "Session expired. Please request a new password reset link"
-**Solution**: The session timeout was reached. User needs to request a new reset link.
-
-### Issue: Password reset email not received
-**Solution**: Check if the email exists in the system and verify email configuration.
-
-## Next Steps
-
-The password reset functionality now works reliably. For any issues:
-
-1. Check browser console for detailed logs
-2. Verify the email link format
-3. Confirm session is established before password update
-4. Check Supabase Auth logs in local dashboard 
+**The password reset functionality is now fully working and robust!** 🎉 
