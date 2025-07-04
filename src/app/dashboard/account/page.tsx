@@ -15,10 +15,12 @@ import {
 import Link from "next/link";
 import PageCard from "@/app/components/PageCard";
 import AppLoader from "@/app/components/AppLoader";
-import { trackEvent, GA_EVENTS } from "../../utils/analytics";
+import { trackEvent, GA_EVENTS } from "../../../utils/analytics";
 import { getAccountIdForUser } from "@/utils/accountUtils";
+import { useAuthGuard } from "@/utils/authGuard";
 
 export default function AccountPage() {
+  useAuthGuard();
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [account, setAccount] = useState<any>(null);
@@ -138,7 +140,7 @@ export default function AccountPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center">
+      <div className="flex flex-col items-center justify-center p-8">
         <AppLoader />
       </div>
     );
@@ -146,9 +148,11 @@ export default function AccountPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center">
-        <div className="text-red-600 text-lg">{error}</div>
-      </div>
+      <PageCard>
+        <div className="flex flex-col items-center justify-center p-8">
+          <div className="text-red-600 text-lg">{error}</div>
+        </div>
+      </PageCard>
     );
   }
 
@@ -156,14 +160,15 @@ export default function AccountPage() {
     return null;
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <PageCard>
-        <div className="max-w-4xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-slate-blue">Account Settings</h1>
-            <p className="text-gray-600 mt-2">Manage your account preferences</p>
+    return (
+    <PageCard icon={<FaUser className="w-9 h-9 text-slate-blue" />}>
+      <div className="max-w-4xl mx-auto">
+        <div className="flex items-start justify-between mt-2 mb-4">
+          <div className="flex flex-col mt-0 md:mt-[3px]">
+            <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">Account Settings</h1>
+            <p className="text-gray-600 text-base max-w-md mt-0 mb-10">Manage your account preferences and security settings</p>
           </div>
+        </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Account Information */}
@@ -245,7 +250,6 @@ export default function AccountPage() {
           </div>
         </div>
       </PageCard>
-    </div>
   );
 }
 

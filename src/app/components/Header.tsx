@@ -368,7 +368,7 @@ export default function Header() {
                   <div className="py-1">
                     <Menu.Item>
                       {({ active }) => (
-                        <Link href="/account" className={`${active ? "bg-slate-blue/10 text-slate-blue" : "text-gray-700"} block px-4 py-2 text-sm`}>
+                        <Link href="/dashboard/account" className={`${active ? "bg-slate-blue/10 text-slate-blue" : "text-gray-700"} block px-4 py-2 text-sm`}>
                           Account details
                         </Link>
                       )}
@@ -563,9 +563,9 @@ export default function Header() {
               {user ? (
                 <>
                   <Link
-                    href="/account"
+                    href="/dashboard/account"
                     className={`${
-                      isActive("/account")
+                      isActive("/dashboard/account")
                         ? "bg-slate-blue/10 text-slate-blue"
                         : "text-slate-blue hover:bg-slate-blue/10"
                     } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}

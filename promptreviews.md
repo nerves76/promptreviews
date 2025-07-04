@@ -10,6 +10,15 @@ This project is currently focused on developing a standalone widget for collecti
 
 ## Recent Updates (Latest)
 
+### Authentication Timeout Fix (January 2025)
+- **Critical Bug Fix**: Resolved authentication timeout issue causing users to see loading stars indefinitely
+- **Improved Session Detection**: Changed from `getUser()` to `getSession()` for better reliability
+- **Enhanced Timeout Handling**: Increased timeout from 5s to 8s and added fallback mechanism
+- **Fallback Strategy**: Added direct `getUser()` fallback if session approach fails
+- **Simplified Dashboard Logic**: Removed complex timeout handling from dashboard layout
+- **Better Error Handling**: Enhanced logging and error reporting for authentication issues
+- **Session Reliability**: Fixed timing issues where session wasn't fully established after redirect
+
 ### Account Password Reset Feature (January 2025)
 - **In-Account Password Reset**: Added password reset functionality directly to the account page (`/account`)
 - **One-Click Reset**: Users can reset their password with a single button click without entering their email
