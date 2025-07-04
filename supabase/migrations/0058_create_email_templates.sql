@@ -70,7 +70,7 @@ CREATE TRIGGER handle_email_templates_updated_at
 INSERT INTO public.email_templates (name, subject, html_content, text_content) VALUES
 (
     'welcome',
-    'Welcome to PromptReviews! 🎉',
+    'Welcome to Prompt Reviews! 🎉',
     '<p>Hi {{firstName}},</p>
 
 <p>I''m really glad you''re here. Even if it''s just for a short ride.</p>

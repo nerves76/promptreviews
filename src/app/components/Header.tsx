@@ -87,7 +87,7 @@ export default function Header() {
       const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
       const { data, error } = await supabase
         .from("review_submissions")
-        .select("id, first_name, last_name, platform, review_content, created_at")
+        .select("id, first_name, last_name, platform, review_content, created_at, sentiment, review_type")
         .gte("created_at", since)
         .order("created_at", { ascending: false })
         .limit(7);
@@ -99,12 +99,22 @@ export default function Header() {
                 ? `${r.first_name} ${r.last_name}`
                 : r.first_name
               : "Anonymous";
+            
+            // Determine if this is positive or negative based on sentiment
+            const isNegativeSentiment = r.sentiment && ["neutral", "unsatisfied", "frustrated", "angry"].includes(r.sentiment.toLowerCase());
+            const isFeedback = r.review_type === "feedback" || isNegativeSentiment;
+            
+            const message = isFeedback
+              ? `New feedback from ${name}${r.platform ? ` via ${r.platform}` : ""}`
+              : `New review from ${name} on ${r.platform}`;
+            
             return {
               id: r.id,
-              message: `New review from ${name} on ${r.platform}`,
+              message,
               preview: r.review_content?.slice(0, 60) || "",
               created_at: r.created_at,
               read: false,
+              isFeedback,
             };
           }),
         );
@@ -150,17 +160,17 @@ export default function Header() {
 
   // Listen for plan selection events to refresh business profile
   useEffect(() => {
-    const handlePlanSelection = (event?: CustomEvent) => {
+    const handlePlanSelection = (event: Event) => {
       console.log("Header: Plan selection detected, refreshing business profile");
-      console.log("Header: Event details:", event?.detail);
+      console.log("Header: Event details:", (event as CustomEvent)?.detail);
       if (refreshBusinessProfile) {
         refreshBusinessProfile();
       }
     };
 
-    const handleBusinessCreated = (event?: CustomEvent) => {
+    const handleBusinessCreated = (event: Event) => {
       console.log("🏢 Header: Business created event detected, refreshing business profile");
-      console.log("🏢 Header: Business creation details:", event?.detail);
+      console.log("🏢 Header: Business creation details:", (event as CustomEvent)?.detail);
       
       // Force refresh with a small delay to ensure database has updated
       setTimeout(() => {
@@ -172,12 +182,12 @@ export default function Header() {
     };
 
     // Listen for custom events that indicate plan selection
-    window.addEventListener('planSelected', handlePlanSelection);
-    window.addEventListener('businessCreated', handleBusinessCreated);
+    window.addEventListener('planSelected', handlePlanSelection as EventListener);
+    window.addEventListener('businessCreated', handleBusinessCreated as EventListener);
 
     return () => {
-      window.removeEventListener('planSelected', handlePlanSelection);
-      window.removeEventListener('businessCreated', handleBusinessCreated);
+      window.removeEventListener('planSelected', handlePlanSelection as EventListener);
+      window.removeEventListener('businessCreated', handleBusinessCreated as EventListener);
     };
   }, [refreshBusinessProfile]); // Include refreshBusinessProfile in dependencies
 

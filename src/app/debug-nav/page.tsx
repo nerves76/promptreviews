@@ -41,7 +41,7 @@ export default function DebugNav() {
       }
     } catch (error) {
       console.error("❌ Debug check error:", error);
-      setDebugInfo({ error: error.message });
+      setDebugInfo({ error: error instanceof Error ? error.message : 'Unknown error' });
     }
     setIsChecking(false);
   };

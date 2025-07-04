@@ -316,6 +316,14 @@ export default function AdminPage() {
             <h4 className="font-medium text-gray-900">Analytics</h4>
             <p className="text-sm text-gray-600">View system-wide analytics</p>
           </button>
+
+          <button
+            onClick={() => router.push("/admin/email-templates")}
+            className="w-full text-left p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <h4 className="font-medium text-gray-900">Email Templates</h4>
+            <p className="text-sm text-gray-600">Edit welcome emails, review notifications, and more</p>
+          </button>
         </div>
       </div>
 

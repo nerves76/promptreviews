@@ -63,6 +63,9 @@ export default function Dashboard() {
   const [currentBusiness, setCurrentBusiness] = useState<any>(null);
   const [user, setUser] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [justCanceledStripe, setJustCanceledStripe] = useState(false);
+  const [planSelectionRequired, setPlanSelectionRequired] = useState(false);
+  const [paymentChangeType, setPaymentChangeType] = useState<string | null>(null);
 
   // Use the centralized admin context instead of local state
   const { isAdminUser, isLoading: adminLoading } = useAdmin();
@@ -260,14 +263,23 @@ export default function Dashboard() {
   useEffect(() => {
     if (isLoading || !data?.account) return;
     
-    const paidPlans = ["grower", "builder", "maven"];
+    // Check if user has manually dismissed the modal in this session
+    const hasManuallyDismissed = typeof window !== "undefined" && 
+      sessionStorage.getItem('pricingModalDismissed') === 'true';
+    
+    if (hasManuallyDismissed) {
+      setShowPricingModal(false);
+      return;
+    }
+    
+    const paidPlans = ["builder", "maven"]; // Only builder and maven are truly paid plans
     const now = new Date();
     const trialStart = data?.account?.trial_start
       ? new Date(data.account.trial_start)
       : null;
     const trialEnd = data?.account?.trial_end ? new Date(data.account.trial_end) : null;
 
-    // Check if user is on a paid plan
+    // Check if user is on a paid plan (excludes grower since it's trial)
     const isPaidUser = paidPlans.includes(data?.account?.plan || "");
 
     // Check if trial has expired
@@ -275,13 +287,21 @@ export default function Dashboard() {
       trialEnd && now > trialEnd && data?.account?.plan === "grower";
 
     // Show pricing modal for new users who need to choose their initial plan
-    // or for users on grower plan with expired trial
+    // or for users whose trial has expired
     const shouldShowPricingModal = 
       // New user who hasn't selected a plan yet (no plan or 'no_plan' and has created a business)
       ((!data?.account?.plan || data?.account?.plan === 'no_plan') && (data?.businesses?.length || 0) > 0) ||
-      // Or trial has expired
+      // Or trial has expired (grower users whose trial time is up)
       (isTrialExpired && !isPaidUser);
 
+    // Determine if plan selection is REQUIRED (user cannot dismiss modal) vs OPTIONAL
+    const isPlanSelectionRequired = 
+      // Required: New user with no plan who created a business (must select plan to continue)
+      ((!data?.account?.plan || data?.account?.plan === 'no_plan') && (data?.businesses?.length || 0) > 0) ||
+      // Required: Trial has expired (must upgrade to continue)
+      (isTrialExpired && !isPaidUser);
+    
+    setPlanSelectionRequired(isPlanSelectionRequired);
     setShowPricingModal(!!shouldShowPricingModal);
   }, [isLoading, data?.account, data?.businesses]);
 
@@ -289,6 +309,65 @@ export default function Dashboard() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
+    
+    // Handle successful Stripe payment
+    if (params.get("success") === "1") {
+      const changeType = params.get("change");
+      const planName = params.get("plan");
+      
+      console.log("🎉 Successful payment detected:", { changeType, planName });
+      
+      // Set the payment change type for the modal
+      setPaymentChangeType(changeType);
+      
+      // Only show celebration for upgrades and new signups, not downgrades
+      if (changeType === "upgrade" || changeType === "new") {
+        console.log("🎉 Showing celebration for upgrade/new signup");
+        
+        // Show starfall celebration
+        setShowStarfallCelebration(true);
+        
+        // Show success message after a brief delay
+        setTimeout(() => {
+          setShowSuccessModal(true);
+        }, 1000);
+      } else if (changeType === "downgrade") {
+        console.log("📉 Downgrade detected - no celebration");
+        
+        // For downgrades, show a simple confirmation without celebration
+        setTimeout(() => {
+          setShowSuccessModal(true);
+        }, 500);
+      }
+      
+      // Clean up the URL
+      params.delete("success");
+      params.delete("change");
+      params.delete("plan");
+      const newUrl = window.location.pathname + (params.toString() ? `?${params.toString()}` : "");
+      window.history.replaceState({}, document.title, newUrl);
+      
+      return; // Exit early to avoid other parameter handling
+    }
+    
+    // Handle Stripe cancellation
+    if (params.get("canceled") === "1") {
+      console.log("🔄 User canceled Stripe checkout, showing pricing modal again");
+      setShowPricingModal(true);
+      setJustCanceledStripe(true);
+      // Remove the canceled param from the URL
+      params.delete("canceled");
+      const newUrl = window.location.pathname + (params.toString() ? `?${params.toString()}` : "");
+      window.history.replaceState({}, document.title, newUrl);
+      
+      // Reset the canceled state after a few seconds
+      setTimeout(() => {
+        setJustCanceledStripe(false);
+      }, 5000);
+      
+      return; // Exit early to avoid other parameter handling
+    }
+    
     if (params.get("businessCreated") === "true") {
       setShowPricingModal(true);
       // Remove the query param from the URL
@@ -296,8 +375,6 @@ export default function Dashboard() {
       const newUrl = window.location.pathname + (params.toString() ? `?${params.toString()}` : "");
       window.history.replaceState({}, document.title, newUrl);
     }
-    
-
   }, []);
 
   // Handle loading and redirect states after all hooks are called
@@ -397,20 +474,21 @@ export default function Dashboard() {
           return;
         }
         
+        const checkoutPayload = {
+          plan: tierKey,
+          userId: data?.account?.id,
+          email,
+        };
+        
         const res = await fetch("/api/create-checkout-session", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            plan: tierKey,
-            userId: data?.account?.id,
-            email,
-          }),
+          body: JSON.stringify(checkoutPayload),
         });
         
         const checkoutData = await res.json();
         if (checkoutData.url) {
-          // Set flag to show success modal after Stripe redirect
-          localStorage.setItem("showPlanSuccess", "1");
+          // Redirect to Stripe checkout
           window.location.href = checkoutData.url;
           return;
         } else {
@@ -448,11 +526,20 @@ export default function Dashboard() {
 
   const handleClosePricingModal = () => {
     setShowPricingModal(false);
+    // Prevent modal from reappearing this session
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem('pricingModalDismissed', 'true');
+    }
   };
 
   const handleClosePostSaveModal = () => {
     setShowPostSaveModal(false);
     setSavedPromptPageUrl(null);
+  };
+
+  const handleCloseSuccessModal = () => {
+    setShowSuccessModal(false);
+    setPaymentChangeType(null);
   };
 
   const handleSignOut = async () => {
@@ -530,6 +617,7 @@ export default function Dashboard() {
             setShowProfileModal={setShowProfileModal}
             showSuccessModal={showSuccessModal}
             setShowSuccessModal={setShowSuccessModal}
+            handleCloseSuccessModal={handleCloseSuccessModal}
                          universalUrl={data?.universalUrl || ""}
             QRCode={QRCodeSVG}
             setShowQR={setShowQR}
@@ -541,6 +629,7 @@ export default function Dashboard() {
             hasUniversalPromptPage={!!(data?.promptPages && data.promptPages.some(p => p.is_universal))}
             userId={data?.user?.id}
             setShowStarfallCelebration={setShowStarfallCelebration}
+            paymentChangeType={paymentChangeType}
           />
         </PageCard>
       </div>
@@ -550,6 +639,9 @@ export default function Dashboard() {
         <PricingModal
           onSelectTier={handleSelectTier}
           currentPlan={data?.account?.plan}
+          showCanceledMessage={justCanceledStripe}
+          onClose={handleClosePricingModal}
+          isPlanSelectionRequired={planSelectionRequired}
         />
       )}
       

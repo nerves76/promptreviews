@@ -4,8 +4,8 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
-import { createClient } from '@/utils/supabaseClient';
-import { getUserOrMock } from "./supabaseClient";
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { createClient, getUserOrMock } from "./supabaseClient";
 
 export interface AccountUser {
   account_id: string;
@@ -283,7 +283,7 @@ export async function ensureAccountExists(
  */
 export async function getAccountIdForUser(userId: string, supabaseClient?: any): Promise<string | null> {
   try {
-    const client = supabaseClient || createClient(
+    const client = supabaseClient || createSupabaseClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
@@ -343,7 +343,7 @@ export async function getAccountIdForUser(userId: string, supabaseClient?: any):
  */
 export async function getCurrentUserAccountId(supabaseClient?: any): Promise<string | null> {
   try {
-    const client = supabaseClient || createClient(
+    const client = supabaseClient || createSupabaseClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {

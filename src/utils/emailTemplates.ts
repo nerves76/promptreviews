@@ -4,7 +4,7 @@
  * Handles fetching, rendering, and sending email templates from the database
  */
 
-import { createClient } from '@/utils/supabaseClient';
+import { createServiceRoleClient } from '@/utils/supabaseClient';
 import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -32,10 +32,7 @@ interface TemplateVariables {
  * Get an email template by name
  */
 export async function getEmailTemplate(name: string): Promise<EmailTemplate | null> {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+  const supabase = createServiceRoleClient();
 
   const { data, error } = await supabase
     .from('email_templates')
@@ -105,7 +102,7 @@ export async function sendTemplatedEmail(
 
     // Send the email
     const result = await resend.emails.send({
-      from: "PromptReviews <noreply@updates.promptreviews.app>",
+      from: "Prompt Reviews <noreply@updates.promptreviews.app>",
       to,
       subject,
       html: htmlContent,
@@ -156,10 +153,7 @@ export async function sendWelcomeEmail(
  * Get all email templates for admin interface
  */
 export async function getAllEmailTemplates(): Promise<EmailTemplate[]> {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+  const supabase = createServiceRoleClient();
 
   const { data, error } = await supabase
     .from('email_templates')
@@ -181,10 +175,7 @@ export async function updateEmailTemplate(
   id: string,
   updates: Partial<EmailTemplate>
 ): Promise<{ success: boolean; error?: string }> {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+  const supabase = createServiceRoleClient();
 
   const { error } = await supabase
     .from('email_templates')

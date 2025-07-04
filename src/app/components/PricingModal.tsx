@@ -59,6 +59,9 @@ interface PricingModalProps {
   asModal?: boolean;
   currentPlan?: string;
   hasHadPaidPlan?: boolean;
+  showCanceledMessage?: boolean;
+  onClose?: () => void;
+  isPlanSelectionRequired?: boolean;
 }
 
 function getButtonLabel(tierKey: string, currentPlan?: string) {
@@ -91,6 +94,9 @@ export default function PricingModal({
   asModal = true,
   currentPlan,
   hasHadPaidPlan = false,
+  showCanceledMessage = false,
+  onClose,
+  isPlanSelectionRequired = false,
 }: PricingModalProps) {
   const [tooltip, setTooltip] = useState<string | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(
@@ -101,7 +107,62 @@ export default function PricingModal({
     : "w-full flex flex-col items-center justify-center";
   return (
     <div className={wrapperClass}>
-      <div className="flex flex-col items-center w-full max-w-7xl mx-auto p-8 px-4">
+      <div className="flex flex-col items-center w-full max-w-7xl mx-auto p-8 px-4 relative">
+        {/* Close button - only show if onClose is provided and we're in modal mode AND plan selection is not required */}
+        {asModal && onClose && !isPlanSelectionRequired && (
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 z-10 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow duration-200 border border-gray-200"
+            aria-label="Close modal"
+          >
+            <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
+        
+        {/* Show required message if plan selection is mandatory */}
+        {isPlanSelectionRequired && (
+          <div className="mb-6 bg-amber-50 border border-amber-200 rounded-lg p-4 max-w-2xl w-full">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <span className="text-amber-400 text-xl">⚠️</span>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-amber-800">
+                  Plan selection required
+                </h3>
+                <div className="mt-1 text-sm text-amber-700">
+                  <p>
+                    Please select a plan to continue using Prompt Reviews. You can always change your plan later.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Show canceled message if user just came back from Stripe */}
+        {showCanceledMessage && (
+          <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-2xl w-full">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <span className="text-blue-400 text-xl">💡</span>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-blue-800">
+                  No worries! You can try again
+                </h3>
+                <div className="mt-1 text-sm text-blue-700">
+                  <p>
+                    Choose a plan below to continue. You can always upgrade or downgrade later.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full">
           {tiers.map((tier) => {
             const isGrower = tier.key === "grower";

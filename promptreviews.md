@@ -10,6 +10,26 @@ This project is currently focused on developing a standalone widget for collecti
 
 ## Recent Updates (Latest)
 
+### Email Templates Admin Page (January 2025)
+- **New Admin Interface**: Created comprehensive email template management at `/admin/email-templates`
+- **Template Editor**: Full-featured editor with subject line, HTML content, and plain text fields
+- **Live Preview**: Preview mode with sample variable substitution to see how emails will look
+- **Template Management**: View all templates in table format with status, subject, and edit actions
+- **Variable Reference**: Built-in guide showing available template variables (firstName, lastName, email, etc.)
+- **Easy Navigation**: Added to admin navigation menu and quick actions on admin overview
+- **Template Support**: Edit welcome emails, trial reminders, review notifications, and more
+- **Database Integration**: Uses existing `email_templates` table and API endpoints
+- **Professional UI**: Consistent admin styling with proper loading states, error handling, and success messages
+
+### Account Settings Layout Fix (January 2025)
+- **Fixed Layout Inconsistency**: Account page now uses consistent PageCard layout like other dashboard pages
+- **Background Gradient Fix**: Removed custom background that was cutting off the dashboard gradient
+- **Improved Organization**: Moved account page to `/dashboard/account` for better structure
+- **Consistent UI**: Added icon, proper header styling, and consistent spacing to match other pages
+- **Enhanced Authentication**: Added `useAuthGuard()` for consistent auth handling across dashboard
+- **Updated Navigation**: All links now point to new `/dashboard/account` location
+- **Proper Integration**: Account page now fully inherits dashboard styling and layout
+
 ### Authentication Timeout Fix (January 2025)
 - **Critical Bug Fix**: Resolved authentication timeout issue causing users to see loading stars indefinitely
 - **Improved Session Detection**: Changed from `getUser()` to `getSession()` for better reliability
