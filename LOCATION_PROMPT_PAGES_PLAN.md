@@ -4,6 +4,17 @@
 
 This document outlines the plan to implement location-specific prompt pages for certain tiers (primarily Maven tier), allowing businesses to create customized prompt pages for multiple locations while leveraging the existing universal prompt page framework.
 
+## Key Design Decision: Integrated Approach
+
+**✅ Chosen Strategy**: Integrate location prompt pages into the existing `/prompt-pages` view as a new table section between the universal page and custom pages.
+
+**Benefits**:
+- **Reuses all existing features** - Same prompt page functionality, just different business context
+- **Familiar UX pattern** - Follows existing universal + custom pages structure  
+- **Faster implementation** - 5.5 weeks vs. 8 weeks for separate page approach
+- **Lower complexity** - Enhances existing components rather than building new systems
+- **Single source of truth** - All prompt pages visible in one place
+
 ## Current State Analysis
 
 ### Existing Infrastructure
@@ -107,137 +118,186 @@ END;
 
 ## API Endpoints
 
-### Business Locations Management
+### Minimal New API Requirements
 
 ```typescript
 // GET /api/business-locations
-// - List all locations for an account
+// - List all locations for an account (used in location selector)
 // - Include location count and tier limits
+// - Lightweight endpoint for location metadata
 
 // POST /api/business-locations
-// - Create new business location
-// - Validate tier limits
+// - Create new business location with validation
 // - Auto-create location-specific universal prompt page
+// - Return created location for immediate UI update
 
 // PUT /api/business-locations/[id]
-// - Update business location
-// - Handle cascade updates to associated prompt pages
+// - Update business location details
+// - Cascade updates to associated prompt page context
 
 // DELETE /api/business-locations/[id] 
-// - Delete business location
-// - Handle cascade deletion of associated prompt pages
+// - Delete location and associated prompt page
 // - Update account location count
 ```
 
-### Enhanced Prompt Pages API
+### Enhanced Existing APIs (Minimal Changes)
 
 ```typescript
-// Modify existing endpoints to handle location context:
+// Leverage existing prompt pages API with location context:
 
-// GET /api/prompt-pages
-// - Add location_id filter parameter
-// - Return location-specific pages grouped by location
+// GET /api/prompt-pages (existing, enhanced)
+// - Add ?include_locations=true parameter 
+// - Return location prompt pages in same structure
+// - Group by type: universal, location-universal, custom
 
-// POST /api/prompt-pages  
-// - Accept business_location_id parameter
-// - Validate user has access to that location
-// - Inherit location-specific defaults
+// POST /api/prompt-pages (existing, enhanced)
+// - Accept optional business_location_id parameter
+// - Use existing validation and creation logic
+// - Inherit location context for data pre-filling
 
-// GET /api/prompt-pages/[id]
-// - Include business location data in response
-// - Merge business profile + location data for AI context
+// PUT /api/prompt-pages/[id] (existing, works as-is)
+// - No changes needed - location context handled in data layer
+// - Same save logic, enhanced data inheritance
+
+// GET /api/prompt-pages/[id] (existing, enhanced)
+// - Include location context in response when applicable
+// - Merge location + business profile for AI generation
+// - Same response structure, enriched data
 ```
 
 ## UI/UX Design
 
-### 1. Business Locations Management Page
-**Route**: `/dashboard/business-locations`
+### 1. Enhanced Prompt Pages List (Integrated Approach)
+
+**Route**: `/prompt-pages` (existing page, enhanced)
+
+**Layout Structure**:
+```
+┌─────────────────────────────────────────┐
+│ Universal Prompt Page (Account-wide)     │ ← Existing
+│ [Edit] [View] [QR Code]                 │
+└─────────────────────────────────────────┘
+
+┌─────────────────────────────────────────┐ ← New section (Maven only)
+│ Location Prompt Pages                   │
+│ ┌─────────────────┬─────────────────────┐│
+│ │ Downtown Store  │ [Edit] [View] [QR]  ││
+│ │ 123 Main St     │ universal-downtown  ││
+│ ├─────────────────┼─────────────────────┤│
+│ │ Mall Location   │ [Edit] [View] [QR]  ││
+│ │ 456 Mall Blvd   │ universal-mall      ││
+│ ├─────────────────┼─────────────────────┤│
+│ │ + Add Location  │                     ││
+│ └─────────────────┴─────────────────────┘│
+└─────────────────────────────────────────┘
+
+┌─────────────────────────────────────────┐
+│ Custom Prompt Pages                     │ ← Existing  
+│ [Existing table with customer pages]    │
+└─────────────────────────────────────────┘
+```
 
 **Features**:
-- List view of all business locations
-- Add/edit/delete location functionality
-- Location count vs tier limit indicator
-- Quick actions: "Create Prompt Page", "View Pages", "Edit Location"
-- Upgrade prompt for non-Maven users
+- **Reuse existing universal prompt page card design** for location pages
+- **Same action buttons** as custom pages (Edit, View, QR Code)
+- **Inline location management** - Add/edit directly in the table
+- **Tier-based visibility** - Location section only shows for Maven tier
+- **Location limit indicator** - "2/10 locations" in section header
+- **Quick upgrade prompt** for non-Maven users
 
-**Components**:
-```
-- BusinessLocationsList.tsx
-- BusinessLocationForm.tsx  
-- LocationCard.tsx
-- LocationLimitAlert.tsx
-```
+### 2. Location Management (Modal/Inline)
 
-### 2. Enhanced Universal Prompt Pages
+**Modal for location creation/editing**:
+- **Location Basic Info**: Name, business name, address
+- **Location-Specific Details**: Business description, unique aspects
+- **AI Training**: Location-specific AI dos/don'ts
+- **Contact Info**: Phone, email, website (optional overrides)
+
+**Benefits of modal approach**:
+- No new routes needed
+- Reuses existing modal patterns
+- Keeps user on main prompt pages view
+- Familiar UX pattern
+
+### 3. Location-Specific Universal Prompt Page Editing
 
 **Route**: `/dashboard/edit-prompt-page/location/[locationId]`
 
 **Features**:
-- Location-specific universal prompt page editing
-- Inherit from business profile with location overrides
-- Location context displayed prominently
-- Breadcrumb navigation: Account > Locations > [Location Name] > Universal Page
+- **Identical to existing universal prompt page** - same form, same features
+- **Location context banner** at top showing location name/address
+- **All existing features available**: 
+  - Review platforms (inherits from location settings)
+  - Offer configuration
+  - Emoji sentiment
+  - Falling animations
+  - AI button settings
 
-**Form Sections**:
-1. **Location Information** (read-only display)
-   - Location name, address, contact info
-2. **Location-Specific Training** 
-   - Business description for this location
-   - Unique aspects of this location
-   - Location-specific AI dos/don'ts
-3. **Standard Universal Page Fields**
-   - Review platforms (with location defaults)
-   - Offer configuration
-   - Emoji sentiment
-   - Falling animations
+**Data Inheritance**:
+1. Location-specific settings (address, AI training, etc.)
+2. Account business profile defaults
+3. Same fallback logic as current universal page
 
-### 3. Prompt Pages List Enhancement
+### 4. Custom Prompt Page Enhancement
 
-**Route**: `/prompt-pages`
-
-**Features**:
-- Location filter dropdown (for Maven tier)
-- Visual grouping by location
-- Location-specific universal pages prominently displayed
-- Clear indication of which pages belong to which location
-
-### 4. Location Selector for New Prompt Pages
-
-**Enhancement to existing prompt page creation**:
-- Location selector for Maven tier users
-- Default to main business if no location selected
-- Location context passed through to form pre-filling
+**Minimal changes to existing prompt page creation**:
+- **Location selector** for Maven tier users (optional)
+- **Default to account-wide** if no location selected
+- **Pre-fill location context** when location is selected
+- **Same form, same features** - just different business context
 
 ## Component Architecture
 
-### 1. Location Context Provider
+### 1. Enhanced Existing Components (Minimal Changes)
 
 ```typescript
-// LocationContextProvider.tsx
-interface LocationContext {
-  locations: BusinessLocation[];
-  currentLocation: BusinessLocation | null;
-  setCurrentLocation: (location: BusinessLocation | null) => void;
-  canCreateLocation: boolean;
-  locationLimit: number;
-}
+// PromptPagesTable.tsx - Add location section
+// - New locationPromptPages prop
+// - Location table section for Maven tier
+// - Reuse existing table row components
+
+// UniversalPromptPageForm.tsx - Accept location context
+// - Add optional locationData prop
+// - Same form fields, different data source
+// - Location context banner component
+
+// PromptPageForm.tsx - Optional location selector
+// - Add location selector for Maven tier
+// - Pre-fill with location context when selected
+// - Same form logic, enhanced data inheritance
 ```
 
-### 2. Reusable Location Form Components
+### 2. New Location Components (Minimal Set)
 
 ```typescript
-// LocationBasicInfoForm.tsx
-// LocationAddressForm.tsx  
-// LocationAITrainingForm.tsx
-// LocationContactForm.tsx
+// LocationPromptPagesSection.tsx
+// - Table section for location prompt pages
+// - Add location button and modal trigger
+// - Reuses existing table styling and actions
+
+// LocationModal.tsx  
+// - Modal for location creation/editing
+// - Simple form with location-specific fields
+// - Reuses existing modal components
+
+// LocationContextBanner.tsx
+// - Display location context in prompt page editor
+// - Shows location name, address summary
+// - Breadcrumb navigation
 ```
 
-### 3. Enhanced Prompt Page Components
+### 3. Data Integration (Leverage Existing Patterns)
 
 ```typescript
-// Modify existing UniversalPromptPageForm.tsx to accept location context
-// Add LocationPromptPageForm.tsx that wraps universal form with location data
-// Update PromptPageForm.tsx to handle location context
+// Extend existing data fetching utilities
+// - Add location context to prompt page queries
+// - Merge location + business profile data
+// - Same inheritance pattern as current universal pages
+
+// Reuse existing form state management
+// - Same form validation logic
+// - Same save/publish workflows  
+// - Enhanced with location context where needed
 ```
 
 ## Data Flow & Business Logic
@@ -339,33 +399,31 @@ CREATE TRIGGER enforce_location_limit
     FOR EACH ROW EXECUTE FUNCTION check_location_limit();
 ```
 
-## Migration Strategy
+## Migration Strategy (Streamlined)
 
-### Phase 1: Database Setup
-1. Create `business_locations` table
-2. Add location reference to `prompt_pages`
-3. Update account tier limits
-4. Create necessary indexes and constraints
+### Phase 1: Foundation (Week 1)
+1. Create `business_locations` table and constraints
+2. Add location reference to `prompt_pages` table  
+3. Update account tier limits and location counts
+4. Basic location CRUD API endpoints
 
-### Phase 2: Core API Development
-1. Business locations CRUD endpoints
-2. Enhanced prompt pages API with location context
-3. Location-aware data fetching utilities
+### Phase 2: Integration (Weeks 2-3)
+1. Enhance existing `/prompt-pages` with location section
+2. Location modal and basic table components
+3. Location context in universal prompt page forms
+4. Data inheritance logic (location → business profile)
 
-### Phase 3: UI Components
-1. Business locations management interface
-2. Location-specific prompt page forms
-3. Enhanced navigation and filtering
+### Phase 3: Polish & Launch (Weeks 4-5.5)
+1. Tier enforcement and permission system
+2. UI refinements and comprehensive testing
+3. Data migration for existing Maven accounts
+4. Documentation and feature launch
 
-### Phase 4: Integration & Testing
-1. Location context throughout the application
-2. Tier enforcement and permission checks
-3. Data migration for existing accounts
-
-### Phase 5: Advanced Features
-1. Location-specific analytics
-2. Bulk operations across locations
-3. Location templates and cloning
+### Simplified Benefits
+- **Incremental enhancement** of existing features vs. building new systems
+- **Lower risk** - existing functionality remains unchanged
+- **Faster delivery** - 5.5 weeks vs. 8 weeks
+- **Familiar UX** - users don't need to learn new navigation patterns
 
 ## Data Migration Plan
 
@@ -467,37 +525,45 @@ WHERE plan = 'maven';
 - Corporate-level settings inheritance
 - Location manager roles and permissions
 
-## Implementation Timeline
+## Implementation Timeline (Simplified)
 
-### Sprint 1 (2 weeks): Foundation
-- Database schema implementation
-- Basic location CRUD APIs
+### Sprint 1 (1 week): Database & API Foundation
+- Database schema implementation (`business_locations` table)
+- Basic location CRUD APIs (`/api/business-locations`)
 - Location model and TypeScript interfaces
+- Account tier limit updates
 
-### Sprint 2 (2 weeks): Core UI
-- Business locations management page
-- Location creation and editing forms
-- Basic location listing and navigation
+### Sprint 2 (1.5 weeks): Core Integration  
+- Enhance existing `/prompt-pages` with location section
+- Location modal for creation/editing
+- Basic location table component (reusing existing patterns)
+- Auto-creation of location universal prompt pages
 
-### Sprint 3 (2 weeks): Prompt Page Integration
-- Location-specific universal prompt pages
-- Enhanced prompt page creation flow
-- Location context in existing components
+### Sprint 3 (1.5 weeks): Prompt Page Enhancement
+- Add location context to existing universal prompt page form
+- Location selector in custom prompt page creation
+- Enhanced data inheritance (location → business profile)
+- Location context banner in prompt page editor
 
-### Sprint 4 (1 week): Permissions & Limits
-- Tier enforcement implementation
-- Location limit validation
-- Permission checks throughout UI
+### Sprint 4 (1 week): Tier Enforcement & Polish
+- Tier enforcement implementation (Maven only)
+- Location limit validation and UI indicators
+- Permission checks and upgrade prompts
+- UI refinements and testing
 
-### Sprint 5 (1 week): Testing & Polish
-- Comprehensive testing of location features
-- UI/UX refinements based on feedback
-- Data migration for existing accounts
+### Sprint 5 (0.5 weeks): Migration & Launch
+- Data migration for existing Maven accounts
+- Documentation updates
+- Feature launch preparation
 
-### Sprint 6 (1 week): Documentation & Launch
-- User documentation updates
-- Feature announcement preparation
-- Monitoring and analytics setup
+**Total: 5.5 weeks** (vs. original 8 weeks)
+
+### Why It's Faster
+- **Reusing existing components** instead of building from scratch
+- **Integrated UI approach** eliminates need for separate pages
+- **Leveraging existing APIs** with minimal enhancements
+- **Same prompt page features** - just different data context
+- **Familiar patterns** throughout the implementation
 
 ## Success Metrics
 
