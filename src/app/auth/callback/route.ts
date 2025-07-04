@@ -40,13 +40,31 @@ export async function GET(request: NextRequest) {
 
     console.log('✅ Session exchange successful for user:', user.email);
     console.log('📧 Email confirmed at:', user.email_confirmed_at);
+    
+    // Debug: Check what cookies are being set
+    const { data: { session: debugSession } } = await supabase.auth.getSession();
+    if (debugSession) {
+      console.log('🍪 Session debug - Access token present:', !!debugSession.access_token);
+      console.log('🍪 Session debug - Refresh token present:', !!debugSession.refresh_token);
+      console.log('🍪 Session debug - Expires at:', debugSession.expires_at);
+    } else {
+      console.log('🍪 Session debug - No session found immediately after exchange');
+    }
 
     // If there's a next parameter, redirect there (e.g., for password reset)
     // Handle this IMMEDIATELY to avoid running through account creation logic
     if (next) {
       console.log('🔄 Password reset or special flow detected, redirecting to:', next);
       console.log('🔄 Skipping account creation logic for this flow');
-      return NextResponse.redirect(`${requestUrl.origin}${next}`);
+      
+      // Create the redirect response
+      const redirectResponse = NextResponse.redirect(`${requestUrl.origin}${next}`);
+      
+      // Wait a moment to ensure cookies are set before redirect
+      console.log('⏳ Waiting for cookies to be set before redirect...');
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      
+      return redirectResponse;
     }
 
     // For sign-up/sign-in (no next parameter), handle account creation

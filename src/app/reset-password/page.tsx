@@ -16,10 +16,26 @@ function ResetPasswordContent() {
   const router = useRouter();
 
   useEffect(() => {
+    // Set up auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("🔄 Auth state change detected:", event);
+      if (session && session.user) {
+        console.log("✅ Session established via auth state change for user:", session.user.email);
+        setIsAuthenticated(true);
+        setUserEmail(session.user.email || "");
+        setIsCheckingAuth(false);
+        setError("");
+      }
+    });
+
     const checkAuthStatus = async () => {
       try {
         console.log("🔍 Checking authentication status...");
         console.log("🔍 Current URL:", window.location.href);
+        
+        // Add a small delay to allow cookies to be set from redirect
+        console.log("⏳ Waiting for cookies to settle after redirect...");
+        await new Promise(resolve => setTimeout(resolve, 1000));
         
         // First check if there's a hash fragment with tokens
         const hashFragment = window.location.hash;
@@ -48,45 +64,62 @@ function ResetPasswordContent() {
           }
         }
         
-        // If no hash fragment, check if we have an existing session
-        console.log("🔍 No hash fragment, checking existing session...");
+        // Try multiple methods to get the session
+        console.log("🔍 No hash fragment, trying multiple session detection methods...");
+        
+        // Method 1: Get existing session
+        console.log("📝 Method 1: Checking existing session...");
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
           console.log("❌ Session error:", sessionError);
-          setError("Authentication error. Please try requesting a new password reset.");
-          setIsCheckingAuth(false);
-          return;
-        }
-        
-        if (session && session.user) {
+        } else if (session && session.user) {
           console.log("✅ Existing session found for user:", session.user.email);
           console.log("✅ Session expires:", session.expires_at);
           setIsAuthenticated(true);
           setUserEmail(session.user.email || "");
           setIsCheckingAuth(false);
           return;
+        } else {
+          console.log("📝 No existing session found");
         }
         
-        // If no session, try to get user directly
-        console.log("🔍 No session, trying to get user directly...");
-        const { data: { user }, error } = await supabase.auth.getUser();
+        // Method 2: Try to get user directly
+        console.log("📝 Method 2: Trying to get user directly...");
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
         
-        if (error) {
-          console.log("❌ Auth check error:", error);
-          setError("Authentication error. Please try requesting a new password reset.");
-          setIsCheckingAuth(false);
-          return;
-        }
-
-        if (user) {
-          console.log("✅ User authenticated:", user.email);
+        if (userError) {
+          console.log("❌ User fetch error:", userError);
+        } else if (user) {
+          console.log("✅ User found directly:", user.email);
           setIsAuthenticated(true);
           setUserEmail(user.email || "");
+          setIsCheckingAuth(false);
+          return;
         } else {
-          console.log("❌ No authenticated user found");
-          setError("You need to click the password reset link from your email to access this page.");
+          console.log("📝 No user found directly");
         }
+        
+        // Method 3: Try refreshing the session
+        console.log("📝 Method 3: Trying to refresh session...");
+        const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+        
+        if (refreshError) {
+          console.log("❌ Session refresh error:", refreshError);
+        } else if (refreshData.session && refreshData.user) {
+          console.log("✅ Session refreshed successfully for user:", refreshData.user.email);
+          setIsAuthenticated(true);
+          setUserEmail(refreshData.user.email || "");
+          setIsCheckingAuth(false);
+          return;
+        } else {
+          console.log("📝 Session refresh returned no session");
+        }
+        
+        // If all methods failed
+        console.log("❌ All authentication methods failed");
+        setError("You need to click the password reset link from your email to access this page.");
+        
       } catch (error) {
         console.error("❌ Error checking auth:", error);
         setError("An error occurred. Please try requesting a new password reset.");
@@ -96,6 +129,11 @@ function ResetPasswordContent() {
     };
 
     checkAuthStatus();
+
+    // Cleanup subscription on component unmount
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handlePasswordUpdate = async (e: React.FormEvent) => {
