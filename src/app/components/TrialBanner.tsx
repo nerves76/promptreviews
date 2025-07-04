@@ -166,7 +166,7 @@ export default function TrialBanner({
             <img
               src="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/small-prompty-success.png"
               alt="Prompty"
-              className="w-12 h-12 object-contain"
+              className="w-12 h-12 object-contain transform scale-x-[-1]"
             />
           </div>
           <div>
