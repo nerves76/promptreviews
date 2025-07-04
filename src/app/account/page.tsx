@@ -24,6 +24,8 @@ export default function AccountPage() {
   const [account, setAccount] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [resetPasswordLoading, setResetPasswordLoading] = useState(false);
+  const [resetPasswordMessage, setResetPasswordMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const loadAccountData = async () => {
@@ -73,6 +75,44 @@ export default function AccountPage() {
       router.push("/");
     } catch (error) {
       console.error("Error signing out:", error);
+    }
+  };
+
+  const handlePasswordReset = async () => {
+    if (!user?.email) {
+      setError('User email not available');
+      return;
+    }
+
+    setResetPasswordLoading(true);
+    setError(null);
+    setResetPasswordMessage(null);
+
+    try {
+      console.log('🔄 Sending password reset email to:', user.email);
+      
+      const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
+        redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
+      });
+
+      if (error) {
+        console.log('❌ Password reset email error:', error);
+        setError(`Password reset failed: ${error.message}`);
+      } else {
+        console.log('✅ Password reset email sent successfully');
+        setError(null); // Clear any existing errors
+        setResetPasswordMessage('Password reset email sent! Check your inbox and click the link to reset your password.');
+        
+        // Clear success message after 10 seconds
+        setTimeout(() => {
+          setResetPasswordMessage(null);
+        }, 10000);
+      }
+    } catch (error) {
+      console.error('❌ Unexpected error:', error);
+      setError('An unexpected error occurred. Please try again.');
+    } finally {
+      setResetPasswordLoading(false);
     }
   };
 
@@ -154,6 +194,20 @@ export default function AccountPage() {
             {/* Actions */}
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Actions</h3>
+              
+              {/* Success/Error Messages */}
+              {resetPasswordMessage && (
+                <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md">
+                  <p className="text-sm text-green-800">{resetPasswordMessage}</p>
+                </div>
+              )}
+              
+              {error && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+                  <p className="text-sm text-red-800">{error}</p>
+                </div>
+              )}
+              
               <div className="space-y-4">
                 <button
                   onClick={() => router.push("/dashboard")}
@@ -161,6 +215,25 @@ export default function AccountPage() {
                 >
                   Back to Dashboard
                 </button>
+                
+                <button
+                  onClick={handlePasswordReset}
+                  disabled={resetPasswordLoading}
+                  className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {resetPasswordLoading ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Sending Reset Email...
+                    </>
+                  ) : (
+                    'Reset Password'
+                  )}
+                </button>
+                
                 <button
                   onClick={handleSignOut}
                   className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue"
