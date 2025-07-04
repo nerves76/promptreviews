@@ -16,7 +16,7 @@ export function register() {
     dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
     
     // Performance monitoring - reduced sampling for better performance
-    tracesSampleRate: process.env.NODE_ENV === 'development' ? 0.1 : 0.2,
+    tracesSampleRate: 0.2,
     
     // Environment configuration
     environment: process.env.NODE_ENV,
@@ -29,11 +29,6 @@ export function register() {
     
     // Before send hook to filter errors
     beforeSend(event, hint) {
-      // Don't send errors in development
-      if (process.env.NODE_ENV === 'development') {
-        return null;
-      }
-      
       // Filter out common non-actionable errors
       const error = hint.originalException;
       if (

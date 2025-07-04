@@ -23,46 +23,68 @@ const PRICE_IDS: Record<string, string> = {
 export async function POST(req: NextRequest) {
   try {
     const { plan, userId, email } = await req.json();
-
+    
     if (!plan || !PRICE_IDS[plan]) {
       return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
     }
 
-    // Fetch stripe_customer_id from accounts table
+    // Fetch current account info including current plan
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
     );
     let stripeCustomerId: string | undefined = undefined;
+    let currentPlan: string | undefined = undefined;
+    
     if (userId) {
       const { data: account, error } = await supabase
         .from("accounts")
-        .select("stripe_customer_id")
+        .select("stripe_customer_id, plan")
         .eq("id", userId)
         .single();
       if (error) {
         console.error("Error fetching account for checkout:", error);
       }
-      if (account && account.stripe_customer_id) {
+      if (account) {
         stripeCustomerId = account.stripe_customer_id;
+        currentPlan = account.plan;
+        
         // Prevent multiple active subscriptions
-        const subscriptions = await stripe.subscriptions.list({
-          customer: stripeCustomerId,
-          status: "all",
-          limit: 10,
-        });
-        const hasActive = subscriptions.data.some((sub) =>
-          ["active", "trialing", "past_due", "unpaid"].includes(sub.status),
-        );
-        if (hasActive) {
-          return NextResponse.json(
-            {
-              error:
-                "You already have an active subscription. Please manage your plan in the billing portal.",
-            },
-            { status: 400 },
+        if (stripeCustomerId) {
+          const subscriptions = await stripe.subscriptions.list({
+            customer: stripeCustomerId,
+            status: "all",
+            limit: 10,
+          });
+          const hasActive = subscriptions.data.some((sub) =>
+            ["active", "trialing", "past_due", "unpaid"].includes(sub.status),
           );
+          if (hasActive) {
+            return NextResponse.json(
+              {
+                error:
+                  "You already have an active subscription. Please manage your plan in the billing portal.",
+              },
+              { status: 400 },
+            );
+          }
         }
+      }
+    }
+
+    // Determine if this is an upgrade or downgrade
+    const planOrder = { free: 0, grower: 1, builder: 2, maven: 3 };
+    const currentPlanOrder = planOrder[currentPlan as keyof typeof planOrder] || 0;
+    const targetPlanOrder = planOrder[plan as keyof typeof planOrder] || 0;
+    
+    let changeType = "new";
+    if (currentPlan) {
+      if (targetPlanOrder > currentPlanOrder) {
+        changeType = "upgrade";
+      } else if (targetPlanOrder < currentPlanOrder) {
+        changeType = "downgrade";
+      } else {
+        changeType = "same";
       }
     }
 
@@ -74,7 +96,7 @@ export async function POST(req: NextRequest) {
         : { customer_email: email }),
       line_items: [{ price: PRICE_IDS[plan], quantity: 1 }],
       metadata: { userId, plan },
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=1`,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=1&change=${changeType}&plan=${plan}`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?canceled=1`,
     });
 

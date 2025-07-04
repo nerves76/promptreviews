@@ -93,7 +93,7 @@ CREATE POLICY "Allow admins to manage quotes" ON public.quotes
 -- Insert a sample announcement if none exist
 INSERT INTO public.announcements (message, is_active, created_by)
 SELECT 
-    'Welcome to PromptReviews! We''re excited to help you collect and manage customer reviews.',
+    'Welcome to Prompt Reviews! We''re excited to help you collect and manage customer reviews.',
     true,
     (SELECT id FROM public.admins LIMIT 1)
 WHERE NOT EXISTS (SELECT 1 FROM public.announcements WHERE is_active = true);

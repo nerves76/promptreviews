@@ -9,7 +9,7 @@
  */
 
 import { NextRequest } from 'next/server';
-import { createClient } from '@/utils/supabaseClient';
+import { createServerSupabaseClient } from '@/utils/supabaseClient';
 import { User } from '@supabase/supabase-js';
 
 interface AuthResult {
@@ -26,11 +26,8 @@ interface AuthResult {
  */
 export async function authenticateApiRequest(request: NextRequest): Promise<AuthResult> {
   try {
-    // Create Supabase client
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
+    // Create Supabase server client for API routes
+    const supabase = await createServerSupabaseClient();
 
     // Try Bearer token authentication first
     const authHeader = request.headers.get('authorization');
@@ -74,10 +71,7 @@ export async function authenticateApiRequest(request: NextRequest): Promise<Auth
     console.error('API Auth: Unexpected error:', error);
     return { 
       user: null, 
-      supabase: createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      ), 
+      supabase: await createServerSupabaseClient(), 
       error: 'Authentication failed' 
     };
   }

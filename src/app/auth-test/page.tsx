@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { supabase } from "@/utils/supabaseClient";
 
 export default function AuthTest() {
   const [user, setUser] = useState<any>(null);
@@ -22,18 +23,9 @@ export default function AuthTest() {
 
   const checkAuth = async () => {
     console.log("🔍 Starting auth check...");
-    setMessage("Importing Supabase client...");
+    setMessage("Checking session...");
     
     try {
-      // Dynamic import to avoid any potential SSR issues
-      const { supabase } = await import("@/utils/supabaseClient");
-      console.log("📱 Supabase client imported successfully");
-      setMessage("Supabase client loaded, checking session...");
-      
-      if (!supabase) {
-        throw new Error("Supabase client not available after import");
-      }
-      
       console.log("🔍 Calling getSession...");
       const result = await supabase.auth.getSession();
       console.log("📦 getSession result:", result);

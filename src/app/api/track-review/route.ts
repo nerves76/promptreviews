@@ -122,7 +122,12 @@ export async function POST(request: Request) {
         let subject = "";
         const reviewerFirst =
           first_name || reviewerFullName.split(" ")[0] || "Someone";
-        if (review_type === "feedback") {
+        
+        // Determine if sentiment is positive or negative
+        const isPositiveSentiment = sentiment && ["excellent", "satisfied"].includes(sentiment.toLowerCase());
+        const isNegativeSentiment = sentiment && ["neutral", "unsatisfied", "frustrated", "angry"].includes(sentiment.toLowerCase());
+        
+        if (review_type === "feedback" || isNegativeSentiment) {
           subject = `You've got feedback: ${reviewerFirst} submitted feedback`;
         } else if (review_type === "testimonial" || review_type === "photo") {
           subject = `You've got praise! ${reviewerFirst} submitted a testimonial & photo`;
@@ -136,19 +141,22 @@ export async function POST(request: Request) {
           reviewerFullName,
           review_type,
           platform,
-          subjectPreview: (() => {
-            if (review_type === "feedback")
-              return `You've got feedback: ${reviewerFirst} submitted feedback`;
-            if (review_type === "testimonial" || review_type === "photo")
-              return `You've got praise! ${reviewerFirst} submitted a testimonial & photo`;
-            return `You've got praise! ${reviewerFirst} submitted a review on ${platform}`;
-          })(),
+          sentiment,
+          isPositive: isPositiveSentiment,
+          isNegative: isNegativeSentiment,
         });
+
+        // For now, keep using the direct email sending until we integrate with the email template system
+        // TODO: Update to use email templates with sentiment-aware template selection
         // Use the correct production URL as fallback
         const loginUrl = process.env.NEXT_PUBLIC_APP_URL
           ? `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`
           : "https://app.promptreviews.app/dashboard";
-        const text = `Hi ${account.first_name || "there"},\n\nYou've got a new Prompt Review.\n\nLog in here to check it out:\n${loginUrl}\n\n:)\n\nChris`;
+        
+        const text = isNegativeSentiment || review_type === "feedback"
+          ? `Hi ${account.first_name || "there"},\n\n${reviewerFullName} just submitted feedback through your prompt page.\n\nThis feedback can help you improve your business. Log in to view it:\n${loginUrl}\n\nEvery piece of feedback is an opportunity to grow!\n\nChris`
+          : `Hi ${account.first_name || "there"},\n\n${reviewerFullName} just submitted a positive review on ${platform}.\n\nGreat reviews like this help your business get found online!\n\nLog in to check it out:\n${loginUrl}\n\nKeep up the great work!\n\nChris`;
+        
         try {
           await sendResendEmail({
             to: account.email,
