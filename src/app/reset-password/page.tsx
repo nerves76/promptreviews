@@ -24,11 +24,35 @@ export default function ResetPassword() {
     if (!mounted) return;
     
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      console.log("Reset password session check:", !!session);
-      setHasSession(!!session);
-      setChecking(false);
+      try {
+        console.log("🔍 Reset password: Checking session with timeout...");
+        
+        // Add timeout to prevent infinite hanging
+        const sessionPromise = supabase.auth.getSession();
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Session check timeout')), 5000)
+        );
+        
+        const { data: { session } } = await Promise.race([sessionPromise, timeoutPromise]) as any;
+        
+        console.log("🔍 Reset password session check:", !!session);
+        setHasSession(!!session);
+        
+        if (session) {
+          console.log("✅ Reset password: Session found for user:", session.user?.email);
+        } else {
+          console.log("❌ Reset password: No session found");
+        }
+        
+      } catch (error) {
+        console.error("❌ Reset password: Session check failed:", error);
+        setHasSession(false);
+        setError("Unable to verify reset link. Please try requesting a new password reset.");
+      } finally {
+        setChecking(false);
+      }
     };
+    
     checkSession();
   }, [mounted]);
 
@@ -71,7 +95,9 @@ export default function ResetPassword() {
   if (!mounted || checking) {
     return (
       <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
-        <div className="text-white text-lg">Loading...</div>
+        <div className="text-white text-lg">
+          {checking ? "Verifying reset link..." : "Loading..."}
+        </div>
       </div>
     );
   }
@@ -80,13 +106,18 @@ export default function ResetPassword() {
     return (
       <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
         <div className="p-8 rounded shadow text-center bg-white max-w-md w-full">
-          <h2 className="text-2xl font-bold mb-4 text-red-600">Invalid Reset Link</h2>
-          <p className="mb-4">This password reset link is invalid or has expired.</p>
+          <h2 className="text-2xl font-bold mb-4 text-red-600">Reset Link Issue</h2>
+          <p className="mb-4">
+            {error || "This password reset link is invalid, expired, or there was an issue verifying your session."}
+          </p>
+          <p className="text-sm text-gray-600 mb-4">
+            Please request a new password reset from the sign-in page.
+          </p>
           <button
             onClick={() => router.push("/auth/sign-in")}
             className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
-            Request New Reset
+            Go to Sign In
           </button>
         </div>
       </div>

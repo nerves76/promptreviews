@@ -1,6 +1,5 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { createServerClient } from "@supabase/ssr";
+import { supabase } from "@/utils/supabaseClient";
 
 export const dynamic = "force-dynamic";
 
@@ -18,32 +17,12 @@ export async function GET(request: Request) {
     try {
       console.log("🔄 Exchanging code for session...");
       
-      const cookieStore = cookies() as any;
-      
-      // Use server-side client with proper cookie handling (same pattern as debug-session)
-      const supabase = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        {
-          cookies: {
-            get: (name) => cookieStore.get(name)?.value,
-            set: () => {},
-            remove: () => {},
-          },
-        }
-      );
-      
       // Exchange code for session
       console.log("🔄 Calling exchangeCodeForSession...");
       const { data, error } = await supabase.auth.exchangeCodeForSession(code);
       
       if (error) {
         console.error("❌ Session exchange error:", error);
-        console.error("❌ Error details:", { 
-          message: error.message, 
-          status: error.status,
-          name: error.name 
-        });
         return NextResponse.redirect(
           `${requestUrl.origin}/auth/sign-in?error=${encodeURIComponent(error.message)}`,
         );
@@ -52,8 +31,7 @@ export async function GET(request: Request) {
       console.log("✅ Session exchange result:", {
         hasUser: !!data.user,
         hasSession: !!data.session,
-        userEmail: data.user?.email,
-        sessionExpiresAt: data.session?.expires_at
+        userEmail: data.user?.email
       });
       
       if (data.user) {
