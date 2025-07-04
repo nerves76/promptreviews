@@ -27,17 +27,9 @@ export function ReviewerProvider({ children }: { children: ReactNode }) {
     name: "",
     role: "",
   });
-  const [isClient, setIsClient] = useState(false);
 
-  // Ensure we're on the client side before accessing browser APIs
+  // Load reviewer info from localStorage on mount (client-side only)
   useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  // Load reviewer info from localStorage on mount (only on client)
-  useEffect(() => {
-    if (!isClient) return;
-    
     const storedName = localStorage.getItem("reviewerName");
     const storedRole = localStorage.getItem("reviewerRole");
     if (storedName || storedRole) {
@@ -46,20 +38,18 @@ export function ReviewerProvider({ children }: { children: ReactNode }) {
         role: storedRole || "",
       });
     }
-  }, [isClient]);
+  }, []);
 
   const updateReviewerInfo = (info: Partial<ReviewerInfo>) => {
     setReviewerInfo((prev) => {
       const newInfo = { ...prev, ...info };
 
-      // Save to localStorage (only on client)
-      if (isClient) {
-        if (info.name !== undefined) {
-          localStorage.setItem("reviewerName", info.name);
-        }
-        if (info.role !== undefined) {
-          localStorage.setItem("reviewerRole", info.role);
-        }
+      // Save to localStorage
+      if (info.name !== undefined) {
+        localStorage.setItem("reviewerName", info.name);
+      }
+      if (info.role !== undefined) {
+        localStorage.setItem("reviewerRole", info.role);
       }
 
       return newInfo;

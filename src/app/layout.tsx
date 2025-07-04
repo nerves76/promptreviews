@@ -6,7 +6,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Inter, Roboto, Open_Sans, Montserrat, Poppins } from "next/font/google";
-import ClientRoot from "./ClientRoot";
 import AppMain from "./components/AppMain";
 import GoogleAnalytics from "./components/GoogleAnalytics";
 import { Providers } from "@/components/Providers";
@@ -65,12 +64,10 @@ export default function RootLayout({
       <head>
         <GoogleAnalytics />
       </head>
-      <body className={inter.className + " min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600"}>
+      <body className={`${inter.className} min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600`}>
         <Providers>
           <AdminProvider>
-            <ClientRoot>
-              <AppMain>{children}</AppMain>
-            </ClientRoot>
+            <AppMain>{children}</AppMain>
           </AdminProvider>
         </Providers>
       </body>
