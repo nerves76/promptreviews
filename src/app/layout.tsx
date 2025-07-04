@@ -65,7 +65,7 @@ export default function RootLayout({
       <head>
         <GoogleAnalytics />
       </head>
-      <body className={inter.className + " min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 overscroll-x-auto"}>
+      <body className={inter.className + " min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600"}>
         <Providers>
           <AdminProvider>
             <ClientRoot>
