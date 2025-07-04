@@ -235,27 +235,58 @@ export async function getSessionOrMock(client: SupabaseClient) {
 }
 
 /**
- * Enhanced user getter
+ * Enhanced user getter with timeout protection - using getSession for better reliability
  */
 export async function getUserOrMock(client: SupabaseClient) {
   try {
-    console.log('👤 Getting user...');
-    const { data: { user }, error } = await client.auth.getUser();
+    console.log('👤 Getting user via session...');
+    
+    // Use getSession instead of getUser for better reliability
+    const sessionPromise = client.auth.getSession();
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('getSession timeout')), 8000)
+    );
+    
+    console.log('🕒 Setting up getSession with 8s timeout...');
+    const { data: { session }, error } = await Promise.race([sessionPromise, timeoutPromise]) as any;
+    console.log('📡 getSession call completed');
     
     if (error) {
-      console.error('❌ User error:', error);
+      console.error('❌ Session error:', error);
       throw error;
     }
     
+    // Extract user from session
+    const user = session?.user || null;
+    
     if (user) {
-      console.log('✅ User found:', user.id);
+      console.log('✅ User found from session:', user.id);
     } else {
-      console.log('ℹ️  No user found');
+      console.log('ℹ️  No user found in session');
     }
     
     return { data: { user }, error: null };
   } catch (error) {
     console.error('💥 User check failed:', error);
+    
+    // Enhanced fallback: try direct getUser with shorter timeout
+    try {
+      console.log('🔄 Fallback: trying direct getUser...');
+      const directUserPromise = client.auth.getUser();
+      const fallbackTimeout = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Direct getUser timeout')), 3000)
+      );
+      
+      const { data: { user }, error: directError } = await Promise.race([directUserPromise, fallbackTimeout]) as any;
+      
+      if (!directError && user) {
+        console.log('✅ Fallback successful - user found:', user.id);
+        return { data: { user }, error: null };
+      }
+    } catch (fallbackError) {
+      console.log('❌ Fallback also failed:', fallbackError);
+    }
+    
     return { data: { user: null }, error };
   }
 }

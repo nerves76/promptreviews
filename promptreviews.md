@@ -10,6 +10,15 @@ This project is currently focused on developing a standalone widget for collecti
 
 ## Recent Updates (Latest)
 
+### Account Password Reset Feature (January 2025)
+- **In-Account Password Reset**: Added password reset functionality directly to the account page (`/account`)
+- **One-Click Reset**: Users can reset their password with a single button click without entering their email
+- **Reused Existing Flow**: Leverages the same password reset email system as the sign-in page
+- **Enhanced UX**: Added loading states, success/error messages, and auto-clearing success messages
+- **Proper Integration**: Uses existing `supabase.auth.resetPasswordForEmail()` with current user's email
+- **Consistent UI**: Matches existing account page styling and button design patterns
+- **Email Flow**: Sends password reset email that redirects to `/reset-password` page after email confirmation
+
 ### Authentication System Debugging & Resolution (July 2025)
 - **Critical Authentication Issues Resolved**: Comprehensive debugging session that resolved persistent authentication errors including "Invalid Refresh Token" and "AuthSessionMissingError"
 - **Supabase Service Discovery**: Identified that the root cause was Supabase not running locally (`supabase start` resolved the core issue)
