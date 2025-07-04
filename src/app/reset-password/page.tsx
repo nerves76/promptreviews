@@ -24,15 +24,9 @@ export default function ResetPassword() {
     
     const checkSession = async () => {
       try {
-        console.log("🔍 Reset password: Checking session with timeout...");
+        console.log("🔍 Reset password: Checking session...");
         
-        // Add timeout to prevent infinite hanging
-        const sessionPromise = supabase.auth.getSession();
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Session check timeout')), 5000)
-        );
-        
-        const { data: { session } } = await Promise.race([sessionPromise, timeoutPromise]) as any;
+        const { data: { session } } = await supabase.auth.getSession();
         
         console.log("🔍 Reset password session check:", !!session);
         setHasSession(!!session);
