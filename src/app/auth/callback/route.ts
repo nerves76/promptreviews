@@ -22,24 +22,30 @@ export async function GET(request: NextRequest) {
     const supabase = await createServerSupabaseClient();
     console.log('🔄 Exchanging code for session...');
 
-    const { data: { user, session }, error } = await supabase.auth.exchangeCodeForSession(code);
+    // Use the correct SSR method for code exchange
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (error) {
       console.log('❌ Session exchange error:', error);
       return NextResponse.redirect(`${requestUrl.origin}/auth/sign-in?error=${encodeURIComponent(error.message)}`);
     }
 
-    if (!user || !session) {
-      console.log('❌ No user or session after exchange');
-      return NextResponse.redirect(`${requestUrl.origin}/auth/sign-in?error=exchange_failed`);
+    // Get the user after successful code exchange
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    
+    if (userError || !user) {
+      console.log('❌ No user found after code exchange:', userError);
+      return NextResponse.redirect(`${requestUrl.origin}/auth/sign-in?error=user_not_found`);
     }
 
     console.log('✅ Session exchange successful for user:', user.email);
     console.log('📧 Email confirmed at:', user.email_confirmed_at);
 
     // If there's a next parameter, redirect there (e.g., for password reset)
+    // Handle this IMMEDIATELY to avoid running through account creation logic
     if (next) {
-      console.log('🔄 Redirecting to next page:', next);
+      console.log('🔄 Password reset or special flow detected, redirecting to:', next);
+      console.log('🔄 Skipping account creation logic for this flow');
       return NextResponse.redirect(`${requestUrl.origin}${next}`);
     }
 

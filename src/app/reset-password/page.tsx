@@ -19,11 +19,13 @@ function ResetPasswordContent() {
     const checkAuthStatus = async () => {
       try {
         console.log("🔍 Checking authentication status...");
+        console.log("🔍 Current URL:", window.location.href);
         
         // First check if there's a hash fragment with tokens
         const hashFragment = window.location.hash;
         if (hashFragment) {
           console.log("🔗 Found hash fragment, processing tokens...");
+          console.log("🔗 Hash fragment:", hashFragment);
           
           // Let Supabase process the hash fragment
           const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -37,6 +39,8 @@ function ResetPasswordContent() {
           
           if (session) {
             console.log("✅ Session established from hash fragment");
+            console.log("✅ User email:", session.user.email);
+            console.log("✅ Session expires:", session.expires_at);
             setIsAuthenticated(true);
             setUserEmail(session.user.email || "");
             setIsCheckingAuth(false);
@@ -44,7 +48,28 @@ function ResetPasswordContent() {
           }
         }
         
-        // If no hash fragment or session not established, check regular auth
+        // If no hash fragment, check if we have an existing session
+        console.log("🔍 No hash fragment, checking existing session...");
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.log("❌ Session error:", sessionError);
+          setError("Authentication error. Please try requesting a new password reset.");
+          setIsCheckingAuth(false);
+          return;
+        }
+        
+        if (session && session.user) {
+          console.log("✅ Existing session found for user:", session.user.email);
+          console.log("✅ Session expires:", session.expires_at);
+          setIsAuthenticated(true);
+          setUserEmail(session.user.email || "");
+          setIsCheckingAuth(false);
+          return;
+        }
+        
+        // If no session, try to get user directly
+        console.log("🔍 No session, trying to get user directly...");
         const { data: { user }, error } = await supabase.auth.getUser();
         
         if (error) {
@@ -96,6 +121,24 @@ function ResetPasswordContent() {
 
     try {
       console.log("🔄 Updating password...");
+      console.log("🔄 User email:", userEmail);
+      
+      // Check if we have a valid session before updating
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.log("❌ Session check error:", sessionError);
+        setError("Session expired. Please request a new password reset link.");
+        return;
+      }
+      
+      if (!session) {
+        console.log("❌ No session found for password update");
+        setError("Session expired. Please request a new password reset link.");
+        return;
+      }
+      
+      console.log("✅ Valid session found, proceeding with password update");
       
       const { error } = await supabase.auth.updateUser({
         password: password
@@ -103,7 +146,7 @@ function ResetPasswordContent() {
 
       if (error) {
         console.log("❌ Password update error:", error);
-        setError(error.message);
+        setError(`Password update failed: ${error.message}`);
       } else {
         console.log("✅ Password updated successfully");
         alert("Password updated successfully! You can now sign in with your new password.");

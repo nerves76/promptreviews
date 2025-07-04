@@ -169,20 +169,27 @@ export default function SignIn() {
 
     setIsLoading(true);
     setError('');
+    setResetMessage(null);
 
     try {
+      console.log('🔄 Sending password reset email to:', resetEmail);
+      
       const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
       });
 
       if (error) {
-        setError(error.message);
+        console.log('❌ Password reset email error:', error);
+        setError(`Password reset failed: ${error.message}`);
       } else {
+        console.log('✅ Password reset email sent successfully');
         setError(''); // Clear any existing errors
-        // Show success message
-        alert('Password reset email sent! Check your inbox and click the link to reset your password.');
+        setResetMessage('Password reset email sent! Check your inbox and click the link to reset your password.');
+        // Clear the form
+        setResetEmail('');
       }
     } catch (error) {
+      console.error('❌ Unexpected error:', error);
       setError('An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
