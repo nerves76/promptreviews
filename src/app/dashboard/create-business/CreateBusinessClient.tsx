@@ -12,12 +12,10 @@ import WelcomePopup from "@/app/components/WelcomePopup";
 import { ensureAccountExists, getAccountIdForUser } from "@/utils/accountUtils";
 
 export default function CreateBusinessClient() {
-  console.log('🔍 CreateBusinessClient: Component function called');
+  console.log('🔍 CreateBusinessClient: Component rendered');
   
-  // TEMP: Bypass admin loading to test if this is causing the infinite loading
-  // const { isAdminUser, isLoading: adminLoading } = useAdmin();
-  const isAdminUser = false;
-  const adminLoading = false;
+  // 🔧 FIXED: Use the admin context properly without causing infinite loops
+  const { isAdminUser, isLoading: adminLoading } = useAdmin();
   
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -25,13 +23,8 @@ export default function CreateBusinessClient() {
   const [showWelcomePopup, setShowWelcomePopup] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [accountId, setAccountId] = useState<string | null>(null);
-  const [isNewUser, setIsNewUser] = useState(false);
 
   // Memoize router functions to prevent infinite loops
-  const redirectToSignIn = useCallback(() => {
-    router.push("/auth/sign-in");
-  }, [router]);
-
   const redirectToDashboard = useCallback(() => {
     router.push("/dashboard");
   }, [router]);
@@ -40,18 +33,19 @@ export default function CreateBusinessClient() {
     router.push("/dashboard?businessCreated=true");
   }, [router]);
 
-  // 🔧 SIMPLIFIED: Since DashboardLayout already handles authentication, just do the business logic
+  // 🔧 SIMPLIFIED: Since DashboardLayout already handles authentication, just get user and do business logic
   useEffect(() => {
     const setupBusinessCreation = async () => {
       try {
-        console.log('🔍 CreateBusinessClient: Starting business creation setup...');
+        console.log('🔍 CreateBusinessClient: Setting up business creation...');
         
-        // 🔧 SIMPLIFIED: Use the same reliable session pattern as authGuard
-        const { data: { user }, error } = await getUserOrMock(supabase);
+        // Get current user (should already be authenticated by layout)
+        const { data: { user }, error } = await supabase.auth.getUser();
 
         if (error || !user) {
-          console.log('❌ CreateBusinessClient: No user found, redirecting to sign-in');
-          redirectToSignIn();
+          console.log('❌ CreateBusinessClient: No user found (layout should have handled this)');
+          setError("Authentication error. Please refresh the page.");
+          setLoading(false);
           return;
         }
 
@@ -74,9 +68,6 @@ export default function CreateBusinessClient() {
           }
         }
 
-        // Set as new user to show welcome popup
-        setIsNewUser(true);
-        
         // Ensure account exists for the user
         const finalAccountId = await ensureAccountExists(supabase, user.id);
         setAccountId(finalAccountId);
@@ -84,7 +75,7 @@ export default function CreateBusinessClient() {
         // Show welcome popup for new users
         setShowWelcomePopup(true);
         
-        console.log('✅ CreateBusinessClient: Setup complete, showing create business form');
+        console.log('✅ CreateBusinessClient: Setup complete, ready to create business');
         setLoading(false);
         
       } catch (error) {
@@ -95,7 +86,7 @@ export default function CreateBusinessClient() {
     };
 
     setupBusinessCreation();
-  }, [redirectToDashboard, redirectToSignIn]);
+  }, [redirectToDashboard]);
 
   // Handle business creation success
   const handleBusinessCreated = useCallback(async () => {
@@ -109,15 +100,15 @@ export default function CreateBusinessClient() {
     setShowWelcomePopup(false);
   };
 
-  // Show loading while checking authentication or admin status
-  console.log('🔍 CreateBusinessClient: Render state check - loading:', loading, 'adminLoading:', adminLoading);
+  // Show loading while setting up business creation
+  console.log('🔍 CreateBusinessClient: Render state - loading:', loading, 'adminLoading:', adminLoading);
   
   if (loading || adminLoading) {
     console.log('🔄 CreateBusinessClient: Showing loading spinner');
     return <AppLoader variant="default" />;
   }
 
-  // Show error if authentication failed
+  // Show error if setup failed
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -127,7 +118,7 @@ export default function CreateBusinessClient() {
               <FaStore className="h-6 w-6 text-red-600" />
             </div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              Authentication Error
+              Setup Error
             </h3>
             <p className="text-sm text-gray-500 mb-4">{error}</p>
             <button
@@ -143,24 +134,27 @@ export default function CreateBusinessClient() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-3xl mx-auto py-8 px-4">
-        <PageCard icon={<FaStore className="h-8 w-8 text-blue-600" />}>
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">
-              Create Your Business Profile
-            </h1>
-            <p className="text-lg text-gray-600">
-              Tell us about your business so we can create the perfect review prompts for you.
-            </p>
+    <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
+      <PageCard icon={<FaStore className="w-9 h-9 text-slate-blue" />}>
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-start justify-between mt-2 mb-4">
+            <div className="flex flex-col mt-0 md:mt-[3px]">
+              <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
+                Create Your Business Profile
+              </h1>
+              <p className="text-gray-600 text-base max-w-md mt-0 mb-10">
+                Tell us about your business so we can create the perfect review prompts for you.
+              </p>
+            </div>
           </div>
+          
           <SimpleBusinessForm
             onSuccess={handleBusinessCreated}
             accountId={accountId}
             user={user}
           />
-        </PageCard>
-      </div>
+        </div>
+      </PageCard>
 
       {/* Welcome popup for new users */}
       {showWelcomePopup && (

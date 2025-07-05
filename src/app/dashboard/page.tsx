@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { supabase, getUserOrMock, getSessionOrMock } from "@/utils/supabaseClient";
 import { useRouter, useSearchParams } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
-import { FaHome } from "react-icons/fa";
+import { FaHome, FaStore, FaChartLine, FaUser, FaCog, FaSignOutAlt, FaPlus } from "react-icons/fa";
 import DashboardContent from "./DashboardContent";
 import PricingModal, { tiers } from "../components/PricingModal";
 import FiveStarSpinner from "../components/FiveStarSpinner";
@@ -17,10 +17,8 @@ import QuoteDisplay from "../components/QuoteDisplay";
 import StarfallCelebration from "../components/StarfallCelebration";
 import { trackEvent, GA_EVENTS } from "../../utils/analytics";
 import { getAccountIdForUser } from "@/utils/accountUtils";
-import { useAuthGuard } from "@/utils/authGuard";
-import { FaStore, FaChartLine, FaUser, FaCog, FaSignOutAlt, FaPlus } from "react-icons/fa";
-import { checkAccountLimits } from "@/utils/accountLimits";
 import { useAdmin } from "@/contexts/AdminContext";
+import { checkAccountLimits } from "@/utils/accountLimits";
 
 interface DashboardData {
   user: any;
@@ -70,12 +68,11 @@ export default function Dashboard() {
   // Use the centralized admin context instead of local state
   const { isAdminUser, isLoading: adminLoading } = useAdmin();
 
-  // Use auth guard with loading state
-  const { loading: authLoading, shouldRedirect } = useAuthGuard({ redirectToCreateBusiness: true });
-
   // Consolidated data loading function
   const loadAllDashboardData = async (user: any, accountId: string) => {
     try {
+      console.log('📊 Dashboard: Loading all dashboard data...');
+      
       // Batch all database queries together for better performance
       const [
         accountResult,
@@ -122,6 +119,8 @@ export default function Dashboard() {
         checkAccountLimits(supabase, user.id, "prompt_page")
       ]);
 
+      console.log('📊 Dashboard: Database queries completed');
+
       // Process the results
       const account = accountResult.data;
       const businesses = businessesResult.data || [];
@@ -129,6 +128,14 @@ export default function Dashboard() {
       const widgets = widgetsResult.data || [];
       const reviews = reviewStatsResult.data || [];
       const limits = limitsResult;
+
+      console.log('📊 Dashboard: Processing results:', {
+        account: !!account,
+        businessCount: businesses.length,
+        promptPageCount: allPromptPages.length,
+        widgetCount: widgets.length,
+        reviewCount: reviews.length
+      });
 
       // Separate universal and custom prompt pages
       const universalPromptPage = allPromptPages.find(pp => pp.is_universal);
@@ -170,7 +177,7 @@ export default function Dashboard() {
         businesses,
         promptPages: allPromptPages,
         widgets,
-        isAdminUser,
+        isAdminUser: isAdminUser || false,
         accountLimits: limits,
         reviewStats: stats,
         universalPromptPage,
@@ -178,40 +185,45 @@ export default function Dashboard() {
         universalUrl
       };
 
+      console.log('📊 Dashboard: Setting dashboard data');
       setData(dashboardData);
       setBusinesses(businesses);
       setAccountData(account);
       setUser(user);
-      setIsAdmin(isAdminUser);
+      setIsAdmin(isAdminUser || false);
+
+      console.log('✅ Dashboard: All data loaded successfully');
 
     } catch (error) {
-      console.error("Error loading dashboard data:", error);
-      setError("Failed to load dashboard data");
+      console.error("❌ Dashboard: Error loading dashboard data:", error);
+      throw error; // Re-throw to be caught by the calling function
     }
   };
 
   // Single useEffect for all data loading
   useEffect(() => {
-    // Only load data if admin status is not loading
-    if (adminLoading) return;
-    
     const initializeDashboard = async () => {
       try {
+        console.log('🔍 Dashboard: Starting initialization...');
         setIsLoading(true);
         setError(null);
 
-        const { data: { user }, error: userError } = await getUserOrMock(supabase);
+        // 🔧 SIMPLIFIED: Direct auth check without authGuard conflicts
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
         
         if (userError || !user) {
-          setError("You must be signed in to access the dashboard.");
-          setIsLoading(false);
+          console.log('❌ Dashboard: Authentication failed, redirecting to sign-in');
+          router.push('/auth/sign-in');
           return;
         }
+
+        console.log('✅ Dashboard: User authenticated:', user.id);
 
         // Get account ID using the utility function
         const accountId = await getAccountIdForUser(user.id, supabase);
         
         if (!accountId) {
+          console.log('📊 Dashboard: No account found - new user');
           // New user - show welcome message and guide to create business
           setIsNewUser(true);
           setData({
@@ -220,7 +232,7 @@ export default function Dashboard() {
             businesses: [],
             promptPages: [],
             widgets: [],
-            isAdminUser: isAdminUser,
+            isAdminUser: isAdminUser || false,
             accountLimits: null,
             reviewStats: { total: { week: 0, month: 0, year: 0 }, verified: { week: 0, month: 0, year: 0 } },
             universalPromptPage: null,
@@ -231,18 +243,25 @@ export default function Dashboard() {
           return;
         }
 
+        console.log('📊 Dashboard: Loading data for account:', accountId);
         // Load all data in parallel
         await loadAllDashboardData(user, accountId);
+        
+        console.log('✅ Dashboard: Data loading complete');
         setIsLoading(false);
+        
       } catch (error) {
-        console.error("Error initializing dashboard:", error);
+        console.error("❌ Dashboard: Error initializing dashboard:", error);
         setError("Failed to initialize dashboard");
         setIsLoading(false);
       }
     };
 
-    initializeDashboard();
-  }, [adminLoading, isAdminUser]);
+    // Only run if admin context is ready
+    if (!adminLoading) {
+      initializeDashboard();
+    }
+  }, [adminLoading, isAdminUser, router]);
 
   // Handle post-save modal flag
   useEffect(() => {
@@ -296,6 +315,8 @@ export default function Dashboard() {
 
     // Determine if plan selection is REQUIRED (user cannot dismiss modal) vs OPTIONAL
     const isPlanSelectionRequired = 
+      // Required: New user who hasn't selected a plan yet (no plan, 'no_plan', or 'NULL' and has created a business)
+      ((!plan || plan === 'no_plan' || plan === 'NULL') && businessCount > 0) ||
       // Required: Trial has expired and user hasn't paid (must select plan to continue)
       (plan === "grower" && isTrialExpired && !hasStripeCustomer);
     
@@ -407,17 +428,12 @@ export default function Dashboard() {
   }, []);
 
   // Handle loading and redirect states after all hooks are called
-  if (authLoading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">
         <AppLoader />
       </div>
     );
-  }
-
-  // Don't render anything if we're redirecting
-  if (shouldRedirect) {
-    return null;
   }
 
   const handleCreatePromptPageClick = (
@@ -744,6 +760,7 @@ export default function Dashboard() {
         <PricingModal
           onSelectTier={handleSelectTier}
           currentPlan={data?.account?.plan}
+          hasHadPaidPlan={data?.account?.has_had_paid_plan || false}
           showCanceledMessage={justCanceledStripe}
           onClose={handleClosePricingModal}
           isPlanSelectionRequired={planSelectionRequired}

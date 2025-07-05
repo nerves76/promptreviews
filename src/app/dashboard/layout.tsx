@@ -44,24 +44,26 @@ export default function DashboardLayout({
         .single();
       
       console.log("DashboardLayout: Fetched account data:", account);
-      console.log("DashboardLayout: Account error:", accountError);
+      if (accountError) {
+        console.log("DashboardLayout: Account error:", accountError);
+      }
       setAccountData(account);
     } catch (accountError) {
       console.error("Error fetching account data:", accountError);
     }
   }, []);
 
-  // 🔧 SIMPLIFIED: Use the same reliable session pattern as authGuard
+  // 🔧 SIMPLIFIED: Quick auth check, then let children handle their own logic
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        console.log('🔍 DashboardLayout: Starting authentication check...');
+        console.log('🔍 DashboardLayout: Checking authentication...');
         
-        // 🔧 SIMPLIFIED: Use the same reliable session pattern
-        const { data: { user }, error } = await getUserOrMock(supabase);
+        // Quick auth check using getUser (faster than getUserOrMock)
+        const { data: { user }, error } = await supabase.auth.getUser();
 
         if (error || !user) {
-          console.log('❌ DashboardLayout: Authentication failed, redirecting to sign-in');
+          console.log('❌ DashboardLayout: No authenticated user, redirecting to sign-in');
           router.push("/auth/sign-in");
           return;
         }
@@ -69,10 +71,10 @@ export default function DashboardLayout({
         console.log('✅ DashboardLayout: User authenticated:', user.id);
         setUser(user);
         
-        // Fetch account data for the TrialBanner
-        await fetchAccountData(user.id);
+        // Fetch account data in background (don't block children)
+        fetchAccountData(user.id).catch(console.error);
         
-        console.log('✅ DashboardLayout: Setup complete, showing dashboard');
+        console.log('✅ DashboardLayout: Auth complete, showing children');
         setLoading(false);
         
       } catch (error) {
