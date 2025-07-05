@@ -9,12 +9,10 @@ import { createServerSupabaseClient } from '@/utils/supabaseClient';
 import { getAccountIdForUser } from '@/utils/accountUtils';
 
 interface Params {
-  params: {
-    id: string;
-  };
+  id: string;
 }
 
-export async function GET(request: NextRequest, { params }: Params) {
+export async function GET(request: NextRequest, { params }: { params: Promise<Params> }) {
   try {
     const supabase = await createServerSupabaseClient();
     const locationId = (await params).id;
@@ -73,7 +71,7 @@ export async function GET(request: NextRequest, { params }: Params) {
   }
 }
 
-export async function PUT(request: NextRequest, { params }: Params) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<Params> }) {
   try {
     const supabase = await createServerSupabaseClient();
     const locationId = (await params).id;
@@ -183,7 +181,7 @@ export async function PUT(request: NextRequest, { params }: Params) {
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: Params) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<Params> }) {
   try {
     const supabase = await createServerSupabaseClient();
     const locationId = (await params).id;

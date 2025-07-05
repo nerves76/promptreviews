@@ -53,6 +53,7 @@ export interface BusinessLocation {
   // Location-specific overrides
   review_platforms?: any[];
   logo_url?: string;
+  location_photo_url?: string | null;
   
   // Operational fields
   hours?: string;

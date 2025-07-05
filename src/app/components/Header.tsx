@@ -9,7 +9,6 @@ import { FaUserCircle, FaBell } from "react-icons/fa";
 import { Menu } from "@headlessui/react";
 import { supabase, getUserOrMock } from "@/utils/supabaseClient";
 import { useAdmin } from "@/contexts/AdminContext";
-import { useBusinessProfile } from "@/utils/authGuard";
 import { trackEvent, GA_EVENTS } from '../../utils/analytics';
 import PromptReviewsLogo from "@/app/dashboard/components/PromptReviewsLogo";
 
@@ -46,7 +45,10 @@ export default function Header() {
   const menuRef = useRef<HTMLDivElement>(null);
   
   const { isAdminUser, isLoading: adminLoading } = useAdmin();
-  const { hasBusiness, loading: businessLoading, refresh: refreshBusinessProfile } = useBusinessProfile();
+  // 🔧 REMOVED: useBusinessProfile call that was causing infinite auth loops
+  // Header is already protected by DashboardLayout authentication
+  const hasBusiness = true; // Assume business exists since we're in dashboard
+  const businessLoading = false;
 
   useEffect(() => {
     const getUser = async () => {
@@ -158,38 +160,8 @@ export default function Header() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showNotifications]);
 
-  // Listen for plan selection events to refresh business profile
-  useEffect(() => {
-    const handlePlanSelection = (event: Event) => {
-      console.log("Header: Plan selection detected, refreshing business profile");
-      console.log("Header: Event details:", (event as CustomEvent)?.detail);
-      if (refreshBusinessProfile) {
-        refreshBusinessProfile();
-      }
-    };
-
-    const handleBusinessCreated = (event: Event) => {
-      console.log("🏢 Header: Business created event detected, refreshing business profile");
-      console.log("🏢 Header: Business creation details:", (event as CustomEvent)?.detail);
-      
-      // Force refresh with a small delay to ensure database has updated
-      setTimeout(() => {
-        console.log("🔄 Header: Executing delayed business profile refresh");
-        if (refreshBusinessProfile) {
-          refreshBusinessProfile();
-        }
-      }, 500);
-    };
-
-    // Listen for custom events that indicate plan selection
-    window.addEventListener('planSelected', handlePlanSelection as EventListener);
-    window.addEventListener('businessCreated', handleBusinessCreated as EventListener);
-
-    return () => {
-      window.removeEventListener('planSelected', handlePlanSelection as EventListener);
-      window.removeEventListener('businessCreated', handleBusinessCreated as EventListener);
-    };
-  }, [refreshBusinessProfile]); // Include refreshBusinessProfile in dependencies
+  // 🔧 REMOVED: Business profile refresh listeners since Header no longer manages business state
+  // DashboardLayout handles business profile state management
 
   return (
     <header className="bg-white shadow">

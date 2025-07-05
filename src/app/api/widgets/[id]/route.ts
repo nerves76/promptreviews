@@ -255,7 +255,8 @@ export async function DELETE(
     }
 
     const token = authHeader.substring(7);
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    const supabase = createAuthClient(token); // 🔧 CONSOLIDATED: Use request-scoped client
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

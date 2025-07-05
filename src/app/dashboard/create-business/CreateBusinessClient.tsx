@@ -12,8 +12,12 @@ import WelcomePopup from "@/app/components/WelcomePopup";
 import { ensureAccountExists, getAccountIdForUser } from "@/utils/accountUtils";
 
 export default function CreateBusinessClient() {
-  // Use the centralized admin context instead of local state
-  const { isAdminUser, isLoading: adminLoading } = useAdmin();
+  console.log('🔍 CreateBusinessClient: Component function called');
+  
+  // TEMP: Bypass admin loading to test if this is causing the infinite loading
+  // const { isAdminUser, isLoading: adminLoading } = useAdmin();
+  const isAdminUser = false;
+  const adminLoading = false;
   
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -36,42 +40,34 @@ export default function CreateBusinessClient() {
     router.push("/dashboard?businessCreated=true");
   }, [router]);
 
-  // 🔧 SIMPLIFIED: Use the same reliable session pattern as authGuard
+  // 🔧 SIMPLIFIED: Since DashboardLayout already handles authentication, just do the business logic
   useEffect(() => {
-    const checkAuthAndSetup = async () => {
+    const setupBusinessCreation = async () => {
       try {
-        console.log('🔍 CreateBusinessClient: Starting authentication check...');
+        console.log('🔍 CreateBusinessClient: Starting business creation setup...');
         
-        // Use the same simple session check as authGuard (no retries, no complex logic)
+        // 🔧 SIMPLIFIED: Use the same reliable session pattern as authGuard
         const { data: { user }, error } = await getUserOrMock(supabase);
 
-        if (error) {
-          console.log('❌ CreateBusinessClient: Authentication check failed:', error.message);
+        if (error || !user) {
+          console.log('❌ CreateBusinessClient: No user found, redirecting to sign-in');
           redirectToSignIn();
           return;
         }
 
-        if (!user) {
-          console.log('ℹ️  CreateBusinessClient: No authenticated user found, redirecting to sign-in');
-          redirectToSignIn();
-          return;
-        }
-
-        console.log('✅ CreateBusinessClient: User authenticated:', user.id);
+        console.log('✅ CreateBusinessClient: User found:', user.id);
         setUser(user);
 
-        // Check if user already has an account
+        // Check if user already has businesses
         const accountId = await getAccountIdForUser(user.id, supabase);
         
         if (accountId) {
-          // Check if user already has businesses
           const { data: businesses } = await supabase
             .from("businesses")
             .select("id")
             .eq("account_id", accountId);
 
           if (businesses && businesses.length > 0) {
-            // User already has businesses, redirect to dashboard
             console.log("✅ CreateBusinessClient: User already has businesses, redirecting to dashboard");
             redirectToDashboard();
             return;
@@ -98,32 +94,13 @@ export default function CreateBusinessClient() {
       }
     };
 
-    checkAuthAndSetup();
-  }, [redirectToSignIn, redirectToDashboard]);
+    setupBusinessCreation();
+  }, [redirectToDashboard, redirectToSignIn]);
 
   // Handle business creation success
-  const handleBusinessCreated = useCallback(async (businessData: any) => {
-    console.log("✅ CreateBusinessClient: Business created successfully:", businessData);
+  const handleBusinessCreated = useCallback(async () => {
+    console.log("✅ CreateBusinessClient: Business created successfully");
     
-    // Initialize onboarding tasks
-    try {
-      const response = await fetch("/api/initialize-onboarding-tasks", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ businessId: businessData.id }),
-      });
-
-      if (!response.ok) {
-        console.error("❌ CreateBusinessClient: Failed to initialize onboarding tasks");
-      } else {
-        console.log("✅ CreateBusinessClient: Onboarding tasks initialized");
-      }
-    } catch (error) {
-      console.error("💥 CreateBusinessClient: Error initializing onboarding tasks:", error);
-    }
-
     // Redirect to dashboard with success flag
     redirectToDashboardWithFlag();
   }, [redirectToDashboardWithFlag]);
@@ -133,7 +110,10 @@ export default function CreateBusinessClient() {
   };
 
   // Show loading while checking authentication or admin status
+  console.log('🔍 CreateBusinessClient: Render state check - loading:', loading, 'adminLoading:', adminLoading);
+  
   if (loading || adminLoading) {
+    console.log('🔄 CreateBusinessClient: Showing loading spinner');
     return <AppLoader variant="default" />;
   }
 
@@ -165,16 +145,19 @@ export default function CreateBusinessClient() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-3xl mx-auto py-8 px-4">
-        <PageCard
-          title="Create Your Business Profile"
-          description="Tell us about your business so we can create the perfect review prompts for you."
-          icon={<FaStore className="h-8 w-8 text-blue-600" />}
-        >
+        <PageCard icon={<FaStore className="h-8 w-8 text-blue-600" />}>
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">
+              Create Your Business Profile
+            </h1>
+            <p className="text-lg text-gray-600">
+              Tell us about your business so we can create the perfect review prompts for you.
+            </p>
+          </div>
           <SimpleBusinessForm
             onSuccess={handleBusinessCreated}
             accountId={accountId}
             user={user}
-            isAdminUser={isAdminUser}
           />
         </PageCard>
       </div>
@@ -184,7 +167,16 @@ export default function CreateBusinessClient() {
         <WelcomePopup
           isOpen={showWelcomePopup}
           onClose={handleCloseWelcome}
-          userName={user?.user_metadata?.first_name || user?.email || ""}
+          title="Did you know you're a miracle?"
+          message={`Carl Sagan said it best:
+
+"The cosmos is within us. We are made of star-stuff. We are a way for the universe to know itself."
+
+Beautiful right! There is a flaming gas giant in you too! Er . . . that didn't come out quite right . . .
+
+Anyway, I am here to help you get the stars you deserve—on Google, Facebook, TripAdvisor, Trust Pilot—you name it.
+
+Here's your first tip: [icon]. <- click here`}
         />
       )}
     </div>

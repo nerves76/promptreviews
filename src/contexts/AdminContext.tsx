@@ -7,9 +7,8 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { supabase } from '@/utils/supabaseClient';
+import { supabase, getUserOrMock } from '@/utils/supabaseClient';
 import { isAdmin, ensureAdminForEmail } from '@/utils/admin';
-import { getCurrentUser } from '@/utils/sessionUtils';
 
 interface AdminContextType {
   isAdminUser: boolean;
@@ -46,10 +45,10 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     setError(null);
 
     try {
-      // Use the session-aware user getter
-      const user = await getCurrentUser();
+      // 🔧 SIMPLIFIED: Use the same reliable session pattern as other components
+      const { data: { user }, error } = await getUserOrMock(supabase);
       
-      if (!user) {
+      if (error || !user) {
         console.log('AdminContext: No user found');
         setIsAdminUser(false);
         setIsLoading(false);

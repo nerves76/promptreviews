@@ -591,7 +591,7 @@ export default function PromptPages() {
                                     title="Copy link"
                                     onClick={async () => {
                                       try {
-                                        const url = locationPage ? `${window.location.origin}/r/${locationPage.slug}` : `${window.location.origin}/r/${location.slug || location.id}`;
+                                        const url = locationPage ? `${window.location.origin}/r/${locationPage.slug}` : `${window.location.origin}/r/${location.id}`;
                                         await navigator.clipboard.writeText(url);
                                         setCopySuccess("Link copied!");
                                         setTimeout(() => setCopySuccess(""), 2000);
@@ -605,7 +605,7 @@ export default function PromptPages() {
                                   <button
                                     type="button"
                                     onClick={() => {
-                                      const url = locationPage ? `${window.location.origin}/r/${locationPage.slug}` : `${window.location.origin}/r/${location.slug || location.id}`;
+                                      const url = locationPage ? `${window.location.origin}/r/${locationPage.slug}` : `${window.location.origin}/r/${location.id}`;
                                       setQrModal({
                                         open: true,
                                         url: url,
@@ -804,10 +804,10 @@ export default function PromptPages() {
             setEditingLocation(null);
           }}
           location={editingLocation}
-          business={business}
-          onCreateLocation={handleCreateLocation}
-          onUpdateLocation={handleUpdateLocation}
-          onDeleteLocation={handleDeleteLocation}
+          onSave={editingLocation ? handleUpdateLocation : handleCreateLocation}
+          canCreateMore={locations.length < locationLimits.max}
+          currentCount={locations.length}
+          maxLocations={locationLimits.max}
         />
       )}
 

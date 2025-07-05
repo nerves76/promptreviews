@@ -95,6 +95,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Get accounts data (handle both array and object formats)
+    const accounts = Array.isArray(accountUser.accounts) ? accountUser.accounts[0] : accountUser.accounts;
+
     // Check if account can add more users
     const { data: canAdd, error: canAddError } = await supabase
       .rpc('can_add_user_to_account', { account_uuid: accountUser.account_id });
@@ -112,9 +115,9 @@ export async function POST(request: NextRequest) {
         { 
           error: 'User limit reached',
           details: {
-            current_users: accountUser.accounts?.[0]?.max_users,
-            max_users: accountUser.accounts?.[0]?.max_users,
-            plan: accountUser.accounts?.[0]?.plan
+            current_users: accounts?.max_users,
+            max_users: accounts?.max_users,
+            plan: accounts?.plan
           }
         },
         { status: 400 }
@@ -190,8 +193,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Send email invitation
-    const inviterName = `${accountUser.accounts?.first_name || ''} ${accountUser.accounts?.last_name || ''}`.trim() || 'Someone';
-    const businessName = accountUser.accounts?.business_name || 'their business';
+    const inviterName = `${accounts?.first_name || ''} ${accounts?.last_name || ''}`.trim() || 'Someone';
+    const businessName = accounts?.business_name || 'their business';
     const formattedExpirationDate = new Date(invitation.expires_at).toLocaleDateString('en-US', {
       weekday: 'long',
       year: 'numeric', 
@@ -208,14 +211,14 @@ export async function POST(request: NextRequest) {
     });
 
     // Send the email
-    const emailResult = await sendTeamInvitationEmail({
-      to: email.trim(),
+    const emailResult = await sendTeamInvitationEmail(
+      email.trim(),
       inviterName,
       businessName,
       role,
       token,
-      expirationDate: formattedExpirationDate
-    });
+      formattedExpirationDate
+    );
 
     if (!emailResult.success) {
       console.error('Failed to send invitation email:', emailResult.error);

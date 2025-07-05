@@ -18,8 +18,9 @@ import { FaRobot } from 'react-icons/fa';
 interface WelcomePopupProps {
   isOpen: boolean;
   onClose: () => void;
-  title: string;
-  message: string;
+  title?: string;
+  message?: string;
+  userName?: string;
   imageUrl?: string;
   imageAlt?: string;
   buttonText?: string;
@@ -31,6 +32,7 @@ export default function WelcomePopup({
   onClose, 
   title, 
   message, 
+  userName,
   imageUrl, 
   imageAlt = "Welcome image",
   buttonText = "Get Started",
@@ -62,7 +64,20 @@ export default function WelcomePopup({
 
   if (!isOpen) return null;
 
+  // Use provided title/message or create default welcome content
+  const welcomeTitle = title || `Welcome${userName ? `, ${userName}` : ''}!`;
+  const welcomeMessage = message || `Carl Sagan said it best:
+
+"The cosmos is within us. We are made of star-stuff. We are a way for the universe to know itself."
+
+Beautiful right! There is a flaming gas giant in you too! Er . . . that didn't come out quite right . . .
+
+Anyway, I am here to help you get the stars you deserve—on Google, Facebook, TripAdvisor, Trust Pilot—you name it.
+
+Here's your first tip: [icon]. <- click here`;
+
   const renderMessage = (text: string) => {
+    if (!text) return null;
     return text.split('\n').map((paragraph, index) => {
       // Check if this paragraph contains the robot icon placeholder
       if (paragraph.includes('[icon]')) {
@@ -88,9 +103,8 @@ export default function WelcomePopup({
                         ref={tooltipRef}
                         className="absolute z-30 left-1/2 -translate-x-1/2 bottom-full mb-2 w-80 p-4 bg-white border border-gray-200 rounded-lg shadow-lg text-sm text-gray-700"
                       >
-                        <span className="block mb-2 font-semibold">You did it! </span>
                         <span className="block mb-2">
-                          When you see me <FaRobot className="inline w-5 h-5 text-slate-blue align-middle" /> next to an input it means I can use this info to help you create review templates for your customers and clients. And if you click it you'll see a helpful tip. (But don't worry, using Prompty AI is optional.)
+                          Whenever you see me <FaRobot className="inline w-5 h-5 text-slate-blue align-middle" />, it means this field will help me learn about your business and create review templates for your customers or clients. But using Prompty AI is also totally optional!
                         </span>
                         <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-200"></div>
                       </div>
@@ -129,10 +143,10 @@ export default function WelcomePopup({
         <div className="flex-1 space-y-6 py-8 px-8">
           <div>
             <h2 className="text-2xl font-bold text-slate-blue mb-4">
-              {title}
+              {welcomeTitle}
             </h2>
             <div className="text-gray-700 leading-relaxed space-y-4">
-              {renderMessage(message)}
+              {renderMessage(welcomeMessage)}
             </div>
             
             {/* Call to action button */}
@@ -147,10 +161,10 @@ export default function WelcomePopup({
 
         {/* Right side: Image */}
         <div className="flex-1 bg-gray-50 p-8 rounded-r-xl flex items-center justify-center">
-          {imageUrl ? (
+          {imageUrl || !userName ? (
             <div className="w-full h-full flex items-center justify-center">
               <img 
-                src={imageUrl} 
+                src={imageUrl || "/images/prompty-catching-stars.png"} 
                 alt={imageAlt} 
                 className="w-full h-auto max-w-md mx-auto rounded-lg shadow-sm"
               />
