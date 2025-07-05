@@ -546,8 +546,8 @@ export default function PromptPages() {
                       <thead className="bg-gray-50">
                         <tr>
                           <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Location</th>
-                          <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Address</th>
-                          <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Actions</th>
+                          <th className="relative py-3.5 pl-3 pr-4 sm:pr-6 text-sm font-semibold text-gray-900">Actions</th>
+                          <th className="relative py-3.5 pl-3 pr-4 sm:pr-6 text-sm font-semibold text-gray-900">Share</th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
@@ -556,17 +556,9 @@ export default function PromptPages() {
                           return (
                             <tr key={location.id} className={index % 2 === 0 ? "bg-white" : "bg-blue-50"}>
                               <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
-                                <div>
-                                  <div className="font-medium text-gray-900">
-                                    {getLocationDisplayName(location)}
-                                  </div>
-                                  {location.phone && (
-                                    <div className="text-sm text-gray-500">{location.phone}</div>
-                                  )}
+                                <div className="font-medium text-gray-900">
+                                  {getLocationDisplayName(location)}
                                 </div>
-                              </td>
-                              <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
-                                {formatLocationAddress(location)}
                               </td>
                               <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                                 <div className="flex flex-row gap-2 items-center justify-end">
@@ -579,6 +571,17 @@ export default function PromptPages() {
                                       Edit
                                     </Link>
                                   </div>
+                                  <button
+                                    onClick={() => handleDeleteLocation(location.id)}
+                                    className="text-gray-600 hover:text-red-600"
+                                    title="Delete location"
+                                  >
+                                    <FaTrash className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </td>
+                              <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                                <div className="flex flex-row gap-2 items-center justify-end">
                                   <button
                                     type="button"
                                     className="inline-flex items-center px-2 py-1.5 bg-slate-blue text-white rounded hover:bg-slate-blue/80 text-sm font-medium shadow h-9 align-middle whitespace-nowrap w-full sm:w-auto"
@@ -611,13 +614,6 @@ export default function PromptPages() {
                                   >
                                     <MdDownload size={22} color="#fff" />
                                     QR code
-                                  </button>
-                                  <button
-                                    onClick={() => handleDeleteLocation(location.id)}
-                                    className="text-gray-600 hover:text-red-600"
-                                    title="Delete location"
-                                  >
-                                    <FaTrash className="w-4 h-4" />
                                   </button>
                                 </div>
                               </td>
