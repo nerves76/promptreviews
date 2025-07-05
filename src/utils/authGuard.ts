@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabaseClient";
 
+// 🔧 CONSOLIDATED: Shared client instance to eliminate duplicate createClient calls
+const supabase = createClient();
+
 interface AuthGuardOptions {
   requireBusinessProfile?: boolean;
   redirectToCreateBusiness?: boolean;
@@ -23,10 +26,7 @@ export function useAuthGuard(options: AuthGuardOptions = {}): AuthGuardResult {
       try {
         console.log('🔐 useAuthGuard: Starting authentication check...');
         
-        // Use the new SSR-compatible client
-        const supabase = createClient();
-        
-        // Get the current user using the same method as the server
+        // 🔧 CONSOLIDATED: Use shared client instance
         const { data: { user }, error } = await supabase.auth.getUser();
 
         if (error) {
@@ -109,9 +109,7 @@ export function useBusinessProfile() {
     try {
       console.log('📊 useBusinessProfile: Checking business profile...');
       
-      const supabase = createClient();
-      
-      // Get current user first
+      // 🔧 CONSOLIDATED: Use shared client instance
       const { data: { user }, error: userError } = await supabase.auth.getUser();
 
       if (userError || !user) {

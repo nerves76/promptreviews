@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
-import { supabase } from "@/utils/supabaseClient";
-import { getUserOrMock } from "@/utils/supabaseClient";
+// 🔧 CONSOLIDATED: Single import from supabaseClient module
+import { supabase, getUserOrMock } from "@/utils/supabaseClient";
 import { getAccountIdForUser } from "@/utils/accountUtils";
 import { FaArrowsAlt } from "react-icons/fa";
 

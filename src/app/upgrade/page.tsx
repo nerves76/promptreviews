@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/utils/supabaseClient";
+// 🔧 CONSOLIDATED: Single import from supabaseClient module
+import { supabase, getUserOrMock } from "@/utils/supabaseClient";
 import { FaCheck, FaRocket, FaUsers, FaCrown, FaStar } from "react-icons/fa";
 import { useAuthGuard } from "@/utils/authGuard";
-import { getUserOrMock } from "@/utils/supabaseClient";
 import FiveStarSpinner from "@/app/components/FiveStarSpinner";
 
 interface PricingTier {

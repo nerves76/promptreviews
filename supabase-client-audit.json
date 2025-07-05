@@ -883,45 +883,31 @@
       "type": "ts",
       "instances": [
         {
-          "type": "createClient",
-          "category": "direct",
-          "line": 38,
-          "content": "const supabase = createClient(supabaseUrl, supabaseServiceKey);",
+          "type": "supabaseClient import",
+          "category": "util-import",
+          "line": 9,
+          "content": "import { createServiceRoleClient } from '@/utils/supabaseClient';",
           "context": {
             "before": [
               "",
-              "    const { createClient } = await import('@supabase/supabase-js');"
+              "import { NextRequest, NextResponse } from \"next/server\";"
             ],
-            "current": "    const supabase = createClient(supabaseUrl, supabaseServiceKey);",
+            "current": "import { createServiceRoleClient } from '@/utils/supabaseClient';",
             "after": [
               "",
-              "    const { data: promptPage, error } = await supabase"
-            ]
-          }
-        },
-        {
-          "type": "createClient",
-          "category": "direct",
-          "line": 102,
-          "content": "const supabase = createClient(supabaseUrl, supabaseServiceKey);",
-          "context": {
-            "before": [
-              "",
-              "    const { createClient } = await import('@supabase/supabase-js');"
-            ],
-            "current": "    const supabase = createClient(supabaseUrl, supabaseServiceKey);",
-            "after": [
-              "",
-              "    const { data: promptPage, error } = await supabase"
+              "// 🔧 CONSOLIDATION: Use centralized service role client"
             ]
           }
         }
       ],
-      "imports": [],
-      "hasMultiplePatterns": true,
-      "recommendations": [
-        "CONSOLIDATE: Multiple client creation patterns in single file"
-      ]
+      "imports": [
+        {
+          "line": 9,
+          "statement": "import { createServiceRoleClient } from '@/utils/supabaseClient'"
+        }
+      ],
+      "hasMultiplePatterns": false,
+      "recommendations": []
     },
     {
       "path": "src/app/api/prompt-pages/create-prompt-for-contact.ts",
@@ -2336,45 +2322,41 @@
           "type": "supabaseClient import",
           "category": "util-import",
           "line": 26,
-          "content": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
+          "content": "// 🔧 CONSOLIDATED: Single import from supabaseClient module",
           "context": {
             "before": [
               "import { checkAccountLimits } from \"@/utils/accountLimits\";",
               "import { Dialog } from \"@headlessui/react\";"
             ],
-            "current": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
+            "current": "// 🔧 CONSOLIDATED: Single import from supabaseClient module",
             "after": [
-              "import dynamic from \"next/dynamic\";",
-              "import { slugify } from \"@/utils/slugify\";"
+              "import { getUserOrMock, supabase } from \"@/utils/supabaseClient\";",
+              "import dynamic from \"next/dynamic\";"
             ]
           }
         },
         {
           "type": "supabaseClient import",
           "category": "util-import",
-          "line": 34,
-          "content": "import { supabase } from \"@/utils/supabaseClient\";",
+          "line": 27,
+          "content": "import { getUserOrMock, supabase } from \"@/utils/supabaseClient\";",
           "context": {
             "before": [
-              "import FiveStarSpinner from \"../../components/FiveStarSpinner\";",
-              "import AppLoader from \"../../components/AppLoader\";"
+              "import { Dialog } from \"@headlessui/react\";",
+              "// 🔧 CONSOLIDATED: Single import from supabaseClient module"
             ],
-            "current": "import { supabase } from \"@/utils/supabaseClient\";",
+            "current": "import { getUserOrMock, supabase } from \"@/utils/supabaseClient\";",
             "after": [
-              "",
-              "interface ReviewPlatformLink {"
+              "import dynamic from \"next/dynamic\";",
+              "import { slugify } from \"@/utils/slugify\";"
             ]
           }
         }
       ],
       "imports": [
         {
-          "line": 26,
-          "statement": "import { getUserOrMock } from \"@/utils/supabaseClient\""
-        },
-        {
-          "line": 34,
-          "statement": "import { supabase } from \"@/utils/supabaseClient\""
+          "line": 27,
+          "statement": "import { getUserOrMock, supabase } from \"@/utils/supabaseClient\""
         }
       ],
       "hasMultiplePatterns": true,
@@ -2638,15 +2620,15 @@
           "type": "supabaseClient import",
           "category": "util-import",
           "line": 3,
-          "content": "import { supabase } from \"@/utils/supabaseClient\";",
+          "content": "// 🔧 CONSOLIDATED: Single import from supabaseClient module",
           "context": {
             "before": [
               "\"use client\";",
               "import * as React from \"react\";"
             ],
-            "current": "import { supabase } from \"@/utils/supabaseClient\";",
+            "current": "// 🔧 CONSOLIDATED: Single import from supabaseClient module",
             "after": [
-              "import { getUserOrMock } from \"@/utils/supabaseClient\";",
+              "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
               "import { getAccountIdForUser } from \"@/utils/accountUtils\";"
             ]
           }
@@ -2655,13 +2637,13 @@
           "type": "supabaseClient import",
           "category": "util-import",
           "line": 4,
-          "content": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
+          "content": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
           "context": {
             "before": [
               "import * as React from \"react\";",
-              "import { supabase } from \"@/utils/supabaseClient\";"
+              "// 🔧 CONSOLIDATED: Single import from supabaseClient module"
             ],
-            "current": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
+            "current": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
             "after": [
               "import { getAccountIdForUser } from \"@/utils/accountUtils\";",
               "import { FaArrowsAlt } from \"react-icons/fa\";"
@@ -2671,12 +2653,8 @@
       ],
       "imports": [
         {
-          "line": 3,
-          "statement": "import { supabase } from \"@/utils/supabaseClient\""
-        },
-        {
           "line": 4,
-          "statement": "import { getUserOrMock } from \"@/utils/supabaseClient\""
+          "statement": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\""
         }
       ],
       "hasMultiplePatterns": true,
@@ -2754,45 +2732,41 @@
           "type": "supabaseClient import",
           "category": "util-import",
           "line": 5,
-          "content": "import { supabase } from \"@/utils/supabaseClient\";",
+          "content": "// 🔧 CONSOLIDATED: Single import from supabaseClient module",
           "context": {
             "before": [
               "import { useState, useEffect } from \"react\";",
               "import { useAuthGuard } from \"@/utils/authGuard\";"
             ],
-            "current": "import { supabase } from \"@/utils/supabaseClient\";",
+            "current": "// 🔧 CONSOLIDATED: Single import from supabaseClient module",
             "after": [
-              "import {",
-              "  FaDownload,"
+              "import { supabase, getUserOrMock, getSessionOrMock } from \"@/utils/supabaseClient\";",
+              "import {"
             ]
           }
         },
         {
           "type": "supabaseClient import",
           "category": "util-import",
-          "line": 17,
-          "content": "import { getUserOrMock, getSessionOrMock } from \"@/utils/supabaseClient\";",
+          "line": 6,
+          "content": "import { supabase, getUserOrMock, getSessionOrMock } from \"@/utils/supabaseClient\";",
           "context": {
             "before": [
-              "import { Dialog } from \"@headlessui/react\";",
-              "import { useRouter } from \"next/navigation\";"
+              "import { useAuthGuard } from \"@/utils/authGuard\";",
+              "// 🔧 CONSOLIDATED: Single import from supabaseClient module"
             ],
-            "current": "import { getUserOrMock, getSessionOrMock } from \"@/utils/supabaseClient\";",
+            "current": "import { supabase, getUserOrMock, getSessionOrMock } from \"@/utils/supabaseClient\";",
             "after": [
-              "import AppLoader from \"@/app/components/AppLoader\";",
-              ""
+              "import {",
+              "  FaDownload,"
             ]
           }
         }
       ],
       "imports": [
         {
-          "line": 5,
-          "statement": "import { supabase } from \"@/utils/supabaseClient\""
-        },
-        {
-          "line": 17,
-          "statement": "import { getUserOrMock, getSessionOrMock } from \"@/utils/supabaseClient\""
+          "line": 6,
+          "statement": "import { supabase, getUserOrMock, getSessionOrMock } from \"@/utils/supabaseClient\""
         }
       ],
       "hasMultiplePatterns": true,
@@ -3023,15 +2997,15 @@
           "type": "supabaseClient import",
           "category": "util-import",
           "line": 5,
-          "content": "import { supabase } from '@/utils/supabaseClient';",
+          "content": "// 🔧 CONSOLIDATED: Single import from supabaseClient module",
           "context": {
             "before": [
               "import { useEffect, useState } from 'react';",
               "import { useBusinessProfile } from '@/utils/authGuard';"
             ],
-            "current": "import { supabase } from '@/utils/supabaseClient';",
+            "current": "// 🔧 CONSOLIDATED: Single import from supabaseClient module",
             "after": [
-              "import { getUserOrMock } from '@/utils/supabaseClient';",
+              "import { supabase, getUserOrMock } from '@/utils/supabaseClient';",
               "import { getAccountIdForUser } from '@/utils/accountUtils';"
             ]
           }
@@ -3040,13 +3014,13 @@
           "type": "supabaseClient import",
           "category": "util-import",
           "line": 6,
-          "content": "import { getUserOrMock } from '@/utils/supabaseClient';",
+          "content": "import { supabase, getUserOrMock } from '@/utils/supabaseClient';",
           "context": {
             "before": [
               "import { useBusinessProfile } from '@/utils/authGuard';",
-              "import { supabase } from '@/utils/supabaseClient';"
+              "// 🔧 CONSOLIDATED: Single import from supabaseClient module"
             ],
-            "current": "import { getUserOrMock } from '@/utils/supabaseClient';",
+            "current": "import { supabase, getUserOrMock } from '@/utils/supabaseClient';",
             "after": [
               "import { getAccountIdForUser } from '@/utils/accountUtils';",
               ""
@@ -3056,12 +3030,8 @@
       ],
       "imports": [
         {
-          "line": 5,
-          "statement": "import { supabase } from '@/utils/supabaseClient'"
-        },
-        {
           "line": 6,
-          "statement": "import { getUserOrMock } from '@/utils/supabaseClient'"
+          "statement": "import { supabase, getUserOrMock } from '@/utils/supabaseClient'"
         }
       ],
       "hasMultiplePatterns": true,
@@ -3077,15 +3047,15 @@
           "type": "supabaseClient import",
           "category": "util-import",
           "line": 5,
-          "content": "import { supabase } from \"@/utils/supabaseClient\";",
+          "content": "// 🔧 CONSOLIDATED: Single import from supabaseClient module",
           "context": {
             "before": [
               "import { useRouter } from \"next/navigation\";",
               "import { useEffect, useState } from \"react\";"
             ],
-            "current": "import { supabase } from \"@/utils/supabaseClient\";",
+            "current": "// 🔧 CONSOLIDATED: Single import from supabaseClient module",
             "after": [
-              "import { getUserOrMock } from \"@/utils/supabaseClient\";",
+              "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
               "import AppLoader from \"@/app/components/AppLoader\";"
             ]
           }
@@ -3094,13 +3064,13 @@
           "type": "supabaseClient import",
           "category": "util-import",
           "line": 6,
-          "content": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
+          "content": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
           "context": {
             "before": [
               "import { useEffect, useState } from \"react\";",
-              "import { supabase } from \"@/utils/supabaseClient\";"
+              "// 🔧 CONSOLIDATED: Single import from supabaseClient module"
             ],
-            "current": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
+            "current": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
             "after": [
               "import AppLoader from \"@/app/components/AppLoader\";",
               ""
@@ -3110,12 +3080,8 @@
       ],
       "imports": [
         {
-          "line": 5,
-          "statement": "import { supabase } from \"@/utils/supabaseClient\""
-        },
-        {
           "line": 6,
-          "statement": "import { getUserOrMock } from \"@/utils/supabaseClient\""
+          "statement": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\""
         }
       ],
       "hasMultiplePatterns": true,
@@ -3131,45 +3097,41 @@
           "type": "supabaseClient import",
           "category": "util-import",
           "line": 5,
-          "content": "import { supabase } from \"@/utils/supabaseClient\";",
+          "content": "// 🔧 CONSOLIDATED: Single import from supabaseClient module",
           "context": {
             "before": [
               "import React, { useState, useEffect, useMemo } from \"react\";",
               "import { useRef } from \"react\";"
             ],
-            "current": "import { supabase } from \"@/utils/supabaseClient\";",
+            "current": "// 🔧 CONSOLIDATED: Single import from supabaseClient module",
             "after": [
-              "import Link from \"next/link\";",
-              "import { FaGlobe, FaLink, FaTimes, FaPalette, FaPlus, FaCheck, FaMapMarkerAlt, FaEdit, FaTrash } from \"react-icons/fa\";"
+              "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
+              "import Link from \"next/link\";"
             ]
           }
         },
         {
           "type": "supabaseClient import",
           "category": "util-import",
-          "line": 21,
-          "content": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
+          "line": 6,
+          "content": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
           "context": {
             "before": [
-              "import QRCodeModal from \"../components/QRCodeModal\";",
-              "import StarfallCelebration from \"@/app/components/StarfallCelebration\";"
+              "import { useRef } from \"react\";",
+              "// 🔧 CONSOLIDATED: Single import from supabaseClient module"
             ],
-            "current": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
+            "current": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
             "after": [
-              "import { getAccountIdForUser } from \"@/utils/accountUtils\";",
-              "import BusinessLocationModal from \"@/app/components/BusinessLocationModal\";"
+              "import Link from \"next/link\";",
+              "import { FaGlobe, FaLink, FaTimes, FaPalette, FaPlus, FaCheck, FaMapMarkerAlt, FaEdit, FaTrash } from \"react-icons/fa\";"
             ]
           }
         }
       ],
       "imports": [
         {
-          "line": 5,
-          "statement": "import { supabase } from \"@/utils/supabaseClient\""
-        },
-        {
-          "line": 21,
-          "statement": "import { getUserOrMock } from \"@/utils/supabaseClient\""
+          "line": 6,
+          "statement": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\""
         }
       ],
       "hasMultiplePatterns": true,
@@ -3185,15 +3147,15 @@
           "type": "supabaseClient import",
           "category": "util-import",
           "line": 67,
-          "content": "import { supabase } from \"@/utils/supabaseClient\";",
+          "content": "// 🔧 CONSOLIDATED: Single import from supabaseClient module",
           "context": {
             "before": [
               "import { getFallingIcon, getFallingIconColor } from \"@/app/components/prompt-modules/fallingStarsConfig\";",
               "import dynamic from \"next/dynamic\";"
             ],
-            "current": "import { supabase } from \"@/utils/supabaseClient\";",
+            "current": "// 🔧 CONSOLIDATED: Single import from supabaseClient module",
             "after": [
-              "import { getUserOrMock } from \"@/utils/supabaseClient\";",
+              "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
               "import { getAccountIdForUser } from \"@/utils/accountUtils\";"
             ]
           }
@@ -3202,13 +3164,13 @@
           "type": "supabaseClient import",
           "category": "util-import",
           "line": 68,
-          "content": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
+          "content": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
           "context": {
             "before": [
               "import dynamic from \"next/dynamic\";",
-              "import { supabase } from \"@/utils/supabaseClient\";"
+              "// 🔧 CONSOLIDATED: Single import from supabaseClient module"
             ],
-            "current": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
+            "current": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
             "after": [
               "import { getAccountIdForUser } from \"@/utils/accountUtils\";",
               ""
@@ -3218,12 +3180,8 @@
       ],
       "imports": [
         {
-          "line": 67,
-          "statement": "import { supabase } from \"@/utils/supabaseClient\""
-        },
-        {
           "line": 68,
-          "statement": "import { getUserOrMock } from \"@/utils/supabaseClient\""
+          "statement": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\""
         }
       ],
       "hasMultiplePatterns": true,
@@ -3327,45 +3285,41 @@
           "type": "supabaseClient import",
           "category": "util-import",
           "line": 5,
-          "content": "import { supabase } from \"@/utils/supabaseClient\";",
+          "content": "// 🔧 CONSOLIDATED: Single import from supabaseClient module",
           "context": {
             "before": [
               "import { useState, useEffect } from \"react\";",
               "import { useRouter } from \"next/navigation\";"
             ],
-            "current": "import { supabase } from \"@/utils/supabaseClient\";",
+            "current": "// 🔧 CONSOLIDATED: Single import from supabaseClient module",
             "after": [
-              "import { FaCheck, FaRocket, FaUsers, FaCrown, FaStar } from \"react-icons/fa\";",
-              "import { useAuthGuard } from \"@/utils/authGuard\";"
+              "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
+              "import { FaCheck, FaRocket, FaUsers, FaCrown, FaStar } from \"react-icons/fa\";"
             ]
           }
         },
         {
           "type": "supabaseClient import",
           "category": "util-import",
-          "line": 8,
-          "content": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
+          "line": 6,
+          "content": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
           "context": {
             "before": [
+              "import { useRouter } from \"next/navigation\";",
+              "// 🔧 CONSOLIDATED: Single import from supabaseClient module"
+            ],
+            "current": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
+            "after": [
               "import { FaCheck, FaRocket, FaUsers, FaCrown, FaStar } from \"react-icons/fa\";",
               "import { useAuthGuard } from \"@/utils/authGuard\";"
-            ],
-            "current": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
-            "after": [
-              "import FiveStarSpinner from \"@/app/components/FiveStarSpinner\";",
-              ""
             ]
           }
         }
       ],
       "imports": [
         {
-          "line": 5,
-          "statement": "import { supabase } from \"@/utils/supabaseClient\""
-        },
-        {
-          "line": 8,
-          "statement": "import { getUserOrMock } from \"@/utils/supabaseClient\""
+          "line": 6,
+          "statement": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\""
         }
       ],
       "hasMultiplePatterns": true,
@@ -3645,34 +3599,17 @@
         {
           "type": "createClient",
           "category": "direct",
-          "line": 27,
+          "line": 6,
           "content": "const supabase = createClient();",
           "context": {
             "before": [
-              "        ",
-              "        // Use the new SSR-compatible client"
+              "",
+              "// 🔧 CONSOLIDATED: Shared client instance to eliminate duplicate createClient calls"
             ],
-            "current": "        const supabase = createClient();",
+            "current": "const supabase = createClient();",
             "after": [
-              "        ",
-              "        // Get the current user using the same method as the server"
-            ]
-          }
-        },
-        {
-          "type": "createClient",
-          "category": "direct",
-          "line": 112,
-          "content": "const supabase = createClient();",
-          "context": {
-            "before": [
-              "      console.log('📊 useBusinessProfile: Checking business profile...');",
-              "      "
-            ],
-            "current": "      const supabase = createClient();",
-            "after": [
-              "      ",
-              "      // Get current user first"
+              "",
+              "interface AuthGuardOptions {"
             ]
           }
         },
@@ -3689,7 +3626,7 @@
             "current": "import { createClient } from \"@/utils/supabaseClient\";",
             "after": [
               "",
-              "interface AuthGuardOptions {"
+              "// 🔧 CONSOLIDATED: Shared client instance to eliminate duplicate createClient calls"
             ]
           }
         }
@@ -3993,10 +3930,10 @@
   ],
   "summary": {
     "totalFiles": 231,
-    "totalInstances": 137,
+    "totalInstances": 135,
     "byCategory": {
-      "util-import": 89,
-      "direct": 31,
+      "util-import": 90,
+      "direct": 28,
       "ssr-server": 16,
       "ssr-browser": 1
     },
@@ -4113,51 +4050,6 @@
         "recommendations": [
           "CONSOLIDATE: Multiple client creation patterns in single file",
           "STANDARDIZE: Mixed client types (direct + SSR)"
-        ]
-      },
-      {
-        "path": "src/app/api/prompt-pages/[slug]/route.ts",
-        "type": "ts",
-        "instances": [
-          {
-            "type": "createClient",
-            "category": "direct",
-            "line": 38,
-            "content": "const supabase = createClient(supabaseUrl, supabaseServiceKey);",
-            "context": {
-              "before": [
-                "",
-                "    const { createClient } = await import('@supabase/supabase-js');"
-              ],
-              "current": "    const supabase = createClient(supabaseUrl, supabaseServiceKey);",
-              "after": [
-                "",
-                "    const { data: promptPage, error } = await supabase"
-              ]
-            }
-          },
-          {
-            "type": "createClient",
-            "category": "direct",
-            "line": 102,
-            "content": "const supabase = createClient(supabaseUrl, supabaseServiceKey);",
-            "context": {
-              "before": [
-                "",
-                "    const { createClient } = await import('@supabase/supabase-js');"
-              ],
-              "current": "    const supabase = createClient(supabaseUrl, supabaseServiceKey);",
-              "after": [
-                "",
-                "    const { data: promptPage, error } = await supabase"
-              ]
-            }
-          }
-        ],
-        "imports": [],
-        "hasMultiplePatterns": true,
-        "recommendations": [
-          "CONSOLIDATE: Multiple client creation patterns in single file"
         ]
       },
       {
@@ -4459,45 +4351,41 @@
             "type": "supabaseClient import",
             "category": "util-import",
             "line": 26,
-            "content": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
+            "content": "// 🔧 CONSOLIDATED: Single import from supabaseClient module",
             "context": {
               "before": [
                 "import { checkAccountLimits } from \"@/utils/accountLimits\";",
                 "import { Dialog } from \"@headlessui/react\";"
               ],
-              "current": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
+              "current": "// 🔧 CONSOLIDATED: Single import from supabaseClient module",
               "after": [
-                "import dynamic from \"next/dynamic\";",
-                "import { slugify } from \"@/utils/slugify\";"
+                "import { getUserOrMock, supabase } from \"@/utils/supabaseClient\";",
+                "import dynamic from \"next/dynamic\";"
               ]
             }
           },
           {
             "type": "supabaseClient import",
             "category": "util-import",
-            "line": 34,
-            "content": "import { supabase } from \"@/utils/supabaseClient\";",
+            "line": 27,
+            "content": "import { getUserOrMock, supabase } from \"@/utils/supabaseClient\";",
             "context": {
               "before": [
-                "import FiveStarSpinner from \"../../components/FiveStarSpinner\";",
-                "import AppLoader from \"../../components/AppLoader\";"
+                "import { Dialog } from \"@headlessui/react\";",
+                "// 🔧 CONSOLIDATED: Single import from supabaseClient module"
               ],
-              "current": "import { supabase } from \"@/utils/supabaseClient\";",
+              "current": "import { getUserOrMock, supabase } from \"@/utils/supabaseClient\";",
               "after": [
-                "",
-                "interface ReviewPlatformLink {"
+                "import dynamic from \"next/dynamic\";",
+                "import { slugify } from \"@/utils/slugify\";"
               ]
             }
           }
         ],
         "imports": [
           {
-            "line": 26,
-            "statement": "import { getUserOrMock } from \"@/utils/supabaseClient\""
-          },
-          {
-            "line": 34,
-            "statement": "import { supabase } from \"@/utils/supabaseClient\""
+            "line": 27,
+            "statement": "import { getUserOrMock, supabase } from \"@/utils/supabaseClient\""
           }
         ],
         "hasMultiplePatterns": true,
@@ -4513,15 +4401,15 @@
             "type": "supabaseClient import",
             "category": "util-import",
             "line": 3,
-            "content": "import { supabase } from \"@/utils/supabaseClient\";",
+            "content": "// 🔧 CONSOLIDATED: Single import from supabaseClient module",
             "context": {
               "before": [
                 "\"use client\";",
                 "import * as React from \"react\";"
               ],
-              "current": "import { supabase } from \"@/utils/supabaseClient\";",
+              "current": "// 🔧 CONSOLIDATED: Single import from supabaseClient module",
               "after": [
-                "import { getUserOrMock } from \"@/utils/supabaseClient\";",
+                "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
                 "import { getAccountIdForUser } from \"@/utils/accountUtils\";"
               ]
             }
@@ -4530,13 +4418,13 @@
             "type": "supabaseClient import",
             "category": "util-import",
             "line": 4,
-            "content": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
+            "content": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
             "context": {
               "before": [
                 "import * as React from \"react\";",
-                "import { supabase } from \"@/utils/supabaseClient\";"
+                "// 🔧 CONSOLIDATED: Single import from supabaseClient module"
               ],
-              "current": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
+              "current": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
               "after": [
                 "import { getAccountIdForUser } from \"@/utils/accountUtils\";",
                 "import { FaArrowsAlt } from \"react-icons/fa\";"
@@ -4546,12 +4434,8 @@
         ],
         "imports": [
           {
-            "line": 3,
-            "statement": "import { supabase } from \"@/utils/supabaseClient\""
-          },
-          {
             "line": 4,
-            "statement": "import { getUserOrMock } from \"@/utils/supabaseClient\""
+            "statement": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\""
           }
         ],
         "hasMultiplePatterns": true,
@@ -4567,45 +4451,41 @@
             "type": "supabaseClient import",
             "category": "util-import",
             "line": 5,
-            "content": "import { supabase } from \"@/utils/supabaseClient\";",
+            "content": "// 🔧 CONSOLIDATED: Single import from supabaseClient module",
             "context": {
               "before": [
                 "import { useState, useEffect } from \"react\";",
                 "import { useAuthGuard } from \"@/utils/authGuard\";"
               ],
-              "current": "import { supabase } from \"@/utils/supabaseClient\";",
+              "current": "// 🔧 CONSOLIDATED: Single import from supabaseClient module",
               "after": [
-                "import {",
-                "  FaDownload,"
+                "import { supabase, getUserOrMock, getSessionOrMock } from \"@/utils/supabaseClient\";",
+                "import {"
               ]
             }
           },
           {
             "type": "supabaseClient import",
             "category": "util-import",
-            "line": 17,
-            "content": "import { getUserOrMock, getSessionOrMock } from \"@/utils/supabaseClient\";",
+            "line": 6,
+            "content": "import { supabase, getUserOrMock, getSessionOrMock } from \"@/utils/supabaseClient\";",
             "context": {
               "before": [
-                "import { Dialog } from \"@headlessui/react\";",
-                "import { useRouter } from \"next/navigation\";"
+                "import { useAuthGuard } from \"@/utils/authGuard\";",
+                "// 🔧 CONSOLIDATED: Single import from supabaseClient module"
               ],
-              "current": "import { getUserOrMock, getSessionOrMock } from \"@/utils/supabaseClient\";",
+              "current": "import { supabase, getUserOrMock, getSessionOrMock } from \"@/utils/supabaseClient\";",
               "after": [
-                "import AppLoader from \"@/app/components/AppLoader\";",
-                ""
+                "import {",
+                "  FaDownload,"
               ]
             }
           }
         ],
         "imports": [
           {
-            "line": 5,
-            "statement": "import { supabase } from \"@/utils/supabaseClient\""
-          },
-          {
-            "line": 17,
-            "statement": "import { getUserOrMock, getSessionOrMock } from \"@/utils/supabaseClient\""
+            "line": 6,
+            "statement": "import { supabase, getUserOrMock, getSessionOrMock } from \"@/utils/supabaseClient\""
           }
         ],
         "hasMultiplePatterns": true,
@@ -4621,15 +4501,15 @@
             "type": "supabaseClient import",
             "category": "util-import",
             "line": 5,
-            "content": "import { supabase } from '@/utils/supabaseClient';",
+            "content": "// 🔧 CONSOLIDATED: Single import from supabaseClient module",
             "context": {
               "before": [
                 "import { useEffect, useState } from 'react';",
                 "import { useBusinessProfile } from '@/utils/authGuard';"
               ],
-              "current": "import { supabase } from '@/utils/supabaseClient';",
+              "current": "// 🔧 CONSOLIDATED: Single import from supabaseClient module",
               "after": [
-                "import { getUserOrMock } from '@/utils/supabaseClient';",
+                "import { supabase, getUserOrMock } from '@/utils/supabaseClient';",
                 "import { getAccountIdForUser } from '@/utils/accountUtils';"
               ]
             }
@@ -4638,13 +4518,13 @@
             "type": "supabaseClient import",
             "category": "util-import",
             "line": 6,
-            "content": "import { getUserOrMock } from '@/utils/supabaseClient';",
+            "content": "import { supabase, getUserOrMock } from '@/utils/supabaseClient';",
             "context": {
               "before": [
                 "import { useBusinessProfile } from '@/utils/authGuard';",
-                "import { supabase } from '@/utils/supabaseClient';"
+                "// 🔧 CONSOLIDATED: Single import from supabaseClient module"
               ],
-              "current": "import { getUserOrMock } from '@/utils/supabaseClient';",
+              "current": "import { supabase, getUserOrMock } from '@/utils/supabaseClient';",
               "after": [
                 "import { getAccountIdForUser } from '@/utils/accountUtils';",
                 ""
@@ -4654,12 +4534,8 @@
         ],
         "imports": [
           {
-            "line": 5,
-            "statement": "import { supabase } from '@/utils/supabaseClient'"
-          },
-          {
             "line": 6,
-            "statement": "import { getUserOrMock } from '@/utils/supabaseClient'"
+            "statement": "import { supabase, getUserOrMock } from '@/utils/supabaseClient'"
           }
         ],
         "hasMultiplePatterns": true,
@@ -4675,15 +4551,15 @@
             "type": "supabaseClient import",
             "category": "util-import",
             "line": 5,
-            "content": "import { supabase } from \"@/utils/supabaseClient\";",
+            "content": "// 🔧 CONSOLIDATED: Single import from supabaseClient module",
             "context": {
               "before": [
                 "import { useRouter } from \"next/navigation\";",
                 "import { useEffect, useState } from \"react\";"
               ],
-              "current": "import { supabase } from \"@/utils/supabaseClient\";",
+              "current": "// 🔧 CONSOLIDATED: Single import from supabaseClient module",
               "after": [
-                "import { getUserOrMock } from \"@/utils/supabaseClient\";",
+                "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
                 "import AppLoader from \"@/app/components/AppLoader\";"
               ]
             }
@@ -4692,13 +4568,13 @@
             "type": "supabaseClient import",
             "category": "util-import",
             "line": 6,
-            "content": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
+            "content": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
             "context": {
               "before": [
                 "import { useEffect, useState } from \"react\";",
-                "import { supabase } from \"@/utils/supabaseClient\";"
+                "// 🔧 CONSOLIDATED: Single import from supabaseClient module"
               ],
-              "current": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
+              "current": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
               "after": [
                 "import AppLoader from \"@/app/components/AppLoader\";",
                 ""
@@ -4708,12 +4584,8 @@
         ],
         "imports": [
           {
-            "line": 5,
-            "statement": "import { supabase } from \"@/utils/supabaseClient\""
-          },
-          {
             "line": 6,
-            "statement": "import { getUserOrMock } from \"@/utils/supabaseClient\""
+            "statement": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\""
           }
         ],
         "hasMultiplePatterns": true,
@@ -4729,45 +4601,41 @@
             "type": "supabaseClient import",
             "category": "util-import",
             "line": 5,
-            "content": "import { supabase } from \"@/utils/supabaseClient\";",
+            "content": "// 🔧 CONSOLIDATED: Single import from supabaseClient module",
             "context": {
               "before": [
                 "import React, { useState, useEffect, useMemo } from \"react\";",
                 "import { useRef } from \"react\";"
               ],
-              "current": "import { supabase } from \"@/utils/supabaseClient\";",
+              "current": "// 🔧 CONSOLIDATED: Single import from supabaseClient module",
               "after": [
-                "import Link from \"next/link\";",
-                "import { FaGlobe, FaLink, FaTimes, FaPalette, FaPlus, FaCheck, FaMapMarkerAlt, FaEdit, FaTrash } from \"react-icons/fa\";"
+                "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
+                "import Link from \"next/link\";"
               ]
             }
           },
           {
             "type": "supabaseClient import",
             "category": "util-import",
-            "line": 21,
-            "content": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
+            "line": 6,
+            "content": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
             "context": {
               "before": [
-                "import QRCodeModal from \"../components/QRCodeModal\";",
-                "import StarfallCelebration from \"@/app/components/StarfallCelebration\";"
+                "import { useRef } from \"react\";",
+                "// 🔧 CONSOLIDATED: Single import from supabaseClient module"
               ],
-              "current": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
+              "current": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
               "after": [
-                "import { getAccountIdForUser } from \"@/utils/accountUtils\";",
-                "import BusinessLocationModal from \"@/app/components/BusinessLocationModal\";"
+                "import Link from \"next/link\";",
+                "import { FaGlobe, FaLink, FaTimes, FaPalette, FaPlus, FaCheck, FaMapMarkerAlt, FaEdit, FaTrash } from \"react-icons/fa\";"
               ]
             }
           }
         ],
         "imports": [
           {
-            "line": 5,
-            "statement": "import { supabase } from \"@/utils/supabaseClient\""
-          },
-          {
-            "line": 21,
-            "statement": "import { getUserOrMock } from \"@/utils/supabaseClient\""
+            "line": 6,
+            "statement": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\""
           }
         ],
         "hasMultiplePatterns": true,
@@ -4783,15 +4651,15 @@
             "type": "supabaseClient import",
             "category": "util-import",
             "line": 67,
-            "content": "import { supabase } from \"@/utils/supabaseClient\";",
+            "content": "// 🔧 CONSOLIDATED: Single import from supabaseClient module",
             "context": {
               "before": [
                 "import { getFallingIcon, getFallingIconColor } from \"@/app/components/prompt-modules/fallingStarsConfig\";",
                 "import dynamic from \"next/dynamic\";"
               ],
-              "current": "import { supabase } from \"@/utils/supabaseClient\";",
+              "current": "// 🔧 CONSOLIDATED: Single import from supabaseClient module",
               "after": [
-                "import { getUserOrMock } from \"@/utils/supabaseClient\";",
+                "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
                 "import { getAccountIdForUser } from \"@/utils/accountUtils\";"
               ]
             }
@@ -4800,13 +4668,13 @@
             "type": "supabaseClient import",
             "category": "util-import",
             "line": 68,
-            "content": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
+            "content": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
             "context": {
               "before": [
                 "import dynamic from \"next/dynamic\";",
-                "import { supabase } from \"@/utils/supabaseClient\";"
+                "// 🔧 CONSOLIDATED: Single import from supabaseClient module"
               ],
-              "current": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
+              "current": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
               "after": [
                 "import { getAccountIdForUser } from \"@/utils/accountUtils\";",
                 ""
@@ -4816,12 +4684,8 @@
         ],
         "imports": [
           {
-            "line": 67,
-            "statement": "import { supabase } from \"@/utils/supabaseClient\""
-          },
-          {
             "line": 68,
-            "statement": "import { getUserOrMock } from \"@/utils/supabaseClient\""
+            "statement": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\""
           }
         ],
         "hasMultiplePatterns": true,
@@ -4837,45 +4701,41 @@
             "type": "supabaseClient import",
             "category": "util-import",
             "line": 5,
-            "content": "import { supabase } from \"@/utils/supabaseClient\";",
+            "content": "// 🔧 CONSOLIDATED: Single import from supabaseClient module",
             "context": {
               "before": [
                 "import { useState, useEffect } from \"react\";",
                 "import { useRouter } from \"next/navigation\";"
               ],
-              "current": "import { supabase } from \"@/utils/supabaseClient\";",
+              "current": "// 🔧 CONSOLIDATED: Single import from supabaseClient module",
               "after": [
-                "import { FaCheck, FaRocket, FaUsers, FaCrown, FaStar } from \"react-icons/fa\";",
-                "import { useAuthGuard } from \"@/utils/authGuard\";"
+                "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
+                "import { FaCheck, FaRocket, FaUsers, FaCrown, FaStar } from \"react-icons/fa\";"
               ]
             }
           },
           {
             "type": "supabaseClient import",
             "category": "util-import",
-            "line": 8,
-            "content": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
+            "line": 6,
+            "content": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
             "context": {
               "before": [
+                "import { useRouter } from \"next/navigation\";",
+                "// 🔧 CONSOLIDATED: Single import from supabaseClient module"
+              ],
+              "current": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\";",
+              "after": [
                 "import { FaCheck, FaRocket, FaUsers, FaCrown, FaStar } from \"react-icons/fa\";",
                 "import { useAuthGuard } from \"@/utils/authGuard\";"
-              ],
-              "current": "import { getUserOrMock } from \"@/utils/supabaseClient\";",
-              "after": [
-                "import FiveStarSpinner from \"@/app/components/FiveStarSpinner\";",
-                ""
               ]
             }
           }
         ],
         "imports": [
           {
-            "line": 5,
-            "statement": "import { supabase } from \"@/utils/supabaseClient\""
-          },
-          {
-            "line": 8,
-            "statement": "import { getUserOrMock } from \"@/utils/supabaseClient\""
+            "line": 6,
+            "statement": "import { supabase, getUserOrMock } from \"@/utils/supabaseClient\""
           }
         ],
         "hasMultiplePatterns": true,
@@ -4944,34 +4804,17 @@
           {
             "type": "createClient",
             "category": "direct",
-            "line": 27,
+            "line": 6,
             "content": "const supabase = createClient();",
             "context": {
               "before": [
-                "        ",
-                "        // Use the new SSR-compatible client"
+                "",
+                "// 🔧 CONSOLIDATED: Shared client instance to eliminate duplicate createClient calls"
               ],
-              "current": "        const supabase = createClient();",
+              "current": "const supabase = createClient();",
               "after": [
-                "        ",
-                "        // Get the current user using the same method as the server"
-              ]
-            }
-          },
-          {
-            "type": "createClient",
-            "category": "direct",
-            "line": 112,
-            "content": "const supabase = createClient();",
-            "context": {
-              "before": [
-                "      console.log('📊 useBusinessProfile: Checking business profile...');",
-                "      "
-              ],
-              "current": "      const supabase = createClient();",
-              "after": [
-                "      ",
-                "      // Get current user first"
+                "",
+                "interface AuthGuardOptions {"
               ]
             }
           },
@@ -4988,7 +4831,7 @@
               "current": "import { createClient } from \"@/utils/supabaseClient\";",
               "after": [
                 "",
-                "interface AuthGuardOptions {"
+                "// 🔧 CONSOLIDATED: Shared client instance to eliminate duplicate createClient calls"
               ]
             }
           }

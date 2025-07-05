@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { useRef } from "react";
-import { supabase } from "@/utils/supabaseClient";
+// 🔧 CONSOLIDATED: Single import from supabaseClient module
+import { supabase, getUserOrMock } from "@/utils/supabaseClient";
 import Link from "next/link";
 import { FaGlobe, FaLink, FaTimes, FaPalette, FaPlus, FaCheck, FaMapMarkerAlt, FaEdit, FaTrash } from "react-icons/fa";
 import { MdDownload } from "react-icons/md";
@@ -18,7 +19,6 @@ import { MdPhotoCamera, MdVideoLibrary, MdEvent } from "react-icons/md";
 import { useRouter } from "next/navigation";
 import QRCodeModal from "../components/QRCodeModal";
 import StarfallCelebration from "@/app/components/StarfallCelebration";
-import { getUserOrMock } from "@/utils/supabaseClient";
 import { getAccountIdForUser } from "@/utils/accountUtils";
 import BusinessLocationModal from "@/app/components/BusinessLocationModal";
 import { BusinessLocation } from "@/types/business";
