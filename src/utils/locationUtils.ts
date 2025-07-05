@@ -107,7 +107,8 @@ export function createLocationPromptPageData(location: {
     is_universal: false,
     review_type: 'general',
     client_name: `Leave a Review for ${getLocationDisplayName(location)}`,
-    friendly_note: location.unique_aspects || '',
+    // Don't set friendly_note from unique_aspects - that should be a separate popup feature
+    // friendly_note: location.unique_aspects || '',
     review_platforms: location.review_platforms || [],
     slug: generateLocationPromptPageSlug(location.name),
     status: 'complete' as const,
