@@ -1904,7 +1904,7 @@ export default function PromptPage() {
                                     className={`text-2xl font-bold ${getFontClass(businessProfile?.primary_font)}`}
                                     style={{ color: businessProfile?.primary_color || "#4F46E5", marginTop: "-5px", marginLeft: "4px" }}
                                   >
-                                    Leave a review on {(platform.platform || platform.name) === "Google Business Profile" ? "Google" : (platform.platform || platform.name)}
+                                    Leave a review on {(platform.platform || platform.name) === "Google Business Profile" ? "Google" : (platform.platform || platform.name) === "Other" && platform.customPlatform ? platform.customPlatform : (platform.platform || platform.name)}
                                   </div>
                                   <div className="flex-1" />
                                   {isAccordion && (
