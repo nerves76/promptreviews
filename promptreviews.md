@@ -10,6 +10,19 @@ This project is currently focused on developing a standalone widget for collecti
 
 ## Recent Updates (Latest)
 
+### Location-Specific Prompt Pages (January 2025)
+- **Business Locations Feature**: Added location-specific prompt pages for Maven tier accounts (up to 10 locations)
+- **Integrated UI Approach**: Locations section seamlessly integrated into `/prompt-pages` view between universal and custom pages
+- **2-Step Location Wizard**: Comprehensive modal for creating/editing locations with basic info and AI training fields
+- **Automatic Prompt Page Creation**: Each location automatically gets its own universal prompt page with location context
+- **Location Management**: Full CRUD operations with tier enforcement, edit/delete controls, and cascading deletion
+- **Database Architecture**: New `business_locations` table with RLS policies and location count tracking
+- **API Implementation**: RESTful API endpoints for location operations with tier validation
+- **Location Context**: Location prompt pages inherit settings with priority: page > location > business defaults
+- **Maven Tier Exclusive**: Feature only visible and accessible to Maven plan subscribers
+- **Location Display**: Grid layout showing location cards with name, address, and quick actions (View, Edit, QR Code)
+- **Type Safety**: Full TypeScript support with BusinessLocation interface and utility functions
+
 ### Email Templates Admin Page (January 2025)
 - **New Admin Interface**: Created comprehensive email template management at `/admin/email-templates`
 - **Template Editor**: Full-featured editor with subject line, HTML content, and plain text fields

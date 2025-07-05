@@ -175,7 +175,7 @@ export default function ReviewSubmissionForm({
       {error && <div className="text-red-500 text-sm">{error}</div>}
       <button
         type="submit"
-        className="w-full py-3 px-6 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors"
+        className="w-full py-3 px-6 bg-slate-blue text-white rounded-lg font-semibold hover:bg-slate-blue/90 transition-colors"
         disabled={isSubmitting}
       >
         {isSubmitting ? "Submitting..." : "Submit Review"}

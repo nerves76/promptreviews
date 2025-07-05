@@ -6,9 +6,11 @@
  */
 
 import { createServerClient } from '@supabase/ssr';
+import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { randomBytes } from 'crypto';
+import { sendTeamInvitationEmail } from '@/utils/emailTemplates';
 
 export async function POST(request: NextRequest) {
   const cookieStore = await cookies();
@@ -22,6 +24,12 @@ export async function POST(request: NextRequest) {
         remove: () => {},
       },
     }
+  );
+
+  // Create service role client for admin operations
+  const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
   try {
@@ -112,7 +120,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user is already a member
-    const { data: usersList, error: usersListError } = await supabase.auth.admin.listUsers();
+    const { data: usersList, error: usersListError } = await supabaseAdmin.auth.admin.listUsers();
     if (usersListError) {
       return NextResponse.json(
         { error: 'Failed to fetch users', details: usersListError },
@@ -179,8 +187,39 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // TODO: Send email invitation
-    // For now, just return the invitation data
+    // Send email invitation
+    const inviterName = `${accountUser.accounts?.first_name || ''} ${accountUser.accounts?.last_name || ''}`.trim() || 'Someone';
+    const businessName = accountUser.accounts?.business_name || 'their business';
+    const formattedExpirationDate = new Date(invitation.expires_at).toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric', 
+      month: 'long',
+      day: 'numeric'
+    });
+
+    console.log('📧 Sending invitation email...', {
+      to: invitation.email,
+      inviterName,
+      businessName,
+      role: invitation.role
+    });
+
+    const emailResult = await sendTeamInvitationEmail(
+      invitation.email,
+      inviterName,
+      businessName,
+      invitation.role,
+      invitation.token,
+      formattedExpirationDate
+    );
+
+    if (!emailResult.success) {
+      console.error('❌ Failed to send invitation email:', emailResult.error);
+      // Don't fail the entire request if email fails - invitation is still created
+    } else {
+      console.log('✅ Invitation email sent successfully');
+    }
+
     console.log('Invitation created:', {
       id: invitation.id,
       email: invitation.email,

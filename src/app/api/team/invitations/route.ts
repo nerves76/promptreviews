@@ -6,20 +6,10 @@
  */
 
 import { createServerSupabaseClient } from '@/utils/supabaseClient';
-import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   const supabase = await createServerSupabaseClient();
-
-  // Create admin client for auth operations
-  const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      auth: { autoRefreshToken: false, persistSession: false }
-    }
-  );
 
   try {
     // Get the current user
@@ -77,36 +67,18 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get auth user details using admin client
-    const { data: authUsers, error: authUsersError } = await supabaseAdmin.auth.admin.listUsers();
-    
-    if (authUsersError) {
-      console.error('Error fetching auth users:', authUsersError);
-      return NextResponse.json(
-        { error: 'Failed to fetch user details' },
-        { status: 500 }
-      );
-    }
-
-    // Create a map for quick lookup of auth users by ID
-    const authUserMap = new Map();
-    authUsers.users.forEach(authUser => {
-      authUserMap.set(authUser.id, authUser);
-    });
-
+    // Return invitations without trying to resolve invited_by user details
+    // This avoids any auth.users access that could cause permission errors
     return NextResponse.json({
-      invitations: invitations.map(invitation => {
-        const invitedByUser = authUserMap.get(invitation.invited_by);
-        return {
-          id: invitation.id,
-          email: invitation.email,
-          role: invitation.role,
-          created_at: invitation.created_at,
-          expires_at: invitation.expires_at,
-          invited_by: invitedByUser?.email || 'Unknown',
-          is_expired: new Date(invitation.expires_at) < new Date()
-        };
-      })
+      invitations: invitations.map(invitation => ({
+        id: invitation.id,
+        email: invitation.email,
+        role: invitation.role,
+        created_at: invitation.created_at,
+        expires_at: invitation.expires_at,
+        invited_by: 'Account Owner', // Simplified - avoid auth.users lookup
+        is_expired: new Date(invitation.expires_at) < new Date()
+      }))
     });
 
   } catch (error) {

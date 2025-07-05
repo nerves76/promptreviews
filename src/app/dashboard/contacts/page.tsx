@@ -683,7 +683,7 @@ export default function UploadContactsPage() {
                 )}
               </div>
               <button
-                className="w-full mt-6 py-2 px-4 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-semibold"
+                className="w-full mt-6 py-2 px-4 bg-slate-blue text-white rounded-md hover:bg-slate-blue/90 font-semibold"
                 onClick={() => setShowUploadModal(false)}
               >
                 Close
@@ -916,7 +916,7 @@ export default function UploadContactsPage() {
                     </button>
                     <button
                       type="submit"
-                      className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-semibold"
+                      className="px-4 py-2 bg-slate-blue text-white rounded-md hover:bg-slate-blue/90 font-semibold"
                       disabled={editLoading}
                     >
                       {editLoading ? "Saving..." : "Save"}

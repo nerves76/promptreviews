@@ -234,56 +234,21 @@ export async function getSessionOrMock(client: SupabaseClient) {
   }
 }
 
-// Cache for session calls to prevent multiple simultaneous requests
-let sessionPromiseCache: Promise<any> | null = null;
-let lastSessionCheck = 0;
-const SESSION_CACHE_TIMEOUT = 2000; // 2 seconds
+// Simplified session handling - no caching needed
 
 /**
- * Enhanced user getter with timeout protection and caching
+ * Enhanced user getter with simplified session handling
  */
 export async function getUserOrMock(client: SupabaseClient) {
   try {
     console.log('👤 Getting user via session...');
     
-    const now = Date.now();
-    
-    // If we have a recent session call in progress, wait for it
-    if (sessionPromiseCache && (now - lastSessionCheck) < SESSION_CACHE_TIMEOUT) {
-      console.log('🔄 Using cached session promise...');
-      try {
-        const result = await sessionPromiseCache;
-        const user = result?.data?.session?.user || null;
-        if (user) {
-          console.log('✅ User found from cached session:', user.id);
-          return { data: { user }, error: null };
-        }
-      } catch (cacheError) {
-        console.log('⚠️  Cached session failed, trying fresh call...');
-        sessionPromiseCache = null;
-      }
-    }
-    
-    // Create new session promise with timeout
-    lastSessionCheck = now;
-    const sessionPromise = client.auth.getSession();
-    const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('getSession timeout')), 2500)
-    );
-    
-    // Cache the promise
-    sessionPromiseCache = Promise.race([sessionPromise, timeoutPromise]);
-    
-    console.log('🕒 Setting up getSession with 2.5s timeout...');
-    const { data: { session }, error } = await sessionPromiseCache;
-    console.log('📡 getSession call completed');
-    
-    // Clear cache after successful completion
-    sessionPromiseCache = null;
+    // Simple session check without timeout race conditions
+    const { data: { session }, error } = await client.auth.getSession();
     
     if (error) {
       console.error('❌ Session error:', error);
-      throw error;
+      return { data: { user: null }, error };
     }
     
     // Extract user from session
@@ -299,18 +264,10 @@ export async function getUserOrMock(client: SupabaseClient) {
   } catch (error) {
     console.error('💥 User check failed:', error);
     
-    // Clear failed cache
-    sessionPromiseCache = null;
-    
-    // Fallback: try direct getUser with shorter timeout
+    // Fallback: try direct getUser
     try {
       console.log('🔄 Fallback: trying direct getUser...');
-      const directUserPromise = client.auth.getUser();
-      const fallbackTimeout = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Direct getUser timeout')), 1500)
-      );
-      
-      const { data: { user }, error: directError } = await Promise.race([directUserPromise, fallbackTimeout]) as any;
+      const { data: { user }, error: directError } = await client.auth.getUser();
       
       if (!directError && user) {
         console.log('✅ Fallback successful - user found:', user.id);
@@ -322,7 +279,7 @@ export async function getUserOrMock(client: SupabaseClient) {
     
     // Final fallback: return null user but don't throw
     console.log('🔄 Final fallback: returning null user');
-    return { data: { user: null }, error: error instanceof Error ? error : new Error('Session timeout') };
+    return { data: { user: null }, error: error instanceof Error ? error : new Error('Session error') };
   }
 }
 

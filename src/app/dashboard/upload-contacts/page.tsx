@@ -316,7 +316,7 @@ export default function UploadContactsPage() {
             {upgradeModalMessage && /10,000|10000|more than 9999/.test(upgradeModalMessage) ? (
               <a
                 href="https://promptreviews.app/contact"
-                className="w-full block py-2 px-4 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-semibold text-center mb-2"
+                className="w-full block py-2 px-4 bg-slate-blue text-white rounded-md hover:bg-slate-blue/90 font-semibold text-center mb-2"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -324,7 +324,7 @@ export default function UploadContactsPage() {
               </a>
             ) : (
               <button
-                className="w-full py-2 px-4 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-semibold mb-2"
+                className="w-full py-2 px-4 bg-slate-blue text-white rounded-md hover:bg-slate-blue/90 font-semibold mb-2"
                 onClick={() => {
                   setShowUpgradeModal(false);
                   window.location.href = "/upgrade";

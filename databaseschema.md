@@ -26,6 +26,8 @@ database schema for promptreviews mon june 16th 2025
 | accounts         | plan_lookup_key              | text                     | null                     | YES         | null                         |
 | accounts         | review_notifications_enabled | boolean                  | null                     | YES         | true                         |
 | accounts         | user_id                      | uuid                     | null                     | YES         | null                         |
+| accounts         | location_count               | integer                  | null                     | YES         | 0                            |
+| accounts         | max_locations                | integer                  | null                     | YES         | 0                            |
 | ai_usage         | id                           | uuid                     | null                     | NO          | gen_random_uuid()            |
 | ai_usage         | user_id                      | uuid                     | null                     | YES         | null                         |
 | ai_usage         | prompt_tokens                | integer                  | null                     | YES         | null                         |
@@ -43,6 +45,35 @@ database schema for promptreviews mon june 16th 2025
 | analytics_events | user_agent                   | text                     | null                     | YES         | null                         |
 | analytics_events | ip_address                   | text                     | null                     | YES         | null                         |
 | analytics_events | emoji_sentiment              | text                     | null                     | YES         | null                         |
+| business_locations | id                         | uuid                     | null                     | NO          | gen_random_uuid()            |
+| business_locations | account_id                 | uuid                     | null                     | NO          | null                         |
+| business_locations | name                       | text                     | null                     | NO          | null                         |
+| business_locations | business_name              | text                     | null                     | YES         | null                         |
+| business_locations | address_street             | text                     | null                     | YES         | null                         |
+| business_locations | address_city               | text                     | null                     | YES         | null                         |
+| business_locations | address_state              | text                     | null                     | YES         | null                         |
+| business_locations | address_zip                | text                     | null                     | YES         | null                         |
+| business_locations | address_country            | text                     | null                     | YES         | null                         |
+| business_locations | business_description       | text                     | null                     | YES         | null                         |
+| business_locations | unique_aspects             | text                     | null                     | YES         | null                         |
+| business_locations | phone                      | text                     | null                     | YES         | null                         |
+| business_locations | email                      | text                     | null                     | YES         | null                         |
+| business_locations | website_url                | text                     | null                     | YES         | null                         |
+| business_locations | ai_dos                     | text                     | null                     | YES         | null                         |
+| business_locations | ai_donts                   | text                     | null                     | YES         | null                         |
+| business_locations | review_platforms           | jsonb                    | null                     | YES         | null                         |
+| business_locations | logo_url                   | text                     | null                     | YES         | null                         |
+| business_locations | hours                      | text                     | null                     | YES         | null                         |
+| business_locations | manager_name               | text                     | null                     | YES         | null                         |
+| business_locations | manager_email              | text                     | null                     | YES         | null                         |
+| business_locations | parking_info               | text                     | null                     | YES         | null                         |
+| business_locations | accessibility_info         | text                     | null                     | YES         | null                         |
+| business_locations | primary_color              | text                     | null                     | YES         | null                         |
+| business_locations | secondary_color            | text                     | null                     | YES         | null                         |
+| business_locations | custom_css                 | text                     | null                     | YES         | null                         |
+| business_locations | is_active                  | boolean                  | null                     | YES         | true                         |
+| business_locations | created_at                 | timestamp with time zone | null                     | YES         | now()                        |
+| business_locations | updated_at                 | timestamp with time zone | null                     | YES         | now()                        |
 | businesses       | id                           | uuid                     | null                     | NO          | gen_random_uuid()            |
 | businesses       | name                         | text                     | null                     | NO          | null                         |
 | businesses       | created_at                   | timestamp with time zone | null                     | NO          | timezone('utc'::text, now()) |
@@ -102,3 +133,4 @@ database schema for promptreviews mon june 16th 2025
 | contacts         | email                        | text                     | null                     | YES         | null                         |
 | contacts         | phone                        | text                     | null                     | YES         | null                         |
 | contacts         | notes                        | text                     | null                     | YES         | null                         |
+| prompt_pages     | business_location_id         | uuid                     | null                     | YES         | null                         |

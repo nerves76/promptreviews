@@ -3,7 +3,7 @@
 
 -- Add max_users column to accounts table
 ALTER TABLE accounts 
-ADD COLUMN max_users INTEGER DEFAULT 1;
+ADD COLUMN IF NOT EXISTS max_users INTEGER DEFAULT 1;
 
 -- Set plan-based user limits
 UPDATE accounts SET max_users = 
@@ -15,7 +15,7 @@ UPDATE accounts SET max_users =
   END;
 
 -- Create account_invitations table
-CREATE TABLE account_invitations (
+CREATE TABLE IF NOT EXISTS account_invitations (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   account_id UUID NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
   email TEXT NOT NULL,
@@ -31,10 +31,10 @@ CREATE TABLE account_invitations (
 );
 
 -- Add indexes for performance
-CREATE INDEX idx_account_invitations_account_id ON account_invitations(account_id);
-CREATE INDEX idx_account_invitations_token ON account_invitations(token);
-CREATE INDEX idx_account_invitations_email ON account_invitations(email);
-CREATE INDEX idx_account_invitations_expires_at ON account_invitations(expires_at);
+CREATE INDEX IF NOT EXISTS idx_account_invitations_account_id ON account_invitations(account_id);
+CREATE INDEX IF NOT EXISTS idx_account_invitations_token ON account_invitations(token);
+CREATE INDEX IF NOT EXISTS idx_account_invitations_email ON account_invitations(email);
+CREATE INDEX IF NOT EXISTS idx_account_invitations_expires_at ON account_invitations(expires_at);
 
 -- RLS policies for account_invitations
 ALTER TABLE account_invitations ENABLE ROW LEVEL SECURITY;
@@ -75,21 +75,11 @@ CREATE POLICY "Account owners can delete invitations" ON account_invitations
     )
   );
 
--- Allow users to view invitations sent to their email
-CREATE POLICY "Users can view invitations sent to their email" ON account_invitations
-  FOR SELECT USING (
-    email = (
-      SELECT email FROM auth.users WHERE id = auth.uid()
-    )
-  );
-
--- Allow users to update invitations sent to their email (accept them)
-CREATE POLICY "Users can accept invitations sent to their email" ON account_invitations
-  FOR UPDATE USING (
-    email = (
-      SELECT email FROM auth.users WHERE id = auth.uid()
-    )
-  );
+-- NOTE: We deliberately do NOT include the problematic policies that access auth.users:
+-- - "Users can view invitations sent to their email"
+-- - "Users can accept invitations sent to their email"
+-- These would cause "permission denied for table users" errors.
+-- Instead, invitation acceptance is handled via API with admin client.
 
 -- Function to get current user count for an account
 CREATE OR REPLACE FUNCTION get_account_user_count(account_uuid UUID)
@@ -113,4 +103,7 @@ BEGIN
     WHERE id = account_uuid
   );
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER; 
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Add comment to explain the RLS policy design
+COMMENT ON TABLE account_invitations IS 'Team invitations table. User email access is handled via API with admin client to avoid RLS permission issues.'; 

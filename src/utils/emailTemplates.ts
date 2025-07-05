@@ -150,6 +150,30 @@ export async function sendWelcomeEmail(
 }
 
 /**
+ * Send team invitation email using template
+ */
+export async function sendTeamInvitationEmail(
+  email: string,
+  inviterName: string,
+  businessName: string,
+  role: string,
+  token: string,
+  expirationDate: string
+): Promise<{ success: boolean; error?: string }> {
+  const acceptUrl = process.env.NEXT_PUBLIC_APP_URL 
+    ? `${process.env.NEXT_PUBLIC_APP_URL}/team/accept?token=${token}`
+    : `https://app.promptreviews.app/team/accept?token=${token}`;
+    
+  return sendTemplatedEmail('team_invitation', email, {
+    inviterName,
+    businessName,
+    role,
+    acceptUrl,
+    expirationDate
+  });
+}
+
+/**
  * Get all email templates for admin interface
  */
 export async function getAllEmailTemplates(): Promise<EmailTemplate[]> {
