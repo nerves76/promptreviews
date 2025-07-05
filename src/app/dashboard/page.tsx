@@ -259,7 +259,7 @@ export default function Dashboard() {
     }
   }, []);
 
-  // Handle pricing modal logic
+  // Enhanced onboarding flow detection and plan selection logic
   useEffect(() => {
     if (isLoading || !data?.account) return;
     
@@ -270,6 +270,7 @@ export default function Dashboard() {
     const trialEnd = data?.account?.trial_end ? new Date(data.account.trial_end) : null;
     const plan = data?.account?.plan;
     const hasStripeCustomer = !!data?.account?.stripe_customer_id;
+    const businessCount = data?.businesses?.length || 0;
 
     // User is on a paid plan (builder/maven always paid, grower only if paid after trial)
     const isPaidUser = 
@@ -279,6 +280,19 @@ export default function Dashboard() {
 
     // Check if trial has expired
     const isTrialExpired = trialEnd && now > trialEnd;
+
+    // ENHANCED: Detect incomplete onboarding flow (Issue #3 fix)
+    // Redirect to create-business if user has no plan and no businesses (bypassed onboarding)
+    if ((!plan || plan === 'no_plan' || plan === 'NULL') && businessCount === 0) {
+      console.log('🔄 Onboarding incomplete: Redirecting to create-business');
+      console.log('🔍 Onboarding redirect debug:', {
+        plan,
+        businessCount,
+        reason: 'No plan and no businesses - incomplete onboarding'
+      });
+      router.push('/dashboard/create-business');
+      return;
+    }
 
     // Determine if plan selection is REQUIRED (user cannot dismiss modal) vs OPTIONAL
     const isPlanSelectionRequired = 
@@ -294,30 +308,31 @@ export default function Dashboard() {
       return;
     }
     
-    // Show pricing modal for new users who need to choose their initial plan
+    // ENHANCED: Show pricing modal for users who need to choose their initial plan
     // or for users whose trial has expired and haven't paid
     const shouldShowPricingModal = 
       // New user who hasn't selected a plan yet (no plan, 'no_plan', or 'NULL' and has created a business)
-      ((!plan || plan === 'no_plan' || plan === 'NULL') && (data?.businesses?.length || 0) > 0) ||
+      ((!plan || plan === 'no_plan' || plan === 'NULL') && businessCount > 0) ||
       // Or grower user whose trial expired and hasn't paid
       (plan === "grower" && isTrialExpired && !hasStripeCustomer);
     
     // Add comprehensive logging for debugging
-    console.log('🔍 Plan selection debug:', {
+    console.log('🔍 Enhanced plan selection debug:', {
       accountPlan: plan,
-      businessCount: data?.businesses?.length,
+      businessCount: businessCount,
       trialEnd: trialEnd,
       isTrialExpired,
       hasStripeCustomer,
       isPaidUser,
       shouldShowModal: shouldShowPricingModal,
-      isPlanSelectionRequired,
-      businessCreatedParam: typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("businessCreated") : null
+      isPlanSelectionRequired: !!isPlanSelectionRequired,
+      businessCreatedParam: typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("businessCreated") : null,
+      onboardingComplete: businessCount > 0 && plan && plan !== 'no_plan' && plan !== 'NULL'
     });
     
-    setPlanSelectionRequired(isPlanSelectionRequired);
+    setPlanSelectionRequired(!!isPlanSelectionRequired);
     setShowPricingModal(!!shouldShowPricingModal);
-  }, [isLoading, data?.account, data?.businesses]);
+  }, [isLoading, data?.account, data?.businesses, router]);
 
   // Handle business created query param and celebration
   useEffect(() => {
