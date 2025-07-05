@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { supabase, clearAuthSession } from "@/utils/supabaseClient";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function ClearSession() {
   const [status, setStatus] = useState<string>("Clearing session...");
   const [details, setDetails] = useState<string[]>([]);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const invitationToken = searchParams.get('invitation');
 
   useEffect(() => {
     async function clearEverything() {
@@ -62,9 +64,22 @@ export default function ClearSession() {
         }
         
         logs.push("✅ Session cleanup complete!");
-        logs.push("🔄 You can now try signing in again with fresh state");
-        setDetails([...logs]);
-        setStatus("Session cleared successfully!");
+        
+        // Check if we have an invitation token
+        if (invitationToken) {
+          logs.push("🎯 Invitation token detected - redirecting to sign-up...");
+          setDetails([...logs]);
+          setStatus("Redirecting to sign-up with invitation...");
+          
+          // Redirect to sign-up with invitation token
+          setTimeout(() => {
+            router.push(`/auth/sign-up?invitation=${encodeURIComponent(invitationToken)}`);
+          }, 2000);
+        } else {
+          logs.push("🔄 You can now try signing in again with fresh state");
+          setDetails([...logs]);
+          setStatus("Session cleared successfully!");
+        }
         
       } catch (error) {
         logs.push(`❌ Error during cleanup: ${error}`);
@@ -74,7 +89,7 @@ export default function ClearSession() {
     }
     
     clearEverything();
-  }, []);
+  }, [invitationToken, router]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 flex items-center justify-center p-4">
@@ -95,12 +110,21 @@ export default function ClearSession() {
         </div>
         
         <div className="flex space-x-4">
-          <button
-            onClick={() => router.push("/auth/sign-in")}
-            className="flex-1 bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors"
-          >
-            Go to Sign In
-          </button>
+          {invitationToken ? (
+            <button
+              onClick={() => router.push(`/auth/sign-up?invitation=${encodeURIComponent(invitationToken)}`)}
+              className="flex-1 bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors"
+            >
+              Continue to Sign Up
+            </button>
+          ) : (
+            <button
+              onClick={() => router.push("/auth/sign-in")}
+              className="flex-1 bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors"
+            >
+              Go to Sign In
+            </button>
+          )}
           <button
             onClick={() => window.location.reload()}
             className="flex-1 bg-gray-600 text-white py-2 px-4 rounded hover:bg-gray-700 transition-colors"

@@ -5,14 +5,25 @@
 // -----------------------------------------------------------------------------
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createServiceRoleClient, createServerSupabaseClient } from '@/utils/supabaseClient';
+import { createServerClient } from '@supabase/ssr';
+import { createServiceRoleClient } from '@/utils/supabaseClient';
 import { getAccountIdForUser } from '@/utils/accountUtils';
 import { canCreateLocation, getTierLocationLimit, generateLocationPromptPageSlug, createLocationPromptPageData } from '@/utils/locationUtils';
 
 export async function GET(request: NextRequest) {
   try {
     // Use session-based client for authentication
-    const supabase = await createServerSupabaseClient();
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get: (name) => request.cookies.get(name)?.value,
+          set: (name, value, options) => request.cookies.set(name, value, options),
+          remove: (name, options) => request.cookies.set(name, '', options),
+        },
+      }
+    );
     
     // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -85,7 +96,17 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Use session-based client for authentication
-    const supabase = await createServerSupabaseClient();
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get: (name) => request.cookies.get(name)?.value,
+          set: (name, value, options) => request.cookies.set(name, value, options),
+          remove: (name, options) => request.cookies.set(name, '', options),
+        },
+      }
+    );
     
     // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -149,6 +170,20 @@ export async function POST(request: NextRequest) {
       primary_color,
       secondary_color,
       review_platforms,
+      // Emoji sentiment fields
+      emoji_sentiment_enabled,
+      emoji_sentiment_question,
+      emoji_feedback_message,
+      emoji_thank_you_message,
+      emoji_labels,
+      // Other module fields
+      falling_enabled,
+      falling_icon,
+      offer_enabled,
+      offer_title,
+      offer_body,
+      offer_url,
+      ai_review_enabled,
     } = body;
 
     // Validate required fields
@@ -186,6 +221,20 @@ export async function POST(request: NextRequest) {
         primary_color,
         secondary_color,
         review_platforms,
+        // Emoji sentiment fields
+        emoji_sentiment_enabled,
+        emoji_sentiment_question,
+        emoji_feedback_message,
+        emoji_thank_you_message,
+        emoji_labels,
+        // Other module fields
+        falling_enabled,
+        falling_icon,
+        offer_enabled,
+        offer_title,
+        offer_body,
+        offer_url,
+        ai_review_enabled,
       })
       .select()
       .single();
@@ -202,6 +251,19 @@ export async function POST(request: NextRequest) {
     const promptPageData = createLocationPromptPageData({
       ...location,
       review_platforms,
+      // Pass through all module fields
+      emoji_sentiment_enabled,
+      emoji_sentiment_question,
+      emoji_feedback_message,
+      emoji_thank_you_message,
+      emoji_labels,
+      falling_enabled,
+      falling_icon,
+      offer_enabled,
+      offer_title,
+      offer_body,
+      offer_url,
+      ai_review_enabled,
     });
     
     const { data: promptPage, error: promptPageError } = await serviceRoleClient

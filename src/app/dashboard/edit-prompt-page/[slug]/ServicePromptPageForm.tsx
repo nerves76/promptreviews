@@ -34,7 +34,6 @@ export interface ServicePromptFormState {
   emojiSentimentQuestion: string;
   emojiFeedbackMessage: string;
   emojiThankYouMessage: string;
-  emojiLabels: string[];
   reviewPlatforms: ReviewWritePlatform[];
   fallingEnabled: boolean;
   fallingIcon: string;
@@ -80,19 +79,7 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
       initialData?.emojiFeedbackMessage || "How can we improve?",
     );
     const [emojiThankYouMessage, setEmojiThankYouMessage] = useState(
-      initialData?.emojiThankYouMessage &&
-        initialData.emojiThankYouMessage.trim() !== ""
-        ? initialData.emojiThankYouMessage
-        : "Thank you for your feedback. It's important to us.",
-    );
-    const [emojiLabels, setEmojiLabels] = useState(
-      initialData?.emojiLabels ?? [
-        "Excellent",
-        "Satisfied",
-        "Neutral",
-        "Unsatisfied",
-        "Frustrated",
-      ],
+      initialData?.emojiThankYouMessage || "Thank you for your feedback!",
     );
     const [reviewPlatforms, setReviewPlatforms] = useState<
       ReviewWritePlatform[]
@@ -118,10 +105,6 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
       null | "emoji" | "note"
     >(null);
 
-    const handleEmojiLabelChange = (index: number, val: string) => {
-      setEmojiLabels((labels) => labels.map((l, i) => (i === index ? val : l)));
-    };
-
     // Expose a submit function via ref
     React.useImperativeHandle(
       ref,
@@ -136,7 +119,6 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
             emojiSentimentQuestion,
             emojiFeedbackMessage,
             emojiThankYouMessage,
-            emojiLabels,
             reviewPlatforms,
             fallingEnabled,
             fallingIcon,
@@ -155,7 +137,6 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
         emojiSentimentQuestion,
         emojiFeedbackMessage,
         emojiThankYouMessage,
-        emojiLabels,
         reviewPlatforms,
         fallingEnabled,
         fallingIcon,
@@ -214,7 +195,6 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
               emojiFeedbackMessage,
               emojiThankYouMessage:
                 emojiThankYouMessage || "Thank you for your feedback!",
-              emojiLabels,
               reviewPlatforms,
               fallingEnabled,
               fallingIcon,
@@ -301,8 +281,6 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
             onFeedbackMessageChange={setEmojiFeedbackMessage}
             thankYouMessage={emojiThankYouMessage}
             onThankYouMessageChange={setEmojiThankYouMessage}
-            emojiLabels={emojiLabels}
-            onEmojiLabelChange={handleEmojiLabelChange}
             disabled={!!notePopupEnabled}
           />
           {/* AI Review Generation Toggle */}

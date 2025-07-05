@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     console.log(`[CREATE-ACCOUNT] Creating new account for user: ${userId}`);
     const accountData = {
       id: userId,
-              plan: 'NULL', // Use 'NULL' as the default for new users (matches DB default)
+              plan: 'no_plan', // Use 'no_plan' as the default for new users (matches DB default)
       trial_start: new Date().toISOString(),
       trial_end: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 days trial
       is_free_account: false,

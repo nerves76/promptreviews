@@ -1,15 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { FaStore } from "react-icons/fa";
-import { getUserOrMock } from "@/utils/supabaseClient";
+import { supabase, getUserOrMock } from "@/utils/supabaseClient";
 import { useAdmin } from "@/contexts/AdminContext";
 import SimpleBusinessForm from "../components/SimpleBusinessForm";
 import AppLoader from "@/app/components/AppLoader";
 import PageCard from "@/app/components/PageCard";
 import WelcomePopup from "@/app/components/WelcomePopup";
-import { supabase } from "@/utils/supabaseClient";
 import { ensureAccountExists, getAccountIdForUser } from "@/utils/accountUtils";
 
 export default function CreateBusinessClient() {
@@ -24,93 +23,111 @@ export default function CreateBusinessClient() {
   const [accountId, setAccountId] = useState<string | null>(null);
   const [isNewUser, setIsNewUser] = useState(false);
 
+  // Memoize router functions to prevent infinite loops
+  const redirectToSignIn = useCallback(() => {
+    router.push("/auth/sign-in");
+  }, [router]);
+
+  const redirectToDashboard = useCallback(() => {
+    router.push("/dashboard");
+  }, [router]);
+
+  const redirectToDashboardWithFlag = useCallback(() => {
+    router.push("/dashboard?businessCreated=true");
+  }, [router]);
+
   useEffect(() => {
     const loadUserData = async () => {
-      try {
-        setLoading(true);
-        setError("");
-
-        // Wait for session to be initialized with retry logic
-        let session = null;
-        let sessionError = null;
-        let retryCount = 0;
-        const maxRetries = 3;
-
-        while (retryCount < maxRetries) {
-          const { data: { session: currentSession }, error: currentError } = await supabase.auth.getSession();
+      const maxRetries = 3;
+      let attempt = 0;
+      
+      while (attempt < maxRetries) {
+        try {
+          attempt++;
+          console.log(`🔍 CreateBusinessClient: Checking authentication (attempt ${attempt}/${maxRetries})...`);
           
-          if (currentSession) {
-            session = currentSession;
-            break;
+          // Add a delay that increases with each attempt
+          if (attempt > 1) {
+            const delay = attempt * 500;
+            console.log(`⏳ CreateBusinessClient: Waiting ${delay}ms before retry...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
           }
           
-          if (currentError) {
-            sessionError = currentError;
-            console.log(`Session attempt ${retryCount + 1} failed:`, currentError);
-          }
+          console.log("🕒 CreateBusinessClient: Getting user authentication...");
           
-          retryCount++;
-          if (retryCount < maxRetries) {
-            await new Promise(resolve => setTimeout(resolve, 1000));
+          const { data: { user }, error: userError } = await getUserOrMock(supabase);
+          
+          console.log("🔍 CreateBusinessClient: getUserOrMock result:", { user: user?.id, error: userError, attempt });
+          
+          if (userError || !user) {
+            console.log(`❌ CreateBusinessClient: No authenticated user (attempt ${attempt})`);
+            console.log("❌ CreateBusinessClient: Error details:", userError);
+            
+            // If this is the last attempt, redirect to sign-in
+            if (attempt >= maxRetries) {
+              console.log("❌ CreateBusinessClient: Max retries reached, redirecting to sign-in");
+              redirectToSignIn();
+              return;
+            }
+            
+            // Otherwise, continue to next attempt
+            continue;
           }
-        }
 
-        if (!session) {
-          console.log("No session after retries, redirecting to sign-in");
-          router.push("/auth/sign-in");
-          return;
-        }
+          console.log("✅ CreateBusinessClient: User authenticated:", user.id);
+          setUser(user);
 
-        // Get user data
-        const { data: { user }, error: userError } = await getUserOrMock(supabase);
-        
-        if (userError || !user) {
-          console.log("User error:", userError);
-          setError("Failed to load user data");
+          // Check if user already has an account
+          const accountId = await getAccountIdForUser(user.id, supabase);
+          
+          if (accountId) {
+            // Check if user already has businesses
+            const { data: businesses } = await supabase
+              .from("businesses")
+              .select("id")
+              .eq("account_id", accountId);
+
+            if (businesses && businesses.length > 0) {
+              // User already has businesses, redirect to dashboard
+              console.log("User already has businesses, redirecting to dashboard");
+              redirectToDashboard();
+              return;
+            }
+          }
+
+          // Set as new user to show welcome popup
+          setIsNewUser(true);
+          
+          // Ensure account exists for the user
+          const finalAccountId = await ensureAccountExists(supabase, user.id);
+          setAccountId(finalAccountId);
+          
+          // Show welcome popup for new users
+          setShowWelcomePopup(true);
+          
           setLoading(false);
+          console.log("✅ CreateBusinessClient: Authentication complete, showing create business form");
           return;
-        }
-
-        setUser(user);
-
-        // Check if user already has an account
-        const accountId = await getAccountIdForUser(user.id, supabase);
-        
-        if (accountId) {
-          // Check if user already has businesses
-          const { data: businesses } = await supabase
-            .from("businesses")
-            .select("id")
-            .eq("account_id", accountId);
-
-          if (businesses && businesses.length > 0) {
-            // User already has businesses, redirect to dashboard
-            console.log("User already has businesses, redirecting to dashboard");
-            router.push("/dashboard");
+          
+        } catch (error) {
+          console.error(`💥 CreateBusinessClient: Error on attempt ${attempt}:`, error);
+          
+          // If this is the last attempt, show error
+          if (attempt >= maxRetries) {
+            console.error("💥 CreateBusinessClient: Max retries reached, showing error");
+            setError("Failed to load user data");
+            setLoading(false);
             return;
           }
+          
+          // Otherwise, continue to next attempt
+          continue;
         }
-
-        // Set as new user to show welcome popup
-        setIsNewUser(true);
-        
-        // Ensure account exists for the user
-        const finalAccountId = await ensureAccountExists(supabase, user.id);
-        setAccountId(finalAccountId);
-        
-        // Show welcome popup for new users
-        setShowWelcomePopup(true);
-        
-        setLoading(false);
-      } catch (error) {
-        console.error("Error loading user data:", error);
-        setError("Failed to load user data");
-        setLoading(false);
       }
     };
 
     loadUserData();
-  }, [router]);
+  }, [redirectToSignIn, redirectToDashboard]); // Only depend on memoized functions
 
   const handleCloseWelcome = () => {
     setShowWelcomePopup(false);
@@ -149,7 +166,7 @@ export default function CreateBusinessClient() {
           <h1 className="text-2xl font-bold mb-4 text-red-600">Error</h1>
           <p className="mb-4">{error}</p>
           <button
-            onClick={() => router.push("/auth/sign-in")}
+            onClick={redirectToSignIn}
             className="text-blue-600 underline"
           >
             Sign in
@@ -184,10 +201,7 @@ export default function CreateBusinessClient() {
         <SimpleBusinessForm 
           user={user}
           accountId={accountId}
-          onSuccess={() => {
-            console.log("SimpleBusinessForm onSuccess called, redirecting to dashboard with business created flag");
-            router.push("/dashboard?businessCreated=true");
-          }}
+          onSuccess={redirectToDashboardWithFlag}
         />
 
         {isNewUser && showWelcomePopup && (

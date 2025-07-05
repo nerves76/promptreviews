@@ -19,8 +19,6 @@ interface EmojiSentimentSectionProps {
   onFeedbackMessageChange: (val: string) => void;
   thankYouMessage: string;
   onThankYouMessageChange: (val: string) => void;
-  emojiLabels?: string[];
-  onEmojiLabelChange?: (index: number, val: string) => void;
   disabled?: boolean;
 }
 
@@ -33,8 +31,6 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
   onFeedbackMessageChange,
   thankYouMessage,
   onThankYouMessageChange,
-  emojiLabels = EMOJI_SENTIMENT_LABELS,
-  onEmojiLabelChange,
   disabled = false,
 }) => (
   <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-2 shadow relative">
@@ -73,7 +69,7 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
       </div>
     )}
     <div className="flex justify-center gap-3 my-3 select-none">
-      {emojiLabels.map((label, i) => {
+      {EMOJI_SENTIMENT_LABELS.map((label, i) => {
         const iconDef = EMOJI_SENTIMENT_ICONS[i];
         const Icon = iconDef?.icon || EMOJI_SENTIMENT_ICONS[1].icon;
         const color = iconDef?.color || "text-gray-400";

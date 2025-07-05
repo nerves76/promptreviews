@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
     customer: customerId,
     return_url:
       process.env.NEXT_PUBLIC_PORTAL_RETURN_URL ||
-      "https://your-app.com/billing",
+      `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
   });
 
   return NextResponse.json({ url: session.url });

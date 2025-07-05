@@ -100,6 +100,20 @@ export function createLocationPromptPageData(location: {
   ai_dos?: string;
   ai_donts?: string;
   review_platforms?: any[];
+  // Emoji sentiment fields
+  emoji_sentiment_enabled?: boolean;
+  emoji_sentiment_question?: string;
+  emoji_feedback_message?: string;
+  emoji_thank_you_message?: string;
+  emoji_labels?: string[];
+  // Other module fields
+  falling_enabled?: boolean;
+  falling_icon?: string;
+  offer_enabled?: boolean;
+  offer_title?: string;
+  offer_body?: string;
+  offer_url?: string;
+  ai_review_enabled?: boolean;
 }) {
   return {
     account_id: location.account_id,
@@ -112,5 +126,19 @@ export function createLocationPromptPageData(location: {
     review_platforms: location.review_platforms || [],
     slug: generateLocationPromptPageSlug(location.name),
     status: 'complete' as const,
+    // Emoji sentiment fields - disabled by default as requested
+    emoji_sentiment_enabled: location.emoji_sentiment_enabled ?? false,
+    emoji_sentiment_question: location.emoji_sentiment_question || 'How was your experience?',
+    emoji_feedback_message: location.emoji_feedback_message || 'How can we improve?',
+    emoji_thank_you_message: location.emoji_thank_you_message || 'Thank you for your feedback. It\'s important to us.',
+    emoji_labels: location.emoji_labels || ['Excellent', 'Satisfied', 'Neutral', 'Unsatisfied', 'Frustrated'],
+    // Other module fields
+    falling_enabled: location.falling_enabled ?? false,
+    falling_icon: location.falling_icon || 'star',
+    offer_enabled: location.offer_enabled ?? false,
+    offer_title: location.offer_title || '',
+    offer_body: location.offer_body || '',
+    offer_url: location.offer_url || '',
+    ai_review_enabled: location.ai_review_enabled !== false, // Default to true
   };
 } 

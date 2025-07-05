@@ -45,7 +45,7 @@ BEGIN
         contact_count
     ) VALUES (
         user_id,
-        'grower',
+        'no_plan',
         NOW(),
         NOW() + INTERVAL '14 days',
         false,

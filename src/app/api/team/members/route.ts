@@ -45,12 +45,14 @@ export async function GET(request: NextRequest) {
     }
 
     // Get the user's account
+    console.log('🔍 Looking for account_user with user_id:', user.id);
+    
     const { data: accountUser, error: accountError } = await supabase
       .from('account_users')
       .select(`
         account_id,
         role,
-        accounts (
+        accounts!inner (
           id,
           first_name,
           last_name,
@@ -61,6 +63,10 @@ export async function GET(request: NextRequest) {
       `)
       .eq('user_id', user.id)
       .single();
+
+    console.log('🔍 accountUser result:', accountUser);
+    console.log('🔍 accountError:', accountError);
+    console.log('🔍 accounts array:', accountUser?.accounts);
 
     if (accountError || !accountUser) {
       console.error('Error fetching account user:', accountError);
@@ -134,18 +140,27 @@ export async function GET(request: NextRequest) {
       console.error('Error getting user count:', countError);
     }
 
+    // Since accounts is an object, not an array, access it directly
+    const account = accountUser.accounts as any;
+    
+    const accountData = {
+      id: account?.id,
+      first_name: account?.first_name,
+      last_name: account?.last_name,
+      business_name: account?.business_name,
+      plan: account?.plan,
+      max_users: account?.max_users,
+      current_users: userCount || members.length,
+      can_add_more: (userCount || members.length) < (account?.max_users ?? 0)
+    };
+
+    // Debug logging
+    console.log('Team API - Account data:', accountData);
+    console.log('Team API - Raw account from DB:', account);
+
     return NextResponse.json({
       members,
-      account: {
-        id: accountUser.accounts?.[0]?.id,
-        first_name: accountUser.accounts?.[0]?.first_name,
-        last_name: accountUser.accounts?.[0]?.last_name,
-        business_name: accountUser.accounts?.[0]?.business_name,
-        plan: accountUser.accounts?.[0]?.plan,
-        max_users: accountUser.accounts?.[0]?.max_users,
-        current_users: userCount || members.length,
-        can_add_more: (userCount || members.length) < (accountUser.accounts?.[0]?.max_users ?? 0)
-      },
+      account: accountData,
       current_user_role: accountUser.role
     });
 

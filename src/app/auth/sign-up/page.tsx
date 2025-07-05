@@ -2,12 +2,17 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import SimpleMarketingNav from "@/app/components/SimpleMarketingNav";
 import { trackSignUp } from '../../../utils/analytics';
 import { supabase } from '../../../utils/supabaseClient';
 
 export default function SignUpPage() {
-  const [email, setEmail] = useState("");
+  const searchParams = useSearchParams();
+  const invitationToken = searchParams.get('invitation');
+  const invitationEmail = searchParams.get('email');
+  
+  const [email, setEmail] = useState(invitationEmail || "");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -15,10 +20,35 @@ export default function SignUpPage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [message, setMessage] = useState("");
+  const [invitationData, setInvitationData] = useState<{
+    inviterName: string;
+    businessName: string;
+    role: string;
+  } | null>(null);
 
-
-
-
+  // Fetch invitation details if we have a token
+  useEffect(() => {
+    if (invitationToken) {
+      const fetchInvitation = async () => {
+        try {
+          const response = await fetch(`/api/team/accept?token=${invitationToken}`);
+          const data = await response.json();
+          
+          if (response.ok && data.invitation) {
+            setInvitationData({
+              inviterName: data.invitation.inviter_name || 'Account Owner',
+              businessName: data.invitation.business_name || 'Team Account',
+              role: data.invitation.role
+            });
+          }
+        } catch (err) {
+          console.error('Failed to fetch invitation details:', err);
+        }
+      };
+      
+      fetchInvitation();
+    }
+  }, [invitationToken]);
 
   const errorMessages: Record<string, string> = {
     "User already registered":
@@ -216,8 +246,14 @@ export default function SignUpPage() {
         <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
           <div className="p-8 rounded shadow text-center bg-white max-w-md w-full">
             <h2 className="text-2xl font-bold mb-4 text-[#1A237E]">
-              {message}
+              {invitationToken ? 'Account Created Successfully!' : message}
             </h2>
+            <p className="text-gray-600 mb-6">
+              {invitationToken 
+                ? 'Please check your email and click the confirmation link to activate your account and join the team.'
+                : 'Please check your email and click the confirmation link to activate your account. Your account will be set up automatically when you confirm your email.'
+              }
+            </p>
             <Link href="/auth/sign-in">
               <button className="mt-4 px-6 py-2 bg-slate-blue text-white rounded font-semibold hover:bg-indigo-900">
                 Sign in
@@ -235,18 +271,48 @@ export default function SignUpPage() {
       <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <h1 className="mt-6 text-center text-3xl font-extrabold text-white">
-            Create your account
+            {invitationToken ? 'Join the Team' : 'Create your account'}
           </h1>
           <p className="mt-2 text-center text-sm text-white">
-            Or{" "}
-            <Link
-              href="/auth/sign-in"
-              className="font-medium text-white hover:text-gray-100 underline"
-            >
-              sign in to your account
-            </Link>
+            {invitationToken ? (
+              <>
+                You've been invited to join a team on Prompt Reviews
+                {!invitationEmail && (
+                  <>
+                    {" "}Or{" "}
+                    <Link
+                      href="/auth/sign-in"
+                      className="font-medium text-white hover:text-gray-100 underline"
+                    >
+                      sign in to your account
+                    </Link>
+                  </>
+                )}
+              </>
+            ) : (
+              <>
+                Or{" "}
+                <Link
+                  href="/auth/sign-in"
+                  className="font-medium text-white hover:text-gray-100 underline"
+                >
+                  sign in to your account
+                </Link>
+              </>
+            )}
           </p>
         </div>
+        
+        {invitationToken && invitationData && (
+          <div className="mt-4 p-4 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 max-w-md w-full">
+            <div className="text-white text-sm">
+              <p><strong>Invited by:</strong> {invitationData.inviterName}</p>
+              <p><strong>Business:</strong> {invitationData.businessName}</p>
+              <p><strong>Role:</strong> {invitationData.role}</p>
+            </div>
+          </div>
+        )}
+        
         <form
           onSubmit={handleSubmit}
           className="mt-8 p-8 rounded shadow w-full max-w-md space-y-6 bg-white"
@@ -284,8 +350,13 @@ export default function SignUpPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               autoComplete="email"
-              disabled={loading}
+              disabled={loading || !!invitationEmail}
             />
+            {invitationEmail && (
+              <p className="text-sm text-gray-600 mt-1">
+                This email is required for the team invitation
+              </p>
+            )}
           </div>
           <div>
             <label className="block font-medium mb-1">Password</label>
@@ -322,7 +393,7 @@ export default function SignUpPage() {
             className="w-full py-3 bg-slate-blue text-white rounded font-semibold hover:bg-indigo-900 disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={loading}
           >
-            {loading ? "Signing up..." : "Sign Up"}
+            {loading ? (invitationToken ? "Creating account..." : "Signing up...") : (invitationToken ? "Create Account & Join Team" : "Sign Up")}
           </button>
         </form>
       </div>

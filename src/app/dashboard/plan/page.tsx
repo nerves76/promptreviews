@@ -121,8 +121,30 @@ export default function PlanPage() {
           return;
         }
       }
+      
       if (isDowngrade) {
         setLastAction("downgrade");
+        
+        // If user has Stripe customer ID, redirect to billing portal for downgrades
+        if (account.stripe_customer_id) {
+          setIsLoading(true);
+          const res = await fetch("/api/create-stripe-portal-session", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ customerId: account.stripe_customer_id }),
+          });
+          const data = await res.json();
+          setIsLoading(false);
+          if (data.url) {
+            window.location.href = data.url;
+            return;
+          } else {
+            alert("Could not open billing portal.");
+            return;
+          }
+        }
+        
+        // Only show downgrade modal for non-Stripe users (free plans)
         const lostFeatures = (currentTier?.features || []).filter(
           (f) => !(targetTier?.features || []).includes(f),
         );
@@ -131,6 +153,7 @@ export default function PlanPage() {
         setShowDowngradeModal(true);
         return;
       }
+      
       // For same plan, just reload
       await supabase
         .from("accounts")

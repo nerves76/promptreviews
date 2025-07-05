@@ -36,7 +36,6 @@ export interface ProductPromptFormState {
   emojiSentimentQuestion: string;
   emojiFeedbackMessage: string;
   emojiThankYouMessage: string;
-  emojiLabels: string[];
   reviewPlatforms: ReviewWritePlatform[];
   fallingEnabled: boolean;
   fallingIcon: string;
@@ -86,19 +85,7 @@ const ProductPromptPageForm = forwardRef<any, ProductPromptPageFormProps>(
       initialData?.emojiFeedbackMessage || "How can we improve?",
     );
     const [emojiThankYouMessage, setEmojiThankYouMessage] = useState(
-      initialData?.emojiThankYouMessage &&
-        initialData.emojiThankYouMessage.trim() !== ""
-        ? initialData.emojiThankYouMessage
-        : "Thank you for your feedback. It's important to us.",
-    );
-    const [emojiLabels, setEmojiLabels] = useState(
-      initialData?.emojiLabels ?? [
-        "Excellent",
-        "Satisfied",
-        "Neutral",
-        "Unsatisfied",
-        "Frustrated",
-      ],
+      initialData?.emojiThankYouMessage || "Thank you for your feedback!",
     );
     const [reviewPlatforms, setReviewPlatforms] = useState<
       ReviewWritePlatform[]
@@ -271,8 +258,8 @@ const ProductPromptPageForm = forwardRef<any, ProductPromptPageFormProps>(
             emojiSentimentEnabled,
             emojiSentimentQuestion,
             emojiFeedbackMessage,
-            emojiThankYouMessage,
-            emojiLabels,
+            emojiThankYouMessage:
+              emojiThankYouMessage || "Thank you for your feedback!",
             reviewPlatforms,
             fallingEnabled,
             fallingIcon,
@@ -293,7 +280,6 @@ const ProductPromptPageForm = forwardRef<any, ProductPromptPageFormProps>(
         emojiSentimentQuestion,
         emojiFeedbackMessage,
         emojiThankYouMessage,
-        emojiLabels,
         reviewPlatforms,
         fallingEnabled,
         fallingIcon,
@@ -373,7 +359,6 @@ const ProductPromptPageForm = forwardRef<any, ProductPromptPageFormProps>(
               emojiFeedbackMessage,
               emojiThankYouMessage:
                 emojiThankYouMessage || "Thank you for your feedback!",
-              emojiLabels,
               reviewPlatforms,
               fallingEnabled,
               fallingIcon,
@@ -460,8 +445,6 @@ const ProductPromptPageForm = forwardRef<any, ProductPromptPageFormProps>(
             onFeedbackMessageChange={setEmojiFeedbackMessage}
             thankYouMessage={emojiThankYouMessage}
             onThankYouMessageChange={setEmojiThankYouMessage}
-            emojiLabels={emojiLabels}
-            onEmojiLabelChange={handleEmojiLabelChange}
           />
           {/* AI Review Generation Toggle (shared design) */}
           <DisableAIGenerationSection
