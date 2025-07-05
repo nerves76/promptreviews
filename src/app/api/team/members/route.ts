@@ -6,13 +6,15 @@
  */
 
 import { createServerClient } from '@supabase/ssr';
-import { createClient } from '@supabase/supabase-js';
+import { createServiceRoleClient } from '@/utils/supabaseClient';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(request: NextRequest) {
+// 🔧 CONSOLIDATION: Shared server client creation for API routes
+// This eliminates duplicate client creation patterns
+async function createAuthenticatedSupabaseClient() {
   const cookieStore = await cookies();
-  const supabase = createServerClient(
+  return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
@@ -23,15 +25,12 @@ export async function GET(request: NextRequest) {
       },
     }
   );
+}
 
-  // Create admin client for auth operations
-  const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      auth: { autoRefreshToken: false, persistSession: false }
-    }
-  );
+export async function GET(request: NextRequest) {
+  // 🔧 CONSOLIDATED: Use shared client creation functions
+  const supabase = await createAuthenticatedSupabaseClient();
+  const supabaseAdmin = createServiceRoleClient(); // 🔧 Use centralized service role client
 
   try {
     // Get the current user

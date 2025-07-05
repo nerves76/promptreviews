@@ -4,12 +4,33 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient, createServiceRoleClient } from '@/utils/supabaseClient';
+import { createServiceRoleClient } from '@/utils/supabaseClient';
 import { getAccountIdForUser } from '@/utils/accountUtils';
+import { createServerClient } from '@supabase/ssr';
 
-// Initialize clients
-const supabase = createClient();
+// 🔧 CONSOLIDATION: Use centralized service role client
 const supabaseAdmin = createServiceRoleClient();
+
+// 🔧 CONSOLIDATION: Helper function for request-scoped auth client
+// Used ONLY for authenticated dashboard requests (PUT operations)
+function createAuthClient(authToken: string) {
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      global: {
+        headers: {
+          Authorization: `Bearer ${authToken}`
+        }
+      },
+      cookies: {
+        get: () => undefined,
+        set: () => {},
+        remove: () => {},
+      },
+    }
+  );
+}
 
 /**
  * PUT /api/widgets/[id]/reviews
@@ -40,7 +61,8 @@ export async function PUT(
     }
 
     const token = authHeader.substring(7);
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    const supabase = createAuthClient(token); // 🔧 CONSOLIDATED: Use request-scoped client
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -136,7 +158,8 @@ export async function GET(
     }
 
     const token = authHeader.substring(7);
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    const supabase = createAuthClient(token); // 🔧 CONSOLIDATED: Use request-scoped client
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
