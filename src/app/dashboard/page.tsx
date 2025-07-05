@@ -263,8 +263,30 @@ export default function Dashboard() {
   useEffect(() => {
     if (isLoading || !data?.account) return;
     
-    // Check if user has manually dismissed the modal in this session
-    const hasManuallyDismissed = typeof window !== "undefined" && 
+    const now = new Date();
+    const trialStart = data?.account?.trial_start
+      ? new Date(data.account.trial_start)
+      : null;
+    const trialEnd = data?.account?.trial_end ? new Date(data.account.trial_end) : null;
+    const plan = data?.account?.plan;
+    const hasStripeCustomer = !!data?.account?.stripe_customer_id;
+
+    // User is on a paid plan (builder/maven always paid, grower only if paid after trial)
+    const isPaidUser = 
+      plan === "builder" || 
+      plan === "maven" || 
+      (plan === "grower" && hasStripeCustomer);
+
+    // Check if trial has expired
+    const isTrialExpired = trialEnd && now > trialEnd;
+
+    // Determine if plan selection is REQUIRED (user cannot dismiss modal) vs OPTIONAL
+    const isPlanSelectionRequired = 
+      // Required: Trial has expired and user hasn't paid (must select plan to continue)
+      (plan === "grower" && isTrialExpired && !hasStripeCustomer);
+    
+    // Check if user has manually dismissed the modal in this session (only for optional cases)
+    const hasManuallyDismissed = !isPlanSelectionRequired && typeof window !== "undefined" && 
       sessionStorage.getItem('pricingModalDismissed') === 'true';
     
     if (hasManuallyDismissed) {
@@ -272,34 +294,26 @@ export default function Dashboard() {
       return;
     }
     
-    const paidPlans = ["builder", "maven"]; // Only builder and maven are truly paid plans
-    const now = new Date();
-    const trialStart = data?.account?.trial_start
-      ? new Date(data.account.trial_start)
-      : null;
-    const trialEnd = data?.account?.trial_end ? new Date(data.account.trial_end) : null;
-
-    // Check if user is on a paid plan (excludes grower since it's trial)
-    const isPaidUser = paidPlans.includes(data?.account?.plan || "");
-
-    // Check if trial has expired
-    const isTrialExpired =
-      trialEnd && now > trialEnd && data?.account?.plan === "grower";
-
     // Show pricing modal for new users who need to choose their initial plan
-    // or for users whose trial has expired
+    // or for users whose trial has expired and haven't paid
     const shouldShowPricingModal = 
       // New user who hasn't selected a plan yet (no plan, 'no_plan', or 'NULL' and has created a business)
-      ((!data?.account?.plan || data?.account?.plan === 'no_plan' || data?.account?.plan === 'NULL') && (data?.businesses?.length || 0) > 0) ||
-      // Or trial has expired (grower users whose trial time is up)
-      (isTrialExpired && !isPaidUser);
-
-    // Determine if plan selection is REQUIRED (user cannot dismiss modal) vs OPTIONAL
-    const isPlanSelectionRequired = 
-      // Required: New user with no plan who created a business (must select plan to continue)
-      ((!data?.account?.plan || data?.account?.plan === 'no_plan' || data?.account?.plan === 'NULL') && (data?.businesses?.length || 0) > 0) ||
-      // Required: Trial has expired (must upgrade to continue)
-      (isTrialExpired && !isPaidUser);
+      ((!plan || plan === 'no_plan' || plan === 'NULL') && (data?.businesses?.length || 0) > 0) ||
+      // Or grower user whose trial expired and hasn't paid
+      (plan === "grower" && isTrialExpired && !hasStripeCustomer);
+    
+    // Add comprehensive logging for debugging
+    console.log('🔍 Plan selection debug:', {
+      accountPlan: plan,
+      businessCount: data?.businesses?.length,
+      trialEnd: trialEnd,
+      isTrialExpired,
+      hasStripeCustomer,
+      isPaidUser,
+      shouldShowModal: shouldShowPricingModal,
+      isPlanSelectionRequired,
+      businessCreatedParam: typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("businessCreated") : null
+    });
     
     setPlanSelectionRequired(isPlanSelectionRequired);
     setShowPricingModal(!!shouldShowPricingModal);
@@ -410,12 +424,70 @@ export default function Dashboard() {
 
   const handleSelectTier = async (tierKey: string) => {
     try {
-      setPendingAccountUpdate(true);
-      
       // Get current plan and target tier info
       const currentPlan = data?.account?.plan;
       const currentTier = tiers.find((t) => t.key === currentPlan);
       const targetTier = tiers.find((t) => t.key === tierKey);
+      
+      // Handle new users with no plan
+      if (!currentPlan || currentPlan === 'no_plan' || currentPlan === 'NULL') {
+        setPendingAccountUpdate(true);
+        
+        if (tierKey === "grower") {
+          // Start free trial for grower plan
+          await supabase
+            .from("accounts")
+            .update({ 
+              plan: tierKey,
+              trial_start: new Date().toISOString(),
+              trial_end: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString() // 14 days from now
+            })
+            .eq("id", data?.account?.id);
+          
+          // Close the pricing modal
+          setShowPricingModal(false);
+          
+          // Show starfall celebration
+          setShowStarfallCelebration(true);
+          
+          // Dispatch event to refresh navigation state
+          window.dispatchEvent(new CustomEvent('planSelected', { detail: { plan: tierKey } }));
+          
+          return;
+        } else {
+          // For builder/maven, go to Stripe checkout
+          const email = data?.user?.email;
+          if (!email) {
+            alert("No valid email address found for checkout.");
+            return;
+          }
+          
+          const checkoutPayload = {
+            plan: tierKey,
+            userId: data?.account?.id,
+            email,
+          };
+          
+          const res = await fetch("/api/create-checkout-session", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(checkoutPayload),
+          });
+          
+          const checkoutData = await res.json();
+          if (checkoutData.url) {
+            // Redirect to Stripe checkout
+            window.location.href = checkoutData.url;
+            return;
+          } else {
+            alert("Failed to start checkout: " + (checkoutData.error || "Unknown error"));
+            return;
+          }
+        }
+      }
+      
+      // Handle existing users with a plan
+      setPendingAccountUpdate(true);
       
       // Determine if this is an upgrade, downgrade, or same plan
       const isUpgrade = currentTier && targetTier && targetTier.order > currentTier.order;
@@ -497,8 +569,26 @@ export default function Dashboard() {
         }
       }
       
-      // For downgrades, update directly (you might want to add confirmation modal here)
+      // For downgrades, redirect to Stripe billing portal if user has Stripe customer ID
       if (isDowngrade) {
+        // If user has Stripe customer ID, redirect to billing portal for downgrades
+        if (data?.account?.stripe_customer_id) {
+          const res = await fetch("/api/create-stripe-portal-session", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ customerId: data.account.stripe_customer_id }),
+          });
+          const portalData = await res.json();
+          if (portalData.url) {
+            window.location.href = portalData.url;
+            return;
+          } else {
+            alert("Could not open billing portal.");
+            return;
+          }
+        }
+        
+        // Only update directly for non-Stripe users (free plans)
         await supabase
           .from("accounts")
           .update({ plan: tierKey })

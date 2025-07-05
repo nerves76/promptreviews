@@ -65,9 +65,15 @@ interface PricingModalProps {
 }
 
 function getButtonLabel(tierKey: string, currentPlan?: string) {
-  if (!currentPlan) return "Choose";
+  // Handle new users with no plan
+  if (!currentPlan || currentPlan === 'no_plan' || currentPlan === 'NULL') {
+    if (tierKey === "grower") return "Start Free Trial";
+    return "Get Started";
+  }
+  
   if (tierKey === currentPlan) return "Your Plan";
   if (currentPlan === "free") return "Choose";
+  
   const current = tiers.find((t) => t.key === currentPlan);
   const target = tiers.find((t) => t.key === tierKey);
   if (!current || !target) return "Choose";

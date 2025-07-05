@@ -1,16 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '@/utils/supabaseClient';
+import { createServerClient } from '@supabase/ssr';
 
 export async function GET(request: NextRequest) {
   try {
     console.log('🔍 Session API: Checking session status...');
     
-    // Create server client with proper cookie handling
-    const supabase = await createServerSupabaseClient();
+    // Create server client with proper cookie handling (Next.js 15 async compatible)
+    const { cookies } = await import('next/headers');
+    const cookieStore = await cookies();
+    
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get: (name) => {
+            const value = cookieStore.get(name)?.value;
+            return value;
+          },
+          set: () => {}, // No-op for API route
+          remove: () => {}, // No-op for API route
+        },
+      }
+    );
     
     // Get the current user (more secure than getSession)
     const { data: { user }, error } = await supabase.auth.getUser();
-
+    
     if (error) {
       console.log('❌ Session API: Error getting user:', error.message);
       return NextResponse.json({
@@ -21,16 +37,17 @@ export async function GET(request: NextRequest) {
     }
 
     if (!user) {
-      console.log('ℹ️  Session API: No active session found');
+      console.log('❌ Session API: No user found');
       return NextResponse.json({
         authenticated: false,
-        user: null
+        user: null,
+        error: 'No user found'
       });
     }
 
     console.log('✅ Session API: Valid session found');
-    console.log(`👤 Session API: User ID: ${user.id}`);
-    console.log(`📧 Session API: Email: ${user.email}`);
+    console.log('👤 Session API: User ID:', user.id);
+    console.log('📧 Session API: Email:', user.email);
 
     return NextResponse.json({
       authenticated: true,
@@ -39,11 +56,13 @@ export async function GET(request: NextRequest) {
         email: user.email,
         email_confirmed_at: user.email_confirmed_at,
         created_at: user.created_at,
-      }
+        updated_at: user.updated_at
+      },
+      error: null
     });
 
   } catch (error) {
-    console.log('💥 Session API: Unexpected error:', error);
+    console.error('❌ Session API: Unexpected error:', error);
     return NextResponse.json({
       authenticated: false,
       user: null,

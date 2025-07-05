@@ -67,13 +67,16 @@ export default function BusinessLocationModal({
   const [emojiSentimentEnabled, setEmojiSentimentEnabled] = useState(false);
   const [emojiSentimentQuestion, setEmojiSentimentQuestion] = useState('How was your experience?');
   const [emojiFeedbackMessage, setEmojiFeedbackMessage] = useState('How can we improve?');
-  const [emojiThankYouMessage, setEmojiThankYouMessage] = useState('Thank you for your feedback. It\'s important to us.');
-  const [emojiLabels, setEmojiLabels] = useState(['Excellent', 'Satisfied', 'Neutral', 'Unsatisfied', 'Frustrated']);
+  const [emojiThankYouMessage, setEmojiThankYouMessage] = useState(
+    location?.emoji_thank_you_message || "Thank you for your feedback. It's important to us.",
+  );
   const [offerEnabled, setOfferEnabled] = useState(false);
   const [offerTitle, setOfferTitle] = useState('');
   const [offerBody, setOfferBody] = useState('');
   const [offerUrl, setOfferUrl] = useState('');
-  const [aiReviewEnabled, setAiReviewEnabled] = useState(true);
+  const [aiReviewEnabled, setAiReviewEnabled] = useState(
+    location?.ai_review_enabled !== false,
+  );
   const [reviewPlatforms, setReviewPlatforms] = useState<ReviewPlatformLink[]>([]);
 
   // Photo upload state
@@ -98,21 +101,12 @@ export default function BusinessLocationModal({
       setEmojiSentimentQuestion(location.emoji_sentiment_question || 'How was your experience?');
       setEmojiFeedbackMessage(location.emoji_feedback_message || 'How can we improve?');
       setEmojiThankYouMessage(location.emoji_thank_you_message || 'Thank you for your feedback. It\'s important to us.');
-      setEmojiLabels(location.emoji_labels || ['Excellent', 'Satisfied', 'Neutral', 'Unsatisfied', 'Frustrated']);
       setOfferEnabled(location.offer_enabled || false);
       setOfferTitle(location.offer_title || '');
       setOfferBody(location.offer_body || '');
       setOfferUrl(location.offer_url || '');
-      setAiReviewEnabled(location.ai_review_enabled !== false); // Default to true
-      
-      // Load review platforms from location or business defaults
-      if (location.review_platforms && location.review_platforms.length > 0) {
-        setReviewPlatforms(location.review_platforms);
-      } else if (businessReviewPlatforms && businessReviewPlatforms.length > 0) {
-        setReviewPlatforms(businessReviewPlatforms);
-      } else {
-        setReviewPlatforms([]);
-      }
+      setAiReviewEnabled(location.ai_review_enabled !== false);
+      setReviewPlatforms(location.review_platforms || []);
       
       // Load photo data
       setLocationPhotoUrl(location.location_photo_url || null);
@@ -138,15 +132,12 @@ export default function BusinessLocationModal({
       setEmojiSentimentQuestion('How was your experience?');
       setEmojiFeedbackMessage('How can we improve?');
       setEmojiThankYouMessage('Thank you for your feedback. It\'s important to us.');
-      setEmojiLabels(['Excellent', 'Satisfied', 'Neutral', 'Unsatisfied', 'Frustrated']);
       setOfferEnabled(false);
       setOfferTitle('');
       setOfferBody('');
       setOfferUrl('');
       setAiReviewEnabled(true);
-      
-      // Initialize review platforms from business defaults
-      setReviewPlatforms(businessReviewPlatforms || []);
+      setReviewPlatforms([]);
       
       // Reset photo data
       setLocationPhotoUrl(null);
@@ -301,13 +292,11 @@ export default function BusinessLocationModal({
         emoji_sentiment_question: emojiSentimentQuestion,
         emoji_feedback_message: emojiFeedbackMessage,
         emoji_thank_you_message: emojiThankYouMessage,
-        emoji_labels: emojiLabels,
         offer_enabled: offerEnabled,
         offer_title: offerTitle,
         offer_body: offerBody,
         offer_url: offerUrl,
         ai_review_enabled: aiReviewEnabled,
-        // Review platforms
         review_platforms: reviewPlatforms,
         // Photo data
         location_photo: locationPhotoFile,
@@ -680,12 +669,6 @@ export default function BusinessLocationModal({
                     onFeedbackMessageChange={setEmojiFeedbackMessage}
                     thankYouMessage={emojiThankYouMessage}
                     onThankYouMessageChange={setEmojiThankYouMessage}
-                    emojiLabels={emojiLabels}
-                    onEmojiLabelChange={(idx: number, val: string) => {
-                      const newLabels = [...emojiLabels];
-                      newLabels[idx] = val;
-                      setEmojiLabels(newLabels);
-                    }}
                   />
 
                   {/* AI Review Generation Toggle */}

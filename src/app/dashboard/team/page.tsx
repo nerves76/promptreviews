@@ -61,6 +61,12 @@ export default function TeamPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [showRoleTooltip, setShowRoleTooltip] = useState(false);
 
+  // Helper function to safely format plan name
+  const formatPlanName = (plan: string | null | undefined): string => {
+    if (!plan) return 'Unknown';
+    return plan.charAt(0).toUpperCase() + plan.slice(1);
+  };
+
   // Fetch team data
   const fetchTeamData = async () => {
     try {
@@ -96,6 +102,18 @@ export default function TeamPage() {
 
   useEffect(() => {
     fetchTeamData();
+  }, []);
+
+  // Refresh data when the page becomes visible (in case user came back from Stripe)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchTeamData();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, []);
 
   // Send invitation
@@ -181,6 +199,20 @@ export default function TeamPage() {
 
   const { members, invitations, account, current_user_role } = teamData;
   const isOwner = current_user_role === 'owner';
+  
+  // Debug logging
+  console.log('Team data:', { account, members: members.length, current_user_role });
+  
+  // Additional safety check for account data
+  if (!account) {
+    return (
+      <div className="max-w-6xl mx-auto p-6">
+        <div className="text-center">
+          <p className="text-gray-500">Account data not available</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto p-6">
@@ -195,10 +227,10 @@ export default function TeamPage() {
         {isOwner && (
           <div className="text-right">
             <p className="text-sm text-white">
-              {account.current_users} of {account.max_users} users
+              {account.current_users} of {account.max_users || '?'} on {formatPlanName(account.plan)}
             </p>
-            <p className="text-sm text-white capitalize">
-              {account.plan} plan
+            <p className="text-xs text-gray-300 mt-1">
+              {account.can_add_more ? 'Can add more team members' : 'User limit reached'}
             </p>
           </div>
         )}

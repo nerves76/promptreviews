@@ -79,26 +79,56 @@ function getMigrationFiles() {
 
 function getAppliedMigrations() {
   try {
-    // Check if migrations have been applied by looking at the schema_migrations table
-    const output = execSync('supabase db diff --schema public', { 
+    // Use migration list to get accurate count of applied migrations
+    const output = execSync('supabase migration list', { 
       stdio: 'pipe',
       encoding: 'utf8'
     });
     
-    // If there's no diff output, it means migrations are applied
-    if (!output.trim()) {
-      // Get all migration files to return as "applied"
-      const migrationFiles = getMigrationFiles();
-      return migrationFiles.map(m => m.filename);
+    // Parse the migration list output to count applied migrations
+    const lines = output.split('\n');
+    let appliedCount = 0;
+    
+    for (const line of lines) {
+      // Look for lines that show both Local and Remote columns are filled
+      // Format: "  0001           | 0001           | 0001"
+      // Also handle date-based migrations like "20250127       |                | 20250127"
+      if (line.includes('|')) {
+        const parts = line.split('|').map(part => part.trim());
+        // Skip header lines and separator lines
+        if (parts.length >= 2 && parts[0] && parts[1] && 
+            !parts[0].includes('Local') && !parts[0].includes('---') &&
+            !parts[0].includes('Time') && parts[0].length > 0) {
+          // Both Local and Remote columns have values and it's not a header
+          appliedCount++;
+        }
+      }
     }
     
-    // If there is a diff, it means some migrations are missing
-    // For now, return empty array to trigger migration application
-    return [];
+    return appliedCount;
   } catch (error) {
-    // If we can't get the diff, assume migrations need to be applied
-    logWarning('Could not check migration status. Assuming migrations need to be applied.');
-    return [];
+    // If we can't get the migration list, fall back to the diff approach
+    logWarning('Could not get migration list. Falling back to diff check.');
+    
+    try {
+      const diffOutput = execSync('supabase db diff --schema public', { 
+        stdio: 'pipe',
+        encoding: 'utf8'
+      });
+      
+      // If there's no diff output, it means migrations are applied
+      if (!diffOutput.trim()) {
+        // Get all migration files to return as "applied"
+        const migrationFiles = getMigrationFiles();
+        return migrationFiles.length;
+      }
+      
+      // If there is a diff, it means some migrations are missing
+      return 0;
+    } catch (diffError) {
+      logWarning('Could not check migration status. Assuming migrations need to be applied.');
+      return 0;
+    }
   }
 }
 
@@ -155,31 +185,33 @@ async function main() {
   
   // Get applied migrations from database
   const appliedMigrations = getAppliedMigrations();
-  logInfo(`Found ${appliedMigrations.length} applied migrations in database`);
+  logInfo(`Found ${appliedMigrations} applied migrations in database`);
   
-  // Find missing migrations
-  const missingMigrations = migrationFiles.filter(migration => 
-    !appliedMigrations.includes(migration.filename)
-  );
-  
-  if (missingMigrations.length === 0) {
+  // Calculate missing migrations
+  const missingCount = migrationFiles.length - appliedMigrations;
+
+  if (missingCount < 0) {
+    logError(`Database has more applied migrations (${appliedMigrations}) than migration files (${migrationFiles.length}).`);
+    logError('This usually means migration files were deleted or the database is out of sync.');
+    logError('Please investigate and resolve the mismatch before proceeding.');
+    process.exit(1);
+  }
+
+  if (missingCount === 0) {
     logSuccess(`All ${migrationFiles.length} migrations are applied!`);
     logInfo('Database schema is up to date.');
     return;
   }
-  
-  // Show missing migrations
-  logWarning(`${missingMigrations.length} migrations need to be applied:`);
-  missingMigrations.forEach(migration => {
-    log(`  - ${migration.filename}`, 'yellow');
-  });
-  
+
+  // Show missing migrations count
+  logWarning(`${missingCount} migrations need to be applied`);
+
   // Apply missing migrations
   logInfo('Attempting to apply missing migrations...');
   const success = applyMigrations();
-  
+
   if (success) {
-    logSuccess(`Successfully applied ${missingMigrations.length} migrations!`);
+    logSuccess(`Successfully applied ${missingCount} migrations!`);
     logInfo('Database schema is now up to date.');
   } else {
     logError('Failed to apply migrations. Please check the error messages above.');
