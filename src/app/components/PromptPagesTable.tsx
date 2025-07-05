@@ -213,7 +213,7 @@ export default function PromptPagesTable({
             </select>
             <button
               onClick={handleBatchStatusUpdate}
-              className="px-3 py-1.5 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm font-medium"
+                                className="px-3 py-1.5 bg-slate-blue text-white rounded hover:bg-slate-blue/90 text-sm font-medium"
             >
               Update Status
             </button>

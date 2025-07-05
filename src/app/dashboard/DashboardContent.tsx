@@ -678,7 +678,7 @@ export default function DashboardContent({
                     setShowProfileModal(false);
                     window.location.href = "/dashboard/create-business";
                   }}
-                  className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
+                  className="bg-slate-blue text-white px-4 py-2 rounded hover:bg-slate-blue/90"
                 >
                   Go to Business Profile
                 </button>
@@ -736,8 +736,8 @@ export default function DashboardContent({
                         className="w-24 h-24 object-contain"
                       />
                     </div>
-                    <h2 className="text-2xl font-bold mb-4 text-indigo-800 relative z-10">
-                      It's official.
+                    <h2 className="text-2xl font-bold mb-4 text-slate-blue relative z-10">
+                      It's official!
                     </h2>
                     <p className="mb-6 text-lg text-gray-700 font-semibold relative z-10">
                       You're a{" "}
@@ -751,9 +751,9 @@ export default function DashboardContent({
                     </p>
                     <button
                       onClick={handleCloseSuccessModal || (() => setShowSuccessModal(false))}
-                      className="bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700 font-semibold mt-2 relative z-10"
+                      className="bg-slate-blue text-white px-6 py-2 rounded hover:bg-slate-blue/90 font-semibold mt-2 relative z-10"
                     >
-                      Let's Go!
+                      Let's do this!
                     </button>
                   </>
                 )}
@@ -895,7 +895,7 @@ export default function DashboardContent({
                 >
                   &times;
                 </button>
-                <h2 className="text-2xl font-bold mb-4 text-indigo-800 relative z-10">
+                <h2 className="text-2xl font-bold mb-4 text-slate-blue relative z-10">
                   Prompt Page Created!
                 </h2>
                 <p className="mb-4 text-gray-700 relative z-10">

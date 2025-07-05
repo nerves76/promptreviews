@@ -217,7 +217,7 @@ export default function UpgradePage() {
                   className={`mt-8 w-full py-3 px-4 rounded-lg font-semibold transition-colors ${
                     currentPlan === tier.name.toLowerCase().replace(" ", "_")
                       ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      : "bg-indigo-600 text-white hover:bg-indigo-700"
+                      : "bg-slate-blue text-white hover:bg-slate-blue/90"
                   }`}
                   disabled={
                     currentPlan === tier.name.toLowerCase().replace(" ", "_")
@@ -242,7 +242,7 @@ export default function UpgradePage() {
           </p>
           <button
             onClick={() => router.push("/contact")}
-            className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors"
+            className="bg-slate-blue text-white px-6 py-3 rounded-lg font-semibold hover:bg-slate-blue/90 transition-colors"
           >
             Contact Us
           </button>

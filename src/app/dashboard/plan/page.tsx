@@ -296,8 +296,8 @@ export default function PlanPage() {
                   disabled={currentPlan === tier.key}
                   className={`w-full py-3 px-4 rounded-lg font-semibold transition-colors ${
                     currentPlan === tier.key
-                      ? "bg-gray-500 text-gray-300 cursor-not-allowed"
-                      : "bg-blue-600 hover:bg-blue-700 text-white"
+                      ? "bg-purple-400 text-purple-900 cursor-not-allowed"
+                      : "bg-slate-blue hover:bg-slate-blue/90 text-white"
                   }`}
                 >
                   {currentPlan === tier.key
@@ -354,7 +354,7 @@ export default function PlanPage() {
                 setShowSuccessModal(false);
                 router.push("/dashboard");
               }}
-              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              className="bg-slate-blue text-white px-6 py-2 rounded-lg hover:bg-slate-blue/90 transition-colors"
             >
               Continue to Dashboard
             </button>

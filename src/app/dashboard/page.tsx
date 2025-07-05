@@ -289,15 +289,15 @@ export default function Dashboard() {
     // Show pricing modal for new users who need to choose their initial plan
     // or for users whose trial has expired
     const shouldShowPricingModal = 
-      // New user who hasn't selected a plan yet (no plan or 'no_plan' and has created a business)
-      ((!data?.account?.plan || data?.account?.plan === 'no_plan') && (data?.businesses?.length || 0) > 0) ||
+      // New user who hasn't selected a plan yet (no plan, 'no_plan', or 'NULL' and has created a business)
+      ((!data?.account?.plan || data?.account?.plan === 'no_plan' || data?.account?.plan === 'NULL') && (data?.businesses?.length || 0) > 0) ||
       // Or trial has expired (grower users whose trial time is up)
       (isTrialExpired && !isPaidUser);
 
     // Determine if plan selection is REQUIRED (user cannot dismiss modal) vs OPTIONAL
     const isPlanSelectionRequired = 
       // Required: New user with no plan who created a business (must select plan to continue)
-      ((!data?.account?.plan || data?.account?.plan === 'no_plan') && (data?.businesses?.length || 0) > 0) ||
+      ((!data?.account?.plan || data?.account?.plan === 'no_plan' || data?.account?.plan === 'NULL') && (data?.businesses?.length || 0) > 0) ||
       // Required: Trial has expired (must upgrade to continue)
       (isTrialExpired && !isPaidUser);
     

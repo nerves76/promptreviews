@@ -83,19 +83,16 @@ export default function AnnouncementBanner() {
       <div className="max-w-7xl mx-auto py-3 px-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
           <div className="flex items-center flex-1 pr-8">
-            <span className="flex p-2 rounded-lg bg-blue-100">
+            <span className="flex p-1 rounded-lg bg-blue-50">
               <svg
-                className="h-5 w-5 text-blue-600"
+                className="h-10 w-10 text-yellow-400"
                 xmlns="http://www.w3.org/2000/svg"
-                fill="none"
+                fill="currentColor"
                 viewBox="0 0 24 24"
-                stroke="currentColor"
+                style={{ filter: 'drop-shadow(0 0 4px #FFD700)' }}
               >
                 <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
                 />
               </svg>
             </span>
