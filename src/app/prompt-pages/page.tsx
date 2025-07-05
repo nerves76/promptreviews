@@ -564,12 +564,15 @@ export default function PromptPages() {
                                 <div className="flex flex-row gap-2 items-center justify-end">
                                   <div className="flex gap-2">
                                     <Link href={`/r/${locationPage?.slug || '#'}`} className="text-slate-blue underline hover:text-slate-blue/80 hover:underline">View</Link>
-                                    <Link
-                                      href={`/dashboard/edit-prompt-page/location/${location.id}`}
-                                      className="text-slate-blue underline hover:text-slate-blue/80 hover:underline"
+                                    <button
+                                      onClick={() => {
+                                        setEditingLocation(location);
+                                        setShowLocationModal(true);
+                                      }}
+                                      className="text-slate-blue underline hover:text-slate-blue/80 hover:underline bg-transparent border-none cursor-pointer p-0"
                                     >
                                       Edit
-                                    </Link>
+                                    </button>
                                   </div>
                                   <button
                                     onClick={() => handleDeleteLocation(location.id)}
@@ -790,6 +793,22 @@ export default function PromptPages() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Business Location Modal */}
+      {showLocationModal && (
+        <BusinessLocationModal
+          isOpen={showLocationModal}
+          onClose={() => {
+            setShowLocationModal(false);
+            setEditingLocation(null);
+          }}
+          location={editingLocation}
+          business={business}
+          onCreateLocation={handleCreateLocation}
+          onUpdateLocation={handleUpdateLocation}
+          onDeleteLocation={handleDeleteLocation}
+        />
       )}
 
     </>
