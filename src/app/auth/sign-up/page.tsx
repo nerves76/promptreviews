@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import SimpleMarketingNav from "@/app/components/SimpleMarketingNav";
 import { trackSignUp } from '../../../utils/analytics';
 import { supabase } from '../../../utils/supabaseClient';
 
-export default function SignUpPage() {
+function SignUpContent() {
   const searchParams = useSearchParams();
   const invitationToken = searchParams.get('invitation');
   const invitationEmail = searchParams.get('email');
@@ -398,5 +398,26 @@ export default function SignUpPage() {
         </form>
       </div>
     </>
+  );
+}
+
+export default function SignUpPage() {
+  return (
+    <Suspense fallback={
+      <>
+        <SimpleMarketingNav />
+        <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
+          <div className="p-8 rounded shadow text-center bg-white max-w-md w-full">
+            <div className="animate-pulse">
+              <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
+              <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+            </div>
+          </div>
+        </div>
+      </>
+    }>
+      <SignUpContent />
+    </Suspense>
   );
 }

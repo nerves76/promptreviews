@@ -134,13 +134,7 @@ export default function UniversalEditPromptPage() {
           emojiSentimentQuestion: universalPage?.emoji_sentiment_question || "",
           emojiFeedbackMessage: universalPage?.emoji_feedback_message || "",
           emojiThankYouMessage: universalPage?.emoji_thank_you_message || "",
-          emojiLabels: universalPage?.emoji_labels || [
-            "Excellent",
-            "Satisfied",
-            "Neutral",
-            "Unsatisfied",
-            "Frustrated",
-          ],
+
           reviewPlatforms: universalPlatforms.length
             ? universalPlatforms
             : businessPlatforms,

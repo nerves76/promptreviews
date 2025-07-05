@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { supabase, clearAuthSession } from "@/utils/supabaseClient";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function ClearSession() {
+function ClearSessionContent() {
   const [status, setStatus] = useState<string>("Clearing session...");
   const [details, setDetails] = useState<string[]>([]);
   const router = useRouter();
@@ -134,5 +134,24 @@ export default function ClearSession() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ClearSession() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 flex items-center justify-center p-4">
+        <div className="bg-white rounded-lg shadow-lg p-8 max-w-2xl w-full">
+          <h1 className="text-2xl font-bold text-gray-800 mb-6">Session Reset</h1>
+          <div className="animate-pulse">
+            <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+          </div>
+        </div>
+      </div>
+    }>
+      <ClearSessionContent />
+    </Suspense>
   );
 } 

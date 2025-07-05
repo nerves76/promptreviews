@@ -124,9 +124,7 @@ const ProductPromptPageForm = forwardRef<any, ProductPromptPageFormProps>(
     );
     // Using singleton Supabase client from supabaseClient.ts
 
-    const handleEmojiLabelChange = (index: number, val: string) => {
-      setEmojiLabels((labels) => labels.map((l, i) => (i === index ? val : l)));
-    };
+
 
     const getCroppedImg = async (imageSrc: string, cropPixels: Area) => {
       const image = new window.Image();

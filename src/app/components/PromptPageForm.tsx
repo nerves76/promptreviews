@@ -1147,14 +1147,7 @@ export default function PromptPageForm({
                     emojiThankYouMessage: val,
                   }))
                 }
-                emojiLabels={formData.emojiLabels}
-                onEmojiLabelChange={(idx: number, val: string) =>
-                  setFormData((prev: any) => {
-                    const newLabels = [...(prev.emojiLabels || [])];
-                    newLabels[idx] = val;
-                    return { ...prev, emojiLabels: newLabels };
-                  })
-                }
+
                 disabled={!!notePopupEnabled}
               />
               {/* AI Generation Toggle (modular) */}
@@ -1658,14 +1651,7 @@ export default function PromptPageForm({
                   emojiThankYouMessage: val,
                 }))
               }
-              emojiLabels={formData.emojiLabels}
-              onEmojiLabelChange={(idx: number, val: string) =>
-                setFormData((prev: any) => {
-                  const newLabels = [...(prev.emojiLabels || [])];
-                  newLabels[idx] = val;
-                  return { ...prev, emojiLabels: newLabels };
-                })
-              }
+
               disabled={!!notePopupEnabled}
             />
             {/* AI Generation Toggle (modular) */}

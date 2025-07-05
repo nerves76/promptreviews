@@ -132,7 +132,7 @@ export async function POST(req: NextRequest) {
           .select();
         console.log("✅ Fallback update result:", updateResult.data?.length || 0, "rows updated");
         
-        if (updateResult.data?.length > 0) {
+        if (updateResult.data && updateResult.data.length > 0) {
           console.log("🎉 Account successfully updated via email fallback!");
         }
       } else {

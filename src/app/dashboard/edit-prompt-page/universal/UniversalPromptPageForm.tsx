@@ -20,7 +20,6 @@ export interface UniversalPromptFormState {
   emojiSentimentQuestion: string;
   emojiFeedbackMessage: string;
   emojiThankYouMessage: string;
-  emojiLabels: string[];
   reviewPlatforms: ReviewPlatformLink[];
   fallingEnabled: boolean;
   fallingIcon: string;
