@@ -108,6 +108,7 @@ export default function PricingModal({
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(
     null,
   );
+  
   const wrapperClass = asModal
     ? "fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 overflow-y-auto"
     : "w-full flex flex-col items-center justify-center";
@@ -185,7 +186,8 @@ export default function PricingModal({
                   (!currentPlan ||
                     currentPlan === "grower" ||
                     currentPlan === "free" ||
-                    currentPlan === "none")
+                    currentPlan === "none" ||
+                    currentPlan === "no_plan")
                     ? " ring-2 ring-yellow-400"
                     : "")
                 }
@@ -201,10 +203,13 @@ export default function PricingModal({
                   (!currentPlan ||
                     currentPlan === "grower" ||
                     currentPlan === "free" ||
-                    currentPlan === "none") && (
-                    <span className="absolute -top-5 left-1/2 -translate-x-1/2 bg-yellow-400 text-slate-900 font-bold px-4 py-1 rounded-full text-xs shadow-lg z-10 border border-yellow-300">
-                      14-day Free Trial
-                    </span>
+                    currentPlan === "none" ||
+                    currentPlan === "no_plan") && (
+                    <>
+                      <span className="absolute -top-5 left-1/2 -translate-x-1/2 bg-yellow-400 text-slate-900 font-bold px-4 py-1 rounded-full text-xs shadow-lg z-10 border border-yellow-300">
+                        14-day Free Trial
+                      </span>
+                    </>
                   )}
                 <h3 className={`text-3xl font-bold mb-2 ${tier.text}`}>
                   {tier.name}
@@ -222,7 +227,8 @@ export default function PricingModal({
                         (currentPlan &&
                           currentPlan !== "grower" &&
                           currentPlan !== "free" &&
-                          currentPlan !== "none"))
+                          currentPlan !== "none" &&
+                          currentPlan !== "no_plan"))
                     ) {
                       return null;
                     }

@@ -6,7 +6,7 @@
 
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { supabase, getUserOrMock } from '@/utils/supabaseClient';
 import { isAdmin, ensureAdminForEmail } from '@/utils/admin';
 
@@ -29,7 +29,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
   // Cache admin status for 5 minutes to prevent excessive database calls
   const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
-  const checkAdminStatus = async (forceRefresh = false) => {
+  const checkAdminStatus = useCallback(async (forceRefresh = false) => {
     // Prevent multiple simultaneous checks
     if (isChecking && !forceRefresh) {
       return;
@@ -75,7 +75,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(false);
       setIsChecking(false);
     }
-  };
+  }, [isChecking, lastCheck, CACHE_DURATION]);
 
   const refreshAdminStatus = async () => {
     await checkAdminStatus(true);
@@ -84,7 +84,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
   // Initial admin status check
   useEffect(() => {
     checkAdminStatus();
-  }, []);
+  }, [checkAdminStatus]);
 
   // Listen for auth state changes
   useEffect(() => {
@@ -105,7 +105,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     );
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [checkAdminStatus]);
 
   const value: AdminContextType = {
     isAdminUser,
