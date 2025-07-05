@@ -1050,7 +1050,7 @@ export default function PromptPage() {
       promptPage?.falling_icon &&
       mergedFallingEnabled &&
       sentimentComplete &&
-      (sentiment === "excellent" || sentiment === "satisfied")
+      (sentiment === "slightly smiling" || sentiment === "smiling" || sentiment === "star-struck")
     ) {
       setShowStarRain(false);
       setTimeout(() => setShowStarRain(true), 50);
@@ -1151,7 +1151,7 @@ export default function PromptPage() {
           showStarRain &&
           (!promptPage.emoji_sentiment_enabled ||
             (sentimentComplete &&
-              (sentiment === "excellent" || sentiment === "satisfied"))) && (
+              (sentiment === "slightly smiling" || sentiment === "smiling" || sentiment === "star-struck"))) && (
             <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden">
               {[...Array(60)].map((_, i) => {
                 const left = Math.random() * 98 + Math.random() * 2;
@@ -1422,10 +1422,10 @@ export default function PromptPage() {
                       <h2 className={`text-2xl font-bold text-slate-blue mb-2 ${getFontClass(businessProfile?.primary_font)}`}>
                         {promptPage.product_name}
                       </h2>
-                      {/* Only show details if not neutral/frustrated sentiment */}
+                      {/* Only show details if not neutral/negative sentiment */}
                       {(!sentiment ||
                         (sentiment !== "neutral" &&
-                          sentiment !== "frustrated")) && (
+                          sentiment !== "angry")) && (
                         <>
                           {promptPage.product_description && (
                             <div className={`text-lg text-gray-700 mb-3 ${getFontClass(businessProfile?.secondary_font)}`}>
@@ -1450,7 +1450,7 @@ export default function PromptPage() {
                 )}
               {/* Feedback Form Section (if negative sentiment) */}
               {sentimentComplete &&
-                ["neutral", "unsatisfied", "angry"].includes(
+                ["angry", "neutral"].includes(
                   sentiment || "",
                 ) && (
                   <div className="w-full flex justify-center my-8">
@@ -1667,7 +1667,7 @@ export default function PromptPage() {
               {/* Main Content (hidden if feedback form is shown) */}
               {!(
                 sentimentComplete &&
-                ["neutral", "unsatisfied", "angry"].includes(sentiment || "")
+                ["angry", "neutral"].includes(sentiment || "")
               ) && (
                 <>
                   {/* Photo + Testimonial Module */}
@@ -2335,13 +2335,33 @@ export default function PromptPage() {
           feedbackMessage={mergedEmojiFeedbackMessage}
           thankYouMessage={mergedEmojiThankYouMessage}
           onPositive={(sentimentValue) => {
+            // Handle positive sentiment - go directly to prompt page
             setShowSentimentModal(false);
             setSentiment(sentimentValue);
             setSentimentComplete(true);
           }}
+          onFeedback={(sentimentValue) => {
+            // Handle feedback option - show feedback form
+            setShowSentimentModal(false);
+            setSentiment(sentimentValue);
+            setSentimentComplete(true);
+            // The feedback form will be shown automatically based on sentiment
+          }}
+          onPublicReview={(sentimentValue) => {
+            // Handle public review option - go to prompt page
+            setShowSentimentModal(false);
+            setSentiment(sentimentValue);
+            setSentimentComplete(true);
+            // User will see the review prompts
+          }}
           headerColor={businessProfile?.primary_color || "#4F46E5"}
           buttonColor={businessProfile?.secondary_color || "#818CF8"}
           fontFamily={businessProfile?.primary_font || "Inter"}
+          // New step 2 customization props
+          step2Headline={promptPage?.emoji_step2_headline}
+          step2Body={promptPage?.emoji_step2_body}
+          feedbackButtonText={promptPage?.emoji_feedback_button_text}
+          reviewButtonText={promptPage?.emoji_review_button_text}
         />
       )}
       

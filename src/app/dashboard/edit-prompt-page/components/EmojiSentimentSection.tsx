@@ -5,6 +5,10 @@ import {
   EMOJI_SENTIMENT_TITLE,
   EMOJI_SENTIMENT_SUBTEXT,
   EMOJI_SENTIMENT_NOTE,
+  EMOJI_SENTIMENT_STEP2_HEADLINE,
+  EMOJI_SENTIMENT_STEP2_BODY,
+  EMOJI_SENTIMENT_STEP2_FEEDBACK_BUTTON,
+  EMOJI_SENTIMENT_STEP2_REVIEW_BUTTON,
 } from "@/app/components/prompt-modules/emojiSentimentConfig";
 import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
@@ -22,6 +26,14 @@ interface EmojiSentimentSectionProps {
   emojiLabels?: string[];
   onEmojiLabelChange?: (index: number, val: string) => void;
   disabled?: boolean;
+  step2Headline?: string;
+  onStep2HeadlineChange?: (val: string) => void;
+  step2Body?: string;
+  onStep2BodyChange?: (val: string) => void;
+  feedbackButtonText?: string;
+  onFeedbackButtonTextChange?: (val: string) => void;
+  reviewButtonText?: string;
+  onReviewButtonTextChange?: (val: string) => void;
 }
 
 const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
@@ -36,6 +48,14 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
   emojiLabels = EMOJI_SENTIMENT_LABELS,
   onEmojiLabelChange,
   disabled = false,
+  step2Headline = EMOJI_SENTIMENT_STEP2_HEADLINE,
+  onStep2HeadlineChange,
+  step2Body = EMOJI_SENTIMENT_STEP2_BODY,
+  onStep2BodyChange,
+  feedbackButtonText = EMOJI_SENTIMENT_STEP2_FEEDBACK_BUTTON,
+  onFeedbackButtonTextChange,
+  reviewButtonText = EMOJI_SENTIMENT_STEP2_REVIEW_BUTTON,
+  onReviewButtonTextChange,
 }) => (
   <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-2 shadow relative">
     <div className="flex flex-row justify-between items-start px-2 py-2">
@@ -86,10 +106,10 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
       })}
     </div>
     {enabled && (
-      <div className="space-y-3">
+      <div className="space-y-4">
         <div className="mb-2">
           <label className="block text-xs font-medium text-gray-700 mb-1">
-            Popup question (shown above the emojis):
+            Initial question (shown above the emojis):
           </label>
           <Input
             type="text"
@@ -100,16 +120,83 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
             disabled={!enabled}
           />
         </div>
-        <div className="mt-2">
+        
+        <div className="bg-gray-50 p-4 rounded-lg">
+          <h4 className="text-sm font-semibold text-gray-800 mb-3">
+            Step 2 Configuration (for neutral/negative feedback)
+          </h4>
+          
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Step 2 headline:
+              </label>
+              <Input
+                type="text"
+                value={step2Headline || ""}
+                onChange={(e) => onStep2HeadlineChange && onStep2HeadlineChange(e.target.value)}
+                placeholder="Thanks for your honesty. We're always looking to improve."
+                maxLength={100}
+                disabled={!enabled}
+              />
+            </div>
+            
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Step 2 body text:
+              </label>
+              <Input
+                type="text"
+                value={step2Body || ""}
+                onChange={(e) => onStep2BodyChange && onStep2BodyChange(e.target.value)}
+                placeholder="Would you like to:"
+                maxLength={60}
+                disabled={!enabled}
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Feedback button text:
+                </label>
+                <Input
+                  type="text"
+                  value={feedbackButtonText || ""}
+                  onChange={(e) => onFeedbackButtonTextChange && onFeedbackButtonTextChange(e.target.value)}
+                  placeholder="Give Feedback"
+                  maxLength={30}
+                  disabled={!enabled}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Review button text:
+                </label>
+                <Input
+                  type="text"
+                  value={reviewButtonText || ""}
+                  onChange={(e) => onReviewButtonTextChange && onReviewButtonTextChange(e.target.value)}
+                  placeholder="Leave a Public Review"
+                  maxLength={30}
+                  disabled={!enabled}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="mt-4">
           <label className="block text-xs font-medium text-gray-700 mb-1">
-            Feedback message (shown to customers who select an indifferent or
-            negative emoji):
+            Feedback message (shown to customers who give private feedback):
           </label>
           <Textarea
             value={feedbackMessage || ""}
             onChange={(e) => onFeedbackMessageChange(e.target.value)}
             rows={2}
             maxLength={160}
+            placeholder="We value your feedback! Let us know how we can do better."
           />
         </div>
         <div className="mt-2">
@@ -121,6 +208,7 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
             onChange={(e) => onThankYouMessageChange(e.target.value)}
             rows={2}
             maxLength={160}
+            placeholder="Thank you for your feedback!"
           />
         </div>
       </div>
