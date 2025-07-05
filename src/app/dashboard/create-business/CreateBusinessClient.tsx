@@ -22,6 +22,7 @@ export default function CreateBusinessClient() {
   const [user, setUser] = useState<any>(null);
   const [accountId, setAccountId] = useState<string | null>(null);
   const [isNewUser, setIsNewUser] = useState(false);
+  const [authStateListening, setAuthStateListening] = useState(false);
 
   // Memoize router functions to prevent infinite loops
   const redirectToSignIn = useCallback(() => {
@@ -36,9 +37,29 @@ export default function CreateBusinessClient() {
     router.push("/dashboard?businessCreated=true");
   }, [router]);
 
+  // Enhanced session validation function
+  const validateSession = useCallback(async () => {
+    try {
+      const { data: { user }, error } = await getUserOrMock(supabase);
+      if (error) {
+        console.log("🔍 CreateBusinessClient: Session validation error:", error);
+        return { valid: false, user: null, error };
+      }
+      if (!user) {
+        console.log("🔍 CreateBusinessClient: No user in session");
+        return { valid: false, user: null, error: null };
+      }
+      console.log("✅ CreateBusinessClient: Session valid for user:", user.id);
+      return { valid: true, user, error: null };
+    } catch (error) {
+      console.error("💥 CreateBusinessClient: Session validation failed:", error);
+      return { valid: false, user: null, error };
+    }
+  }, []);
+
   useEffect(() => {
     const loadUserData = async () => {
-      const maxRetries = 3;
+      const maxRetries = 5; // Increased from 3 to 5
       let attempt = 0;
       
       while (attempt < maxRetries) {
@@ -46,22 +67,28 @@ export default function CreateBusinessClient() {
           attempt++;
           console.log(`🔍 CreateBusinessClient: Checking authentication (attempt ${attempt}/${maxRetries})...`);
           
-          // Add a delay that increases with each attempt
+          // Enhanced exponential backoff: 1s, 2s, 3s, 4s, 5s
           if (attempt > 1) {
-            const delay = attempt * 500;
+            const delay = attempt * 1000; // Changed from 500ms to 1000ms
             console.log(`⏳ CreateBusinessClient: Waiting ${delay}ms before retry...`);
             await new Promise(resolve => setTimeout(resolve, delay));
           }
           
           console.log("🕒 CreateBusinessClient: Getting user authentication...");
           
-          const { data: { user }, error: userError } = await getUserOrMock(supabase);
+          // Use enhanced session validation
+          const sessionResult = await validateSession();
           
-          console.log("🔍 CreateBusinessClient: getUserOrMock result:", { user: user?.id, error: userError, attempt });
+          console.log("🔍 CreateBusinessClient: Session validation result:", { 
+            valid: sessionResult.valid, 
+            userId: sessionResult.user?.id, 
+            error: sessionResult.error, 
+            attempt 
+          });
           
-          if (userError || !user) {
-            console.log(`❌ CreateBusinessClient: No authenticated user (attempt ${attempt})`);
-            console.log("❌ CreateBusinessClient: Error details:", userError);
+          if (!sessionResult.valid || !sessionResult.user) {
+            console.log(`❌ CreateBusinessClient: Invalid session (attempt ${attempt})`);
+            console.log("❌ CreateBusinessClient: Error details:", sessionResult.error);
             
             // If this is the last attempt, redirect to sign-in
             if (attempt >= maxRetries) {
@@ -74,11 +101,12 @@ export default function CreateBusinessClient() {
             continue;
           }
 
-          console.log("✅ CreateBusinessClient: User authenticated:", user.id);
-          setUser(user);
+          const authenticatedUser = sessionResult.user;
+          console.log("✅ CreateBusinessClient: User authenticated:", authenticatedUser.id);
+          setUser(authenticatedUser);
 
           // Check if user already has an account
-          const accountId = await getAccountIdForUser(user.id, supabase);
+          const accountId = await getAccountIdForUser(authenticatedUser.id, supabase);
           
           if (accountId) {
             // Check if user already has businesses
@@ -99,7 +127,7 @@ export default function CreateBusinessClient() {
           setIsNewUser(true);
           
           // Ensure account exists for the user
-          const finalAccountId = await ensureAccountExists(supabase, user.id);
+          const finalAccountId = await ensureAccountExists(supabase, authenticatedUser.id);
           setAccountId(finalAccountId);
           
           // Show welcome popup for new users
@@ -115,7 +143,7 @@ export default function CreateBusinessClient() {
           // If this is the last attempt, show error
           if (attempt >= maxRetries) {
             console.error("💥 CreateBusinessClient: Max retries reached, showing error");
-            setError("Failed to load user data");
+            setError("Failed to load user data after multiple attempts. Please try refreshing the page.");
             setLoading(false);
             return;
           }
@@ -126,8 +154,63 @@ export default function CreateBusinessClient() {
       }
     };
 
+    // Set up auth state change listener as secondary detection method
+    const setupAuthStateListener = () => {
+      if (authStateListening) return; // Prevent duplicate listeners
+      
+      setAuthStateListening(true);
+      console.log("🔍 CreateBusinessClient: Setting up auth state change listener...");
+      
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        async (event, session) => {
+          console.log("🔍 CreateBusinessClient: Auth state changed:", { event, hasSession: !!session, userId: session?.user?.id });
+          
+          if (event === 'SIGNED_IN' && session?.user && loading) {
+            console.log("✅ CreateBusinessClient: User signed in via auth state change, stopping loading loop");
+            setLoading(false);
+            setUser(session.user);
+            
+            // Process the newly signed-in user
+            try {
+              const accountId = await getAccountIdForUser(session.user.id, supabase);
+              if (accountId) {
+                const { data: businesses } = await supabase
+                  .from("businesses")
+                  .select("id")
+                  .eq("account_id", accountId);
+
+                if (businesses && businesses.length > 0) {
+                  redirectToDashboard();
+                  return;
+                }
+              }
+              
+              setIsNewUser(true);
+              const finalAccountId = await ensureAccountExists(supabase, session.user.id);
+              setAccountId(finalAccountId);
+              setShowWelcomePopup(true);
+            } catch (error) {
+              console.error("💥 CreateBusinessClient: Error processing auth state change:", error);
+            }
+          }
+        }
+      );
+
+      // Cleanup function
+      return () => {
+        console.log("🔍 CreateBusinessClient: Cleaning up auth state listener");
+        subscription.unsubscribe();
+        setAuthStateListening(false);
+      };
+    };
+
+    // Start both the retry logic and auth state listener
     loadUserData();
-  }, [redirectToSignIn, redirectToDashboard]); // Only depend on memoized functions
+    const cleanup = setupAuthStateListener();
+
+    // Return cleanup function
+    return cleanup;
+  }, [redirectToSignIn, redirectToDashboard, validateSession, loading, authStateListening]); // Added dependencies
 
   const handleCloseWelcome = () => {
     setShowWelcomePopup(false);
@@ -155,6 +238,10 @@ export default function CreateBusinessClient() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">
         <AppLoader />
+        <div className="mt-4 text-center">
+          <p className="text-gray-600">Setting up your account...</p>
+          <p className="text-sm text-gray-500 mt-2">This may take a moment</p>
+        </div>
       </div>
     );
   }
@@ -163,14 +250,22 @@ export default function CreateBusinessClient() {
     return (
       <div className="min-h-screen flex justify-center items-center">
         <div className="bg-white rounded-2xl shadow-lg p-8 max-w-2xl w-full">
-          <h1 className="text-2xl font-bold mb-4 text-red-600">Error</h1>
+          <h1 className="text-2xl font-bold mb-4 text-red-600">Authentication Error</h1>
           <p className="mb-4">{error}</p>
-          <button
-            onClick={redirectToSignIn}
-            className="text-blue-600 underline"
-          >
-            Sign in
-          </button>
+          <div className="flex gap-4">
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              Refresh Page
+            </button>
+            <button
+              onClick={redirectToSignIn}
+              className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+            >
+              Sign In Again
+            </button>
+          </div>
         </div>
       </div>
     );
