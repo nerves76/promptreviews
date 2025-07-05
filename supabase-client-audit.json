@@ -1261,36 +1261,36 @@
       "type": "ts",
       "instances": [
         {
-          "type": "createClient",
-          "category": "direct",
-          "line": 30,
-          "content": "const supabaseAdmin = createClient(",
+          "type": "createServerClient",
+          "category": "ssr-server",
+          "line": 19,
+          "content": "return createServerClient(",
           "context": {
             "before": [
-              "",
-              "  // Create service role client for admin operations"
+              "async function createAuthenticatedSupabaseClient() {",
+              "  const cookieStore = await cookies();"
             ],
-            "current": "  const supabaseAdmin = createClient(",
+            "current": "  return createServerClient(",
             "after": [
               "    process.env.NEXT_PUBLIC_SUPABASE_URL!,",
-              "    process.env.SUPABASE_SERVICE_ROLE_KEY!"
+              "    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,"
             ]
           }
         },
         {
-          "type": "createServerClient",
-          "category": "ssr-server",
-          "line": 17,
-          "content": "const supabase = createServerClient(",
+          "type": "supabaseClient import",
+          "category": "util-import",
+          "line": 9,
+          "content": "import { createServiceRoleClient } from '@/utils/supabaseClient';",
           "context": {
             "before": [
-              "export async function POST(request: NextRequest) {",
-              "  const cookieStore = await cookies();"
+              "",
+              "import { createServerClient } from '@supabase/ssr';"
             ],
-            "current": "  const supabase = createServerClient(",
+            "current": "import { createServiceRoleClient } from '@/utils/supabaseClient';",
             "after": [
-              "    process.env.NEXT_PUBLIC_SUPABASE_URL!,",
-              "    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,"
+              "import { cookies } from 'next/headers';",
+              "import { NextRequest, NextResponse } from 'next/server';"
             ]
           }
         }
@@ -1302,7 +1302,7 @@
         },
         {
           "line": 9,
-          "statement": "import { createClient } from '@supabase/supabase-js'"
+          "statement": "import { createServiceRoleClient } from '@/utils/supabaseClient'"
         }
       ],
       "hasMultiplePatterns": true,
@@ -1316,36 +1316,36 @@
       "type": "ts",
       "instances": [
         {
-          "type": "createClient",
-          "category": "direct",
-          "line": 28,
-          "content": "const supabaseAdmin = createClient(",
+          "type": "createServerClient",
+          "category": "ssr-server",
+          "line": 17,
+          "content": "return createServerClient(",
           "context": {
             "before": [
-              "",
-              "  // Create admin client for auth operations"
+              "async function createAuthenticatedSupabaseClient() {",
+              "  const cookieStore = await cookies();"
             ],
-            "current": "  const supabaseAdmin = createClient(",
+            "current": "  return createServerClient(",
             "after": [
               "    process.env.NEXT_PUBLIC_SUPABASE_URL!,",
-              "    process.env.SUPABASE_SERVICE_ROLE_KEY!,"
+              "    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,"
             ]
           }
         },
         {
-          "type": "createServerClient",
-          "category": "ssr-server",
-          "line": 15,
-          "content": "const supabase = createServerClient(",
+          "type": "supabaseClient import",
+          "category": "util-import",
+          "line": 9,
+          "content": "import { createServiceRoleClient } from '@/utils/supabaseClient';",
           "context": {
             "before": [
-              "export async function GET(request: NextRequest) {",
-              "  const cookieStore = await cookies();"
+              "",
+              "import { createServerClient } from '@supabase/ssr';"
             ],
-            "current": "  const supabase = createServerClient(",
+            "current": "import { createServiceRoleClient } from '@/utils/supabaseClient';",
             "after": [
-              "    process.env.NEXT_PUBLIC_SUPABASE_URL!,",
-              "    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,"
+              "import { cookies } from 'next/headers';",
+              "import { NextRequest, NextResponse } from 'next/server';"
             ]
           }
         }
@@ -1357,7 +1357,7 @@
         },
         {
           "line": 9,
-          "statement": "import { createClient } from '@supabase/supabase-js'"
+          "statement": "import { createServiceRoleClient } from '@/utils/supabaseClient'"
         }
       ],
       "hasMultiplePatterns": true,
@@ -1494,19 +1494,19 @@
       "type": "ts",
       "instances": [
         {
-          "type": "createClient",
-          "category": "direct",
-          "line": 11,
-          "content": "const supabase = createClient();",
+          "type": "createServerClient",
+          "category": "ssr-server",
+          "line": 17,
+          "content": "return createServerClient(",
           "context": {
             "before": [
-              "",
-              "// Initialize clients"
+              "// Used ONLY for authenticated dashboard requests (PUT operations)",
+              "function createAuthClient(authToken: string) {"
             ],
-            "current": "const supabase = createClient();",
+            "current": "  return createServerClient(",
             "after": [
-              "const supabaseAdmin = createServiceRoleClient();",
-              ""
+              "    process.env.NEXT_PUBLIC_SUPABASE_URL!,",
+              "    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,"
             ]
           }
         },
@@ -1514,16 +1514,16 @@
           "type": "supabaseClient import",
           "category": "util-import",
           "line": 7,
-          "content": "import { createClient, createServiceRoleClient } from '@/utils/supabaseClient';",
+          "content": "import { createServiceRoleClient } from '@/utils/supabaseClient';",
           "context": {
             "before": [
               "",
               "import { NextRequest, NextResponse } from 'next/server';"
             ],
-            "current": "import { createClient, createServiceRoleClient } from '@/utils/supabaseClient';",
+            "current": "import { createServiceRoleClient } from '@/utils/supabaseClient';",
             "after": [
               "import { getAccountIdForUser } from '@/utils/accountUtils';",
-              ""
+              "import { createServerClient } from '@supabase/ssr';"
             ]
           }
         }
@@ -1531,7 +1531,11 @@
       "imports": [
         {
           "line": 7,
-          "statement": "import { createClient, createServiceRoleClient } from '@/utils/supabaseClient'"
+          "statement": "import { createServiceRoleClient } from '@/utils/supabaseClient'"
+        },
+        {
+          "line": 9,
+          "statement": "import { createServerClient } from '@supabase/ssr'"
         }
       ],
       "hasMultiplePatterns": true,
@@ -1547,17 +1551,34 @@
         {
           "type": "createClient",
           "category": "direct",
-          "line": 6,
-          "content": "const supabase = createClient();",
+          "line": 11,
+          "content": "// This replaces the global createClient() with proper request-scoped client",
           "context": {
             "before": [
               "",
-              "// Initialize Supabase client with public credentials"
+              "// 🔧 CONSOLIDATION: Helper function for request-scoped auth client"
             ],
-            "current": "const supabase = createClient();",
+            "current": "// This replaces the global createClient() with proper request-scoped client",
             "after": [
-              "",
-              "// Initialize Supabase admin client with service role key for data fetching"
+              "// Used ONLY for authenticated dashboard requests, NOT for public widget embeds",
+              "function createAuthClient(authToken: string) {"
+            ]
+          }
+        },
+        {
+          "type": "createServerClient",
+          "category": "ssr-server",
+          "line": 14,
+          "content": "return createServerClient(",
+          "context": {
+            "before": [
+              "// Used ONLY for authenticated dashboard requests, NOT for public widget embeds",
+              "function createAuthClient(authToken: string) {"
+            ],
+            "current": "  return createServerClient(",
+            "after": [
+              "    process.env.NEXT_PUBLIC_SUPABASE_URL!,",
+              "    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,"
             ]
           }
         },
@@ -1565,15 +1586,15 @@
           "type": "supabaseClient import",
           "category": "util-import",
           "line": 2,
-          "content": "import { createClient, createServiceRoleClient } from '@/utils/supabaseClient';",
+          "content": "import { createServiceRoleClient } from '@/utils/supabaseClient';",
           "context": {
             "before": [
               "import { NextResponse } from 'next/server';"
             ],
-            "current": "import { createClient, createServiceRoleClient } from '@/utils/supabaseClient';",
+            "current": "import { createServiceRoleClient } from '@/utils/supabaseClient';",
             "after": [
               "import { getAccountIdForUser } from '@/utils/accountUtils';",
-              ""
+              "import { createServerClient } from '@supabase/ssr';"
             ]
           }
         }
@@ -1581,7 +1602,11 @@
       "imports": [
         {
           "line": 2,
-          "statement": "import { createClient, createServiceRoleClient } from '@/utils/supabaseClient'"
+          "statement": "import { createServiceRoleClient } from '@/utils/supabaseClient'"
+        },
+        {
+          "line": 4,
+          "statement": "import { createServerClient } from '@supabase/ssr'"
         }
       ],
       "hasMultiplePatterns": true,
@@ -2187,30 +2212,13 @@
           "type": "supabaseClient import",
           "category": "util-import",
           "line": 4,
-          "content": "import { supabase } from \"@/utils/supabaseClient\";",
+          "content": "import { supabase, type ReviewSubmission } from \"@/utils/supabaseClient\"; // 🔧 CONSOLIDATED: Combined imports",
           "context": {
             "before": [
               "",
               "import { useEffect, useState } from \"react\";"
             ],
-            "current": "import { supabase } from \"@/utils/supabaseClient\";",
-            "after": [
-              "import type { ReviewSubmission } from \"@/utils/supabaseClient\";",
-              ""
-            ]
-          }
-        },
-        {
-          "type": "supabaseClient import",
-          "category": "util-import",
-          "line": 5,
-          "content": "import type { ReviewSubmission } from \"@/utils/supabaseClient\";",
-          "context": {
-            "before": [
-              "import { useEffect, useState } from \"react\";",
-              "import { supabase } from \"@/utils/supabaseClient\";"
-            ],
-            "current": "import type { ReviewSubmission } from \"@/utils/supabaseClient\";",
+            "current": "import { supabase, type ReviewSubmission } from \"@/utils/supabaseClient\"; // 🔧 CONSOLIDATED: Combined imports",
             "after": [
               "",
               "interface AnalyticsData {"
@@ -2221,17 +2229,11 @@
       "imports": [
         {
           "line": 4,
-          "statement": "import { supabase } from \"@/utils/supabaseClient\""
-        },
-        {
-          "line": 5,
-          "statement": "import type { ReviewSubmission } from \"@/utils/supabaseClient\""
+          "statement": "import { supabase, type ReviewSubmission } from \"@/utils/supabaseClient\""
         }
       ],
-      "hasMultiplePatterns": true,
-      "recommendations": [
-        "CONSOLIDATE: Multiple client creation patterns in single file"
-      ]
+      "hasMultiplePatterns": false,
+      "recommendations": []
     },
     {
       "path": "src/app/dashboard/components/SimpleBusinessForm.tsx",
@@ -3993,9 +3995,9 @@
     "totalFiles": 231,
     "totalInstances": 137,
     "byCategory": {
-      "util-import": 88,
-      "direct": 34,
-      "ssr-server": 14,
+      "util-import": 89,
+      "direct": 31,
+      "ssr-server": 16,
       "ssr-browser": 1
     },
     "byFileType": {
@@ -4218,36 +4220,36 @@
         "type": "ts",
         "instances": [
           {
-            "type": "createClient",
-            "category": "direct",
-            "line": 30,
-            "content": "const supabaseAdmin = createClient(",
+            "type": "createServerClient",
+            "category": "ssr-server",
+            "line": 19,
+            "content": "return createServerClient(",
             "context": {
               "before": [
-                "",
-                "  // Create service role client for admin operations"
+                "async function createAuthenticatedSupabaseClient() {",
+                "  const cookieStore = await cookies();"
               ],
-              "current": "  const supabaseAdmin = createClient(",
+              "current": "  return createServerClient(",
               "after": [
                 "    process.env.NEXT_PUBLIC_SUPABASE_URL!,",
-                "    process.env.SUPABASE_SERVICE_ROLE_KEY!"
+                "    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,"
               ]
             }
           },
           {
-            "type": "createServerClient",
-            "category": "ssr-server",
-            "line": 17,
-            "content": "const supabase = createServerClient(",
+            "type": "supabaseClient import",
+            "category": "util-import",
+            "line": 9,
+            "content": "import { createServiceRoleClient } from '@/utils/supabaseClient';",
             "context": {
               "before": [
-                "export async function POST(request: NextRequest) {",
-                "  const cookieStore = await cookies();"
+                "",
+                "import { createServerClient } from '@supabase/ssr';"
               ],
-              "current": "  const supabase = createServerClient(",
+              "current": "import { createServiceRoleClient } from '@/utils/supabaseClient';",
               "after": [
-                "    process.env.NEXT_PUBLIC_SUPABASE_URL!,",
-                "    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,"
+                "import { cookies } from 'next/headers';",
+                "import { NextRequest, NextResponse } from 'next/server';"
               ]
             }
           }
@@ -4259,7 +4261,7 @@
           },
           {
             "line": 9,
-            "statement": "import { createClient } from '@supabase/supabase-js'"
+            "statement": "import { createServiceRoleClient } from '@/utils/supabaseClient'"
           }
         ],
         "hasMultiplePatterns": true,
@@ -4273,36 +4275,36 @@
         "type": "ts",
         "instances": [
           {
-            "type": "createClient",
-            "category": "direct",
-            "line": 28,
-            "content": "const supabaseAdmin = createClient(",
+            "type": "createServerClient",
+            "category": "ssr-server",
+            "line": 17,
+            "content": "return createServerClient(",
             "context": {
               "before": [
-                "",
-                "  // Create admin client for auth operations"
+                "async function createAuthenticatedSupabaseClient() {",
+                "  const cookieStore = await cookies();"
               ],
-              "current": "  const supabaseAdmin = createClient(",
+              "current": "  return createServerClient(",
               "after": [
                 "    process.env.NEXT_PUBLIC_SUPABASE_URL!,",
-                "    process.env.SUPABASE_SERVICE_ROLE_KEY!,"
+                "    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,"
               ]
             }
           },
           {
-            "type": "createServerClient",
-            "category": "ssr-server",
-            "line": 15,
-            "content": "const supabase = createServerClient(",
+            "type": "supabaseClient import",
+            "category": "util-import",
+            "line": 9,
+            "content": "import { createServiceRoleClient } from '@/utils/supabaseClient';",
             "context": {
               "before": [
-                "export async function GET(request: NextRequest) {",
-                "  const cookieStore = await cookies();"
+                "",
+                "import { createServerClient } from '@supabase/ssr';"
               ],
-              "current": "  const supabase = createServerClient(",
+              "current": "import { createServiceRoleClient } from '@/utils/supabaseClient';",
               "after": [
-                "    process.env.NEXT_PUBLIC_SUPABASE_URL!,",
-                "    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,"
+                "import { cookies } from 'next/headers';",
+                "import { NextRequest, NextResponse } from 'next/server';"
               ]
             }
           }
@@ -4314,7 +4316,7 @@
           },
           {
             "line": 9,
-            "statement": "import { createClient } from '@supabase/supabase-js'"
+            "statement": "import { createServiceRoleClient } from '@/utils/supabaseClient'"
           }
         ],
         "hasMultiplePatterns": true,
@@ -4328,19 +4330,19 @@
         "type": "ts",
         "instances": [
           {
-            "type": "createClient",
-            "category": "direct",
-            "line": 11,
-            "content": "const supabase = createClient();",
+            "type": "createServerClient",
+            "category": "ssr-server",
+            "line": 17,
+            "content": "return createServerClient(",
             "context": {
               "before": [
-                "",
-                "// Initialize clients"
+                "// Used ONLY for authenticated dashboard requests (PUT operations)",
+                "function createAuthClient(authToken: string) {"
               ],
-              "current": "const supabase = createClient();",
+              "current": "  return createServerClient(",
               "after": [
-                "const supabaseAdmin = createServiceRoleClient();",
-                ""
+                "    process.env.NEXT_PUBLIC_SUPABASE_URL!,",
+                "    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,"
               ]
             }
           },
@@ -4348,16 +4350,16 @@
             "type": "supabaseClient import",
             "category": "util-import",
             "line": 7,
-            "content": "import { createClient, createServiceRoleClient } from '@/utils/supabaseClient';",
+            "content": "import { createServiceRoleClient } from '@/utils/supabaseClient';",
             "context": {
               "before": [
                 "",
                 "import { NextRequest, NextResponse } from 'next/server';"
               ],
-              "current": "import { createClient, createServiceRoleClient } from '@/utils/supabaseClient';",
+              "current": "import { createServiceRoleClient } from '@/utils/supabaseClient';",
               "after": [
                 "import { getAccountIdForUser } from '@/utils/accountUtils';",
-                ""
+                "import { createServerClient } from '@supabase/ssr';"
               ]
             }
           }
@@ -4365,7 +4367,11 @@
         "imports": [
           {
             "line": 7,
-            "statement": "import { createClient, createServiceRoleClient } from '@/utils/supabaseClient'"
+            "statement": "import { createServiceRoleClient } from '@/utils/supabaseClient'"
+          },
+          {
+            "line": 9,
+            "statement": "import { createServerClient } from '@supabase/ssr'"
           }
         ],
         "hasMultiplePatterns": true,
@@ -4381,17 +4387,34 @@
           {
             "type": "createClient",
             "category": "direct",
-            "line": 6,
-            "content": "const supabase = createClient();",
+            "line": 11,
+            "content": "// This replaces the global createClient() with proper request-scoped client",
             "context": {
               "before": [
                 "",
-                "// Initialize Supabase client with public credentials"
+                "// 🔧 CONSOLIDATION: Helper function for request-scoped auth client"
               ],
-              "current": "const supabase = createClient();",
+              "current": "// This replaces the global createClient() with proper request-scoped client",
               "after": [
-                "",
-                "// Initialize Supabase admin client with service role key for data fetching"
+                "// Used ONLY for authenticated dashboard requests, NOT for public widget embeds",
+                "function createAuthClient(authToken: string) {"
+              ]
+            }
+          },
+          {
+            "type": "createServerClient",
+            "category": "ssr-server",
+            "line": 14,
+            "content": "return createServerClient(",
+            "context": {
+              "before": [
+                "// Used ONLY for authenticated dashboard requests, NOT for public widget embeds",
+                "function createAuthClient(authToken: string) {"
+              ],
+              "current": "  return createServerClient(",
+              "after": [
+                "    process.env.NEXT_PUBLIC_SUPABASE_URL!,",
+                "    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,"
               ]
             }
           },
@@ -4399,15 +4422,15 @@
             "type": "supabaseClient import",
             "category": "util-import",
             "line": 2,
-            "content": "import { createClient, createServiceRoleClient } from '@/utils/supabaseClient';",
+            "content": "import { createServiceRoleClient } from '@/utils/supabaseClient';",
             "context": {
               "before": [
                 "import { NextResponse } from 'next/server';"
               ],
-              "current": "import { createClient, createServiceRoleClient } from '@/utils/supabaseClient';",
+              "current": "import { createServiceRoleClient } from '@/utils/supabaseClient';",
               "after": [
                 "import { getAccountIdForUser } from '@/utils/accountUtils';",
-                ""
+                "import { createServerClient } from '@supabase/ssr';"
               ]
             }
           }
@@ -4415,67 +4438,17 @@
         "imports": [
           {
             "line": 2,
-            "statement": "import { createClient, createServiceRoleClient } from '@/utils/supabaseClient'"
+            "statement": "import { createServiceRoleClient } from '@/utils/supabaseClient'"
+          },
+          {
+            "line": 4,
+            "statement": "import { createServerClient } from '@supabase/ssr'"
           }
         ],
         "hasMultiplePatterns": true,
         "recommendations": [
           "CONSOLIDATE: Multiple client creation patterns in single file",
           "STANDARDIZE: Mixed client types (direct + SSR)"
-        ]
-      },
-      {
-        "path": "src/app/dashboard/components/Analytics.tsx",
-        "type": "tsx",
-        "instances": [
-          {
-            "type": "supabaseClient import",
-            "category": "util-import",
-            "line": 4,
-            "content": "import { supabase } from \"@/utils/supabaseClient\";",
-            "context": {
-              "before": [
-                "",
-                "import { useEffect, useState } from \"react\";"
-              ],
-              "current": "import { supabase } from \"@/utils/supabaseClient\";",
-              "after": [
-                "import type { ReviewSubmission } from \"@/utils/supabaseClient\";",
-                ""
-              ]
-            }
-          },
-          {
-            "type": "supabaseClient import",
-            "category": "util-import",
-            "line": 5,
-            "content": "import type { ReviewSubmission } from \"@/utils/supabaseClient\";",
-            "context": {
-              "before": [
-                "import { useEffect, useState } from \"react\";",
-                "import { supabase } from \"@/utils/supabaseClient\";"
-              ],
-              "current": "import type { ReviewSubmission } from \"@/utils/supabaseClient\";",
-              "after": [
-                "",
-                "interface AnalyticsData {"
-              ]
-            }
-          }
-        ],
-        "imports": [
-          {
-            "line": 4,
-            "statement": "import { supabase } from \"@/utils/supabaseClient\""
-          },
-          {
-            "line": 5,
-            "statement": "import type { ReviewSubmission } from \"@/utils/supabaseClient\""
-          }
-        ],
-        "hasMultiplePatterns": true,
-        "recommendations": [
-          "CONSOLIDATE: Multiple client creation patterns in single file"
         ]
       },
       {

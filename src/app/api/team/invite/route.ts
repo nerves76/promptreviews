@@ -6,15 +6,17 @@
  */
 
 import { createServerClient } from '@supabase/ssr';
-import { createClient } from '@supabase/supabase-js';
+import { createServiceRoleClient } from '@/utils/supabaseClient';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { randomBytes } from 'crypto';
 import { sendTeamInvitationEmail } from '@/utils/emailTemplates';
 
-export async function POST(request: NextRequest) {
+// 🔧 CONSOLIDATION: Shared server client creation for API routes
+// This eliminates duplicate client creation patterns
+async function createAuthenticatedSupabaseClient() {
   const cookieStore = await cookies();
-  const supabase = createServerClient(
+  return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
@@ -25,12 +27,12 @@ export async function POST(request: NextRequest) {
       },
     }
   );
+}
 
-  // Create service role client for admin operations
-  const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+export async function POST(request: NextRequest) {
+  // 🔧 CONSOLIDATED: Use shared client creation functions
+  const supabase = await createAuthenticatedSupabaseClient();
+  const supabaseAdmin = createServiceRoleClient(); // 🔧 Use centralized service role client
 
   try {
     // Get the current user
@@ -198,35 +200,27 @@ export async function POST(request: NextRequest) {
     });
 
     console.log('📧 Sending invitation email...', {
-      to: invitation.email,
-      inviterName,
-      businessName,
-      role: invitation.role
+      to: email,
+      from: inviterName,
+      business: businessName,
+      role,
+      expires: formattedExpirationDate
     });
 
-    const emailResult = await sendTeamInvitationEmail(
-      invitation.email,
+    // Send the email
+    const emailResult = await sendTeamInvitationEmail({
+      to: email.trim(),
       inviterName,
       businessName,
-      invitation.role,
-      invitation.token,
-      formattedExpirationDate
-    );
+      role,
+      token,
+      expirationDate: formattedExpirationDate
+    });
 
     if (!emailResult.success) {
-      console.error('❌ Failed to send invitation email:', emailResult.error);
-      // Don't fail the entire request if email fails - invitation is still created
-    } else {
-      console.log('✅ Invitation email sent successfully');
+      console.error('Failed to send invitation email:', emailResult.error);
+      // Don't fail the request - invitation is created, just email failed
     }
-
-    console.log('Invitation created:', {
-      id: invitation.id,
-      email: invitation.email,
-      role: invitation.role,
-      token: invitation.token,
-      expires_at: invitation.expires_at
-    });
 
     return NextResponse.json({
       message: 'Invitation sent successfully',
@@ -234,7 +228,8 @@ export async function POST(request: NextRequest) {
         id: invitation.id,
         email: invitation.email,
         role: invitation.role,
-        expires_at: invitation.expires_at
+        expires_at: invitation.expires_at,
+        email_sent: emailResult.success
       }
     });
 

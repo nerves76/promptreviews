@@ -1,12 +1,42 @@
 import { NextResponse } from 'next/server';
-import { createClient, createServiceRoleClient } from '@/utils/supabaseClient';
+import { createServiceRoleClient } from '@/utils/supabaseClient';
 import { getAccountIdForUser } from '@/utils/accountUtils';
+import { createServerClient } from '@supabase/ssr';
 
-// Initialize Supabase client with public credentials
-const supabase = createClient();
-
-// Initialize Supabase admin client with service role key for data fetching
+// 🔧 CONSOLIDATION: Use centralized service role client
+// This eliminates global client instances in favor of request-scoped clients
 const supabaseAdmin = createServiceRoleClient();
+
+// 🔧 CONSOLIDATION: Helper function for request-scoped auth client
+// This replaces the global createClient() with proper request-scoped client
+// Used ONLY for authenticated dashboard requests, NOT for public widget embeds
+function createAuthClient(authToken: string) {
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      global: {
+        headers: {
+          Authorization: `Bearer ${authToken}`
+        }
+      },
+      cookies: {
+        get: () => undefined,
+        set: () => {},
+        remove: () => {},
+      },
+    }
+  );
+}
+
+// 🔧 CONSOLIDATION: Public client for widget embeds
+// This handles public access for widgets embedded on external websites
+// Uses admin client to bypass RLS for public widget data
+function getPublicWidgetData(widgetId: string) {
+  // For public embeds, we use the admin client to fetch widget data
+  // This allows widgets to be embedded on external websites without authentication
+  return supabaseAdmin;
+}
 
 /**
  * GET /api/widgets/[id]
@@ -36,7 +66,8 @@ export async function GET(
     if (authHeader && authHeader.startsWith('Bearer ')) {
       // This is a dashboard request - authenticate the user
       const token = authHeader.substring(7);
-      const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+      const supabase = createAuthClient(token); // 🔧 CONSOLIDATED: Use request-scoped client
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
       
       if (authError || !user) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -167,7 +198,8 @@ export async function PUT(
     }
 
     const token = authHeader.substring(7);
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    const supabase = createAuthClient(token); // 🔧 CONSOLIDATED: Use request-scoped client
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
