@@ -115,6 +115,20 @@ export default function ProductPromptPageForm({
         initialData.emojiFeedbackMessage ??
         "We value your feedback! Let us know how we can do better.",
     );
+    
+    // Initialize new Step 2 fields
+    setEmojiStep2Headline(
+      initialData.emoji_step2_headline ?? "Thanks for your honesty. We're always looking to improve.",
+    );
+    setEmojiStep2Body(
+      initialData.emoji_step2_body ?? "Would you like to:",
+    );
+    setEmojiFeedbackButtonText(
+      initialData.emoji_feedback_button_text ?? "Give Feedback",
+    );
+    setEmojiReviewButtonText(
+      initialData.emoji_review_button_text ?? "Leave a Public Review",
+    );
   }, [initialData]);
 
   useEffect(() => {
@@ -146,6 +160,20 @@ export default function ProductPromptPageForm({
   );
   const [emojiFeedbackMessage, setEmojiFeedbackMessage] = useState(
     "We value your feedback! Let us know how we can do better.",
+  );
+  
+  // New Step 2 state
+  const [emojiStep2Headline, setEmojiStep2Headline] = useState(
+    initialData.emoji_step2_headline ?? "Thanks for your honesty. We're always looking to improve.",
+  );
+  const [emojiStep2Body, setEmojiStep2Body] = useState(
+    initialData.emoji_step2_body ?? "Would you like to:",
+  );
+  const [emojiFeedbackButtonText, setEmojiFeedbackButtonText] = useState(
+    initialData.emoji_feedback_button_text ?? "Give Feedback",
+  );
+  const [emojiReviewButtonText, setEmojiReviewButtonText] = useState(
+    initialData.emoji_review_button_text ?? "Leave a Public Review",
   );
   const [generatingReview, setGeneratingReview] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -481,6 +509,11 @@ export default function ProductPromptPageForm({
           product_photo: uploadedPhotoUrl,
           ai_button_enabled: aiReviewEnabled,
           review_type: "product",
+          // Include new emoji Step 2 fields
+          emoji_step2_headline: emojiStep2Headline,
+          emoji_step2_body: emojiStep2Body,
+          emoji_feedback_button_text: emojiFeedbackButtonText,
+          emoji_review_button_text: emojiReviewButtonText,
         };
         
         if (mode === "create" && step === 2 && onPublish) {
@@ -966,6 +999,15 @@ export default function ProductPromptPageForm({
                 })
               }
               disabled={!!notePopupEnabled}
+              // New Step 2 props
+              step2Headline={emojiStep2Headline}
+              onStep2HeadlineChange={setEmojiStep2Headline}
+              step2Body={emojiStep2Body}
+              onStep2BodyChange={setEmojiStep2Body}
+              feedbackButtonText={emojiFeedbackButtonText}
+              onFeedbackButtonTextChange={setEmojiFeedbackButtonText}
+              reviewButtonText={emojiReviewButtonText}
+              onReviewButtonTextChange={setEmojiReviewButtonText}
             />
             <DisableAIGenerationSection
               enabled={aiReviewEnabled}
