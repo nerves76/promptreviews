@@ -5,61 +5,46 @@
  * This endpoint uses the service role key to bypass RLS policies.
  */
 
-import { createServerSupabaseClient, createClient, createServiceRoleClient } from '@/utils/supabaseClient';
+import { createServiceRoleClient } from '@/utils/supabaseClient';
 import { NextRequest, NextResponse } from 'next/server';
+import { createServerClient } from '@supabase/ssr';
+
+// 🔧 CONSOLIDATION: Shared server client creation for API routes
+// This replaces the mixed authentication approaches with standard server client pattern
+async function createAuthenticatedSupabaseClient() {
+  const { cookies } = await import('next/headers');
+  const cookieStore = await cookies();
+  
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get: (name) => cookieStore.get(name)?.value,
+        set: () => {}, // No-op for API route
+        remove: () => {}, // No-op for API route
+      },
+    }
+  );
+}
 
 export async function POST(request: NextRequest) {
   try {
-    let user;
-    let supabase;
-
-    // Try to get user from cookies first (browser requests)
-    try {
-      supabase = await createServerSupabaseClient();
-      const { data: { user: cookieUser }, error: authError } = await supabase.auth.getUser();
-      
-      if (!authError && cookieUser) {
-        user = cookieUser;
-        console.log('Using cookie-based authentication');
-      }
-    } catch (error) {
-      console.log('Cookie-based auth failed, trying header-based auth');
-    }
-
-    // If no user from cookies, try header-based authentication (API requests)
-    if (!user) {
-      const authHeader = request.headers.get('authorization');
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return NextResponse.json(
-          { error: 'Authentication required' },
-          { status: 401 }
-        );
-      }
-
-      const token = authHeader.replace('Bearer ', '');
-      
-      // Create a new Supabase client for header-based auth
-      supabase = createClient();
-
-      const { data: { user: headerUser }, error: tokenError } = await supabase.auth.getUser(token);
-      
-      if (tokenError || !headerUser) {
-        return NextResponse.json(
-          { error: 'Invalid authentication token' },
-          { status: 401 }
-        );
-      }
-
-      user = headerUser;
-      console.log('Using header-based authentication');
-    }
-
-    if (!user) {
+    // 🔧 CONSOLIDATED: Use standard server client authentication
+    // This replaces the complex cookie/header logic with the standard pattern
+    const supabase = await createAuthenticatedSupabaseClient();
+    
+    // Get authenticated user using standard server client pattern
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
       return NextResponse.json(
-        { error: 'User not found' },
+        { error: 'Authentication required' },
         { status: 401 }
       );
     }
+
+    console.log('✅ Authenticated user:', user.id);
 
     // Create a service role client for database operations
     const serviceClient = createServiceRoleClient();
@@ -114,7 +99,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log(`Successfully initialized ${defaultTasks.length} default tasks for user ${user.id}`);
+    console.log(`✅ Successfully initialized ${defaultTasks.length} default tasks for user ${user.id}`);
 
     return NextResponse.json({
       success: true,
@@ -123,7 +108,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error in initialize-onboarding-tasks:', error);
+    console.error('❌ Error in initialize-onboarding-tasks:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

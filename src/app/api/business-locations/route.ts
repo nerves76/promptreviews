@@ -10,20 +10,29 @@ import { createServiceRoleClient } from '@/utils/supabaseClient';
 import { getAccountIdForUser } from '@/utils/accountUtils';
 import { canCreateLocation, getTierLocationLimit, generateLocationPromptPageSlug, createLocationPromptPageData } from '@/utils/locationUtils';
 
+// 🔧 CONSOLIDATION: Shared Supabase client creation for API routes
+// This eliminates duplicate client creation patterns
+async function createAuthenticatedSupabaseClient() {
+  const { cookies } = await import('next/headers');
+  const cookieStore = await cookies();
+  
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get: (name) => cookieStore.get(name)?.value,
+        set: () => {}, // No-op for API route
+        remove: () => {}, // No-op for API route
+      },
+    }
+  );
+}
+
 export async function GET(request: NextRequest) {
   try {
-    // Use session-based client for authentication
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          get: (name) => request.cookies.get(name)?.value,
-          set: (name, value, options) => request.cookies.set(name, value, options),
-          remove: (name, options) => request.cookies.set(name, '', options),
-        },
-      }
-    );
+    // 🔧 CONSOLIDATED: Use shared client creation function
+    const supabase = await createAuthenticatedSupabaseClient();
     
     // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -95,18 +104,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    // Use session-based client for authentication
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          get: (name) => request.cookies.get(name)?.value,
-          set: (name, value, options) => request.cookies.set(name, value, options),
-          remove: (name, options) => request.cookies.set(name, '', options),
-        },
-      }
-    );
+    // 🔧 CONSOLIDATED: Use shared client creation function
+    const supabase = await createAuthenticatedSupabaseClient();
     
     // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();

@@ -409,34 +409,17 @@
         {
           "type": "createServerClient",
           "category": "ssr-server",
-          "line": 16,
-          "content": "const supabase = createServerClient(",
+          "line": 19,
+          "content": "return createServerClient(",
           "context": {
             "before": [
-              "  try {",
-              "    // Use session-based client for authentication"
+              "  const cookieStore = await cookies();",
+              "  "
             ],
-            "current": "    const supabase = createServerClient(",
+            "current": "  return createServerClient(",
             "after": [
-              "      process.env.NEXT_PUBLIC_SUPABASE_URL!,",
-              "      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,"
-            ]
-          }
-        },
-        {
-          "type": "createServerClient",
-          "category": "ssr-server",
-          "line": 99,
-          "content": "const supabase = createServerClient(",
-          "context": {
-            "before": [
-              "  try {",
-              "    // Use session-based client for authentication"
-            ],
-            "current": "    const supabase = createServerClient(",
-            "after": [
-              "      process.env.NEXT_PUBLIC_SUPABASE_URL!,",
-              "      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,"
+              "    process.env.NEXT_PUBLIC_SUPABASE_URL!,",
+              "    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,"
             ]
           }
         },
@@ -845,19 +828,19 @@
       "type": "ts",
       "instances": [
         {
-          "type": "createClient",
-          "category": "direct",
-          "line": 42,
-          "content": "supabase = createClient();",
+          "type": "createServerClient",
+          "category": "ssr-server",
+          "line": 18,
+          "content": "return createServerClient(",
           "context": {
             "before": [
-              "      ",
-              "      // Create a new Supabase client for header-based auth"
+              "  const cookieStore = await cookies();",
+              "  "
             ],
-            "current": "      supabase = createClient();",
+            "current": "  return createServerClient(",
             "after": [
-              "",
-              "      const { data: { user: headerUser }, error: tokenError } = await supabase.auth.getUser(token);"
+              "    process.env.NEXT_PUBLIC_SUPABASE_URL!,",
+              "    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,"
             ]
           }
         },
@@ -865,16 +848,16 @@
           "type": "supabaseClient import",
           "category": "util-import",
           "line": 8,
-          "content": "import { createServerSupabaseClient, createClient, createServiceRoleClient } from '@/utils/supabaseClient';",
+          "content": "import { createServiceRoleClient } from '@/utils/supabaseClient';",
           "context": {
             "before": [
               " */",
               ""
             ],
-            "current": "import { createServerSupabaseClient, createClient, createServiceRoleClient } from '@/utils/supabaseClient';",
+            "current": "import { createServiceRoleClient } from '@/utils/supabaseClient';",
             "after": [
               "import { NextRequest, NextResponse } from 'next/server';",
-              ""
+              "import { createServerClient } from '@supabase/ssr';"
             ]
           }
         }
@@ -882,7 +865,11 @@
       "imports": [
         {
           "line": 8,
-          "statement": "import { createServerSupabaseClient, createClient, createServiceRoleClient } from '@/utils/supabaseClient'"
+          "statement": "import { createServiceRoleClient } from '@/utils/supabaseClient'"
+        },
+        {
+          "line": 10,
+          "statement": "import { createServerClient } from '@supabase/ssr'"
         }
       ],
       "hasMultiplePatterns": true,
@@ -1153,50 +1140,16 @@
       "type": "ts",
       "instances": [
         {
-          "type": "createClient",
-          "category": "direct",
-          "line": 28,
-          "content": "const supabaseAdmin = createClient(",
-          "context": {
-            "before": [
-              "",
-              "  // Create service role client for admin operations"
-            ],
-            "current": "  const supabaseAdmin = createClient(",
-            "after": [
-              "    process.env.NEXT_PUBLIC_SUPABASE_URL!,",
-              "    process.env.SUPABASE_SERVICE_ROLE_KEY!"
-            ]
-          }
-        },
-        {
-          "type": "createClient",
-          "category": "direct",
-          "line": 118,
-          "content": "const supabaseAdmin = createClient(",
-          "context": {
-            "before": [
-              "",
-              "  // Create service role client for admin operations"
-            ],
-            "current": "  const supabaseAdmin = createClient(",
-            "after": [
-              "    process.env.NEXT_PUBLIC_SUPABASE_URL!,",
-              "    process.env.SUPABASE_SERVICE_ROLE_KEY!"
-            ]
-          }
-        },
-        {
           "type": "createServerClient",
           "category": "ssr-server",
-          "line": 15,
-          "content": "const supabase = createServerClient(",
+          "line": 17,
+          "content": "return createServerClient(",
           "context": {
             "before": [
-              "export async function GET(request: NextRequest) {",
+              "async function createAuthenticatedSupabaseClient() {",
               "  const cookieStore = await cookies();"
             ],
-            "current": "  const supabase = createServerClient(",
+            "current": "  return createServerClient(",
             "after": [
               "    process.env.NEXT_PUBLIC_SUPABASE_URL!,",
               "    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,"
@@ -1204,19 +1157,19 @@
           }
         },
         {
-          "type": "createServerClient",
-          "category": "ssr-server",
-          "line": 105,
-          "content": "const supabase = createServerClient(",
+          "type": "supabaseClient import",
+          "category": "util-import",
+          "line": 9,
+          "content": "import { createServiceRoleClient } from '@/utils/supabaseClient';",
           "context": {
             "before": [
-              "export async function POST(request: NextRequest) {",
-              "  const cookieStore = await cookies();"
+              "",
+              "import { createServerClient } from '@supabase/ssr';"
             ],
-            "current": "  const supabase = createServerClient(",
+            "current": "import { createServiceRoleClient } from '@/utils/supabaseClient';",
             "after": [
-              "    process.env.NEXT_PUBLIC_SUPABASE_URL!,",
-              "    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,"
+              "import { cookies } from 'next/headers';",
+              "import { NextRequest, NextResponse } from 'next/server';"
             ]
           }
         }
@@ -1228,7 +1181,7 @@
         },
         {
           "line": 9,
-          "statement": "import { createClient } from '@supabase/supabase-js'"
+          "statement": "import { createServiceRoleClient } from '@/utils/supabaseClient'"
         }
       ],
       "hasMultiplePatterns": true,
@@ -4038,11 +3991,11 @@
   ],
   "summary": {
     "totalFiles": 231,
-    "totalInstances": 140,
+    "totalInstances": 137,
     "byCategory": {
-      "util-import": 87,
-      "direct": 37,
-      "ssr-server": 15,
+      "util-import": 88,
+      "direct": 34,
+      "ssr-server": 14,
       "ssr-browser": 1
     },
     "byFileType": {
@@ -4057,34 +4010,17 @@
           {
             "type": "createServerClient",
             "category": "ssr-server",
-            "line": 16,
-            "content": "const supabase = createServerClient(",
+            "line": 19,
+            "content": "return createServerClient(",
             "context": {
               "before": [
-                "  try {",
-                "    // Use session-based client for authentication"
+                "  const cookieStore = await cookies();",
+                "  "
               ],
-              "current": "    const supabase = createServerClient(",
+              "current": "  return createServerClient(",
               "after": [
-                "      process.env.NEXT_PUBLIC_SUPABASE_URL!,",
-                "      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,"
-              ]
-            }
-          },
-          {
-            "type": "createServerClient",
-            "category": "ssr-server",
-            "line": 99,
-            "content": "const supabase = createServerClient(",
-            "context": {
-              "before": [
-                "  try {",
-                "    // Use session-based client for authentication"
-              ],
-              "current": "    const supabase = createServerClient(",
-              "after": [
-                "      process.env.NEXT_PUBLIC_SUPABASE_URL!,",
-                "      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,"
+                "    process.env.NEXT_PUBLIC_SUPABASE_URL!,",
+                "    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,"
               ]
             }
           },
@@ -4127,19 +4063,19 @@
         "type": "ts",
         "instances": [
           {
-            "type": "createClient",
-            "category": "direct",
-            "line": 42,
-            "content": "supabase = createClient();",
+            "type": "createServerClient",
+            "category": "ssr-server",
+            "line": 18,
+            "content": "return createServerClient(",
             "context": {
               "before": [
-                "      ",
-                "      // Create a new Supabase client for header-based auth"
+                "  const cookieStore = await cookies();",
+                "  "
               ],
-              "current": "      supabase = createClient();",
+              "current": "  return createServerClient(",
               "after": [
-                "",
-                "      const { data: { user: headerUser }, error: tokenError } = await supabase.auth.getUser(token);"
+                "    process.env.NEXT_PUBLIC_SUPABASE_URL!,",
+                "    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,"
               ]
             }
           },
@@ -4147,16 +4083,16 @@
             "type": "supabaseClient import",
             "category": "util-import",
             "line": 8,
-            "content": "import { createServerSupabaseClient, createClient, createServiceRoleClient } from '@/utils/supabaseClient';",
+            "content": "import { createServiceRoleClient } from '@/utils/supabaseClient';",
             "context": {
               "before": [
                 " */",
                 ""
               ],
-              "current": "import { createServerSupabaseClient, createClient, createServiceRoleClient } from '@/utils/supabaseClient';",
+              "current": "import { createServiceRoleClient } from '@/utils/supabaseClient';",
               "after": [
                 "import { NextRequest, NextResponse } from 'next/server';",
-                ""
+                "import { createServerClient } from '@supabase/ssr';"
               ]
             }
           }
@@ -4164,7 +4100,11 @@
         "imports": [
           {
             "line": 8,
-            "statement": "import { createServerSupabaseClient, createClient, createServiceRoleClient } from '@/utils/supabaseClient'"
+            "statement": "import { createServiceRoleClient } from '@/utils/supabaseClient'"
+          },
+          {
+            "line": 10,
+            "statement": "import { createServerClient } from '@supabase/ssr'"
           }
         ],
         "hasMultiplePatterns": true,
@@ -4223,50 +4163,16 @@
         "type": "ts",
         "instances": [
           {
-            "type": "createClient",
-            "category": "direct",
-            "line": 28,
-            "content": "const supabaseAdmin = createClient(",
-            "context": {
-              "before": [
-                "",
-                "  // Create service role client for admin operations"
-              ],
-              "current": "  const supabaseAdmin = createClient(",
-              "after": [
-                "    process.env.NEXT_PUBLIC_SUPABASE_URL!,",
-                "    process.env.SUPABASE_SERVICE_ROLE_KEY!"
-              ]
-            }
-          },
-          {
-            "type": "createClient",
-            "category": "direct",
-            "line": 118,
-            "content": "const supabaseAdmin = createClient(",
-            "context": {
-              "before": [
-                "",
-                "  // Create service role client for admin operations"
-              ],
-              "current": "  const supabaseAdmin = createClient(",
-              "after": [
-                "    process.env.NEXT_PUBLIC_SUPABASE_URL!,",
-                "    process.env.SUPABASE_SERVICE_ROLE_KEY!"
-              ]
-            }
-          },
-          {
             "type": "createServerClient",
             "category": "ssr-server",
-            "line": 15,
-            "content": "const supabase = createServerClient(",
+            "line": 17,
+            "content": "return createServerClient(",
             "context": {
               "before": [
-                "export async function GET(request: NextRequest) {",
+                "async function createAuthenticatedSupabaseClient() {",
                 "  const cookieStore = await cookies();"
               ],
-              "current": "  const supabase = createServerClient(",
+              "current": "  return createServerClient(",
               "after": [
                 "    process.env.NEXT_PUBLIC_SUPABASE_URL!,",
                 "    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,"
@@ -4274,19 +4180,19 @@
             }
           },
           {
-            "type": "createServerClient",
-            "category": "ssr-server",
-            "line": 105,
-            "content": "const supabase = createServerClient(",
+            "type": "supabaseClient import",
+            "category": "util-import",
+            "line": 9,
+            "content": "import { createServiceRoleClient } from '@/utils/supabaseClient';",
             "context": {
               "before": [
-                "export async function POST(request: NextRequest) {",
-                "  const cookieStore = await cookies();"
+                "",
+                "import { createServerClient } from '@supabase/ssr';"
               ],
-              "current": "  const supabase = createServerClient(",
+              "current": "import { createServiceRoleClient } from '@/utils/supabaseClient';",
               "after": [
-                "    process.env.NEXT_PUBLIC_SUPABASE_URL!,",
-                "    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,"
+                "import { cookies } from 'next/headers';",
+                "import { NextRequest, NextResponse } from 'next/server';"
               ]
             }
           }
@@ -4298,7 +4204,7 @@
           },
           {
             "line": 9,
-            "statement": "import { createClient } from '@supabase/supabase-js'"
+            "statement": "import { createServiceRoleClient } from '@/utils/supabaseClient'"
           }
         ],
         "hasMultiplePatterns": true,

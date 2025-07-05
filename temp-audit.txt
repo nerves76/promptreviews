@@ -1,0 +1,201 @@
+
+> promptreviews@0.1.0 audit:supabase-clients
+> node scripts/audit-supabase-clients.js
+
+🔍 Starting Supabase Client Audit...
+
+🔍 SUPABASE CLIENT AUDIT REPORT
+================================
+
+📊 SUMMARY:
+   Total files analyzed: 231
+   Files with Supabase clients: 111
+   Total client instances: 140
+   Problematic files: 20
+
+📈 BY CATEGORY:
+   util-import: 87 instances
+   direct: 37 instances
+   ssr-server: 15 instances
+   ssr-browser: 1 instances
+
+📁 BY FILE TYPE:
+   .tsx: 56 files
+   .ts: 55 files
+
+🚨 PROBLEMATIC FILES:
+
+📄 src/app/api/business-locations/route.ts
+   Issues: 2
+   - CONSOLIDATE: Multiple client creation patterns in single file
+   - STANDARDIZE: Mixed client types (direct + SSR)
+   Instances:
+     Line 16: createServerClient (ssr-server)
+     Line 99: createServerClient (ssr-server)
+     Line 9: supabaseClient import (util-import)
+
+📄 src/app/api/initialize-onboarding-tasks/route.ts
+   Issues: 2
+   - CONSOLIDATE: Multiple client creation patterns in single file
+   - STANDARDIZE: Mixed client types (direct + SSR)
+   Instances:
+     Line 42: createClient (direct)
+     Line 8: supabaseClient import (util-import)
+
+📄 src/app/api/prompt-pages/[slug]/route.ts
+   Issues: 1
+   - CONSOLIDATE: Multiple client creation patterns in single file
+   Instances:
+     Line 38: createClient (direct)
+     Line 102: createClient (direct)
+
+📄 src/app/api/team/accept/route.ts
+   Issues: 2
+   - CONSOLIDATE: Multiple client creation patterns in single file
+   - STANDARDIZE: Mixed client types (direct + SSR)
+   Instances:
+     Line 28: createClient (direct)
+     Line 118: createClient (direct)
+     Line 15: createServerClient (ssr-server)
+     Line 105: createServerClient (ssr-server)
+
+📄 src/app/api/team/invite/route.ts
+   Issues: 2
+   - CONSOLIDATE: Multiple client creation patterns in single file
+   - STANDARDIZE: Mixed client types (direct + SSR)
+   Instances:
+     Line 30: createClient (direct)
+     Line 17: createServerClient (ssr-server)
+
+📄 src/app/api/team/members/route.ts
+   Issues: 2
+   - CONSOLIDATE: Multiple client creation patterns in single file
+   - STANDARDIZE: Mixed client types (direct + SSR)
+   Instances:
+     Line 28: createClient (direct)
+     Line 15: createServerClient (ssr-server)
+
+📄 src/app/api/widgets/[id]/reviews/route.ts
+   Issues: 2
+   - CONSOLIDATE: Multiple client creation patterns in single file
+   - STANDARDIZE: Mixed client types (direct + SSR)
+   Instances:
+     Line 11: createClient (direct)
+     Line 7: supabaseClient import (util-import)
+
+📄 src/app/api/widgets/[id]/route.ts
+   Issues: 2
+   - CONSOLIDATE: Multiple client creation patterns in single file
+   - STANDARDIZE: Mixed client types (direct + SSR)
+   Instances:
+     Line 6: createClient (direct)
+     Line 2: supabaseClient import (util-import)
+
+📄 src/app/dashboard/components/Analytics.tsx
+   Issues: 1
+   - CONSOLIDATE: Multiple client creation patterns in single file
+   Instances:
+     Line 4: supabaseClient import (util-import)
+     Line 5: supabaseClient import (util-import)
+
+📄 src/app/dashboard/create-prompt-page/CreatePromptPageClient.tsx
+   Issues: 1
+   - CONSOLIDATE: Multiple client creation patterns in single file
+   Instances:
+     Line 26: supabaseClient import (util-import)
+     Line 34: supabaseClient import (util-import)
+
+📄 src/app/dashboard/style/StyleModalPage.tsx
+   Issues: 1
+   - CONSOLIDATE: Multiple client creation patterns in single file
+   Instances:
+     Line 3: supabaseClient import (util-import)
+     Line 4: supabaseClient import (util-import)
+
+📄 src/app/dashboard/upload-contacts/page.tsx
+   Issues: 1
+   - CONSOLIDATE: Multiple client creation patterns in single file
+   Instances:
+     Line 5: supabaseClient import (util-import)
+     Line 17: supabaseClient import (util-import)
+
+📄 src/app/debug-nav/page.tsx
+   Issues: 1
+   - CONSOLIDATE: Multiple client creation patterns in single file
+   Instances:
+     Line 5: supabaseClient import (util-import)
+     Line 6: supabaseClient import (util-import)
+
+📄 src/app/page.tsx
+   Issues: 1
+   - CONSOLIDATE: Multiple client creation patterns in single file
+   Instances:
+     Line 5: supabaseClient import (util-import)
+     Line 6: supabaseClient import (util-import)
+
+📄 src/app/prompt-pages/page.tsx
+   Issues: 1
+   - CONSOLIDATE: Multiple client creation patterns in single file
+   Instances:
+     Line 5: supabaseClient import (util-import)
+     Line 21: supabaseClient import (util-import)
+
+📄 src/app/r/[slug]/page.tsx
+   Issues: 1
+   - CONSOLIDATE: Multiple client creation patterns in single file
+   Instances:
+     Line 67: supabaseClient import (util-import)
+     Line 68: supabaseClient import (util-import)
+
+📄 src/app/upgrade/page.tsx
+   Issues: 1
+   - CONSOLIDATE: Multiple client creation patterns in single file
+   Instances:
+     Line 5: supabaseClient import (util-import)
+     Line 8: supabaseClient import (util-import)
+
+📄 src/components/ReviewSubmissionForm.tsx
+   Issues: 1
+   - CONSOLIDATE: Multiple client creation patterns in single file
+   Instances:
+     Line 4: supabaseClient import (util-import)
+     Line 6: supabaseClient import (util-import)
+
+📄 src/utils/authGuard.ts
+   Issues: 2
+   - CONSOLIDATE: Multiple client creation patterns in single file
+   - STANDARDIZE: Mixed client types (direct + SSR)
+   Instances:
+     Line 27: createClient (direct)
+     Line 112: createClient (direct)
+     Line 3: supabaseClient import (util-import)
+
+📄 src/utils/supabaseClient.ts
+   Issues: 2
+   - CONSOLIDATE: Multiple client creation patterns in single file
+   - STANDARDIZE: Mixed client types (direct + SSR)
+   Instances:
+     Line 46: createClient (direct)
+     Line 140: createClient (direct)
+     Line 151: createClient (direct)
+     Line 169: createClient (direct)
+     Line 178: createClient (direct)
+     Line 196: createClient (direct)
+     Line 293: createClient (direct)
+     Line 53: createBrowserClient (ssr-browser)
+     Line 89: createServerClient (ssr-server)
+
+💡 CONSOLIDATION RECOMMENDATIONS:
+1. Replace all direct createClient with centralized createClient from utils/supabaseClient
+2. Use createBrowserClient only in client components
+3. Use createServerClient only in API routes and middleware
+4. Implement feature flags for gradual migration
+5. Add eslint rules to prevent future violations
+
+🎯 MIGRATION PRIORITY:
+1. HIGH: API routes using browser clients
+2. HIGH: Components using server clients
+3. MEDIUM: Files with multiple client types
+4. LOW: Files using util imports (already good pattern)
+
+📄 Detailed results saved to: supabase-client-audit.json
