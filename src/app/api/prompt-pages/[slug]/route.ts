@@ -6,6 +6,11 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { createServiceRoleClient } from '@/utils/supabaseClient';
+
+// 🔧 CONSOLIDATION: Use centralized service role client
+// This eliminates duplicate client creation patterns and uses the centralized pattern
+const supabaseAdmin = createServiceRoleClient();
 
 export async function GET(
   request: NextRequest,
@@ -23,21 +28,8 @@ export async function GET(
 
     console.log(`[PROMPT-PAGE-BY-SLUG] Fetching prompt page for slug: ${slug}`);
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !supabaseServiceKey) {
-      console.error('[PROMPT-PAGE-BY-SLUG] Missing Supabase configuration');
-      return NextResponse.json(
-        { error: "Server configuration error" },
-        { status: 500 }
-      );
-    }
-
-    const { createClient } = await import('@supabase/supabase-js');
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    const { data: promptPage, error } = await supabase
+    // 🔧 CONSOLIDATED: Use centralized service role client
+    const { data: promptPage, error } = await supabaseAdmin
       .from('prompt_pages')
       .select('*')
       .eq('slug', slug)
@@ -87,21 +79,8 @@ export async function PATCH(
 
     console.log(`[PROMPT-PAGE-BY-SLUG] Updating prompt page for slug: ${slug}`);
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !supabaseServiceKey) {
-      console.error('[PROMPT-PAGE-BY-SLUG] Missing Supabase configuration');
-      return NextResponse.json(
-        { error: "Server configuration error" },
-        { status: 500 }
-      );
-    }
-
-    const { createClient } = await import('@supabase/supabase-js');
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    const { data: promptPage, error } = await supabase
+    // 🔧 CONSOLIDATED: Use centralized service role client
+    const { data: promptPage, error } = await supabaseAdmin
       .from('prompt_pages')
       .update(body)
       .eq('slug', slug)

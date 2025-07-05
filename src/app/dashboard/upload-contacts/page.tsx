@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useAuthGuard } from "@/utils/authGuard";
-import { supabase } from "@/utils/supabaseClient";
+// 🔧 CONSOLIDATED: Single import from supabaseClient module
+import { supabase, getUserOrMock, getSessionOrMock } from "@/utils/supabaseClient";
 import {
   FaDownload,
   FaUpload,
@@ -14,7 +15,6 @@ import {
 } from "react-icons/fa";
 import { Dialog } from "@headlessui/react";
 import { useRouter } from "next/navigation";
-import { getUserOrMock, getSessionOrMock } from "@/utils/supabaseClient";
 import AppLoader from "@/app/components/AppLoader";
 
 export default function UploadContactsPage() {
