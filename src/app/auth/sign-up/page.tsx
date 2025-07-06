@@ -68,9 +68,6 @@ function SignUpContent() {
     "Unexpected error": "Something went wrong. Please try again.",
   };
 
-  // Account creation is now handled automatically by Phase 1 database triggers
-  // No manual createAccount function needed anymore
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -191,22 +188,11 @@ function SignUpContent() {
         }
         
         setError(errorMessage);
-        setLoading(false);
         return;
       }
 
-      // ✅ FIXED: If no error, always show email confirmation message
+      // ✅ FIXED: Always show email confirmation message for successful signups
       // This handles both regular signup and team invitation signup
-      if (data.user) {
-        console.log('✅ User created successfully:', data.user.id);
-        console.log('📧 User email confirmed:', data.user.email_confirmed_at);
-        console.log('📧 User metadata:', data.user.user_metadata);
-        console.log('🔧 Phase 1 triggers will handle account creation automatically when email is confirmed');
-      } else {
-        console.log('✅ Sign-up request processed successfully (user data may be null for unconfirmed accounts)');
-      }
-      
-      // Show email confirmation message for all successful signups
       console.log('✅ Sign-up completed, waiting for email confirmation');
       setEmailSent(true);
       setMessage(invitationToken 
@@ -402,7 +388,6 @@ function SignUpContent() {
             </div>
           )}
 
-          
           <button
             type="submit"
             className="w-full py-3 bg-slate-blue text-white rounded font-semibold hover:bg-indigo-900 disabled:opacity-50 disabled:cursor-not-allowed"
