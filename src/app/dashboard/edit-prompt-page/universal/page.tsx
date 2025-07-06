@@ -133,9 +133,11 @@ export default function UniversalEditPromptPage() {
           offerUrl:
             universalPage?.offer_url || businessProfile?.default_offer_url || "",
           emojiSentimentEnabled: universalPage?.emoji_sentiment_enabled ?? false,
-          emojiSentimentQuestion: universalPage?.emoji_sentiment_question || "",
-          emojiFeedbackMessage: universalPage?.emoji_feedback_message || "",
-          emojiThankYouMessage: universalPage?.emoji_thank_you_message || "",
+          emojiSentimentQuestion: universalPage?.emoji_sentiment_question || "How was Your Experience?",
+          emojiFeedbackMessage: universalPage?.emoji_feedback_message || "We value your feedback! Let us know how we can do better.",
+          emojiThankYouMessage: universalPage?.emoji_thank_you_message || "Thank you for your feedback. It's important to us.",
+          emojiFeedbackPopupHeader: universalPage?.emoji_feedback_popup_header || "How can we Improve?",
+          emojiFeedbackPageHeader: universalPage?.emoji_feedback_page_header || "Your feedback helps us grow",
 
           reviewPlatforms: universalPlatforms.length
             ? universalPlatforms
@@ -227,6 +229,8 @@ export default function UniversalEditPromptPage() {
       emoji_sentiment_question: formState.emojiSentimentQuestion,
       emoji_feedback_message: formState.emojiFeedbackMessage,
       emoji_thank_you_message: formState.emojiThankYouMessage,
+      emoji_feedback_popup_header: formState.emojiFeedbackPopupHeader,
+      emoji_feedback_page_header: formState.emojiFeedbackPageHeader,
       review_platforms: formState.reviewPlatforms,
       falling_icon: formState.fallingEnabled ? formState.fallingIcon : null,
       ai_button_enabled: formState.aiButtonEnabled,

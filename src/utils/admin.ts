@@ -1,12 +1,12 @@
 /**
  * Admin utility functions for checking admin status and managing admin content
- * This file contains functions to check if a user is an admin and manage admin-only features
+ * UPDATED: Now uses simple is_admin column in accounts table for better reliability
  */
 
 import { createClient } from './supabaseClient';
 
 /**
- * Check if the current user is an admin
+ * Check if the current user is an admin using the simple is_admin column
  * @param userId - Optional user ID to check. If not provided, will get current user from auth.
  * @param supabaseClient - Optional Supabase client instance. If not provided, uses shared client.
  * @returns Promise<boolean> - true if user is admin, false otherwise
@@ -32,14 +32,14 @@ export async function isAdmin(userId?: string, supabaseClient?: any): Promise<bo
 
     console.log('isAdmin: Checking admin status for user ID:', userToCheck);
     
-    // Query admins table - account_id column stores user IDs
-    const { data: admin, error } = await client
-      .from('admins')
-      .select('id')
-      .eq('account_id', userToCheck)
+    // Simple query: Check is_admin column in accounts table
+    const { data: account, error } = await client
+      .from('accounts')
+      .select('is_admin')
+      .eq('id', userToCheck)
       .maybeSingle();
 
-    console.log('isAdmin: Query result:', { admin: !!admin, error: error?.message });
+    console.log('isAdmin: Query result:', { isAdmin: account?.is_admin, error: error?.message });
     
     if (error) {
       console.error('isAdmin: Database error:', {
@@ -52,7 +52,7 @@ export async function isAdmin(userId?: string, supabaseClient?: any): Promise<bo
       return false;
     }
     
-    const isAdminUser = !!admin;
+    const isAdminUser = !!(account?.is_admin);
     console.log('isAdmin: Final result:', isAdminUser);
     return isAdminUser;
     
@@ -64,6 +64,114 @@ export async function isAdmin(userId?: string, supabaseClient?: any): Promise<bo
     });
     return false;
   }
+}
+
+/**
+ * Set admin status for a user by email
+ * @param email - User email
+ * @param isAdminStatus - Whether to grant or revoke admin status
+ * @param supabaseClient - Optional Supabase client instance
+ */
+export async function setAdminStatus(
+  email: string, 
+  isAdminStatus: boolean, 
+  supabaseClient?: any
+): Promise<{ success: boolean; message: string }> {
+  try {
+    const client = supabaseClient || createClient();
+    
+    console.log(`Setting admin status for ${email} to ${isAdminStatus}`);
+    
+    // Update the is_admin column
+    const { data, error } = await client
+      .from('accounts')
+      .update({ is_admin: isAdminStatus })
+      .eq('email', email)
+      .select('id, email, is_admin');
+
+    if (error) {
+      console.error('setAdminStatus: Database error:', error);
+      return {
+        success: false,
+        message: `Database error: ${error.message}`
+      };
+    }
+
+    if (!data || data.length === 0) {
+      return {
+        success: false,
+        message: `No account found with email: ${email}`
+      };
+    }
+
+    console.log('setAdminStatus: Success:', data[0]);
+    return {
+      success: true,
+      message: `Successfully ${isAdminStatus ? 'granted' : 'revoked'} admin status for ${email}`
+    };
+    
+  } catch (error) {
+    console.error('setAdminStatus: Unexpected error:', error);
+    return {
+      success: false,
+      message: `Unexpected error: ${error instanceof Error ? error.message : String(error)}`
+    };
+  }
+}
+
+/**
+ * List all admin users
+ * @param supabaseClient - Optional Supabase client instance
+ */
+export async function listAdmins(supabaseClient?: any): Promise<{
+  success: boolean;
+  admins?: Array<{ id: string; email: string; first_name?: string; last_name?: string }>;
+  message?: string;
+}> {
+  try {
+    const client = supabaseClient || createClient();
+    
+    const { data, error } = await client
+      .from('accounts')
+      .select('id, email, first_name, last_name')
+      .eq('is_admin', true)
+      .order('email');
+
+    if (error) {
+      console.error('listAdmins: Database error:', error);
+      return {
+        success: false,
+        message: `Database error: ${error.message}`
+      };
+    }
+
+    return {
+      success: true,
+      admins: data || []
+    };
+    
+  } catch (error) {
+    console.error('listAdmins: Unexpected error:', error);
+    return {
+      success: false,
+      message: `Unexpected error: ${error instanceof Error ? error.message : String(error)}`
+    };
+  }
+}
+
+/**
+ * DEPRECATED: Legacy function for backwards compatibility
+ * This function is no longer needed with the new simple admin system
+ * @deprecated Use isAdmin() instead
+ */
+export async function ensureAdminForEmail(user: { id: string, email: string }, supabaseClient?: any): Promise<void> {
+  // Get admin emails from environment (fallback for transition period)
+  const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+  if (!user?.email) return;
+  if (!adminEmails.includes(user.email.toLowerCase())) return;
+
+  console.log(`ensureAdminForEmail: Auto-granting admin status for ${user.email}`);
+  await setAdminStatus(user.email, true, supabaseClient);
 }
 
 /**
@@ -629,27 +737,4 @@ export async function deleteFeedback(feedbackId: string, supabaseClient?: any): 
     console.error('Error deleting feedback:', error);
     return false;
   }
-}
-
-/**
- * Ensure the user is an admin if their email is in the ADMIN_EMAILS env variable.
- * @param user - The user object (must have id and email)
- * @param supabaseClient - Optional Supabase client instance
- */
-export async function ensureAdminForEmail(user: { id: string, email: string }, supabaseClient?: any): Promise<void> {
-  const client = supabaseClient || createClient();
-  const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
-  if (!user?.email) return;
-  if (!adminEmails.includes(user.email.toLowerCase())) return;
-
-  // Check if already in admins table
-  const { data: admin, error } = await client
-    .from('admins')
-    .select('id')
-    .eq('account_id', user.id)
-    .maybeSingle();
-  if (admin) return;
-
-  // Insert into admins table
-  await client.from('admins').insert({ account_id: user.id });
 } 

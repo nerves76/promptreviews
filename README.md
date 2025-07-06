@@ -52,6 +52,28 @@ A modern, customizable review widget system built with Next.js, TypeScript, and 
 
 ## Latest Improvements (January 2025)
 
+### Step 2 Emoji Gating Implementation (January 2025)
+- **Google-Compliant Review Process**: Implemented two-step choice system for negative sentiment reviews
+- **Enhanced User Experience**: Users selecting negative emotions (neutral, unsatisfied, frustrated) now get a choice modal
+- **Dual-Path System**: 
+  - **Private Feedback**: Direct feedback to business owners without public posting
+  - **Public Review**: Traditional review process for users who choose to publish publicly
+- **Compliance Features**: Adheres to Google's review submission guidelines by offering private feedback option
+- **Seamless Integration**: Choice modal integrates naturally with existing emoji sentiment flow
+- **Business Branding**: Modal includes business name and consistent branding
+
+### UI/UX Improvements & Technical Fixes (January 2025)
+- **Enhanced Tooltips**: Added detailed, actionable tooltips for business profile forms with specific examples
+- **Business Location Management**: Fixed location creation limits and slug generation conflicts
+- **Modal Standardization**: Updated all modal close buttons to use red X with Prompty branding
+- **Platform Form Improvements**: Fixed layout alignment issues when "Other" platform is selected
+- **Success Notifications**: Added proper success messages for location prompt page saves/publishes
+- **Database Schema Fixes**: Resolved PostgREST schema cache issues and missing column problems
+- **Stripe Webhook Fix**: Resolved webhook issue that was overwriting location limits during subscription updates
+- **Admin System Enhancement**: Fixed admin user creation and verification system
+
+*Last Updated: January 6, 2025 - Added Step 2 emoji gating implementation and comprehensive UI/UX improvements*
+
 ### Plan Page & Billing Enhancements
 - **Pricing Display Fix**: Resolved pricing display issue showing "month/month" instead of correct pricing
 - **Stripe Branding**: Updated Stripe branding with clean, professional text approach
