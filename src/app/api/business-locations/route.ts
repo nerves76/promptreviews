@@ -8,7 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { createServiceRoleClient } from '@/utils/supabaseClient';
 import { getAccountIdForUser } from '@/utils/accountUtils';
-import { canCreateLocation, getTierLocationLimit, generateLocationPromptPageSlug, createLocationPromptPageData } from '@/utils/locationUtils';
+import { canCreateLocation, getTierLocationLimit, generateLocationPromptPageSlug, createLocationPromptPageData, generateUniqueLocationSlug } from '@/utils/locationUtils';
 
 // 🔧 CONSOLIDATION: Shared Supabase client creation for API routes
 // This eliminates duplicate client creation patterns
@@ -246,7 +246,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Auto-create a location-specific universal prompt page
+    // Auto-create a location-specific prompt page with unique slug
     const promptPageData = createLocationPromptPageData({
       ...location,
       review_platforms,
@@ -264,6 +264,16 @@ export async function POST(request: NextRequest) {
       offer_url,
       ai_review_enabled,
     });
+    
+    // Generate unique slug to handle duplicate location names
+    const uniqueSlug = await generateUniqueLocationSlug(
+      location.name, 
+      accountId, 
+      serviceRoleClient
+    );
+    
+    // Override the slug with the unique one
+    promptPageData.slug = uniqueSlug;
     
     const { data: promptPage, error: promptPageError } = await serviceRoleClient
       .from('prompt_pages')

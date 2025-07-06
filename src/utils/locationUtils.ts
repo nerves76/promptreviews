@@ -43,11 +43,61 @@ export function generateLocationSlug(name: string, accountSlug?: string): string
 }
 
 /**
- * Generate a unique slug for a location's universal prompt page
+ * Generate a unique slug for a location's prompt page
  */
 export function generateLocationPromptPageSlug(locationName: string): string {
-  const slug = generateLocationSlug(locationName);
-  return `${slug}-universal`;
+  return generateLocationSlug(locationName);
+}
+
+/**
+ * Generate a unique slug for a location, checking database for conflicts
+ * Adds numbers (e.g., -2, -3) if the base slug already exists
+ */
+export async function generateUniqueLocationSlug(
+  locationName: string, 
+  accountId: string,
+  supabaseClient: any
+): Promise<string> {
+  const baseSlug = generateLocationSlug(locationName);
+  
+  // Check if the base slug already exists
+  const { data: existingPage } = await supabaseClient
+    .from('prompt_pages')
+    .select('slug')
+    .eq('account_id', accountId)
+    .eq('slug', baseSlug)
+    .single();
+  
+  // If no conflict, return the base slug
+  if (!existingPage) {
+    return baseSlug;
+  }
+  
+  // If there's a conflict, try adding numbers
+  let counter = 2;
+  let uniqueSlug = `${baseSlug}-${counter}`;
+  
+  while (true) {
+    const { data: conflictingPage } = await supabaseClient
+      .from('prompt_pages')
+      .select('slug')
+      .eq('account_id', accountId)
+      .eq('slug', uniqueSlug)
+      .single();
+    
+    if (!conflictingPage) {
+      return uniqueSlug;
+    }
+    
+    counter++;
+    uniqueSlug = `${baseSlug}-${counter}`;
+    
+    // Safety valve to prevent infinite loops
+    if (counter > 100) {
+      // Fallback to timestamp-based uniqueness
+      return `${baseSlug}-${Date.now()}`;
+    }
+  }
 }
 
 /**
@@ -139,6 +189,6 @@ export function createLocationPromptPageData(location: {
     offer_title: location.offer_title || '',
     offer_body: location.offer_body || '',
     offer_url: location.offer_url || '',
-    ai_review_enabled: location.ai_review_enabled !== false, // Default to true
+    // ai_review_enabled: location.ai_review_enabled !== false, // TODO: Re-enable after schema cache refresh
   };
 } 
