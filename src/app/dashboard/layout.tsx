@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { supabase, getUserOrMock } from "@/utils/supabaseClient";
+import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 import { getAccountIdForUser } from "@/utils/accountUtils";
 import { useRouter } from "next/navigation";
 import AppLoader from "@/app/components/AppLoader";
@@ -21,6 +21,9 @@ export default function DashboardLayout({
   const [accountData, setAccountData] = useState<any>(null);
   const [isClient, setIsClient] = useState(false);
   const router = useRouter();
+
+  // Create supabase client instance
+  const supabase = createClient();
 
   // Ensure we're on the client side before accessing browser APIs
   useEffect(() => {

@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect } from "react";
-import { supabase } from "@/utils/supabaseClient";
+import { createClient } from "@/utils/supabaseClient";
 import { trackEvent, GA_EVENTS } from "../../utils/analytics";
 
 export default function SignOut() {
+  const supabase = createClient();
+
   useEffect(() => {
     const signOut = async () => {
       // Using singleton Supabase client from supabaseClient.ts

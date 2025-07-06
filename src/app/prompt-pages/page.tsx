@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useRef } from "react";
 // 🔧 CONSOLIDATED: Single import from supabaseClient module
-import { supabase, getUserOrMock } from "@/utils/supabaseClient";
+import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 import Link from "next/link";
 import { FaGlobe, FaLink, FaTimes, FaPalette, FaPlus, FaCheck, FaMapMarkerAlt, FaEdit, FaTrash } from "react-icons/fa";
 import { MdDownload } from "react-icons/md";
@@ -27,6 +27,8 @@ import { hasLocationAccess, formatLocationAddress, getLocationDisplayName } from
 const StylePage = dynamic(() => import("../dashboard/style/StyleModalPage"), { ssr: false });
 
 export default function PromptPages() {
+  const supabase = createClient();
+
   const [loading, setLoading] = useState(true);
   const [promptPages, setPromptPages] = useState<any[]>([]);
   const [universalPromptPage, setUniversalPromptPage] = useState<any>(null);

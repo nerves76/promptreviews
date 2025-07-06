@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase, type ReviewSubmission } from "@/utils/supabaseClient"; // 🔧 CONSOLIDATED: Combined imports
+import { createClient, type ReviewSubmission } from "@/utils/supabaseClient"; // 🔧 CONSOLIDATED: Combined imports
 
 interface AnalyticsData {
   totalClicks: number;
@@ -10,6 +10,8 @@ interface AnalyticsData {
 }
 
 export default function Analytics() {
+  const supabase = createClient();
+
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

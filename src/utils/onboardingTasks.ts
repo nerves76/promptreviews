@@ -5,7 +5,9 @@
  * Provides functions to fetch, mark as complete, and check completion status.
  */
 
-import { supabase } from '@/utils/supabaseClient';
+import { createClient } from '@/utils/supabaseClient';
+
+const supabase = createClient();
 import { getAccountIdForUser } from './accountUtils';
 
 export interface OnboardingTask {

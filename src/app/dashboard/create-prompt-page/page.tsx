@@ -1,11 +1,13 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useAuthGuard } from "@/utils/authGuard";
-import { supabase } from "@/utils/supabaseClient";
+import { createClient } from "@/utils/supabaseClient";
 import { markTaskAsCompleted } from "@/utils/onboardingTasks";
 import CreatePromptPageClient from "./CreatePromptPageClient";
 
 export default function CreatePromptPage() {
+  const supabase = createClient();
+
   useAuthGuard();
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [showTypeModal, setShowTypeModal] = useState(false);

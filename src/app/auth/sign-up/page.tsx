@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import SimpleMarketingNav from "@/app/components/SimpleMarketingNav";
 import { trackSignUp } from '../../../utils/analytics';
-import { supabase } from '../../../utils/supabaseClient';
+import { createClient } from '../../../utils/supabaseClient';
 
 function SignUpContent() {
   const searchParams = useSearchParams();
@@ -67,6 +67,9 @@ function SignUpContent() {
       "Network error. Please check your connection and try again.",
     "Unexpected error": "Something went wrong. Please try again.",
   };
+
+  // Account creation is now handled automatically by Phase 1 database triggers
+  // No manual createAccount function needed anymore
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -188,25 +191,30 @@ function SignUpContent() {
         }
         
         setError(errorMessage);
+        setLoading(false);
         return;
-      }
-
-      // ✅ FIXED: Always show email confirmation message for successful signups
-      // This handles both regular signup and team invitation signup
-      console.log('✅ Sign-up completed, waiting for email confirmation');
-      setEmailSent(true);
-      setMessage(invitationToken 
-        ? 'Please check your email and click the confirmation link to activate your account and join the team.'
-        : 'Please check your email and click the confirmation link to activate your account. Your account will be set up automatically when you confirm your email.'
-      );
-      
-      // Track sign up event
-      console.log('📊 Tracking sign up event...');
-      try {
-        trackSignUp('email');
-      } catch (trackError) {
-        console.error('❌ Error tracking sign up:', trackError);
-        // Don't fail the sign-up process if tracking fails
+      } else if (data.user) {
+        console.log('✅ User created successfully:', data.user.id);
+        console.log('📧 User email confirmed:', data.user.email_confirmed_at);
+        console.log('📧 User metadata:', data.user.user_metadata);
+        console.log('🔧 Phase 1 triggers will handle account creation automatically when email is confirmed');
+        
+        // Show email confirmation message
+        console.log('✅ Sign-up completed, waiting for email confirmation');
+        setEmailSent(true);
+        setMessage('Please check your email and click the confirmation link to activate your account. Your account will be set up automatically when you confirm your email.');
+        
+        // Track sign up event
+        console.log('📊 Tracking sign up event...');
+        try {
+          trackSignUp('email');
+        } catch (trackError) {
+          console.error('❌ Error tracking sign up:', trackError);
+          // Don't fail the sign-up process if tracking fails
+        }
+      } else {
+        console.log('⚠️ No user data returned from sign-up');
+        setError('Sign-up completed but no user data returned. Please check your email for confirmation.');
       }
     } catch (err) {
       console.error("❌ Unexpected error:", err);
@@ -233,41 +241,58 @@ function SignUpContent() {
 
   if (emailSent) {
     return (
-      <div>
+      <>
         <SimpleMarketingNav />
         <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
           <div className="p-8 rounded shadow text-center bg-white max-w-md w-full">
-            <div className="text-6xl mb-4">📧</div>
             <h2 className="text-2xl font-bold mb-4 text-[#1A237E]">
-              {invitationToken ? 'Check Your Email!' : 'Check Your Email!'}
+              {invitationToken ? 'Almost there! Check your email 📧' : message}
             </h2>
-            <p className="text-gray-600 mb-6">
-              {invitationToken 
-                ? 'We've sent a confirmation link to your email. Click the link to activate your account and join the team.'
-                : 'We've sent a confirmation link to your email. Click the link to activate your account and get started.'
-              }
-            </p>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <p className="text-sm text-blue-800">
-                <strong>📬 Email sent to:</strong> {email}
-              </p>
-              <p className="text-xs text-blue-600 mt-1">
-                Don't see it? Check your spam folder or try again.
-              </p>
+            <div className="text-gray-600 mb-6">
+              {invitationToken ? (
+                <div>
+                  <p className="mb-3">
+                    <strong>Your account has been created!</strong> To complete the team invitation process:
+                  </p>
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                    <div className="flex items-start space-x-3">
+                      <div className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">1</div>
+                      <p className="text-sm">Check your email for a confirmation link</p>
+                    </div>
+                  </div>
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                    <div className="flex items-start space-x-3">
+                      <div className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">2</div>
+                      <p className="text-sm">Click the confirmation link in your email</p>
+                    </div>
+                  </div>
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div className="flex items-start space-x-3">
+                      <div className="bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">3</div>
+                      <p className="text-sm">You'll be automatically added to the team and redirected to the dashboard</p>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-4">
+                    <strong>Important:</strong> Don't try to sign in until you've confirmed your email address.
+                  </p>
+                </div>
+              ) : (
+                <p>Please check your email and click the confirmation link to activate your account. Your account will be set up automatically when you confirm your email.</p>
+              )}
             </div>
             <Link href="/auth/sign-in">
               <button className="mt-4 px-6 py-2 bg-slate-blue text-white rounded font-semibold hover:bg-indigo-900">
-                Back to Sign In
+                Sign in
               </button>
             </Link>
           </div>
         </div>
-      </div>
+      </>
     );
   }
 
   return (
-    <div>
+    <>
       <SimpleMarketingNav />
       <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -388,6 +413,7 @@ function SignUpContent() {
             </div>
           )}
 
+          
           <button
             type="submit"
             className="w-full py-3 bg-slate-blue text-white rounded font-semibold hover:bg-indigo-900 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -397,14 +423,16 @@ function SignUpContent() {
           </button>
         </form>
       </div>
-    </div>
+    </>
   );
 }
 
 export default function SignUpPage() {
+  const supabase = createClient();
+
   return (
     <Suspense fallback={
-      <div>
+      <>
         <SimpleMarketingNav />
         <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
           <div className="p-8 rounded shadow text-center bg-white max-w-md w-full">
@@ -415,7 +443,7 @@ export default function SignUpPage() {
             </div>
           </div>
         </div>
-      </div>
+      </>
     }>
       <SignUpContent />
     </Suspense>

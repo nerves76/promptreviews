@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 // 🔧 CONSOLIDATED: Single import from supabaseClient module
-import { supabase, getUserOrMock } from "@/utils/supabaseClient";
+import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 import { FaCheck, FaRocket, FaUsers, FaCrown, FaStar } from "react-icons/fa";
 import { useAuthGuard } from "@/utils/authGuard";
 import FiveStarSpinner from "@/app/components/FiveStarSpinner";
@@ -74,6 +74,8 @@ const pricingTiers: PricingTier[] = [
 ];
 
 export default function UpgradePage() {
+  const supabase = createClient();
+
   useAuthGuard();
   const router = useRouter();
   const [currentPlan, setCurrentPlan] = useState<string | null>(null);

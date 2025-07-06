@@ -6,7 +6,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/utils/supabaseClient';
+import { createClient } from '@/utils/supabaseClient';
 import { getAllActiveQuotes } from '../../utils/admin';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
@@ -30,7 +30,9 @@ interface QuoteData {
   created_at: string;
 }
 
-export default function QuoteDisplay({ className = '' }: QuoteDisplayProps) {
+export default function QuoteDisplay({
+ className = '' }: QuoteDisplayProps) {
+  const supabase = createClient();
   const [quotes, setQuotes] = useState<QuoteData[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);

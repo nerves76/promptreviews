@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { supabase } from "@/utils/supabaseClient";
+import { createClient } from "@/utils/supabaseClient";
 import {
   FaChevronDown,
   FaChevronRight,
@@ -226,6 +226,8 @@ function isNewReview(created_at: string) {
 }
 
 export default function ReviewsPage() {
+  const supabase = createClient();
+
   const [reviews, setReviews] = useState<Review[]>([]);
   const [grouped, setGrouped] = useState<ReviewerGroup[]>([]);
   const [platformGrouped, setPlatformGrouped] = useState<PlatformGroup[]>([]);

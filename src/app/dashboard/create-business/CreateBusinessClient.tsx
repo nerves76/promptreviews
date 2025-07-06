@@ -3,7 +3,9 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { FaStore } from "react-icons/fa";
-import { supabase, getUserOrMock } from "@/utils/supabaseClient";
+import { createClient, getUserOrMock } from "@/utils/supabaseClient";
+
+const supabase = createClient();
 import { useAdmin } from "@/contexts/AdminContext";
 import SimpleBusinessForm from "../components/SimpleBusinessForm";
 import AppLoader from "@/app/components/AppLoader";

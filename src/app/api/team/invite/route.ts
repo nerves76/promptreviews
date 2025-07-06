@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get the user's account
+    // Get the user's account and business information
     const { data: accountUser, error: accountError } = await supabase
       .from('account_users')
       .select(`
@@ -72,7 +72,6 @@ export async function POST(request: NextRequest) {
           id,
           first_name,
           last_name,
-          business_name,
           plan,
           max_users
         )
@@ -97,6 +96,13 @@ export async function POST(request: NextRequest) {
 
     // Get accounts data (handle both array and object formats)
     const accounts = Array.isArray(accountUser.accounts) ? accountUser.accounts[0] : accountUser.accounts;
+
+    // Get business name from the businesses table
+    const { data: business, error: businessError } = await supabase
+      .from('businesses')
+      .select('name')
+      .eq('account_id', accountUser.account_id)
+      .single();
 
     // Check if account can add more users
     const { data: canAdd, error: canAddError } = await supabase
@@ -194,7 +200,7 @@ export async function POST(request: NextRequest) {
 
     // Send email invitation
     const inviterName = `${accounts?.first_name || ''} ${accounts?.last_name || ''}`.trim() || 'Someone';
-    const businessName = accounts?.business_name || 'their business';
+    const businessName = business?.name || 'their business';
     const formattedExpirationDate = new Date(invitation.expires_at).toLocaleDateString('en-US', {
       weekday: 'long',
       year: 'numeric', 

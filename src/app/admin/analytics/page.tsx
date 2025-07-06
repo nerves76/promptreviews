@@ -9,7 +9,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/utils/supabaseClient';
+import { createClient } from '@/utils/supabaseClient';
 import { isAdmin } from '../../../utils/admin';
 import { FaUsers, FaBuilding, FaStar, FaChartLine, FaCalendarAlt, FaGlobe } from 'react-icons/fa';
 
@@ -31,6 +31,8 @@ interface AdminAnalytics {
 }
 
 export default function AdminAnalyticsPage() {
+  const supabase = createClient();
+
   const router = useRouter();
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [loading, setLoading] = useState(true);

@@ -8,7 +8,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { supabase } from "@/utils/supabaseClient";
+import { createClient } from "@/utils/supabaseClient";
 import { getAllFeedback, markFeedbackAsRead, deleteFeedback } from "@/utils/admin";
 
 interface Feedback {
@@ -24,6 +24,8 @@ interface Feedback {
 }
 
 export default function AdminFeedbackPage() {
+  const supabase = createClient();
+
   const [loading, setLoading] = useState(true);
   const [feedback, setFeedback] = useState<Feedback[]>([]);
   const [error, setError] = useState<string | null>(null);

@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { supabase } from "@/utils/supabaseClient";
+import { createClient } from "@/utils/supabaseClient";
 
 export default function AuthTest() {
+  const supabase = createClient();
+
   const [user, setUser] = useState<any>(null);
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);

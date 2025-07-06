@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { supabase } from "@/utils/supabaseClient";
+import { createClient } from "@/utils/supabaseClient";
 import { useReviewer } from "@/contexts/ReviewerContext";
 import type { PromptPage } from "@/utils/supabaseClient";
 
@@ -29,6 +29,8 @@ interface ReviewSubmissionFormProps {
 }
 
 export default function ReviewSubmissionForm({
+  const supabase = createClient();
+
   promptPageId,
   platform: initialPlatform = "",
   reviewContent,

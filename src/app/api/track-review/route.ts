@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
-import { supabase, createServiceRoleClient } from "@/utils/supabaseClient";
+import { createClient, createServiceRoleClient } from "@/utils/supabaseClient";
+
+const supabase = createClient();
 import { sendResendEmail } from "@/utils/resend";
 
 export async function POST(request: Request) {

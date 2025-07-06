@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, Suspense } from "react";
-import { supabase, clearAuthSession } from "@/utils/supabaseClient";
+import { createClient, clearAuthSession } from "@/utils/supabaseClient";
 import { useRouter, useSearchParams } from "next/navigation";
 
 function ClearSessionContent() {
@@ -138,6 +138,8 @@ function ClearSessionContent() {
 }
 
 export default function ClearSession() {
+  const supabase = createClient();
+
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 flex items-center justify-center p-4">

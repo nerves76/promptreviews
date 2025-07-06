@@ -7,7 +7,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { FiMenu, FiX } from "react-icons/fi";
 import { FaUserCircle, FaBell } from "react-icons/fa";
 import { Menu } from "@headlessui/react";
-import { supabase, getUserOrMock } from "@/utils/supabaseClient";
+import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 import { useAdmin } from "@/contexts/AdminContext";
 import { trackEvent, GA_EVENTS } from '../../utils/analytics';
 import PromptReviewsLogo from "@/app/dashboard/components/PromptReviewsLogo";
@@ -36,6 +36,8 @@ const CowboyUserIcon = () => {
 };
 
 export default function Header() {
+  const supabase = createClient();
+
   const router = useRouter();
   const pathname = usePathname();
   const [user, setUser] = useState<any>(null);

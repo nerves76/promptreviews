@@ -201,15 +201,11 @@ export async function ensureAccountExists(
   userId: string
 ): Promise<string> {
   try {
-    // Check if account already exists via account_users table
-    const { data: accountUser, error: accountUserError } = await supabase
-      .from("account_users")
-      .select("account_id")
-      .eq("user_id", userId)
-      .single();
-
-    if (accountUser && accountUser.account_id) {
-      return accountUser.account_id;
+    // Use the centralized getAccountIdForUser function which handles multiple accounts properly
+    const accountId = await getAccountIdForUser(userId, supabase);
+    
+    if (accountId) {
+      return accountId;
     }
 
     // If no account exists, create one
@@ -295,15 +291,69 @@ export async function getAccountIdForUser(userId: string, supabaseClient?: any):
       }
     );
 
-    // First, check if user has an account via account_users table
-    const { data: accountUser, error: accountUserError } = await client
+    // Get ALL account relationships for this user with account details
+    const { data: accountUsers, error: accountUserError } = await client
       .from("account_users")
-      .select("account_id")
+      .select(`
+        account_id, 
+        role,
+        accounts (
+          plan,
+          first_name,
+          last_name
+        )
+      `)
       .eq("user_id", userId)
-      .single();
+      .order("role", { ascending: true }); // Owner roles come first
 
-    if (accountUser && accountUser.account_id) {
-      return accountUser.account_id;
+    if (accountUsers && accountUsers.length > 0) {
+      console.log('🔍 Account selection debug for user:', userId);
+      console.log('🔍 Found accounts:', accountUsers.map(au => ({
+        account_id: au.account_id,
+        role: au.role,
+        plan: au.accounts?.plan,
+        first_name: au.accounts?.first_name,
+        last_name: au.accounts?.last_name
+      })));
+      
+      // PRIORITY 1: Team accounts (always use team account if available)
+      const teamAccount = accountUsers.find(au => 
+        au.role === 'member' && 
+        au.accounts && 
+        au.accounts.plan && 
+        au.accounts.plan !== 'no_plan'
+      );
+      
+      if (teamAccount) {
+        console.log('🎯 Using team account (highest priority)');
+        console.log('🎯 Team account plan:', teamAccount.accounts.plan);
+        return teamAccount.account_id;
+      }
+      
+      // PRIORITY 2: Owned accounts with proper plans
+      const ownedAccount = accountUsers.find(au => 
+        au.role === 'owner' && 
+        au.accounts && 
+        au.accounts.plan && 
+        au.accounts.plan !== 'no_plan'
+      );
+      
+      if (ownedAccount) {
+        console.log('🎯 Using owned account with plan:', ownedAccount.accounts.plan);
+        return ownedAccount.account_id;
+      }
+      
+      // PRIORITY 3: Any team account (even if no plan info)
+      const anyTeamAccount = accountUsers.find(au => au.role === 'member');
+      if (anyTeamAccount) {
+        console.log('🎯 Using any team account (fallback)');
+        return anyTeamAccount.account_id;
+      }
+      
+      // PRIORITY 4: Fallback to any account (including no_plan accounts)
+      console.log('🔍 No good accounts found, using last resort fallback:', accountUsers[0].account_id);
+      console.log('💡 This account may need business setup and plan selection');
+      return accountUsers[0].account_id;
     }
 
     // If no account_user record found, check if there's a legacy account record

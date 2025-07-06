@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase, getUserOrMock } from "@/utils/supabaseClient";
+import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 import { useRouter } from "next/navigation";
 import {
   FaUser,
@@ -20,6 +20,8 @@ import { getAccountIdForUser } from "@/utils/accountUtils";
 import { useAuthGuard } from "@/utils/authGuard";
 
 export default function AccountPage() {
+  const supabase = createClient();
+
   useAuthGuard();
   const router = useRouter();
   const [user, setUser] = useState<any>(null);

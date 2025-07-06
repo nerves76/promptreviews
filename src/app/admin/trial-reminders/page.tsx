@@ -8,7 +8,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/utils/supabaseClient';
+import { createClient } from '@/utils/supabaseClient';
 
 interface TrialReminderLog {
   id: string;
@@ -26,6 +26,8 @@ interface TrialReminderLog {
 }
 
 export default function TrialRemindersPage() {
+  const supabase = createClient();
+
   const [logs, setLogs] = useState<TrialReminderLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({

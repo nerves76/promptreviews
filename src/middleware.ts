@@ -36,8 +36,44 @@ export async function middleware(req: NextRequest) {
   );
 
   try {
-    // Use getUser() instead of getSession() for better security
-    const { data: { user }, error } = await supabase.auth.getUser();
+    // 🔧 FIX: Add retry logic to handle session timing issues
+    // Sometimes the JWT token is created before the user record is fully persisted
+    let user = null;
+    let error = null;
+    let retryCount = 0;
+    const maxRetries = 3;
+    
+    while (retryCount < maxRetries) {
+      const { data: { user: userResult }, error: userError } = await supabase.auth.getUser();
+      
+      if (userResult && !userError) {
+        user = userResult;
+        error = null;
+        break;
+      }
+      
+      // If it's a session timing error, retry after a short delay
+      const isTimingError = userError && (
+        userError.message.includes('User from sub claim in JWT does not exist') ||
+        userError.message.includes('Unexpected failure') ||
+        userError.message.includes('JWT') ||
+        userError.message.includes('sub claim') ||
+        userError.code === 'PGRST301' // PostgREST JWT error
+      );
+      
+      if (isTimingError) {
+        console.log(`Middleware: Retry ${retryCount + 1}/${maxRetries} - Session timing error (${userError.message}), retrying...`);
+        retryCount++;
+        if (retryCount < maxRetries) {
+          await new Promise(resolve => setTimeout(resolve, 200 + (retryCount * 100))); // Exponential backoff: 200ms, 300ms, 400ms
+          continue;
+        }
+      }
+      
+      // For other errors, break immediately
+      error = userError;
+      break;
+    }
     
     if (error) {
       console.log('Middleware: User authentication check failed:', error.message);
@@ -49,7 +85,8 @@ export async function middleware(req: NextRequest) {
     console.log('Middleware: Session check result:', {
       hasSession,
       userId,
-      pathname: req.nextUrl.pathname
+      pathname: req.nextUrl.pathname,
+      retriesUsed: retryCount
     });
 
     // In development, log but don't redirect

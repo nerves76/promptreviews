@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { supabase } from '@/utils/supabaseClient';
+import { createClient } from '@/utils/supabaseClient';
 
 interface EmailTemplate {
   id: string;
@@ -19,6 +19,8 @@ interface EmailTemplate {
 }
 
 export default function EmailTemplatesSection() {
+  const supabase = createClient();
+
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingTemplate, setEditingTemplate] = useState<EmailTemplate | null>(null);

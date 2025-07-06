@@ -9,7 +9,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { supabase, getUserOrMock } from "@/utils/supabaseClient";
+import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 import { isAdmin } from "@/utils/admin";
 import { useRouter } from "next/navigation";
 import AppLoader from "@/app/components/AppLoader";
@@ -53,6 +53,8 @@ interface RepairResult {
 }
 
 export default function AdminPage() {
+  const supabase = createClient();
+
   const [loading, setLoading] = useState(true);
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [user, setUser] = useState<any>(null);

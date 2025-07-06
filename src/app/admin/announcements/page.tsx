@@ -8,7 +8,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { supabase } from "@/utils/supabaseClient";
+import { createClient } from "@/utils/supabaseClient";
 import { getAllAnnouncements, createAnnouncement, toggleAnnouncement } from "@/utils/admin";
 
 interface Announcement {
@@ -23,6 +23,8 @@ interface Announcement {
 }
 
 export default function AdminAnnouncementsPage() {
+  const supabase = createClient();
+
   const [loading, setLoading] = useState(true);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [error, setError] = useState<string | null>(null);

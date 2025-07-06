@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAuthGuard } from "@/utils/authGuard";
 // 🔧 CONSOLIDATED: Single import from supabaseClient module
-import { supabase, getUserOrMock, getSessionOrMock } from "@/utils/supabaseClient";
+import { createClient, getUserOrMock, getSessionOrMock } from "@/utils/supabaseClient";
 import {
   FaDownload,
   FaUpload,
@@ -18,6 +18,8 @@ import { useRouter } from "next/navigation";
 import AppLoader from "@/app/components/AppLoader";
 
 export default function UploadContactsPage() {
+  const supabase = createClient();
+
   useAuthGuard();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [error, setError] = useState<string>("");
