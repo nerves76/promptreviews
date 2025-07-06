@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
         success: true,
         message: `Dry run: ${eligibleAccounts.length} accounts would be permanently deleted`,
         count: eligibleAccounts.length,
-        accounts: eligibleAccounts.map(acc => ({
+        accounts: eligibleAccounts.map((acc: any) => ({
           email: acc.email,
           deleted_at: acc.deleted_at,
           days_since_deletion: acc.days_since_deletion,
@@ -144,7 +144,7 @@ export async function POST(request: NextRequest) {
         console.log(`Permanently deleting account: ${account.email} (deleted ${account.days_since_deletion} days ago)`);
         
         // Use the existing adminDelete utility to completely remove the user
-        const deleteResult = await deleteUserCompletely(account.account_id, supabase);
+        const deleteResult = await deleteUserCompletely(account.email);
         
         if (deleteResult.success) {
           successCount++;

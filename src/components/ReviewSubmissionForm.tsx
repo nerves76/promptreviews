@@ -29,8 +29,6 @@ interface ReviewSubmissionFormProps {
 }
 
 export default function ReviewSubmissionForm({
-  const supabase = createClient();
-
   promptPageId,
   platform: initialPlatform = "",
   reviewContent,
@@ -38,6 +36,7 @@ export default function ReviewSubmissionForm({
   onSuccess,
   onError,
 }: ReviewSubmissionFormProps) {
+  const supabase = createClient();
   const { reviewerInfo, updateReviewerInfo } = useReviewer();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);

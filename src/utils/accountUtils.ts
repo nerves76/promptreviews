@@ -209,7 +209,7 @@ export async function ensureAccountExists(
     }
 
     // If no account exists, create one
-    if (!accountUser) {
+    if (!accountId) {
       // Get user data to populate account fields
       const { data: userData, error: userError } = await supabase.auth.getUser();
       
@@ -264,7 +264,7 @@ export async function ensureAccountExists(
       return newAccount.id;
     }
 
-    return accountUser.account_id;
+    return accountId;
   } catch (err) {
     console.error("Account setup error:", err);
     throw err;
@@ -308,7 +308,7 @@ export async function getAccountIdForUser(userId: string, supabaseClient?: any):
 
     if (accountUsers && accountUsers.length > 0) {
       console.log('🔍 Account selection debug for user:', userId);
-      console.log('🔍 Found accounts:', accountUsers.map(au => ({
+      console.log('🔍 Found accounts:', accountUsers.map((au: any) => ({
         account_id: au.account_id,
         role: au.role,
         plan: au.accounts?.plan,
@@ -317,7 +317,7 @@ export async function getAccountIdForUser(userId: string, supabaseClient?: any):
       })));
       
       // PRIORITY 1: Team accounts (always use team account if available)
-      const teamAccount = accountUsers.find(au => 
+      const teamAccount = accountUsers.find((au: any) => 
         au.role === 'member' && 
         au.accounts && 
         au.accounts.plan && 
@@ -331,7 +331,7 @@ export async function getAccountIdForUser(userId: string, supabaseClient?: any):
       }
       
       // PRIORITY 2: Owned accounts with proper plans
-      const ownedAccount = accountUsers.find(au => 
+      const ownedAccount = accountUsers.find((au: any) => 
         au.role === 'owner' && 
         au.accounts && 
         au.accounts.plan && 
@@ -344,7 +344,7 @@ export async function getAccountIdForUser(userId: string, supabaseClient?: any):
       }
       
       // PRIORITY 3: Any team account (even if no plan info)
-      const anyTeamAccount = accountUsers.find(au => au.role === 'member');
+      const anyTeamAccount = accountUsers.find((au: any) => au.role === 'member');
       if (anyTeamAccount) {
         console.log('🎯 Using any team account (fallback)');
         return anyTeamAccount.account_id;

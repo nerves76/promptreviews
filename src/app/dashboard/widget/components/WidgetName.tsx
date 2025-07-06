@@ -10,6 +10,7 @@ interface WidgetNameProps {
 }
 
 export const WidgetName: React.FC<WidgetNameProps> = ({ widget, onSave }) => {
+  const supabase = createClient();
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(widget.name);
   const [error, setError] = useState<string | null>(null);

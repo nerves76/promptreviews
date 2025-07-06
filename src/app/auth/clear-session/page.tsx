@@ -10,6 +10,7 @@ function ClearSessionContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const invitationToken = searchParams.get('invitation');
+  const supabase = createClient();
 
   useEffect(() => {
     async function clearEverything() {
@@ -138,8 +139,6 @@ function ClearSessionContent() {
 }
 
 export default function ClearSession() {
-  const supabase = createClient();
-
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 flex items-center justify-center p-4">

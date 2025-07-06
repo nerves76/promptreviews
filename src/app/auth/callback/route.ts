@@ -154,13 +154,13 @@ export async function GET(request: NextRequest) {
             console.error('❌ Error accepting invitation:', addUserError);
             // CRITICAL: For team invitations, don't fall back to individual account creation
             // Return error instead of continuing to individual account logic
-            return NextResponse.redirect(`${requestUrl.origin}/auth/sign-in?error=team_invitation_failed&email=${encodeURIComponent(email)}`);
+            return NextResponse.redirect(`${requestUrl.origin}/auth/sign-in?error=team_invitation_failed&email=${encodeURIComponent(email || '')}`);
           }
         } else {
           console.error('❌ Cannot add user to account:', canAddError || 'Account is full');
           // CRITICAL: For team invitations, don't fall back to individual account creation  
           // Return error instead of continuing to individual account logic
-          return NextResponse.redirect(`${requestUrl.origin}/auth/sign-in?error=team_account_full&email=${encodeURIComponent(email)}`);
+          return NextResponse.redirect(`${requestUrl.origin}/auth/sign-in?error=team_account_full&email=${encodeURIComponent(email || '')}`);
         }
       }
     } catch (invitationError) {
@@ -176,7 +176,7 @@ export async function GET(request: NextRequest) {
       
       if (invitationCheck && invitationCheck.length > 0) {
         console.error('❌ Team invitations exist but failed to process - preventing individual account creation');
-        return NextResponse.redirect(`${requestUrl.origin}/auth/sign-in?error=invitation_processing_failed&email=${encodeURIComponent(email)}`);
+        return NextResponse.redirect(`${requestUrl.origin}/auth/sign-in?error=invitation_processing_failed&email=${encodeURIComponent(email || '')}`);
       }
     }
 
