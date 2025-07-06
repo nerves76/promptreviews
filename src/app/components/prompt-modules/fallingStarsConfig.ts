@@ -55,6 +55,7 @@ import {
   FaBomb,
   FaCalendar,
   FaSign,
+  FaSpinner,
 } from "react-icons/fa";
 import { IconType } from "react-icons";
 
@@ -88,6 +89,7 @@ export const FALLING_STARS_ICONS: {
   { key: "camera", label: "Camera", icon: FaCamera, color: "text-teal-500", category: "General" },
   { key: "skull", label: "Skull", icon: FaSkull, color: "text-purple-600", category: "General" },
   { key: "bomb", label: "Bomb", icon: FaBomb, color: "text-red-600", category: "General" },
+  { key: "swirl", label: "Swirl", icon: FaSpinner, color: "text-purple-400", category: "General" },
   
   // Food & Beverage
   { key: "coffee", label: "Coffee", icon: FaCoffee, color: "text-amber-600", category: "Food & Beverage" },
