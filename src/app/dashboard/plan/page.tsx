@@ -78,57 +78,68 @@ export default function PlanPage() {
 
       if (isUpgrade) {
         setLastAction("upgrade");
-        // If user already has a Stripe customer ID, send to billing portal for upgrades
-        if (account.stripe_customer_id) {
-          setIsLoading(true);
-          const res = await fetch("/api/create-stripe-portal-session", {
+        setIsLoading(true);
+        
+        // For existing customers with active subscriptions, use upgrade API
+        if (account.stripe_customer_id && currentPlan !== "grower") {
+          const res = await fetch("/api/upgrade-subscription", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ customerId: account.stripe_customer_id }),
+            body: JSON.stringify({
+              plan: tierKey,
+              userId: account.id,
+              currentPlan: currentPlan,
+            }),
           });
+          
+          const data = await res.json();
+          setIsLoading(false);
+          if (data.success) {
+            // Redirect to success page
+            window.location.href = data.redirectUrl;
+            return;
+          } else {
+            alert("Failed to upgrade subscription: " + (data.error || "Unknown error"));
+            return;
+          }
+        } else {
+          // For new customers or trial users, create checkout session
+          const { data: { user } } = await supabase.auth.getUser();
+          const email = user?.email;
+          if (!email) {
+            alert("No valid email address found for checkout.");
+            setIsLoading(false);
+            return;
+          }
+          
+          const res = await fetch("/api/create-checkout-session", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              plan: tierKey,
+              userId: account.id,
+              email,
+            }),
+          });
+          
           const data = await res.json();
           setIsLoading(false);
           if (data.url) {
+            // Redirect to Stripe checkout for the target plan
             window.location.href = data.url;
             return;
           } else {
-            alert("Could not open billing portal.");
+            alert("Failed to start checkout: " + (data.error || "Unknown error"));
             return;
           }
-        }
-        // Otherwise, proceed with checkout session (for new users)
-        const { data: { user } } = await supabase.auth.getUser();
-        const email = user?.email;
-        if (!email) {
-          alert("No valid email address found for checkout.");
-          return;
-        }
-        const res = await fetch("/api/create-checkout-session", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            plan: tierKey,
-            userId: account.id,
-            email,
-          }),
-        });
-        
-        const data = await res.json();
-        if (data.url) {
-          // Redirect to Stripe checkout
-          window.location.href = data.url;
-          return;
-        } else {
-          alert("Failed to start checkout: " + (data.error || "Unknown error"));
-          return;
         }
       }
       
       if (isDowngrade) {
         setLastAction("downgrade");
         
-        // If user has Stripe customer ID, redirect to billing portal for downgrades
-        if (account.stripe_customer_id) {
+        // For paid plan downgrades, redirect to billing portal for subscription management
+        if (account.stripe_customer_id && currentPlan !== "grower") {
           setIsLoading(true);
           const res = await fetch("/api/create-stripe-portal-session", {
             method: "POST",
@@ -146,7 +157,7 @@ export default function PlanPage() {
           }
         }
         
-        // Only show downgrade modal for non-Stripe users (free plans)
+        // Show downgrade modal for free plan users or trial users
         const lostFeatures = (currentTier?.features || []).filter(
           (f) => !(targetTier?.features || []).includes(f),
         );
