@@ -126,6 +126,7 @@ export default function BusinessProfilePage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [noProfile, setNoProfile] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [services, setServices] = useState<string[]>([""]);
   const [platforms, setPlatforms] = useState<Platform[]>([
     { name: "", url: "", wordCount: 200 },
@@ -370,11 +371,27 @@ export default function BusinessProfilePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Prevent multiple submissions
+    if (isSubmitting) {
+      console.log("Form submission already in progress, ignoring duplicate submission");
+      return;
+    }
+    
     console.log("Starting form submission...");
+    setIsSubmitting(true);
     setLoading(true);
     setError("");
     setSuccess("");
     setLogoError("");
+    
+    // Add timeout to prevent endless loading
+    const timeoutId = setTimeout(() => {
+      console.error("Form submission timed out after 30 seconds");
+      setError("Request timed out. Please try again.");
+      setLoading(false);
+      setIsSubmitting(false);
+    }, 30000);
     
     try {
       const {
@@ -382,8 +399,11 @@ export default function BusinessProfilePage() {
         error: userError,
       } = await getUserOrMock(supabase);
       if (userError || !user) {
+        console.error("User authentication error:", userError);
         setError("You must be signed in to update your business profile.");
         setLoading(false);
+        setIsSubmitting(false);
+        clearTimeout(timeoutId);
         return;
       }
       
@@ -434,6 +454,43 @@ export default function BusinessProfilePage() {
       }
       
       console.log("Updating business profile in database...");
+      console.log("Form data being sent:", {
+        name: form.name,
+        company_values: form.company_values,
+        differentiators: form.differentiators,
+        years_in_business: form.years_in_business,
+        industries_served: form.industries_served,
+        taglines: form.taglines,
+        keywords: form.keywords,
+        team_info: form.team_info,
+        review_platforms: platforms,
+        platform_word_counts: form.platform_word_counts,
+        logo_url: uploadedLogoUrl,
+        facebook_url: form.facebook_url,
+        instagram_url: form.instagram_url,
+        bluesky_url: form.bluesky_url,
+        tiktok_url: form.tiktok_url,
+        youtube_url: form.youtube_url,
+        linkedin_url: form.linkedin_url,
+        pinterest_url: form.pinterest_url,
+        default_offer_enabled: form.default_offer_enabled,
+        default_offer_title: form.default_offer_title,
+        default_offer_body: form.default_offer_body,
+        default_offer_url: form.default_offer_url,
+        address_street: form.address_street,
+        address_city: form.address_city,
+        address_state: form.address_state,
+        address_zip: form.address_zip,
+        address_country: form.address_country,
+        phone: form.phone,
+        business_website: form.business_website,
+        offer_learn_more_url: form.offer_learn_more_url,
+        business_email: form.business_email,
+        ai_dos: form.ai_dos,
+        ai_donts: form.ai_donts,
+        services_offered: services,
+      });
+      
       const { error: updateError } = await supabase
         .from("businesses")
         .update({
@@ -476,8 +533,14 @@ export default function BusinessProfilePage() {
         
       if (updateError) {
         console.error("Database update error:", updateError);
-        setError(updateError.message);
+        console.error("Error code:", updateError.code);
+        console.error("Error message:", updateError.message);
+        console.error("Error details:", updateError.details);
+        console.error("Error hint:", updateError.hint);
+        setError(`Database update failed: ${updateError.message}`);
         setLoading(false);
+        setIsSubmitting(false);
+        clearTimeout(timeoutId);
         return;
       }
       
@@ -490,13 +553,20 @@ export default function BusinessProfilePage() {
         console.log("Business profile task marked as completed");
       } catch (taskError) {
         console.error("Error marking business profile task as complete:", taskError);
+        // Don't fail the entire operation if task marking fails
       }
       
       setLoading(false);
+      setIsSubmitting(false);
+      clearTimeout(timeoutId);
     } catch (error) {
       console.error("Unexpected error during form submission:", error);
+      console.error("Error type:", typeof error);
+      console.error("Error stack:", error instanceof Error ? error.stack : "No stack trace");
       setError("An unexpected error occurred. Please try again.");
       setLoading(false);
+      setIsSubmitting(false);
+      clearTimeout(timeoutId);
     }
   };
 
@@ -549,11 +619,11 @@ export default function BusinessProfilePage() {
           <button
             type="submit"
             form="business-profile-form"
-            disabled={loading}
+            disabled={isSubmitting}
             className="py-2 px-6 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-slate-blue hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ marginTop: "0.25rem" }}
           >
-            {loading ? "Saving..." : "Save"}
+            {isSubmitting ? "Saving..." : "Save"}
           </button>
         </div>
       </div>
@@ -583,7 +653,7 @@ export default function BusinessProfilePage() {
         setCroppedAreaPixels={setCroppedAreaPixels}
         rawLogoFile={rawLogoFile}
         setRawLogoFile={setRawLogoFile}
-        loading={loading}
+        loading={isSubmitting}
         error={error}
         success={success}
         onSubmit={handleSubmit}
@@ -604,10 +674,10 @@ export default function BusinessProfilePage() {
         <button
           type="submit"
           form="business-profile-form"
-          disabled={loading}
+          disabled={isSubmitting}
           className="py-2 px-6 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-slate-blue hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? "Saving..." : "Save"}
+          {isSubmitting ? "Saving..." : "Save"}
         </button>
       </div>
     </PageCard>
