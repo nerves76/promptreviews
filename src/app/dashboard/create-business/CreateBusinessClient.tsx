@@ -163,8 +163,10 @@ export default function CreateBusinessClient() {
         <WelcomePopup
           isOpen={showWelcomePopup}
           onClose={handleCloseWelcome}
-          title="Did you know you're a miracle?"
-          message={`Carl Sagan said it best:
+          title={`Howdy ${user?.user_metadata?.first_name || user?.email?.split('@')[0] || 'there'},`}
+          message={`Did you know you're a star?
+
+Carl Sagan said it best:
 
 "The cosmos is within us. We are made of star-stuff. We are a way for the universe to know itself."
 
