@@ -421,14 +421,6 @@ export default function PromptPages() {
                   <FaPalette className="w-4 h-4" />
                   Style
                 </button>
-                <button
-                  type="button"
-                  className="bg-slate-blue text-white rounded font-semibold px-4 py-2 hover:bg-slate-blue/90 transition whitespace-nowrap flex items-center gap-2"
-                  onClick={() => setShowTypeModal(true)}
-                >
-                  <FaPlus className="w-4 h-4" />
-                  Create Prompt Page
-                </button>
               </div>
             </div>
             {/* Universal Prompt Page Card (dashboard port) */}
@@ -643,13 +635,23 @@ export default function PromptPages() {
             
             {/* Prompt Pages Table - moved back to page card */}
             <div className="my-8">
-              <div className="mb-4">
-                <h2 className="text-2xl font-bold text-slate-blue mb-2">
-                  Individual Prompt Pages
-                </h2>
-                <p className="text-sm text-gray-600">
-                  Manage and track your customer-specific prompt pages
-                </p>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-slate-blue mb-2">
+                    Individual Prompt Pages
+                  </h2>
+                  <p className="text-sm text-gray-600">
+                    Manage and track your customer-specific prompt pages
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowTypeModal(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded hover:bg-slate-blue/90 font-medium transition"
+                >
+                  <FaPlus className="w-4 h-4" />
+                  Create Prompt Page
+                </button>
               </div>
               
               <div className="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
