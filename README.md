@@ -23,12 +23,12 @@ A modern, customizable review widget system built with Next.js, TypeScript, and 
 2. Install dependencies: `npm install`
 3. Set up environment variables (see `.env.local.example`)
 4. Run the development server: `npm run dev`
-5. Open [http://localhost:3001](http://localhost:3001)
+5. Open [http://localhost:3002](http://localhost:3002)
 
 ## Recent Development Improvements (January 2025)
 
 ### Development Server Stability
-- **Port Conflict Resolution**: Automatic detection and resolution of port 3001 conflicts
+- **Port Conflict Resolution**: Automatic detection and resolution of port 3002 conflicts
 - **Sentry Integration**: Properly disabled for local development to reduce noise
 - **Error Handling**: Enhanced error handling for development server startup
 - **Process Management**: Improved process cleanup and restart capabilities
@@ -49,6 +49,36 @@ A modern, customizable review widget system built with Next.js, TypeScript, and 
 - **Migration Enforcement**: Automatic migration checking and application on startup
 - **Test Data Management**: Comprehensive cleanup scripts for development environment
 - **Schema Consistency**: All 73 migrations applied and up to date
+
+## Latest Improvements (January 2025)
+
+### Plan Page & Billing Enhancements
+- **Pricing Display Fix**: Resolved pricing display issue showing "month/month" instead of correct pricing
+- **Stripe Branding**: Updated Stripe branding with clean, professional text approach
+- **Team Member Permissions**: Implemented role-based billing access controls
+  - Account owners can modify plans and billing
+  - Team members can view plans but cannot make changes
+  - Clear messaging for permission restrictions
+- **Payment Management**: Added "Update Payment Information" button with Stripe portal integration
+
+### Account Management System
+- **Account Cancellation**: Comprehensive account cancellation system with:
+  - 90-day soft deletion period with automatic cleanup
+  - Proper plan reset for returning users during retention period
+  - Admin interface for account management and cleanup
+  - Database migration for account soft deletion support
+- **Admin Account Management**: Enhanced admin tools for account lifecycle management
+
+### User Experience Improvements
+- **UI Consistency**: Standardized close buttons across all modals (red X in white circles)
+- **Brand Color Compliance**: Updated all buttons to use slate blue brand color (#2E4A7D)
+- **Sign-up Flow**: Cleaned up confirmation messaging for better user experience
+- **Loading States**: Improved loading indicators and user feedback
+
+### Security & Data Management
+- **Soft Deletion**: Implemented secure account soft deletion with 90-day retention
+- **Permission Controls**: Multi-layered permission checks for billing operations
+- **Database Integrity**: Enhanced data consistency and cleanup procedures
 
 ## Environment Variables
 
@@ -84,7 +114,7 @@ SENTRY_PROJECT=your_sentry_project_here
 NEXT_PUBLIC_GA_TRACKING_ID=G-22JHGCL1T7
 
 # Application URL
-NEXT_PUBLIC_APP_URL=http://localhost:3001
+NEXT_PUBLIC_APP_URL=http://localhost:3002
 
 # Development Configuration
 DISABLE_SENTRY=true  # Optional: Disable Sentry for local development
@@ -100,7 +130,7 @@ DISABLE_SENTRY=true  # Optional: Disable Sentry for local development
 
 For local development convenience, we've implemented an email confirmation bypass:
 
-- **Local Development** (`localhost:3001`): Users can sign in immediately after account creation
+- **Local Development** (`localhost:3002`): Users can sign in immediately after account creation
 - **Production** (`app.promptreviews.app`): Normal email confirmation flow
 
 The bypass is automatically detected based on the hostname and provides a user-friendly message explaining the behavior.
@@ -118,8 +148,8 @@ The bypass is automatically detected based on the hostname and provides a user-f
    ```
 
 3. **Access the application:**
-   - Local: http://localhost:3001
-   - Network: http://192.168.x.x:3001
+   - Local: http://localhost:3002
+   - Network: http://192.168.x.x:3002
 
 ### Testing User Accounts
 
@@ -132,10 +162,10 @@ For local development testing:
 
 If you encounter issues starting the development server:
 
-1. **Port 3001 Already in Use**:
+1. **Port 3002 Already in Use**:
    ```bash
-   # Kill existing processes on port 3001
-   lsof -ti:3001 | xargs kill -9
+   # Kill existing processes on port 3002
+   lsof -ti:3002 | xargs kill -9
    
    # Or restart the server
    npm run dev
