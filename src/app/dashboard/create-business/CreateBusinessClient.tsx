@@ -175,6 +175,7 @@ Beautiful right! There is a flaming gas giant in you too! Er . . . that didn't c
 Anyway, I am here to help you get the stars you deserve—on Google, Facebook, TripAdvisor, Trust Pilot—you name it.
 
 Here's your first tip: [icon]. <- click here`}
+          buttonText="Let's wrangle some reviews!"
         />
       )}
     </div>
