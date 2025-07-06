@@ -189,6 +189,8 @@ export default function AccountPage() {
 
   const handleUpdatePayment = async () => {
     setPaymentLoading(true);
+    setError(null);
+    
     try {
       const response = await fetch('/api/create-stripe-portal-session', {
         method: 'POST',
@@ -197,7 +199,14 @@ export default function AccountPage() {
         },
       });
 
-      const result = await response.json();
+      let result;
+      try {
+        result = await response.json();
+      } catch (jsonError) {
+        console.error('Failed to parse JSON response:', jsonError);
+        setError('Invalid response from server. Please try again.');
+        return;
+      }
 
       if (response.ok && result.url) {
         // Redirect to Stripe Customer Portal
