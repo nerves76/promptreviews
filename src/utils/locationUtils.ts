@@ -177,18 +177,18 @@ export function createLocationPromptPageData(location: {
     slug: generateLocationPromptPageSlug(location.name),
     status: 'complete' as const,
     // Emoji sentiment fields - disabled by default as requested
-    emoji_sentiment_enabled: location.emoji_sentiment_enabled ?? false,
-    emoji_sentiment_question: location.emoji_sentiment_question || 'How was your experience?',
-    emoji_feedback_message: location.emoji_feedback_message || 'How can we improve?',
-    emoji_thank_you_message: location.emoji_thank_you_message || 'Thank you for your feedback. It\'s important to us.',
-    emoji_labels: location.emoji_labels || ['Excellent', 'Satisfied', 'Neutral', 'Unsatisfied', 'Frustrated'],
+    // emoji_sentiment_enabled: location.emoji_sentiment_enabled ?? false, // TODO: Re-enable after schema cache refresh
+    // emoji_sentiment_question: location.emoji_sentiment_question || 'How was your experience?', // TODO: Re-enable after schema cache refresh
+    // emoji_feedback_message: location.emoji_feedback_message || 'How can we improve?', // TODO: Re-enable after schema cache refresh
+    // emoji_thank_you_message: location.emoji_thank_you_message || 'Thank you for your feedback. It\'s important to us.', // TODO: Re-enable after schema cache refresh
+    // emoji_labels: location.emoji_labels || ['Excellent', 'Satisfied', 'Neutral', 'Unsatisfied', 'Frustrated'], // TODO: Re-enable after schema cache refresh
     // Other module fields
-    falling_enabled: location.falling_enabled ?? false,
-    falling_icon: location.falling_icon || 'star',
-    offer_enabled: location.offer_enabled ?? false,
-    offer_title: location.offer_title || '',
-    offer_body: location.offer_body || '',
-    offer_url: location.offer_url || '',
-    // ai_review_enabled: location.ai_review_enabled !== false, // TODO: Re-enable after schema cache refresh
+    // falling_enabled: location.falling_enabled ?? false, // TODO: Re-enable after schema cache refresh
+    // falling_icon: location.falling_icon || 'star', // TODO: Re-enable after schema cache refresh
+    // offer_enabled: location.offer_enabled ?? false, // TODO: Re-enable after schema cache refresh
+    // offer_title: location.offer_title || '', // TODO: Re-enable after schema cache refresh
+    // offer_body: location.offer_body || '', // TODO: Re-enable after schema cache refresh
+    // offer_url: location.offer_url || '', // TODO: Re-enable after schema cache refresh
+    ai_review_enabled: location.ai_review_enabled !== false,
   };
 } 
