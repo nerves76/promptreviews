@@ -233,7 +233,7 @@ function SignUpContent() {
 
   if (emailSent) {
     return (
-      <>
+      <div>
         <SimpleMarketingNav />
         <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
           <div className="p-8 rounded shadow text-center bg-white max-w-md w-full">
@@ -262,12 +262,12 @@ function SignUpContent() {
             </Link>
           </div>
         </div>
-      </>
+      </div>
     );
   }
 
   return (
-    <>
+    <div>
       <SimpleMarketingNav />
       <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -397,14 +397,14 @@ function SignUpContent() {
           </button>
         </form>
       </div>
-    </>
+    </div>
   );
 }
 
 export default function SignUpPage() {
   return (
     <Suspense fallback={
-      <>
+      <div>
         <SimpleMarketingNav />
         <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
           <div className="p-8 rounded shadow text-center bg-white max-w-md w-full">
@@ -415,7 +415,7 @@ export default function SignUpPage() {
             </div>
           </div>
         </div>
-      </>
+      </div>
     }>
       <SignUpContent />
     </Suspense>
