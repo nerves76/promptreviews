@@ -186,20 +186,20 @@ export default function BusinessProfilePage() {
             ai_donts: businessData.ai_donts || "",
           });
           setServices(
-            Array.isArray(businessData.features_or_benefits)
-              ? businessData.features_or_benefits
-              : typeof businessData.features_or_benefits === "string" &&
-                  businessData.features_or_benefits.length > 0
-                ? businessData.features_or_benefits.trim().startsWith("[") &&
-                  businessData.features_or_benefits.trim().endsWith("]")
+            Array.isArray(businessData.services_offered)
+              ? businessData.services_offered
+              : typeof businessData.services_offered === "string" &&
+                  businessData.services_offered.length > 0
+                ? businessData.services_offered.trim().startsWith("[") &&
+                  businessData.services_offered.trim().endsWith("]")
                   ? (() => {
                       try {
-                        return JSON.parse(businessData.features_or_benefits);
+                        return JSON.parse(businessData.services_offered);
                       } catch {
-                        return [businessData.features_or_benefits];
+                        return [businessData.services_offered];
                       }
                     })()
-                  : businessData.features_or_benefits.split("\n")
+                  : businessData.services_offered.split("\n")
                 : [],
           );
           // Initialize platforms from JSON or fallback
