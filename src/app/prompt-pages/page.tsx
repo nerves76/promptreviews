@@ -640,32 +640,42 @@ export default function PromptPages() {
               clientName={qrModal?.clientName || ""}
               logoUrl={qrModal?.logoUrl}
             />
+            
+            {/* Prompt Pages Table - moved back to page card */}
+            <div className="my-8">
+              <div className="mb-4">
+                <h2 className="text-2xl font-bold text-slate-blue mb-2">
+                  Individual Prompt Pages
+                </h2>
+                <p className="text-sm text-gray-600">
+                  Manage and track your customer-specific prompt pages
+                </p>
+              </div>
+              
+              <div className="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+                <PromptPagesTable
+                  promptPages={promptPages}
+                  business={business}
+                  account={business}
+                  universalUrl={universalUrl}
+                  onStatusUpdate={async (pageId, newStatus) => {
+                    await supabase.from("prompt_pages").update({ status: newStatus }).eq("id", pageId);
+                    setPromptPages((pages) =>
+                      pages.map((page) =>
+                        page.id === pageId ? { ...page, status: newStatus } : page
+                      )
+                    );
+                  }}
+                  onDeletePages={async (pageIds) => {
+                    await supabase.from("prompt_pages").delete().in("id", pageIds);
+                    setPromptPages((pages) => pages.filter((page) => !pageIds.includes(page.id)));
+                  }}
+                  onCreatePromptPage={() => setShowTypeModal(true)}
+                />
+              </div>
+            </div>
           </div>
         </PageCard>
-        <div className="w-full max-w-[1000px] mx-auto mb-12">
-          {/* Prompt Pages Table (replica of dashboard) */}
-          <div className="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-            <PromptPagesTable
-              promptPages={promptPages}
-              business={business}
-              account={business}
-              universalUrl={universalUrl}
-              onStatusUpdate={async (pageId, newStatus) => {
-                await supabase.from("prompt_pages").update({ status: newStatus }).eq("id", pageId);
-                setPromptPages((pages) =>
-                  pages.map((page) =>
-                    page.id === pageId ? { ...page, status: newStatus } : page
-                  )
-                );
-              }}
-              onDeletePages={async (pageIds) => {
-                await supabase.from("prompt_pages").delete().in("id", pageIds);
-                setPromptPages((pages) => pages.filter((page) => !pageIds.includes(page.id)));
-              }}
-              onCreatePromptPage={() => setShowTypeModal(true)}
-            />
-          </div>
-        </div>
       </div>
       {/* Style Modal */}
       {showStyleModal && (
