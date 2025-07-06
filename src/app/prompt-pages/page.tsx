@@ -265,6 +265,17 @@ export default function PromptPages() {
     if (flag) {
       try {
         const data = JSON.parse(flag);
+        
+        // If this is a location creation, find the latest location prompt page
+        if (data.isLocationCreation) {
+          const latestLocationPage = locationPromptPages
+            .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
+          
+          if (latestLocationPage) {
+            data.url = `${window.location.origin}/r/${latestLocationPage.slug}`;
+          }
+        }
+        
         setPostSaveData(data);
         setShowPostSaveModal(true);
         // Trigger starfall celebration automatically when modal appears
@@ -274,7 +285,7 @@ export default function PromptPages() {
         localStorage.removeItem("showPostSaveModal");
       } catch {}
     }
-  }, []);
+  }, [locationPromptPages]);
 
   const handleSort = (field: "first_name" | "last_name" | "review_type") => {
     if (sortField === field) {
@@ -731,10 +742,13 @@ export default function PromptPages() {
                   <FaCheck className="h-6 w-6 text-green-600" />
                 </div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  Prompt Page Published! 🎉
+                  {postSaveData.isLocationCreation ? 'Location Created! 🎉' : 'Prompt Page Published! 🎉'}
                 </h3>
                 <p className="text-sm text-gray-600">
-                  Your prompt page is now live and ready to collect reviews.
+                  {postSaveData.isLocationCreation 
+                    ? `Your location "${postSaveData.locationName}" is now live with its own prompt page ready to collect reviews.`
+                    : 'Your prompt page is now live and ready to collect reviews.'
+                  }
                 </p>
               </div>
 

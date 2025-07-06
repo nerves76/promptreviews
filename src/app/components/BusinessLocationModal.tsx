@@ -305,6 +305,28 @@ export default function BusinessLocationModal({
       };
       
       await onSave(locationData);
+      
+      // If we just created a location with a prompt page, show success modal
+      if (!location) {
+        // Set up success modal data - the actual URL will be fetched on the prompt-pages page
+        const modalData = {
+          url: "", // Will be populated once we fetch the created location's prompt page
+          first_name: "",
+          phone: "",
+          email: "",
+          isLocationCreation: true, // Flag to indicate this was a location creation
+          locationName: formData.name || "New Location"
+        };
+        
+        console.log('🔍 Setting localStorage showPostSaveModal for location:', modalData);
+        localStorage.setItem("showPostSaveModal", JSON.stringify(modalData));
+        
+        // Redirect to prompt-pages to show the modal
+        console.log('🔍 Redirecting to prompt-pages for success modal');
+        window.location.href = "/prompt-pages";
+        return;
+      }
+      
       onClose();
     } catch (error) {
       console.error('Error saving location:', error);
@@ -332,8 +354,8 @@ export default function BusinessLocationModal({
             </div>
             <button
               onClick={onClose}
-              className="absolute -top-4 -right-4 bg-white border border-gray-200 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 focus:outline-none z-20 transition-colors"
-              style={{ width: 40, height: 40 }}
+              className="absolute -top-4 -right-4 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-20"
+              style={{ width: 48, height: 48 }}
               aria-label="Close modal"
             >
               <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -726,16 +748,28 @@ export default function BusinessLocationModal({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
           <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full relative">
             <button
-              className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
+              className="absolute -top-3 -right-3 w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow duration-200 z-10"
               onClick={() => setShowLimitModal(false)}
-              aria-label="Close"
+              aria-label="Close modal"
             >
-              &times;
+              <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </button>
-            <h2 className="text-2xl font-bold text-slate-blue mb-2">
+            
+            {/* Prompty Image */}
+            <div className="mb-6 flex justify-center">
+              <img
+                src="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/small-prompty-success.png"
+                alt="Prompty"
+                className="w-16 h-16 object-contain"
+              />
+            </div>
+            
+            <h2 className="text-2xl font-bold text-slate-blue mb-2 text-center">
               Location limit reached
             </h2>
-            <p className="mb-6 text-gray-700">
+            <p className="mb-6 text-gray-700 text-center">
               You've reached the maximum of {maxLocations} business locations for your plan. 
               Contact us if you need more locations for your business.
             </p>
