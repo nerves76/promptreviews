@@ -77,6 +77,12 @@ export async function POST(req: NextRequest) {
       maxUsers = 5;
     }
 
+    // Determine max locations based on plan
+    let maxLocations = 0; // Default for grower/builder/free
+    if (plan === "maven") {
+      maxLocations = 10;
+    }
+
     // Update the user's account in Supabase by customerId
     console.log("🔄 Attempting to update account by customer ID:", customerId);
     console.log("  Setting max_users to:", maxUsers);
@@ -88,6 +94,7 @@ export async function POST(req: NextRequest) {
         stripe_subscription_id: subscription.id,
         subscription_status: status,
         max_users: maxUsers,
+        max_locations: maxLocations,
         ...(isPaidPlan ? { has_had_paid_plan: true } : {}),
       })
       .eq("stripe_customer_id", customerId)
@@ -126,6 +133,7 @@ export async function POST(req: NextRequest) {
             subscription_status: status,
             stripe_customer_id: customerId, // always set this for future events
             max_users: maxUsers,
+            max_locations: maxLocations,
             ...(isPaidPlan ? { has_had_paid_plan: true } : {}),
           })
           .eq("email", email)
