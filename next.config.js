@@ -29,6 +29,11 @@ const nextConfig = {
     optimizePackageImports: ['react-icons'],
   },
   webpack: (config, { isServer, dev }) => {
+    // Fix webpack devtool warning in development
+    if (dev) {
+      config.devtool = 'eval-source-map';
+    }
+    
     if (isServer) {
       // External packages for server-side rendering
       config.externals = config.externals || [];
@@ -36,23 +41,31 @@ const nextConfig = {
         '@supabase/supabase-js': 'commonjs @supabase/supabase-js',
       });
     }
-
-    // Vendor chunk splitting for better caching
+    
+    // Optimize bundle splitting
     config.optimization = {
       ...config.optimization,
       splitChunks: {
         ...config.optimization.splitChunks,
+        chunks: 'all',
         cacheGroups: {
           ...config.optimization.splitChunks.cacheGroups,
           vendor: {
             test: /[\\/]node_modules[\\/]/,
             name: 'vendors',
             chunks: 'all',
+            priority: 10,
+          },
+          common: {
+            name: 'common',
+            minChunks: 2,
+            chunks: 'all',
+            priority: 5,
           },
         },
       },
     };
-
+    
     return config;
   },
   async redirects() {
