@@ -193,28 +193,34 @@ function SignUpContent() {
         setError(errorMessage);
         setLoading(false);
         return;
-      } else if (data.user) {
+      }
+
+      // ✅ FIXED: If no error, always show email confirmation message
+      // This handles both regular signup and team invitation signup
+      if (data.user) {
         console.log('✅ User created successfully:', data.user.id);
         console.log('📧 User email confirmed:', data.user.email_confirmed_at);
         console.log('📧 User metadata:', data.user.user_metadata);
         console.log('🔧 Phase 1 triggers will handle account creation automatically when email is confirmed');
-        
-        // Show email confirmation message
-        console.log('✅ Sign-up completed, waiting for email confirmation');
-        setEmailSent(true);
-        setMessage('Please check your email and click the confirmation link to activate your account. Your account will be set up automatically when you confirm your email.');
-        
-        // Track sign up event
-        console.log('📊 Tracking sign up event...');
-        try {
-          trackSignUp('email');
-        } catch (trackError) {
-          console.error('❌ Error tracking sign up:', trackError);
-          // Don't fail the sign-up process if tracking fails
-        }
       } else {
-        console.log('⚠️ No user data returned from sign-up');
-        setError('Sign-up completed but no user data returned. Please check your email for confirmation.');
+        console.log('✅ Sign-up request processed successfully (user data may be null for unconfirmed accounts)');
+      }
+      
+      // Show email confirmation message for all successful signups
+      console.log('✅ Sign-up completed, waiting for email confirmation');
+      setEmailSent(true);
+      setMessage(invitationToken 
+        ? 'Please check your email and click the confirmation link to activate your account and join the team.'
+        : 'Please check your email and click the confirmation link to activate your account. Your account will be set up automatically when you confirm your email.'
+      );
+      
+      // Track sign up event
+      console.log('📊 Tracking sign up event...');
+      try {
+        trackSignUp('email');
+      } catch (trackError) {
+        console.error('❌ Error tracking sign up:', trackError);
+        // Don't fail the sign-up process if tracking fails
       }
     } catch (err) {
       console.error("❌ Unexpected error:", err);
@@ -245,18 +251,27 @@ function SignUpContent() {
         <SimpleMarketingNav />
         <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
           <div className="p-8 rounded shadow text-center bg-white max-w-md w-full">
+            <div className="text-6xl mb-4">📧</div>
             <h2 className="text-2xl font-bold mb-4 text-[#1A237E]">
-              {invitationToken ? 'Account Created Successfully!' : message}
+              {invitationToken ? 'Check Your Email!' : 'Check Your Email!'}
             </h2>
             <p className="text-gray-600 mb-6">
               {invitationToken 
-                ? 'Please check your email and click the confirmation link to activate your account and join the team.'
-                : 'Please check your email and click the confirmation link to activate your account. Your account will be set up automatically when you confirm your email.'
+                ? 'We've sent a confirmation link to your email. Click the link to activate your account and join the team.'
+                : 'We've sent a confirmation link to your email. Click the link to activate your account and get started.'
               }
             </p>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <p className="text-sm text-blue-800">
+                <strong>📬 Email sent to:</strong> {email}
+              </p>
+              <p className="text-xs text-blue-600 mt-1">
+                Don't see it? Check your spam folder or try again.
+              </p>
+            </div>
             <Link href="/auth/sign-in">
               <button className="mt-4 px-6 py-2 bg-slate-blue text-white rounded font-semibold hover:bg-indigo-900">
-                Sign in
+                Back to Sign In
               </button>
             </Link>
           </div>
