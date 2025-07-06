@@ -314,6 +314,33 @@ export default function PlanPage() {
           return;
         } else {
           const errorData = await res.json();
+          
+          // Check if this is a free trial user who should use checkout instead
+          if (errorData.error === "FREE_TRIAL_USER" || errorData.redirectToCheckout) {
+            console.log("Free trial user detected, redirecting to checkout...");
+            
+            // Redirect to checkout session API instead
+            const checkoutRes = await fetch("/api/create-checkout-session", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                plan: upgradeTarget,
+                userId: account.id,
+                email: user.email,
+              }),
+            });
+            
+            if (checkoutRes.ok) {
+              const checkoutData = await checkoutRes.json();
+              // Redirect to Stripe checkout
+              window.location.href = checkoutData.url;
+              return;
+            } else {
+              const checkoutErrorData = await checkoutRes.json();
+              throw new Error(checkoutErrorData.message || 'Checkout failed');
+            }
+          }
+          
           throw new Error(errorData.message || 'Upgrade failed');
         }
       } else {
@@ -366,7 +393,7 @@ export default function PlanPage() {
         {/* Header */}
         <div className="max-w-6xl mx-auto w-full px-6 pt-12">
           <div className="text-center mb-12">
-            <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+            <h1 className="text-5xl font-bold mb-4 text-white">
               Choose Your Plan
             </h1>
             <p className="text-xl text-gray-300 max-w-2xl mx-auto">

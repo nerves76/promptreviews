@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
     
     const { data: account, error } = await supabase
       .from("accounts")
-      .select("stripe_customer_id, plan")
+      .select("stripe_customer_id, plan, email")
       .eq("id", userId)
       .single();
       
@@ -50,8 +50,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Account not found" }, { status: 404 });
     }
 
-    if (!account.stripe_customer_id) {
-      return NextResponse.json({ error: "No Stripe customer ID found" }, { status: 400 });
+    // Check if user is on free trial or doesn't have a Stripe customer ID
+    const isFreeTrialUser = !account.stripe_customer_id || account.plan === "grower";
+    
+    if (isFreeTrialUser) {
+      // For free trial users, redirect them to create a checkout session
+      // This should be handled by the frontend, but as a fallback, we'll return an error
+      // that tells the frontend to use the checkout session API instead
+      return NextResponse.json({ 
+        error: "FREE_TRIAL_USER", 
+        message: "Free trial users should use checkout session API",
+        redirectToCheckout: true 
+      }, { status: 400 });
     }
 
     // Find the active subscription
