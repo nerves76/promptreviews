@@ -93,7 +93,7 @@ const ReviewPlatformsSection: React.FC<ReviewPlatformsSectionProps> = ({
         {value.map((platform, idx) => (
           <div
             key={idx}
-            className="flex flex-col gap-1 p-4 pt-8 border border-blue-200 rounded-lg bg-blue-50 shadow-sm relative"
+            className="flex flex-col gap-3 p-6 pt-10 border border-blue-200 rounded-lg bg-blue-50 shadow-sm relative"
           >
             {/* Platform Icon in top-left corner */}
             <div
@@ -117,8 +117,8 @@ const ReviewPlatformsSection: React.FC<ReviewPlatformsSectionProps> = ({
                 Word Count
               </span>
             </div>
-            <div className="flex gap-2 items-center">
-              <div className="flex flex-col gap-1 w-1/3">
+            <div className="flex gap-2 items-start">
+              <div className="flex flex-col gap-2 w-1/3">
                 <select
                   className="w-full border px-3 py-2 rounded-lg bg-white"
                   value={platform.name || ""}
@@ -136,7 +136,7 @@ const ReviewPlatformsSection: React.FC<ReviewPlatformsSectionProps> = ({
                 {platform.name === "Other" && (
                   <input
                     type="text"
-                    className="w-full border px-3 py-2 rounded-lg bg-white"
+                    className="w-full border px-3 py-2 rounded-lg bg-white mt-1"
                     placeholder="Enter platform name"
                     value={platform.customPlatform || ""}
                     onChange={(e) =>
