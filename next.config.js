@@ -8,16 +8,26 @@ const path = require('path');
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    domains: ["lh3.googleusercontent.com", "firebasestorage.googleapis.com", "ltneloufqjktdplodvao.supabase.co"],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'firebasestorage.googleapis.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'ltneloufqjktdplodvao.supabase.co',
+      },
+    ],
   },
-  serverExternalPackages: ["@supabase/supabase-js", "openai"],
   // Performance optimizations
   experimental: {
     optimizeCss: true,
-    optimizePackageImports: ['@supabase/supabase-js', 'react-icons'],
+    optimizePackageImports: ['react-icons'],
   },
-  // Optimize CSS loading
-  optimizeFonts: true,
   webpack: (config, { isServer, dev }) => {
     if (isServer) {
       // Ensure that the native Supabase client is not bundled for the client
