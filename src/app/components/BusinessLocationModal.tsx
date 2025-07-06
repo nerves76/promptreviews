@@ -137,7 +137,7 @@ export default function BusinessLocationModal({
       setOfferBody('');
       setOfferUrl('');
       setAiReviewEnabled(true);
-      setReviewPlatforms([]);
+      setReviewPlatforms(businessReviewPlatforms || []);
       
       // Reset photo data
       setLocationPhotoUrl(null);
@@ -625,7 +625,9 @@ export default function BusinessLocationModal({
                     value={formData.ai_dos || ''}
                     onChange={(e) => handleInputChange('ai_dos', e.target.value)}
                     rows={4}
-                    placeholder="• Mention our barista Sarah if possible—she's a customer favorite&#10;• Talk about the signature lavender matcha and friendly vibe&#10;• Emphasize fast Wi-Fi and comfy seating for remote work"
+                    placeholder="• Mention our barista Sarah if possible—she's a customer favorite
+• Talk about the signature lavender matcha and friendly vibe
+• Emphasize fast Wi-Fi and comfy seating for remote work"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-slate-blue focus:border-slate-blue"
                   />
                 </div>
@@ -640,7 +642,9 @@ export default function BusinessLocationModal({
                     value={formData.ai_donts || ''}
                     onChange={(e) => handleInputChange('ai_donts', e.target.value)}
                     rows={4}
-                    placeholder="• Don't say we have food (we only serve drinks and pastries)&#10;• Don't refer to us as a chain or franchise&#10;• Avoid making up staff names or saying we take reservations (we don't)"
+                    placeholder="• Don't say we have food (we only serve drinks and pastries)
+• Don't refer to us as a chain or franchise
+• Avoid making up staff names or saying we take reservations (we don't)"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-slate-blue focus:border-slate-blue"
                   />
                 </div>
