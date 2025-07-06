@@ -1,6 +1,6 @@
 /**
  * API endpoint to check admin status server-side
- * This bypasses RLS policy issues by running the check on the server
+ * UPDATED: Now uses simple is_admin column in accounts table for better reliability
  */
 
 import { createClient } from '@supabase/supabase-js';
@@ -22,12 +22,12 @@ export async function GET(request: NextRequest) {
     
     console.log('check-admin: Checking admin status for user:', user.id, user.email);
     
-    // Check if user is admin
-    const { data: admin, error: adminError } = await supabase
-      .from('admins')
-      .select('id')
-      .eq('account_id', user.id)
-      .single();
+    // Check if user is admin using simple is_admin column
+    const { data: account, error: adminError } = await supabase
+      .from('accounts')
+      .select('is_admin')
+      .eq('id', user.id)
+      .maybeSingle();
     
     if (adminError) {
       console.error('check-admin: Admin check error:', {
@@ -37,11 +37,6 @@ export async function GET(request: NextRequest) {
         code: adminError.code
       });
       
-      // If it's a "no rows returned" error, user is not admin
-      if (adminError.code === 'PGRST116') {
-        return NextResponse.json({ isAdmin: false, user: user.id });
-      }
-      
       return NextResponse.json({ 
         isAdmin: false, 
         error: 'Database error checking admin status',
@@ -49,20 +44,20 @@ export async function GET(request: NextRequest) {
       }, { status: 500 });
     }
     
-    const isAdmin = !!admin;
+    const isAdmin = !!(account?.is_admin);
     console.log('check-admin: Admin status result:', { user: user.id, isAdmin });
     
     return NextResponse.json({ 
       isAdmin, 
       user: user.id,
-      adminRecord: admin
+      account: account
     });
     
   } catch (error) {
-    console.error('Unexpected error in check-admin:', error);
+    console.error('check-admin: Unexpected error:', error);
     return NextResponse.json({ 
       isAdmin: false, 
-      error: 'Internal server error' 
+      error: 'Unexpected error checking admin status' 
     }, { status: 500 });
   }
 } 

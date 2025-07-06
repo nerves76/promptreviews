@@ -20,6 +20,8 @@ export interface UniversalPromptFormState {
   emojiSentimentQuestion: string;
   emojiFeedbackMessage: string;
   emojiThankYouMessage: string;
+  emojiFeedbackPopupHeader: string;
+  emojiFeedbackPageHeader: string;
   reviewPlatforms: ReviewPlatformLink[];
   fallingEnabled: boolean;
   fallingIcon: string;
@@ -55,16 +57,22 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
       initialData?.emojiSentimentEnabled ?? false,
     );
     const [emojiSentimentQuestion, setEmojiSentimentQuestion] = useState(
-      initialData?.emojiSentimentQuestion || "How was your experience?",
+      initialData?.emojiSentimentQuestion || "How was Your Experience?",
     );
     const [emojiFeedbackMessage, setEmojiFeedbackMessage] = useState(
-      initialData?.emojiFeedbackMessage || "How can we improve?",
+      initialData?.emojiFeedbackMessage || "We value your feedback! Let us know how we can do better.",
     );
     const [emojiThankYouMessage, setEmojiThankYouMessage] = useState(
       initialData?.emojiThankYouMessage &&
         initialData?.emojiThankYouMessage.trim() !== ""
         ? initialData.emojiThankYouMessage
         : "Thank you for your feedback. It's important to us.",
+    );
+    const [emojiFeedbackPopupHeader, setEmojiFeedbackPopupHeader] = useState(
+      initialData?.emojiFeedbackPopupHeader || "How can we Improve?",
+    );
+    const [emojiFeedbackPageHeader, setEmojiFeedbackPageHeader] = useState(
+      initialData?.emojiFeedbackPageHeader || "Your feedback helps us grow",
     );
     const [reviewPlatforms, setReviewPlatforms] = useState<
       ReviewPlatformLink[]
@@ -75,9 +83,9 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
     const [fallingIcon, setFallingIcon] = useState(
       initialData?.fallingIcon ?? "star",
     );
-      const [aiButtonEnabled, setAiButtonEnabled] = useState(
-    initialData?.aiButtonEnabled ?? true,
-  );
+    const [aiButtonEnabled, setAiButtonEnabled] = useState(
+      initialData?.aiButtonEnabled ?? true,
+    );
 
     // Expose a submit function via ref
     React.useImperativeHandle(
@@ -93,6 +101,8 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
             emojiSentimentQuestion,
             emojiFeedbackMessage,
             emojiThankYouMessage,
+            emojiFeedbackPopupHeader,
+            emojiFeedbackPageHeader,
             reviewPlatforms,
             fallingEnabled,
             fallingIcon,
@@ -108,6 +118,8 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
           emojiSentimentQuestion,
           emojiFeedbackMessage,
           emojiThankYouMessage,
+          emojiFeedbackPopupHeader,
+          emojiFeedbackPageHeader,
           reviewPlatforms,
           fallingEnabled,
           fallingIcon,
@@ -123,6 +135,8 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
         emojiSentimentQuestion,
         emojiFeedbackMessage,
         emojiThankYouMessage,
+        emojiFeedbackPopupHeader,
+        emojiFeedbackPageHeader,
         reviewPlatforms,
         fallingEnabled,
         fallingIcon,
@@ -158,6 +172,8 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
             emojiFeedbackMessage,
             emojiThankYouMessage:
               emojiThankYouMessage || "Thank you for your feedback!",
+            emojiFeedbackPopupHeader,
+            emojiFeedbackPageHeader,
             reviewPlatforms,
             fallingEnabled,
             fallingIcon,
@@ -203,6 +219,10 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
           onFeedbackMessageChange={setEmojiFeedbackMessage}
           thankYouMessage={emojiThankYouMessage}
           onThankYouMessageChange={setEmojiThankYouMessage}
+          feedbackPopupHeader={emojiFeedbackPopupHeader}
+          onFeedbackPopupHeaderChange={setEmojiFeedbackPopupHeader}
+          feedbackPageHeader={emojiFeedbackPageHeader}
+          onFeedbackPageHeaderChange={setEmojiFeedbackPageHeader}
         />
         {/* AI Review Generation Toggle */}
         <DisableAIGenerationSection

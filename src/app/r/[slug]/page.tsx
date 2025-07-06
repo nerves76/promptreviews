@@ -49,6 +49,7 @@ import {
   FaAnchor,
   FaGripLines,
   FaPalette,
+  FaCopy,
 } from "react-icons/fa";
 import { IconType } from "react-icons";
 import ReviewSubmissionForm from "@/components/ReviewSubmissionForm";
@@ -355,6 +356,10 @@ export default function PromptPage() {
   // Add state for open platforms
   const [openPlatforms, setOpenPlatforms] = useState<number[]>([]);
   const [showLimitModal, setShowLimitModal] = useState(false);
+  
+  // Add state for the step 2 choice modal
+  const [showChoiceModal, setShowChoiceModal] = useState(false);
+  const [selectedNegativeSentiment, setSelectedNegativeSentiment] = useState<string | null>(null);
   
   // Style button state variables
   const [isOwner, setIsOwner] = useState(false);
@@ -1007,9 +1012,11 @@ export default function PromptPage() {
   const mergedEmojiSentimentEnabled =
     promptPage?.emoji_sentiment_enabled ?? false;
   const mergedEmojiSentimentQuestion =
-    promptPage?.emoji_sentiment_question || "";
-  const mergedEmojiFeedbackMessage = promptPage?.emoji_feedback_message || "";
-  const mergedEmojiThankYouMessage = promptPage?.emoji_thank_you_message || "";
+    promptPage?.emoji_sentiment_question || "How was Your Experience?";
+  const mergedEmojiFeedbackMessage = promptPage?.emoji_feedback_message || "We value your feedback! Let us know how we can do better.";
+  const mergedEmojiThankYouMessage = promptPage?.emoji_thank_you_message || "Thank you for your feedback. It's important to us.";
+  const mergedEmojiFeedbackPopupHeader = promptPage?.emoji_feedback_popup_header || "How can we Improve?";
+  const mergedEmojiFeedbackPageHeader = promptPage?.emoji_feedback_page_header || "Your feedback helps us grow";
   const mergedEmojiLabels = promptPage?.emoji_labels || [
     "Excellent",
     "Satisfied",
@@ -1450,11 +1457,12 @@ export default function PromptPage() {
                     </div>
                   </div>
                 )}
-              {/* Feedback Form Section (if negative sentiment) */}
+              {/* Feedback Form Section (if negative sentiment and chose private feedback) */}
               {sentimentComplete &&
-                ["neutral", "unsatisfied", "angry"].includes(
+                ["neutral", "unsatisfied", "frustrated"].includes(
                   sentiment || "",
-                ) && (
+                ) && 
+                !showReviewForm && (
                   <div className="w-full flex justify-center my-8">
                     <div
                       className="rounded-2xl shadow-2xl p-8 max-w-[1000px] w-full flex flex-col items-center animate-fadein relative"
@@ -1468,8 +1476,7 @@ export default function PromptPage() {
                         className="text-2xl font-bold mb-4"
                         style={{ color: businessProfile.primary_color || "#4F46E5" }}
                       >
-                        {promptPage.emoji_feedback_message ||
-                          "We value your feedback! Let us know how we can do better."}
+                        {mergedEmojiFeedbackPageHeader}
                       </h2>
                       <form
                         className="w-full flex flex-col items-center"
@@ -1666,10 +1673,121 @@ export default function PromptPage() {
                     </div>
                   </div>
                 )}
-              {/* Main Content (hidden if feedback form is shown) */}
+              
+              {/* Public Review Section (if negative sentiment and chose to publish publicly) */}
+              {sentimentComplete &&
+                ["neutral", "unsatisfied", "frustrated"].includes(
+                  sentiment || "",
+                ) && 
+                showReviewForm && (
+                  <div className="w-full flex justify-center my-8">
+                    <div
+                      className="rounded-2xl shadow-2xl p-8 max-w-[1000px] w-full flex flex-col items-center animate-fadein relative"
+                      style={{
+                        background: businessProfile.card_bg || "#fff",
+                        color: businessProfile.card_text || "#1A1A1A",
+                        fontFamily: businessProfile.primary_font || "Inter",
+                      }}
+                    >
+                      <h2
+                        className="text-2xl font-bold mb-4 text-center"
+                        style={{ color: businessProfile.primary_color || "#4F46E5" }}
+                      >
+                        Share Your Review Publicly
+                      </h2>
+                      <p className="text-center mb-6 text-gray-600">
+                        Your feedback helps other customers make informed decisions. Choose where you'd like to share your review:
+                      </p>
+                      
+                      {/* Show review platforms as normal */}
+                      <div className="w-full space-y-6">
+                        {promptPage.review_platforms && promptPage.review_platforms.length > 0 ? (
+                          promptPage.review_platforms.map((platform: any, idx: number) => (
+                            <div
+                              key={idx}
+                              className="bg-white rounded-xl shadow-md p-6 border border-gray-200"
+                            >
+                              <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-3">
+                                  {(() => {
+                                    const { icon: Icon, label } = getPlatformIcon(
+                                      platform.url,
+                                      platform.name
+                                    );
+                                    return (
+                                      <>
+                                        <Icon className="w-6 h-6 text-gray-600" />
+                                        <span className="font-semibold text-lg text-gray-800">
+                                          {platform.name}
+                                        </span>
+                                      </>
+                                    );
+                                  })()}
+                                </div>
+                                <button
+                                  onClick={() => handleCopyAndSubmit(idx, platform.url)}
+                                  disabled={isSubmitting === idx}
+                                  className="px-6 py-3 rounded-lg font-semibold shadow-lg text-white hover:opacity-90 focus:outline-none transition flex items-center gap-2"
+                                  style={{
+                                    backgroundColor: businessProfile.secondary_color || "#818CF8",
+                                  }}
+                                >
+                                  {isSubmitting === idx ? (
+                                    <FiveStarSpinner
+                                      size={18}
+                                      color1="#a5b4fc"
+                                      color2="#6366f1"
+                                    />
+                                  ) : (
+                                    <>
+                                      <FaCopy className="w-4 h-4" />
+                                      Copy & Submit
+                                    </>
+                                  )}
+                                </button>
+                              </div>
+                              
+                              <div className="space-y-3">
+                                <div className="flex gap-3">
+                                  <input
+                                    type="text"
+                                    placeholder="First Name"
+                                    value={reviewerFirstNames[idx] || ""}
+                                    onChange={(e) => handleFirstNameChange(idx, e.target.value)}
+                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                                  />
+                                  <input
+                                    type="text"
+                                    placeholder="Last Name"
+                                    value={reviewerLastNames[idx] || ""}
+                                    onChange={(e) => handleLastNameChange(idx, e.target.value)}
+                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                                  />
+                                </div>
+                                
+                                <textarea
+                                  placeholder="Write your review here..."
+                                  value={platformReviewTexts[idx] || ""}
+                                  onChange={(e) => handleReviewTextChange(idx, e.target.value)}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none min-h-[100px]"
+                                />
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-center py-8">
+                            <p className="text-gray-500">No review platforms configured for this business.</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              
+              {/* Main Content (hidden if feedback form or public review is shown) */}
               {!(
                 sentimentComplete &&
-                ["neutral", "unsatisfied", "angry"].includes(sentiment || "")
+                ["neutral", "unsatisfied", "frustrated"].includes(sentiment || "")
               ) && (
                 <>
                   {/* Photo + Testimonial Module */}
@@ -2338,13 +2456,96 @@ export default function PromptPage() {
           thankYouMessage={mergedEmojiThankYouMessage}
           onPositive={(sentimentValue) => {
             setShowSentimentModal(false);
-            setSentiment(sentimentValue);
-            setSentimentComplete(true);
+            
+            // Check if sentiment is negative (neutral, unsatisfied, frustrated)
+            if (["neutral", "unsatisfied", "frustrated"].includes(sentimentValue)) {
+              // Show choice modal for negative sentiment
+              setSelectedNegativeSentiment(sentimentValue);
+              setShowChoiceModal(true);
+            } else {
+              // Positive sentiment - proceed normally
+              setSentiment(sentimentValue);
+              setSentimentComplete(true);
+            }
           }}
           headerColor={businessProfile?.primary_color || "#4F46E5"}
           buttonColor={businessProfile?.secondary_color || "#818CF8"}
           fontFamily={businessProfile?.primary_font || "Inter"}
         />
+      )}
+      
+      {/* Step 2 Choice Modal for negative sentiment */}
+      {showChoiceModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 animate-fadein">
+          <div
+            className="rounded-2xl shadow-2xl p-10 max-w-lg w-full relative animate-slideup border-2"
+            style={{ 
+              fontFamily: businessProfile?.primary_font || "Inter",
+              backgroundColor: businessProfile?.card_bg || "#fff",
+              borderColor: businessProfile?.primary_color || "#4F46E5"
+            }}
+          >
+            <div
+              className="mb-6 text-2xl font-bold text-center"
+              style={{ color: businessProfile?.primary_color || "#4F46E5" }}
+            >
+              {mergedEmojiFeedbackPopupHeader}
+            </div>
+            
+            <p 
+              className="text-center mb-8"
+              style={{ color: businessProfile?.card_text || "#374151" }}
+            >
+              We appreciate your feedback and want to make sure it's handled appropriately.
+            </p>
+            
+            <div className="space-y-4">
+              <button
+                className="w-full px-6 py-4 rounded-lg font-semibold text-lg shadow-lg text-white hover:opacity-90 focus:outline-none transition border-2"
+                style={{
+                  backgroundColor: businessProfile?.secondary_color || "#818CF8",
+                  borderColor: businessProfile?.secondary_color || "#818CF8",
+                  fontFamily: businessProfile?.primary_font || "Inter",
+                }}
+                onClick={() => {
+                  // Send private feedback to business
+                  setSentiment(selectedNegativeSentiment);
+                  setSentimentComplete(true);
+                  setShowChoiceModal(false);
+                  setSelectedNegativeSentiment(null);
+                }}
+              >
+                Send Private Feedback to Business
+              </button>
+              
+              <button
+                className="w-full px-6 py-4 rounded-lg font-semibold text-lg shadow-lg hover:opacity-90 focus:outline-none transition border-2"
+                style={{
+                  backgroundColor: "transparent",
+                  borderColor: businessProfile?.secondary_color || "#818CF8",
+                  color: businessProfile?.secondary_color || "#818CF8",
+                  fontFamily: businessProfile?.primary_font || "Inter",
+                }}
+                onClick={() => {
+                  // Publish review publicly - redirect to review platforms
+                  setSentiment(selectedNegativeSentiment);
+                  setSentimentComplete(true);
+                  setShowChoiceModal(false);
+                  setSelectedNegativeSentiment(null);
+                  
+                  // Force the review form to show instead of feedback form
+                  setTimeout(() => {
+                    setShowReviewForm(true);
+                  }, 100);
+                }}
+              >
+                Publish Review Publicly
+              </button>
+            </div>
+            
+
+          </div>
+        </div>
       )}
       
       {/* Style Modal */}

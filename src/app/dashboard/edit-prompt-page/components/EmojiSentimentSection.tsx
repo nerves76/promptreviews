@@ -19,6 +19,10 @@ interface EmojiSentimentSectionProps {
   onFeedbackMessageChange: (val: string) => void;
   thankYouMessage: string;
   onThankYouMessageChange: (val: string) => void;
+  feedbackPopupHeader?: string;
+  onFeedbackPopupHeaderChange?: (val: string) => void;
+  feedbackPageHeader?: string;
+  onFeedbackPageHeaderChange?: (val: string) => void;
   disabled?: boolean;
 }
 
@@ -31,6 +35,10 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
   onFeedbackMessageChange,
   thankYouMessage,
   onThankYouMessageChange,
+  feedbackPopupHeader = "",
+  onFeedbackPopupHeaderChange,
+  feedbackPageHeader = "",
+  onFeedbackPageHeaderChange,
   disabled = false,
 }) => (
   <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-2 shadow relative">
@@ -85,17 +93,46 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
       <div className="space-y-3">
         <div className="mb-2">
           <label className="block text-xs font-medium text-gray-700 mb-1">
-            Popup question (shown above the emojis):
+            Popup header (shown above the emojis):
           </label>
           <Input
             type="text"
             value={question || ""}
             onChange={(e) => onQuestionChange(e.target.value)}
-            placeholder="How was your experience?"
+            placeholder="How was Your Experience?"
             maxLength={80}
             disabled={!enabled}
           />
         </div>
+        
+        <div className="mb-2">
+          <label className="block text-xs font-medium text-gray-700 mb-1">
+            Feedback header in popup (Shown if Neutral, Unsatisfied, or Frustrated is selected):
+          </label>
+          <Input
+            type="text"
+            value={feedbackPopupHeader || ""}
+            onChange={(e) => onFeedbackPopupHeaderChange?.(e.target.value)}
+            placeholder="How can we Improve?"
+            maxLength={80}
+            disabled={!enabled}
+          />
+        </div>
+        
+        <div className="mb-2">
+          <label className="block text-xs font-medium text-gray-700 mb-1">
+            Feedback header on prompt page:
+          </label>
+          <Input
+            type="text"
+            value={feedbackPageHeader || ""}
+            onChange={(e) => onFeedbackPageHeaderChange?.(e.target.value)}
+            placeholder="Your feedback helps us grow"
+            maxLength={80}
+            disabled={!enabled}
+          />
+        </div>
+        
         <div className="mt-2">
           <label className="block text-xs font-medium text-gray-700 mb-1">
             Feedback message (shown to customers who select an indifferent or
@@ -106,17 +143,22 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
             onChange={(e) => onFeedbackMessageChange(e.target.value)}
             rows={2}
             maxLength={160}
+            placeholder="We value your feedback! Let us know how we can do better."
+            disabled={!enabled}
           />
         </div>
+        
         <div className="mt-2">
           <label className="block text-xs font-medium text-gray-700 mb-1">
-            Thank you message (shown after positive feedback):
+            Thank you message when feedback is submitted:
           </label>
           <Textarea
             value={thankYouMessage || ""}
             onChange={(e) => onThankYouMessageChange(e.target.value)}
             rows={2}
             maxLength={160}
+            placeholder="Thank you for your feedback. It's important to us."
+            disabled={!enabled}
           />
         </div>
       </div>
