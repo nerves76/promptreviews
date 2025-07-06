@@ -25,6 +25,9 @@ function SignUpContent() {
     businessName: string;
     role: string;
   } | null>(null);
+  
+  // Create Supabase client instance
+  const supabase = createClient();
 
   // Fetch invitation details if we have a token
   useEffect(() => {
