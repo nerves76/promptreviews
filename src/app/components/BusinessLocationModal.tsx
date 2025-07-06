@@ -585,15 +585,15 @@ export default function BusinessLocationModal({
                 {/* Business Description */}
                 <div>
                   <label htmlFor="business_description" className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
-                    Location Business Description
-                    <RobotTooltip text="This field is passed to AI for prompt generation." />
+                    Business Description
+                    <RobotTooltip text="Give a quick overview of your business and what you offer at this location. Mention the industry, services/products, and type of customer experience you aim to provide." />
                   </label>
                   <textarea
                     id="business_description"
                     value={formData.business_description || ''}
                     onChange={(e) => handleInputChange('business_description', e.target.value)}
-                    rows={3}
-                    placeholder="Describe what makes this location special..."
+                    rows={4}
+                    placeholder="We're a locally owned coffee shop focused on small-batch roasting and personalized service. Our team is passionate about high-quality beans, creative seasonal drinks, and creating a welcoming space for remote workers, students, and neighbors."
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-slate-blue focus:border-slate-blue"
                   />
                 </div>
@@ -601,15 +601,15 @@ export default function BusinessLocationModal({
                 {/* Unique Aspects */}
                 <div>
                   <label htmlFor="unique_aspects" className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
-                    Unique Aspects of This Location
-                    <RobotTooltip text="This field is passed to AI for prompt generation." />
+                    What's Unique About This Location
+                    <RobotTooltip text="What sets this location apart from others (if applicable)? Think about neighborhood vibe, staff personality, special services, design touches, or even local partnerships." />
                   </label>
                   <textarea
                     id="unique_aspects"
                     value={formData.unique_aspects || ''}
                     onChange={(e) => handleInputChange('unique_aspects', e.target.value)}
-                    rows={3}
-                    placeholder="What makes this location different from others?"
+                    rows={4}
+                    placeholder="This location has a cozy back patio with string lights and a rotating local artist gallery. It's our only shop with a walk-up window for quick morning orders, and we're the only one open until 10 p.m. for late-night study sessions."
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-slate-blue focus:border-slate-blue"
                   />
                 </div>
@@ -618,14 +618,14 @@ export default function BusinessLocationModal({
                 <div>
                   <label htmlFor="ai_dos" className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
                     AI Do's (What AI should emphasize)
-                    <RobotTooltip text="This field is passed to AI for prompt generation." />
+                    <RobotTooltip text="What should the AI focus on when writing about this location? Add phrases, qualities, or topics that are essential for reviews." />
                   </label>
                   <textarea
                     id="ai_dos"
                     value={formData.ai_dos || ''}
                     onChange={(e) => handleInputChange('ai_dos', e.target.value)}
-                    rows={3}
-                    placeholder="e.g., Mention our convenient parking, highlight our evening hours..."
+                    rows={4}
+                    placeholder="• Mention our barista Sarah if possible—she's a customer favorite&#10;• Talk about the signature lavender matcha and friendly vibe&#10;• Emphasize fast Wi-Fi and comfy seating for remote work"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-slate-blue focus:border-slate-blue"
                   />
                 </div>
@@ -633,14 +633,14 @@ export default function BusinessLocationModal({
                 <div>
                   <label htmlFor="ai_donts" className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
                     AI Don'ts (What AI should avoid)
-                    <RobotTooltip text="This field is passed to AI for prompt generation." />
+                    <RobotTooltip text="What should the AI avoid when writing about this location? Add phrases, qualities, or topics that are off-limits for reviews." />
                   </label>
                   <textarea
                     id="ai_donts"
                     value={formData.ai_donts || ''}
                     onChange={(e) => handleInputChange('ai_donts', e.target.value)}
-                    rows={3}
-                    placeholder="e.g., Don't mention competitors, avoid discussing pricing..."
+                    rows={4}
+                    placeholder="• Don't say we have food (we only serve drinks and pastries)&#10;• Don't refer to us as a chain or franchise&#10;• Avoid making up staff names or saying we take reservations (we don't)"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-slate-blue focus:border-slate-blue"
                   />
                 </div>
