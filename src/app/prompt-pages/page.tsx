@@ -807,9 +807,11 @@ export default function PromptPages() {
           }}
           location={editingLocation}
           onSave={editingLocation ? handleUpdateLocation : handleCreateLocation}
-          canCreateMore={locations.length < locationLimits.max}
-          currentCount={locations.length}
+          canCreateMore={locationLimits.canCreateMore}
+          currentCount={locationLimits.current}
           maxLocations={locationLimits.max}
+          businessLogoUrl={business?.logo_url || null}
+          businessReviewPlatforms={business?.review_platforms || []}
         />
       )}
 

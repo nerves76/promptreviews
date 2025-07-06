@@ -118,36 +118,38 @@ const ReviewPlatformsSection: React.FC<ReviewPlatformsSectionProps> = ({
               </span>
             </div>
             <div className="flex gap-2 items-center">
-              <select
-                className="w-1/3 border px-3 py-2 rounded-lg bg-white"
-                value={platform.name || ""}
-                onChange={(e) =>
-                  handlePlatformChange(idx, "name", e.target.value)
-                }
-                required
-              >
-                {platformOptions.map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt || "Select a platform"}
-                  </option>
-                ))}
-              </select>
-              {platform.name === "Other" && (
-                <input
-                  type="text"
-                  className="w-1/3 border px-3 py-2 rounded-lg bg-white"
-                  placeholder="Enter platform name"
-                  value={platform.customPlatform || ""}
+              <div className="flex flex-col gap-1 w-1/3">
+                <select
+                  className="w-full border px-3 py-2 rounded-lg bg-white"
+                  value={platform.name || ""}
                   onChange={(e) =>
-                    handlePlatformChange(idx, "customPlatform", e.target.value)
+                    handlePlatformChange(idx, "name", e.target.value)
                   }
                   required
-                />
-              )}
+                >
+                  {platformOptions.map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt || "Select a platform"}
+                    </option>
+                  ))}
+                </select>
+                {platform.name === "Other" && (
+                  <input
+                    type="text"
+                    className="w-full border px-3 py-2 rounded-lg bg-white"
+                    placeholder="Enter platform name"
+                    value={platform.customPlatform || ""}
+                    onChange={(e) =>
+                      handlePlatformChange(idx, "customPlatform", e.target.value)
+                    }
+                    required
+                  />
+                )}
+              </div>
               <input
                 type="url"
                 className="w-1/2 border px-3 py-2 rounded-lg bg-white"
-                placeholder="Review URL"
+                placeholder="https://example.com/review-page"
                 value={platform.url || ""}
                 onChange={(e) =>
                   handlePlatformChange(idx, "url", e.target.value)
