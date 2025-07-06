@@ -125,6 +125,35 @@ export default function PlanPage() {
         return;
       }
       
+      // Handle new user selecting a paid plan (bypass upgrade modal for direct checkout)
+      if ((isNewUser || !currentPlan || currentPlan === 'grower') && tierKey !== 'grower') {
+        try {
+          const res = await fetch("/api/create-checkout-session", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              plan: tierKey,
+              userId: account.id,
+              email: user.email,
+            }),
+          });
+          
+          if (res.ok) {
+            const data = await res.json();
+            // Redirect to Stripe checkout
+            window.location.href = data.url;
+            return;
+          } else {
+            const errorData = await res.json();
+            throw new Error(errorData.message || 'Checkout failed');
+          }
+        } catch (error) {
+          console.error("Checkout error:", error);
+          alert("Failed to create checkout session. Please try again.");
+          return;
+        }
+      }
+      
       if (isDowngrade) {
         setLastAction("downgrade");
         
@@ -264,23 +293,50 @@ export default function PlanPage() {
     setUpgradeProcessing(true);
     
     try {
-      const res = await fetch("/api/upgrade-subscription", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          plan: upgradeTarget,
-          userId: account.id,
-          currentPlan: currentPlan,
-        }),
-      });
+      // Check if user has a Stripe customer ID (existing customer vs new user)
+      const hasStripeCustomer = account.stripe_customer_id && currentPlan !== "grower";
       
-      if (res.ok) {
-        // Redirect to success page
-        window.location.href = `/dashboard?success=1&change=upgrade&plan=${upgradeTarget}`;
-        return;
+      if (hasStripeCustomer) {
+        // Existing customer - use upgrade API
+        const res = await fetch("/api/upgrade-subscription", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            plan: upgradeTarget,
+            userId: account.id,
+            currentPlan: currentPlan,
+          }),
+        });
+        
+        if (res.ok) {
+          // Redirect to success page
+          window.location.href = `/dashboard?success=1&change=upgrade&plan=${upgradeTarget}`;
+          return;
+        } else {
+          const errorData = await res.json();
+          throw new Error(errorData.message || 'Upgrade failed');
+        }
       } else {
-        const errorData = await res.json();
-        throw new Error(errorData.message || 'Upgrade failed');
+        // New user or trial user - use checkout session API
+        const res = await fetch("/api/create-checkout-session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            plan: upgradeTarget,
+            userId: account.id,
+            email: user.email,
+          }),
+        });
+        
+        if (res.ok) {
+          const data = await res.json();
+          // Redirect to Stripe checkout
+          window.location.href = data.url;
+          return;
+        } else {
+          const errorData = await res.json();
+          throw new Error(errorData.message || 'Checkout failed');
+        }
       }
     } catch (error) {
       console.error("Upgrade error:", error);
