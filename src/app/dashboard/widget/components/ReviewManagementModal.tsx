@@ -26,6 +26,7 @@ export function ReviewManagementModal({
   widgetId, 
   onReviewsChange 
 }: ReviewManagementModalProps) {
+  const supabase = createClient();
   const [activeTab, setActiveTab] = useState('import');
   const [allReviews, setAllReviews] = useState<any[]>([]);
   const [loadingReviews, setLoadingReviews] = useState(false);

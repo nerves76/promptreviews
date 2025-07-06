@@ -35,6 +35,7 @@ interface WidgetEditorFormProps {
 }
 
 export const WidgetEditorForm: React.FC<WidgetEditorFormProps> = ({ onSaveSuccess, onCancel, widgetToEdit, design }) => {
+  const supabase = createClient();
   const [form, setForm] = useState({ name: "", widgetType: "multi" });
   const [nameError, setNameError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
