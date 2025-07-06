@@ -30,57 +30,27 @@ const nextConfig = {
   },
   webpack: (config, { isServer, dev }) => {
     if (isServer) {
-      // Ensure that the native Supabase client is not bundled for the client
-      config.externals = [
-        ...config.externals,
-        "@supabase/supabase-js/dist/module/SupabaseClient",
-      ];
+      // External packages for server-side rendering
+      config.externals = config.externals || [];
+      config.externals.push({
+        '@supabase/supabase-js': 'commonjs @supabase/supabase-js',
+      });
     }
-    
-    // Optimize for development performance
-    if (dev) {
-      // Reduce bundle analysis overhead
-      config.optimization = {
-        ...config.optimization,
-        removeAvailableModules: false,
-        removeEmptyChunks: false,
-        splitChunks: false,
-      };
-      
-      // Use faster but safer source maps for development
-      config.devtool = 'eval-cheap-module-source-map';
-    } else {
-      // Production optimizations
-      config.optimization = {
-        ...config.optimization,
-        splitChunks: {
-          chunks: 'all',
-          cacheGroups: {
-            vendor: {
-              test: /[\\/]node_modules[\\/]/,
-              name: 'vendors',
-              chunks: 'all',
-            },
+
+    // Vendor chunk splitting for better caching
+    config.optimization = {
+      ...config.optimization,
+      splitChunks: {
+        ...config.optimization.splitChunks,
+        cacheGroups: {
+          ...config.optimization.splitChunks.cacheGroups,
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            chunks: 'all',
           },
         },
-      };
-    }
-
-    // Suppress specific warnings that don't affect functionality
-    config.ignoreWarnings = [
-      // Ignore OpenTelemetry dynamic require warnings
-      /Critical dependency: the request of a dependency is an expression/,
-      /node_modules\/@opentelemetry/,
-      /node_modules\/@sentry.*build.*instrumentation/,
-      /node_modules\/@prisma\/instrumentation/,
-      // Ignore CSS preload warnings
-      /The resource.*was preloaded using link preload but not used/
-    ];
-
-    // Add alias for cleaner imports
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      '@': path.resolve(__dirname, 'src'),
+      },
     };
 
     return config;
@@ -97,33 +67,23 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // Add static file serving configuration
+  // Security headers
   async headers() {
     return [
       {
-        source: "/widgets/:path*",
+        source: '/(.*)',
         headers: [
           {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
-          },
-        ],
-      },
-      // Add performance headers
-      {
-        source: "/(.*)",
-        headers: [
-          {
-            key: "X-Content-Type-Options",
-            value: "nosniff",
+            key: 'X-Frame-Options',
+            value: 'DENY',
           },
           {
-            key: "X-Frame-Options",
-            value: "DENY",
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
           },
           {
-            key: "X-XSS-Protection",
-            value: "1; mode=block",
+            key: 'Referrer-Policy',
+            value: 'origin-when-cross-origin',
           },
         ],
       },
