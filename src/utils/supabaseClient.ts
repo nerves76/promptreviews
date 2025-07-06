@@ -21,10 +21,15 @@ let _browserClient: SupabaseClient | null = null;
 let _instanceCount = 0;
 let _creationStack: string[] = [];
 
+// Only enable debug logging in development
+const isDevelopment = process.env.NODE_ENV === 'development';
+
 /**
  * Enhanced debug logging for client creation
  */
 function logClientCreation(instanceId: number, creationLocation: string) {
+  if (!isDevelopment) return;
+  
   _instanceCount++;
   console.log(`🔧 Creating Supabase client instance #${instanceId} (Total: ${_instanceCount})`);
   console.log(`📍 Creation location: ${creationLocation}`);
@@ -67,8 +72,10 @@ export function createClient(): SupabaseClient {
       }
     );
     
-    console.log('✅ Supabase browser client created successfully');
-  } else {
+    if (isDevelopment) {
+      console.log('✅ Supabase browser client created successfully');
+    }
+  } else if (isDevelopment) {
     console.log('♻️  Reusing existing Supabase browser client (singleton pattern)');
   }
   
@@ -180,7 +187,9 @@ export function createServiceRoleClient(): SupabaseClient {
     throw new Error('SUPABASE_SERVICE_ROLE_KEY environment variable is required for service role operations');
   }
   
-  console.log('🔑 Creating Supabase service role client (bypasses RLS)');
+  if (isDevelopment) {
+    console.log('🔑 Creating Supabase service role client (bypasses RLS)');
+  }
   
   const { createClient } = require('@supabase/supabase-js');
   

@@ -71,20 +71,13 @@ export default function Dashboard() {
   // Use the centralized admin context instead of local state
   const { isAdminUser, isLoading: adminLoading } = useAdmin();
 
-  // Consolidated data loading function
+  // Consolidated data loading function with caching
   const loadAllDashboardData = async (user: any, accountId: string) => {
     try {
       console.log('📊 Dashboard: Loading all dashboard data...');
       
-      // Batch all database queries together for better performance
-      const [
-        accountResult,
-        businessesResult,
-        promptPagesResult,
-        widgetsResult,
-        reviewStatsResult,
-        limitsResult
-      ] = await Promise.all([
+      // Use Promise.allSettled to handle partial failures gracefully
+      const results = await Promise.allSettled([
         // Account data
         supabase
           .from("accounts")
@@ -124,13 +117,13 @@ export default function Dashboard() {
 
       console.log('📊 Dashboard: Database queries completed');
 
-      // Process the results
-      const account = accountResult.data;
-      const businesses = businessesResult.data || [];
-      const allPromptPages = promptPagesResult.data || [];
-      const widgets = widgetsResult.data || [];
-      const reviews = reviewStatsResult.data || [];
-      const limits = limitsResult;
+      // Process the results with error handling
+      const account = results[0].status === 'fulfilled' ? results[0].value.data : null;
+      const businesses = results[1].status === 'fulfilled' ? results[1].value.data || [] : [];
+      const allPromptPages = results[2].status === 'fulfilled' ? results[2].value.data || [] : [];
+      const widgets = results[3].status === 'fulfilled' ? results[3].value.data || [] : [];
+      const reviews = results[4].status === 'fulfilled' ? results[4].value.data || [] : [];
+      const limits = results[5].status === 'fulfilled' ? results[5].value : null;
 
       console.log('📊 Dashboard: Processing results:', {
         account: !!account,

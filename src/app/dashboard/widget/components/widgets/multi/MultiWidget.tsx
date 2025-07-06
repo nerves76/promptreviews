@@ -45,15 +45,18 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
   const retryCountRef = useRef<number>(0);
   const maxRetries = 10;
   const initializedRef = useRef<boolean>(false);
+  const isDevelopment = process.env.NODE_ENV === 'development';
 
   useEffect(() => {
-    console.log('🎯 MultiWidget: Component mounted with data:', { 
-      widgetId: data.id,
-      widgetType: data.type,
-      reviewsCount: reviews?.length, 
-      design: currentDesign, 
-      slug: slug 
-    });
+    if (isDevelopment) {
+      console.log('🎯 MultiWidget: Component mounted with data:', { 
+        widgetId: data.id,
+        widgetType: data.type,
+        reviewsCount: reviews?.length, 
+        design: currentDesign, 
+        slug: slug 
+      });
+    }
     
     // Add a cleanup flag to prevent initialization after unmount
     let isMounted = true;
@@ -61,17 +64,17 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
     // Load the CSS if not already loaded
     const loadWidgetCSS = (): Promise<void> => {
       if (document.querySelector('link[href="/widgets/multi/multi-widget.css"]')) {
-        console.log('✅ MultiWidget: CSS already loaded');
+        if (isDevelopment) console.log('✅ MultiWidget: CSS already loaded');
         return Promise.resolve();
       }
 
-      console.log('📥 MultiWidget: Loading CSS from /widgets/multi/multi-widget.css...');
+      if (isDevelopment) console.log('📥 MultiWidget: Loading CSS from /widgets/multi/multi-widget.css...');
       return new Promise<void>((resolve, reject) => {
         const link = document.createElement('link');
         link.rel = 'stylesheet';
         link.href = `/widgets/multi/multi-widget.css?v=${new Date().getTime()}`;
         link.onload = () => {
-          console.log('✅ MultiWidget: CSS loaded successfully');
+          if (isDevelopment) console.log('✅ MultiWidget: CSS loaded successfully');
           resolve();
         };
         link.onerror = (error) => {
@@ -85,21 +88,21 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
     // Load the widget script if not already loaded
     const loadWidgetScript = (): Promise<void> => {
       if (window.PromptReviews?.initializeWidget) {
-        console.log('✅ MultiWidget: Widget script already loaded');
+        if (isDevelopment) console.log('✅ MultiWidget: Widget script already loaded');
         return Promise.resolve();
       }
 
-      console.log('📥 MultiWidget: Loading widget script from /widgets/multi/widget-embed.js...');
+      if (isDevelopment) console.log('📥 MultiWidget: Loading widget script from /widgets/multi/widget-embed.js...');
       return new Promise<void>((resolve, reject) => {
         const script = document.createElement('script');
         script.src = `/widgets/multi/widget-embed.js?v=${new Date().getTime()}`;
         script.onload = () => {
-          console.log('✅ MultiWidget: Widget script loaded successfully');
+          if (isDevelopment) console.log('✅ MultiWidget: Widget script loaded successfully');
           // Wait longer for the script to fully initialize and set up window.PromptReviews
           setTimeout(() => {
             // Check if PromptReviews was properly initialized
             if (window.PromptReviews && typeof window.PromptReviews.initializeWidget === 'function') {
-              console.log('🔧 MultiWidget: initializeWidget function available');
+              if (isDevelopment) console.log('🔧 MultiWidget: initializeWidget function available');
               resolve();
             } else {
               console.error('❌ MultiWidget: PromptReviews not properly initialized');

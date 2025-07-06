@@ -11,6 +11,13 @@ const nextConfig = {
     domains: ["lh3.googleusercontent.com", "firebasestorage.googleapis.com", "ltneloufqjktdplodvao.supabase.co"],
   },
   serverExternalPackages: ["@supabase/supabase-js", "openai"],
+  // Performance optimizations
+  experimental: {
+    optimizeCss: true,
+    optimizePackageImports: ['@supabase/supabase-js', 'react-icons'],
+  },
+  // Optimize CSS loading
+  optimizeFonts: true,
   webpack: (config, { isServer, dev }) => {
     if (isServer) {
       // Ensure that the native Supabase client is not bundled for the client
@@ -32,6 +39,21 @@ const nextConfig = {
       
       // Use faster but safer source maps for development
       config.devtool = 'eval-cheap-module-source-map';
+    } else {
+      // Production optimizations
+      config.optimization = {
+        ...config.optimization,
+        splitChunks: {
+          chunks: 'all',
+          cacheGroups: {
+            vendor: {
+              test: /[\\/]node_modules[\\/]/,
+              name: 'vendors',
+              chunks: 'all',
+            },
+          },
+        },
+      };
     }
 
     // Suppress specific warnings that don't affect functionality
@@ -40,7 +62,9 @@ const nextConfig = {
       /Critical dependency: the request of a dependency is an expression/,
       /node_modules\/@opentelemetry/,
       /node_modules\/@sentry.*build.*instrumentation/,
-      /node_modules\/@prisma\/instrumentation/
+      /node_modules\/@prisma\/instrumentation/,
+      // Ignore CSS preload warnings
+      /The resource.*was preloaded using link preload but not used/
     ];
 
     // Add alias for cleaner imports
@@ -72,6 +96,24 @@ const nextConfig = {
           {
             key: "Cache-Control",
             value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      // Add performance headers
+      {
+        source: "/(.*)",
+        headers: [
+          {
+            key: "X-Content-Type-Options",
+            value: "nosniff",
+          },
+          {
+            key: "X-Frame-Options",
+            value: "DENY",
+          },
+          {
+            key: "X-XSS-Protection",
+            value: "1; mode=block",
           },
         ],
       },
