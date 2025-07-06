@@ -79,6 +79,16 @@ Based on comprehensive testing and server log analysis, the authentication syste
   - ✅ **Centralized utilities**: Created `onboardingUtils.ts` for consistent flow management
 - **✅ VALIDATION**: Sign-in flow works perfectly without disrupting existing user experience
 
+### ✅ Issue 4: Team Invitation Signup UX - **FIXED** (January 7, 2025)
+- **Problem**: Users signing up via team invitation links weren't shown the "Check your email" message after successful signup
+- **Root Cause**: Conditional logic in signup success handling was not properly handling cases where `data.user` might be null
+- **Solution Implemented**:
+  - ✅ **Fixed conditional logic**: Removed `else if` that was preventing email confirmation message from showing
+  - ✅ **Enhanced email confirmation screen**: Added clear visual indicators (📧 icon) and better messaging
+  - ✅ **Improved UX**: Shows email address and helpful tips about checking spam folder
+  - ✅ **Team-specific messaging**: Different messages for team invitations vs regular signups
+- **✅ VALIDATION**: Team invitation flow now properly shows "Check Your Email!" screen with clear instructions
+
 ## 🛠️ IMPLEMENTATION DETAILS
 
 ### Database Changes
@@ -189,6 +199,7 @@ console.log('✅ OnboardingUtils: Onboarding step updated to:', step);
 1. **CreateBusinessClient infinite loading** - Fixed with enhanced session timing ✅
 2. **Plan detection gaps** - Enhanced with comprehensive onboarding flow detection ✅
 3. **Manual sign-in bypass** - Fixed with automatic redirection for incomplete onboarding ✅
+4. **Team invitation signup UX** - Fixed with clear "Check your email" messaging ✅
 
 ### ✅ Production Readiness
 - **Database migrations applied**: Ready for production deployment
@@ -230,6 +241,7 @@ console.log('✅ OnboardingUtils: Onboarding step updated to:', step);
 - **Robust sign-in authentication** for existing users
 - **Session persistence** with proper cookie handling
 - **Error recovery** for edge cases and expired links
+- **Team invitation signup UX** with clear "Check your email" messaging
 
 ### 🚀 **PRODUCTION DEPLOYMENT READY**
 The enhanced authentication flow provides:
@@ -239,14 +251,50 @@ The enhanced authentication flow provides:
 - **Improved user experience** with better loading states and error handling
 - **Complete payment integration** with Stripe webhooks
 - **Multi-user account support** with proper role management
+- **Clear team invitation flow** with proper email confirmation messaging
 
 The implementation follows Supabase best practices and has been thoroughly validated with real user journeys. Users experience a smooth, uninterrupted flow from signup through business creation to plan upgrades.
+
+## 🔧 **RECENT FIXES & IMPROVEMENTS**
+
+### ✅ Issue 4: Team Invitation Signup UX - **FIXED** (January 7, 2025)
+- **Problem**: Users signing up via team invitation links weren't shown the "Check your email" message after successful signup
+- **Root Cause**: Conditional logic in signup success handling was not properly handling cases where `data.user` might be null
+- **Solution Implemented**:
+  - ✅ **Fixed conditional logic**: Removed `else if` that was preventing email confirmation message from showing
+  - ✅ **Enhanced email confirmation screen**: Added clear visual indicators (📧 icon) and better messaging
+  - ✅ **Improved UX**: Shows email address and helpful tips about checking spam folder
+  - ✅ **Team-specific messaging**: Different messages for team invitations vs regular signups
+- **✅ VALIDATION**: Team invitation flow now properly shows "Check Your Email!" screen with clear instructions
+
+### Code Changes:
+```typescript
+// ✅ FIXED: Always show email confirmation message for successful signups
+if (error) {
+  // Handle error
+  return;
+}
+
+// Show email confirmation message for all successful signups
+setEmailSent(true);
+setMessage(invitationToken 
+  ? 'Please check your email and click the confirmation link to activate your account and join the team.'
+  : 'Please check your email and click the confirmation link to activate your account. Your account will be set up automatically when you confirm your email.'
+);
+```
+
+### Enhanced Email Confirmation Screen:
+- **Visual indicator**: 📧 icon for clear email messaging
+- **Clear title**: "Check Your Email!" for both regular and team signups
+- **Email address display**: Shows exactly where the email was sent
+- **Helpful tips**: Includes spam folder check reminder
+- **Team-specific messaging**: Different messages for team invitations
 
 ---
 
 **Implementation completed by AI Assistant on January 7, 2025**  
-**Total implementation time**: 3 batches across foundation, session timing, and validation phases  
-**Files modified**: 4 files (CreateBusinessClient.tsx, page.tsx, onboardingUtils.ts, migration)  
+**Total implementation time**: 4 batches across foundation, session timing, validation, and UX improvement phases  
+**Files modified**: 5 files (CreateBusinessClient.tsx, page.tsx, onboardingUtils.ts, migration, sign-up page)  
 **Database changes**: 1 migration (onboarding_step column)  
-**Issues resolved**: 3/3 critical authentication issues ✅  
+**Issues resolved**: 4/4 critical authentication issues ✅  
 **Status**: **FULLY OPERATIONAL** 🎉
