@@ -39,7 +39,9 @@ const categoryOptions = [
 ];
 
 export default function FeedbackModal({
- isOpen, onClose }: FeedbackModalProps) {
+  isOpen, 
+  onClose 
+}: FeedbackModalProps) {
   const supabase = createClient();
   const [category, setCategory] = useState<FeedbackCategory>('general_feedback');
   const [message, setMessage] = useState('');

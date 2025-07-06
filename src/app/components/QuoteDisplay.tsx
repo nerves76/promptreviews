@@ -31,7 +31,8 @@ interface QuoteData {
 }
 
 export default function QuoteDisplay({
- className = '' }: QuoteDisplayProps) {
+  className = '' 
+}: QuoteDisplayProps) {
   const supabase = createClient();
   const [quotes, setQuotes] = useState<QuoteData[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
