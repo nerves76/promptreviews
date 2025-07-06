@@ -731,7 +731,7 @@ export default function DashboardContent({
                 ) : (
                   <>
                     {/* Crompty Image */}
-                    <div className="mb-6 flex justify-center">
+                    <div className="mb-3 flex justify-center">
                       <img
                         src="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/small-prompty-success.png"
                         alt="Crompty Success"
