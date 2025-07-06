@@ -36,6 +36,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
   hasUniversalPromptPage,
   userId
 }) => {
+  const supabase = createClient();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isVisible, setIsVisible] = useState(true);
   const [loading, setLoading] = useState(true);
