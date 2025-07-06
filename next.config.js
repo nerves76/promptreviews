@@ -26,7 +26,6 @@ const nextConfig = {
   // Performance optimizations
   experimental: {
     optimizeCss: true,
-    optimizePackageImports: ['react-icons'],
   },
   webpack: (config, { isServer, dev }) => {
     // Fix webpack devtool warning in development
@@ -37,9 +36,7 @@ const nextConfig = {
     if (isServer) {
       // External packages for server-side rendering
       config.externals = config.externals || [];
-      config.externals.push({
-        '@supabase/supabase-js': 'commonjs @supabase/supabase-js',
-      });
+      // Remove the conflicting external package configuration
     }
     
     // Optimize bundle splitting
