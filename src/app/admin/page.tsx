@@ -72,6 +72,12 @@ export default function AdminPage() {
   const [repairResult, setRepairResult] = useState<RepairResult | null>(null);
   const [repairMode, setRepairMode] = useState<'check' | 'repair'>('check');
 
+  // Account Cleanup state
+  const [showAccountCleanup, setShowAccountCleanup] = useState(false);
+  const [cleanupData, setCleanupData] = useState<any | null>(null);
+  const [cleanupResult, setCleanupResult] = useState<any | null>(null);
+  const [isLoadingCleanup, setIsLoadingCleanup] = useState(false);
+
   useEffect(() => {
     const checkAdminAccess = async () => {
       try {
@@ -246,6 +252,79 @@ export default function AdminPage() {
     return new Date(dateString).toLocaleString();
   };
 
+  // Account Cleanup functions
+  const checkEligibleAccounts = async () => {
+    setIsLoadingCleanup(true);
+    setError(null);
+    setCleanupData(null);
+    setCleanupResult(null);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setError('No active session');
+        return;
+      }
+
+             const response = await fetch('/api/admin/account-cleanup', {
+         method: 'GET',
+         headers: {
+           'Authorization': `Bearer ${session.access_token}`,
+           'Content-Type': 'application/json',
+         },
+       });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setCleanupData(result);
+      } else {
+        setError(result.error || 'Failed to check eligible accounts');
+      }
+
+    } catch (error) {
+      setError('Error checking eligible accounts: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    } finally {
+      setIsLoadingCleanup(false);
+    }
+  };
+
+  const performCleanup = async (dryRun: boolean) => {
+    setIsLoadingCleanup(true);
+    setError(null);
+    setCleanupResult(null);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setError('No active session');
+        return;
+      }
+
+             const response = await fetch('/api/admin/account-cleanup', {
+         method: 'POST',
+         headers: {
+           'Authorization': `Bearer ${session.access_token}`,
+           'Content-Type': 'application/json',
+         },
+         body: JSON.stringify({ confirm: !dryRun, dryRun }),
+       });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setCleanupResult(result);
+      } else {
+        setError(result.error || 'Failed to perform cleanup');
+      }
+
+    } catch (error) {
+      setError('Error performing cleanup: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    } finally {
+      setIsLoadingCleanup(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">
@@ -325,6 +404,14 @@ export default function AdminPage() {
           >
             <h4 className="font-medium text-gray-900">Email Templates</h4>
             <p className="text-sm text-gray-600">Edit welcome emails, review notifications, and more</p>
+          </button>
+
+          <button
+            onClick={() => setShowAccountCleanup(true)}
+            className="w-full text-left p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <h4 className="font-medium text-gray-900">Account Cleanup</h4>
+            <p className="text-sm text-gray-600">Manage 90-day retention policy for cancelled accounts</p>
           </button>
         </div>
       </div>
@@ -649,6 +736,195 @@ export default function AdminPage() {
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Account Cleanup Modal */}
+          {showAccountCleanup && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                <div className="p-6 border-b border-gray-200">
+                  <div className="flex justify-between items-center">
+                    <h2 className="text-xl font-semibold text-gray-900">Account Cleanup - 90 Day Retention</h2>
+                    <button
+                      onClick={() => {
+                        setShowAccountCleanup(false);
+                        setCleanupData(null);
+                        setCleanupResult(null);
+                      }}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="p-6">
+                  <div className="mb-6">
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Retention Policy</h3>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Accounts that have been cancelled for more than 90 days can be permanently deleted. 
+                      This removes all user data, businesses, widgets, and associated records.
+                    </p>
+                    
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4 mb-4">
+                      <div className="flex">
+                        <div className="flex-shrink-0">
+                          <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                        <div className="ml-3">
+                          <h3 className="text-sm font-medium text-yellow-800">
+                            Permanent Deletion Warning
+                          </h3>
+                          <div className="mt-2 text-sm text-yellow-700">
+                            <p>This action cannot be undone. All data will be permanently removed.</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-4 mb-6">
+                      <button
+                        onClick={checkEligibleAccounts}
+                        disabled={isLoadingCleanup}
+                        className="bg-slate-blue hover:bg-slate-blue/90 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg transition-colors"
+                      >
+                        {isLoadingCleanup ? 'Checking...' : 'Check Eligible Accounts'}
+                      </button>
+                      
+                      {cleanupData && cleanupData.count > 0 && (
+                        <>
+                          <button
+                            onClick={() => performCleanup(true)}
+                            disabled={isLoadingCleanup}
+                            className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg transition-colors"
+                          >
+                            {isLoadingCleanup ? 'Previewing...' : 'Preview Deletion'}
+                          </button>
+                          
+                          <button
+                            onClick={() => performCleanup(false)}
+                            disabled={isLoadingCleanup}
+                            className="bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg transition-colors"
+                          >
+                            {isLoadingCleanup ? 'Deleting...' : 'Delete Permanently'}
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Results Display */}
+                  {cleanupData && (
+                    <div className="mb-6">
+                      <div className="bg-white border border-gray-200 rounded-lg p-4">
+                        <h4 className="font-medium text-gray-900 mb-2">
+                          Accounts Eligible for Deletion: {cleanupData.count}
+                        </h4>
+                        
+                        {cleanupData.count === 0 ? (
+                          <p className="text-sm text-gray-600">No accounts are currently eligible for permanent deletion.</p>
+                        ) : (
+                          <div className="space-y-2">
+                            <p className="text-sm text-gray-600 mb-3">
+                              The following accounts have been cancelled for more than 90 days:
+                            </p>
+                            
+                            <div className="max-h-60 overflow-y-auto">
+                              <table className="min-w-full text-sm">
+                                <thead className="bg-gray-50">
+                                  <tr>
+                                    <th className="px-3 py-2 text-left font-medium text-gray-900">Email</th>
+                                    <th className="px-3 py-2 text-left font-medium text-gray-900">Deleted</th>
+                                    <th className="px-3 py-2 text-left font-medium text-gray-900">Days Ago</th>
+                                    <th className="px-3 py-2 text-left font-medium text-gray-900">Businesses</th>
+                                    <th className="px-3 py-2 text-left font-medium text-gray-900">Users</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-200">
+                                  {cleanupData.accounts.map((account: any, index: number) => (
+                                    <tr key={index} className="hover:bg-gray-50">
+                                      <td className="px-3 py-2 text-gray-900">{account.email}</td>
+                                      <td className="px-3 py-2 text-gray-600">
+                                        {new Date(account.deleted_at).toLocaleDateString()}
+                                      </td>
+                                      <td className="px-3 py-2 text-gray-600">{account.days_since_deletion}</td>
+                                      <td className="px-3 py-2 text-gray-600">{account.business_count}</td>
+                                      <td className="px-3 py-2 text-gray-600">{account.user_count}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Cleanup Results */}
+                  {cleanupResult && (
+                    <div className="mb-6">
+                      <div className={`border rounded-lg p-4 ${
+                        cleanupResult.success ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
+                      }`}>
+                        <h4 className={`font-medium mb-2 ${
+                          cleanupResult.success ? 'text-green-800' : 'text-red-800'
+                        }`}>
+                          {cleanupResult.dryRun ? 'Preview Results' : 'Deletion Results'}
+                        </h4>
+                        
+                        <p className={`text-sm mb-3 ${
+                          cleanupResult.success ? 'text-green-700' : 'text-red-700'
+                        }`}>
+                          {cleanupResult.message}
+                        </p>
+
+                        {cleanupResult.results && cleanupResult.results.length > 0 && (
+                          <div className="max-h-40 overflow-y-auto">
+                            <table className="min-w-full text-sm">
+                              <thead>
+                                <tr>
+                                  <th className="px-3 py-1 text-left font-medium">Email</th>
+                                  <th className="px-3 py-1 text-left font-medium">Status</th>
+                                  <th className="px-3 py-1 text-left font-medium">Message</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-gray-200">
+                                {cleanupResult.results.map((result: any, index: number) => (
+                                  <tr key={index}>
+                                    <td className="px-3 py-1">{result.email}</td>
+                                    <td className="px-3 py-1">
+                                      <span className={`inline-flex px-2 py-1 text-xs rounded-full ${
+                                        result.success 
+                                          ? 'bg-green-100 text-green-800' 
+                                          : 'bg-red-100 text-red-800'
+                                      }`}>
+                                        {result.success ? 'Success' : 'Error'}
+                                      </span>
+                                    </td>
+                                    <td className="px-3 py-1 text-gray-600">{result.message}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {error && (
+                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+                      {error}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           )}
         </div>

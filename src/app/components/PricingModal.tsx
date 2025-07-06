@@ -45,7 +45,6 @@ const tiers = [
     features: [
       "Up to 10 Business Locations",
       "Workflow management",
-      "1 Universal prompt page per business",
       "500 prompt pages",
       "10,000 contacts",
       "Review widget",

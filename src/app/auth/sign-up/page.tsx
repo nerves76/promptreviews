@@ -205,7 +205,7 @@ function SignUpContent() {
         // Show email confirmation message
         console.log('✅ Sign-up completed, waiting for email confirmation');
         setEmailSent(true);
-        setMessage('Please check your email and click the confirmation link to activate your account. Your account will be set up automatically when you confirm your email.');
+        setMessage('Check your email and click the confirmation link to activate your account.');
         
         // Track sign up event
         console.log('📊 Tracking sign up event...');
@@ -280,7 +280,7 @@ function SignUpContent() {
                   </p>
                 </div>
               ) : (
-                <p>Please check your email and click the confirmation link to activate your account. Your account will be set up automatically when you confirm your email.</p>
+                <p>{message}</p>
               )}
             </div>
             <Link href="/auth/sign-in">
