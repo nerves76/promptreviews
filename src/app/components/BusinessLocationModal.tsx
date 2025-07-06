@@ -46,6 +46,7 @@ export default function BusinessLocationModal({
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showLimitModal, setShowLimitModal] = useState(false);
   
   // Form data state
   const [formData, setFormData] = useState<Partial<BusinessLocation>>({
@@ -276,7 +277,7 @@ export default function BusinessLocationModal({
     }
 
     if (!canCreateMore && !location) {
-      setErrors({ limit: `You've reached the maximum of ${maxLocations} locations for your plan.` });
+      setShowLimitModal(true);
       return;
     }
 
@@ -371,12 +372,6 @@ export default function BusinessLocationModal({
 
           {/* Form Content */}
           <div className="px-6 py-4 max-h-[60vh] overflow-y-auto">
-            {errors.limit && (
-              <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md text-sm">
-                {errors.limit}
-              </div>
-            )}
-            
             {errors.submit && (
               <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md text-sm">
                 {errors.submit}
@@ -725,6 +720,34 @@ export default function BusinessLocationModal({
           </div>
         </Dialog.Panel>
       </div>
+      
+      {/* Location Limit Modal */}
+      {showLimitModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full relative">
+            <button
+              className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
+              onClick={() => setShowLimitModal(false)}
+              aria-label="Close"
+            >
+              &times;
+            </button>
+            <h2 className="text-2xl font-bold text-slate-blue mb-2">
+              Location limit reached
+            </h2>
+            <p className="mb-6 text-gray-700">
+              You've reached the maximum of {maxLocations} business locations for your plan. 
+              Contact us if you need more locations for your business.
+            </p>
+            <a
+              href="mailto:support@promptreviews.com?subject=Need more than 10 business locations"
+              className="inline-block px-4 py-2 bg-slate-blue text-white rounded-lg font-medium hover:bg-slate-blue/90 transition mb-2 w-full text-center"
+            >
+              Contact us
+            </a>
+          </div>
+        </div>
+      )}
     </Dialog>
   );
 } 
