@@ -13,6 +13,7 @@ import IndustrySelector from "@/app/components/IndustrySelector";
 import { createClient } from "@/utils/supabaseClient";
 import { useRouter } from "next/navigation";
 import { slugify } from "@/utils/slugify";
+import { OptimizedSpinner } from "@/app/components/OptimizedComponents";
 
 interface SimpleBusinessFormProps {
   user: any;
@@ -159,6 +160,7 @@ export default function SimpleBusinessForm({
     industries_served: "",
   });
   const [loading, setLoading] = useState(false);
+  const [loadingState, setLoadingState] = useState<'creating' | 'redirecting' | null>(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [industryType, setIndustryType] = useState<"B2B" | "B2C" | "Both">("Both");
@@ -175,12 +177,14 @@ export default function SimpleBusinessForm({
     console.log("Account ID:", accountId);
     
     setLoading(true);
+    setLoadingState('creating');
     setError("");
     setSuccess("");
 
     if (!accountId) {
       setError("Account not found. Please try again.");
       setLoading(false);
+      setLoadingState(null);
       return;
     }
 
@@ -192,6 +196,7 @@ export default function SimpleBusinessForm({
       console.log("Missing required fields:", missingFields);
       setError(`Missing required fields: ${missingFields.join(', ')}`);
       setLoading(false);
+      setLoadingState(null);
       return;
     }
 
@@ -243,12 +248,15 @@ export default function SimpleBusinessForm({
         console.error("Business creation API error:", errorData);
         setError(`Failed to create business: ${errorData.error || response.statusText}`);
         setLoading(false);
+        setLoadingState(null);
         return;
       }
 
       const business = await response.json();
       console.log("Business created successfully via API:", business);
 
+      // Update loading state to show redirecting
+      setLoadingState('redirecting');
       setSuccess("Business created successfully! Redirecting to dashboard...");
       
       // Dispatch event to refresh navigation state
@@ -267,9 +275,12 @@ export default function SimpleBusinessForm({
       console.error("Error details:", err);
       const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
       setError(`Error creating business: ${errorMessage}`);
+      setLoading(false);
+      setLoadingState(null);
     } finally {
       console.log("Form submission completed");
-      setLoading(false);
+      // Note: We don't reset loading state here for successful redirects
+      // as we want to show "Redirecting..." until the page changes
     }
   };
 
@@ -479,9 +490,12 @@ export default function SimpleBusinessForm({
         <button
           type="submit"
           disabled={loading}
-          className="bg-slate-blue text-white py-2 px-6 rounded hover:bg-slate-blue/90 transition-colors font-semibold disabled:opacity-50"
+          className="bg-slate-blue text-white py-2 px-6 rounded hover:bg-slate-blue/90 transition-colors font-semibold disabled:opacity-50 flex items-center gap-2"
         >
-          {loading ? "Creating..." : "Create Business"}
+          {loading && <OptimizedSpinner size="sm" className="text-white" />}
+          {loading ? (
+            loadingState === 'creating' ? "Creating..." : "Redirecting..."
+          ) : "Create Business"}
         </button>
       </div>
     </form>
