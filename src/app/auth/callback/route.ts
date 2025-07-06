@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { sendWelcomeEmail } from "@/utils/resend-welcome";
+import { ensureAdminForEmail } from '@/utils/admin';
 
 export const dynamic = "force-dynamic";
 
@@ -93,6 +94,17 @@ export async function GET(request: NextRequest) {
 
     // For sign-up/sign-in (no next parameter), handle account creation
     const { id: userId, email } = user;
+    
+    // 🔧 ENSURE ADMIN PRIVILEGES for admin emails
+    if (email) {
+      try {
+        await ensureAdminForEmail({ id: userId, email }, supabase);
+        console.log('✅ Admin check completed for user:', email);
+      } catch (adminError) {
+        console.error('❌ Error checking admin privileges:', adminError);
+        // Don't fail the flow for admin errors, just log them
+      }
+    }
     
     // Check if user already has account links
     const { data: accountLinks, error: accountLinksError } = await supabase

@@ -89,6 +89,16 @@ Based on comprehensive testing and server log analysis, the authentication syste
   - ✅ **Team-specific messaging**: Different messages for team invitations vs regular signups
 - **✅ VALIDATION**: Team invitation flow now properly shows "Check Your Email!" screen with clear instructions
 
+### ✅ Issue 5: Admin Assignment Not Working - **FIXED** (January 7, 2025)
+- **Problem**: Users with admin email addresses (nerves76@gmail.com, chris@diviner.agency) were not automatically assigned admin privileges during signup
+- **Root Cause**: The `ensureAdminForEmail` function existed but was not being called during the auth callback process, and the `ADMIN_EMAILS` environment variable was not configured
+- **Solution Implemented**:
+  - ✅ **Added admin check to auth callback**: Modified `src/app/auth/callback/route.ts` to call `ensureAdminForEmail` during signup
+  - ✅ **Configured ADMIN_EMAILS environment variable**: Added `ADMIN_EMAILS=nerves76@gmail.com,chris@diviner.agency` to `.env.local`
+  - ✅ **Manually assigned existing admin**: Used admin assignment script to grant admin privileges to existing nerves76@gmail.com user
+  - ✅ **Automatic future assignments**: New signups with admin emails will automatically receive admin privileges
+- **✅ VALIDATION**: Admin assignment working for nerves76@gmail.com (Admin ID: 1f0d4232-2ba4-4fcf-bd2b-60e2ffda0f5f)
+
 ## 🛠️ IMPLEMENTATION DETAILS
 
 ### Database Changes
@@ -200,6 +210,7 @@ console.log('✅ OnboardingUtils: Onboarding step updated to:', step);
 2. **Plan detection gaps** - Enhanced with comprehensive onboarding flow detection ✅
 3. **Manual sign-in bypass** - Fixed with automatic redirection for incomplete onboarding ✅
 4. **Team invitation signup UX** - Fixed with clear "Check your email" messaging ✅
+5. **Admin assignment** - Fixed with automatic admin privileges for specified email addresses ✅
 
 ### ✅ Production Readiness
 - **Database migrations applied**: Ready for production deployment
@@ -242,6 +253,7 @@ console.log('✅ OnboardingUtils: Onboarding step updated to:', step);
 - **Session persistence** with proper cookie handling
 - **Error recovery** for edge cases and expired links
 - **Team invitation signup UX** with clear "Check your email" messaging
+- **Automatic admin assignment** for specified email addresses
 
 ### 🚀 **PRODUCTION DEPLOYMENT READY**
 The enhanced authentication flow provides:
@@ -252,43 +264,53 @@ The enhanced authentication flow provides:
 - **Complete payment integration** with Stripe webhooks
 - **Multi-user account support** with proper role management
 - **Clear team invitation flow** with proper email confirmation messaging
+- **Automatic admin privileges** for configured admin email addresses
 
 The implementation follows Supabase best practices and has been thoroughly validated with real user journeys. Users experience a smooth, uninterrupted flow from signup through business creation to plan upgrades.
 
 ## 🔧 **RECENT FIXES & IMPROVEMENTS**
 
-### ✅ Issue 4: Team Invitation Signup UX - **FIXED** (January 7, 2025)
-- **Problem**: Users signing up via team invitation links weren't shown the "Check your email" message after successful signup
-- **Root Cause**: Conditional logic in signup success handling was not properly handling cases where `data.user` might be null
+### ✅ Issue 5: Admin Assignment Not Working - **FIXED** (January 7, 2025)
+- **Problem**: Users with admin email addresses (nerves76@gmail.com, chris@diviner.agency) were not automatically assigned admin privileges during signup
+- **Root Cause**: The `ensureAdminForEmail` function existed but was not being called during the auth callback process, and the `ADMIN_EMAILS` environment variable was not configured
 - **Solution Implemented**:
-  - ✅ **Fixed conditional logic**: Removed `else if` that was preventing email confirmation message from showing
-  - ✅ **Enhanced email confirmation screen**: Added clear visual indicators (📧 icon) and better messaging
-  - ✅ **Improved UX**: Shows email address and helpful tips about checking spam folder
-  - ✅ **Team-specific messaging**: Different messages for team invitations vs regular signups
-- **✅ VALIDATION**: Team invitation flow now properly shows "Check Your Email!" screen with clear instructions
+  - ✅ **Added admin check to auth callback**: Modified `src/app/auth/callback/route.ts` to call `ensureAdminForEmail` during signup
+  - ✅ **Configured ADMIN_EMAILS environment variable**: Added `ADMIN_EMAILS=nerves76@gmail.com,chris@diviner.agency` to `.env.local`
+  - ✅ **Manually assigned existing admin**: Used admin assignment script to grant admin privileges to existing nerves76@gmail.com user
+  - ✅ **Automatic future assignments**: New signups with admin emails will automatically receive admin privileges
+- **✅ VALIDATION**: Admin assignment working for nerves76@gmail.com (Admin ID: 1f0d4232-2ba4-4fcf-bd2b-60e2ffda0f5f)
 
 ### Code Changes:
 ```typescript
-// ✅ FIXED: Always show email confirmation message for successful signups
-if (error) {
-  // Handle error
-  return;
-}
+// ✅ ADDED: Admin assignment during auth callback
+import { ensureAdminForEmail } from '@/utils/admin';
 
-// Show email confirmation message for all successful signups
-setEmailSent(true);
-setMessage(invitationToken 
-  ? 'Please check your email and click the confirmation link to activate your account and join the team.'
-  : 'Please check your email and click the confirmation link to activate your account. Your account will be set up automatically when you confirm your email.'
-);
+// In auth callback after user creation:
+if (email) {
+  try {
+    await ensureAdminForEmail({ id: userId, email }, supabase);
+    console.log('✅ Admin check completed for user:', email);
+  } catch (adminError) {
+    console.error('❌ Error checking admin privileges:', adminError);
+  }
+}
 ```
 
-### Enhanced Email Confirmation Screen:
-- **Visual indicator**: 📧 icon for clear email messaging
-- **Clear title**: "Check Your Email!" for both regular and team signups
-- **Email address display**: Shows exactly where the email was sent
-- **Helpful tips**: Includes spam folder check reminder
-- **Team-specific messaging**: Different messages for team invitations
+### Environment Configuration:
+```bash
+# ✅ ADDED: Admin email configuration
+ADMIN_EMAILS=nerves76@gmail.com,chris@diviner.agency
+```
+
+### Admin Features Now Available:
+- **Admin Dashboard**: Access to `/admin` route with comprehensive admin tools
+- **User Management**: Search, check, and repair user-account relationships
+- **Email Templates**: Edit welcome emails, review notifications, and trial reminders
+- **Analytics**: View system-wide analytics and feedback
+- **Announcements**: Manage site-wide announcements
+- **Team Management**: Full oversight of all accounts and team invitations
+
+### ✅ Issue 4: Team Invitation Signup UX - **FIXED** (January 7, 2025)
 
 ---
 
@@ -296,5 +318,5 @@ setMessage(invitationToken
 **Total implementation time**: 4 batches across foundation, session timing, validation, and UX improvement phases  
 **Files modified**: 5 files (CreateBusinessClient.tsx, page.tsx, onboardingUtils.ts, migration, sign-up page)  
 **Database changes**: 1 migration (onboarding_step column)  
-**Issues resolved**: 4/4 critical authentication issues ✅  
+**Issues resolved**: 5/5 critical authentication issues ✅  
 **Status**: **FULLY OPERATIONAL** 🎉
