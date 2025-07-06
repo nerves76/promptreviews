@@ -10,7 +10,7 @@ import React, { useState, useEffect } from "react";
 import { FaCheck, FaBusinessTime, FaPalette, FaCog, FaPlus, FaShare } from "react-icons/fa";
 import Link from "next/link";
 import { fetchOnboardingTasks, markTaskAsCompleted, markTaskAsIncomplete } from "@/utils/onboardingTasks";
-import { supabase } from '@/utils/supabaseClient';
+import { createClient } from '@/utils/supabaseClient';
 
 interface GettingStartedProps {
   onComplete?: () => void;

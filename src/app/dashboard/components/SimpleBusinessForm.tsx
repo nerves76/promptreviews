@@ -10,7 +10,7 @@
 import React, { useState } from "react";
 import { FaBuilding, FaRobot } from "react-icons/fa";
 import IndustrySelector from "@/app/components/IndustrySelector";
-import { supabase } from "@/utils/supabaseClient";
+import { createClient } from "@/utils/supabaseClient";
 import { useRouter } from "next/navigation";
 import { slugify } from "@/utils/slugify";
 
@@ -135,6 +135,7 @@ export default function SimpleBusinessForm({
   accountId,
   onSuccess,
 }: SimpleBusinessFormProps) {
+  const supabase = createClient();
   const router = useRouter();
   const [form, setForm] = useState({
     name: "",

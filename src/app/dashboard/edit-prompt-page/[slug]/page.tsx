@@ -40,7 +40,7 @@ import ProductPromptPageForm from "@/app/components/ProductPromptPageForm";
 import React from "react";
 import AppLoader from "@/app/components/AppLoader";
 import RobotTooltip from "@/app/components/RobotTooltip";
-import { supabase } from "@/utils/supabaseClient";
+import { createClient } from "@/utils/supabaseClient";
 
 interface ReviewPlatformLink {
   name: string;
@@ -123,6 +123,8 @@ function getPlatformIcon(
 }
 
 export default function EditPromptPage() {
+  const supabase = createClient();
+
   const router = useRouter();
   const params = useParams();
   const [isLoading, setIsLoading] = useState(false);

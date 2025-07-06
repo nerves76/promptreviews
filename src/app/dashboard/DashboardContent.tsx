@@ -1,7 +1,9 @@
 "use client";
 import Link from "next/link";
 import { RefObject, useState, useEffect, useMemo } from "react";
-import { supabase, getUserOrMock } from "@/utils/supabaseClient";
+import { createClient, getUserOrMock } from "@/utils/supabaseClient";
+
+const supabase = createClient();
 import { useAuthGuard } from "@/utils/authGuard";
 import {
   FaGlobe,

@@ -128,27 +128,6 @@ export default function PricingModal({
           </button>
         )}
         
-        {/* Show required message if plan selection is mandatory */}
-        {isPlanSelectionRequired && (
-          <div className="mb-6 bg-amber-50 border border-amber-200 rounded-lg p-4 max-w-2xl w-full">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <span className="text-amber-400 text-xl">⚠️</span>
-              </div>
-              <div className="ml-3">
-                <h3 className="text-sm font-medium text-amber-800">
-                  Plan selection required
-                </h3>
-                <div className="mt-1 text-sm text-amber-700">
-                  <p>
-                    Please select a plan to continue using Prompt Reviews. You can always change your plan later.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-        
         {/* Show canceled message if user just came back from Stripe */}
         {showCanceledMessage && (
           <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-2xl w-full">

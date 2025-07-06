@@ -8,7 +8,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { supabase } from "@/utils/supabaseClient";
+import { createClient } from "@/utils/supabaseClient";
 
 interface EmailTemplate {
   id: string;
@@ -22,6 +22,8 @@ interface EmailTemplate {
 }
 
 export default function EmailTemplatesPage() {
+  const supabase = createClient();
+
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { supabase } from "@/utils/supabaseClient";
+import { createClient } from "@/utils/supabaseClient";
 import {
   FaChevronDown,
   FaChevronLeft,
@@ -266,6 +266,8 @@ function getSentimentIcon(sentiment: string) {
 }
 
 export default function ReviewsPage() {
+  const supabase = createClient();
+
   const [reviews, setReviews] = useState<Review[]>([]);
   const [grouped, setGrouped] = useState<ReviewerGroup[]>([]);
   const [platformGrouped, setPlatformGrouped] = useState<PlatformGroup[]>([]);

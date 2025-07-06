@@ -2,11 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { supabase, clearAuthSession } from "@/utils/supabaseClient";
+import { createClient, clearAuthSession } from "@/utils/supabaseClient";
 import { trackEvent, GA_EVENTS } from '../../../utils/analytics';
 import SimpleMarketingNav from "@/app/components/SimpleMarketingNav";
 
 export default function SignIn() {
+  const supabase = createClient();
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();

@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useMemo } from "react";
-import { supabase } from "@/utils/supabaseClient";
+import { createClient } from "@/utils/supabaseClient";
 import WidgetList from "./WidgetList";
 import PageCard from "@/app/components/PageCard";
 import { FaPlus, FaEdit, FaRegComment, FaCode, FaCheck } from "react-icons/fa";
@@ -11,6 +11,8 @@ import { DEFAULT_DESIGN, DesignState } from "./components/widgets/multi";
 import { useWidgets } from "./hooks/useWidgets";
 
 export default function WidgetPage() {
+  const supabase = createClient();
+
   const { widgets, loading, error, createWidget, deleteWidget, saveWidgetName, saveWidgetDesign, fetchWidgets } = useWidgets();
   const [selectedWidget, setSelectedWidget] = useState<any>(null);
   const [selectedWidgetFull, setSelectedWidgetFull] = useState<any>(null);

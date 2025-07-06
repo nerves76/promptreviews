@@ -24,7 +24,9 @@ import OfferSection from "../components/OfferSection";
 import DisableAIGenerationSection from "@/app/components/DisableAIGenerationSection";
 import Cropper from "react-easy-crop";
 import type { Area } from "react-easy-crop";
-import { supabase } from "@/utils/supabaseClient";
+import { createClient } from "@/utils/supabaseClient";
+
+const supabase = createClient();
 import SectionHeader from "@/app/components/SectionHeader";
 
 export interface ProductPromptFormState {

@@ -76,6 +76,7 @@
     "ziggeo-client-sdk": "^2.43.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.53.2",
     "@rushstack/eslint-patch": "^1.11.0",
     "@types/react": "^19.1.6",
     "@types/react-dom": "^19.1.5",

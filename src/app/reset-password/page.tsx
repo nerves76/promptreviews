@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/utils/supabaseClient";
+import { createClient } from "@/utils/supabaseClient";
 import Link from "next/link";
 
 function ResetPasswordContent() {
@@ -261,6 +261,8 @@ function ResetPasswordContent() {
 }
 
 export default function ResetPasswordPage() {
+  const supabase = createClient();
+
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">

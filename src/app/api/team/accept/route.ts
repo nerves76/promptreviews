@@ -75,11 +75,11 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get account details
-    const { data: account, error: accountError } = await supabase
-      .from('accounts')
-      .select('business_name')
-      .eq('id', invitation.account_id)
+    // Get business name from the businesses table
+    const { data: business, error: businessError } = await supabase
+      .from('businesses')
+      .select('name')
+      .eq('account_id', invitation.account_id)
       .single();
 
     // Get inviter details
@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       invitation: {
         ...invitation,
-        business_name: account?.business_name,
+        business_name: business?.name || 'Team Account',
         inviter_name: inviter?.user ? `${inviter.user.user_metadata?.first_name || ''} ${inviter.user.user_metadata?.last_name || ''}`.trim() : 'Account Owner'
       }
     });

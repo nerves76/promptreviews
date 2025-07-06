@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { supabase } from '@/utils/supabaseClient';
+import { createClient } from '@/utils/supabaseClient';
 
 interface WidgetNameProps {
   widget: {

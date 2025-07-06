@@ -7,7 +7,9 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { supabase, getUserOrMock } from '@/utils/supabaseClient';
+import { createClient, getUserOrMock } from '@/utils/supabaseClient';
+
+const supabase = createClient();
 import { isAdmin, ensureAdminForEmail } from '@/utils/admin';
 
 interface AdminContextType {

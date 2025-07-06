@@ -7,7 +7,7 @@
 
 import { useState } from 'react';
 import { FaTimes, FaBug, FaLightbulb, FaComment } from 'react-icons/fa';
-import { supabase, getSessionOrMock } from '@/utils/supabaseClient';
+import { createClient, getSessionOrMock } from '@/utils/supabaseClient';
 import { trackEvent } from '../../utils/analytics';
 
 interface FeedbackModalProps {
@@ -38,14 +38,14 @@ const categoryOptions = [
   }
 ];
 
-export default function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
+export default function FeedbackModal({
+ isOpen, onClose }: FeedbackModalProps) {
+  const supabase = createClient();
   const [category, setCategory] = useState<FeedbackCategory>('general_feedback');
   const [message, setMessage] = useState('');
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
-
-  // Using singleton Supabase client from supabaseClient.ts
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

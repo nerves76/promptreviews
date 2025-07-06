@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuthGuard } from "@/utils/authGuard";
-import { supabase, getSessionOrMock } from "@/utils/supabaseClient";
+import { createClient, getSessionOrMock } from "@/utils/supabaseClient";
 import {
   FaDownload,
   FaUpload,
@@ -25,6 +25,8 @@ import { MdPhotoCamera, MdVideoLibrary, MdEvent } from "react-icons/md";
 import PromptTypeSelectModal from "@/app/components/PromptTypeSelectModal";
 
 export default function UploadContactsPage() {
+  const supabase = createClient();
+
   useAuthGuard();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [error, setError] = useState<string>("");

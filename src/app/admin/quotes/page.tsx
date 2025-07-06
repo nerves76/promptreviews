@@ -8,7 +8,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { supabase } from "@/utils/supabaseClient";
+import { createClient } from "@/utils/supabaseClient";
 import { getAllQuotes, createQuote, toggleQuote, deleteQuote, updateQuote } from "@/utils/admin";
 
 interface Quote {
@@ -23,6 +23,8 @@ interface Quote {
 }
 
 export default function AdminQuotesPage() {
+  const supabase = createClient();
+
   const [loading, setLoading] = useState(true);
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [error, setError] = useState<string | null>(null);

@@ -7,7 +7,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { supabase } from "@/utils/supabaseClient";
+import { createClient } from "@/utils/supabaseClient";
 import { getActiveAnnouncement } from "@/utils/admin";
 
 interface Announcement {
@@ -20,6 +20,8 @@ interface Announcement {
 }
 
 export default function AnnouncementBanner() {
+  const supabase = createClient();
+
   const [announcement, setAnnouncement] = useState<Announcement | null>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);

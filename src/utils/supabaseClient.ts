@@ -128,20 +128,11 @@ export function resetClientInstance() {
 
 /**
  * Legacy exports for backward compatibility
- * These maintain the existing API surface
  * 
- * NOTE: Lazy initialization to prevent immediate client creation
+ * DEPRECATED: Use createClient() instead
+ * This will be removed in a future version
  */
-let _legacyInstance: SupabaseClient | null = null;
-export const supabase = new Proxy({} as SupabaseClient, {
-  get(target, prop) {
-    if (!_legacyInstance) {
-      console.log('📢 Legacy supabase export accessed - creating client via proxy');
-      _legacyInstance = createClient();
-    }
-    return (_legacyInstance as any)[prop];
-  }
-});
+export const supabase = createClient();
 
 /**
  * Clear authentication session

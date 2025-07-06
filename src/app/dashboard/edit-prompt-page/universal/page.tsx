@@ -13,7 +13,7 @@ import UniversalPromptPageForm, {
 import { FaGlobe } from "react-icons/fa";
 import PageCard from "@/app/components/PageCard";
 import offerConfig from "@/app/components/prompt-modules/offerConfig";
-import { supabase } from "@/utils/supabaseClient";
+import { createClient } from "@/utils/supabaseClient";
 import Link from "next/link";
 import { markTaskAsCompleted } from "@/utils/onboardingTasks";
 import { getAccountIdForUser } from "@/utils/accountUtils";
@@ -37,6 +37,8 @@ const normalizePlatforms = (platforms: any[] | null | undefined = []) =>
   (platforms ?? []).map((p) => ({ ...p, name: normalizePlatformName(p.name) }));
 
 export default function UniversalEditPromptPage() {
+  const supabase = createClient();
+
   const formRef = useRef<any>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);

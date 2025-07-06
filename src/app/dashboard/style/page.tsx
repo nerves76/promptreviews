@@ -3,10 +3,12 @@ import * as React from "react";
 import { useState, useEffect } from "react";
 import { markTaskAsCompleted } from "@/utils/onboardingTasks";
 import { useAuthGuard } from "@/utils/authGuard";
-import { supabase } from "@/utils/supabaseClient";
+import { createClient } from "@/utils/supabaseClient";
 import StyleModalPage from "./StyleModalPage";
 
 export default function StylePage() {
+  const supabase = createClient();
+
   useAuthGuard();
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);

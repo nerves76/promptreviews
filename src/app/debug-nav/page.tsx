@@ -3,10 +3,12 @@
 import { useEffect, useState } from 'react';
 import { useBusinessProfile } from '@/utils/authGuard';
 // 🔧 CONSOLIDATED: Single import from supabaseClient module
-import { supabase, getUserOrMock } from '@/utils/supabaseClient';
+import { createClient, getUserOrMock } from '@/utils/supabaseClient';
 import { getAccountIdForUser } from '@/utils/accountUtils';
 
 export default function DebugNav() {
+  const supabase = createClient();
+
   const { hasBusiness, loading, refresh } = useBusinessProfile();
   const [debugInfo, setDebugInfo] = useState<any>({});
   const [isChecking, setIsChecking] = useState(false);

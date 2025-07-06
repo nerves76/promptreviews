@@ -5,7 +5,7 @@
  * that can cause frequent user deletion issues.
  */
 
-import { supabase } from './supabaseClient';
+import { createClient } from './supabaseClient';
 
 /**
  * Refresh the user session if it's close to expiring
@@ -13,7 +13,7 @@ import { supabase } from './supabaseClient';
  */
 export async function refreshSessionIfNeeded() {
   try {
-    const { data: { session }, error } = await supabase.auth.getSession();
+    const { data: { session }, error } = await createClient().auth.getSession();
     
     if (error) {
       console.log('Session refresh check failed:', error.message);
@@ -32,7 +32,7 @@ export async function refreshSessionIfNeeded() {
     
     if (expiresAt && (expiresAt - now) < fiveMinutes) {
       console.log('Session expiring soon, refreshing...');
-      const { data, error: refreshError } = await supabase.auth.refreshSession();
+      const { data, error: refreshError } = await createClient().auth.refreshSession();
       
       if (refreshError) {
         console.error('Failed to refresh session:', refreshError);
@@ -55,7 +55,7 @@ export async function refreshSessionIfNeeded() {
  */
 export async function isSessionValid(): Promise<boolean> {
   try {
-    const { data: { session }, error } = await supabase.auth.getSession();
+    const { data: { session }, error } = await createClient().auth.getSession();
     
     if (error || !session) {
       return false;
@@ -84,7 +84,7 @@ export async function getCurrentUser() {
       await refreshSessionIfNeeded();
     }
 
-    const { data: { user }, error } = await supabase.auth.getUser();
+    const { data: { user }, error } = await createClient().auth.getUser();
     
     if (error) {
       console.error('Error getting current user:', error);

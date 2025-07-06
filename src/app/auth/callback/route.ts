@@ -106,6 +106,81 @@ export async function GET(request: NextRequest) {
       }
     }
     
+    // PRIORITY 1: Check for pending team invitations FIRST
+    let hasAcceptedInvitation = false;
+    try {
+      const { data: pendingInvitations, error: invitationError } = await supabase
+        .from('account_invitations')
+        .select('token, account_id, role')
+        .eq('email', email)
+        .is('accepted_at', null)
+        .gte('expires_at', new Date().toISOString());
+
+      if (!invitationError && pendingInvitations && pendingInvitations.length > 0) {
+        console.log('🎯 Found pending invitations for user:', pendingInvitations.length);
+        
+        // Accept the first valid invitation
+        const invitation = pendingInvitations[0];
+        
+        // Check if account can add more users
+        const { data: canAdd, error: canAddError } = await supabase
+          .rpc('can_add_user_to_account', { account_uuid: invitation.account_id });
+
+        if (!canAddError && canAdd) {
+          // Add user to account (NO separate account creation for team members)
+          const { error: addUserError } = await supabase
+            .from('account_users')
+            .insert({
+              account_id: invitation.account_id,
+              user_id: userId,
+              role: invitation.role
+            });
+
+          if (!addUserError) {
+            // Mark invitation as accepted
+            await supabase
+              .from('account_invitations')
+              .update({ accepted_at: new Date().toISOString() })
+              .eq('token', invitation.token);
+
+            console.log('✅ Team invitation accepted - user added to team account only');
+            hasAcceptedInvitation = true;
+            
+            // Skip individual account creation - team members use team account
+            // Redirect directly to dashboard
+            console.log("✅ Redirecting team member to dashboard");
+            return NextResponse.redirect(`${requestUrl.origin}/dashboard`);
+          } else {
+            console.error('❌ Error accepting invitation:', addUserError);
+            // CRITICAL: For team invitations, don't fall back to individual account creation
+            // Return error instead of continuing to individual account logic
+            return NextResponse.redirect(`${requestUrl.origin}/auth/sign-in?error=team_invitation_failed&email=${encodeURIComponent(email)}`);
+          }
+        } else {
+          console.error('❌ Cannot add user to account:', canAddError || 'Account is full');
+          // CRITICAL: For team invitations, don't fall back to individual account creation  
+          // Return error instead of continuing to individual account logic
+          return NextResponse.redirect(`${requestUrl.origin}/auth/sign-in?error=team_account_full&email=${encodeURIComponent(email)}`);
+        }
+      }
+    } catch (invitationError) {
+      console.error('❌ Error checking invitations:', invitationError);
+      // If there's an error checking invitations, we can't be sure if there are pending invitations
+      // For safety, only proceed to individual account creation if we explicitly confirm no invitations exist
+      const { data: invitationCheck } = await supabase
+        .from('account_invitations')
+        .select('id')
+        .eq('email', email)
+        .is('accepted_at', null)
+        .limit(1);
+      
+      if (invitationCheck && invitationCheck.length > 0) {
+        console.error('❌ Team invitations exist but failed to process - preventing individual account creation');
+        return NextResponse.redirect(`${requestUrl.origin}/auth/sign-in?error=invitation_processing_failed&email=${encodeURIComponent(email)}`);
+      }
+    }
+
+    // PRIORITY 2: If no team invitation, handle individual account setup
     // Check if user already has account links
     const { data: accountLinks, error: accountLinksError } = await supabase
       .from("account_users")
@@ -134,7 +209,7 @@ export async function GET(request: NextRequest) {
       }
 
       if (!existingAccount) {
-        console.log("🆕 Creating new account for user:", userId);
+        console.log("🆕 Creating new individual account for user:", userId);
         
         // Create account with proper fields
         const { data: newAccount, error: createAccountError } = await supabase
@@ -169,7 +244,7 @@ export async function GET(request: NextRequest) {
             return NextResponse.redirect(`${requestUrl.origin}/auth/sign-in?error=account_creation_failed`);
           }
         } else if (newAccount) {
-          console.log("✅ Account created successfully");
+          console.log("✅ Individual account created successfully");
           
           // Create account_user link with upsert to avoid duplicates
           const { error: linkError } = await supabase
@@ -221,8 +296,8 @@ export async function GET(request: NextRequest) {
       isNewUser = false;
     }
 
-    // Send welcome email for new users
-    if (isNewUser && email) {
+    // Send welcome email for new individual users (not team members)
+    if (isNewUser && email && !hasAcceptedInvitation) {
       try {
         let firstName = "there";
         if (user.user_metadata?.first_name) {
@@ -237,56 +312,6 @@ export async function GET(request: NextRequest) {
         console.error("❌ Error sending welcome email:", emailError);
         // Don't fail the whole flow for email errors
       }
-    }
-
-    // Check for pending invitations for this user
-    let hasAcceptedInvitation = false;
-    try {
-      const { data: pendingInvitations, error: invitationError } = await supabase
-        .from('account_invitations')
-        .select('token, account_id, role')
-        .eq('email', email)
-        .is('accepted_at', null)
-        .gte('expires_at', new Date().toISOString());
-
-      if (!invitationError && pendingInvitations && pendingInvitations.length > 0) {
-        console.log('🎯 Found pending invitations for user:', pendingInvitations.length);
-        
-        // Accept the first valid invitation
-        const invitation = pendingInvitations[0];
-        
-        // Check if account can add more users
-        const { data: canAdd, error: canAddError } = await supabase
-          .rpc('can_add_user_to_account', { account_uuid: invitation.account_id });
-
-        if (!canAddError && canAdd) {
-          // Add user to account
-          const { error: addUserError } = await supabase
-            .from('account_users')
-            .insert({
-              account_id: invitation.account_id,
-              user_id: userId,
-              role: invitation.role
-            });
-
-          if (!addUserError) {
-            // Mark invitation as accepted
-            await supabase
-              .from('account_invitations')
-              .update({ accepted_at: new Date().toISOString() })
-              .eq('token', invitation.token);
-
-            console.log('✅ Invitation accepted successfully');
-            hasAcceptedInvitation = true;
-          } else {
-            console.error('❌ Error accepting invitation:', addUserError);
-          }
-        } else {
-          console.error('❌ Cannot add user to account:', canAddError);
-        }
-      }
-    } catch (invitationError) {
-      console.error('❌ Error checking invitations:', invitationError);
     }
 
     // Redirect new users to create-business page, existing users to dashboard

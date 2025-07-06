@@ -3,7 +3,7 @@
  * This file contains functions to check if a user is an admin and manage admin-only features
  */
 
-import { supabase } from './supabaseClient';
+import { createClient } from './supabaseClient';
 
 /**
  * Check if the current user is an admin
@@ -13,7 +13,7 @@ import { supabase } from './supabaseClient';
  */
 export async function isAdmin(userId?: string, supabaseClient?: any): Promise<boolean> {
   try {
-    const client = supabaseClient || supabase;
+    const client = supabaseClient || createClient();
     let userToCheck = userId;
     
     if (!userToCheck) {
@@ -73,7 +73,7 @@ export async function isAdmin(userId?: string, supabaseClient?: any): Promise<bo
  */
 export async function getActiveAnnouncement(supabaseClient?: any): Promise<string | null> {
   try {
-    const client = supabaseClient || supabase;
+    const client = supabaseClient || createClient();
     
     const { data: announcement, error } = await client
       .from('announcements')
@@ -101,7 +101,7 @@ export async function getActiveAnnouncement(supabaseClient?: any): Promise<strin
  */
 export async function getRandomQuote(supabaseClient?: any): Promise<{text: string, author?: string, button_text?: string, button_url?: string} | null> {
   try {
-    const client = supabaseClient || supabase;
+    const client = supabaseClient || createClient();
     const { data: quotes } = await client
       .from('quotes')
       .select('text, author, button_text, button_url')
@@ -125,7 +125,7 @@ export async function getRandomQuote(supabaseClient?: any): Promise<{text: strin
  */
 export async function getAllActiveQuotes(supabaseClient?: any) {
   try {
-    const client = supabaseClient || supabase;
+    const client = supabaseClient || createClient();
     const { data: quotes } = await client
       .from('quotes')
       .select('id, text, author, button_text, button_url, created_at')
@@ -149,7 +149,7 @@ export async function getAllActiveQuotes(supabaseClient?: any) {
  */
 export async function createAnnouncement(message: string, buttonText?: string, buttonUrl?: string, supabaseClient?: any): Promise<boolean> {
   try {
-    const client = supabaseClient || supabase;
+    const client = supabaseClient || createClient();
     console.log('createAnnouncement: Starting with message:', message);
     
     const { data: { user } } = await client.auth.getUser();
@@ -221,7 +221,7 @@ export async function createAnnouncement(message: string, buttonText?: string, b
  */
 export async function createQuote(text: string, author?: string, buttonText?: string, buttonUrl?: string, supabaseClient?: any): Promise<boolean> {
   try {
-    const client = supabaseClient || supabase;
+    const client = supabaseClient || createClient();
     const { data: { user } } = await client.auth.getUser();
     if (!user) {
       console.error('createQuote: No user found');
@@ -288,7 +288,7 @@ export async function createQuote(text: string, author?: string, buttonText?: st
  */
 export async function getAllAnnouncements(supabaseClient?: any) {
   try {
-    const client = supabaseClient || supabase;
+    const client = supabaseClient || createClient();
     const { data: announcements } = await client
       .from('announcements')
       .select('*')
@@ -308,7 +308,7 @@ export async function getAllAnnouncements(supabaseClient?: any) {
  */
 export async function getAllQuotes(supabaseClient?: any) {
   try {
-    const client = supabaseClient || supabase;
+    const client = supabaseClient || createClient();
     const { data: quotes } = await client
       .from('quotes')
       .select('*')
@@ -330,7 +330,7 @@ export async function getAllQuotes(supabaseClient?: any) {
  */
 export async function toggleAnnouncement(id: string, isActive: boolean, supabaseClient?: any): Promise<boolean> {
   try {
-    const client = supabaseClient || supabase;
+    const client = supabaseClient || createClient();
     const { error } = await client
       .from('announcements')
       .update({ is_active: isActive })
@@ -352,7 +352,7 @@ export async function toggleAnnouncement(id: string, isActive: boolean, supabase
  */
 export async function toggleQuote(id: string, isActive: boolean, supabaseClient?: any): Promise<boolean> {
   try {
-    const client = supabaseClient || supabase;
+    const client = supabaseClient || createClient();
     const { error } = await client
       .from('quotes')
       .update({ is_active: isActive })
@@ -373,7 +373,7 @@ export async function toggleQuote(id: string, isActive: boolean, supabaseClient?
  */
 export async function deleteQuote(id: string, supabaseClient?: any): Promise<boolean> {
   try {
-    const client = supabaseClient || supabase;
+    const client = supabaseClient || createClient();
     const { data: { user } } = await client.auth.getUser();
     if (!user) {
       console.error('deleteQuote: No user found');
@@ -430,7 +430,7 @@ export async function deleteQuote(id: string, supabaseClient?: any): Promise<boo
  */
 export async function updateQuote(id: string, text: string, author?: string, buttonText?: string, buttonUrl?: string, supabaseClient?: any): Promise<boolean> {
   try {
-    const client = supabaseClient || supabase;
+    const client = supabaseClient || createClient();
     const { data: { user } } = await client.auth.getUser();
     if (!user) {
       console.error('updateQuote: No user found');
@@ -501,7 +501,7 @@ export async function updateQuote(id: string, text: string, author?: string, but
  */
 export async function getAllFeedback(supabaseClient?: any) {
   try {
-    const client = supabaseClient || supabase;
+    const client = supabaseClient || createClient();
     
     // First check if user is admin
     const { data: { user } } = await client.auth.getUser();
@@ -561,7 +561,7 @@ export async function getAllFeedback(supabaseClient?: any) {
  */
 export async function markFeedbackAsRead(feedbackId: string, isRead: boolean, supabaseClient?: any): Promise<boolean> {
   try {
-    const client = supabaseClient || supabase;
+    const client = supabaseClient || createClient();
     
     const { error } = await client
       .from('feedback')
@@ -588,7 +588,7 @@ export async function markFeedbackAsRead(feedbackId: string, isRead: boolean, su
  */
 export async function deleteFeedback(feedbackId: string, supabaseClient?: any): Promise<boolean> {
   try {
-    const client = supabaseClient || supabase;
+    const client = supabaseClient || createClient();
     
     // First check if user is admin
     const { data: { user } } = await client.auth.getUser();
@@ -637,7 +637,7 @@ export async function deleteFeedback(feedbackId: string, supabaseClient?: any): 
  * @param supabaseClient - Optional Supabase client instance
  */
 export async function ensureAdminForEmail(user: { id: string, email: string }, supabaseClient?: any): Promise<void> {
-  const client = supabaseClient || supabase;
+  const client = supabaseClient || createClient();
   const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
   if (!user?.email) return;
   if (!adminEmails.includes(user.email.toLowerCase())) return;

@@ -1,6 +1,8 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
-import { supabase } from "@/utils/supabaseClient";
+import { createClient } from "@/utils/supabaseClient";
+
+const supabase = createClient();
 import { trackWidgetCreated } from "../../../../utils/analytics";
 
 export interface Widget {

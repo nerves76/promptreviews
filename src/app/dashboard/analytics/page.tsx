@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { supabase, getUserOrMock } from "@/utils/supabaseClient";
+import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 import { useAuthGuard } from "@/utils/authGuard";
 import {
   FaChartLine,
@@ -89,6 +89,8 @@ const emojiSentimentMap = [
 ];
 
 export default function AnalyticsPage() {
+  const supabase = createClient();
+
   useAuthGuard();
   const [promptPages, setPromptPages] = useState<PromptPage[]>([]);
   const [timeRange, setTimeRange] = useState<

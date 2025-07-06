@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { supabase, getUserOrMock } from "@/utils/supabaseClient";
+import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 import Cropper from "react-easy-crop";
 import type { Area } from "react-easy-crop";
 import { useAuthGuard } from "@/utils/authGuard";
@@ -85,6 +85,8 @@ interface Platform {
 }
 
 export default function BusinessProfilePage() {
+  const supabase = createClient();
+
   useAuthGuard();
   const [form, setForm] = useState({
     name: "",

@@ -65,7 +65,7 @@ import { getAccessibleColor } from "@/utils/colorUtils";
 import { getFallingIcon, getFallingIconColor } from "@/app/components/prompt-modules/fallingStarsConfig";
 import dynamic from "next/dynamic";
 // 🔧 CONSOLIDATED: Single import from supabaseClient module
-import { supabase, getUserOrMock } from "@/utils/supabaseClient";
+import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 import { getAccountIdForUser } from "@/utils/accountUtils";
 
 const StyleModalPage = dynamic(() => import("../../dashboard/style/StyleModalPage"), { ssr: false });
@@ -257,6 +257,8 @@ function getFontClass(fontName: string) {
 }
 
 export default function PromptPage() {
+  const supabase = createClient();
+
   const router = useRouter();
   const params = useParams();
   const [promptPage, setPromptPage] = useState<any>(null);

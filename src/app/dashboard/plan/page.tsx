@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState, useRef, useCallback } from "react";
-import { supabase } from "@/utils/supabaseClient";
+import { createClient } from "@/utils/supabaseClient";
 import PricingModal from "../../components/PricingModal";
 import AppLoader from "@/app/components/AppLoader";
 import { useRouter } from "next/navigation";
@@ -9,6 +9,8 @@ import TopLoaderOverlay from "@/app/components/TopLoaderOverlay";
 import { getAccountIdForUser } from "@/utils/accountUtils";
 
 export default function PlanPage() {
+  const supabase = createClient();
+
   const [account, setAccount] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPlan, setCurrentPlan] = useState<string | null>(null);
