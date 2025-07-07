@@ -125,8 +125,8 @@ export default function PlanPage() {
         return;
       }
       
-      // Handle new user selecting a paid plan (bypass upgrade modal for direct checkout)
-      if ((isNewUser || !currentPlan) && tierKey !== 'grower') {
+      // Handle new user or trial user selecting a paid plan (bypass upgrade modal for direct checkout)
+      if ((isNewUser || !currentPlan || currentPlan === 'grower') && tierKey !== 'grower') {
         try {
           const res = await fetch("/api/create-checkout-session", {
             method: "POST",
