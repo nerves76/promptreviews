@@ -179,7 +179,7 @@ export default function Header() {
             <div className="flex-shrink-0 flex items-center mr-6">
               <Link href="/dashboard" className="flex items-center">
                 <span className="h-20 w-auto flex items-center p-1" aria-label="PromptReviews Logo">
-                  <PromptReviewsLogo size={96} />
+                  <PromptReviewsLogo size={96} color="#2E4A7D" />
                 </span>
               </Link>
             </div>
