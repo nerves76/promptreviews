@@ -1372,7 +1372,10 @@ export default function PromptPage() {
           <div className="relative w-full">
             <div className="max-w-[1000px] w-full mx-auto px-4">
               {/* Business Info Card (always visible) */}
-              <div className={`bg-gray-50 rounded-2xl shadow p-6 mb-8 flex flex-col items-center max-w-xl mx-auto animate-slideup relative mt-32 ${getFontClass(businessProfile?.primary_font)}`}>
+                                <div className={`rounded-2xl shadow p-6 mb-8 flex flex-col items-center max-w-xl mx-auto animate-slideup relative mt-32 ${getFontClass(businessProfile?.primary_font)}`} style={{
+                    background: businessProfile?.card_bg || "#F9FAFB",
+                    color: businessProfile?.card_text || "#1A1A1A"
+                  }}>
                 {/* Business Logo - No drop-down animation */}
                 <div
                   className="absolute left-1/2 -translate-x-1/2 w-52 h-52 aspect-square flex items-center justify-center mb-10"
@@ -1793,7 +1796,10 @@ export default function PromptPage() {
                   {/* Photo + Testimonial Module */}
                   {(promptPage?.review_type === "photo" ||
                     promptPage?.review_type === "photo_testimonial") && (
-                    <div className="mb-8 bg-gray-50 rounded-2xl shadow p-8 animate-slideup">
+                    <div className="mb-8 rounded-2xl shadow p-8 animate-slideup" style={{
+                      background: businessProfile?.card_bg || "#F9FAFB",
+                      color: businessProfile?.card_text || "#1A1A1A"
+                    }}>
                       <div className="flex items-center mb-8">
                         <FaCamera
                           className="w-8 h-8 mr-3"
@@ -1866,7 +1872,11 @@ export default function PromptPage() {
                                   setPhotoReviewerName(e.target.value)
                                 }
                                 placeholder="Ezra C"
-                                className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                                className="mt-1 block w-full rounded-lg shadow-md focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                                style={{
+                                  background: businessProfile?.card_bg || "#F9FAFB",
+                                  color: businessProfile?.card_text || "#1A1A1A"
+                                }}
                                 required
                               />
                             </div>
@@ -1885,7 +1895,11 @@ export default function PromptPage() {
                                   setPhotoReviewerRole(e.target.value)
                                 }
                                 placeholder="Store Manager, GreenSprout Co-Op"
-                                className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                                className="mt-1 block w-full rounded-lg shadow-md focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                                style={{
+                                  background: businessProfile?.card_bg || "#F9FAFB",
+                                  color: businessProfile?.card_text || "#1A1A1A"
+                                }}
                               />
                             </div>
                           </div>
@@ -1895,6 +1909,10 @@ export default function PromptPage() {
                             value={testimonial}
                             onChange={(e) => setTestimonial(e.target.value)}
                             required
+                            style={{
+                              background: businessProfile?.card_bg || "#F9FAFB",
+                              color: businessProfile?.card_text || "#1A1A1A"
+                            }}
                           />
                           <div className="flex justify-between w-full gap-2">
                             <div className="flex items-center gap-2">
@@ -1994,8 +2012,12 @@ export default function PromptPage() {
                             return (
                               <div
                                 key={idx}
-                                className="relative bg-gray-50 rounded-xl shadow p-4 pt-8 flex flex-col items-start border border-gray-100 animate-slideup"
-                                style={{ animationDelay: `${300 + idx * 100}ms` }}
+                                className="relative rounded-xl shadow p-4 pt-8 flex flex-col items-start border border-gray-100 animate-slideup"
+                                style={{ 
+                                  animationDelay: `${300 + idx * 100}ms`,
+                                  background: businessProfile?.card_bg || "#F9FAFB",
+                                  color: businessProfile?.card_text || "#1A1A1A"
+                                }}
                               >
                                 {/* Icon in top-left corner */}
                                 <div
@@ -2088,7 +2110,11 @@ export default function PromptPage() {
                                             )
                                           }
                                           placeholder="Ezra"
-                                          className="w-full mt-1 mb-2 p-3 border rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                          className="w-full mt-1 mb-2 p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                          style={{
+                                            background: businessProfile?.card_bg || "#F9FAFB",
+                                            color: businessProfile?.card_text || "#1A1A1A"
+                                          }}
                                           required
                                         />
                                       </div>
@@ -2111,7 +2137,11 @@ export default function PromptPage() {
                                             )
                                           }
                                           placeholder="Scout"
-                                          className="w-full mt-1 mb-2 p-3 border rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                          className="w-full mt-1 mb-2 p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                          style={{
+                                            background: businessProfile?.card_bg || "#F9FAFB",
+                                            color: businessProfile?.card_text || "#1A1A1A"
+                                          }}
                                           required
                                         />
                                       </div>
@@ -2134,7 +2164,11 @@ export default function PromptPage() {
                                             )
                                           }
                                           placeholder="Store Manager, GreenSprout Co-Op"
-                                          className="w-full mt-1 mb-2 p-3 border rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                          className="w-full mt-1 mb-2 p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                          style={{
+                                            background: businessProfile?.card_bg || "#F9FAFB",
+                                            color: businessProfile?.card_text || "#1A1A1A"
+                                          }}
                                         />
                                       </div>
                                     </div>
@@ -2153,6 +2187,10 @@ export default function PromptPage() {
                                         )
                                       }
                                       rows={5}
+                                      style={{
+                                        background: businessProfile?.card_bg || "#F9FAFB",
+                                        color: businessProfile?.card_text || "#1A1A1A"
+                                      }}
                                     />
                                     {submitError && (
                                       <div className="text-red-500 text-sm mb-2">
@@ -2235,7 +2273,10 @@ export default function PromptPage() {
                     businessProfile?.youtube_url ||
                     businessProfile?.linkedin_url ||
                     businessProfile?.pinterest_url) && (
-                    <div className="mb-8 bg-gray-50 rounded-2xl shadow p-8 animate-slideup">
+                    <div className="mb-8 rounded-2xl shadow p-8 animate-slideup" style={{
+                      background: businessProfile?.card_bg || "#F9FAFB",
+                      color: businessProfile?.card_text || "#1A1A1A"
+                    }}>
                       <div className="flex flex-col md:flex-row gap-8 w-full">
                         {/* Website Section (left column) */}
                         {businessProfile?.business_website && (
@@ -2391,11 +2432,15 @@ export default function PromptPage() {
               it.
             </p>
             <textarea
-              className="w-full rounded-lg border border-gray-300 p-3 mb-4 text-base bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+              className="w-full rounded-lg border border-gray-300 p-3 mb-4 text-base focus:ring-2 focus:ring-indigo-400 focus:outline-none"
               value={fallbackModalText}
               readOnly
               rows={5}
               onFocus={(e) => e.target.select()}
+              style={{
+                background: businessProfile?.card_bg || "#F9FAFB",
+                color: businessProfile?.card_text || "#1A1A1A"
+              }}
             />
             {copySuccess && (
               <div className="mb-2 w-full text-center">
