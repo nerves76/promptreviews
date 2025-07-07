@@ -2062,9 +2062,12 @@ export default function PromptPage() {
                                 )}
                                 {/* Icon in top-left corner */}
                                 <div
-                                  className="absolute -top-4 -left-4 bg-white rounded-full shadow p-2 flex items-center justify-center"
+                                  className="absolute -top-4 -left-4 rounded-full shadow p-2 flex items-center justify-center"
                                   title={label}
-                                  style={{ zIndex: 50, backgroundColor: 'white' }}
+                                  style={{ 
+                                    zIndex: 100, 
+                                    backgroundColor: businessProfile?.card_bg || '#ffffff' 
+                                  }}
                                 >
                                   <Icon
                                     className="w-7 h-7"
