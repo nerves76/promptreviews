@@ -110,8 +110,6 @@ import {
   FaDice,
   FaDragon,
   FaGhost,
-  FaWitch,
-  FaWizard,
   FaHatWizard,
   FaScroll,
   FaBookOpen,
@@ -125,7 +123,6 @@ import {
   FaClipboard,
   FaClipboardList,
   FaClipboardCheck,
-  FaClipboardUser,
 } from "react-icons/fa";
 import { IconType } from "react-icons";
 
@@ -294,8 +291,6 @@ export const FALLING_STARS_ICONS: {
   { key: "dice", label: "Dice", icon: FaDice, color: "text-red-600", category: "Games & Entertainment" },
   { key: "dragon", label: "Dragon", icon: FaDragon, color: "text-red-700", category: "Games & Entertainment" },
   { key: "ghost", label: "Ghost", icon: FaGhost, color: "text-purple-500", category: "Games & Entertainment" },
-  { key: "witch", label: "Witch", icon: FaWitch, color: "text-purple-700", category: "Games & Entertainment" },
-  { key: "wizard", label: "Wizard", icon: FaWizard, color: "text-blue-600", category: "Games & Entertainment" },
   { key: "hat-wizard", label: "Wizard Hat", icon: FaHatWizard, color: "text-purple-600", category: "Games & Entertainment" },
   
   // Office & Writing
@@ -309,7 +304,6 @@ export const FALLING_STARS_ICONS: {
   { key: "clipboard", label: "Clipboard", icon: FaClipboard, color: "text-gray-600", category: "Office & Writing" },
   { key: "clipboard-list", label: "Clipboard List", icon: FaClipboardList, color: "text-blue-600", category: "Office & Writing" },
   { key: "clipboard-check", label: "Clipboard Check", icon: FaClipboardCheck, color: "text-green-600", category: "Office & Writing" },
-  { key: "clipboard-user", label: "Clipboard User", icon: FaClipboardUser, color: "text-blue-600", category: "Office & Writing" },
 ];
 
 // Export in the format expected by FallingStarsSection

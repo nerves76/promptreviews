@@ -1,0 +1,84 @@
+/**
+ * BusinessInfoCard Component
+ * 
+ * Displays the business information card with logo, name, and location.
+ * This component is extracted from the main prompt page to improve maintainability.
+ */
+
+import React from 'react';
+import { getFontClass } from '../utils/fontUtils';
+import { applyCardTransparency } from '@/utils/colorUtils';
+
+interface BusinessProfile {
+  business_name?: string;
+  logo_url?: string | null;
+  primary_font?: string;
+  secondary_font?: string;
+  primary_color?: string;
+  card_bg?: string;
+  card_text?: string;
+  card_transparency?: number;
+  address_city?: string;
+  address_state?: string;
+}
+
+interface BusinessInfoCardProps {
+  businessProfile: BusinessProfile;
+}
+
+export default function BusinessInfoCard({ businessProfile }: BusinessInfoCardProps) {
+  return (
+    <div 
+      className={`rounded-2xl shadow p-6 mb-8 flex flex-col items-center max-w-xl mx-auto animate-slideup relative mt-32 ${getFontClass(businessProfile?.primary_font || "")}`} 
+      style={{
+        background: applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0),
+        color: businessProfile?.card_text || "#1A1A1A"
+      }}
+    >
+      {/* Business Logo - No drop-down animation */}
+      <div
+        className="absolute left-1/2 -translate-x-1/2 w-52 h-52 aspect-square flex items-center justify-center mb-10"
+        style={{ pointerEvents: "none", top: "-100px" }}
+      >
+        <div 
+          className="rounded-full p-1 shadow-lg flex items-center justify-center w-full h-full aspect-square"
+          style={{ backgroundColor: businessProfile?.card_bg || '#ffffff' }}
+        >
+          {businessProfile?.logo_url ? (
+            <img
+              src={businessProfile.logo_url}
+              alt={`${businessProfile?.business_name || "Business"} logo`}
+              className="h-48 w-48 aspect-square object-contain rounded-full"
+            />
+          ) : (
+            <div className="h-48 w-48 aspect-square bg-gray-200 rounded-full flex items-center justify-center">
+              <span className="text-5xl text-gray-500">
+                {businessProfile?.business_name?.[0] || "B"}
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+      
+      {/* Business Name - Added more space above */}
+      <h1
+        className={`text-3xl font-bold text-center mb-1 mt-24 ${getFontClass(businessProfile?.primary_font || "")}`}
+        style={{ color: businessProfile?.primary_color || "#4F46E5" }}
+      >
+        {businessProfile?.business_name || "Business Name"}
+      </h1>
+      
+      {/* City/State under business name */}
+      {(businessProfile?.address_city || businessProfile?.address_state) && (
+        <div className={`text-center text-base text-gray-600 font-medium ${getFontClass(businessProfile?.secondary_font || "")}`}>
+          {[
+            businessProfile.address_city,
+            businessProfile.address_state,
+          ]
+            .filter(Boolean)
+            .join(", ")}
+        </div>
+      )}
+    </div>
+  );
+} 

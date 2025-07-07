@@ -104,6 +104,7 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
     card_inner_shadow: false,
     card_shadow_color: "#222222",
     card_shadow_intensity: 0.20,
+    card_transparency: 1.00,
   });
 
   // Update parent component whenever settings change (but not on initial load)
@@ -128,6 +129,7 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
         card_inner_shadow: settings.card_inner_shadow,
         card_shadow_color: settings.card_shadow_color,
         card_shadow_intensity: settings.card_shadow_intensity,
+        card_transparency: settings.card_transparency,
       });
     }
   }, [settings, onStyleUpdate, isInitialized]);
@@ -160,7 +162,7 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
 
       const { data: business } = await supabase
         .from("businesses")
-        .select("primary_font,secondary_font,primary_color,secondary_color,background_type,background_color,gradient_start,gradient_end,card_bg,card_text,card_inner_shadow,card_shadow_color,card_shadow_intensity")
+        .select("primary_font,secondary_font,primary_color,secondary_color,background_type,background_color,gradient_start,gradient_end,card_bg,card_text,card_inner_shadow,card_shadow_color,card_shadow_intensity,card_transparency")
         .eq("account_id", accountId)
         .single();
       
@@ -173,7 +175,8 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
           background_color: business.background_color || "#FFFFFF",
           card_inner_shadow: business.card_inner_shadow || false,
           card_shadow_color: business.card_shadow_color || "#222222",
-          card_shadow_intensity: business.card_shadow_intensity || 0.20
+          card_shadow_intensity: business.card_shadow_intensity || 0.20,
+          card_transparency: business.card_transparency || 1.00
         }));
       }
     } catch (error) {
@@ -255,6 +258,7 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
           card_inner_shadow: settings.card_inner_shadow,
           card_shadow_color: settings.card_shadow_color,
           card_shadow_intensity: settings.card_shadow_intensity,
+          card_transparency: settings.card_transparency,
         })
         .eq("account_id", accountId);
       
@@ -289,6 +293,7 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
         card_inner_shadow: false,
         card_shadow_color: "#222222",
         card_shadow_intensity: 0.20,
+        card_transparency: 1.00,
       });
     }
   }
@@ -374,7 +379,8 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
             maxWidth: 800, 
             background: settings.card_bg, 
             color: settings.card_text,
-            position: 'relative'
+            position: 'relative',
+            opacity: settings.card_transparency
           }}>
             {settings.card_inner_shadow && (
               <div
@@ -505,10 +511,23 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
           </div>
         </div>
         
-        {/* Inner Shadow Settings */}
+        {/* Card Styling Settings */}
         <div className="mt-8 p-6 bg-gray-50 rounded-lg">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Card Inner Shadow</h3>
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Card Styling</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-3">Card Transparency</label>
+              <input
+                type="range"
+                min="0.5"
+                max="1"
+                step="0.05"
+                value={settings.card_transparency}
+                onChange={(e) => setSettings(s => ({ ...s, card_transparency: parseFloat(e.target.value) }))}
+                className="w-full"
+              />
+              <span className="text-xs text-gray-500">{Math.round(settings.card_transparency * 100)}% opacity</span>
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">Inner Shadow Vignette</label>
               <select
