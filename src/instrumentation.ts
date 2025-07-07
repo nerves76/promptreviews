@@ -28,34 +28,8 @@ export function register() {
       
       // Disable debug mode in all environments for better performance
       debug: false,
-      
-      // Before send hook to filter errors
-      beforeSend(event: any, hint: any) {
-        // Filter out common non-actionable errors
-        const error = hint.originalException;
-        if (
-          error &&
-          typeof error === 'object' &&
-          'message' in error &&
-          typeof (error as any).message === 'string'
-        ) {
-          // Filter out common database connection errors
-          if ((error as any).message.includes('connection') || 
-              (error as any).message.includes('timeout')) {
-            return null;
-          }
-        }
-        
-        return event;
-      },
-      
-      // Add server context
-      beforeSendTransaction(event: any) {
-        // Add server-specific context
-        return event;
-      },
     });
   } catch (error) {
-    console.log('Failed to initialize Sentry:', error);
+    console.log('Sentry initialization failed:', error);
   }
 } 
