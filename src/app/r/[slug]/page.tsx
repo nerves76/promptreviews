@@ -69,6 +69,17 @@ import dynamic from "next/dynamic";
 import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 import { getAccountIdForUser } from "@/utils/accountUtils";
 
+// Import our extracted components
+import BusinessInfoCard from "./components/BusinessInfoCard";
+import ProductModule from "./components/ProductModule";
+import ReviewPlatformCard from "./components/ReviewPlatformCard";
+import SaveMenu from "./components/SaveMenu";
+import FallingAnimation from "./components/FallingAnimation";
+import TopActionButtons from "./components/TopActionButtons";
+import { getFontClass } from "./utils/fontUtils";
+import { getPlatformIcon, splitName, sendAnalyticsEvent, isOffWhiteOrCream } from "./utils/helperFunctions";
+import { sentimentOptions } from "./utils/sentimentConfig";
+
 const StyleModalPage = dynamic(() => import("../../dashboard/style/StyleModalPage"), { ssr: false });
 
 interface StyleSettings {
@@ -141,127 +152,7 @@ interface BusinessProfile {
   card_shadow_intensity?: number;
 }
 
-// Helper to get platform icon based on URL or platform name
-function getPlatformIcon(
-  url: string,
-  platform: string,
-): { icon: IconType; label: string } {
-  const lowerUrl = url?.toLowerCase() || "";
-  const lowerPlatform = (platform || "").toLowerCase();
-  if (lowerUrl.includes("google") || lowerPlatform.includes("google"))
-    return { icon: FaGoogle, label: "Google" };
-  if (lowerUrl.includes("facebook") || lowerPlatform.includes("facebook"))
-    return { icon: FaFacebook, label: "Facebook" };
-  if (lowerUrl.includes("yelp") || lowerPlatform.includes("yelp"))
-    return { icon: FaYelp, label: "Yelp" };
-  if (lowerUrl.includes("tripadvisor") || lowerPlatform.includes("tripadvisor"))
-    return { icon: FaTripadvisor, label: "TripAdvisor" };
-  return { icon: FaRegStar, label: "Other" };
-}
-
-// Helper to split full name into first and last
-function splitName(fullName: string) {
-  if (!fullName) return { first: "", last: "" };
-  const parts = fullName.trim().split(" ");
-  if (parts.length === 1) return { first: parts[0], last: "" };
-  return { first: parts[0], last: parts.slice(1).join(" ") };
-}
-
-async function sendAnalyticsEvent(event: Record<string, any>) {
-  try {
-    await fetch("/api/track-event", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(event),
-    });
-  } catch (e) {
-    // Optionally log error
-  }
-}
-
-const sentimentOptions = [
-  {
-    value: "love",
-    icon: <FaGrinHearts className="text-pink-400" />,
-    label: "Excellent",
-  },
-  {
-    value: "satisfied",
-    icon: <FaSmile className="text-green-500" />,
-    label: "Satisfied",
-  },
-  {
-    value: "neutral",
-    icon: <FaMeh className="text-gray-400" />,
-    label: "Neutral",
-  },
-  {
-    value: "unsatisfied",
-    icon: <FaFrown className="text-orange-400" />,
-    label: "Unsatisfied",
-  },
-  {
-    value: "angry",
-    icon: <FaAngry className="text-red-500" />,
-    label: "Angry",
-  },
-];
-
-// Helper to determine if card_bg is off-white or cream
-function isOffWhiteOrCream(color: string) {
-  const offWhites = ["#F8FAFC", "#F9FAFB", "#F3F4F6", "#FAF3E3", "#FFF9E3", "#FFF8E1", "#FDF6EC", "#F5F5DC", "#FFFDD0", "#FFFDE7", "#FFFBEA"];
-  return offWhites.map(c => c.toUpperCase()).includes(color.toUpperCase());
-}
-
-// Helper to get font class from fontOptions (should match StyleModalPage)
-const fontClassMap: Record<string, string> = {
-  "Inter": "font-inter",
-  "Roboto": "font-roboto",
-  "Open Sans": "font-open-sans",
-  "Lato": "font-lato",
-  "Montserrat": "font-montserrat",
-  "Poppins": "font-poppins",
-  "Source Sans 3": "font-source-sans",
-  "Raleway": "font-raleway",
-  "Nunito": "font-nunito",
-  "Playfair Display": "font-playfair",
-  "Merriweather": "font-merriweather",
-  "Roboto Slab": "font-roboto-slab",
-  "PT Sans": "font-pt-sans",
-  "Oswald": "font-oswald",
-  "Roboto Condensed": "font-roboto-condensed",
-  "Source Serif 4": "font-source-serif",
-  "Noto Sans": "font-noto-sans",
-  "Ubuntu": "font-ubuntu",
-  "Work Sans": "font-work-sans",
-  "Quicksand": "font-quicksand",
-  "Josefin Sans": "font-josefin-sans",
-  "Mukta": "font-mukta",
-  "Rubik": "font-rubik",
-  "IBM Plex Sans": "font-ibm-plex-sans",
-  "Barlow": "font-barlow",
-  "Mulish": "font-mulish",
-  "Comfortaa": "font-comfortaa",
-  "Outfit": "font-outfit",
-  "Plus Jakarta Sans": "font-plus-jakarta-sans",
-  "Courier Prime": "font-courier-prime",
-  "IBM Plex Mono": "font-ibm-plex-mono",
-  // System fonts
-  "Arial": "font-arial",
-  "Helvetica": "font-helvetica",
-  "Verdana": "font-verdana",
-  "Tahoma": "font-tahoma",
-  "Trebuchet MS": "font-trebuchet-ms",
-  "Times New Roman": "font-times-new-roman",
-  "Georgia": "font-georgia",
-  "Courier New": "font-courier-new",
-  "Lucida Console": "font-lucida-console",
-  "Palatino": "font-palatino",
-  "Garamond": "font-garamond",
-};
-function getFontClass(fontName: string) {
-  return fontClassMap[fontName] || "";
-}
+// Functions now imported from utils
 
 export default function PromptPage() {
   const supabase = createClient();
@@ -363,7 +254,7 @@ export default function PromptPage() {
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [selectedSentiment, setSelectedSentiment] = useState<string | null>(null);
   // Add state for open platforms
-  const [openPlatforms, setOpenPlatforms] = useState<number[]>([]);
+  const [openPlatforms, setOpenPlatforms] = useState<boolean[]>([]);
   const [showLimitModal, setShowLimitModal] = useState(false);
   
   // Add state for the step 2 choice modal
@@ -1094,9 +985,9 @@ export default function PromptPage() {
   // Open first by default if 3 or more platforms
   useEffect(() => {
     if (Array.isArray(promptPage?.review_platforms) && promptPage.review_platforms.length >= 3) {
-      setOpenPlatforms([0]);
+      setOpenPlatforms([true, ...Array(promptPage.review_platforms.length - 1).fill(false)]);
     } else if (Array.isArray(promptPage?.review_platforms)) {
-      setOpenPlatforms(promptPage.review_platforms.map((_: any, idx: number) => idx));
+      setOpenPlatforms(promptPage.review_platforms.map(() => true));
     }
   }, [promptPage?.review_platforms]);
 
@@ -1391,1029 +1282,217 @@ export default function PromptPage() {
           <div className="relative w-full">
             <div className="max-w-[1000px] w-full mx-auto px-4">
               {/* Business Info Card (always visible) */}
-                                <div className={`rounded-2xl shadow p-6 mb-8 flex flex-col items-center max-w-xl mx-auto animate-slideup relative mt-32 ${getFontClass(businessProfile?.primary_font)}`} style={{
-                    background: businessProfile?.card_bg || "#F9FAFB",
-                    color: businessProfile?.card_text || "#1A1A1A"
-                  }}>
-                {/* Business Logo - No drop-down animation */}
-                <div
-                  className="absolute left-1/2 -translate-x-1/2 w-52 h-52 aspect-square flex items-center justify-center mb-10"
-                  style={{ pointerEvents: "none", top: "-100px" }}
-                >
-                  <div 
-                    className="rounded-full p-1 shadow-lg flex items-center justify-center w-full h-full aspect-square"
-                    style={{ backgroundColor: businessProfile?.card_bg || '#ffffff' }}
-                  >
-                    {businessProfile?.logo_url ? (
-                      <img
-                        src={businessProfile.logo_url}
-                        alt={`${businessProfile?.business_name || "Business"} logo`}
-                        className="h-48 w-48 aspect-square object-contain rounded-full"
-                      />
-                    ) : (
-                      <div className="h-48 w-48 aspect-square bg-gray-200 rounded-full flex items-center justify-center">
-                        <span className="text-5xl text-gray-500">
-                          {businessProfile?.business_name?.[0] || "B"}
-                        </span>
-                      </div>
-                    )}
+              <BusinessInfoCard
+                businessProfile={businessProfile}
+              />
+              {/* Product Module for Product Pages */}
+              <ProductModule
+                promptPage={promptPage}
+                businessProfile={businessProfile}
+                sentiment={sentiment}
+              />
+              {/* Review Platforms Section */}
+              {businessProfile?.review_platforms?.map((platform: any, idx: number) => (
+                <ReviewPlatformCard
+                  key={platform.id || idx}
+                  platform={platform}
+                  idx={idx}
+                  promptPage={promptPage}
+                  businessProfile={businessProfile}
+                  isOpen={openPlatforms[idx]}
+                  isAccordion={(businessProfile?.review_platforms?.length || 0) > 1}
+                  reviewerFirstNames={reviewerFirstNames}
+                  reviewerLastNames={reviewerLastNames}
+                  reviewerRoles={reviewerRoles}
+                  platformReviewTexts={platformReviewTexts}
+                  aiLoading={aiLoading}
+                  isSubmitting={isSubmitting}
+                  aiRewriteCounts={aiRewriteCounts}
+                  openInstructionsIdx={openInstructionsIdx}
+                  onToggleAccordion={(idx) => {
+                    const newOpenPlatforms = [...openPlatforms];
+                    newOpenPlatforms[idx] = !newOpenPlatforms[idx];
+                    setOpenPlatforms(newOpenPlatforms);
+                  }}
+                  onFirstNameChange={(idx, value) => {
+                    const newNames = [...reviewerFirstNames];
+                    newNames[idx] = value;
+                    setReviewerFirstNames(newNames);
+                  }}
+                  onLastNameChange={(idx, value) => {
+                    const newNames = [...reviewerLastNames];
+                    newNames[idx] = value;
+                    setReviewerLastNames(newNames);
+                  }}
+                  onRoleChange={(idx, value) => {
+                    const newRoles = [...reviewerRoles];
+                    newRoles[idx] = value;
+                    setReviewerRoles(newRoles);
+                  }}
+                  onReviewTextChange={handleReviewTextChange}
+                  onRewriteWithAI={handleRewriteWithAI}
+                  onCopyAndSubmit={handleCopyAndSubmit}
+                  onToggleInstructions={(idx) => setOpenInstructionsIdx(idx)}
+                  getPlatformIcon={getPlatformIcon}
+                  getFontClass={getFontClass}
+                />
+              ))}
+              
+              {/* Limit Modal */}
+              {showLimitModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                  <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full relative animate-fadein border-2 border-indigo-500">
+                    <button
+                      className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-2xl font-bold focus:outline-none"
+                      onClick={() => setShowLimitModal(false)}
+                      aria-label="Close"
+                    >
+                      ×
+                    </button>
+                    <h2 className="text-2xl font-bold mb-4 text-indigo-700 text-center">
+                      Review Limit Reached
+                    </h2>
+                    <p className="text-gray-700 mb-6 text-center">
+                      You've reached the limit for AI-generated reviews. Please try again tomorrow or contact support.
+                    </p>
+                    <div className="flex justify-center">
+                      <button
+                        onClick={() => setShowLimitModal(false)}
+                        className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                      >
+                        OK
+                      </button>
+                    </div>
                   </div>
                 </div>
-                {/* Business Name - Added more space above */}
-                <h1
-                  className={`text-3xl font-bold text-center mb-1 mt-24 ${getFontClass(businessProfile?.primary_font)}`}
-                  style={{ color: businessProfile?.primary_color || "#4F46E5" }}
-                >
-                  {businessProfile?.business_name || "Business Name"}
-                </h1>
-                {/* City/State under business name */}
-                {(businessProfile?.address_city ||
-                  businessProfile?.address_state) && (
-                  <div className={`text-center text-base text-gray-600 font-medium ${getFontClass(businessProfile?.secondary_font)}`}>
-                    {[
-                      businessProfile.address_city,
-                      businessProfile.address_state,
-                    ]
-                      .filter(Boolean)
-                      .join(", ")}
-                  </div>
-                )}
-              </div>
-              {/* Product Module for Product Pages */}
-              {promptPage?.review_type === "product" &&
-                promptPage.product_name && (
-                  <div className="bg-white rounded-2xl shadow p-8 mb-8 flex flex-col md:flex-row items-center md:items-start max-w-[1000px] mx-auto animate-slideup relative mt-12 gap-8">
-                    {promptPage.product_photo && (
-                      <div className="flex-shrink-0 mb-4 md:mb-0">
-                      <img
-                        src={promptPage.product_photo}
-                        alt={promptPage.product_name}
-                          className="rounded-2xl w-[300px] h-[300px] object-cover border"
-                      />
-                      </div>
-                    )}
-                    <div className="flex-1 flex flex-col justify-center items-center md:items-start text-center md:text-left">
-                      <h2 className={`text-2xl font-bold text-slate-blue mb-2 ${getFontClass(businessProfile?.primary_font)}`}>
-                        {promptPage.product_name}
-                      </h2>
-                      {/* Only show details if not neutral/frustrated sentiment */}
-                      {(!sentiment ||
-                        (sentiment !== "neutral" &&
-                          sentiment !== "frustrated")) && (
-                        <>
-                          {promptPage.product_description && (
-                            <div className={`text-lg text-gray-700 mb-3 ${getFontClass(businessProfile?.secondary_font)}`}>
-                              {promptPage.product_description}
-                            </div>
-                          )}
-                          {promptPage.features_or_benefits?.length > 0 && (
-                            <ul className="mb-3 text-gray-700 text-base list-disc list-inside">
-                              {promptPage.features_or_benefits.map(
-                                (f: string, i: number) =>
-                                  f && <li key={i}>{f}</li>,
-                              )}
-                            </ul>
-                          )}
-                          <div className={`text-sm text-gray-500 ${getFontClass(businessProfile?.secondary_font)}`}>
-                            Share your experience with this product below!
-                          </div>
-                        </>
-                      )}
+              )}
+              
+              {/* Choice Modal */}
+              {showChoiceModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                  <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full relative animate-fadein border-2 border-indigo-500">
+                    <button
+                      className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-2xl font-bold focus:outline-none"
+                      onClick={() => setShowChoiceModal(false)}
+                      aria-label="Close"
+                    >
+                      ×
+                    </button>
+                    <h2 className="text-2xl font-bold mb-4 text-indigo-700 text-center">
+                      Choose Your Experience
+                    </h2>
+                    <p className="text-gray-700 mb-6 text-center">
+                      How would you rate your overall experience?
+                    </p>
+                    <div className="flex flex-col gap-3">
+                                             {sentimentOptions.map((option) => (
+                         <button
+                           key={option.value}
+                           onClick={() => {
+                             setSelectedNegativeSentiment(option.value);
+                             setShowChoiceModal(false);
+                           }}
+                           className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                         >
+                           <span className="text-2xl">{option.icon}</span>
+                           <div className="text-left">
+                             <div className="font-medium">{option.label}</div>
+                           </div>
+                         </button>
+                       ))}
                     </div>
                   </div>
-                )}
-              {/* Feedback Form Section (if negative sentiment and chose private feedback) */}
-              {sentimentComplete &&
-                ["neutral", "unsatisfied", "frustrated"].includes(
-                  sentiment || "",
-                ) && 
-                !showReviewForm && (
-                  <div className="w-full flex justify-center my-8">
-                    <div
-                      className="rounded-2xl shadow-2xl p-8 max-w-[1000px] w-full flex flex-col items-center animate-fadein relative"
-                      style={{
-                        background: businessProfile.card_bg || "#fff",
-                        color: businessProfile.card_text || "#1A1A1A",
-                        fontFamily: businessProfile.primary_font || "Inter",
-                      }}
-                    >
+                </div>
+              )}
+              {/* Website and Social Media Card */}
+              <div className="mb-8 rounded-2xl shadow p-8 animate-slideup" style={{
+                background: businessProfile?.card_bg || "#F9FAFB",
+                color: businessProfile?.card_text || "#1A1A1A"
+              }}>
+                <div className="flex flex-col md:flex-row gap-8 w-full">
+                  {/* Website Section (left column) */}
+                  {businessProfile?.business_website && (
+                    <div className="flex-1 flex flex-col justify-start text-center md:text-left md:max-w-[320px] md:pr-4 border-b md:border-b-0 md:border-r border-gray-200 mb-8 md:mb-0">
                       <h2
-                        className="text-2xl font-bold mb-4"
-                        style={{ color: businessProfile.primary_color || "#4F46E5" }}
-                      >
-                        {mergedEmojiFeedbackPageHeader}
-                      </h2>
-                      <form
-                        className="w-full flex flex-col items-center"
-                        onSubmit={async (e) => {
-                          e.preventDefault();
-                          setFeedbackSubmitting(true);
-                          setFeedbackError(null);
-                          setFeedbackSuccess(false);
-                          // Prevent logged-in users from submitting feedback
-                          if (currentUser) {
-                            setFeedbackError(
-                              "You are logged in as the business owner. Feedback submitted while logged in is not saved. Please log out to test the public review flow.",
-                            );
-                            setFeedbackSubmitting(false);
-                            return;
-                          }
-                          try {
-                            // POST feedback to the API endpoint for review tracking and notification
-                            const response = await fetch("/api/track-review", {
-                              method: "POST",
-                              headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({
-                                promptPageId: promptPage.id,
-                                platform: "feedback",
-                                status: "feedback",
-                                first_name: feedbackFirstName,
-                                last_name: feedbackLastName,
-                                reviewContent: feedback,
-                                promptPageType: "feedback",
-                                sentiment: sentiment,
-                                email: feedbackEmail,
-                                phone: feedbackPhone || null,
-                                review_type: "feedback",
-                              }),
-                            });
-                            if (!response.ok)
-                              throw new Error("Failed to submit feedback.");
-                            setFeedbackSuccess(true);
-                            setFeedbackFirstName("");
-                            setFeedbackLastName("");
-                            setFeedbackEmail("");
-                            setFeedbackPhone("");
-                            setFeedback("");
-                            if (
-                              !currentUser &&
-                              promptPage?.id &&
-                              sentiment &&
-                              feedback
-                            ) {
-                              sendAnalyticsEvent({
-                                promptPageId: promptPage.id,
-                                eventType: "constructive_feedback",
-                                platform: "web",
-                                sentiment,
-                                feedback,
-                              });
-                            }
-                          } catch (err: any) {
-                            setFeedbackError(
-                              err.message || "Failed to submit feedback.",
-                            );
-                          } finally {
-                            setFeedbackSubmitting(false);
-                          }
+                        className={`text-2xl font-bold mt-0 mb-6 ${businessProfile?.primary_font || "font-inter"}`}
+                        style={{
+                          color: businessProfile?.primary_color || "#4F46E5",
                         }}
                       >
-                        <div className="flex flex-col md:flex-row gap-4 w-full mb-4">
-                          <div className="flex-1">
-                            <label
-                              htmlFor="feedbackFirstName"
-                              className="block text-sm font-medium"
-                              style={{ color: businessProfile.card_text || "#1A1A1A" }}
-                            >
-                              First Name <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                              type="text"
-                              id="feedbackFirstName"
-                              value={feedbackFirstName}
-                              onChange={(e) => setFeedbackFirstName(e.target.value)}
-                              required
-                              className="mt-1 block w-full rounded-lg border border-gray-300 p-3"
-                              style={{
-                                background: businessProfile.card_bg || "#fff",
-                                color: businessProfile.card_text || "#1A1A1A",
-                                fontFamily: businessProfile.primary_font || "Inter",
-                              }}
-                            />
-                          </div>
-                          <div className="flex-1">
-                            <label
-                              htmlFor="feedbackLastName"
-                              className="block text-sm font-medium"
-                              style={{ color: businessProfile.card_text || "#1A1A1A" }}
-                            >
-                              Last Name <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                              type="text"
-                              id="feedbackLastName"
-                              value={feedbackLastName}
-                              onChange={(e) => setFeedbackLastName(e.target.value)}
-                              required
-                              className="mt-1 block w-full rounded-lg border border-gray-300 p-3"
-                              style={{
-                                background: businessProfile.card_bg || "#fff",
-                                color: businessProfile.card_text || "#1A1A1A",
-                                fontFamily: businessProfile.primary_font || "Inter",
-                              }}
-                            />
-                          </div>
-                        </div>
-                        <div className="flex flex-col md:flex-row gap-4 w-full mb-4">
-                          <div className="flex-1">
-                            <label
-                              htmlFor="feedbackEmail"
-                              className="block text-sm font-medium"
-                              style={{ color: businessProfile.card_text || "#1A1A1A" }}
-                            >
-                              Email <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                              type="email"
-                              id="feedbackEmail"
-                              value={feedbackEmail}
-                              onChange={(e) => setFeedbackEmail(e.target.value)}
-                              required
-                              className="mt-1 block w-full rounded-lg border border-gray-300 p-3"
-                              style={{
-                                background: businessProfile.card_bg || "#fff",
-                                color: businessProfile.card_text || "#1A1A1A",
-                                fontFamily: businessProfile.primary_font || "Inter",
-                              }}
-                            />
-                          </div>
-                          <div className="flex-1">
-                            <label
-                              htmlFor="feedbackPhone"
-                              className="block text-sm font-medium"
-                              style={{ color: businessProfile.card_text || "#1A1A1A" }}
-                            >
-                              Phone (optional)
-                            </label>
-                            <input
-                              type="tel"
-                              id="feedbackPhone"
-                              value={feedbackPhone}
-                              onChange={(e) => setFeedbackPhone(e.target.value)}
-                              className="mt-1 block w-full rounded-lg border border-gray-300 p-3"
-                              style={{
-                                background: businessProfile.card_bg || "#fff",
-                                color: businessProfile.card_text || "#1A1A1A",
-                                fontFamily: businessProfile.primary_font || "Inter",
-                              }}
-                            />
-                          </div>
-                        </div>
-                        <textarea
-                          className="w-full rounded-lg border border-gray-300 p-4 min-h-[120px] focus:ring-2 mb-4"
-                          placeholder="Your feedback..."
-                          value={feedback}
-                          onChange={(e) => setFeedback(e.target.value)}
-                          required
-                          style={{
-                            background: businessProfile.card_bg || "#fff",
-                            color: businessProfile.card_text || "#1A1A1A",
-                            fontFamily: businessProfile.primary_font || "Inter",
-                          }}
-                        />
-                        <button
-                          type="submit"
-                          className="px-6 py-2 rounded-lg font-semibold shadow transition"
-                          style={{
-                            background: businessProfile.secondary_color || "#818CF8",
-                            color: "#fff",
-                            fontFamily: businessProfile.primary_font || "Inter",
-                          }}
-                          disabled={feedbackSubmitting}
-                        >
-                          Submit Feedback
-                        </button>
-                        {feedbackSuccess && (
-                          <div className="text-green-600 mt-4">
-                            {promptPage.emoji_thank_you_message ||
-                              "Thank you for your feedback!"}
-                          </div>
+                        <span className={`font-bold ${getFontClass(businessProfile?.primary_font || "Inter")}`}>Visit our website</span>
+                      </h2>
+                      <a
+                        href={businessProfile.business_website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-block text-xl font-medium hover:opacity-80 transition-opacity"
+                        style={{
+                          color:
+                            businessProfile?.primary_color || "#4F46E5",
+                        }}
+                        onClick={async () => {
+                          if (!promptPage?.id) return;
+                          await sendAnalyticsEvent({
+                            promptPageId: promptPage.id,
+                            eventType: "website_click",
+                            platform: "website",
+                          });
+                        }}
+                      >
+                        {businessProfile.business_website.replace(
+                          /^https?:\/\//,
+                          "",
                         )}
-                        {feedbackError && (
-                          <div className="text-red-600 mt-4">
-                            {feedbackError}
-                          </div>
-                        )}
-                      </form>
+                      </a>
                     </div>
-                  </div>
-                )}
-              
-              {/* Public Review Section (if negative sentiment and chose to publish publicly) */}
-              {sentimentComplete &&
-                ["neutral", "unsatisfied", "frustrated"].includes(
-                  sentiment || "",
-                ) && 
-                showReviewForm && (
-                  <div className="w-full flex justify-center my-8">
-                    <div
-                      className="rounded-2xl shadow-2xl p-8 max-w-[1000px] w-full flex flex-col items-center animate-fadein relative"
+                  )}
+                  {/* Social Media Section (right column, wider) */}
+                  <div className="flex-[1.5] flex flex-col justify-start text-center md:text-left w-full md:pl-8">
+                    <h2
+                      className={`text-2xl font-bold mt-0 mb-6 text-center md:text-left ${businessProfile?.primary_font || "font-inter"}`}
                       style={{
-                        background: businessProfile.card_bg || "#fff",
-                        color: businessProfile.card_text || "#1A1A1A",
-                        fontFamily: businessProfile.primary_font || "Inter",
+                        color: businessProfile?.primary_color || "#4F46E5",
                       }}
                     >
-                      <h2
-                        className="text-2xl font-bold mb-4 text-center"
-                        style={{ color: businessProfile.primary_color || "#4F46E5" }}
-                      >
-                        Share Your Review Publicly
-                      </h2>
-                      <p className="text-center mb-6 text-gray-600">
-                        Your feedback helps other customers make informed decisions. Choose where you'd like to share your review:
-                      </p>
-                      
-                      {/* Show review platforms as normal */}
-                      <div className="w-full space-y-6">
-                        {promptPage.review_platforms && promptPage.review_platforms.length > 0 ? (
-                          promptPage.review_platforms.map((platform: any, idx: number) => (
-                            <div
-                              key={idx}
-                              className="bg-white rounded-xl shadow-md p-6 border border-gray-200"
-                            >
-                              <div className="flex items-center justify-between mb-4">
-                                <div className="flex items-center gap-3">
-                                  {(() => {
-                                    const { icon: Icon, label } = getPlatformIcon(
-                                      platform.url,
-                                      platform.name
-                                    );
-                                    return (
-                                      <>
-                                        <Icon className="w-6 h-6 text-gray-600" />
-                                        <span className="font-semibold text-lg text-gray-800">
-                                          {platform.name}
-                                        </span>
-                                      </>
-                                    );
-                                  })()}
-                                </div>
-                                <button
-                                  onClick={() => handleCopyAndSubmit(idx, platform.url)}
-                                  disabled={isSubmitting === idx}
-                                  className="px-6 py-3 rounded-lg font-semibold shadow-lg text-white hover:opacity-90 focus:outline-none transition flex items-center gap-2"
-                                  style={{
-                                    backgroundColor: businessProfile.secondary_color || "#818CF8",
-                                  }}
-                                >
-                                  {isSubmitting === idx ? (
-                                    <FiveStarSpinner
-                                      size={18}
-                                      color1="#a5b4fc"
-                                      color2="#6366f1"
-                                    />
-                                  ) : (
-                                    <>
-                                      <FaCopy className="w-4 h-4" />
-                                      Copy & Submit
-                                    </>
-                                  )}
-                                </button>
-                              </div>
-                              
-                              <div className="space-y-3">
-                                <div className="flex gap-3">
-                                  <input
-                                    type="text"
-                                    placeholder="First Name"
-                                    value={reviewerFirstNames[idx] || ""}
-                                    onChange={(e) => handleFirstNameChange(idx, e.target.value)}
-                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none"
-                                  />
-                                  <input
-                                    type="text"
-                                    placeholder="Last Name"
-                                    value={reviewerLastNames[idx] || ""}
-                                    onChange={(e) => handleLastNameChange(idx, e.target.value)}
-                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none"
-                                  />
-                                </div>
-                                
-                                <textarea
-                                  placeholder="Write your review here..."
-                                  value={platformReviewTexts[idx] || ""}
-                                  onChange={(e) => handleReviewTextChange(idx, e.target.value)}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none min-h-[100px]"
-                                />
-                              </div>
-                            </div>
-                          ))
-                        ) : (
-                          <div className="text-center py-8">
-                            <p className="text-gray-500">No review platforms configured for this business.</p>
-                          </div>
-                        )}
-                      </div>
+                      <span className={`font-bold ${getFontClass(businessProfile?.primary_font || "Inter")}`}>Follow on social</span>
+                    </h2>
+                    <div className="flex flex-wrap justify-center md:justify-start gap-6 p-2 w-full">
+                      <SocialMediaIcons
+                        facebook_url={
+                          businessProfile.facebook_url || undefined
+                        }
+                        instagram_url={
+                          businessProfile.instagram_url || undefined
+                        }
+                        bluesky_url={
+                          businessProfile.bluesky_url || undefined
+                        }
+                        tiktok_url={
+                          businessProfile.tiktok_url || undefined
+                        }
+                        youtube_url={
+                          businessProfile.youtube_url || undefined
+                        }
+                        linkedin_url={
+                          businessProfile.linkedin_url || undefined
+                        }
+                        pinterest_url={
+                          businessProfile.pinterest_url || undefined
+                        }
+                        color={businessProfile.primary_color || "#4F46E5"}
+                        onIconClick={async (platform) => {
+                          if (!promptPage?.id) return;
+                          await sendAnalyticsEvent({
+                            promptPageId: promptPage.id,
+                            eventType: "social_click",
+                            platform,
+                          });
+                        }}
+                      />
                     </div>
                   </div>
-                )}
-              
-              {/* Main Content (hidden if feedback form or public review is shown) */}
-              {!(
-                sentimentComplete &&
-                ["neutral", "unsatisfied", "frustrated"].includes(sentiment || "")
-              ) && (
-                <>
-                  {/* Photo + Testimonial Module */}
-                  {(promptPage?.review_type === "photo" ||
-                    promptPage?.review_type === "photo_testimonial") && (
-                    <div className="mb-8 rounded-2xl shadow p-8 animate-slideup relative" style={{
-                      background: businessProfile?.card_bg || "#F9FAFB",
-                      color: businessProfile?.card_text || "#1A1A1A",
-                      position: 'relative'
-                    }}>
-                      {businessProfile?.card_inner_shadow && (
-                        <div
-                          className="pointer-events-none absolute inset-0 rounded-2xl"
-                          style={{
-                            boxShadow: `inset 0 0 32px 0 ${businessProfile.card_shadow_color || '#222222'}${Math.round((businessProfile.card_shadow_intensity || 0.2) * 255).toString(16).padStart(2, '0')}`,
-                            borderRadius: '1rem',
-                            zIndex: 1,
-                          }}
-                        />
-                      )}
-                      <div className="flex items-center mb-8">
-                        <FaCamera
-                          className="w-8 h-8 mr-3"
-                          style={{ color: "#1A237E" }}
-                        />
-                        <h1
-                          className="text-3xl font-bold text-left"
-                          style={{ color: "#1A237E" }}
-                        >
-                          Photo + Testimonial
-                        </h1>
-                      </div>
-                      {photoSuccess ? (
-                        <div className="text-green-600 text-center text-lg font-semibold py-8">
-                          Thank you for your photo and testimonial!
-                        </div>
-                      ) : (
-                        <form
-                          onSubmit={handlePhotoSubmit}
-                          className="flex flex-col gap-6 items-center"
-                        >
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Upload a photo (PNG, JPG, or WebP, max 1MB, will be optimized)
-                          </label>
-                          <div className="flex gap-4">
-                            <button
-                              type="button"
-                              className="px-4 py-2 bg-indigo-600 text-white rounded shadow hover:bg-indigo-700 focus:outline-none"
-                              onClick={() => cameraInputRef.current?.click()}
-                            >
-                              Take Photo
-                            </button>
-                            <button
-                              type="button"
-                              className="px-4 py-2 bg-gray-200 text-gray-800 rounded shadow hover:bg-gray-300 focus:outline-none"
-                              onClick={() => fileInputRef.current?.click()}
-                            >
-                              Upload Photo
-                            </button>
-                          </div>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            capture="environment"
-                            ref={cameraInputRef}
-                            style={{ display: "none" }}
-                            onChange={handlePhotoChange}
-                          />
-                          <input
-                            type="file"
-                            accept="image/*"
-                            ref={fileInputRef}
-                            style={{ display: "none" }}
-                            onChange={handlePhotoChange}
-                          />
-                          <div className="w-full flex flex-col md:flex-row gap-4">
-                            <div className="flex-1 min-w-[200px] max-w-[400px]">
-                              <label
-                                htmlFor="photoReviewerName"
-                                className="block text-sm font-medium text-gray-700"
-                              >
-                                Your Name{" "}
-                                <span className="text-red-500">*</span>
-                              </label>
-                              <input
-                                type="text"
-                                id="photoReviewerName"
-                                value={photoReviewerName}
-                                onChange={(e) =>
-                                  setPhotoReviewerName(e.target.value)
-                                }
-                                placeholder="Ezra C"
-                                className="mt-1 block w-full rounded-lg shadow-md focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
-                                style={{
-                                  background: businessProfile?.card_bg || "#F9FAFB",
-                                  color: businessProfile?.card_text || "#1A1A1A"
-                                }}
-                                required
-                              />
-                            </div>
-                            <div className="flex-1 min-w-[200px] max-w-[400px]">
-                              <label
-                                htmlFor="photoReviewerRole"
-                                className="block text-sm font-medium text-gray-700"
-                              >
-                                Role/Position/Occupation
-                              </label>
-                              <input
-                                type="text"
-                                id="photoReviewerRole"
-                                value={photoReviewerRole}
-                                onChange={(e) =>
-                                  setPhotoReviewerRole(e.target.value)
-                                }
-                                placeholder="Store Manager, GreenSprout Co-Op"
-                                className="mt-1 block w-full rounded-lg shadow-md focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
-                                style={{
-                                  background: businessProfile?.card_bg || "#F9FAFB",
-                                  color: businessProfile?.card_text || "#1A1A1A"
-                                }}
-                              />
-                            </div>
-                          </div>
-                          <textarea
-                            className="w-full rounded-lg border border-gray-300 p-4 min-h-[120px] focus:ring-2 focus:ring-indigo-400"
-                            placeholder="Write your testimonial here..."
-                            value={testimonial}
-                            onChange={(e) => setTestimonial(e.target.value)}
-                            required
-                            style={{
-                              background: businessProfile?.card_bg || "#F9FAFB",
-                              color: businessProfile?.card_text || "#1A1A1A"
-                            }}
-                          />
-                          <div className="flex justify-between w-full gap-2">
-                            <div className="flex items-center gap-2">
-                              <button
-                                type="button"
-                                onClick={handleGeneratePhotoTestimonial}
-                                disabled={aiLoadingPhoto}
-                                className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg hover:bg-gray-50 transition-colors"
-                              >
-                                <FaPenFancy
-                                  style={{
-                                    color:
-                                      businessProfile?.primary_color || "#4F46E5",
-                                  }}
-                                />
-                                <span
-                                  style={{
-                                    color:
-                                      businessProfile?.primary_color || "#4F46E5",
-                                  }}
-                                >
-                                  {aiLoadingPhoto
-                                    ? "Generating..."
-                                    : "Generate with AI"}
-                                </span>
-                              </button>
-                              <span className="text-sm text-gray-500">
-                                {3 - aiRewriteCounts[0]}/3
-                              </span>
-                            </div>
-                            <button
-                              type="submit"
-                              className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg hover:bg-gray-50 transition-colors"
-                              style={{
-                                color:
-                                  businessProfile?.primary_color || "#4F46E5",
-                              }}
-                              disabled={photoSubmitting}
-                              title="Copies your review and takes you to review site"
-                            >
-                              {photoSubmitting ? (
-                                <span className="flex items-center justify-center">
-                                  <FiveStarSpinner
-                                    size={18}
-                                    color1="#a5b4fc"
-                                    color2="#6366f1"
-                                  />
-                                </span>
-                              ) : (
-                                "Submit"
-                              )}
-                            </button>
-                          </div>
-                          {photoError && (
-                            <div className="text-red-500 text-sm">
-                              {photoError}
-                            </div>
-                          )}
-                        </form>
-                      )}
-                    </div>
-                  )}
-                  {/* Personalized Note */}
-                  {promptPage?.show_friendly_note &&
-                    promptPage?.friendly_note &&
-                    !promptPage?.is_universal &&
-                    showPersonalNote &&
-                    canShowPersonalNote && (
-                      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fadein">
-                        <div className="bg-white rounded-lg p-6 max-w-lg mx-4 relative animate-slideup">
-                          <button
-                            className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 focus:outline-none"
-                            onClick={() => setShowPersonalNote(false)}
-                            aria-label="Close note"
-                          >
-                            ×
-                          </button>
-                          <div className="text-gray-900 text-base">
-                            {promptPage.friendly_note}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  {/* Review Platforms Section */}
-                  {Array.isArray(promptPage?.review_platforms) &&
-                    promptPage.review_platforms.length > 0 && (
-                      <div className="mb-8">
-                        <div className="flex flex-col gap-8">
-                          {promptPage.review_platforms.map((platform: any, idx: number) => {
-                            const { icon: Icon, label } = getPlatformIcon(
-                              platform.url,
-                              platform.platform || platform.name,
-                            );
-                            const isUniversal = !!promptPage.is_universal;
-                            const isAccordion = promptPage.review_platforms.length >= 3;
-                            const isOpen = !isAccordion || openPlatforms.includes(idx);
-                            return (
-                              <div
-                                key={idx}
-                                className="relative rounded-xl shadow p-4 pt-8 flex flex-col items-start border border-gray-100 animate-slideup"
-                                style={{ 
-                                  animationDelay: `${300 + idx * 100}ms`,
-                                  background: businessProfile?.card_bg || "#F9FAFB",
-                                  color: businessProfile?.card_text || "#1A1A1A",
-                                  position: 'relative'
-                                }}
-                              >
-                                {businessProfile?.card_inner_shadow && (
-                                  <div
-                                    className="pointer-events-none absolute inset-0 rounded-xl"
-                                    style={{
-                                      boxShadow: `inset 0 0 32px 0 ${businessProfile.card_shadow_color || '#222222'}${Math.round((businessProfile.card_shadow_intensity || 0.2) * 255).toString(16).padStart(2, '0')}`,
-                                      borderRadius: '0.75rem',
-                                      zIndex: 1,
-                                    }}
-                                  />
-                                )}
-                                {/* Icon in top-left corner */}
-                                <div
-                                  className="absolute -top-4 -left-4 rounded-full shadow p-2 flex items-center justify-center"
-                                  title={label}
-                                  style={{ 
-                                    zIndex: 100, 
-                                    backgroundColor: businessProfile?.card_bg || '#ffffff',
-                                    border: `2px solid ${businessProfile?.card_bg || '#ffffff'}`
-                                  }}
-                                >
-                                  <Icon
-                                    className="w-7 h-7"
-                                    style={{ color: businessProfile?.primary_color || "#4F46E5" }}
-                                  />
-                                </div>
-                                {/* Accordion header */}
-                                <div
-                                  className="flex items-center mb-4 mt-0 cursor-pointer w-full"
-                                  onClick={() => {
-                                    if (!isAccordion) return;
-                                    setOpenPlatforms((prev) =>
-                                      prev.includes(idx)
-                                        ? prev.filter((i) => i !== idx)
-                                        : [...prev, idx]
-                                    );
-                                  }}
-                                  style={{ userSelect: "none" }}
-                                >
-                                  <div
-                                    className={`text-2xl font-bold ${getFontClass(businessProfile?.primary_font)}`}
-                                    style={{ color: businessProfile?.primary_color || "#4F46E5", marginTop: "-5px", marginLeft: "4px" }}
-                                  >
-                                    Leave a review on {(platform.platform || platform.name) === "Google Business Profile" ? "Google" : (platform.platform || platform.name) === "Other" && platform.customPlatform ? platform.customPlatform : (platform.platform || platform.name)}
-                                  </div>
-                                  <div className="flex-1" />
-                                  {isAccordion && (
-                                    <span className="text-lg flex items-center justify-end" style={{ color: businessProfile?.primary_color || "#4F46E5" }}>
-                                      {/* Chevron icon: right when closed, down when open */}
-                                      <svg
-                                        width="24"
-                                        height="24"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        style={{ display: 'inline', verticalAlign: 'middle', transition: 'transform 0.2s', transform: isOpen ? 'rotate(-90deg)' : 'rotate(0deg)' }}
-                                      >
-                                        <path d="M16 5l-8 7 8 7" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-                                      </svg>
-                                    </span>
-                                  )}
-                                </div>
-                                {/* Only render the rest if open */}
-                                {isOpen && (
-                                  <>
-                                    {/* Popup for custom instructions */}
-                                    {openInstructionsIdx === idx &&
-                                      platform.customInstructions &&
-                                      platform.customInstructions.trim() && (
-                                        <div
-                                          className="absolute z-50 left-1/2 -translate-x-1/2 top-10 bg-white border border-yellow-300 rounded shadow-lg p-4 text-yellow-900 text-sm max-w-xs w-max animate-fadein"
-                                          style={{ minWidth: 220 }}
-                                        >
-                                          <div className="flex justify-between items-center mb-2">
-                                            <span className="font-semibold">Instructions</span>
-                                            <button
-                                              type="button"
-                                              className="text-gray-400 hover:text-gray-700 ml-2"
-                                              onClick={() => setOpenInstructionsIdx(null)}
-                                              aria-label="Close instructions"
-                                            >
-                                              ×
-                                            </button>
-                                          </div>
-                                          <div>{platform.customInstructions}</div>
-                                        </div>
-                                      )}
-                                    <div className="flex flex-col md:flex-row gap-4 mb-2 w-full">
-                                      <div className="flex-1 min-w-[150px] max-w-[200px]">
-                                        <label
-                                          htmlFor={`reviewerFirstName-${idx}`}
-                                          className="block text-sm font-medium text-gray-700"
-                                        >
-                                          First Name{" "}
-                                          <span className="text-red-500">*</span>
-                                        </label>
-                                        <input
-                                          type="text"
-                                          id={`reviewerFirstName-${idx}`}
-                                          value={reviewerFirstNames[idx]}
-                                          onChange={(e) =>
-                                            handleFirstNameChange(
-                                              idx,
-                                              e.target.value,
-                                            )
-                                          }
-                                          placeholder="Ezra"
-                                          className="w-full mt-1 mb-2 p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                          style={{
-                                            background: businessProfile?.card_bg || "#F9FAFB",
-                                            color: businessProfile?.card_text || "#1A1A1A"
-                                          }}
-                                          required
-                                        />
-                                      </div>
-                                      <div className="flex-1 min-w-[150px] max-w-[200px]">
-                                        <label
-                                          htmlFor={`reviewerLastName-${idx}`}
-                                          className="block text-sm font-medium text-gray-700"
-                                        >
-                                          Last Name{" "}
-                                          <span className="text-red-500">*</span>
-                                        </label>
-                                        <input
-                                          type="text"
-                                          id={`reviewerLastName-${idx}`}
-                                          value={reviewerLastNames[idx]}
-                                          onChange={(e) =>
-                                            handleLastNameChange(
-                                              idx,
-                                              e.target.value,
-                                            )
-                                          }
-                                          placeholder="Scout"
-                                          className="w-full mt-1 mb-2 p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                          style={{
-                                            background: businessProfile?.card_bg || "#F9FAFB",
-                                            color: businessProfile?.card_text || "#1A1A1A"
-                                          }}
-                                          required
-                                        />
-                                      </div>
-                                      <div className="flex-1 min-w-[200px] max-w-[400px]">
-                                        <label
-                                          htmlFor={`reviewerRole-${idx}`}
-                                          className="block text-sm font-medium text-gray-700"
-                                        >
-                                          Role/Position/Occupation
-                                        </label>
-                                        <input
-                                          type="text"
-                                          id={`reviewerRole-${idx}`}
-                                          value={reviewerRoles[idx]}
-                                          onChange={(e) =>
-                                            setReviewerRoles((roles) =>
-                                              roles.map((r, i) =>
-                                                i === idx ? e.target.value : r,
-                                              ),
-                                            )
-                                          }
-                                          placeholder="Store Manager, GreenSprout Co-Op"
-                                          className="w-full mt-1 mb-2 p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                          style={{
-                                            background: businessProfile?.card_bg || "#F9FAFB",
-                                            color: businessProfile?.card_text || "#1A1A1A"
-                                          }}
-                                        />
-                                      </div>
-                                    </div>
-                                    <textarea
-                                      className="w-full mt-2 mb-4 p-4 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                                      placeholder="Write your review here..."
-                                      value={
-                                        isUniversal
-                                          ? platformReviewTexts[idx] || ""
-                                          : platformReviewTexts[idx] || ""
-                                      }
-                                      onChange={(e) =>
-                                        handleReviewTextChange(
-                                          idx,
-                                          e.target.value,
-                                        )
-                                      }
-                                      rows={5}
-                                      style={{
-                                        background: businessProfile?.card_bg || "#F9FAFB",
-                                        color: businessProfile?.card_text || "#1A1A1A"
-                                      }}
-                                    />
-                                    {submitError && (
-                                      <div className="text-red-500 text-sm mb-2">
-                                        {submitError}
-                                      </div>
-                                    )}
-                                    <div className="flex justify-between w-full">
-                                      {aiButtonEnabled && (
-                                        <div className="flex items-center gap-2">
-                                          <button
-                                            onClick={() => handleRewriteWithAI(idx)}
-                                            disabled={aiLoading === idx || aiRewriteCounts[idx] >= 3}
-                                            className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg hover:bg-gray-50 transition-colors"
-                                            type="button"
-                                          >
-                                            <FaPenFancy
-                                              style={{
-                                                color:
-                                                  businessProfile?.primary_color ||
-                                                  "#4F46E5",
-                                              }}
-                                            />
-                                            <span
-                                              style={{
-                                                color:
-                                                  businessProfile?.primary_color ||
-                                                  "#4F46E5",
-                                              }}
-                                            >
-                                              {aiLoading === idx
-                                                ? "Generating..."
-                                                : "Generate with AI"}
-                                            </span>
-                                          </button>
-                                          <span className="text-sm text-gray-500">
-                                            {3 - aiRewriteCounts[0]}/3
-                                          </span>
-                                        </div>
-                                      )}
-                                      <button
-                                        onClick={() =>
-                                          handleCopyAndSubmit(idx, platform.url)
-                                        }
-                                        className="px-4 py-2 text-white rounded hover:opacity-90 transition-colors"
-                                        style={{
-                                          backgroundColor:
-                                            businessProfile?.secondary_color ||
-                                            "#4F46E5",
-                                        }}
-                                        disabled={isSubmitting === idx}
-                                        type="button"
-                                        title="Copies your review and takes you to review site"
-                                      >
-                                        {isSubmitting === idx ? (
-                                          <span className="flex items-center justify-center">
-                                            <FiveStarSpinner
-                                              size={18}
-                                              color1="#a5b4fc"
-                                              color2="#6366f1"
-                                            />
-                                          </span>
-                                        ) : (
-                                          "Copy & Submit"
-                                        )}
-                                      </button>
-                                    </div>
-                                  </>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-                  {/* Website and Social Media Card */}
-                  {(businessProfile?.facebook_url ||
-                    businessProfile?.instagram_url ||
-                    businessProfile?.bluesky_url ||
-                    businessProfile?.tiktok_url ||
-                    businessProfile?.youtube_url ||
-                    businessProfile?.linkedin_url ||
-                    businessProfile?.pinterest_url) && (
-                    <div className="mb-8 rounded-2xl shadow p-8 animate-slideup" style={{
-                      background: businessProfile?.card_bg || "#F9FAFB",
-                      color: businessProfile?.card_text || "#1A1A1A"
-                    }}>
-                      <div className="flex flex-col md:flex-row gap-8 w-full">
-                        {/* Website Section (left column) */}
-                        {businessProfile?.business_website && (
-                          <div className="flex-1 flex flex-col justify-start text-center md:text-left md:max-w-[320px] md:pr-4 border-b md:border-b-0 md:border-r border-gray-200 mb-8 md:mb-0">
-                            <h2
-                              className={`text-2xl font-bold mt-0 mb-6 ${businessProfile?.primary_font || "font-inter"}`}
-                              style={{
-                                color: businessProfile?.primary_color || "#4F46E5",
-                              }}
-                            >
-                              <span className={`font-bold ${getFontClass(businessProfile?.primary_font || "Inter")}`}>Visit our website</span>
-                            </h2>
-                            <a
-                              href={businessProfile.business_website}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-block text-xl font-medium hover:opacity-80 transition-opacity"
-                              style={{
-                                color:
-                                  businessProfile?.primary_color || "#4F46E5",
-                              }}
-                              onClick={async () => {
-                                if (!promptPage?.id) return;
-                                await sendAnalyticsEvent({
-                                  promptPageId: promptPage.id,
-                                  eventType: "website_click",
-                                  platform: "website",
-                                });
-                              }}
-                            >
-                              {businessProfile.business_website.replace(
-                                /^https?:\/\//,
-                                "",
-                              )}
-                            </a>
-                          </div>
-                        )}
-                        {/* Social Media Section (right column, wider) */}
-                        <div className="flex-[1.5] flex flex-col justify-start text-center md:text-left w-full md:pl-8">
-                          <h2
-                            className={`text-2xl font-bold mt-0 mb-6 text-center md:text-left ${businessProfile?.primary_font || "font-inter"}`}
-                            style={{
-                              color: businessProfile?.primary_color || "#4F46E5",
-                            }}
-                          >
-                            <span className={`font-bold ${getFontClass(businessProfile?.primary_font || "Inter")}`}>Follow on social</span>
-                          </h2>
-                          <div className="flex flex-wrap justify-center md:justify-start gap-6 p-2 w-full">
-                            <SocialMediaIcons
-                              facebook_url={
-                                businessProfile.facebook_url || undefined
-                              }
-                              instagram_url={
-                                businessProfile.instagram_url || undefined
-                              }
-                              bluesky_url={
-                                businessProfile.bluesky_url || undefined
-                              }
-                              tiktok_url={
-                                businessProfile.tiktok_url || undefined
-                              }
-                              youtube_url={
-                                businessProfile.youtube_url || undefined
-                              }
-                              linkedin_url={
-                                businessProfile.linkedin_url || undefined
-                              }
-                              pinterest_url={
-                                businessProfile.pinterest_url || undefined
-                              }
-                              color={businessProfile.primary_color || "#4F46E5"}
-                              onIconClick={async (platform) => {
-                                if (!promptPage?.id) return;
-                                await sendAnalyticsEvent({
-                                  promptPageId: promptPage.id,
-                                  eventType: "social_click",
-                                  platform,
-                                });
-                              }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
-
+                </div>
+              </div>
               {/* PromptReviews Advertisement (always visible) */}
               <div
                 className="mt-12 mb-12 rounded-2xl shadow p-4 md:p-8 animate-slideup"
