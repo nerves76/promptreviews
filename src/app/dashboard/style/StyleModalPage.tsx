@@ -252,6 +252,9 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
           gradient_end: settings.gradient_end,
           card_bg: settings.card_bg,
           card_text: settings.card_text,
+          card_inner_shadow: settings.card_inner_shadow,
+          card_shadow_color: settings.card_shadow_color,
+          card_shadow_intensity: settings.card_shadow_intensity,
         })
         .eq("account_id", accountId);
       
