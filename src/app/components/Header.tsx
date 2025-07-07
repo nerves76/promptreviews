@@ -62,10 +62,14 @@ export default function Header() {
           return;
         }
         if (user) {
-          console.log('Header: User found:', user.id);
+          if (process.env.NODE_ENV === 'development') {
+            console.log('Header: User found:', user.id);
+          }
           setUser(user);
         } else {
-          console.log('Header: No user found');
+          if (process.env.NODE_ENV === 'development') {
+            console.log('Header: No user found');
+          }
           setUser(null);
         }
       } catch (error) {
@@ -78,7 +82,9 @@ export default function Header() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Header: Auth state changed:', event, session?.user?.id);
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Header: Auth state changed:', event, session?.user?.id);
+        }
         setUser(session?.user || null);
       }
     );

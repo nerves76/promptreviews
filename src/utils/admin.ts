@@ -18,19 +18,27 @@ export async function isAdmin(userId?: string, supabaseClient?: any): Promise<bo
     
     if (!userToCheck) {
       const { data: { user }, error: authError } = await client.auth.getUser();
-      console.log('isAdmin: Auth check result:', { user: user?.id, error: authError?.message });
+      if (process.env.NODE_ENV === 'development') {
+        console.log('isAdmin: Auth check result:', { user: user?.id, error: authError?.message });
+      }
       if (authError) {
-        console.log('isAdmin: Auth error, returning false:', authError.message);
+        if (process.env.NODE_ENV === 'development') {
+          console.log('isAdmin: Auth error, returning false:', authError.message);
+        }
         return false;
       }
       if (!user) {
-        console.log('isAdmin: No user found, returning false');
+        if (process.env.NODE_ENV === 'development') {
+          console.log('isAdmin: No user found, returning false');
+        }
         return false;
       }
       userToCheck = user.id;
     }
 
-    console.log('isAdmin: Checking admin status for user ID:', userToCheck);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('isAdmin: Checking admin status for user ID:', userToCheck);
+    }
     
     // Simple query: Check is_admin column in accounts table
     const { data: account, error } = await client
@@ -39,7 +47,9 @@ export async function isAdmin(userId?: string, supabaseClient?: any): Promise<bo
       .eq('id', userToCheck)
       .maybeSingle();
 
-    console.log('isAdmin: Query result:', { isAdmin: account?.is_admin, error: error?.message });
+    if (process.env.NODE_ENV === 'development') {
+      console.log('isAdmin: Query result:', { isAdmin: account?.is_admin, error: error?.message });
+    }
     
     if (error) {
       console.error('isAdmin: Database error:', {
@@ -53,7 +63,9 @@ export async function isAdmin(userId?: string, supabaseClient?: any): Promise<bo
     }
     
     const isAdminUser = !!(account?.is_admin);
-    console.log('isAdmin: Final result:', isAdminUser);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('isAdmin: Final result:', isAdminUser);
+    }
     return isAdminUser;
     
   } catch (error) {

@@ -300,7 +300,9 @@ export default function Dashboard() {
     // Redirect to create-business if user has no plan and no businesses (bypassed onboarding)
     // BUT: Skip redirect for team members - they use the team account and shouldn't create their own business
     if ((!plan || plan === 'no_plan' || plan === 'NULL') && businessCount === 0) {
-      console.log('🔄 Onboarding incomplete: Checking if user is team member...');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🔄 Onboarding incomplete: Checking if user is team member...');
+      }
       
       // Check if user is a team member by looking at their account relationships
       const checkIfTeamMember = async () => {
@@ -312,23 +314,29 @@ export default function Dashboard() {
           
           const isTeamMember = accountUsers?.some(au => au.role === 'member');
           
-          console.log('🔍 Team member check:', { 
-            isTeamMember, 
-            roles: accountUsers?.map(au => au.role) 
-          });
+          if (process.env.NODE_ENV === 'development') {
+            console.log('🔍 Team member check:', { 
+              isTeamMember, 
+              roles: accountUsers?.map(au => au.role) 
+            });
+          }
           
           if (isTeamMember) {
-            console.log('👥 User is team member, skipping create-business redirect');
+            if (process.env.NODE_ENV === 'development') {
+              console.log('👥 User is team member, skipping create-business redirect');
+            }
             return;
           }
           
           // Only redirect individual users (not team members) to create-business
-          console.log('🔄 Individual user with incomplete onboarding: Redirecting to create-business');
-          console.log('🔍 Onboarding redirect debug:', {
-            plan,
-            businessCount,
-            reason: 'Individual user - no plan and no businesses'
-          });
+          if (process.env.NODE_ENV === 'development') {
+            console.log('🔄 Individual user with incomplete onboarding: Redirecting to create-business');
+            console.log('🔍 Onboarding redirect debug:', {
+              plan,
+              businessCount,
+              reason: 'Individual user - no plan and no businesses'
+            });
+          }
           router.push('/dashboard/create-business');
         } catch (error) {
           console.error('Error checking team membership:', error);
@@ -366,18 +374,20 @@ export default function Dashboard() {
       (plan === "grower" && isTrialExpired && !hasStripeCustomer);
     
     // Add comprehensive logging for debugging
-    console.log('🔍 Enhanced plan selection debug:', {
-      accountPlan: plan,
-      businessCount: businessCount,
-      trialEnd: trialEnd,
-      isTrialExpired,
-      hasStripeCustomer,
-      isPaidUser,
-      shouldShowModal: shouldShowPricingModal,
-      isPlanSelectionRequired: !!isPlanSelectionRequired,
-      businessCreatedParam: typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("businessCreated") : null,
-      onboardingComplete: businessCount > 0 && plan && plan !== 'no_plan' && plan !== 'NULL'
-    });
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔍 Enhanced plan selection debug:', {
+        accountPlan: plan,
+        businessCount: businessCount,
+        trialEnd: trialEnd,
+        isTrialExpired,
+        hasStripeCustomer,
+        isPaidUser,
+        shouldShowModal: shouldShowPricingModal,
+        isPlanSelectionRequired: !!isPlanSelectionRequired,
+        businessCreatedParam: typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("businessCreated") : null,
+        onboardingComplete: businessCount > 0 && plan && plan !== 'no_plan' && plan !== 'NULL'
+      });
+    }
     
     setPlanSelectionRequired(!!isPlanSelectionRequired);
     setShowPricingModal(!!shouldShowPricingModal);
