@@ -57,6 +57,8 @@ import {
   FaSign,
   FaSpinner,
   FaSearch,
+  FaLeaf,
+  FaTree,
 } from "react-icons/fa";
 import { IconType } from "react-icons";
 
@@ -80,11 +82,10 @@ export const FALLING_STARS_ICONS: {
   { key: "bolt", label: "Lightning", icon: FaBolt, color: "text-blue-500", category: "General" },
   { key: "fire", label: "Fire", icon: FaFire, color: "text-orange-500", category: "General" },
   { key: "sun", label: "Sun", icon: FaSun, color: "text-yellow-400", category: "General" },
-  { key: "moon", label: "Moon", icon: FaMoon, color: "text-indigo-500", category: "General" },
+  { key: "moon", label: "Moon", icon: FaMoon, color: "text-yellow-400", category: "General" },
   { key: "peace", label: "Peace Sign", icon: FaPeace, color: "text-green-600", category: "General" },
   { key: "gem", label: "Diamond/Gem", icon: FaGem, color: "text-purple-500", category: "General" },
   { key: "trophy", label: "Trophy", icon: FaTrophy, color: "text-yellow-600", category: "General" },
-  { key: "seedling", label: "Flowers", icon: FaSeedling, color: "text-green-500", category: "General" },
   { key: "snowflake", label: "Snowflake", icon: FaSnowflake, color: "text-blue-400", category: "General" },
   { key: "gift", label: "Gifts", icon: FaGift, color: "text-pink-500", category: "General" },
   { key: "camera", label: "Camera", icon: FaCamera, color: "text-teal-500", category: "General" },
@@ -101,11 +102,14 @@ export const FALLING_STARS_ICONS: {
   { key: "pepper", label: "Hot Pepper", icon: FaPepperHot, color: "text-red-600", category: "Food & Beverage" },
   { key: "flask", label: "Flask", icon: FaFlask, color: "text-blue-500", category: "Food & Beverage" },
   
-  // Pets & Animals
-  { key: "cat", label: "Cat", icon: FaCat, color: "text-orange-400", category: "Pets & Animals" },
-  { key: "dog", label: "Dog", icon: FaDog, color: "text-amber-500", category: "Pets & Animals" },
-  { key: "feather", label: "Feather", icon: FaFeather, color: "text-blue-300", category: "Pets & Animals" },
-  { key: "cannabis", label: "Cannabis", icon: FaCannabis, color: "text-green-600", category: "Pets & Animals" },
+  // Plants & animals
+  { key: "cat", label: "Cat", icon: FaCat, color: "text-orange-400", category: "Plants & animals" },
+  { key: "dog", label: "Dog", icon: FaDog, color: "text-amber-500", category: "Plants & animals" },
+  { key: "feather", label: "Feather", icon: FaFeather, color: "text-blue-300", category: "Plants & animals" },
+  { key: "cannabis", label: "Cannabis", icon: FaCannabis, color: "text-green-600", category: "Plants & animals" },
+  { key: "seedling", label: "Seedling", icon: FaSeedling, color: "text-green-500", category: "Plants & animals" },
+  { key: "leaf", label: "Leaf", icon: FaLeaf, color: "text-green-400", category: "Plants & animals" },
+  { key: "tree", label: "Tree", icon: FaTree, color: "text-green-700", category: "Plants & animals" },
   
   // Tools & Services
   { key: "wrench", label: "Wrench", icon: FaWrench, color: "text-blue-600", category: "Tools & Services" },
