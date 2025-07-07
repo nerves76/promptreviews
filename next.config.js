@@ -33,12 +33,6 @@ const nextConfig = {
       config.devtool = 'eval-source-map';
     }
     
-    if (isServer) {
-      // External packages for server-side rendering
-      config.externals = config.externals || [];
-      // Remove the conflicting external package configuration
-    }
-    
     // Optimize bundle splitting
     config.optimization = {
       ...config.optimization,
