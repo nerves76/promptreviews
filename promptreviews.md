@@ -1377,3 +1377,22 @@ The complete onboarding experience now works seamlessly from authentication thro
 - **Session Timing**: Optimized and reliable
 
 This modernization resolves all remaining authentication issues and establishes a solid foundation for the application's authentication system.
+
+# PromptReviews - Get More Reviews
+
+## Recent Updates
+
+### Authentication & Onboarding Flow Fix (January 2025)
+
+✅ **FIXED**: Users getting stuck on account page without proper onboarding
+- Added centralized onboarding flow logic to dashboard layout
+- Users without businesses are automatically redirected to create-business page
+- Users without plans are automatically redirected to plan selection page
+- Prevents users from accessing dashboard pages until onboarding is complete
+- Single implementation point eliminates code duplication
+
+✅ **FIXED**: Authentication login issues  
+- Fixed sign-in page to use direct Supabase client authentication
+- Removed problematic API route causing session cookie issues
+- Authentication now properly establishes session cookies for persistent login
+- Users can now successfully log in and access the application
