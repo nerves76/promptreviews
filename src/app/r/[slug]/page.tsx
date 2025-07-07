@@ -1400,7 +1400,10 @@ export default function PromptPage() {
                   className="absolute left-1/2 -translate-x-1/2 w-52 h-52 aspect-square flex items-center justify-center mb-10"
                   style={{ pointerEvents: "none", top: "-100px" }}
                 >
-                  <div className="bg-white rounded-full p-1 shadow-lg flex items-center justify-center w-full h-full aspect-square">
+                  <div 
+                    className="rounded-full p-1 shadow-lg flex items-center justify-center w-full h-full aspect-square"
+                    style={{ backgroundColor: businessProfile?.card_bg || '#ffffff' }}
+                  >
                     {businessProfile?.logo_url ? (
                       <img
                         src={businessProfile.logo_url}
