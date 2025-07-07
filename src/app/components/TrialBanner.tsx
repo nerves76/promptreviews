@@ -26,7 +26,9 @@ export default function TrialBanner({
   // Use accountData if provided, otherwise use props
   useEffect(() => {
     if (accountData) {
-      console.log("TrialBanner: Using accountData from props:", accountData);
+      if (process.env.NODE_ENV === 'development') {
+        console.log("TrialBanner: Using accountData from props:", accountData);
+      }
       if (accountData.trial_end) {
         setTrialEnd(new Date(accountData.trial_end));
       }
@@ -34,18 +36,24 @@ export default function TrialBanner({
         setPlan(accountData.plan);
       }
     } else if (propTrialEnd && propPlan) {
-      console.log("TrialBanner: Using trial end and plan from props");
+      if (process.env.NODE_ENV === 'development') {
+        console.log("TrialBanner: Using trial end and plan from props");
+      }
       setTrialEnd(propTrialEnd);
       setPlan(propPlan);
     } else {
-      console.log("TrialBanner: No account data provided");
+      if (process.env.NODE_ENV === 'development') {
+        console.log("TrialBanner: No account data provided");
+      }
     }
   }, [accountData, propTrialEnd, propPlan]);
 
   // Calculate time remaining
   useEffect(() => {
     if (!trialEnd) {
-      console.log("TrialBanner: No trial end date, skipping time calculation");
+      if (process.env.NODE_ENV === 'development') {
+        console.log("TrialBanner: No trial end date, skipping time calculation");
+      }
       return;
     }
 
@@ -77,7 +85,9 @@ export default function TrialBanner({
   const shouldShow = () => {
     // Check if user dismissed the banner
     const hideBanner = sessionStorage.getItem('hideTrialBanner');
-    console.log("TrialBanner: Checked sessionStorage, hideBanner:", hideBanner);
+    if (process.env.NODE_ENV === 'development') {
+      console.log("TrialBanner: Checked sessionStorage, hideBanner:", hideBanner);
+    }
     
     if (hideBanner === 'true') {
       return false;
@@ -88,11 +98,15 @@ export default function TrialBanner({
     
     // If we have account data, use it
     if (accountData) {
-      console.log("TrialBanner: Using accountData for plan check:", accountData.plan);
+      if (process.env.NODE_ENV === 'development') {
+        console.log("TrialBanner: Using accountData for plan check:", accountData.plan);
+      }
       
       // Never show banner for paid plans
       if (paidPlans.includes(accountData.plan)) {
-        console.log("TrialBanner: User is on paid plan, hiding banner");
+        if (process.env.NODE_ENV === 'development') {
+          console.log("TrialBanner: User is on paid plan, hiding banner");
+        }
         return false;
       }
       
@@ -100,40 +114,54 @@ export default function TrialBanner({
       if (!accountData.plan || accountData.plan === 'grower') {
         // Check if trial hasn't expired
         if (accountData.trial_end && new Date() < new Date(accountData.trial_end)) {
-          console.log("TrialBanner: Trial is active, showing banner");
+          if (process.env.NODE_ENV === 'development') {
+            console.log("TrialBanner: Trial is active, showing banner");
+          }
           return true;
         }
         
         // For grower plan without trial dates, show banner (they might be in trial)
         if (accountData.plan === 'grower' && !accountData.trial_end) {
-          console.log("TrialBanner: Grower plan without trial dates, showing banner");
+          if (process.env.NODE_ENV === 'development') {
+            console.log("TrialBanner: Grower plan without trial dates, showing banner");
+          }
           return true;
         }
         
         // For users with no plan, show banner
         if (!accountData.plan) {
-          console.log("TrialBanner: No plan set, showing banner");
+          if (process.env.NODE_ENV === 'development') {
+            console.log("TrialBanner: No plan set, showing banner");
+          }
           return true;
         }
       }
     } else if (plan) {
       // Fallback to props if no account data
-      console.log("TrialBanner: Using plan prop for trial check:", plan);
+      if (process.env.NODE_ENV === 'development') {
+        console.log("TrialBanner: Using plan prop for trial check:", plan);
+      }
       
       // Never show banner for paid plans
       if (paidPlans.includes(plan)) {
-        console.log("TrialBanner: Paid plan from props, hiding banner");
+        if (process.env.NODE_ENV === 'development') {
+          console.log("TrialBanner: Paid plan from props, hiding banner");
+        }
         return false;
       }
       
       // Show if trial hasn't expired for grower plan
       if (plan === 'grower' && trialEnd && new Date() < trialEnd) {
-        console.log("TrialBanner: Trial is active (from props), showing banner");
+        if (process.env.NODE_ENV === 'development') {
+          console.log("TrialBanner: Trial is active (from props), showing banner");
+        }
         return true;
       }
     }
 
-    console.log("TrialBanner: Not showing banner - conditions not met");
+    if (process.env.NODE_ENV === 'development') {
+      console.log("TrialBanner: Not showing banner - conditions not met");
+    }
     return false;
   };
 
@@ -142,19 +170,23 @@ export default function TrialBanner({
     sessionStorage.setItem('hideTrialBanner', 'true');
   };
 
-  console.log("TrialBanner: Render conditions:", {
-    isVisible,
-    trialEnd: !!trialEnd,
-    plan: !!plan,
-    timeRemaining,
-    shouldShow: shouldShow(),
-    accountData: !!accountData,
-    propTrialEnd: !!propTrialEnd,
-    propPlan: !!propPlan
-  });
+  if (process.env.NODE_ENV === 'development') {
+    console.log("TrialBanner: Render conditions:", {
+      isVisible,
+      trialEnd: !!trialEnd,
+      plan: !!plan,
+      timeRemaining,
+      shouldShow: shouldShow(),
+      accountData: !!accountData,
+      propTrialEnd: !!propTrialEnd,
+      propPlan: !!propPlan
+    });
+  }
 
   if (!isVisible || !shouldShow()) {
-    console.log("TrialBanner: Not showing banner");
+    if (process.env.NODE_ENV === 'development') {
+      console.log("TrialBanner: Not showing banner");
+    }
     return null;
   }
 

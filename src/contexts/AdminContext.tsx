@@ -51,7 +51,9 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
       const { data: { user }, error } = await getUserOrMock(supabase);
       
       if (error || !user) {
-        console.log('AdminContext: No user found');
+        if (process.env.NODE_ENV === 'development') {
+          console.log('AdminContext: No user found');
+        }
         setIsAdminUser(false);
         setIsLoading(false);
         return;
@@ -62,10 +64,14 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
         await ensureAdminForEmail({ id: user.id, email: user.email }, supabase);
       }
 
-      console.log('AdminContext: Checking admin status for user:', user.id);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('AdminContext: Checking admin status for user:', user.id);
+      }
       
       const adminStatus = await isAdmin(user.id, supabase);
-      console.log('AdminContext: Admin status result:', adminStatus);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('AdminContext: Admin status result:', adminStatus);
+      }
       
       setIsAdminUser(adminStatus);
       setLastCheck(now);
@@ -92,7 +98,9 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('AdminContext: Auth state changed:', event, session?.user?.id);
+        if (process.env.NODE_ENV === 'development') {
+          console.log('AdminContext: Auth state changed:', event, session?.user?.id);
+        }
         
         if (event === 'SIGNED_IN' && session?.user) {
           // Force refresh admin status on sign in

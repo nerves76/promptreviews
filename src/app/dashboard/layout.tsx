@@ -36,7 +36,9 @@ export default function DashboardLayout({
       const accountId = await getAccountIdForUser(userId, supabase);
       
       if (!accountId) {
-        console.log("DashboardLayout: No account found for user:", userId);
+        if (process.env.NODE_ENV === 'development') {
+          console.log("DashboardLayout: No account found for user:", userId);
+        }
         return;
       }
 
@@ -46,8 +48,10 @@ export default function DashboardLayout({
         .eq('id', accountId)
         .single();
       
-      console.log("DashboardLayout: Fetched account data:", account);
-      if (accountError) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log("DashboardLayout: Fetched account data:", account);
+      }
+      if (accountError && process.env.NODE_ENV === 'development') {
         console.log("DashboardLayout: Account error:", accountError);
       }
       setAccountData(account);
@@ -94,14 +98,18 @@ export default function DashboardLayout({
   // Listen for plan selection events to refresh account data
   useEffect(() => {
     const handlePlanSelection = async () => {
-      console.log("DashboardLayout: Plan selection detected, refreshing account data");
+      if (process.env.NODE_ENV === 'development') {
+        console.log("DashboardLayout: Plan selection detected, refreshing account data");
+      }
       if (user) {
         await fetchAccountData(user.id);
       }
     };
 
     const handleBusinessCreated = async () => {
-      console.log("DashboardLayout: Business created detected, refreshing account data");
+      if (process.env.NODE_ENV === 'development') {
+        console.log("DashboardLayout: Business created detected, refreshing account data");
+      }
       if (user) {
         await fetchAccountData(user.id);
       }
