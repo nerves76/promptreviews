@@ -30,6 +30,54 @@ export default function DashboardLayout({
     setIsClient(true);
   }, []);
 
+  const checkOnboardingStatus = useCallback(async (userId: string, accountId: string) => {
+    try {
+      // Don't redirect if already on onboarding pages
+      const currentPath = window.location.pathname;
+      const onboardingPaths = ['/dashboard/create-business', '/dashboard/plan'];
+      
+      if (onboardingPaths.some(path => currentPath.includes(path))) {
+        return;
+      }
+
+      // Check if user has created a business
+      const { data: businesses, error: businessError } = await supabase
+        .from('businesses')
+        .select('id')
+        .eq('account_id', accountId)
+        .limit(1);
+
+      if (businessError) {
+        console.error("Error checking businesses:", businessError);
+        return;
+      }
+
+      // If no business, redirect to create business
+      if (!businesses || businesses.length === 0) {
+        console.log("DashboardLayout: No business found, redirecting to create business");
+        router.push("/dashboard/create-business");
+        return;
+      }
+
+      // Check if user has selected a plan
+      const { data: account } = await supabase
+        .from('accounts')
+        .select('plan')
+        .eq('id', accountId)
+        .single();
+
+      if (!account?.plan || account.plan === 'none') {
+        console.log("DashboardLayout: No plan selected, redirecting to plan selection");
+        router.push("/dashboard/plan");
+        return;
+      }
+
+      console.log("DashboardLayout: Onboarding complete, user can access dashboard");
+    } catch (error) {
+      console.error("Error checking onboarding status:", error);
+    }
+  }, [router]);
+
   const fetchAccountData = useCallback(async (userId: string) => {
     try {
       // Get the account ID for the user first
@@ -55,10 +103,13 @@ export default function DashboardLayout({
         console.log("DashboardLayout: Account error:", accountError);
       }
       setAccountData(account);
+      
+      // Check onboarding status after account data is loaded
+      await checkOnboardingStatus(userId, accountId);
     } catch (accountError) {
       console.error("Error fetching account data:", accountError);
     }
-  }, []);
+  }, [router, checkOnboardingStatus]);
 
   // 🔧 SIMPLIFIED: Quick auth check, then let children handle their own logic
   useEffect(() => {
