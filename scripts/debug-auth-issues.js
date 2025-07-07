@@ -14,27 +14,28 @@ async function debugAuthIssues() {
   const issues = [];
   const warnings = [];
 
-  // Check 1: Verify API route exists
-  console.log('📍 Check 1: API Route Configuration');
-  const apiRoutePath = path.join(process.cwd(), 'src/app/api/auth/signin/route.ts');
-  if (fs.existsSync(apiRoutePath)) {
-    console.log('✅ API route file exists');
+  // Check 1: Verify Direct Supabase Authentication
+  console.log('📍 Check 1: Direct Supabase Authentication Configuration');
+  const signinPath = path.join(process.cwd(), 'src/app/auth/sign-in/page.tsx');
+  if (fs.existsSync(signinPath)) {
+    console.log('✅ Sign-in page exists');
     
-    // Check route content
-    const content = fs.readFileSync(apiRoutePath, 'utf8');
-    if (content.includes('export async function POST')) {
-      console.log('✅ POST handler defined');
+    // Check for direct Supabase auth
+    const content = fs.readFileSync(signinPath, 'utf8');
+    if (content.includes('supabase.auth.signInWithPassword')) {
+      console.log('✅ Direct Supabase authentication present');
     } else {
-      issues.push('❌ POST handler missing in API route');
+      issues.push('❌ Direct Supabase authentication missing');
     }
     
-    if (content.includes('supabase.auth.signInWithPassword')) {
-      console.log('✅ Supabase auth integration present');
+    // Check that old API route calls are removed
+    if (content.includes('/api/auth/signin')) {
+      warnings.push('⚠️ Old API route call still present in sign-in page');
     } else {
-      issues.push('❌ Supabase auth call missing');
+      console.log('✅ Old API route calls removed');
     }
   } else {
-    issues.push('❌ API route file missing: ' + apiRoutePath);
+    issues.push('❌ Sign-in page missing');
   }
 
   // Check 2: Middleware Configuration
@@ -57,7 +58,7 @@ async function debugAuthIssues() {
     }
     
     // Check for session validation
-    if (content.includes('getSession()')) {
+    if (content.includes('getUser()')) {
       console.log('✅ Session validation present');
     } else {
       issues.push('❌ Session validation missing');
@@ -85,7 +86,7 @@ async function debugAuthIssues() {
     }
     
     // Check for singleton pattern
-    if (content.includes('let supabaseInstance')) {
+    if (content.includes('_browserClient')) {
       console.log('✅ Singleton pattern implemented');
     } else {
       warnings.push('⚠️ Singleton pattern not clearly implemented');
@@ -94,34 +95,20 @@ async function debugAuthIssues() {
     issues.push('❌ Supabase client file missing');
   }
 
-  // Check 4: Sign-in Page Configuration
-  console.log('\n📍 Check 4: Sign-in Page Configuration');
-  const signinPath = path.join(process.cwd(), 'src/app/auth/sign-in/page.tsx');
-  if (fs.existsSync(signinPath)) {
-    const content = fs.readFileSync(signinPath, 'utf8');
+  // Check 4: Session API Endpoint
+  console.log('\n📍 Check 4: Session Validation API');
+  const sessionApiPath = path.join(process.cwd(), 'src/app/api/auth/session/route.ts');
+  if (fs.existsSync(sessionApiPath)) {
+    console.log('✅ Session API endpoint exists');
     
-    // Check if manual cookie setting was removed
-    if (content.includes('document.cookie = `sb-access-token')) {
-      issues.push('❌ Manual cookie setting still present in sign-in page');
+    const content = fs.readFileSync(sessionApiPath, 'utf8');
+    if (content.includes('getUser()')) {
+      console.log('✅ Session validation logic present');
     } else {
-      console.log('✅ Manual cookie setting removed');
-    }
-    
-    // Check for API call
-    if (content.includes('/api/auth/signin')) {
-      console.log('✅ API call to signin endpoint present');
-    } else {
-      issues.push('❌ API call to signin endpoint missing');
-    }
-    
-    // Check for proper error handling
-    if (content.includes('catch') && content.includes('error')) {
-      console.log('✅ Error handling present');
-    } else {
-      warnings.push('⚠️ Error handling might be insufficient');
+      issues.push('❌ Session validation logic missing');
     }
   } else {
-    issues.push('❌ Sign-in page missing');
+    issues.push('❌ Session API endpoint missing');
   }
 
   // Check 5: Environment Variables
@@ -176,10 +163,10 @@ async function debugAuthIssues() {
   console.log('\n💡 NEXT STEPS:');
   if (issues.length > 0) {
     console.log('1. Fix critical issues listed above');
-    console.log('2. Run the automated auth test: node scripts/test-auth-flow.js');
-    console.log('3. Test sign-in flow manually if needed');
+    console.log('2. Test sign-in flow manually with valid credentials');
+    console.log('3. Check browser console for detailed error messages');
   } else {
-    console.log('1. Run the automated auth test: node scripts/test-auth-flow.js');
+    console.log('1. Test sign-in flow manually with valid credentials');
     console.log('2. If issues persist, check server logs during auth attempts');
   }
 
