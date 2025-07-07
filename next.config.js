@@ -65,6 +65,9 @@ const nextConfig = {
       },
     ];
   },
+  experimental: {
+    optimizeCss: true,
+  },
 };
 
 // Only apply Sentry configuration if not disabled

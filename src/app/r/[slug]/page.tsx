@@ -2069,7 +2069,8 @@ export default function PromptPage() {
                                   title={label}
                                   style={{ 
                                     zIndex: 100, 
-                                    backgroundColor: businessProfile?.card_bg || '#ffffff' 
+                                    backgroundColor: businessProfile?.card_bg || '#ffffff',
+                                    border: `2px solid ${businessProfile?.card_bg || '#ffffff'}`
                                   }}
                                 >
                                   <Icon
