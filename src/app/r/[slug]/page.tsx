@@ -2064,7 +2064,7 @@ export default function PromptPage() {
                                 <div
                                   className="absolute -top-4 -left-4 bg-white rounded-full shadow p-2 flex items-center justify-center"
                                   title={label}
-                                  style={{ zIndex: 10 }}
+                                  style={{ zIndex: 50, backgroundColor: 'white' }}
                                 >
                                   <Icon
                                     className="w-7 h-7"
