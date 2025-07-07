@@ -136,6 +136,9 @@ interface BusinessProfile {
   address_state?: string;
   card_bg: string;
   card_text: string;
+  card_inner_shadow?: boolean;
+  card_shadow_color?: string;
+  card_shadow_intensity?: number;
 }
 
 // Helper to get platform icon based on URL or platform name

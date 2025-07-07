@@ -283,6 +283,9 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
         gradient_end: "#c026d3",
         card_bg: "#FFFFFF",
         card_text: "#1A1A1A",
+        card_inner_shadow: false,
+        card_shadow_color: "#222222",
+        card_shadow_intensity: 0.20,
       });
     }
   }
