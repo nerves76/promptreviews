@@ -93,6 +93,9 @@ interface StyleSettings {
   gradient_end: string;
   card_bg: string;
   card_text: string;
+  card_inner_shadow?: boolean;
+  card_shadow_color?: string;
+  card_shadow_intensity?: number;
 }
 
 interface ReviewPlatform {
@@ -287,6 +290,9 @@ export default function PromptPage() {
     review_platforms: [],
     card_bg: "#FFFFFF",
     card_text: "#1A1A1A",
+    card_inner_shadow: false,
+    card_shadow_color: "#222222",
+    card_shadow_intensity: 0.2,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -431,6 +437,9 @@ export default function PromptPage() {
               default_offer_url: businessData.default_offer_url,
               card_bg: businessData.card_bg,
               card_text: businessData.card_text,
+              card_inner_shadow: businessData.card_inner_shadow,
+              card_shadow_color: businessData.card_shadow_color,
+              card_shadow_intensity: businessData.card_shadow_intensity,
             });
           } catch (businessErr: unknown) {
             console.error("Error fetching business profile:", businessErr);
@@ -1796,10 +1805,21 @@ export default function PromptPage() {
                   {/* Photo + Testimonial Module */}
                   {(promptPage?.review_type === "photo" ||
                     promptPage?.review_type === "photo_testimonial") && (
-                    <div className="mb-8 rounded-2xl shadow p-8 animate-slideup" style={{
+                    <div className="mb-8 rounded-2xl shadow p-8 animate-slideup relative" style={{
                       background: businessProfile?.card_bg || "#F9FAFB",
-                      color: businessProfile?.card_text || "#1A1A1A"
+                      color: businessProfile?.card_text || "#1A1A1A",
+                      position: 'relative'
                     }}>
+                      {businessProfile?.card_inner_shadow && (
+                        <div
+                          className="pointer-events-none absolute inset-0 rounded-2xl"
+                          style={{
+                            boxShadow: `inset 0 0 32px 0 ${businessProfile.card_shadow_color || '#222222'}${Math.round((businessProfile.card_shadow_intensity || 0.2) * 255).toString(16).padStart(2, '0')}`,
+                            borderRadius: '1rem',
+                            zIndex: 1,
+                          }}
+                        />
+                      )}
                       <div className="flex items-center mb-8">
                         <FaCamera
                           className="w-8 h-8 mr-3"
@@ -2016,9 +2036,20 @@ export default function PromptPage() {
                                 style={{ 
                                   animationDelay: `${300 + idx * 100}ms`,
                                   background: businessProfile?.card_bg || "#F9FAFB",
-                                  color: businessProfile?.card_text || "#1A1A1A"
+                                  color: businessProfile?.card_text || "#1A1A1A",
+                                  position: 'relative'
                                 }}
                               >
+                                {businessProfile?.card_inner_shadow && (
+                                  <div
+                                    className="pointer-events-none absolute inset-0 rounded-xl"
+                                    style={{
+                                      boxShadow: `inset 0 0 32px 0 ${businessProfile.card_shadow_color || '#222222'}${Math.round((businessProfile.card_shadow_intensity || 0.2) * 255).toString(16).padStart(2, '0')}`,
+                                      borderRadius: '0.75rem',
+                                      zIndex: 1,
+                                    }}
+                                  />
+                                )}
                                 {/* Icon in top-left corner */}
                                 <div
                                   className="absolute -top-4 -left-4 bg-white rounded-full shadow p-2 flex items-center justify-center"

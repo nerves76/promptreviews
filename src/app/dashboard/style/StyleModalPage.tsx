@@ -101,6 +101,9 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
     gradient_end: "#c026d3",
     card_bg: "#FFFFFF",
     card_text: "#1A1A1A",
+    card_inner_shadow: false,
+    card_shadow_color: "#222222",
+    card_shadow_intensity: 0.20,
   });
 
   // Update parent component whenever settings change (but not on initial load)
@@ -122,6 +125,9 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
         gradient_end: settings.gradient_end,
         card_bg: settings.card_bg,
         card_text: settings.card_text,
+        card_inner_shadow: settings.card_inner_shadow,
+        card_shadow_color: settings.card_shadow_color,
+        card_shadow_intensity: settings.card_shadow_intensity,
       });
     }
   }, [settings, onStyleUpdate, isInitialized]);
@@ -154,7 +160,7 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
 
       const { data: business } = await supabase
         .from("businesses")
-        .select("primary_font,secondary_font,primary_color,secondary_color,background_type,background_color,gradient_start,gradient_end,card_bg,card_text")
+        .select("primary_font,secondary_font,primary_color,secondary_color,background_type,background_color,gradient_start,gradient_end,card_bg,card_text,card_inner_shadow,card_shadow_color,card_shadow_intensity")
         .eq("account_id", accountId)
         .single();
       
@@ -164,7 +170,10 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
           ...business,
           card_bg: business.card_bg || "#FFFFFF",
           card_text: business.card_text || "#1A1A1A",
-          background_color: business.background_color || "#FFFFFF"
+          background_color: business.background_color || "#FFFFFF",
+          card_inner_shadow: business.card_inner_shadow || false,
+          card_shadow_color: business.card_shadow_color || "#222222",
+          card_shadow_intensity: business.card_shadow_intensity || 0.20
         }));
       }
     } catch (error) {
@@ -355,7 +364,22 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
           </p>
         </div>
         <div className="relative my-8 p-6 rounded-lg">
-          <div className="bg-white rounded-lg shadow p-6 mx-auto" style={{ maxWidth: 800, background: settings.card_bg, color: settings.card_text }}>
+          <div className="bg-white rounded-lg shadow p-6 mx-auto relative" style={{ 
+            maxWidth: 800, 
+            background: settings.card_bg, 
+            color: settings.card_text,
+            position: 'relative'
+          }}>
+            {settings.card_inner_shadow && (
+              <div
+                className="pointer-events-none absolute inset-0 rounded-lg"
+                style={{
+                  boxShadow: `inset 0 0 32px 0 ${settings.card_shadow_color}${Math.round(settings.card_shadow_intensity * 255).toString(16).padStart(2, '0')}`,
+                  borderRadius: '0.5rem',
+                  zIndex: 1,
+                }}
+              />
+            )}
             {success && (
               <div className="mb-4 p-4 bg-green-50 text-green-700 rounded-lg border border-green-200 text-center font-medium animate-fadein">
                 Style settings saved!
@@ -472,6 +496,50 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
                 {textColorOptions.map(opt => (<option key={opt.value} value={opt.value}>{opt.name}</option>))}
             </select>
             </div>
+          </div>
+        </div>
+        
+        {/* Inner Shadow Settings */}
+        <div className="mt-8 p-6 bg-gray-50 rounded-lg">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Card Inner Shadow</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-3">Inner Shadow Vignette</label>
+              <select
+                value={settings.card_inner_shadow ? 'true' : 'false'}
+                onChange={(e) => setSettings(s => ({ ...s, card_inner_shadow: e.target.value === 'true' }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="false">No Vignette</option>
+                <option value="true">Show Vignette</option>
+              </select>
+            </div>
+            {settings.card_inner_shadow && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">Vignette Color</label>
+                  <input
+                    type="color"
+                    value={settings.card_shadow_color}
+                    onChange={(e) => setSettings(s => ({ ...s, card_shadow_color: e.target.value }))}
+                    className="w-full h-10 border border-gray-300 rounded-md"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">Vignette Intensity</label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.1"
+                    value={settings.card_shadow_intensity}
+                    onChange={(e) => setSettings(s => ({ ...s, card_shadow_intensity: parseFloat(e.target.value) }))}
+                    className="w-full"
+                  />
+                  <span className="text-xs text-gray-500">{Math.round(settings.card_shadow_intensity * 100)}%</span>
+                </div>
+              </>
+            )}
           </div>
         </div>
         {/* Bottom action buttons row */}
