@@ -424,6 +424,29 @@ function SignUpContent() {
           >
             {loading ? (invitationToken ? "Creating account..." : "Signing up...") : (invitationToken ? "Create Account & Join Team" : "Sign Up")}
           </button>
+
+          {/* Development-only debug link */}
+          {process.env.NODE_ENV === 'development' && (
+            <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
+              <p className="text-sm text-yellow-800 mb-2">
+                <strong>Development Tools:</strong>
+              </p>
+              <div className="space-y-1">
+                <Link
+                  href="/auth/debug-auth"
+                  className="block text-blue-600 hover:text-blue-800 underline text-sm"
+                >
+                  🔧 Debug Authentication Issues
+                </Link>
+                <Link
+                  href="/auth/clear-session"
+                  className="block text-blue-600 hover:text-blue-800 underline text-sm"
+                >
+                  🧹 Clear Session & Fix Navigation Issues
+                </Link>
+              </div>
+            </div>
+          )}
         </form>
       </div>
     </>
