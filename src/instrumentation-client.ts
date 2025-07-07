@@ -28,34 +28,8 @@ export function register() {
       
       // Disable debug mode in all environments for better performance
       debug: false,
-      
-      // Before send hook to filter errors
-      beforeSend(event: any, hint: any) {
-        // Filter out common non-actionable errors
-        const error = hint.originalException;
-        if (
-          error &&
-          typeof error === 'object' &&
-          'message' in error &&
-          typeof (error as any).message === 'string'
-        ) {
-          // Filter out common client-side errors that don't need tracking
-          if ((error as any).message.includes('ResizeObserver') || 
-              (error as any).message.includes('Script error')) {
-            return null;
-          }
-        }
-        
-        return event;
-      },
-      
-      // Add client context
-      beforeSendTransaction(event: any) {
-        // Add client-specific context
-        return event;
-      },
     });
   } catch (error) {
-    console.log('Failed to initialize Sentry:', error);
+    console.log('Sentry initialization failed:', error);
   }
 } 

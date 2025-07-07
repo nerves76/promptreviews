@@ -34,9 +34,9 @@ const nextConfig = {
   async redirects() {
     return [
       {
-        source: "/login",
-        destination: "/auth/sign-in",
-        permanent: true,
+        source: '/dashboard',
+        destination: '/dashboard/account',
+        permanent: false,
       },
     ];
   },
