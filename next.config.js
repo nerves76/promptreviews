@@ -23,39 +23,11 @@ const nextConfig = {
       },
     ],
   },
-  // Performance optimizations
-  experimental: {
-    optimizeCss: true,
-  },
   webpack: (config, { isServer, dev }) => {
     // Fix webpack devtool warning in development
     if (dev) {
       config.devtool = 'eval-source-map';
     }
-    
-    // Optimize bundle splitting
-    config.optimization = {
-      ...config.optimization,
-      splitChunks: {
-        ...config.optimization.splitChunks,
-        chunks: 'all',
-        cacheGroups: {
-          ...config.optimization.splitChunks.cacheGroups,
-          vendor: {
-            test: /[\\/]node_modules[\\/]/,
-            name: 'vendors',
-            chunks: 'all',
-            priority: 10,
-          },
-          common: {
-            name: 'common',
-            minChunks: 2,
-            chunks: 'all',
-            priority: 5,
-          },
-        },
-      },
-    };
     
     return config;
   },
