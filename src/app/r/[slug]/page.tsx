@@ -1223,6 +1223,13 @@ export default function PromptPage() {
                     "text-orange-400": "#fb923c",
                     "text-amber-600": "#d97706",
                     "text-red-600": "#dc2626",
+                    "text-purple-600": "#9333ea",
+                    "text-amber-500": "#f59e0b",
+                    "text-amber-700": "#b45309",
+                    "text-indigo-500": "#6366f1",
+                    "text-indigo-600": "#4f46e5",
+                    "text-pink-500": "#ec4899",
+                    "text-teal-500": "#14b8a6",
                   };
                   return colorMap[colorClass] || "#6b7280";
                 };
