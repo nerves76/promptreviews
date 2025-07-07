@@ -85,46 +85,35 @@ export default function SignIn() {
     try {
       console.log("📧 Attempting sign in with email:", formData.email);
       
-      // Use server-side API route for proper SSR cookie handling
-      console.log("🔐 Starting API sign-in call...");
+      // Use direct Supabase client authentication for proper session handling
+      console.log("🔐 Starting direct Supabase sign-in...");
       
-      let signInResult;
-      try {
-        const response = await fetch('/api/auth/signin', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email: formData.email,
-            password: formData.password,
-          }),
-        });
-        
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Sign in failed');
-        }
-        
-        signInResult = await response.json();
-        console.log("🔄 API sign-in completed successfully!");
-      } catch (signInError) {
-        console.error("💥 Exception in API sign-in:", signInError);
-        throw signInError;
-      }
-      
-      const { user, session, error } = signInResult;
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      });
 
       if (error) {
-        console.error("❌ Sign in failed:", error);
-        setError(error);
+        console.error("❌ Sign in failed:", error.message);
+        
+        // Map common error messages
+        let errorMessage = error.message;
+        if (error.message.includes('Invalid login credentials')) {
+          errorMessage = "Invalid email or password. Please check your credentials.";
+        } else if (error.message.includes('Email not confirmed')) {
+          errorMessage = "Please check your email and confirm your account before signing in.";
+        } else if (error.message.includes('Rate limit exceeded')) {
+          errorMessage = "Too many sign-in attempts. Please wait a moment and try again.";
+        }
+        
+        setError(errorMessage);
         return;
       }
 
-      if (user && session) {
-        console.log("✅ Sign in successful! User:", user.email);
-        console.log("👤 User ID:", user.id);
-        console.log("🔑 Session expires:", new Date(session.expires_at * 1000).toISOString());
+      if (data.user && data.session) {
+        console.log("✅ Sign in successful! User:", data.user.email);
+        console.log("👤 User ID:", data.user.id);
+        console.log("🔑 Session expires:", data.session.expires_at ? new Date(data.session.expires_at * 1000).toISOString() : 'No expiry');
         
         // Wait for session to be properly established and validated
         console.log("🔄 Validating session establishment...");
