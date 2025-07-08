@@ -296,58 +296,8 @@ export default function Dashboard() {
     // Check if trial has expired
     const isTrialExpired = trialEnd && now > trialEnd;
 
-    // ENHANCED: Detect incomplete onboarding flow (Issue #3 fix)
-    // Redirect to create-business if user has no plan and no businesses (bypassed onboarding)
-    // BUT: Skip redirect for team members - they use the team account and shouldn't create their own business
-    if ((!plan || plan === 'no_plan' || plan === 'NULL') && businessCount === 0) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('🔄 Onboarding incomplete: Checking if user is team member...');
-      }
-      
-      // Check if user is a team member by looking at their account relationships
-      const checkIfTeamMember = async () => {
-        try {
-          const { data: accountUsers } = await supabase
-            .from('account_users')
-            .select('role')
-            .eq('user_id', data?.user?.id);
-          
-          const isTeamMember = accountUsers?.some(au => au.role === 'member');
-          
-          if (process.env.NODE_ENV === 'development') {
-            console.log('🔍 Team member check:', { 
-              isTeamMember, 
-              roles: accountUsers?.map(au => au.role) 
-            });
-          }
-          
-          if (isTeamMember) {
-            if (process.env.NODE_ENV === 'development') {
-              console.log('👥 User is team member, skipping create-business redirect');
-            }
-            return;
-          }
-          
-          // Only redirect individual users (not team members) to create-business
-          if (process.env.NODE_ENV === 'development') {
-            console.log('🔄 Individual user with incomplete onboarding: Redirecting to create-business');
-            console.log('🔍 Onboarding redirect debug:', {
-              plan,
-              businessCount,
-              reason: 'Individual user - no plan and no businesses'
-            });
-          }
-          router.push('/dashboard/create-business');
-        } catch (error) {
-          console.error('Error checking team membership:', error);
-          // Fallback to redirect if check fails
-          router.push('/dashboard/create-business');
-        }
-      };
-      
-      checkIfTeamMember();
-      return;
-    }
+    // Note: Onboarding logic is now centralized in the dashboard layout
+    // This prevents duplicate redirect logic and conflicts
 
     // Determine if plan selection is REQUIRED (user cannot dismiss modal) vs OPTIONAL
     const isPlanSelectionRequired = 
