@@ -75,9 +75,8 @@ export function createClient(): SupabaseClient {
     if (isDevelopment) {
       console.log('✅ Supabase browser client created successfully');
     }
-  } else if (isDevelopment) {
-    console.log('♻️  Reusing existing Supabase browser client (singleton pattern)');
   }
+  // Removed excessive logging - the singleton is working correctly
   
   return _browserClient;
 }
@@ -210,21 +209,11 @@ export function createServiceRoleClient(): SupabaseClient {
  */
 export async function getSessionOrMock(client: SupabaseClient) {
   try {
-    console.log('🔍 Getting session...');
     const { data: { session }, error } = await client.auth.getSession();
     
     if (error) {
       console.error('❌ Session error:', error);
       throw error;
-    }
-    
-    if (session) {
-      console.log('✅ Active session found:', { 
-        userId: session.user.id, 
-        expiresAt: new Date(session.expires_at! * 1000).toISOString() 
-      });
-    } else {
-      console.log('ℹ️  No active session');
     }
     
     return { data: { session }, error: null };
@@ -241,8 +230,6 @@ export async function getSessionOrMock(client: SupabaseClient) {
  */
 export async function getUserOrMock(client: SupabaseClient) {
   try {
-    console.log('👤 Getting user via session...');
-    
     // Simple session check without timeout race conditions
     const { data: { session }, error } = await client.auth.getSession();
     
@@ -254,31 +241,22 @@ export async function getUserOrMock(client: SupabaseClient) {
     // Extract user from session
     const user = session?.user || null;
     
-    if (user) {
-      console.log('✅ User found from session:', user.id);
-    } else {
-      console.log('ℹ️  No user found in session');
-    }
-    
     return { data: { user }, error: null };
   } catch (error) {
     console.error('💥 User check failed:', error);
     
     // Fallback: try direct getUser
     try {
-      console.log('🔄 Fallback: trying direct getUser...');
       const { data: { user }, error: directError } = await client.auth.getUser();
       
       if (!directError && user) {
-        console.log('✅ Fallback successful - user found:', user.id);
         return { data: { user }, error: null };
       }
     } catch (fallbackError) {
-      console.log('❌ Fallback also failed:', fallbackError);
+      // Silent fallback failure
     }
     
     // Final fallback: return null user but don't throw
-    console.log('🔄 Final fallback: returning null user');
     return { data: { user: null }, error: error instanceof Error ? error : new Error('Session error') };
   }
 }

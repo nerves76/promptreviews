@@ -76,6 +76,12 @@ export default function DashboardLayout({
 
         setUser(user);
         
+        // Check if user is coming from a successful plan change
+        const currentPath = typeof window !== "undefined" ? window.location.pathname : "";
+        const urlParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+        const isOnCreateBusinessPage = currentPath === "/dashboard/create-business";
+        const isComingFromPlanChange = urlParams?.get("success") === "1" && (urlParams?.get("change") === "upgrade" || urlParams?.get("change") === "downgrade");
+        
         // Check onboarding status to ensure user has completed business creation
         console.log('🔍 DashboardLayout: Checking onboarding status for user:', user.id);
         const userOnboardingStatus = await getOnboardingStatus(supabase, user.id);
@@ -83,9 +89,14 @@ export default function DashboardLayout({
         console.log('🔍 DashboardLayout: Onboarding status:', userOnboardingStatus);
         setOnboardingStatus(userOnboardingStatus);
         
-        // Allow access to create-business page even if onboarding incomplete
-        const currentPath = typeof window !== "undefined" ? window.location.pathname : "";
-        const isOnCreateBusinessPage = currentPath === "/dashboard/create-business";
+        // Skip onboarding redirects if user is coming from a successful plan change
+        if (isComingFromPlanChange) {
+          console.log('🔄 DashboardLayout: User coming from plan change, skipping onboarding redirect');
+          // Fetch account data for TrialBanner
+          await fetchAccountData(user.id);
+          setLoading(false);
+          return;
+        }
         
         // Redirect users who need to create business (unless they're already on the create-business page)
         if (userOnboardingStatus.shouldRedirect && userOnboardingStatus.redirectPath && !isOnCreateBusinessPage) {
