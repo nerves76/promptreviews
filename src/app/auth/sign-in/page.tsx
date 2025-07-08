@@ -2,13 +2,12 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { createClient, clearAuthSession } from "@/utils/supabaseClient";
+import { useAuth } from "@/contexts/AuthContext";
 import { trackEvent, GA_EVENTS } from '../../../utils/analytics';
 import SimpleMarketingNav from "@/app/components/SimpleMarketingNav";
 
 export default function SignIn() {
-  const supabase = createClient();
-
+  const { signIn, error: authError, clearError, isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -33,10 +32,8 @@ export default function SignIn() {
     setError("");
     
     try {
-      // Clear session using the new utility
-      clearAuthSession();
-      await supabase.auth.signOut();
-      
+      // Clear any existing errors and reset form
+      clearError();
       setError("Session cleared! Please try signing in again.");
       setFormData({ email: "", password: "" });
     } catch (err) {
@@ -86,23 +83,20 @@ export default function SignIn() {
       console.log("📧 Attempting sign in with email:", formData.email);
       
       // Use direct Supabase client authentication for proper session handling
-      console.log("🔐 Starting direct Supabase sign-in...");
+      console.log("🔐 Starting sign-in with new auth context...");
       
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: formData.email,
-        password: formData.password,
-      });
+      const result = await signIn(formData.email, formData.password);
 
-      if (error) {
-        console.error("❌ Sign in failed:", error.message);
+      if (!result.success) {
+        console.error("❌ Sign in failed:", result.error);
         
         // Map common error messages
-        let errorMessage = error.message;
-        if (error.message.includes('Invalid login credentials')) {
+        let errorMessage = result.error || "Sign in failed";
+        if (errorMessage.includes('Invalid login credentials')) {
           errorMessage = "Invalid email or password. Please check your credentials.";
-        } else if (error.message.includes('Email not confirmed')) {
+        } else if (errorMessage.includes('Email not confirmed')) {
           errorMessage = "Please check your email and confirm your account before signing in.";
-        } else if (error.message.includes('Rate limit exceeded')) {
+        } else if (errorMessage.includes('Rate limit exceeded')) {
           errorMessage = "Too many sign-in attempts. Please wait a moment and try again.";
         }
         
@@ -110,39 +104,22 @@ export default function SignIn() {
         return;
       }
 
-      if (data.user && data.session) {
-        console.log("✅ Sign in successful! User:", data.user.email);
-        console.log("👤 User ID:", data.user.id);
-        console.log("🔑 Session expires:", data.session.expires_at ? new Date(data.session.expires_at * 1000).toISOString() : 'No expiry');
-        
-        // Wait for session to be properly established and validated
-        console.log("🔄 Validating session establishment...");
-        try {
-          await validateSession();
-          console.log("✅ Session validated successfully!");
-        } catch (validationError) {
-          console.warn("⚠️  Session validation failed, but proceeding:", validationError);
-          // Continue anyway - session might still work
-        }
-        
-        // Track sign in event
-        try {
-          trackEvent(GA_EVENTS.SIGN_IN, {
-            method: 'email',
-            timestamp: new Date().toISOString(),
-          });
-        } catch (trackError) {
-          console.warn("Analytics tracking failed:", trackError);
-        }
-
-        console.log("🔄 Redirecting to dashboard...");
-        
-        // Use replace instead of push to prevent back button issues
-        router.replace("/dashboard");
-        return;
-      } else {
-        setError("Sign in failed. Please check your credentials.");
+      console.log("✅ Sign in successful!");
+      
+      // Track sign in event
+      try {
+        trackEvent(GA_EVENTS.SIGN_IN, {
+          method: 'email',
+          timestamp: new Date().toISOString(),
+        });
+      } catch (trackError) {
+        console.warn("Analytics tracking failed:", trackError);
       }
+
+      console.log("🔄 Redirecting to dashboard...");
+      
+      // Use replace instead of push to prevent back button issues
+      router.replace("/dashboard");
     } catch (error: any) {
       console.error("💥 Sign in process failed:", error);
       setError(error.message || "An unexpected error occurred. Please try again.");
@@ -165,7 +142,11 @@ export default function SignIn() {
     try {
       console.log('🔄 Sending password reset email to:', resetEmail);
       
-      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+      // Note: For now, password reset needs direct Supabase client access
+      // This would ideally be moved to the AuthContext in the future
+      const { createClient } = require('@/utils/supabaseClient');
+      const supabaseClient = createClient();
+      const { error } = await supabaseClient.auth.resetPasswordForEmail(resetEmail, {
         redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
       });
 

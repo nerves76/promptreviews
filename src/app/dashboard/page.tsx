@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { createClient, getUserOrMock, getSessionOrMock } from "@/utils/supabaseClient";
+import { createClient } from "@/utils/supabaseClient";
 import { useRouter, useSearchParams } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
 import { FaHome, FaStore, FaChartLine, FaUser, FaCog, FaSignOutAlt, FaPlus } from "react-icons/fa";
@@ -16,8 +16,7 @@ import Link from "next/link";
 import QuoteDisplay from "../components/QuoteDisplay";
 import StarfallCelebration from "../components/StarfallCelebration";
 import { trackEvent, GA_EVENTS } from "../../utils/analytics";
-import { getAccountIdForUser } from "@/utils/accountUtils";
-import { useAdmin } from "@/contexts/AdminContext";
+import { useAuth, useAuthGuard } from "@/contexts/AuthContext";
 import { checkAccountLimits } from "@/utils/accountLimits";
 
 interface DashboardData {
@@ -40,6 +39,19 @@ interface DashboardData {
 export default function Dashboard() {
   const router = useRouter();
   const searchParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+  
+  // Use centralized auth context
+  const { 
+    user: authUser, 
+    accountId: userAccountId, 
+    isAdminUser, 
+    isAuthenticated, 
+    isLoading: authLoading,
+    signOut 
+  } = useAuth();
+  
+  // Apply auth guard
+  useAuthGuard();
   
   // Create supabase client instance
   const supabase = createClient();
@@ -67,9 +79,6 @@ export default function Dashboard() {
   const [justCanceledStripe, setJustCanceledStripe] = useState(false);
   const [planSelectionRequired, setPlanSelectionRequired] = useState(false);
   const [paymentChangeType, setPaymentChangeType] = useState<string | null>(null);
-
-  // Use the centralized admin context instead of local state
-  const { isAdminUser, isLoading: adminLoading } = useAdmin();
 
   // Consolidated data loading function with caching
   const loadAllDashboardData = async (user: any, accountId: string) => {
@@ -204,26 +213,25 @@ export default function Dashboard() {
         setIsLoading(true);
         setError(null);
 
-        // 🔧 SIMPLIFIED: Direct auth check without authGuard conflicts
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-        
-        if (userError || !user) {
-          console.log('❌ Dashboard: Authentication failed, redirecting to sign-in');
-          router.push('/auth/sign-in');
+        // Wait for auth to be initialized
+        if (authLoading) {
+          console.log('⏳ Dashboard: Waiting for auth initialization...');
           return;
         }
 
-        console.log('✅ Dashboard: User authenticated:', user.id);
+        if (!isAuthenticated || !authUser) {
+          console.log('❌ Dashboard: No authenticated user');
+          return; // Auth guard will handle redirect
+        }
 
-        // Get account ID using the utility function
-        const accountId = await getAccountIdForUser(user.id, supabase);
-        
-        if (!accountId) {
+        console.log('✅ Dashboard: User authenticated:', authUser.id);
+
+        if (!userAccountId) {
           console.log('📊 Dashboard: No account found - new user');
           // New user - show welcome message and guide to create business
           setIsNewUser(true);
           setData({
-            user,
+            user: authUser,
             account: null,
             businesses: [],
             promptPages: [],
@@ -239,9 +247,9 @@ export default function Dashboard() {
           return;
         }
 
-        console.log('📊 Dashboard: Loading data for account:', accountId);
+        console.log('📊 Dashboard: Loading data for account:', userAccountId);
         // Load all data in parallel
-        await loadAllDashboardData(user, accountId);
+        await loadAllDashboardData(authUser, userAccountId);
         
         console.log('✅ Dashboard: Data loading complete');
         setIsLoading(false);
@@ -253,11 +261,9 @@ export default function Dashboard() {
       }
     };
 
-    // Only run if admin context is ready
-    if (!adminLoading) {
-      initializeDashboard();
-    }
-  }, [adminLoading, isAdminUser, router]);
+    // Run initialization when auth is ready
+    initializeDashboard();
+  }, [authLoading, isAuthenticated, authUser, userAccountId, isAdminUser]);
 
   // Handle post-save modal flag
   useEffect(() => {
@@ -653,10 +659,21 @@ export default function Dashboard() {
 
   const handleSignOut = async () => {
     try {
-      await supabase.auth.signOut();
-      router.push("/");
+      console.log('🚪 Dashboard: Signing out...');
+      await signOut();
+      
+      // Clear any cached data
+      setData(null);
+      setAccountData(null);
+      setBusinesses([]);
+      setUser(null);
+      
+      console.log('✅ Dashboard: Sign out successful, redirecting...');
+      router.push("/auth/sign-in");
     } catch (error) {
-      console.error("Error signing out:", error);
+      console.error("❌ Dashboard: Sign out error:", error);
+      // Force redirect even on error
+      router.push("/auth/sign-in");
     }
   };
 
