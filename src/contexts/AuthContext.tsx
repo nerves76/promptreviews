@@ -38,6 +38,8 @@ import { createClient } from '@/utils/supabaseClient';
 import { User, Session } from '@supabase/supabase-js';
 import { isAdmin, ensureAdminForEmail } from '@/utils/admin';
 import { getAccountIdForUser } from '@/utils/accountUtils';
+import { Account } from '@/types/account';
+import { AuthResponse } from '@supabase/supabase-js';
 
 // Create singleton client instance
 const supabase = createClient();
@@ -63,18 +65,65 @@ interface AuthState {
   isAdminUser: boolean;
   adminLoading: boolean;
   
-  // Business profile
+  // Account management
   accountId: string | null;
+  account: Account | null;
+  accountLoading: boolean;
   hasBusiness: boolean;
   businessLoading: boolean;
   
-  // Account details (including trial and is_free_account)
-  account: any | null;
-  accountLoading: boolean;
+  // 💳 PAYMENT STATES - Full Stripe Integration
+  // Subscription Management
+  subscriptionStatus: 'active' | 'trialing' | 'past_due' | 'canceled' | 'incomplete' | 'incomplete_expired' | 'unpaid' | 'paused' | null;
+  paymentStatus: 'current' | 'past_due' | 'canceled' | 'requires_payment_method' | 'requires_action' | null;
   
-  // Session info
+  // Trial Management
+  trialStatus: 'active' | 'expired' | 'converted' | 'none';
+  trialDaysRemaining: number;
+  isTrialExpiringSoon: boolean; // 3 days or less
+  
+  // Plan Management
+  currentPlan: string | null;
+  planTier: 'free' | 'tier1' | 'tier2' | 'tier3' | 'enterprise' | null;
+  hasActivePlan: boolean;
+  requiresPlanSelection: boolean;
+  
+  // Payment Method Status
+  hasPaymentMethod: boolean;
+  paymentMethodStatus: 'valid' | 'expired' | 'requires_action' | 'missing' | null;
+  
+  // Account Lifecycle
+  accountStatus: 'active' | 'suspended' | 'canceled' | 'requires_action';
+  canAccessFeatures: boolean;
+  accessLevel: 'full' | 'limited' | 'suspended';
+  
+  // Billing History
+  hasHadPaidPlan: boolean;
+  isReactivated: boolean;
+  
+  // Session management
   sessionExpiry: Date | null;
-  sessionTimeRemaining: number | null;
+  sessionTimeRemaining: number;
+  isSessionExpiringSoon: boolean;
+  
+  // Functions
+  signIn: (email: string, password: string) => Promise<AuthResponse>;
+  signOut: () => Promise<void>;
+  refreshAuth: () => Promise<void>;
+  refreshAdminStatus: () => Promise<void>;
+  refreshBusinessProfile: () => Promise<void>;
+  refreshAccountDetails: () => Promise<void>;
+  refreshPaymentStatus: () => Promise<void>; // NEW: Payment status refresh
+  
+  // Utility functions
+  requireAuth: () => boolean;
+  requireAdmin: () => boolean;
+  requireBusiness: () => boolean;
+  requireActivePlan: () => boolean; // NEW: Plan validation
+  requirePaymentMethod: () => boolean; // NEW: Payment method validation
+  
+  // Error handling
+  clearError: () => void;
 }
 
 interface AuthContextType extends AuthState {
@@ -85,11 +134,14 @@ interface AuthContextType extends AuthState {
   refreshAdminStatus: () => Promise<void>;
   refreshBusinessProfile: () => Promise<void>;
   refreshAccountDetails: () => Promise<void>;
+  refreshPaymentStatus: () => Promise<void>;
   
   // Navigation guards
   requireAuth: (redirectTo?: string) => boolean;
   requireAdmin: (redirectTo?: string) => boolean;
   requireBusiness: (redirectTo?: string) => boolean;
+  requireActivePlan: () => boolean;
+  requirePaymentMethod: () => boolean;
   
   // Utility functions
   clearError: () => void;
@@ -142,6 +194,183 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Email verification status
   const emailVerified = useMemo(() => !!user?.email_confirmed_at, [user]);
   const requiresEmailVerification = useMemo(() => !!user && !emailVerified, [user, emailVerified]);
+
+  // 💳 PAYMENT STATE CALCULATIONS - Full Stripe Integration
+  
+  // Subscription Status (from Stripe via webhooks)
+  const subscriptionStatus = useMemo(() => account?.subscription_status || null, [account]);
+  
+  // Payment Status (derived from subscription status)
+  const paymentStatus = useMemo(() => {
+    if (!subscriptionStatus) return null;
+    
+    switch (subscriptionStatus) {
+      case 'active':
+      case 'trialing':
+        return 'current';
+      case 'past_due':
+        return 'past_due';
+      case 'canceled':
+        return 'canceled';
+      case 'incomplete':
+      case 'incomplete_expired':
+        return 'requires_payment_method';
+      case 'unpaid':
+        return 'requires_action';
+      default:
+        return null;
+    }
+  }, [subscriptionStatus]);
+  
+  // Trial Management
+  const trialStatus = useMemo(() => {
+    if (!account) return 'none';
+    
+    const now = new Date();
+    const trialStart = account.trial_start ? new Date(account.trial_start) : null;
+    const trialEnd = account.trial_end ? new Date(account.trial_end) : null;
+    
+    if (!trialStart || !trialEnd) return 'none';
+    
+    // Check if converted to paid plan
+    if (account.has_had_paid_plan && subscriptionStatus === 'active') {
+      return 'converted';
+    }
+    
+    // Check if trial is active
+    if (now >= trialStart && now <= trialEnd) {
+      return 'active';
+    }
+    
+    // Trial has expired
+    if (now > trialEnd) {
+      return 'expired';
+    }
+    
+    return 'none';
+  }, [account, subscriptionStatus]);
+  
+  const trialDaysRemaining = useMemo(() => {
+    if (!account?.trial_end || trialStatus !== 'active') return 0;
+    
+    const now = new Date();
+    const trialEnd = new Date(account.trial_end);
+    const diffTime = trialEnd.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    return Math.max(0, diffDays);
+  }, [account, trialStatus]);
+  
+  const isTrialExpiringSoon = useMemo(() => {
+    return trialStatus === 'active' && trialDaysRemaining <= 3;
+  }, [trialStatus, trialDaysRemaining]);
+  
+  // Plan Management
+  const currentPlan = useMemo(() => {
+    if (!account?.plan || account.plan === 'no_plan' || account.plan === 'NULL') return null;
+    return account.plan;
+  }, [account]);
+  
+  const planTier = useMemo(() => {
+    if (!currentPlan) return null;
+    
+    switch (currentPlan.toLowerCase()) {
+      case 'grower':
+        return 'tier1';
+      case 'builder':
+        return 'tier2';
+      case 'maven':
+        return 'tier3';
+      case 'enterprise':
+        return 'enterprise';
+      default:
+        return account?.is_free_account ? 'free' : null;
+    }
+  }, [currentPlan, account]);
+  
+  const hasActivePlan = useMemo(() => {
+    return !!currentPlan && subscriptionStatus === 'active';
+  }, [currentPlan, subscriptionStatus]);
+  
+  const requiresPlanSelection = useMemo(() => {
+    return !currentPlan && trialStatus !== 'none';
+  }, [currentPlan, trialStatus]);
+  
+  // Payment Method Status (we'll enhance this with Stripe API calls later)
+  const hasPaymentMethod = useMemo(() => {
+    return !!account?.stripe_customer_id && !!account?.stripe_subscription_id;
+  }, [account]);
+  
+  const paymentMethodStatus = useMemo(() => {
+    if (!hasPaymentMethod) return 'missing';
+    
+    // This will be enhanced with real Stripe API calls
+    switch (paymentStatus) {
+      case 'current':
+        return 'valid';
+      case 'past_due':
+        return 'expired';
+      case 'requires_action':
+        return 'requires_action';
+      case 'requires_payment_method':
+        return 'missing';
+      default:
+        return 'valid';
+    }
+  }, [hasPaymentMethod, paymentStatus]);
+  
+  // Account Lifecycle
+  const accountStatus = useMemo(() => {
+    if (!account) return 'requires_action';
+    
+    if (account.deleted_at) return 'canceled';
+    
+    switch (subscriptionStatus) {
+      case 'active':
+      case 'trialing':
+        return 'active';
+      case 'past_due':
+      case 'unpaid':
+        return 'requires_action';
+      case 'canceled':
+        return 'canceled';
+      case 'incomplete':
+      case 'incomplete_expired':
+        return 'suspended';
+      default:
+        return trialStatus === 'active' ? 'active' : 'requires_action';
+    }
+  }, [account, subscriptionStatus, trialStatus]);
+  
+  const canAccessFeatures = useMemo(() => {
+    return accountStatus === 'active' || trialStatus === 'active';
+  }, [accountStatus, trialStatus]);
+  
+  const accessLevel = useMemo(() => {
+    if (!canAccessFeatures) return 'suspended';
+    
+    if (trialStatus === 'active' && !hasActivePlan) return 'limited';
+    
+    return 'full';
+  }, [canAccessFeatures, trialStatus, hasActivePlan]);
+  
+  // Billing History
+  const hasHadPaidPlan = useMemo(() => !!account?.has_had_paid_plan, [account]);
+  const isReactivated = useMemo(() => {
+    return hasHadPaidPlan && subscriptionStatus === 'active' && !!account?.stripe_subscription_id;
+  }, [hasHadPaidPlan, subscriptionStatus, account]);
+  
+  // Session management updates
+  const sessionTimeRemaining = useMemo(() => {
+    if (!sessionExpiry) return 0;
+    const now = new Date();
+    const remaining = sessionExpiry.getTime() - now.getTime();
+    return Math.max(0, Math.floor(remaining / 1000));
+  }, [sessionExpiry]);
+  
+  const isSessionExpiringSoon = useMemo(() => {
+    return sessionTimeRemaining > 0 && sessionTimeRemaining < 300; // 5 minutes
+  }, [sessionTimeRemaining]);
   
   const sessionExpiry = useMemo(() => {
     if (!session?.expires_at) return null;
@@ -407,6 +636,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return sessionTimeRemaining !== null && sessionTimeRemaining < SESSION_WARNING_THRESHOLD;
   }, [sessionTimeRemaining]);
 
+  // 💳 PAYMENT STATUS FUNCTIONS
+  
+  // Refresh payment status from Stripe
+  const refreshPaymentStatus = useCallback(async () => {
+    if (!isAuthenticated || !accountId) return;
+    
+    try {
+      // This will trigger a fresh fetch of account data which includes Stripe status
+      await refreshAccountDetails();
+    } catch (error) {
+      console.error('Error refreshing payment status:', error);
+    }
+  }, [isAuthenticated, accountId, refreshAccountDetails]);
+  
+  // Plan validation functions
+  const requireActivePlan = useCallback(() => {
+    if (!hasActivePlan) {
+      setError('Active paid plan required');
+      return false;
+    }
+    return true;
+  }, [hasActivePlan]);
+  
+  const requirePaymentMethod = useCallback(() => {
+    if (!hasPaymentMethod) {
+      setError('Valid payment method required');
+      return false;
+    }
+    return true;
+  }, [hasPaymentMethod]);
+
   // Initialize auth state
   useEffect(() => {
     checkAuthState();
@@ -451,7 +711,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Context value
   const value: AuthContextType = useMemo(() => ({
-    // State
+    // Core State
     user,
     session,
     isAuthenticated,
@@ -460,6 +720,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isLoading,
     isInitialized,
     error,
+    
+    // Admin & Account
     isAdminUser,
     adminLoading,
     accountId,
@@ -467,8 +729,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     businessLoading,
     account,
     accountLoading,
+    
+    // 💳 Payment States
+    subscriptionStatus,
+    paymentStatus,
+    trialStatus,
+    trialDaysRemaining,
+    isTrialExpiringSoon,
+    currentPlan,
+    planTier,
+    hasActivePlan,
+    requiresPlanSelection,
+    hasPaymentMethod,
+    paymentMethodStatus,
+    accountStatus,
+    canAccessFeatures,
+    accessLevel,
+    hasHadPaidPlan,
+    isReactivated,
+    
+    // Session Management
     sessionExpiry,
     sessionTimeRemaining,
+    isSessionExpiringSoon,
     
     // Actions
     signIn,
@@ -477,22 +760,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refreshAdminStatus,
     refreshBusinessProfile,
     refreshAccountDetails,
+    refreshPaymentStatus,
     
     // Guards
     requireAuth,
     requireAdmin,
     requireBusiness,
+    requireActivePlan,
+    requirePaymentMethod,
     
     // Utilities
     clearError,
-    isSessionExpiringSoon,
   }), [
     user, session, isAuthenticated, emailVerified, requiresEmailVerification, isLoading, isInitialized, error,
-    isAdminUser, adminLoading, accountId, hasBusiness, businessLoading,
-    account, accountLoading, sessionExpiry, sessionTimeRemaining,
-    signIn, signOut, refreshAuth, refreshAdminStatus, refreshBusinessProfile, refreshAccountDetails,
-    requireAuth, requireAdmin, requireBusiness,
-    clearError, isSessionExpiringSoon
+    isAdminUser, adminLoading, accountId, hasBusiness, businessLoading, account, accountLoading,
+    subscriptionStatus, paymentStatus, trialStatus, trialDaysRemaining, isTrialExpiringSoon,
+    currentPlan, planTier, hasActivePlan, requiresPlanSelection, hasPaymentMethod, paymentMethodStatus,
+    accountStatus, canAccessFeatures, accessLevel, hasHadPaidPlan, isReactivated,
+    sessionExpiry, sessionTimeRemaining, isSessionExpiringSoon,
+    signIn, signOut, refreshAuth, refreshAdminStatus, refreshBusinessProfile, refreshAccountDetails, refreshPaymentStatus,
+    requireAuth, requireAdmin, requireBusiness, requireActivePlan, requirePaymentMethod,
+    clearError
   ]);
 
   return (
