@@ -329,7 +329,7 @@ export default function UploadContactsPage() {
                 className="w-full py-2 px-4 bg-slate-blue text-white rounded-md hover:bg-slate-blue/90 font-semibold mb-2"
                 onClick={() => {
                   setShowUpgradeModal(false);
-                  window.location.href = "/upgrade";
+                  window.location.href = "/dashboard/plan";
                 }}
               >
                 Upgrade now
