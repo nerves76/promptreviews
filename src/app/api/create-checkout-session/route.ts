@@ -22,13 +22,17 @@ const PRICE_IDS: Record<string, string> = {
 
 export async function POST(req: NextRequest) {
   try {
+    console.log("🚀 Checkout session request started");
     const { plan, userId, email } = await req.json();
+    console.log("📊 Request data:", { plan, userId, email: email ? "provided" : "missing" });
     
     if (!plan || !PRICE_IDS[plan]) {
+      console.error("❌ Invalid plan provided:", plan);
       return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
     }
 
     // Fetch current account info including current plan
+    console.log("🔍 Creating Supabase client");
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -37,13 +41,14 @@ export async function POST(req: NextRequest) {
     let currentPlan: string | undefined = undefined;
     
     if (userId) {
+      console.log("🔍 Fetching account data for userId:", userId);
       const { data: account, error } = await supabase
         .from("accounts")
         .select("stripe_customer_id, plan, email")
         .eq("id", userId)
         .single();
       if (error) {
-        console.error("Error fetching account for checkout:", error);
+        console.error("❌ Error fetching account for checkout:", error);
         return NextResponse.json({ error: "Account not found" }, { status: 404 });
       }
       if (account) {
@@ -121,28 +126,60 @@ export async function POST(req: NextRequest) {
     console.log("  Customer ID:", stripeCustomerId);
     console.log("  Plan:", plan);
     console.log("  Change Type:", changeType);
+    console.log("  Price ID:", PRICE_IDS[plan]);
+    console.log("  Success URL:", `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=1&change=${changeType}&plan=${plan}`);
 
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
-      mode: "subscription",
-      ...(stripeCustomerId
-        ? { customer: stripeCustomerId }
-        : { customer_email: email }),
-      line_items: [{ price: PRICE_IDS[plan], quantity: 1 }],
-      metadata: { 
-        userId, 
-        plan,
-        userEmail: email // Add email to metadata for webhook fallback
-      },
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=1&change=${changeType}&plan=${plan}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?canceled=1`,
-    });
+    try {
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ["card"],
+        mode: "subscription",
+        ...(stripeCustomerId
+          ? { customer: stripeCustomerId }
+          : { customer_email: email }),
+        line_items: [{ price: PRICE_IDS[plan], quantity: 1 }],
+        metadata: { 
+          userId, 
+          plan,
+          userEmail: email // Add email to metadata for webhook fallback
+        },
+        success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=1&change=${changeType}&plan=${plan}`,
+        cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?canceled=1`,
+      });
 
-    return NextResponse.json({ url: session.url });
+      console.log("✅ Checkout session created successfully:", session.id);
+      return NextResponse.json({ url: session.url });
+    } catch (stripeError: any) {
+      console.error("❌ Stripe API Error:", stripeError);
+      console.error("Stripe Error Details:", {
+        message: stripeError.message,
+        type: stripeError.type,
+        code: stripeError.code,
+        statusCode: stripeError.statusCode
+      });
+      throw stripeError; // Re-throw to be caught by outer catch
+    }
   } catch (error: any) {
-    console.error("Stripe checkout error:", error);
+    console.error("❌ Stripe checkout error:", error);
+    console.error("Error details:", {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      type: error.type,
+      code: error.code
+    });
+    
+    // Provide more specific error messages
+    let errorMessage = "Internal server error";
+    if (error.type === "StripeInvalidRequestError") {
+      errorMessage = `Stripe validation error: ${error.message}`;
+    } else if (error.type === "StripeAPIError") {
+      errorMessage = "Stripe service temporarily unavailable";
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
     return NextResponse.json(
-      { error: error.message || "Internal server error" },
+      { error: errorMessage },
       { status: 500 },
     );
   }
