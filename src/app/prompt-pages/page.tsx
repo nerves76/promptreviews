@@ -23,6 +23,7 @@ import { getAccountIdForUser } from "@/utils/accountUtils";
 import BusinessLocationModal from "@/app/components/BusinessLocationModal";
 import { BusinessLocation } from "@/types/business";
 import { hasLocationAccess, formatLocationAddress, getLocationDisplayName } from "@/utils/locationUtils";
+import { FaQuestionCircle } from "react-icons/fa";
 
 const StylePage = dynamic(() => import("../dashboard/style/StyleModalPage"), { ssr: false });
 
@@ -444,6 +445,7 @@ export default function PromptPages() {
                         <FaGlobe className="w-7 h-7 text-slate-blue" />
                         Universal Prompt Page
                       </h2>
+                      <UniversalTooltip />
                     </div>
                     <div className="flex gap-4 items-center">
                       <Link
@@ -462,10 +464,10 @@ export default function PromptPages() {
                       )}
                     </div>
                   </div>
-                  <p className="mt-2 text-blue-900 mb-2 text-sm">
+                  <p className="mt-2 text-blue-900 mb-4 text-sm">
                     Your Universal Prompt Page is general-use and not customer specific.
                   </p>
-                  <div className="flex flex-wrap gap-2 items-center mt-4">
+                  <div className="flex flex-wrap gap-2 items-center">
                     <div className="flex flex-wrap gap-2 items-center">
                       <button
                         type="button"
@@ -488,6 +490,31 @@ export default function PromptPages() {
                       >
                         <MdDownload size={22} color="#fff" />
                         QR code
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const businessName = business?.name || "your business";
+                          const reviewUrl = `${window.location.origin}/r/${universalPromptPage.slug}`;
+                          const message = `Hi! I'd love to get your feedback on ${businessName}. Please leave a review here: ${reviewUrl}`;
+                          window.location.href = `sms:?&body=${encodeURIComponent(message)}`;
+                        }}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-100 text-green-800 rounded hover:bg-green-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
+                      >
+                        Send SMS
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const businessName = business?.name || "your business";
+                          const reviewUrl = `${window.location.origin}/r/${universalPromptPage.slug}`;
+                          const subject = "Please leave a review";
+                          const message = `Hi,\n\nI'd love to get your feedback on ${businessName}. Please leave a review here: ${reviewUrl}\n\nThank you!`;
+                          window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
+                        }}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
+                      >
+                        Send Email
                       </button>
 
                       {copySuccess && (
@@ -842,5 +869,33 @@ export default function PromptPages() {
       )}
 
     </>
+  );
+} 
+
+function UniversalTooltip() {
+  const [show, setShow] = useState(false);
+  
+  return (
+    <span className="relative inline-block align-middle ml-1">
+      <button
+        type="button"
+        tabIndex={0}
+        aria-label="Show Universal Prompt Page info"
+        className="text-slate-blue hover:text-indigo-600 focus:outline-none"
+        onClick={() => setShow((v) => !v)}
+        onBlur={() => setShow(false)}
+        style={{ lineHeight: 1 }}
+      >
+        <FaQuestionCircle
+          className="inline-block w-4 h-4 align-middle cursor-pointer"
+          title="Universal Prompt Page info"
+        />
+      </button>
+      {show && (
+        <div className="absolute z-20 left-1/2 -translate-x-1/2 mt-2 w-80 p-3 bg-white border border-gray-200 rounded shadow text-sm text-gray-700">
+          Your Universal Prompt Page is a great choice for a QR code featured at your front desk or on tables at your restaurant or even a business card or lanyard. You could also feature it in a newsletter or an auto-reply (For best results, we highly recommend reaching out personally for reviews.) To avoid duplicate or similar reviews, Universal Prompt Pages don't allow pre-written reviews, but users can use Prompty AI to get an optimized review template.
+        </div>
+      )}
+    </span>
   );
 } 
