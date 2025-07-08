@@ -104,11 +104,15 @@ export async function POST(req: NextRequest) {
       .select();
     console.log("✅ Primary update result:", updateResult.data?.length || 0, "rows updated");
 
-    // Fallback: try to update by email if no row was updated
+    // Enhanced fallback: try multiple methods to find the account
     if (!updateResult.data || updateResult.data.length === 0) {
-      let email = subscription.metadata?.email || null;
+      console.log("⚠️  Primary update failed, trying fallback methods...");
+      
+      // Method 1: Try to get email from checkout session metadata
+      let email = subscription.metadata?.userEmail || subscription.metadata?.email || null;
+      
+      // Method 2: Fetch customer from Stripe if email is missing
       if (!email) {
-        // Fetch customer from Stripe if email is missing
         try {
           const customer = await stripe.customers.retrieve(customerId);
           if (
@@ -117,14 +121,34 @@ export async function POST(req: NextRequest) {
             customer.email
           ) {
             email = customer.email;
-            console.log("Fetched email from Stripe customer:", email);
+            console.log("📧 Fetched email from Stripe customer:", email);
           } else {
-            console.log("No email found on Stripe customer object.");
+            console.log("❌ No email found on Stripe customer object.");
           }
         } catch (fetchErr) {
-          console.error("Error fetching customer from Stripe:", fetchErr);
+          console.error("❌ Error fetching customer from Stripe:", fetchErr);
         }
       }
+      
+      // Method 3: Try to find by userId from metadata
+      const userId = subscription.metadata?.userId;
+      if (!email && userId) {
+        console.log("🔍 Trying to find account by userId from metadata:", userId);
+        const { data: accountData, error: accountError } = await supabase
+          .from("accounts")
+          .select("email")
+          .eq("id", userId)
+          .single();
+        
+        if (accountData && !accountError) {
+          email = accountData.email;
+          console.log("📧 Found email from userId lookup:", email);
+        } else {
+          console.log("❌ Could not find account by userId:", userId);
+        }
+      }
+      
+      // Method 4: Update by email if found
       if (email) {
         console.log("🔄 Fallback: updating account by email:", email);
         updateResult = await supabase
@@ -134,7 +158,7 @@ export async function POST(req: NextRequest) {
             plan_lookup_key: lookupKey,
             stripe_subscription_id: subscription.id,
             subscription_status: status,
-            stripe_customer_id: customerId, // always set this for future events
+            stripe_customer_id: customerId, // CRITICAL: always set this for future events
             max_users: maxUsers,
             max_locations: maxLocations,
             ...(isPaidPlan ? { has_had_paid_plan: true } : {}),
@@ -146,10 +170,46 @@ export async function POST(req: NextRequest) {
         if (updateResult.data && updateResult.data.length > 0) {
           console.log("🎉 Account successfully updated via email fallback!");
         }
-      } else {
-        console.log("❌ No account matched by customerId and no email found for fallback.");
+      }
+      
+      // Method 5: Try by userId if email failed
+      if ((!updateResult.data || updateResult.data.length === 0) && userId) {
+        console.log("🔄 Last resort: updating account by userId:", userId);
+        updateResult = await supabase
+          .from("accounts")
+          .update({
+            plan,
+            plan_lookup_key: lookupKey,
+            stripe_subscription_id: subscription.id,
+            subscription_status: status,
+            stripe_customer_id: customerId, // CRITICAL: always set this for future events
+            max_users: maxUsers,
+            max_locations: maxLocations,
+            ...(isPaidPlan ? { has_had_paid_plan: true } : {}),
+          })
+          .eq("id", userId)
+          .select();
+        console.log("✅ UserId fallback update result:", updateResult.data?.length || 0, "rows updated");
+        
+        if (updateResult.data && updateResult.data.length > 0) {
+          console.log("🎉 Account successfully updated via userId fallback!");
+        }
+      }
+      
+      // CRITICAL: Alert if all methods failed
+      if (!updateResult.data || updateResult.data.length === 0) {
+        console.error("🚨 CRITICAL: All update methods failed!");
+        console.error("  Customer ID:", customerId);
+        console.error("  Email:", email);
+        console.error("  User ID:", userId);
+        console.error("  Plan:", plan);
+        console.error("  Subscription ID:", subscription.id);
+        
+        // TODO: Add monitoring/alerting here (e.g., Sentry, email notification)
+        // This should trigger immediate investigation
       }
     }
+    
     if (updateResult.error) {
       console.error("Supabase update error:", updateResult.error.message);
       return NextResponse.json(
@@ -164,7 +224,9 @@ export async function POST(req: NextRequest) {
     // Handle invoice/payment events
     const invoice = event.data.object as Stripe.Invoice;
     const customerId = invoice.customer as string;
-    const subscriptionId = invoice.subscription as string;
+    const subscriptionId = typeof (invoice as any).subscription === 'string' 
+      ? (invoice as any).subscription 
+      : (invoice as any).subscription?.id || null;
     
     console.log("💳 Processing payment event:", event.type);
     console.log("  Customer ID:", customerId);

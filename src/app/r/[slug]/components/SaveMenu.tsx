@@ -69,7 +69,7 @@ export default function SaveMenu({
 
   return (
     <div
-      className={`fixed right-4 z-50 transition-all duration-300 ${showBanner ? "top-28 sm:top-24" : "top-4"}`}
+              className={`fixed right-4 z-40 transition-all duration-300 ${showBanner ? "top-28 sm:top-24" : "top-4"}`}
       ref={saveMenuRef}
     >
       <button

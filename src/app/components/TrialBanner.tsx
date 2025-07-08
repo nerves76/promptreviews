@@ -87,23 +87,19 @@ export default function TrialBanner({
         return false;
       }
       
-      // Show for users with no plan or on grower (trial) plan
-      if (!accountData.plan || accountData.plan === 'grower') {
-        // Check if trial hasn't expired
-        if (accountData.trial_end && new Date() < new Date(accountData.trial_end)) {
-          return true;
-        }
-        
-        // For grower plan without trial dates, show banner (they might be in trial)
-        if (accountData.plan === 'grower' && !accountData.trial_end) {
-          return true;
-        }
-        
-        // For users with no plan, show banner
-        if (!accountData.plan) {
-          return true;
-        }
+      // Only show banner if user has an active trial with trial_end date
+      if (accountData.trial_end && new Date() < new Date(accountData.trial_end)) {
+        return true;
       }
+      
+      // Show for users with no plan (completely new users)
+      if (!accountData.plan) {
+        return true;
+      }
+      
+      // DO NOT show for grower plan without trial_end 
+      // (these are likely downgrades, not new trials)
+      return false;
     } else if (plan) {
       // Fallback to props if no account data
       
@@ -112,7 +108,7 @@ export default function TrialBanner({
         return false;
       }
       
-      // Show if trial hasn't expired for grower plan
+      // Show if trial hasn't expired for grower plan AND we have a trial_end date
       if (plan === 'grower' && trialEnd && new Date() < trialEnd) {
         return true;
       }

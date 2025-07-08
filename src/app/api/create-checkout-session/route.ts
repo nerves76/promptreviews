@@ -39,15 +39,44 @@ export async function POST(req: NextRequest) {
     if (userId) {
       const { data: account, error } = await supabase
         .from("accounts")
-        .select("stripe_customer_id, plan")
+        .select("stripe_customer_id, plan, email")
         .eq("id", userId)
         .single();
       if (error) {
         console.error("Error fetching account for checkout:", error);
+        return NextResponse.json({ error: "Account not found" }, { status: 404 });
       }
       if (account) {
         stripeCustomerId = account.stripe_customer_id;
         currentPlan = account.plan;
+        
+        // CRITICAL FIX: If no stripe_customer_id exists, create one now
+        if (!stripeCustomerId) {
+          console.log("🔧 Creating Stripe customer for user:", userId);
+          try {
+            const customer = await stripe.customers.create({
+              email: account.email,
+              metadata: { userId: userId }
+            });
+            stripeCustomerId = customer.id;
+            
+            // Update account with new customer ID
+            const { error: updateError } = await supabase
+              .from("accounts")
+              .update({ stripe_customer_id: stripeCustomerId })
+              .eq("id", userId);
+            
+            if (updateError) {
+              console.error("Error updating account with customer ID:", updateError);
+              // Continue anyway - webhook can handle it
+            } else {
+              console.log("✅ Account updated with customer ID:", stripeCustomerId);
+            }
+          } catch (customerError) {
+            console.error("Error creating Stripe customer:", customerError);
+            // Continue with email-based checkout
+          }
+        }
         
         // Prevent multiple active subscriptions
         if (stripeCustomerId) {
@@ -88,6 +117,11 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    console.log("🛒 Creating checkout session:");
+    console.log("  Customer ID:", stripeCustomerId);
+    console.log("  Plan:", plan);
+    console.log("  Change Type:", changeType);
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       mode: "subscription",
@@ -95,7 +129,11 @@ export async function POST(req: NextRequest) {
         ? { customer: stripeCustomerId }
         : { customer_email: email }),
       line_items: [{ price: PRICE_IDS[plan], quantity: 1 }],
-      metadata: { userId, plan },
+      metadata: { 
+        userId, 
+        plan,
+        userEmail: email // Add email to metadata for webhook fallback
+      },
       success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=1&change=${changeType}&plan=${plan}`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?canceled=1`,
     });

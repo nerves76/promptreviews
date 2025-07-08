@@ -87,11 +87,11 @@ export default function SignIn() {
       
       const result = await signIn(formData.email, formData.password);
 
-      if (!result.success) {
+      if (result.error) {
         console.error("❌ Sign in failed:", result.error);
         
         // Map common error messages
-        let errorMessage = result.error || "Sign in failed";
+        let errorMessage = result.error.message || "Sign in failed";
         if (errorMessage.includes('Invalid login credentials')) {
           errorMessage = "Invalid email or password. Please check your credentials.";
         } else if (errorMessage.includes('Email not confirmed')) {

@@ -18,6 +18,20 @@ export interface Account {
   id: string;
   name?: string;
   created_at: string;
+  // Stripe-related fields
+  stripe_customer_id?: string;
+  stripe_subscription_id?: string;
+  subscription_status?: string;
+  plan?: string;
+  trial_start?: string;
+  trial_end?: string;
+  has_had_paid_plan?: boolean;
+  is_free_account?: boolean;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  // Business relation
+  businesses?: any[];
 }
 
 /**
@@ -214,7 +228,12 @@ export async function ensureAccountExists(
       const { data: userData, error: userError } = await supabase.auth.getUser();
       
       if (userError) {
-        console.error("Error getting user data:", userError);
+        console.error("Error getting user data:", {
+          message: userError.message,
+          code: userError.code,
+          details: userError.details,
+          hint: userError.hint,
+        });
         throw userError;
       }
 
@@ -223,12 +242,13 @@ export async function ensureAccountExists(
       const lastName = user?.user_metadata?.last_name || "";
       const email = user?.email || "";
 
-      // Create a new account with a generated UUID
+      // Create a new account with the user ID as the account ID (matches database schema)
       const { data: newAccount, error: createError } = await supabase
         .from("accounts")
         .insert({
-          user_id: userId,
+          id: userId, // CRITICAL: Set the account ID to match the user ID
           email,
+          plan: 'no_plan',
           trial_start: new Date().toISOString(),
           trial_end: new Date(
             Date.now() + 14 * 24 * 60 * 60 * 1000,
@@ -238,12 +258,19 @@ export async function ensureAccountExists(
           contact_count: 0,
           first_name: firstName,
           last_name: lastName,
+          has_seen_welcome: false,
+          review_notifications_enabled: true,
         })
         .select()
         .single();
 
       if (createError) {
-        console.error("Account creation error:", createError);
+        console.error("Account creation error:", {
+          message: createError.message,
+          code: createError.code,
+          details: createError.details,
+          hint: createError.hint,
+        });
         throw createError;
       }
 
@@ -252,21 +279,30 @@ export async function ensureAccountExists(
         .from("account_users")
         .insert({
           user_id: userId,
-          account_id: newAccount.id,
+          account_id: userId, // Use userId as account_id since account.id = userId
           role: "owner",
         });
 
       if (upsertAccountUserError) {
-        console.error("Account user creation error:", upsertAccountUserError);
+        console.error("Account user creation error:", {
+          message: upsertAccountUserError.message,
+          code: upsertAccountUserError.code,
+          details: upsertAccountUserError.details,
+          hint: upsertAccountUserError.hint,
+        });
         throw upsertAccountUserError;
       }
 
-      return newAccount.id;
+      return userId; // Return the userId which is the account ID
     }
 
     return accountId;
   } catch (err) {
-    console.error("Account setup error:", err);
+    console.error("Account setup error:", {
+      message: err instanceof Error ? err.message : String(err),
+      stack: err instanceof Error ? err.stack : undefined,
+      error: err,
+    });
     throw err;
   }
 }

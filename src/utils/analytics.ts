@@ -33,6 +33,7 @@ export const GA_EVENTS = {
   SUBSCRIPTION_STARTED: 'subscription_started',
   SUBSCRIPTION_CANCELLED: 'subscription_cancelled',
   SUBSCRIPTION_UPDATED: 'subscription_updated',
+  PLAN_SELECTED: 'plan_selected',
   
   // Admin actions
   ANNOUNCEMENT_CREATED: 'announcement_created',

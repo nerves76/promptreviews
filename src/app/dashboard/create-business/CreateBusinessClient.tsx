@@ -81,7 +81,11 @@ export default function CreateBusinessClient() {
         setLoading(false);
         
       } catch (error) {
-        console.error('💥 CreateBusinessClient: Unexpected error:', error);
+        console.error('💥 CreateBusinessClient: Unexpected error:', {
+          message: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined,
+          error: error,
+        });
         setError("Failed to load user data. Please try refreshing the page.");
         setLoading(false);
       }

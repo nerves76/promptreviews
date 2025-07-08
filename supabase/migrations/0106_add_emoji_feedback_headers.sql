@@ -1,13 +1,13 @@
 -- Add emoji feedback header fields to prompt_pages table
 ALTER TABLE prompt_pages 
-ADD COLUMN IF NOT EXISTS emoji_feedback_popup_header text DEFAULT 'How can we Improve?';
+ADD COLUMN IF NOT EXISTS emoji_feedback_popup_header text DEFAULT 'How can we improve?';
 
 ALTER TABLE prompt_pages 
 ADD COLUMN IF NOT EXISTS emoji_feedback_page_header text DEFAULT 'Your feedback helps us grow';
 
 -- Add emoji feedback header fields to business_locations table  
 ALTER TABLE business_locations 
-ADD COLUMN IF NOT EXISTS emoji_feedback_popup_header text DEFAULT 'How can we Improve?';
+ADD COLUMN IF NOT EXISTS emoji_feedback_popup_header text DEFAULT 'How can we improve?';
 
 ALTER TABLE business_locations 
 ADD COLUMN IF NOT EXISTS emoji_feedback_page_header text DEFAULT 'Your feedback helps us grow';

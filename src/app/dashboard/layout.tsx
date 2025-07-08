@@ -8,6 +8,7 @@ import AppLoader from "@/app/components/AppLoader";
 import { trackEvent, GA_EVENTS } from "../../utils/analytics";
 import TrialBanner from "../components/TrialBanner";
 import Header from "../components/Header";
+import { getOnboardingStatus } from "@/utils/onboardingUtils";
 
 // Use the singleton Supabase client instead of creating a new instance
 // This prevents "Multiple GoTrueClient instances" warnings and ensures proper session persistence
@@ -21,6 +22,7 @@ export default function DashboardLayout({
   const [user, setUser] = useState<any>(null);
   const [accountData, setAccountData] = useState<any>(null);
   const [isClient, setIsClient] = useState(false);
+  const [onboardingStatus, setOnboardingStatus] = useState<any>(null);
   const router = useRouter();
 
   // Create supabase client instance
@@ -61,9 +63,9 @@ export default function DashboardLayout({
     }
   }, []);
 
-  // 🔧 AUTH: Simple authentication check
+  // 🔧 AUTH & ONBOARDING: Authentication and onboarding check
   useEffect(() => {
-    const checkAuth = async () => {
+    const checkAuthAndOnboarding = async () => {
       try {
         const { data: { user }, error } = await supabase.auth.getUser();
 
@@ -73,6 +75,24 @@ export default function DashboardLayout({
         }
 
         setUser(user);
+        
+        // Check onboarding status to ensure user has completed business creation
+        console.log('🔍 DashboardLayout: Checking onboarding status for user:', user.id);
+        const userOnboardingStatus = await getOnboardingStatus(supabase, user.id);
+        
+        console.log('🔍 DashboardLayout: Onboarding status:', userOnboardingStatus);
+        setOnboardingStatus(userOnboardingStatus);
+        
+        // Allow access to create-business page even if onboarding incomplete
+        const currentPath = typeof window !== "undefined" ? window.location.pathname : "";
+        const isOnCreateBusinessPage = currentPath === "/dashboard/create-business";
+        
+        // Redirect users who need to create business (unless they're already on the create-business page)
+        if (userOnboardingStatus.shouldRedirect && userOnboardingStatus.redirectPath && !isOnCreateBusinessPage) {
+          console.log('🔄 DashboardLayout: Redirecting to:', userOnboardingStatus.redirectPath);
+          router.push(userOnboardingStatus.redirectPath);
+          return;
+        }
         
         // Fetch account data for TrialBanner
         await fetchAccountData(user.id);
@@ -86,7 +106,7 @@ export default function DashboardLayout({
     };
 
     if (isClient) {
-      checkAuth();
+      checkAuthAndOnboarding();
     }
   }, [router, fetchAccountData, isClient]);
 

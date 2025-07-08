@@ -69,7 +69,7 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
         : "Thank you for your feedback. It's important to us.",
     );
     const [emojiFeedbackPopupHeader, setEmojiFeedbackPopupHeader] = useState(
-      initialData?.emojiFeedbackPopupHeader || "How can we Improve?",
+      initialData?.emojiFeedbackPopupHeader || "How can we improve?",
     );
     const [emojiFeedbackPageHeader, setEmojiFeedbackPageHeader] = useState(
       initialData?.emojiFeedbackPageHeader || "Your feedback helps us grow",

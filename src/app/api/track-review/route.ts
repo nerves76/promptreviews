@@ -56,7 +56,7 @@ export async function POST(request: Request) {
         review_content: reviewContent,
         prompt_page_type: promptPageType,
         review_type: review_type || (status === "feedback" ? "feedback" : "review"),
-        sentiment,
+        emoji_sentiment_selection: sentiment,
         email,
         phone,
         user_agent: userAgent,

@@ -148,8 +148,8 @@ export default function TestAuthContext() {
               </div>
               <div className="flex justify-between">
                 <span>Expiring Soon:</span>
-                <span className={isSessionExpiringSoon() ? 'text-yellow-600' : 'text-green-600'}>
-                  {isSessionExpiringSoon() ? '⚠️ Yes' : '✅ No'}
+                <span className={isSessionExpiringSoon ? 'text-yellow-600' : 'text-green-600'}>
+                  {isSessionExpiringSoon ? '⚠️ Yes' : '✅ No'}
                 </span>
               </div>
               <button

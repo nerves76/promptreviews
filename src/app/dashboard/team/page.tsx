@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { PlusIcon, XMarkIcon, UserIcon, EnvelopeIcon, ClockIcon, QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '@/contexts/AuthContext';
@@ -63,6 +63,9 @@ export default function TeamPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [showRoleTooltip, setShowRoleTooltip] = useState(false);
+  
+  // Prevent multiple simultaneous calls
+  const fetchingRef = useRef(false);
 
   // Auth guard - redirect if not authenticated
   useEffect(() => {
@@ -78,8 +81,15 @@ export default function TeamPage() {
     return plan.charAt(0).toUpperCase() + plan.slice(1);
   };
 
-  // Fetch team data
-  const fetchTeamData = async () => {
+  // Fetch team data - wrapped in useCallback to prevent infinite re-renders
+  const fetchTeamData = useCallback(async () => {
+    // Prevent multiple simultaneous calls
+    if (fetchingRef.current) {
+      return;
+    }
+    
+    fetchingRef.current = true;
+    
     try {
       setLoading(true);
       setError(null);
@@ -108,27 +118,23 @@ export default function TeamPage() {
       setError(err instanceof Error ? err.message : 'Failed to load team data');
     } finally {
       setLoading(false);
+      fetchingRef.current = false;
     }
-  };
+  }, []); // Empty dependency array since this function doesn't depend on any props or state
 
+  // Single useEffect for initial data loading
   useEffect(() => {
-    // Only fetch team data if user is authenticated
-    if (user && !authLoading) {
-      fetchTeamData();
+    let isMounted = true;
+    
+    // Only fetch team data if user is authenticated and not already loading
+    if (user?.id && !authLoading && !fetchingRef.current) {
+      fetchTeamData().catch(console.error);
     }
-  }, [user, authLoading]);
-
-  // Refresh data when the page becomes visible (in case user came back from Stripe)
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (!document.hidden && user) {
-        fetchTeamData();
-      }
+    
+    return () => {
+      isMounted = false;
     };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [user]);
+  }, [user?.id, authLoading]); // Removed fetchTeamData from dependencies to prevent re-renders
 
   // Send invitation
   const sendInvitation = async (e: React.FormEvent) => {
@@ -160,12 +166,18 @@ export default function TeamPage() {
       setSuccess('Invitation sent successfully!');
       setInviteEmail('');
       setInviteRole('member');
-      fetchTeamData(); // Refresh data
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to send invitation');
-    } finally {
-      setInviting(false);
-    }
+      await fetchTeamData(); // Refresh data
+      
+      // Clear success message after 5 seconds
+      setTimeout(() => setSuccess(null), 5000);
+          } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to send invitation';
+        setError(errorMessage);
+        // Clear error message after 5 seconds
+        setTimeout(() => setError(null), 5000);
+      } finally {
+        setInviting(false);
+      }
   };
 
   // Cancel invitation
@@ -180,9 +192,15 @@ export default function TeamPage() {
       }
 
       setSuccess('Invitation cancelled successfully!');
-      fetchTeamData(); // Refresh data
+      await fetchTeamData(); // Refresh data
+      
+      // Clear success message after 5 seconds
+      setTimeout(() => setSuccess(null), 5000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to cancel invitation');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to cancel invitation';
+      setError(errorMessage);
+      // Clear error message after 5 seconds
+      setTimeout(() => setError(null), 5000);
     }
   };
 
@@ -215,10 +233,6 @@ export default function TeamPage() {
 
   const { members, invitations, account, current_user_role } = teamData;
   const isOwner = current_user_role === 'owner';
-  
-  // Debug logging
-  console.log('Team data:', { account, members: members.length, current_user_role });
-  console.log('Auth context:', { user: user?.email, isAdminUser });
   
   // Additional safety check for account data
   if (!account) {

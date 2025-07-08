@@ -47,7 +47,7 @@ export default function TopActionButtons({
       {/* Style Button - Only visible to page owners */}
       {!userLoading && isOwner && (
         <div
-          className={`fixed left-4 z-50 transition-all duration-300 ${showBanner ? "top-28 sm:top-24" : "top-4"}`}
+          className={`fixed left-4 z-40 transition-all duration-300 ${showBanner ? "top-28 sm:top-24" : "top-4"}`}
         >
           <button
             onClick={onStyleClick}
@@ -63,7 +63,7 @@ export default function TopActionButtons({
 
       {/* Save for Later Button */}
       <div
-        className={`fixed right-4 z-50 transition-all duration-300 ${showBanner ? "top-28 sm:top-24" : "top-4"}`}
+        className={`fixed right-4 z-40 transition-all duration-300 ${showBanner ? "top-28 sm:top-24" : "top-4"}`}
       >
         <button
           onClick={onSaveClick}
