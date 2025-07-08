@@ -300,7 +300,7 @@ export default function ReviewPlatformCard({
                     <path d="M4 17v2"/>
                     <path d="M5 18H3"/>
                   </svg>
-                  Generate with AI {aiRewriteCounts[idx] > 0 && `(${aiRewriteCounts[idx]})`}
+                  Generate with AI {aiRewriteCounts[idx] > 0 && `(${aiRewriteCounts[idx]}/3)`}
                 </>
               )}
             </button>
