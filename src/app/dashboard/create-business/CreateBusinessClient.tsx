@@ -6,7 +6,7 @@ import { FaStore } from "react-icons/fa";
 import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 
 const supabase = createClient();
-import { useAdmin } from "@/contexts/AdminContext";
+import { useAuth } from "@/contexts/AuthContext";
 import SimpleBusinessForm from "../components/SimpleBusinessForm";
 import AppLoader from "@/app/components/AppLoader";
 import PageCard from "@/app/components/PageCard";
@@ -16,8 +16,8 @@ import { ensureAccountExists, getAccountIdForUser } from "@/utils/accountUtils";
 export default function CreateBusinessClient() {
   console.log('🔍 CreateBusinessClient: Component rendered');
   
-  // 🔧 FIXED: Use the admin context properly without causing infinite loops
-  const { isAdminUser, isLoading: adminLoading } = useAdmin();
+  // 🔧 FIXED: Use the auth context properly without causing infinite loops
+  const { isAdminUser, adminLoading } = useAuth();
   
   const router = useRouter();
   const [loading, setLoading] = useState(true);

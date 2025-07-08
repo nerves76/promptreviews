@@ -8,7 +8,7 @@ import { FiMenu, FiX } from "react-icons/fi";
 import { FaUserCircle, FaBell } from "react-icons/fa";
 import { Menu } from "@headlessui/react";
 import { createClient, getUserOrMock } from "@/utils/supabaseClient";
-import { useAdmin } from "@/contexts/AdminContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { trackEvent, GA_EVENTS } from '../../utils/analytics';
 import PromptReviewsLogo from "@/app/dashboard/components/PromptReviewsLogo";
 
@@ -46,7 +46,7 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   
-  const { isAdminUser, isLoading: adminLoading } = useAdmin();
+  const { isAdminUser, adminLoading } = useAuth();
   // 🔧 REMOVED: useBusinessProfile call that was causing infinite auth loops
   // Header is already protected by DashboardLayout authentication
   const hasBusiness = true; // Assume business exists since we're in dashboard
