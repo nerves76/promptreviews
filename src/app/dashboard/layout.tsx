@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import AppLoader from "@/app/components/AppLoader";
 import { trackEvent, GA_EVENTS } from "../../utils/analytics";
 import TrialBanner from "../components/TrialBanner";
+import Header from "../components/Header";
 
 // Use the singleton Supabase client instead of creating a new instance
 // This prevents "Multiple GoTrueClient instances" warnings and ensures proper session persistence
