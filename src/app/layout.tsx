@@ -10,7 +10,6 @@ import ClientRoot from "./ClientRoot";
 import AppMain from "./components/AppMain";
 import GoogleAnalytics from "./components/GoogleAnalytics";
 import { Providers } from "@/components/Providers";
-import { AdminProvider } from "@/contexts/AdminContext";
 
 // Initialize Sentry for server-side error tracking
 import * as Sentry from '@sentry/nextjs';
@@ -70,11 +69,9 @@ export default function RootLayout({
         suppressHydrationWarning={true}
       >
         <Providers>
-          <AdminProvider>
-            <ClientRoot>
-              <AppMain>{children}</AppMain>
-            </ClientRoot>
-          </AdminProvider>
+          <ClientRoot>
+            <AppMain>{children}</AppMain>
+          </ClientRoot>
         </Providers>
       </body>
     </html>
