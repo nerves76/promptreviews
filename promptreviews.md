@@ -10,6 +10,29 @@ This project is currently focused on developing a standalone widget for collecti
 
 ## Recent Updates (Latest)
 
+### Global Business Requirements (January 2025)
+- **App-Wide Business Enforcement**: Implemented global business requirement enforcement throughout the entire application
+- **BusinessGuard Component**: Created a comprehensive business guard component that applies to all authenticated routes
+- **Protected Routes**: No authenticated user can access any part of the app without having created a business first
+- **Exempt Routes**: Defined specific exempt routes including auth pages, public pages, and the create-business page itself
+- **Streamlined Experience**: Removed redundant business checks from dashboard layout - now handled globally
+- **Plan Change Compatibility**: Maintains proper handling of plan upgrade/downgrade success flows
+- **Better UX**: Users are consistently redirected to business creation when required, improving onboarding flow
+- **Centralized Logic**: All business requirement logic now centralized in the BusinessGuard component within Providers
+
+#### **Technical Implementation**
+- **Global Provider Integration**: Added BusinessGuard to Providers component for app-wide coverage
+- **Route Exemption System**: Intelligent route checking that exempts auth flows and public pages
+- **Loading State Management**: Proper loading state handling during business verification
+- **Plan Success Bypass**: Special handling to allow plan change success messages to display properly
+- **Simplified Dashboard**: Removed complex business checking logic from dashboard layout component
+
+#### **Files Modified**
+- `src/components/BusinessGuard.tsx` - New global business guard component
+- `src/components/Providers.tsx` - Added BusinessGuard to provider chain
+- `src/app/dashboard/layout.tsx` - Removed redundant business checking logic
+- Business requirements now apply consistently across all authenticated routes
+
 ### Step 2 Emoji Gating Implementation (January 2025)
 - **Enhanced Review Process**: Implemented Google-compliant review submission process with two-step choice system for negative sentiments
 - **Negative Sentiment Handling**: Users who select "neutral", "unsatisfied", or "frustrated" emojis are presented with a choice modal
