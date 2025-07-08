@@ -122,7 +122,7 @@ export default function DashboardContent({
   paymentChangeType,
 }: DashboardContentProps) {
   console.log("DASHBOARD RENDERED");
-  useAuthGuard();
+  // Note: Authentication is handled by the dashboard layout
   const router = useRouter();
   const [promptPages, setPromptPages] = useState<PromptPage[]>([]);
   const [isLoading, setLoading] = useState(true);

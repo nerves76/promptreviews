@@ -5,7 +5,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 interface TrialBannerProps {
   trialEnd?: Date;
@@ -26,9 +26,6 @@ export default function TrialBanner({
   // Use accountData if provided, otherwise use props
   useEffect(() => {
     if (accountData) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log("TrialBanner: Using accountData from props:", accountData);
-      }
       if (accountData.trial_end) {
         setTrialEnd(new Date(accountData.trial_end));
       }
@@ -36,24 +33,14 @@ export default function TrialBanner({
         setPlan(accountData.plan);
       }
     } else if (propTrialEnd && propPlan) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log("TrialBanner: Using trial end and plan from props");
-      }
       setTrialEnd(propTrialEnd);
       setPlan(propPlan);
-    } else {
-      if (process.env.NODE_ENV === 'development') {
-        console.log("TrialBanner: No account data provided");
-      }
     }
   }, [accountData, propTrialEnd, propPlan]);
 
   // Calculate time remaining
   useEffect(() => {
     if (!trialEnd) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log("TrialBanner: No trial end date, skipping time calculation");
-      }
       return;
     }
 
@@ -81,13 +68,10 @@ export default function TrialBanner({
     return () => clearInterval(interval);
   }, [trialEnd]);
 
-  // Check if banner should be shown
-  const shouldShow = () => {
+  // Check if banner should be shown (memoized to prevent excessive calculations)
+  const shouldShow = useMemo(() => {
     // Check if user dismissed the banner
     const hideBanner = sessionStorage.getItem('hideTrialBanner');
-    if (process.env.NODE_ENV === 'development') {
-      console.log("TrialBanner: Checked sessionStorage, hideBanner:", hideBanner);
-    }
     
     if (hideBanner === 'true') {
       return false;
@@ -98,15 +82,8 @@ export default function TrialBanner({
     
     // If we have account data, use it
     if (accountData) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log("TrialBanner: Using accountData for plan check:", accountData.plan);
-      }
-      
       // Never show banner for paid plans
       if (paidPlans.includes(accountData.plan)) {
-        if (process.env.NODE_ENV === 'development') {
-          console.log("TrialBanner: User is on paid plan, hiding banner");
-        }
         return false;
       }
       
@@ -114,79 +91,42 @@ export default function TrialBanner({
       if (!accountData.plan || accountData.plan === 'grower') {
         // Check if trial hasn't expired
         if (accountData.trial_end && new Date() < new Date(accountData.trial_end)) {
-          if (process.env.NODE_ENV === 'development') {
-            console.log("TrialBanner: Trial is active, showing banner");
-          }
           return true;
         }
         
         // For grower plan without trial dates, show banner (they might be in trial)
         if (accountData.plan === 'grower' && !accountData.trial_end) {
-          if (process.env.NODE_ENV === 'development') {
-            console.log("TrialBanner: Grower plan without trial dates, showing banner");
-          }
           return true;
         }
         
         // For users with no plan, show banner
         if (!accountData.plan) {
-          if (process.env.NODE_ENV === 'development') {
-            console.log("TrialBanner: No plan set, showing banner");
-          }
           return true;
         }
       }
     } else if (plan) {
       // Fallback to props if no account data
-      if (process.env.NODE_ENV === 'development') {
-        console.log("TrialBanner: Using plan prop for trial check:", plan);
-      }
       
       // Never show banner for paid plans
       if (paidPlans.includes(plan)) {
-        if (process.env.NODE_ENV === 'development') {
-          console.log("TrialBanner: Paid plan from props, hiding banner");
-        }
         return false;
       }
       
       // Show if trial hasn't expired for grower plan
       if (plan === 'grower' && trialEnd && new Date() < trialEnd) {
-        if (process.env.NODE_ENV === 'development') {
-          console.log("TrialBanner: Trial is active (from props), showing banner");
-        }
         return true;
       }
     }
 
-    if (process.env.NODE_ENV === 'development') {
-      console.log("TrialBanner: Not showing banner - conditions not met");
-    }
     return false;
-  };
+  }, [accountData, plan, trialEnd]);
 
   const handleDismiss = () => {
     setIsVisible(false);
     sessionStorage.setItem('hideTrialBanner', 'true');
   };
 
-  if (process.env.NODE_ENV === 'development') {
-    console.log("TrialBanner: Render conditions:", {
-      isVisible,
-      trialEnd: !!trialEnd,
-      plan: !!plan,
-      timeRemaining,
-      shouldShow: shouldShow(),
-      accountData: !!accountData,
-      propTrialEnd: !!propTrialEnd,
-      propPlan: !!propPlan
-    });
-  }
-
-  if (!isVisible || !shouldShow()) {
-    if (process.env.NODE_ENV === 'development') {
-      console.log("TrialBanner: Not showing banner");
-    }
+  if (!isVisible || !shouldShow) {
     return null;
   }
 
