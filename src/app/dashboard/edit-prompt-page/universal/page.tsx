@@ -145,6 +145,8 @@ export default function UniversalEditPromptPage() {
           fallingEnabled: !!universalPage?.falling_icon,
           fallingIcon: universalPage?.falling_icon || "star",
           aiButtonEnabled: universalPage?.ai_button_enabled !== false,
+          notePopupEnabled: universalPage?.note_popup_enabled ?? false,
+          friendlyNote: universalPage?.friendly_note || "",
         };
         
         console.log("Merged form data:", merged);
@@ -234,6 +236,8 @@ export default function UniversalEditPromptPage() {
       review_platforms: formState.reviewPlatforms,
       falling_icon: formState.fallingEnabled ? formState.fallingIcon : null,
       ai_button_enabled: formState.aiButtonEnabled,
+      note_popup_enabled: formState.notePopupEnabled,
+      friendly_note: formState.friendlyNote,
     }).eq("id", universalPage.id);
     if (error) {
       alert("Failed to save: " + error.message);
