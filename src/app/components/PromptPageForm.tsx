@@ -246,6 +246,14 @@ export default function PromptPageForm({
     initialData.show_friendly_note ?? true,
   );
   
+  // Sync notePopupEnabled with initialData when it changes
+  useEffect(() => {
+    console.log("🔍 useEffect updating notePopupEnabled from:", notePopupEnabled, "to:", initialData.show_friendly_note);
+    if (initialData.show_friendly_note !== undefined) {
+      setNotePopupEnabled(initialData.show_friendly_note);
+    }
+  }, [initialData.show_friendly_note]);
+  
   console.log("🔍 PromptPageForm initialData.show_friendly_note:", initialData.show_friendly_note);
   console.log("🔍 PromptPageForm notePopupEnabled:", notePopupEnabled);
 
