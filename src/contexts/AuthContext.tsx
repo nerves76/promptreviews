@@ -95,7 +95,6 @@ interface AuthState {
   // Account Lifecycle
   accountStatus: 'active' | 'suspended' | 'canceled' | 'requires_action';
   canAccessFeatures: boolean;
-  accessLevel: 'full' | 'limited' | 'suspended';
   
   // Billing History
   hasHadPaidPlan: boolean;
@@ -145,7 +144,6 @@ interface AuthContextType extends AuthState {
   
   // Utility functions
   clearError: () => void;
-  isSessionExpiringSoon: () => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -346,14 +344,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return accountStatus === 'active' || trialStatus === 'active';
   }, [accountStatus, trialStatus]);
   
-  const accessLevel = useMemo(() => {
-    if (!canAccessFeatures) return 'suspended';
-    
-    if (trialStatus === 'active' && !hasActivePlan) return 'limited';
-    
-    return 'full';
-  }, [canAccessFeatures, trialStatus, hasActivePlan]);
-  
   // Billing History
   const hasHadPaidPlan = useMemo(() => !!account?.has_had_paid_plan, [account]);
   const isReactivated = useMemo(() => {
@@ -361,6 +351,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [hasHadPaidPlan, subscriptionStatus, account]);
   
   // Session management updates
+  const sessionExpiry = useMemo(() => {
+    if (!session?.expires_at) return null;
+    return new Date(session.expires_at * 1000);
+  }, [session]);
+  
   const sessionTimeRemaining = useMemo(() => {
     if (!sessionExpiry) return 0;
     const now = new Date();
@@ -371,16 +366,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isSessionExpiringSoon = useMemo(() => {
     return sessionTimeRemaining > 0 && sessionTimeRemaining < 300; // 5 minutes
   }, [sessionTimeRemaining]);
-  
-  const sessionExpiry = useMemo(() => {
-    if (!session?.expires_at) return null;
-    return new Date(session.expires_at * 1000);
-  }, [session]);
-  
-  const sessionTimeRemaining = useMemo(() => {
-    if (!sessionExpiry) return null;
-    return Math.max(0, sessionExpiry.getTime() - Date.now());
-  }, [sessionExpiry]);
 
   // Core authentication functions
   const checkAuthState = useCallback(async (forceRefresh = false) => {
@@ -632,9 +617,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setError(null);
   }, []);
 
-  const isSessionExpiringSoon = useCallback(() => {
-    return sessionTimeRemaining !== null && sessionTimeRemaining < SESSION_WARNING_THRESHOLD;
-  }, [sessionTimeRemaining]);
+
 
   // 💳 PAYMENT STATUS FUNCTIONS
   
@@ -744,7 +727,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     paymentMethodStatus,
     accountStatus,
     canAccessFeatures,
-    accessLevel,
     hasHadPaidPlan,
     isReactivated,
     
@@ -776,7 +758,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isAdminUser, adminLoading, accountId, hasBusiness, businessLoading, account, accountLoading,
     subscriptionStatus, paymentStatus, trialStatus, trialDaysRemaining, isTrialExpiringSoon,
     currentPlan, planTier, hasActivePlan, requiresPlanSelection, hasPaymentMethod, paymentMethodStatus,
-    accountStatus, canAccessFeatures, accessLevel, hasHadPaidPlan, isReactivated,
+    accountStatus, canAccessFeatures, hasHadPaidPlan, isReactivated,
     sessionExpiry, sessionTimeRemaining, isSessionExpiringSoon,
     signIn, signOut, refreshAuth, refreshAdminStatus, refreshBusinessProfile, refreshAccountDetails, refreshPaymentStatus,
     requireAuth, requireAdmin, requireBusiness, requireActivePlan, requirePaymentMethod,

@@ -7,7 +7,7 @@
 
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { FiveStarSpinner } from './FiveStarSpinner';
+import FiveStarSpinner from './FiveStarSpinner';
 
 interface PaymentStatusProps {
   showDebug?: boolean;
@@ -29,7 +29,6 @@ export default function PaymentStatus({ showDebug = false }: PaymentStatusProps)
     paymentMethodStatus,
     accountStatus,
     canAccessFeatures,
-    accessLevel,
     hasHadPaidPlan,
     isReactivated,
     
@@ -247,9 +246,13 @@ export default function PaymentStatus({ showDebug = false }: PaymentStatusProps)
         
         <div className="bg-gray-50 p-4 rounded-lg">
           <h3 className="font-semibold text-gray-900 mb-2">Access</h3>
-          <StatusBadge status={accessLevel} label="Level" />
+          <StatusBadge 
+            status={canAccessFeatures ? 'available' : 'restricted'} 
+            label="Features" 
+          />
           <p className="text-sm text-gray-600 mt-1">
-            Features: {canAccessFeatures ? 'Available' : 'Restricted'}
+            {trialStatus === 'active' && !hasActivePlan ? 'Trial User' : 
+             hasActivePlan ? `Paid Plan (${planTier})` : 'No Access'}
           </p>
         </div>
       </div>
@@ -329,7 +332,7 @@ export const PaymentStateExamples = () => {
     trialStatus, 
     hasActivePlan, 
     canAccessFeatures, 
-    accessLevel,
+    planTier,
     requireActivePlan,
     requirePaymentMethod 
   } = useAuth();
@@ -362,10 +365,10 @@ export const PaymentStateExamples = () => {
         </div>
       )}
       
-      {/* Access Level Display */}
-      {accessLevel === 'limited' && (
+      {/* Trial User Display */}
+      {trialStatus === 'active' && !hasActivePlan && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <p className="text-yellow-700">⚠️ Limited access - trial user</p>
+          <p className="text-yellow-700">⚠️ Trial access - upgrade for full features</p>
         </div>
       )}
       
