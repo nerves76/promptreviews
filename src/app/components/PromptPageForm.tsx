@@ -1755,7 +1755,7 @@ export default function PromptPageForm({
               Popup Feature Conflict
             </h2>
             <p className="mb-6 text-gray-700">
-              You can't enable Emoji Sentiment and Personalized note pop-up at the same time because that's pop-ups on top of pop-ups—which would be weird.
+              Sorry you can't have "Personalized note" and "Emoji sentiment flow" enabled at the same time because that would be pop-ups on top of pop-ups.
             </p>
             <button
               onClick={() => setShowPopupConflictModal(null)}
