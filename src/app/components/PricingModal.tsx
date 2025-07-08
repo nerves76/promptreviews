@@ -26,6 +26,7 @@ const tiers = [
     text: "text-slate-blue",
     button: "bg-slate-blue hover:bg-slate-blue/90 text-white",
     features: [
+      "3 team members",
       "Workflow management",
       "Universal prompt page",
       "50 prompt pages",
@@ -43,6 +44,7 @@ const tiers = [
     text: "text-slate-blue",
     button: "bg-slate-blue hover:bg-slate-blue/90 text-white",
     features: [
+      "5 team members",
       "Up to 10 Business Locations",
       "Workflow management",
       "500 prompt pages",
