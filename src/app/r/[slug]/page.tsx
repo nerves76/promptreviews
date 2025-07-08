@@ -1190,6 +1190,7 @@ export default function PromptPage() {
                     "text-indigo-600": "#4f46e5",
                     "text-pink-500": "#ec4899",
                     "text-teal-500": "#14b8a6",
+                    "text-lime-400": "#a3e635",
                   };
                   return colorMap[colorClass] || "#6b7280";
                 };
