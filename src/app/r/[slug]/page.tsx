@@ -359,28 +359,33 @@ export default function PromptPage() {
   }, [params.slug]);
 
   useEffect(() => {
-    if (promptPage && Array.isArray(promptPage.review_platforms)) {
+    // Compute merged platforms here to avoid scope issues
+    const platforms = promptPage?.review_platforms && promptPage.review_platforms.length
+      ? promptPage.review_platforms
+      : businessProfile?.review_platforms || [];
+      
+    if (promptPage && Array.isArray(platforms)) {
       setPlatformReviewTexts(
-        promptPage.review_platforms.map((p: any) => p.reviewText || ""),
+        platforms.map((p: any) => p.reviewText || ""),
       );
-      setAiRewriteCounts(promptPage.review_platforms.map(() => 0));
+      setAiRewriteCounts(platforms.map(() => 0));
       if (promptPage.is_universal) {
-        setReviewerFirstNames(promptPage.review_platforms.map(() => ""));
-        setReviewerLastNames(promptPage.review_platforms.map(() => ""));
-        setReviewerRoles(promptPage.review_platforms.map(() => ""));
+        setReviewerFirstNames(platforms.map(() => ""));
+        setReviewerLastNames(platforms.map(() => ""));
+        setReviewerRoles(platforms.map(() => ""));
       } else {
         setReviewerFirstNames(
-          promptPage.review_platforms.map(() => promptPage.first_name || ""),
+          platforms.map(() => promptPage.first_name || ""),
         );
         setReviewerLastNames(
-          promptPage.review_platforms.map(() => promptPage.last_name || ""),
+          platforms.map(() => promptPage.last_name || ""),
         );
         setReviewerRoles(
-          promptPage.review_platforms.map(() => promptPage.role || ""),
+          platforms.map(() => promptPage.role || ""),
         );
       }
     }
-  }, [promptPage]);
+  }, [promptPage, businessProfile]);
 
   // Track page view (exclude logged-in users)
   useEffect(() => {
@@ -984,12 +989,17 @@ export default function PromptPage() {
 
   // Open first by default if 3 or more platforms
   useEffect(() => {
-    if (Array.isArray(promptPage?.review_platforms) && promptPage.review_platforms.length >= 3) {
-      setOpenPlatforms([true, ...Array(promptPage.review_platforms.length - 1).fill(false)]);
-    } else if (Array.isArray(promptPage?.review_platforms)) {
-      setOpenPlatforms(promptPage.review_platforms.map(() => true));
+    // Compute merged platforms here to avoid scope issues
+    const platforms = promptPage?.review_platforms && promptPage.review_platforms.length
+      ? promptPage.review_platforms
+      : businessProfile?.review_platforms || [];
+      
+    if (Array.isArray(platforms) && platforms.length >= 3) {
+      setOpenPlatforms([true, ...Array(platforms.length - 1).fill(false)]);
+    } else if (Array.isArray(platforms)) {
+      setOpenPlatforms(platforms.map(() => true));
     }
-  }, [promptPage?.review_platforms]);
+  }, [promptPage, businessProfile]);
 
   if (loading) {
     return (
@@ -1292,7 +1302,7 @@ export default function PromptPage() {
                 sentiment={sentiment}
               />
               {/* Review Platforms Section */}
-              {businessProfile?.review_platforms?.map((platform: any, idx: number) => (
+              {mergedReviewPlatforms?.map((platform: any, idx: number) => (
                 <ReviewPlatformCard
                   key={platform.id || idx}
                   platform={platform}
@@ -1300,7 +1310,7 @@ export default function PromptPage() {
                   promptPage={promptPage}
                   businessProfile={businessProfile}
                   isOpen={openPlatforms[idx]}
-                  isAccordion={(businessProfile?.review_platforms?.length || 0) > 1}
+                  isAccordion={(mergedReviewPlatforms?.length || 0) > 1}
                   reviewerFirstNames={reviewerFirstNames}
                   reviewerLastNames={reviewerLastNames}
                   reviewerRoles={reviewerRoles}

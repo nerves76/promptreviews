@@ -9,7 +9,7 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 import PaymentStatus, { PaymentStateExamples } from '@/app/components/PaymentStatus';
-import { FiveStarSpinner } from '@/app/components/FiveStarSpinner';
+import FiveStarSpinner from '@/app/components/FiveStarSpinner';
 
 export default function PaymentDemoPage() {
   const { 
@@ -22,7 +22,7 @@ export default function PaymentDemoPage() {
     currentPlan,
     hasActivePlan,
     canAccessFeatures,
-    accessLevel
+    planTier
   } = useAuth();
 
   if (isLoading) {
@@ -132,21 +132,21 @@ export default function PaymentDemoPage() {
               </button>
             </div>
 
-            {/* Enterprise Feature */}
+            {/* Tier-Based Feature */}
             <div className="border border-gray-200 rounded-lg p-4">
-              <h3 className="font-semibold text-gray-900 mb-2">🏢 Enterprise Feature</h3>
+              <h3 className="font-semibold text-gray-900 mb-2">🏢 Tier 3+ Feature</h3>
               <p className="text-sm text-gray-600 mb-3">
-                Available based on access level
+                Available for Maven (Tier 3) and Enterprise plans
               </p>
               <button
-                disabled={accessLevel !== 'full'}
+                disabled={planTier !== 'tier3' && planTier !== 'enterprise'}
                 className={`w-full py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-                  accessLevel === 'full' 
+                  (planTier === 'tier3' || planTier === 'enterprise')
                     ? 'bg-blue-600 text-white hover:bg-blue-700' 
                     : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 }`}
               >
-                {accessLevel === 'full' ? 'Full Access' : `Limited (${accessLevel})`}
+                {(planTier === 'tier3' || planTier === 'enterprise') ? 'Access Advanced Feature' : `Requires Tier 3+ (Current: ${planTier || 'none'})`}
               </button>
             </div>
           </div>
