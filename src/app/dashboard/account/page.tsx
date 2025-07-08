@@ -51,20 +51,33 @@ export default function AccountPage() {
 
         setUser(user);
 
+        // Get account ID using utility function
+        const accountId = await getAccountIdForUser(user.id, supabase);
+        
+        if (!accountId) {
+          console.log('AccountPage: No account found - redirecting to create business');
+          router.push('/dashboard/create-business');
+          return;
+        }
+
         // Load account data
         const { data: accountData, error: accountError } = await supabase
           .from("accounts")
           .select("*")
-          .eq("id", user.id)
+          .eq("id", accountId)
           .single();
 
         if (accountError) {
           console.error("Error loading account:", accountError);
           setError("Failed to load account data");
-        } else {
-          setAccount(accountData);
+          setIsLoading(false);
+          return;
         }
 
+        // Note: Onboarding logic is now handled by the dashboard layout
+        // This page should only load account data without redirecting for onboarding
+
+        setAccount(accountData);
         setIsLoading(false);
       } catch (error) {
         console.error("Error loading account data:", error);
