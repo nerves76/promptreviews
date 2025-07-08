@@ -343,7 +343,7 @@ export default function Dashboard() {
     
     // Show pricing modal for users who need to choose plan (but not if they just completed payment)
     const paidPlans = ['builder', 'maven'];
-    const isPaidUserCheck = paidPlans.includes(plan);
+    const isPaidUserCheck = plan ? paidPlans.includes(plan) : false;
     const shouldShowPricingModal = 
       !justCompletedPayment && 
       !isPaidUser &&
