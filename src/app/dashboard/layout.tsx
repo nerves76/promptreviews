@@ -66,7 +66,7 @@ export default function DashboardLayout({
         .eq('id', accountId)
         .single();
 
-      if (!account?.plan || account.plan === 'none') {
+      if (!account?.plan || account.plan === 'none' || account.plan === 'no_plan') {
         console.log("DashboardLayout: No plan selected, redirecting to plan selection");
         router.push("/dashboard/plan");
         return;
