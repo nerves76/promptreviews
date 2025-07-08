@@ -77,33 +77,25 @@ export default function DashboardLayout({
         setUser(user);
         
         // Check if user is coming from a successful plan change
-        const currentPath = typeof window !== "undefined" ? window.location.pathname : "";
         const urlParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
-        const isOnCreateBusinessPage = currentPath === "/dashboard/create-business";
         const isComingFromPlanChange = urlParams?.get("success") === "1" && (urlParams?.get("change") === "upgrade" || urlParams?.get("change") === "downgrade");
         
-        // Check onboarding status to ensure user has completed business creation
-        console.log('🔍 DashboardLayout: Checking onboarding status for user:', user.id);
-        const userOnboardingStatus = await getOnboardingStatus(supabase, user.id);
-        
-        console.log('🔍 DashboardLayout: Onboarding status:', userOnboardingStatus);
-        setOnboardingStatus(userOnboardingStatus);
-        
-        // Skip onboarding redirects if user is coming from a successful plan change
+        // Skip business redirects if user is coming from a successful plan change
+        // The global BusinessGuard will handle business requirements for other cases
         if (isComingFromPlanChange) {
-          console.log('🔄 DashboardLayout: User coming from plan change, skipping onboarding redirect');
+          console.log('🔄 DashboardLayout: User coming from plan change, skipping business redirect');
           // Fetch account data for TrialBanner
           await fetchAccountData(user.id);
           setLoading(false);
           return;
         }
         
-        // Redirect users who need to create business (unless they're already on the create-business page)
-        if (userOnboardingStatus.shouldRedirect && userOnboardingStatus.redirectPath && !isOnCreateBusinessPage) {
-          console.log('🔄 DashboardLayout: Redirecting to:', userOnboardingStatus.redirectPath);
-          router.push(userOnboardingStatus.redirectPath);
-          return;
-        }
+        // Get onboarding status for reference but don't redirect (BusinessGuard handles it)
+        console.log('🔍 DashboardLayout: Getting onboarding status for user:', user.id);
+        const userOnboardingStatus = await getOnboardingStatus(supabase, user.id);
+        
+        console.log('🔍 DashboardLayout: Onboarding status:', userOnboardingStatus);
+        setOnboardingStatus(userOnboardingStatus);
         
         // Fetch account data for TrialBanner
         await fetchAccountData(user.id);
@@ -119,7 +111,7 @@ export default function DashboardLayout({
     if (isClient) {
       checkAuthAndOnboarding();
     }
-  }, [router, fetchAccountData, isClient]);
+  }, [router, isClient]);
 
 
 

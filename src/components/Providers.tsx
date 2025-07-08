@@ -2,12 +2,15 @@
 
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ReviewerProvider } from "@/contexts/ReviewerContext";
+import BusinessGuard from "./BusinessGuard";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <AuthProvider>
       <ReviewerProvider>
-        {children}
+        <BusinessGuard>
+          {children}
+        </BusinessGuard>
       </ReviewerProvider>
     </AuthProvider>
   );
