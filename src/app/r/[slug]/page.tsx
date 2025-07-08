@@ -77,6 +77,7 @@ import ReviewPlatformCard from "./components/ReviewPlatformCard";
 import SaveMenu from "./components/SaveMenu";
 import FallingAnimation from "./components/FallingAnimation";
 import TopActionButtons from "./components/TopActionButtons";
+import FontLoader from "../../components/FontLoader";
 import { getFontClass } from "./utils/fontUtils";
 import { getPlatformIcon, splitName, sendAnalyticsEvent, isOffWhiteOrCream } from "./utils/helperFunctions";
 import { sentimentOptions } from "./utils/sentimentConfig";
@@ -1091,6 +1092,13 @@ export default function PromptPage() {
 
   return (
     <div style={backgroundStyle} className="min-h-screen w-full">
+      {/* Dynamic font loader - loads fonts on demand */}
+      <FontLoader 
+        primaryFont={businessProfile?.primary_font}
+        secondaryFont={businessProfile?.secondary_font}
+        preload={true}
+      />
+      
       {/* Special Offer Banner - very top, thin, dismissible */}
       {showBanner && (
         <div
