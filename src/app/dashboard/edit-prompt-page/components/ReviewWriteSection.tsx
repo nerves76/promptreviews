@@ -287,9 +287,14 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
               {/* Review Text + AI Button (conditionally rendered) */}
               {!hideReviewTemplateFields && (
                 <div className="flex flex-col gap-2 mt-2">
-                  <label className="block text-xs font-medium text-gray-700 mb-1 self-start">
-                    Review Template
-                  </label>
+                  <div className="flex items-center gap-1 mb-1 self-start">
+                    <label className="block text-xs font-medium text-gray-700">
+                      Review Template
+                    </label>
+                    <HoverTooltip text="By filling this out, you give your client or customer a template that will make posting a review much easier and quicker. They will still be able to use the AI button to generate a new review if they are not sure about the one you provide, or they can choose to write a custom review on their own.">
+                      <FaQuestionCircle className="w-3 h-3 text-gray-400 cursor-pointer" />
+                    </HoverTooltip>
+                  </div>
                   <Textarea
                     className="w-full text-sm"
                     placeholder="Write or generate a review for this platform"
