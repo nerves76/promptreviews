@@ -101,8 +101,7 @@ const ReviewPlatformsSection: React.FC<ReviewPlatformsSectionProps> = ({
               title={getPlatformIcon(platform.name).label}
             >
               {React.createElement(getPlatformIcon(platform.name).icon, {
-                className: "w-7 h-7",
-                style: { color: "#4F46E5" },
+                className: "w-7 h-7 text-slate-blue",
               })}
             </div>
             {/* Labels row above inputs */}
@@ -117,7 +116,7 @@ const ReviewPlatformsSection: React.FC<ReviewPlatformsSectionProps> = ({
                 Word Count
               </span>
             </div>
-            <div className="flex gap-2 items-start">
+            <div className="flex gap-4 items-start">
               <div className="flex flex-col gap-2 w-1/3">
                 <select
                   className="w-full border px-3 py-2 rounded-lg bg-white"
@@ -148,7 +147,7 @@ const ReviewPlatformsSection: React.FC<ReviewPlatformsSectionProps> = ({
               </div>
               <input
                 type="url"
-                className="w-1/2 border px-3 py-2 rounded-lg bg-white"
+                className="flex-1 border px-3 py-2 rounded-lg bg-white"
                 placeholder="https://example.com/review-page"
                 value={platform.url || ""}
                 onChange={(e) =>
@@ -158,7 +157,7 @@ const ReviewPlatformsSection: React.FC<ReviewPlatformsSectionProps> = ({
               />
               <input
                 type="number"
-                className="w-1/6 border px-3 py-2 rounded-lg bg-white"
+                className="w-32 border px-3 py-2 rounded-lg bg-white"
                 placeholder="200"
                 value={platform.wordCount || ""}
                 min={20}
