@@ -55,7 +55,7 @@ const getPlatformIcon = (name: string, url: string) => {
   const lowerName = (name || "").toLowerCase();
   const lowerUrl = (url || "").toLowerCase();
   if (lowerName.includes("google") || lowerUrl.includes("google"))
-    return { icon: FaGoogle, color: "text-blue-500" };
+    return { icon: FaGoogle, color: "text-slate-blue" };
   if (lowerName.includes("yelp") || lowerUrl.includes("yelp"))
     return { icon: FaYelp, color: "text-red-500" };
   if (lowerName.includes("facebook") || lowerUrl.includes("facebook"))
@@ -193,13 +193,13 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
                 </button>
               )}
               {/* Move labels inside each card above the inputs */}
-              <div className="flex gap-2 items-center mb-2">
-                <div className="flex flex-col w-1/4">
+              <div className="flex gap-4 items-center mb-2">
+                <div className="flex flex-col w-1/3">
                   <label className="text-xs font-semibold text-gray-500 mb-1">
                     Platform Name
                   </label>
                   <select
-                    className="w-1/3 border px-3 py-2 rounded-lg bg-white"
+                    className="w-full border px-3 py-2 rounded-lg bg-white"
                     value={platform.name || ""}
                     onChange={(e) =>
                       handlePlatformChange(idx, "name", e.target.value)
@@ -235,7 +235,7 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
                   </label>
                   <Input
                     type="url"
-                    className="w-1/2 border px-3 py-2 rounded-lg bg-white"
+                    className="w-full border px-3 py-2 rounded-lg bg-white"
                     placeholder="Review URL"
                     value={platform.url || ""}
                     onChange={(e) =>
@@ -244,13 +244,13 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
                     required
                   />
                 </div>
-                <div className="flex flex-col w-1/6 ml-2">
+                <div className="flex flex-col w-32">
                   <label className="text-xs font-semibold text-gray-500 mb-1">
                     Word Count
                   </label>
                   <Input
                     type="number"
-                    className="w-1/6 border px-3 py-2 rounded-lg bg-white"
+                    className="w-full border px-3 py-2 rounded-lg bg-white"
                     placeholder="200"
                     value={platform.wordCount || ""}
                     min={20}
