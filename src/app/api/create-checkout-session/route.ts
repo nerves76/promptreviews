@@ -83,17 +83,30 @@ export async function POST(req: NextRequest) {
           }
         }
         
-        // Prevent multiple active subscriptions
+        // Prevent multiple active subscriptions (but allow free trial upgrades)
         if (stripeCustomerId) {
           const subscriptions = await stripe.subscriptions.list({
             customer: stripeCustomerId,
             status: "all",
             limit: 10,
           });
-          const hasActive = subscriptions.data.some((sub) =>
-            ["active", "trialing", "past_due", "unpaid"].includes(sub.status),
+          
+          const activeSubscriptions = subscriptions.data.filter((sub) =>
+            ["active", "trialing", "past_due", "unpaid"].includes(sub.status)
           );
-          if (hasActive) {
+          
+          console.log("🔍 Active subscriptions found:", activeSubscriptions.length);
+          console.log("🔍 Current plan:", currentPlan);
+          console.log("🔍 Target plan:", plan);
+          
+          // Allow upgrades from free trial plans (grower) even if there's a subscription
+          const isFreeTrial = currentPlan === "grower" || currentPlan === "free";
+          const hasActiveNonTrial = activeSubscriptions.some((sub) => 
+            sub.status === "active" && !sub.status.includes("trial")
+          );
+          
+          if (activeSubscriptions.length > 0 && !isFreeTrial) {
+            console.log("❌ Blocking upgrade: active subscription exists for non-trial plan");
             return NextResponse.json(
               {
                 error:
@@ -101,6 +114,10 @@ export async function POST(req: NextRequest) {
               },
               { status: 400 },
             );
+          }
+          
+          if (isFreeTrial && activeSubscriptions.length > 0) {
+            console.log("✅ Allowing trial upgrade: free trial → paid plan");
           }
         }
       }
