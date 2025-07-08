@@ -71,10 +71,7 @@ export default function BusinessGuard({ children }: BusinessGuardProps) {
       "/api/",
       
       // Payment demo
-      "/payment-demo",
-      
-      // Upgrade page (users can upgrade without business)
-      "/upgrade"
+      "/payment-demo"
     ];
 
     // Check if current path is exempt
