@@ -652,7 +652,7 @@ export default function PromptPages() {
                     Individual Prompt Pages
                   </h2>
                   <p className="text-sm text-gray-600">
-                    Manage and track your customer-specific prompt pages
+                    These Prompt Pages are great for personlized outreach. For best results, send as a text.
                   </p>
                 </div>
                 <button
