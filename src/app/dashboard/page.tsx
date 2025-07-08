@@ -1,8 +1,15 @@
+/**
+ * Dashboard Page
+ * 
+ * Main dashboard page that displays user stats, businesses, and quick actions.
+ * Uses centralized AuthContext for authentication and core data.
+ */
+
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { createClient } from "@/utils/supabaseClient";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
 import { FaHome, FaStore, FaChartLine, FaUser, FaCog, FaSignOutAlt, FaPlus } from "react-icons/fa";
 import DashboardContent from "./DashboardContent";
@@ -20,12 +27,8 @@ import { useAuth, useAuthGuard } from "@/contexts/AuthContext";
 import { checkAccountLimits } from "@/utils/accountLimits";
 
 interface DashboardData {
-  user: any;
-  account: any;
-  businesses: any[];
   promptPages: any[];
   widgets: any[];
-  isAdminUser: boolean;
   accountLimits: any;
   reviewStats: {
     total: { week: number; month: number; year: number };
@@ -38,15 +41,16 @@ interface DashboardData {
 
 export default function Dashboard() {
   const router = useRouter();
-  const searchParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
   
-  // Use centralized auth context
+  // Use centralized auth context - this provides all the core data
   const { 
-    user: authUser, 
-    accountId: userAccountId, 
+    user, 
+    account, 
     isAdminUser, 
     isAuthenticated, 
     isLoading: authLoading,
+    accountLoading,
+    hasBusiness,
     signOut 
   } = useAuth();
   
@@ -55,9 +59,13 @@ export default function Dashboard() {
   
   // Create supabase client instance
   const supabase = createClient();
-  const [data, setData] = useState<DashboardData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  
+  // Only dashboard-specific data (not duplicating what AuthContext provides)
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [isDashboardLoading, setIsDashboardLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // UI state
   const [showProfileModal, setShowProfileModal] = useState(false);
   const createPromptPageRef = useRef<HTMLAnchorElement>(null);
   const [showQR, setShowQR] = useState(false);
@@ -68,83 +76,69 @@ export default function Dashboard() {
   const [showPricingModal, setShowPricingModal] = useState(false);
   const [pendingAccountUpdate, setPendingAccountUpdate] = useState(false);
   const [showStarfallCelebration, setShowStarfallCelebration] = useState(false);
-  const [business, setBusiness] = useState<any>(null);
-  const [isNewUser, setIsNewUser] = useState(false);
   const [showTopLoader, setShowTopLoader] = useState(false);
-  const [accountData, setAccountData] = useState<any>(null);
-  const [businesses, setBusinesses] = useState<any[]>([]);
-  const [currentBusiness, setCurrentBusiness] = useState<any>(null);
-  const [user, setUser] = useState<any>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [justCanceledStripe, setJustCanceledStripe] = useState(false);
   const [planSelectionRequired, setPlanSelectionRequired] = useState(false);
   const [paymentChangeType, setPaymentChangeType] = useState<string | null>(null);
 
-  // Consolidated data loading function with caching
-  const loadAllDashboardData = async (user: any, accountId: string) => {
+  // Memoized business data from AuthContext
+  const businessData = useMemo(() => {
+    if (!account || accountLoading) return null;
+    
+    return {
+      businesses: account.businesses || [],
+      currentBusiness: account.businesses?.[0] || null,
+      businessCount: account.businesses?.length || 0,
+      hasBusinesses: (account.businesses?.length || 0) > 0
+    };
+  }, [account, accountLoading]);
+
+  // Load dashboard-specific data (widgets, prompt pages, reviews)
+  const loadDashboardSpecificData = async () => {
+    if (!user?.id || !account?.id) return;
+    
     try {
-      console.log('📊 Dashboard: Loading all dashboard data...');
+      console.log('📊 Dashboard: Loading dashboard-specific data...');
+      setIsDashboardLoading(true);
+      setError(null);
       
-      // Use Promise.allSettled to handle partial failures gracefully
-      const results = await Promise.allSettled([
-        // Account data
-        supabase
-          .from("accounts")
-          .select("*")
-          .eq("id", accountId)
-          .single(),
-        
-        // Businesses
-        supabase
-          .from("businesses")
-          .select("*")
-          .eq("account_id", accountId),
-        
-        // All prompt pages
+      // Fetch only dashboard-specific data (not what AuthContext already provides)
+      const [promptPagesResult, widgetsResult, reviewsResult, limitsResult] = await Promise.allSettled([
         supabase
           .from("prompt_pages")
           .select("*")
-          .eq("account_id", accountId)
+          .eq("account_id", account.id)
           .order("created_at", { ascending: false }),
         
-        // Widgets
         supabase
           .from("widgets")
           .select("*")
-          .eq("account_id", accountId)
+          .eq("account_id", account.id)
           .order("created_at", { ascending: false }),
         
-        // Review statistics
         supabase
           .from("widget_reviews")
           .select("id, is_verified")
-          .eq("account_id", accountId),
+          .eq("account_id", account.id),
         
-        // Account limits
         checkAccountLimits(supabase, user.id, "prompt_page")
       ]);
 
-      console.log('📊 Dashboard: Database queries completed');
+      // Process results
+      const promptPages = promptPagesResult.status === 'fulfilled' ? promptPagesResult.value.data || [] : [];
+      const widgets = widgetsResult.status === 'fulfilled' ? widgetsResult.value.data || [] : [];
+      const reviews = reviewsResult.status === 'fulfilled' ? reviewsResult.value.data || [] : [];
+      const limits = limitsResult.status === 'fulfilled' ? limitsResult.value : null;
 
-      // Process the results with error handling
-      const account = results[0].status === 'fulfilled' ? results[0].value.data : null;
-      const businesses = results[1].status === 'fulfilled' ? results[1].value.data || [] : [];
-      const allPromptPages = results[2].status === 'fulfilled' ? results[2].value.data || [] : [];
-      const widgets = results[3].status === 'fulfilled' ? results[3].value.data || [] : [];
-      const reviews = results[4].status === 'fulfilled' ? results[4].value.data || [] : [];
-      const limits = results[5].status === 'fulfilled' ? results[5].value : null;
-
-      console.log('📊 Dashboard: Processing results:', {
-        account: !!account,
-        businessCount: businesses.length,
-        promptPageCount: allPromptPages.length,
+      console.log('📊 Dashboard: Dashboard data loaded:', {
+        promptPageCount: promptPages.length,
         widgetCount: widgets.length,
         reviewCount: reviews.length
       });
 
       // Separate universal and custom prompt pages
-      const universalPromptPage = allPromptPages.find(pp => pp.is_universal);
-      const customPromptPages = allPromptPages.filter(pp => !pp.is_universal);
+      const universalPromptPage = promptPages.find(pp => pp.is_universal);
+      const customPromptPages = promptPages.filter(pp => !pp.is_universal);
       const universalUrl = universalPromptPage ? `${window.location.origin}/r/${universalPromptPage.slug}` : "";
 
       // Calculate review statistics
@@ -165,105 +159,34 @@ export default function Dashboard() {
         }
       });
 
-      // Check if user has any businesses
-      if (!businesses || businesses.length === 0) {
-        setIsNewUser(true);
-      }
-
-      // Set business state
-      if (businesses.length > 0) {
-        setBusiness(businesses[0]);
-      }
-
-      // Compile all data
-      const dashboardData: DashboardData = {
-        user,
-        account,
-        businesses,
-        promptPages: allPromptPages,
+      // Set dashboard data
+      setDashboardData({
+        promptPages,
         widgets,
-        isAdminUser: isAdminUser || false,
         accountLimits: limits,
         reviewStats: stats,
         universalPromptPage,
         customPromptPages,
         universalUrl
-      };
+      });
 
-      console.log('📊 Dashboard: Setting dashboard data');
-      setData(dashboardData);
-      setBusinesses(businesses);
-      setAccountData(account);
-      setUser(user);
-      setIsAdmin(isAdminUser || false);
-
-      console.log('✅ Dashboard: All data loaded successfully');
-
+      console.log('✅ Dashboard: Dashboard data loaded successfully');
+      
     } catch (error) {
       console.error("❌ Dashboard: Error loading dashboard data:", error);
-      throw error; // Re-throw to be caught by the calling function
+      setError("Failed to load dashboard data");
+    } finally {
+      setIsDashboardLoading(false);
     }
   };
 
-  // Single useEffect for all data loading
+  // Load dashboard data when auth is ready
   useEffect(() => {
-    const initializeDashboard = async () => {
-      try {
-        console.log('🔍 Dashboard: Starting initialization...');
-        setIsLoading(true);
-        setError(null);
-
-        // Wait for auth to be initialized
-        if (authLoading) {
-          console.log('⏳ Dashboard: Waiting for auth initialization...');
-          return;
-        }
-
-        if (!isAuthenticated || !authUser) {
-          console.log('❌ Dashboard: No authenticated user');
-          return; // Auth guard will handle redirect
-        }
-
-        console.log('✅ Dashboard: User authenticated:', authUser.id);
-
-        if (!userAccountId) {
-          console.log('📊 Dashboard: No account found - new user');
-          // New user - show welcome message and guide to create business
-          setIsNewUser(true);
-          setData({
-            user: authUser,
-            account: null,
-            businesses: [],
-            promptPages: [],
-            widgets: [],
-            isAdminUser: isAdminUser || false,
-            accountLimits: null,
-            reviewStats: { total: { week: 0, month: 0, year: 0 }, verified: { week: 0, month: 0, year: 0 } },
-            universalPromptPage: null,
-            customPromptPages: [],
-            universalUrl: ""
-          });
-          setIsLoading(false);
-          return;
-        }
-
-        console.log('📊 Dashboard: Loading data for account:', userAccountId);
-        // Load all data in parallel
-        await loadAllDashboardData(authUser, userAccountId);
-        
-        console.log('✅ Dashboard: Data loading complete');
-        setIsLoading(false);
-        
-      } catch (error) {
-        console.error("❌ Dashboard: Error initializing dashboard:", error);
-        setError("Failed to initialize dashboard");
-        setIsLoading(false);
-      }
-    };
-
-    // Run initialization when auth is ready
-    initializeDashboard();
-  }, [authLoading, isAuthenticated, authUser, userAccountId, isAdminUser]);
+    if (authLoading || accountLoading) return;
+    if (!isAuthenticated || !user || !account) return;
+    
+    loadDashboardSpecificData();
+  }, [authLoading, accountLoading, isAuthenticated, user?.id, account?.id]);
 
   // Handle post-save modal flag
   useEffect(() => {
@@ -280,20 +203,18 @@ export default function Dashboard() {
     }
   }, []);
 
-  // Enhanced onboarding flow detection and plan selection logic
+  // Enhanced plan selection logic using AuthContext data
   useEffect(() => {
-    if (isLoading || !data?.account) return;
+    if (authLoading || accountLoading || !account || !businessData) return;
     
     const now = new Date();
-    const trialStart = data?.account?.trial_start
-      ? new Date(data.account.trial_start)
-      : null;
-    const trialEnd = data?.account?.trial_end ? new Date(data.account.trial_end) : null;
-    const plan = data?.account?.plan;
-    const hasStripeCustomer = !!data?.account?.stripe_customer_id;
-    const businessCount = data?.businesses?.length || 0;
+    const trialStart = account.trial_start ? new Date(account.trial_start) : null;
+    const trialEnd = account.trial_end ? new Date(account.trial_end) : null;
+    const plan = account.plan;
+    const hasStripeCustomer = !!account.stripe_customer_id;
+    const businessCount = businessData.businessCount;
 
-    // User is on a paid plan (builder/maven always paid, grower only if paid after trial)
+    // User is on a paid plan
     const isPaidUser = 
       plan === "builder" || 
       plan === "maven" || 
@@ -302,17 +223,12 @@ export default function Dashboard() {
     // Check if trial has expired
     const isTrialExpired = trialEnd && now > trialEnd;
 
-    // Note: Onboarding logic is now centralized in the dashboard layout
-    // This prevents duplicate redirect logic and conflicts
-
-    // Determine if plan selection is REQUIRED (user cannot dismiss modal) vs OPTIONAL
+    // Determine if plan selection is required
     const isPlanSelectionRequired = 
-      // Required: New user who hasn't selected a plan yet (no plan, 'no_plan', or 'NULL' and has created a business)
       ((!plan || plan === 'no_plan' || plan === 'NULL') && businessCount > 0) ||
-      // Required: Trial has expired and user hasn't paid (must select plan to continue)
       (plan === "grower" && isTrialExpired && !hasStripeCustomer);
     
-    // Check if user has manually dismissed the modal in this session (only for optional cases)
+    // Check if user has manually dismissed the modal
     const hasManuallyDismissed = !isPlanSelectionRequired && typeof window !== "undefined" && 
       sessionStorage.getItem('pricingModalDismissed') === 'true';
     
@@ -321,35 +237,31 @@ export default function Dashboard() {
       return;
     }
     
-    // ENHANCED: Show pricing modal for users who need to choose their initial plan
-    // or for users whose trial has expired and haven't paid
+    // Show pricing modal for users who need to choose plan
     const shouldShowPricingModal = 
-      // New user who hasn't selected a plan yet (no plan, 'no_plan', or 'NULL' and has created a business)
       ((!plan || plan === 'no_plan' || plan === 'NULL') && businessCount > 0) ||
-      // Or grower user whose trial expired and hasn't paid
       (plan === "grower" && isTrialExpired && !hasStripeCustomer);
     
-    // Add comprehensive logging for debugging
+    // Debug logging
     if (process.env.NODE_ENV === 'development') {
       console.log('🔍 Enhanced plan selection debug:', {
         accountPlan: plan,
-        businessCount: businessCount,
-        trialEnd: trialEnd,
+        businessCount,
+        trialEnd,
         isTrialExpired,
         hasStripeCustomer,
         isPaidUser,
         shouldShowModal: shouldShowPricingModal,
         isPlanSelectionRequired: !!isPlanSelectionRequired,
-        businessCreatedParam: typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("businessCreated") : null,
-        onboardingComplete: businessCount > 0 && plan && plan !== 'no_plan' && plan !== 'NULL'
+        businessCreatedParam: typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("businessCreated") : null
       });
     }
     
     setPlanSelectionRequired(!!isPlanSelectionRequired);
     setShowPricingModal(!!shouldShowPricingModal);
-  }, [isLoading, data?.account, data?.businesses, router]);
+  }, [authLoading, accountLoading, account, businessData]);
 
-  // Handle business created query param and celebration
+  // Handle URL parameters and celebrations
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
@@ -361,27 +273,16 @@ export default function Dashboard() {
       
       console.log("🎉 Successful payment detected:", { changeType, planName });
       
-      // Set the payment change type for the modal
       setPaymentChangeType(changeType);
       
-      // Only show celebration for upgrades and new signups, not downgrades
+      // Show celebration for upgrades and new signups
       if (changeType === "upgrade" || changeType === "new") {
         console.log("🎉 Showing celebration for upgrade/new signup");
-        
-        // Show starfall celebration
         setShowStarfallCelebration(true);
-        
-        // Show success message after a brief delay
-        setTimeout(() => {
-          setShowSuccessModal(true);
-        }, 1000);
+        setTimeout(() => setShowSuccessModal(true), 1000);
       } else if (changeType === "downgrade") {
         console.log("📉 Downgrade detected - no celebration");
-        
-        // For downgrades, show a simple confirmation without celebration
-        setTimeout(() => {
-          setShowSuccessModal(true);
-        }, 500);
+        setTimeout(() => setShowSuccessModal(true), 500);
       }
       
       // Clean up the URL
@@ -391,257 +292,224 @@ export default function Dashboard() {
       const newUrl = window.location.pathname + (params.toString() ? `?${params.toString()}` : "");
       window.history.replaceState({}, document.title, newUrl);
       
-      return; // Exit early to avoid other parameter handling
+      return;
     }
     
     // Handle Stripe cancellation
     if (params.get("canceled") === "1") {
       console.log("🔄 User canceled Stripe checkout, showing pricing modal again");
-      setShowPricingModal(true);
       setJustCanceledStripe(true);
-      // Remove the canceled param from the URL
+      setShowPricingModal(true);
+      
+      // Clean up the URL
       params.delete("canceled");
       const newUrl = window.location.pathname + (params.toString() ? `?${params.toString()}` : "");
       window.history.replaceState({}, document.title, newUrl);
       
-      // Reset the canceled state after a few seconds
-      setTimeout(() => {
-        setJustCanceledStripe(false);
-      }, 5000);
-      
-      return; // Exit early to avoid other parameter handling
+      return;
     }
     
-    if (params.get("businessCreated") === "true") {
-      setShowPricingModal(true);
-      // Remove the query param from the URL
+    // Handle business creation success
+    if (params.get("businessCreated") === "1") {
+      console.log("🎉 Business created successfully");
+      
+      // Clean up the URL
       params.delete("businessCreated");
       const newUrl = window.location.pathname + (params.toString() ? `?${params.toString()}` : "");
       window.history.replaceState({}, document.title, newUrl);
+      
+      return;
     }
   }, []);
 
-  // Handle loading and redirect states after all hooks are called
-  if (isLoading) {
+  // Loading state
+  const isLoading = authLoading || accountLoading || isDashboardLoading;
+
+  // Consolidated data for components (combining AuthContext + dashboard data)
+  const consolidatedData = useMemo(() => {
+    if (!account || !businessData || !dashboardData) return null;
+    
+    return {
+      user,
+      account,
+      businesses: businessData.businesses,
+      promptPages: dashboardData.promptPages,
+      widgets: dashboardData.widgets,
+      isAdminUser,
+      accountLimits: dashboardData.accountLimits,
+      reviewStats: dashboardData.reviewStats,
+      universalPromptPage: dashboardData.universalPromptPage,
+      customPromptPages: dashboardData.customPromptPages,
+      universalUrl: dashboardData.universalUrl
+    };
+  }, [user, account, businessData, dashboardData, isAdminUser]);
+
+  // Early returns for loading and error states
+  if (authLoading) {
+    return <AppLoader />;
+  }
+  
+  if (!isAuthenticated) {
+    return <AppLoader />; // Auth guard will handle redirect
+  }
+
+  if (error) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center">
-        <AppLoader />
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Error Loading Dashboard</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <Button 
+            onClick={() => window.location.reload()} 
+            className="bg-slate-700 hover:bg-slate-800"
+          >
+            Try Again
+          </Button>
+        </div>
       </div>
     );
   }
 
+  if (isDashboardLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="text-center">
+          <FiveStarSpinner />
+          <p className="mt-4 text-gray-600">Loading your dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show welcome message for new users
+  if (!hasBusiness) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="text-center max-w-md">
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">Welcome to PromptReviews! 🎉</h2>
+          <p className="text-gray-600 mb-8">
+            Let's get you started by creating your first business profile.
+          </p>
+          <Link 
+            href="/dashboard/create-business"
+            className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-slate-700 hover:bg-slate-800"
+          >
+            <FaPlus className="mr-2" />
+            Create Your Business
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (!consolidatedData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <FiveStarSpinner />
+      </div>
+    );
+  }
+
+  console.log('Dashboard rendering with data:', { data: consolidatedData, isLoading });
+
+  // Rest of component handlers...
   const handleCreatePromptPageClick = (
     e: React.MouseEvent<HTMLAnchorElement>,
   ) => {
-    if (data?.account?.plan === "free" && data?.customPromptPages?.length >= 1) {
-      e.preventDefault();
-      setShowPricingModal(true);
-    }
+    e.preventDefault();
+    setShowTopLoader(true);
+    setTimeout(() => router.push("/dashboard/create-prompt-page"), 100);
   };
 
   const handleCopyLink = async () => {
-    if (data?.universalUrl) {
-      await navigator.clipboard.writeText(data.universalUrl);
+    try {
+      await navigator.clipboard.writeText(consolidatedData.universalUrl);
       setCopySuccess("Link copied!");
       setTimeout(() => setCopySuccess(""), 2000);
+    } catch (err) {
+      setCopySuccess("Copy failed");
     }
   };
 
   const handleSelectTier = async (tierKey: string) => {
     try {
-      // Get current plan and target tier info
-      const currentPlan = data?.account?.plan;
-      const currentTier = tiers.find((t) => t.key === currentPlan);
-      const targetTier = tiers.find((t) => t.key === tierKey);
+      console.log(`Selected tier: ${tierKey}`);
+      setShowTopLoader(true);
       
-      // Handle new users with no plan
-      if (!currentPlan || currentPlan === 'no_plan' || currentPlan === 'NULL') {
-        setPendingAccountUpdate(true);
-        
-        if (tierKey === "grower") {
-          // Start free trial for grower plan
-          await supabase
-            .from("accounts")
-            .update({ 
-              plan: tierKey,
-              trial_start: new Date().toISOString(),
-              trial_end: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString() // 14 days from now
-            })
-            .eq("id", data?.account?.id);
-          
-          // Close the pricing modal
-          setShowPricingModal(false);
-          
-          // Show starfall celebration
-          setShowStarfallCelebration(true);
-          
-          // Dispatch event to refresh navigation state
-          window.dispatchEvent(new CustomEvent('planSelected', { detail: { plan: tierKey } }));
-          
-          return;
-        } else {
-          // For builder/maven, go to Stripe checkout
-          const email = data?.user?.email;
-          if (!email) {
-            alert("No valid email address found for checkout.");
-            return;
-          }
-          
-          const checkoutPayload = {
-            plan: tierKey,
-            userId: data?.account?.id,
-            email,
-          };
-          
-          const res = await fetch("/api/create-checkout-session", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(checkoutPayload),
-          });
-          
-          const checkoutData = await res.json();
-          if (checkoutData.url) {
-            // Redirect to Stripe checkout
-            window.location.href = checkoutData.url;
-            return;
-          } else {
-            alert("Failed to start checkout: " + (checkoutData.error || "Unknown error"));
-            return;
-          }
-        }
-      }
+      // Track the plan selection
+      await trackEvent(GA_EVENTS.PLAN_SELECTED, {
+        plan: tierKey,
+        source: 'dashboard_modal'
+      });
       
-      // Handle existing users with a plan
-      setPendingAccountUpdate(true);
-      
-      // Determine if this is an upgrade, downgrade, or same plan
-      const isUpgrade = currentTier && targetTier && targetTier.order > currentTier.order;
-      const isDowngrade = currentTier && targetTier && targetTier.order < currentTier.order;
-      const isSamePlan = currentPlan === tierKey;
-      
-      // For Grower plan (free trial), bypass Stripe and update directly
-      if (tierKey === "grower" || isSamePlan) {
-        await supabase
+      // Handle grower plan (free trial) - update directly without Stripe
+      if (tierKey === "grower") {
+        // Update account to grower plan with trial dates
+        const { error: updateError } = await supabase
           .from("accounts")
           .update({ 
             plan: tierKey,
-            // Set trial start and end dates for grower plan
-            ...(tierKey === "grower" && {
-              trial_start: new Date().toISOString(),
-              trial_end: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString() // 14 days from now
-            })
+            trial_start: new Date().toISOString(),
+            trial_end: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
           })
-          .eq("id", data?.account?.id);
+          .eq("id", account.id);
         
-        // Close the pricing modal
+        if (updateError) {
+          throw updateError;
+        }
+        
+        // Close modal and show celebration
         setShowPricingModal(false);
-        
-        // Show starfall celebration
         setShowStarfallCelebration(true);
         
-        // Dispatch event to refresh navigation state
-        window.dispatchEvent(new CustomEvent('planSelected', { detail: { plan: tierKey } }));
-        
+        // Refresh page to show updated data
+        setTimeout(() => window.location.reload(), 1000);
         return;
       }
       
-      // For upgrades, redirect to Stripe checkout
-      if (isUpgrade) {
-        // If user already has a Stripe customer ID, send to billing portal for upgrades
-        if (data?.account?.stripe_customer_id) {
-          const res = await fetch("/api/create-stripe-portal-session", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ customerId: data.account.stripe_customer_id }),
-          });
-          const portalData = await res.json();
-          if (portalData.url) {
-            window.location.href = portalData.url;
-            return;
-          } else {
-            alert("Could not open billing portal.");
-            return;
-          }
-        }
-        
-        // Otherwise, proceed with checkout session (for new users)
-        const email = data?.user?.email;
-        if (!email) {
-          alert("No valid email address found for checkout.");
-          return;
-        }
-        
-        const checkoutPayload = {
+      // For paid plans, use Stripe checkout
+      const response = await fetch("/api/create-checkout-session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
           plan: tierKey,
-          userId: data?.account?.id,
-          email,
-        };
-        
-        const res = await fetch("/api/create-checkout-session", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(checkoutPayload),
-        });
-        
-        const checkoutData = await res.json();
-        if (checkoutData.url) {
-          // Redirect to Stripe checkout
-          window.location.href = checkoutData.url;
-          return;
-        } else {
-          alert("Failed to start checkout: " + (checkoutData.error || "Unknown error"));
-          return;
-        }
+          userId: account.id,
+          email: user.email,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to create checkout session");
       }
+
+      const { url } = await response.json();
       
-      // For downgrades, redirect to Stripe billing portal if user has Stripe customer ID
-      if (isDowngrade) {
-        // If user has Stripe customer ID, redirect to billing portal for downgrades
-        if (data?.account?.stripe_customer_id) {
-          const res = await fetch("/api/create-stripe-portal-session", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ customerId: data.account.stripe_customer_id }),
-          });
-          const portalData = await res.json();
-          if (portalData.url) {
-            window.location.href = portalData.url;
-            return;
-          } else {
-            alert("Could not open billing portal.");
-            return;
-          }
-        }
-        
-        // Only update directly for non-Stripe users (free plans)
-        await supabase
-          .from("accounts")
-          .update({ plan: tierKey })
-          .eq("id", data?.account?.id);
-        
-        // Close the pricing modal
-        setShowPricingModal(false);
-        
-        // Show starfall celebration
-        setShowStarfallCelebration(true);
-        
-        // Dispatch event to refresh navigation state
-        window.dispatchEvent(new CustomEvent('planSelected', { detail: { plan: tierKey } }));
-        
-        return;
+      if (url) {
+        console.log("Redirecting to Stripe Checkout...");
+        window.location.href = url;
+      } else {
+        throw new Error("No checkout URL received");
       }
-      
     } catch (error) {
-      console.error("Error updating account tier:", error);
-      alert("Failed to update account tier. Please try again.");
-    } finally {
-      setPendingAccountUpdate(false);
+      console.error("Error creating checkout session:", error);
+      setError("Failed to start checkout. Please try again.");
+      setShowTopLoader(false);
     }
   };
 
   const handleClosePricingModal = () => {
+    if (planSelectionRequired) {
+      console.log("⚠️ Plan selection required - cannot close modal");
+      return;
+    }
+    
     setShowPricingModal(false);
-    // Prevent modal from reappearing this session
+    setJustCanceledStripe(false);
+    
+    // Remember that user dismissed the modal for this session
     if (typeof window !== "undefined") {
       sessionStorage.setItem('pricingModalDismissed', 'true');
     }
@@ -659,56 +527,20 @@ export default function Dashboard() {
 
   const handleSignOut = async () => {
     try {
-      console.log('🚪 Dashboard: Signing out...');
       await signOut();
-      
-      // Clear any cached data
-      setData(null);
-      setAccountData(null);
-      setBusinesses([]);
-      setUser(null);
-      
-      console.log('✅ Dashboard: Sign out successful, redirecting...');
-      router.push("/auth/sign-in");
+      router.push("/");
     } catch (error) {
-      console.error("❌ Dashboard: Sign out error:", error);
-      // Force redirect even on error
-      router.push("/auth/sign-in");
+      console.error("Error signing out:", error);
     }
   };
 
-  if (isLoading) {
-    return <AppLoader variant="compact" />;
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="max-w-md w-full bg-white shadow-lg rounded-lg p-6">
-          <div className="text-center">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Error</h2>
-            <p className="text-gray-600 mb-4">{error}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-            >
-              Retry
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  console.log("Dashboard rendering with data:", { data, isLoading });
-
   const userName =
-    (data?.account?.first_name && data.account.first_name.trim().split(" ")[0]) ||
-    (business?.first_name && business.first_name.trim().split(" ")[0]) ||
-    (business?.name && business.name.trim().split(" ")[0]) ||
-    (data?.user?.user_metadata?.full_name &&
-      data.user.user_metadata.full_name.trim().split(" ")[0]) ||
-    data?.user?.email?.split("@")[0] ||
+    (account?.first_name && account.first_name.trim().split(" ")[0]) ||
+    (businessData?.currentBusiness?.first_name && businessData.currentBusiness.first_name.trim().split(" ")[0]) ||
+    (businessData?.currentBusiness?.name && businessData.currentBusiness.name.trim().split(" ")[0]) ||
+    (user?.user_metadata?.full_name &&
+      user.user_metadata.full_name.trim().split(" ")[0]) ||
+    user?.email?.split("@")[0] ||
     "there";
 
   return (
@@ -731,9 +563,9 @@ export default function Dashboard() {
         >
           <DashboardContent
             userName={userName}
-            business={business}
-            customPromptPages={data?.customPromptPages || []}
-            universalPromptPage={data?.universalPromptPage}
+            business={businessData?.currentBusiness}
+            customPromptPages={consolidatedData?.customPromptPages || []}
+            universalPromptPage={consolidatedData?.universalPromptPage}
             createPromptPageRef={createPromptPageRef}
             handleCreatePromptPageClick={handleCreatePromptPageClick}
             showQR={showQR}
@@ -744,16 +576,16 @@ export default function Dashboard() {
             showSuccessModal={showSuccessModal}
             setShowSuccessModal={setShowSuccessModal}
             handleCloseSuccessModal={handleCloseSuccessModal}
-                         universalUrl={data?.universalUrl || ""}
+            universalUrl={consolidatedData?.universalUrl || ""}
             QRCode={QRCodeSVG}
             setShowQR={setShowQR}
-            account={data?.account}
+            account={account}
             parentLoading={isLoading}
-                         reviewStats={data?.reviewStats || { total: { week: 0, month: 0, year: 0 }, verified: { week: 0, month: 0, year: 0 } }}
-            hasBusiness={!!(data?.businesses && data.businesses.length > 0)}
-            hasCustomPromptPages={!!(data?.promptPages && data.promptPages.filter(p => !p.is_universal).length > 0)}
-            hasUniversalPromptPage={!!(data?.promptPages && data.promptPages.some(p => p.is_universal))}
-            userId={data?.user?.id}
+            reviewStats={consolidatedData?.reviewStats || { total: { week: 0, month: 0, year: 0 }, verified: { week: 0, month: 0, year: 0 } }}
+            hasBusiness={!!(businessData?.hasBusinesses)}
+            hasCustomPromptPages={!!(consolidatedData?.promptPages && consolidatedData.promptPages.filter(p => !p.is_universal).length > 0)}
+            hasUniversalPromptPage={!!(consolidatedData?.promptPages && consolidatedData.promptPages.some(p => p.is_universal))}
+            userId={user?.id}
             setShowStarfallCelebration={setShowStarfallCelebration}
             paymentChangeType={paymentChangeType}
           />
@@ -764,8 +596,8 @@ export default function Dashboard() {
       {showPricingModal && (
         <PricingModal
           onSelectTier={handleSelectTier}
-          currentPlan={data?.account?.plan}
-          hasHadPaidPlan={data?.account?.has_had_paid_plan || false}
+          currentPlan={account?.plan}
+          hasHadPaidPlan={account?.has_had_paid_plan || false}
           showCanceledMessage={justCanceledStripe}
           onClose={handleClosePricingModal}
           isPlanSelectionRequired={planSelectionRequired}
