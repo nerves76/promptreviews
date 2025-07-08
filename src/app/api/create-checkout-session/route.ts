@@ -196,7 +196,7 @@ export async function POST(req: NextRequest) {
 
     try {
       const sessionConfig = {
-        payment_method_types: ["card"],
+        payment_method_types: ["card" as const],
         mode: "subscription" as const,
         ...(stripeCustomerId
           ? { customer: stripeCustomerId }
