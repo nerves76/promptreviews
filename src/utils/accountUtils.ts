@@ -231,8 +231,8 @@ export async function ensureAccountExists(
         console.error("Error getting user data:", {
           message: userError.message,
           code: userError.code,
-          details: userError.details,
-          hint: userError.hint,
+          details: (userError as any).details, // Safe access since details might not exist on AuthError
+          hint: (userError as any).hint, // Safe access since hint might not exist on AuthError
         });
         throw userError;
       }
@@ -268,8 +268,8 @@ export async function ensureAccountExists(
         console.error("Account creation error:", {
           message: createError.message,
           code: createError.code,
-          details: createError.details,
-          hint: createError.hint,
+          details: (createError as any).details, // Safe access for PostgreSQL error
+          hint: (createError as any).hint, // Safe access for PostgreSQL error
         });
         throw createError;
       }
@@ -287,8 +287,8 @@ export async function ensureAccountExists(
         console.error("Account user creation error:", {
           message: upsertAccountUserError.message,
           code: upsertAccountUserError.code,
-          details: upsertAccountUserError.details,
-          hint: upsertAccountUserError.hint,
+          details: (upsertAccountUserError as any).details, // Safe access for PostgreSQL error
+          hint: (upsertAccountUserError as any).hint, // Safe access for PostgreSQL error
         });
         throw upsertAccountUserError;
       }
