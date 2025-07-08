@@ -947,6 +947,10 @@ export default function PromptPage() {
     if (promptPage?.emoji_sentiment_enabled) {
       setShowSentimentModal(true);
       setSentiment("love");
+    } else {
+      // If emoji sentiment is disabled, set sentimentComplete to true immediately
+      // so that review platforms are shown without requiring sentiment interaction
+      setSentimentComplete(true);
     }
   }, [promptPage]);
 
