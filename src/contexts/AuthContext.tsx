@@ -48,6 +48,10 @@ interface AuthState {
   hasBusiness: boolean;
   businessLoading: boolean;
   
+  // Account details (including trial and is_free_account)
+  account: any | null;
+  accountLoading: boolean;
+  
   // Session info
   sessionExpiry: Date | null;
   sessionTimeRemaining: number | null;
@@ -60,6 +64,7 @@ interface AuthContextType extends AuthState {
   refreshAuth: () => Promise<void>;
   refreshAdminStatus: () => Promise<void>;
   refreshBusinessProfile: () => Promise<void>;
+  refreshAccountDetails: () => Promise<void>;
   
   // Navigation guards
   requireAuth: (redirectTo?: string) => boolean;
@@ -76,6 +81,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // Cache durations
 const ADMIN_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 const BUSINESS_CACHE_DURATION = 2 * 60 * 1000; // 2 minutes
+const ACCOUNT_CACHE_DURATION = 2 * 60 * 1000; // 2 minutes (includes trial and is_free data)
 const SESSION_WARNING_THRESHOLD = 10 * 60 * 1000; // 10 minutes
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -99,10 +105,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [businessLoading, setBusinessLoading] = useState(false);
   const [lastBusinessCheck, setLastBusinessCheck] = useState<number>(0);
   
+  // Account state (including trial and is_free_account)
+  const [account, setAccount] = useState<any | null>(null);
+  const [accountLoading, setAccountLoading] = useState(false);
+  const [lastAccountCheck, setLastAccountCheck] = useState<number>(0);
+  
   // Prevent multiple simultaneous operations
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isCheckingAdmin, setIsCheckingAdmin] = useState(false);
   const [isCheckingBusiness, setIsCheckingBusiness] = useState(false);
+  const [isCheckingAccount, setIsCheckingAccount] = useState(false);
 
   // Computed values
   const isAuthenticated = useMemo(() => !!user && !!session, [user, session]);
@@ -150,10 +162,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(currentSession.user);
       setIsInitialized(true);
       
-      // Check admin status and business profile in parallel
+      // Check admin status, business profile, and account details in parallel
       if (currentSession.user) {
         checkAdminStatus(currentSession.user);
         checkBusinessProfile(currentSession.user);
+        checkAccountDetails(currentSession.user);
       }
       
     } catch (err) {
@@ -218,6 +231,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [isCheckingBusiness, lastBusinessCheck]);
 
+  const checkAccountDetails = useCallback(async (currentUser: User, forceRefresh = false) => {
+    if (isCheckingAccount && !forceRefresh) return;
+    
+    const now = Date.now();
+    if (!forceRefresh && now - lastAccountCheck < ACCOUNT_CACHE_DURATION) return;
+    
+    setIsCheckingAccount(true);
+    setAccountLoading(true);
+    
+    try {
+      const userAccountId = await getAccountIdForUser(currentUser.id, supabase);
+      
+      if (!userAccountId) {
+        setAccount(null);
+        setLastAccountCheck(now);
+        return;
+      }
+
+      // Fetch full account details including trial and is_free_account data
+      const { data: accountData, error: accountError } = await supabase
+        .from('accounts')
+        .select('*')
+        .eq('id', userAccountId)
+        .single();
+
+      if (accountError) {
+        console.error('AuthContext: Account details check failed:', accountError);
+        // Don't change account data on error
+        return;
+      }
+
+      setAccount(accountData);
+      setLastAccountCheck(now);
+      
+    } catch (err) {
+      console.error('AuthContext: Account details check failed:', err);
+      // Don't change account data on error
+    } finally {
+      setAccountLoading(false);
+      setIsCheckingAccount(false);
+    }
+  }, [isCheckingAccount, lastAccountCheck]);
+
   // Public API functions
   const signIn = useCallback(async (email: string, password: string) => {
     try {
@@ -251,9 +307,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(null);
       setAccountId(null);
       setHasBusiness(false);
+      setAccount(null);
       setIsAdminUser(false);
       setLastAdminCheck(0);
       setLastBusinessCheck(0);
+      setLastAccountCheck(0);
       
     } catch (err) {
       console.error('AuthContext: Sign out failed:', err);
@@ -276,6 +334,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await checkBusinessProfile(user, true);
     }
   }, [user, checkBusinessProfile]);
+
+  const refreshAccountDetails = useCallback(async () => {
+    if (user) {
+      await checkAccountDetails(user, true);
+    }
+  }, [user, checkAccountDetails]);
 
   // Navigation guards
   const requireAuth = useCallback((redirectTo = '/auth/sign-in') => {
@@ -337,16 +401,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(session.user);
           setError(null);
           
-          // Check admin and business status for new session
+          // Check admin, business status, and account details for new session
           if (session.user) {
             checkAdminStatus(session.user, true);
             checkBusinessProfile(session.user, true);
+            checkAccountDetails(session.user, true);
           }
         } else if (event === 'SIGNED_OUT') {
           setUser(null);
           setSession(null);
           setAccountId(null);
           setHasBusiness(false);
+          setAccount(null);
           setIsAdminUser(false);
           setError(null);
         } else if (event === 'TOKEN_REFRESHED' && session) {
@@ -357,7 +423,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
 
     return () => subscription.unsubscribe();
-  }, [checkAdminStatus, checkBusinessProfile]);
+  }, [checkAdminStatus, checkBusinessProfile, checkAccountDetails]);
 
   // Context value
   const value: AuthContextType = useMemo(() => ({
@@ -373,6 +439,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     accountId,
     hasBusiness,
     businessLoading,
+    account,
+    accountLoading,
     sessionExpiry,
     sessionTimeRemaining,
     
@@ -382,6 +450,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refreshAuth,
     refreshAdminStatus,
     refreshBusinessProfile,
+    refreshAccountDetails,
     
     // Guards
     requireAuth,
@@ -394,8 +463,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }), [
     user, session, isAuthenticated, isLoading, isInitialized, error,
     isAdminUser, adminLoading, accountId, hasBusiness, businessLoading,
-    sessionExpiry, sessionTimeRemaining,
-    signIn, signOut, refreshAuth, refreshAdminStatus, refreshBusinessProfile,
+    account, accountLoading, sessionExpiry, sessionTimeRemaining,
+    signIn, signOut, refreshAuth, refreshAdminStatus, refreshBusinessProfile, refreshAccountDetails,
     requireAuth, requireAdmin, requireBusiness,
     clearError, isSessionExpiringSoon
   ]);

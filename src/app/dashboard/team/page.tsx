@@ -10,6 +10,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { PlusIcon, XMarkIcon, UserIcon, EnvelopeIcon, ClockIcon, QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
+import { useAuth } from '@/contexts/AuthContext';
+import FiveStarSpinner from '@/app/components/FiveStarSpinner';
 
 interface TeamMember {
   user_id: string;
@@ -52,6 +54,7 @@ interface TeamData {
 
 export default function TeamPage() {
   const router = useRouter();
+  const { user, isAdminUser, isLoading: authLoading } = useAuth();
   const [teamData, setTeamData] = useState<TeamData | null>(null);
   const [loading, setLoading] = useState(true);
   const [inviteEmail, setInviteEmail] = useState('');
@@ -60,6 +63,14 @@ export default function TeamPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [showRoleTooltip, setShowRoleTooltip] = useState(false);
+
+  // Auth guard - redirect if not authenticated
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/auth/sign-in');
+      return;
+    }
+  }, [authLoading, user, router]);
 
   // Helper function to safely format plan name
   const formatPlanName = (plan: string | null | undefined): string => {
@@ -101,20 +112,23 @@ export default function TeamPage() {
   };
 
   useEffect(() => {
-    fetchTeamData();
-  }, []);
+    // Only fetch team data if user is authenticated
+    if (user && !authLoading) {
+      fetchTeamData();
+    }
+  }, [user, authLoading]);
 
   // Refresh data when the page becomes visible (in case user came back from Stripe)
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (!document.hidden) {
+      if (!document.hidden && user) {
         fetchTeamData();
       }
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, []);
+  }, [user]);
 
   // Send invitation
   const sendInvitation = async (e: React.FormEvent) => {
@@ -172,16 +186,12 @@ export default function TeamPage() {
     }
   };
 
-  if (loading) {
+  // Show loading spinner while auth is loading or team data is loading
+  if (authLoading || loading || !user) {
     return (
       <div className="max-w-6xl mx-auto p-6">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
-          <div className="space-y-4">
-            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-            <div className="h-4 bg-gray-200 rounded w-2/3"></div>
-          </div>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <FiveStarSpinner />
         </div>
       </div>
     );
@@ -192,6 +202,12 @@ export default function TeamPage() {
       <div className="max-w-6xl mx-auto p-6">
         <div className="text-center">
           <p className="text-gray-500">Failed to load team data</p>
+          <button 
+            onClick={fetchTeamData}
+            className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+          >
+            Try Again
+          </button>
         </div>
       </div>
     );
@@ -202,6 +218,7 @@ export default function TeamPage() {
   
   // Debug logging
   console.log('Team data:', { account, members: members.length, current_user_role });
+  console.log('Auth context:', { user: user?.email, isAdminUser });
   
   // Additional safety check for account data
   if (!account) {
@@ -209,6 +226,12 @@ export default function TeamPage() {
       <div className="max-w-6xl mx-auto p-6">
         <div className="text-center">
           <p className="text-gray-500">Account data not available</p>
+          <button 
+            onClick={fetchTeamData}
+            className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+          >
+            Refresh
+          </button>
         </div>
       </div>
     );
