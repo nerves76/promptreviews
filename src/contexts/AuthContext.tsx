@@ -12,6 +12,22 @@
  * - Business profile integration
  * - Session management
  * - Automatic refreshing
+ * 
+ * FUTURE ENHANCEMENTS (based on comprehensive auth state analysis):
+ * 
+ * HIGH PRIORITY:
+ * - Email verification status (emailVerified, requiresEmailVerification)
+ * - Granular payment states (paymentStatus, subscriptionStatus via Stripe)
+ * - Enhanced trial states (trialStatus: 'active'|'expired'|'converted')
+ * 
+ * MEDIUM PRIORITY:
+ * - Team role granularity (teamRole: 'owner'|'admin'|'member'|'pending')
+ * - Account lifecycle (accountStatus: 'active'|'suspended'|'canceled')
+ * 
+ * LOW PRIORITY:
+ * - Team invitation states (invited_team_member, team_pending)
+ * - Payment failure states (grace_period, account_past_due)
+ * - Card expiration tracking
  */
 
 "use client";
@@ -31,6 +47,10 @@ interface AuthState {
   user: User | null;
   session: Session | null;
   isAuthenticated: boolean;
+  
+  // Email verification status
+  emailVerified: boolean;
+  requiresEmailVerification: boolean;
   
   // Loading states
   isLoading: boolean;
@@ -118,6 +138,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Computed values
   const isAuthenticated = useMemo(() => !!user && !!session, [user, session]);
+  
+  // Email verification status
+  const emailVerified = useMemo(() => !!user?.email_confirmed_at, [user]);
+  const requiresEmailVerification = useMemo(() => !!user && !emailVerified, [user, emailVerified]);
   
   const sessionExpiry = useMemo(() => {
     if (!session?.expires_at) return null;
@@ -431,6 +455,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user,
     session,
     isAuthenticated,
+    emailVerified,
+    requiresEmailVerification,
     isLoading,
     isInitialized,
     error,
@@ -461,7 +487,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     clearError,
     isSessionExpiringSoon,
   }), [
-    user, session, isAuthenticated, isLoading, isInitialized, error,
+    user, session, isAuthenticated, emailVerified, requiresEmailVerification, isLoading, isInitialized, error,
     isAdminUser, adminLoading, accountId, hasBusiness, businessLoading,
     account, accountLoading, sessionExpiry, sessionTimeRemaining,
     signIn, signOut, refreshAuth, refreshAdminStatus, refreshBusinessProfile, refreshAccountDetails,
