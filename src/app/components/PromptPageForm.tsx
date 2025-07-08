@@ -248,14 +248,10 @@ export default function PromptPageForm({
   
   // Sync notePopupEnabled with initialData when it changes
   useEffect(() => {
-    console.log("🔍 useEffect updating notePopupEnabled from:", notePopupEnabled, "to:", initialData.show_friendly_note);
     if (initialData.show_friendly_note !== undefined) {
       setNotePopupEnabled(initialData.show_friendly_note);
     }
   }, [initialData.show_friendly_note]);
-  
-  console.log("🔍 PromptPageForm initialData.show_friendly_note:", initialData.show_friendly_note);
-  console.log("🔍 PromptPageForm notePopupEnabled:", notePopupEnabled);
 
   const [submitted, setSubmitted] = useState(false);
 
@@ -1141,13 +1137,10 @@ export default function PromptPageForm({
                           <EmojiSentimentSection
               enabled={emojiSentimentEnabled}
               onToggle={() => {
-                console.log("🔍 [Step 2] Emoji sentiment toggle clicked. notePopupEnabled:", notePopupEnabled);
                 if (notePopupEnabled) {
-                  console.log("🔍 [Step 2] Setting conflict modal to 'emoji'");
                   setShowPopupConflictModal("emoji");
                   return;
                 }
-                console.log("🔍 [Step 2] Toggling emoji sentiment enabled");
                 setEmojiSentimentEnabled((v: boolean) => !v);
               }}
                 question={emojiSentimentQuestion}
@@ -1648,13 +1641,10 @@ export default function PromptPageForm({
             <EmojiSentimentSection
               enabled={emojiSentimentEnabled}
               onToggle={() => {
-                console.log("🔍 Emoji sentiment toggle clicked. notePopupEnabled:", notePopupEnabled);
                 if (notePopupEnabled) {
-                  console.log("🔍 Setting conflict modal to 'emoji'");
                   setShowPopupConflictModal("emoji");
                   return;
                 }
-                console.log("🔍 Toggling emoji sentiment enabled");
                 setEmojiSentimentEnabled((v: boolean) => !v);
               }}
               question={emojiSentimentQuestion}
@@ -1759,34 +1749,29 @@ export default function PromptPageForm({
       )}
       {/* Popup conflict modal */}
       {showPopupConflictModal && (
-        (() => {
-          console.log("🔍 Rendering popup conflict modal with state:", showPopupConflictModal);
-          return (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-              <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center relative">
-                <button
-                  className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl"
-                  onClick={() => setShowPopupConflictModal(null)}
-                  aria-label="Close"
-                >
-                  &times;
-                </button>
-                <h2 className="text-2xl font-bold text-red-700 mb-4">
-                  Popup Feature Conflict
-                </h2>
-                <p className="mb-6 text-gray-700">
-                  Sorry you can't have "Personalized note" and "Emoji sentiment flow" enabled at the same time because that would be pop-ups on top of pop-ups.
-                </p>
-                <button
-                  onClick={() => setShowPopupConflictModal(null)}
-                  className="bg-slate-blue text-white px-6 py-2 rounded hover:bg-slate-blue/90 font-semibold mt-2"
-                >
-                  OK
-                </button>
-              </div>
-            </div>
-          );
-        })()
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center relative">
+            <button
+              className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl"
+              onClick={() => setShowPopupConflictModal(null)}
+              aria-label="Close"
+            >
+              &times;
+            </button>
+            <h2 className="text-2xl font-bold text-red-700 mb-4">
+              Popup Feature Conflict
+            </h2>
+            <p className="mb-6 text-gray-700">
+              Sorry you can't have "Personalized note" and "Emoji sentiment flow" enabled at the same time because that would be pop-ups on top of pop-ups.
+            </p>
+            <button
+              onClick={() => setShowPopupConflictModal(null)}
+              className="bg-slate-blue text-white px-6 py-2 rounded hover:bg-slate-blue/90 font-semibold mt-2"
+            >
+              OK
+            </button>
+          </div>
+        </div>
       )}
     </form>
   );
