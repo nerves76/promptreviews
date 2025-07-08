@@ -5,7 +5,7 @@
 
 import "./globals.css";
 import type { Metadata } from "next";
-import { Inter, Roboto, Open_Sans, Montserrat, Poppins } from "next/font/google";
+import { Inter } from "next/font/google";
 import ClientRoot from "./ClientRoot";
 import AppMain from "./components/AppMain";
 import GoogleAnalytics from "./components/GoogleAnalytics";
@@ -14,39 +14,11 @@ import { Providers } from "@/components/Providers";
 // Initialize Sentry for server-side error tracking
 import * as Sentry from '@sentry/nextjs';
 
-// Optimized font loading - only essential fonts
+// Only load Inter for the main dashboard UI - all other fonts loaded dynamically
 const inter = Inter({ 
   subsets: ["latin"],
   display: 'swap',
   variable: '--font-inter'
-});
-
-const roboto = Roboto({ 
-  subsets: ["latin"], 
-  weight: ["400", "700"],
-  display: 'swap',
-  variable: '--font-roboto'
-});
-
-const openSans = Open_Sans({ 
-  subsets: ["latin"], 
-  weight: ["400", "700"],
-  display: 'swap',
-  variable: '--font-open-sans'
-});
-
-const montserrat = Montserrat({ 
-  subsets: ["latin"], 
-  weight: ["400", "700"],
-  display: 'swap',
-  variable: '--font-montserrat'
-});
-
-const poppins = Poppins({ 
-  subsets: ["latin"], 
-  weight: ["400", "700"],
-  display: 'swap',
-  variable: '--font-poppins'
 });
 
 export const metadata: Metadata = {
