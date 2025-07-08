@@ -184,7 +184,7 @@ export const FALLING_STARS_ICONS: {
   { key: "gavel", label: "Gavel", icon: FaGavel, color: "text-amber-700", category: "Tools & Services" },
   { key: "key", label: "Key", icon: FaKey, color: "text-yellow-600", category: "Tools & Services" },
   { key: "sign", label: "Sign", icon: FaSign, color: "text-green-600", category: "Tools & Services" },
-  { key: "magnifying-glass", label: "Magnifying Glass", icon: FaSearch, color: "text-gray-600", category: "Tools & Services" },
+  { key: "magnifying-glass", label: "Magnifying Glass", icon: FaSearch, color: "text-lime-400", category: "Tools & Services" },
   
   // Transportation
   { key: "car", label: "Car", icon: FaCar, color: "text-blue-500", category: "Transportation" },
