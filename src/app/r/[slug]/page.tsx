@@ -1155,14 +1155,31 @@ export default function PromptPage() {
             </div>
           )}
         
-        {/* Style Button - Only visible to page owners */}
-        {!userLoading && isOwner && (
-          <div
-            className={`fixed left-4 z-50 transition-all duration-300 ${showBanner ? "top-28 sm:top-24" : "top-4"}`}
-          >
+        {/* Style & Back Buttons - Style button only visible to page owners */}
+        <div
+          className={`fixed left-4 z-50 transition-all duration-300 ${showBanner ? "top-28 sm:top-24" : "top-4"}`}
+        >
+          <div className="bg-black bg-opacity-20 backdrop-blur-sm rounded-xl p-3 space-y-2">
+            {!userLoading && isOwner && (
+              <button
+                onClick={() => setShowStyleModal(true)}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg shadow-md hover:bg-gray-50 transition-colors group w-full"
+                style={{
+                  background: isOffWhiteOrCream(businessProfile?.card_bg || "#FFFFFF")
+                    ? businessProfile?.card_bg || "#FFFFFF"
+                    : "#FFFFFF",
+                  color: getAccessibleColor(businessProfile?.primary_color || "#4F46E5"),
+                  border: "1px solid #E5E7EB"
+                }}
+                title="Style your prompt pages"
+              >
+                <FaPalette className="w-5 h-5 transition-colors group-hover:text-slate-blue" />
+                <span className="hidden sm:inline">Style</span>
+              </button>
+            )}
             <button
-              onClick={() => setShowStyleModal(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg shadow-md hover:bg-gray-50 transition-colors group"
+              onClick={() => window.location.href = '/dashboard'}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg shadow-md hover:bg-gray-50 transition-colors group w-full"
               style={{
                 background: isOffWhiteOrCream(businessProfile?.card_bg || "#FFFFFF")
                   ? businessProfile?.card_bg || "#FFFFFF"
@@ -1170,13 +1187,20 @@ export default function PromptPage() {
                 color: getAccessibleColor(businessProfile?.primary_color || "#4F46E5"),
                 border: "1px solid #E5E7EB"
               }}
-              title="Style your prompt pages"
+              title="Back to dashboard"
             >
-              <FaPalette className="w-5 h-5 transition-colors group-hover:text-slate-blue" />
-              <span className="hidden sm:inline">Style</span>
+              <svg 
+                className="w-5 h-5" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              <span className="hidden sm:inline">Back</span>
             </button>
           </div>
-        )}
+        </div>
         
 
         
