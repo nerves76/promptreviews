@@ -85,7 +85,7 @@ export default function ReviewPlatformCard({
         className="absolute -top-4 -left-4 rounded-full shadow p-2 flex items-center justify-center"
         title={label}
         style={{ 
-          zIndex: 100, 
+          zIndex: 20, 
           backgroundColor: businessProfile?.card_bg || '#ffffff'
         }}
       >
