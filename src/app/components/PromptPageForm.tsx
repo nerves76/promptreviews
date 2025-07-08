@@ -245,6 +245,9 @@ export default function PromptPageForm({
   const [notePopupEnabled, setNotePopupEnabled] = useState(
     initialData.show_friendly_note ?? true,
   );
+  
+  console.log("🔍 PromptPageForm initialData.show_friendly_note:", initialData.show_friendly_note);
+  console.log("🔍 PromptPageForm notePopupEnabled:", notePopupEnabled);
 
   const [submitted, setSubmitted] = useState(false);
 
@@ -1127,15 +1130,18 @@ export default function PromptPageForm({
                 )}
               </div>
               {/* Emoji Sentiment Section (modular) */}
-              <EmojiSentimentSection
-                enabled={emojiSentimentEnabled}
-                onToggle={() => {
-                  if (notePopupEnabled) {
-                    setShowPopupConflictModal("emoji");
-                    return;
-                  }
-                  setEmojiSentimentEnabled((v: boolean) => !v);
-                }}
+                          <EmojiSentimentSection
+              enabled={emojiSentimentEnabled}
+              onToggle={() => {
+                console.log("🔍 [Step 2] Emoji sentiment toggle clicked. notePopupEnabled:", notePopupEnabled);
+                if (notePopupEnabled) {
+                  console.log("🔍 [Step 2] Setting conflict modal to 'emoji'");
+                  setShowPopupConflictModal("emoji");
+                  return;
+                }
+                console.log("🔍 [Step 2] Toggling emoji sentiment enabled");
+                setEmojiSentimentEnabled((v: boolean) => !v);
+              }}
                 question={emojiSentimentQuestion}
                 onQuestionChange={setEmojiSentimentQuestion}
                 feedbackMessage={emojiFeedbackMessage}
@@ -1634,10 +1640,13 @@ export default function PromptPageForm({
             <EmojiSentimentSection
               enabled={emojiSentimentEnabled}
               onToggle={() => {
+                console.log("🔍 Emoji sentiment toggle clicked. notePopupEnabled:", notePopupEnabled);
                 if (notePopupEnabled) {
+                  console.log("🔍 Setting conflict modal to 'emoji'");
                   setShowPopupConflictModal("emoji");
                   return;
                 }
+                console.log("🔍 Toggling emoji sentiment enabled");
                 setEmojiSentimentEnabled((v: boolean) => !v);
               }}
               question={emojiSentimentQuestion}
@@ -1742,6 +1751,7 @@ export default function PromptPageForm({
       )}
       {/* Popup conflict modal */}
       {showPopupConflictModal && (
+        console.log("🔍 Rendering popup conflict modal with state:", showPopupConflictModal) || (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
           <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center relative">
             <button
@@ -1765,6 +1775,7 @@ export default function PromptPageForm({
             </button>
           </div>
         </div>
+        )
       )}
     </form>
   );
