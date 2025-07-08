@@ -43,6 +43,7 @@ const pricingTiers: PricingTier[] = [
     contactLimit: 1000,
     promptPageLimit: 50,
     features: [
+      "3 team members",
       "50 prompt pages",
       "1000 contacts",
       "Advanced review management",
@@ -60,6 +61,7 @@ const pricingTiers: PricingTier[] = [
     contactLimit: 10000,
     promptPageLimit: 500,
     features: [
+      "5 team members",
       "500 prompt pages",
       "10,000 contacts",
       "Enterprise review management",
