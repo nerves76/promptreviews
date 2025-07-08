@@ -109,10 +109,13 @@ export default function PlanPage() {
       const currentTier = tiers.find((t) => t.key === prevPlan);
       const targetTier = tiers.find((t) => t.key === tierKey);
       
+      // Handle users with no plan or invalid plan - treat as new user
+      const hasValidCurrentPlan = currentTier && prevPlan && prevPlan !== 'no_plan' && prevPlan !== 'NULL';
+      
       const isUpgrade =
-        currentTier && targetTier && targetTier.order > currentTier.order;
+        hasValidCurrentPlan && targetTier && targetTier.order > currentTier.order;
       const isDowngrade =
-        currentTier && targetTier && targetTier.order < currentTier.order;
+        hasValidCurrentPlan && targetTier && targetTier.order < currentTier.order;
 
       if (isUpgrade) {
         // Show upgrade confirmation modal
@@ -125,8 +128,8 @@ export default function PlanPage() {
         return;
       }
       
-      // Handle new user or trial user selecting a paid plan (bypass upgrade modal for direct checkout)
-      if ((isNewUser || !currentPlan || currentPlan === 'grower') && tierKey !== 'grower') {
+      // Handle new user or users with no valid plan selecting a paid plan (bypass upgrade modal for direct checkout)
+      if ((isNewUser || !hasValidCurrentPlan || currentPlan === 'grower' || currentPlan === 'no_plan' || currentPlan === 'NULL') && tierKey !== 'grower') {
         try {
           const res = await fetch("/api/create-checkout-session", {
             method: "POST",
@@ -167,7 +170,14 @@ export default function PlanPage() {
         return;
       }
       
-      // For same plan, just reload
+      // Safety check: Never allow direct database updates for paid plans
+      if (tierKey === 'builder' || tierKey === 'maven') {
+        console.error(`🚨 CRITICAL: Attempted to directly update database with paid plan ${tierKey}. This should go through Stripe!`);
+        alert('Error: Paid plans must be processed through Stripe. Please try again.');
+        return;
+      }
+      
+      // For same plan (should only be grower plan at this point), just reload
       await supabase
         .from("accounts")
         .update({ plan: tierKey })

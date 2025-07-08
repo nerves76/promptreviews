@@ -38,7 +38,7 @@ import { createClient } from '@/utils/supabaseClient';
 import { User, Session } from '@supabase/supabase-js';
 import { isAdmin, ensureAdminForEmail } from '@/utils/admin';
 import { getAccountIdForUser } from '@/utils/accountUtils';
-import { Account } from '@/types/account';
+import { Account } from '@/utils/accountUtils';
 import { AuthResponse } from '@supabase/supabase-js';
 
 // Create singleton client instance
@@ -126,8 +126,8 @@ interface AuthState {
 }
 
 interface AuthContextType extends AuthState {
-  // Actions
-  signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  // Actions (matching AuthState interface)
+  signIn: (email: string, password: string) => Promise<AuthResponse>;
   signOut: () => Promise<void>;
   refreshAuth: () => Promise<void>;
   refreshAdminStatus: () => Promise<void>;
@@ -517,21 +517,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setError(null);
       
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const result = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       
-      if (error) {
-        return { success: false, error: error.message };
-      }
-      
-      // Auth state will be updated via the auth state change listener
-      return { success: true };
+      // Return the actual AuthResponse from Supabase
+      return result;
       
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Sign in failed';
-      return { success: false, error: errorMessage };
+      // Return a properly formatted AuthResponse for catch errors
+      return {
+        data: { user: null, session: null },
+        error: { message: errorMessage, name: 'SignInError' } as any
+      };
     }
   }, []);
 

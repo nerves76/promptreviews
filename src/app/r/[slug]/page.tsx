@@ -25,6 +25,7 @@ import {
   FaBookmark,
   FaHome,
   FaEnvelope,
+  FaCommentDots,
   FaStar as FaFavorites,
   FaCalendarAlt,
   FaBell,
@@ -260,6 +261,9 @@ export default function PromptPage() {
   // Add state for the step 2 choice modal
   const [showChoiceModal, setShowChoiceModal] = useState(false);
   const [selectedNegativeSentiment, setSelectedNegativeSentiment] = useState<string | null>(null);
+  
+  // Add state for showing feedback form
+  const [showFeedbackForm, setShowFeedbackForm] = useState(false);
   
   // Style button state variables
   const [isOwner, setIsOwner] = useState(false);
@@ -888,6 +892,49 @@ export default function PromptPage() {
     }
   };
 
+  const handleFeedbackSubmit = async () => {
+    if (!promptPage || !businessProfile) return;
+    
+    setFeedbackSubmitting(true);
+    
+    try {
+      const response = await fetch("/api/track-review", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          promptPageId: promptPage.id,
+          platform: "feedback",
+          status: "feedback", 
+          first_name: feedbackFirstName,
+          last_name: feedbackLastName,
+          reviewContent: feedback,
+          promptPageType: promptPage.page_type,
+          review_type: "feedback",
+          sentiment: sentiment,
+          email: feedbackEmail,
+          phone: feedbackPhone,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to submit feedback");
+      }
+
+      setFeedbackSuccess(true);
+      
+      // Reset form after success
+      setFeedback("");
+      setFeedbackFirstName("");
+      setFeedbackLastName("");
+      setFeedbackEmail("");
+      setFeedbackPhone("");
+    } catch (err: any) {
+      setFeedbackError(err.message || "Failed to submit feedback.");
+    } finally {
+      setFeedbackSubmitting(false);
+    }
+  };
+
   // Show modal on load if enabled
   useEffect(() => {
     console.log(
@@ -923,7 +970,7 @@ export default function PromptPage() {
     promptPage?.emoji_sentiment_question || "How was Your Experience?";
   const mergedEmojiFeedbackMessage = promptPage?.emoji_feedback_message || "We value your feedback! Let us know how we can do better.";
   const mergedEmojiThankYouMessage = promptPage?.emoji_thank_you_message || "Thank you for your feedback. It's important to us.";
-  const mergedEmojiFeedbackPopupHeader = promptPage?.emoji_feedback_popup_header || "How can we Improve?";
+  const mergedEmojiFeedbackPopupHeader = promptPage?.emoji_feedback_popup_header || "How can we improve?";
   const mergedEmojiFeedbackPageHeader = promptPage?.emoji_feedback_page_header || "Your feedback helps us grow";
   const mergedEmojiLabels = promptPage?.emoji_labels || [
     "Excellent",
@@ -1158,7 +1205,7 @@ export default function PromptPage() {
         {/* Style & Back Buttons - Only visible to authenticated users */}
         {!userLoading && currentUser && (
           <div
-            className={`fixed left-4 z-50 transition-all duration-300 ${showBanner ? "top-28 sm:top-24" : "top-4"}`}
+            className={`fixed left-4 z-40 transition-all duration-300 ${showBanner ? "top-28 sm:top-24" : "top-4"}`}
           >
             <div className="bg-black bg-opacity-20 backdrop-blur-sm rounded-xl p-3 space-y-2">
               {isOwner && (
@@ -1208,7 +1255,7 @@ export default function PromptPage() {
         
         {/* Save for Later Button */}
         <div
-          className={`fixed right-4 z-50 transition-all duration-300 ${showBanner ? "top-28 sm:top-24" : "top-4"}`}
+                      className={`fixed right-4 z-40 transition-all duration-300 ${showBanner ? "top-28 sm:top-24" : "top-4"}`}
           ref={saveMenuRef}
         >
           <button
@@ -1327,8 +1374,190 @@ export default function PromptPage() {
                 businessProfile={businessProfile}
                 sentiment={sentiment}
               />
+              
+              {/* Feedback Form Section (if negative sentiment and chose private feedback) */}
+              {sentimentComplete &&
+                ["neutral", "unsatisfied", "frustrated"].includes(sentiment || "") && 
+                showFeedbackForm && (
+                  <div className="w-full flex justify-center my-8">
+                    <div className="mb-8 rounded-2xl shadow p-8 animate-slideup relative max-w-[1000px] w-full" style={{
+                      background: businessProfile?.card_bg || "#F9FAFB",
+                      color: businessProfile?.card_text || "#1A1A1A",
+                      position: 'relative'
+                    }}>
+                      <div className="flex items-center mb-8">
+                        <FaEnvelope
+                          className="w-8 h-8 mr-3"
+                          style={{ color: businessProfile?.primary_color || "#4F46E5" }}
+                        />
+                        <h1
+                          className="text-3xl font-bold text-left"
+                          style={{ color: businessProfile?.primary_color || "#4F46E5" }}
+                        >
+                          {mergedEmojiFeedbackPageHeader}
+                        </h1>
+                      </div>
+                      {feedbackSuccess ? (
+                        <div className="text-green-600 text-center text-lg font-semibold py-8">
+                          {mergedEmojiThankYouMessage}
+                        </div>
+                      ) : (
+                        <div className="flex flex-col gap-6">
+                          <div className="w-full flex flex-col md:flex-row gap-4">
+                            <div className="flex-1 min-w-[200px]">
+                              <label
+                                htmlFor="feedbackFirstName"
+                                className="block text-sm font-medium text-gray-700"
+                              >
+                                First Name{" "}
+                                <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                type="text"
+                                id="feedbackFirstName"
+                                value={feedbackFirstName}
+                                onChange={(e) => setFeedbackFirstName(e.target.value)}
+                                placeholder="John"
+                                className="mt-1 block w-full rounded-lg shadow-md focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                                style={{
+                                  background: businessProfile?.card_bg || "#F9FAFB",
+                                  color: businessProfile?.card_text || "#1A1A1A",
+                                  boxShadow: "inset 0 1px 3px 0 rgba(60,64,67,0.18), inset 0 1.5px 6px 0 rgba(60,64,67,0.10)",
+                                }}
+                                required
+                              />
+                            </div>
+                            <div className="flex-1 min-w-[200px]">
+                              <label
+                                htmlFor="feedbackLastName"
+                                className="block text-sm font-medium text-gray-700"
+                              >
+                                Last Name{" "}
+                                <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                type="text"
+                                id="feedbackLastName"
+                                value={feedbackLastName}
+                                onChange={(e) => setFeedbackLastName(e.target.value)}
+                                placeholder="Smith"
+                                className="mt-1 block w-full rounded-lg shadow-md focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                                style={{
+                                  background: businessProfile?.card_bg || "#F9FAFB",
+                                  color: businessProfile?.card_text || "#1A1A1A",
+                                  boxShadow: "inset 0 1px 3px 0 rgba(60,64,67,0.18), inset 0 1.5px 6px 0 rgba(60,64,67,0.10)",
+                                }}
+                                required
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="w-full flex flex-col md:flex-row gap-4">
+                            <div className="flex-1">
+                              <label
+                                htmlFor="feedbackEmail"
+                                className="block text-sm font-medium text-gray-700"
+                              >
+                                Email (optional)
+                              </label>
+                              <input
+                                type="email"
+                                id="feedbackEmail"
+                                value={feedbackEmail}
+                                onChange={(e) => setFeedbackEmail(e.target.value)}
+                                placeholder="john@example.com"
+                                className="mt-1 block w-full rounded-lg shadow-md focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                                style={{
+                                  background: businessProfile?.card_bg || "#F9FAFB",
+                                  color: businessProfile?.card_text || "#1A1A1A",
+                                  boxShadow: "inset 0 1px 3px 0 rgba(60,64,67,0.18), inset 0 1.5px 6px 0 rgba(60,64,67,0.10)",
+                                }}
+                              />
+                            </div>
+                            <div className="flex-1">
+                              <label
+                                htmlFor="feedbackPhone"
+                                className="block text-sm font-medium text-gray-700"
+                              >
+                                Phone (optional)
+                              </label>
+                              <input
+                                type="tel"
+                                id="feedbackPhone"
+                                value={feedbackPhone}
+                                onChange={(e) => setFeedbackPhone(e.target.value)}
+                                placeholder="(555) 123-4567"
+                                className="mt-1 block w-full rounded-lg shadow-md focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                                style={{
+                                  background: businessProfile?.card_bg || "#F9FAFB",
+                                  color: businessProfile?.card_text || "#1A1A1A",
+                                  boxShadow: "inset 0 1px 3px 0 rgba(60,64,67,0.18), inset 0 1.5px 6px 0 rgba(60,64,67,0.10)",
+                                }}
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label
+                              htmlFor="feedback"
+                              className="block text-sm font-medium text-gray-700 mb-2"
+                            >
+                              Your Feedback{" "}
+                              <span className="text-red-500">*</span>
+                            </label>
+                            <textarea
+                              id="feedback"
+                              className="w-full rounded-lg border border-gray-300 p-4 min-h-[120px] focus:ring-2 focus:ring-indigo-400"
+                              placeholder={mergedEmojiFeedbackMessage}
+                              value={feedback}
+                              onChange={(e) => setFeedback(e.target.value)}
+                              required
+                              style={{
+                                background: businessProfile?.card_bg || "#F9FAFB",
+                                color: businessProfile?.card_text || "#1A1A1A",
+                                boxShadow: "inset 0 1px 3px 0 rgba(60,64,67,0.18), inset 0 1.5px 6px 0 rgba(60,64,67,0.10)",
+                              }}
+                            />
+                          </div>
+                          
+                          <div className="flex justify-end">
+                            <button
+                              type="button"
+                              onClick={handleFeedbackSubmit}
+                              className="px-6 py-3 rounded-lg font-semibold text-lg shadow-lg text-white hover:opacity-90 focus:outline-none transition"
+                              style={{
+                                backgroundColor: businessProfile?.secondary_color || "#818CF8",
+                                fontFamily: businessProfile?.primary_font || "Inter",
+                              }}
+                              disabled={feedbackSubmitting}
+                            >
+                              {feedbackSubmitting ? (
+                                <span className="flex items-center justify-center">
+                                  <FiveStarSpinner
+                                    size={18}
+                                    color1="#a5b4fc"
+                                    color2="#6366f1"
+                                  />
+                                </span>
+                              ) : (
+                                "Submit Feedback"
+                              )}
+                            </button>
+                          </div>
+                          {feedbackError && (
+                            <div className="text-red-500 text-sm">
+                              {feedbackError}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              
               {/* Review Platforms Section */}
-              {mergedReviewPlatforms?.map((platform: any, idx: number) => (
+              {sentimentComplete && !showFeedbackForm &&
+                mergedReviewPlatforms?.map((platform: any, idx: number) => (
                 <ReviewPlatformCard
                   key={platform.id || idx}
                   platform={platform}
@@ -1403,39 +1632,74 @@ export default function PromptPage() {
                 </div>
               )}
               
-              {/* Choice Modal */}
+              {/* Step 2 Choice Modal for negative sentiment */}
               {showChoiceModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-                  <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full relative animate-fadein border-2 border-indigo-500">
-                    <button
-                      className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-2xl font-bold focus:outline-none"
-                      onClick={() => setShowChoiceModal(false)}
-                      aria-label="Close"
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 animate-fadein">
+                  <div
+                    className="rounded-2xl shadow-2xl p-10 max-w-lg w-full relative animate-slideup border-2"
+                    style={{ 
+                      fontFamily: businessProfile?.primary_font || "Inter",
+                      background: businessProfile?.card_bg || "#fff",
+                      borderColor: businessProfile?.primary_color || "#4F46E5"
+                    }}
+                  >
+                    <div
+                      className="mb-6 text-2xl font-bold text-center"
+                      style={{ color: businessProfile?.primary_color || "#4F46E5" }}
                     >
-                      ×
-                    </button>
-                    <h2 className="text-2xl font-bold mb-4 text-indigo-700 text-center">
-                      Choose Your Experience
-                    </h2>
-                    <p className="text-gray-700 mb-6 text-center">
-                      How would you rate your overall experience?
+                      {mergedEmojiFeedbackPopupHeader}
+                    </div>
+                    
+                    <p 
+                      className="text-center mb-8"
+                      style={{ color: businessProfile?.card_text || "#374151" }}
+                    >
+                      We appreciate your feedback and want to make sure it's handled appropriately.
                     </p>
-                    <div className="flex flex-col gap-3">
-                                             {sentimentOptions.map((option) => (
-                         <button
-                           key={option.value}
-                           onClick={() => {
-                             setSelectedNegativeSentiment(option.value);
-                             setShowChoiceModal(false);
-                           }}
-                           className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors"
-                         >
-                           <span className="text-2xl">{option.icon}</span>
-                           <div className="text-left">
-                             <div className="font-medium">{option.label}</div>
-                           </div>
-                         </button>
-                       ))}
+                    
+                    <div className="space-y-4">
+                      <button
+                        className="w-full px-6 py-4 rounded-lg font-semibold text-lg shadow-lg text-white hover:opacity-90 focus:outline-none transition border-2"
+                        style={{
+                          backgroundColor: businessProfile?.secondary_color || "#818CF8",
+                          borderColor: businessProfile?.secondary_color || "#818CF8",
+                          fontFamily: businessProfile?.primary_font || "Inter",
+                        }}
+                        onClick={() => {
+                          // Send private feedback to business
+                          setSentiment(selectedNegativeSentiment);
+                          setSentimentComplete(true);
+                          setShowChoiceModal(false);
+                          setSelectedNegativeSentiment(null);
+                          setShowFeedbackForm(true);
+                        }}
+                      >
+                        Send Private Feedback to Business
+                      </button>
+                      
+                      <button
+                        className="w-full px-6 py-4 rounded-lg font-semibold text-lg shadow-lg hover:opacity-90 focus:outline-none transition border-2"
+                        style={{
+                          backgroundColor: "transparent",
+                          borderColor: businessProfile?.secondary_color || "#818CF8",
+                          color: businessProfile?.secondary_color || "#818CF8",
+                          fontFamily: businessProfile?.primary_font || "Inter",
+                        }}
+                        onClick={() => {
+                          // Publish review publicly - redirect to review platforms
+                          setSentiment(selectedNegativeSentiment);
+                          setSentimentComplete(true);
+                          setShowChoiceModal(false);
+                          setSelectedNegativeSentiment(null);
+                          
+                          // Force the review form to show instead of feedback form
+                          setTimeout(() => {
+                            setShowReviewForm(true);
+                          }, 100);
+                        }}
+                      >
+                        Publish Review Publicly
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -1722,6 +1986,7 @@ export default function PromptPage() {
                   setSentimentComplete(true);
                   setShowChoiceModal(false);
                   setSelectedNegativeSentiment(null);
+                  setShowFeedbackForm(true);
                 }}
               >
                 Send Private Feedback to Business

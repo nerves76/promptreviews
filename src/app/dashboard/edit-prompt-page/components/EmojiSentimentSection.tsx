@@ -113,7 +113,7 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
             type="text"
             value={feedbackPopupHeader || ""}
             onChange={(e) => onFeedbackPopupHeaderChange?.(e.target.value)}
-            placeholder="How can we Improve?"
+            placeholder="How can we improve?"
             maxLength={80}
             disabled={!enabled}
           />

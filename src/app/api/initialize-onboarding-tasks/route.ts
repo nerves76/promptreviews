@@ -50,16 +50,41 @@ export async function POST(request: NextRequest) {
     const serviceClient = createServiceRoleClient();
 
     // Get the account ID for the user (using accounts table directly)
-    const { data: account, error: accountError } = await serviceClient
-      .from('accounts')
-      .select('id')
-      .eq('user_id', user.id)
-      .single();
+    // Add retry logic to handle race conditions during account creation
+    let account = null;
+    let accountError = null;
+    
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const { data, error } = await serviceClient
+        .from('accounts')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (error) {
+        accountError = error;
+        console.log(`Account fetch attempt ${attempt + 1} failed:`, error);
+        
+        // Wait before retrying (except on last attempt)
+        if (attempt < 2) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      } else {
+        account = data;
+        break;
+      }
+    }
 
     if (accountError || !account) {
-      console.error('Error getting account for user:', accountError);
+      console.error('Error getting account for user after retries:', {
+        message: accountError?.message,
+        code: accountError?.code,
+        details: accountError?.details,
+        hint: accountError?.hint,
+        userId: user.id,
+      });
       return NextResponse.json(
-        { error: 'Account not found for user' },
+        { error: 'Account not found for user. Please try again in a moment.' },
         { status: 404 }
       );
     }

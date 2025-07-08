@@ -136,7 +136,7 @@ export default function UniversalEditPromptPage() {
           emojiSentimentQuestion: universalPage?.emoji_sentiment_question || "How was Your Experience?",
           emojiFeedbackMessage: universalPage?.emoji_feedback_message || "We value your feedback! Let us know how we can do better.",
           emojiThankYouMessage: universalPage?.emoji_thank_you_message || "Thank you for your feedback. It's important to us.",
-          emojiFeedbackPopupHeader: universalPage?.emoji_feedback_popup_header || "How can we Improve?",
+          emojiFeedbackPopupHeader: universalPage?.emoji_feedback_popup_header || "How can we improve?",
           emojiFeedbackPageHeader: universalPage?.emoji_feedback_page_header || "Your feedback helps us grow",
 
           reviewPlatforms: universalPlatforms.length

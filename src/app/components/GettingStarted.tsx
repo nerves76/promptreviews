@@ -71,23 +71,60 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
           return;
         }
 
-        const response = await fetch('/api/initialize-onboarding-tasks', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.access_token}`,
-          },
-        });
+        // Add retry logic for API calls to handle race conditions
+        let success = false;
+        let lastError = null;
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          console.error('Error initializing default tasks:', errorData);
-        } else {
-          const result = await response.json();
-          console.log('Default tasks initialized:', result);
+        for (let attempt = 0; attempt < 3; attempt++) {
+          try {
+            const response = await fetch('/api/initialize-onboarding-tasks', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.access_token}`,
+              },
+            });
+
+            if (!response.ok) {
+              const errorData = await response.json();
+              lastError = {
+                status: response.status,
+                statusText: response.statusText,
+                errorData: errorData,
+              };
+              
+              // If it's a 404 (account not found), retry after waiting
+              if (response.status === 404 && attempt < 2) {
+                console.log(`Task initialization attempt ${attempt + 1} failed, retrying in 2 seconds...`);
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                continue;
+              }
+              
+              console.error('Error initializing default tasks:', lastError);
+            } else {
+              const result = await response.json();
+              console.log('Default tasks initialized:', result);
+              success = true;
+              break;
+            }
+          } catch (fetchError) {
+            lastError = fetchError;
+            if (attempt < 2) {
+              console.log(`Task initialization attempt ${attempt + 1} failed, retrying in 2 seconds...`);
+              await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+          }
+        }
+
+        if (!success && lastError) {
+          console.error('Failed to initialize tasks after retries:', lastError);
         }
       } catch (error) {
-        console.error('Error calling initialize-onboarding-tasks API:', error);
+        console.error('Error calling initialize-onboarding-tasks API:', {
+          message: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined,
+          error: error,
+        });
       }
     };
 

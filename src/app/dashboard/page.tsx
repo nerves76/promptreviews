@@ -7,9 +7,9 @@
 
 "use client";
 
-import { useEffect, useState, useRef, useMemo } from "react";
+import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { createClient } from "@/utils/supabaseClient";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
 import { FaHome, FaStore, FaChartLine, FaUser, FaCog, FaSignOutAlt, FaPlus } from "react-icons/fa";
 import DashboardContent from "./DashboardContent";
@@ -51,14 +51,16 @@ export default function Dashboard() {
     isLoading: authLoading,
     accountLoading,
     hasBusiness,
-    signOut 
+    signOut,
+    refreshAuth,
+    refreshAccountDetails
   } = useAuth();
   
   // Apply auth guard
   useAuthGuard();
   
-  // Create supabase client instance
-  const supabase = createClient();
+  // Create supabase client instance (memoized to prevent re-creation)
+  const supabase = useMemo(() => createClient(), []);
   
   // Only dashboard-specific data (not duplicating what AuthContext provides)
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
@@ -80,27 +82,115 @@ export default function Dashboard() {
   const [justCanceledStripe, setJustCanceledStripe] = useState(false);
   const [planSelectionRequired, setPlanSelectionRequired] = useState(false);
   const [paymentChangeType, setPaymentChangeType] = useState<string | null>(null);
+  const [justCompletedPayment, setJustCompletedPayment] = useState(false);
 
-  // Memoized business data from AuthContext
+  // State for businesses data (loaded separately from AuthContext)
+  const [businessesData, setBusinessesData] = useState<any[]>([]);
+  const [businessesLoading, setBusinessesLoading] = useState(false);
+  
+  // Memoized business data
   const businessData = useMemo(() => {
     if (!account || accountLoading) return null;
     
     return {
-      businesses: account.businesses || [],
-      currentBusiness: account.businesses?.[0] || null,
-      businessCount: account.businesses?.length || 0,
-      hasBusinesses: (account.businesses?.length || 0) > 0
+      businesses: businessesData,
+      currentBusiness: businessesData[0] || null,
+      businessCount: businessesData.length,
+      hasBusinesses: businessesData.length > 0
     };
-  }, [account, accountLoading]);
+  }, [account, accountLoading, businessesData]);
+  
+  // Load businesses data
+  const loadBusinessesData = useCallback(async () => {
+    if (!user?.id || !account?.id || businessesLoading) return;
+    
+    try {
+      setBusinessesLoading(true);
+      console.log('🏢 Dashboard: Loading businesses data...');
+      
+      const { data: businesses, error } = await supabase
+        .from('businesses')
+        .select('*')
+        .eq('account_id', account.id)
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('❌ Dashboard: Error loading businesses:', error);
+        setBusinessesData([]);
+        return;
+      }
+      
+      console.log('✅ Dashboard: Loaded businesses:', { 
+        count: businesses?.length || 0, 
+        businesses: businesses?.map(b => ({ id: b.id, name: b.name })) || []
+      });
+      
+      setBusinessesData(businesses || []);
+      
+    } catch (error) {
+      console.error('❌ Dashboard: Error loading businesses:', error);
+      setBusinessesData([]);
+    } finally {
+      setBusinessesLoading(false);
+    }
+  }, [user?.id, account?.id, businessesLoading, supabase]);
 
   // Load dashboard-specific data (widgets, prompt pages, reviews)
-  const loadDashboardSpecificData = async () => {
+  const loadDashboardSpecificData = useCallback(async () => {
     if (!user?.id || !account?.id) return;
     
     try {
       console.log('📊 Dashboard: Loading dashboard-specific data...');
       setIsDashboardLoading(true);
       setError(null);
+      
+      // EMERGENCY DEBUG: Check what businesses exist for this user
+      if (user.email === 'boltro3000@gmail.com') {
+        console.log('🔍 DEBUGGING: Checking businesses AND account for boltro3000@gmail.com');
+      
+      // EMERGENCY DEBUG: Check current account state in database
+      const { data: debugAccount, error: debugAccountError } = await supabase
+        .from('accounts')
+        .select('*')
+        .eq('id', account.id)
+        .single();
+      
+      console.log('👤 DEBUG Account from database (FULL):', { 
+        account: debugAccount, 
+        error: debugAccountError,
+        account_id: account.id 
+      });
+      
+      // Check if there are any customer records in Stripe
+      if (debugAccount?.stripe_customer_id) {
+        console.log('🔍 STRIPE CUSTOMER ID FOUND:', debugAccount.stripe_customer_id);
+      } else {
+        console.log('❌ NO STRIPE CUSTOMER ID FOUND');
+      }
+        const { data: debugBusinesses, error: debugError } = await supabase
+          .from('businesses')
+          .select('*')
+          .eq('account_id', account.id);
+        
+        console.log('🏢 DEBUG Businesses query result:', { 
+          businesses: debugBusinesses, 
+          count: debugBusinesses?.length || 0,
+          error: debugError,
+          account_id: account.id 
+        });
+        
+        // Also check all accounts with Maven plan to see if webhook is working for anyone
+        const { data: mavenAccounts, error: mavenError } = await supabase
+          .from('accounts')
+          .select('id, email, plan, stripe_customer_id, subscription_status, created_at, updated_at')
+          .eq('plan', 'maven')
+          .limit(5);
+        
+        console.log('🔍 DEBUG Maven accounts (sample):', { 
+          mavenAccounts, 
+          error: mavenError 
+        });
+      }
       
       // Fetch only dashboard-specific data (not what AuthContext already provides)
       const [promptPagesResult, widgetsResult, reviewsResult, limitsResult] = await Promise.allSettled([
@@ -178,7 +268,7 @@ export default function Dashboard() {
     } finally {
       setIsDashboardLoading(false);
     }
-  };
+  }, [user?.id, user?.email, account?.id, supabase]);
 
   // Load dashboard data when auth is ready
   useEffect(() => {
@@ -186,6 +276,7 @@ export default function Dashboard() {
     if (!isAuthenticated || !user || !account) return;
     
     loadDashboardSpecificData();
+    loadBusinessesData();
   }, [authLoading, accountLoading, isAuthenticated, user?.id, account?.id]);
 
   // Handle post-save modal flag
@@ -205,7 +296,7 @@ export default function Dashboard() {
 
   // Enhanced plan selection logic using AuthContext data
   useEffect(() => {
-    if (authLoading || accountLoading || !account || !businessData) return;
+    if (authLoading || accountLoading || businessesLoading || !account || !businessData) return;
     
     const now = new Date();
     const trialStart = account.trial_start ? new Date(account.trial_start) : null;
@@ -228,38 +319,79 @@ export default function Dashboard() {
       ((!plan || plan === 'no_plan' || plan === 'NULL') && businessCount > 0) ||
       (plan === "grower" && isTrialExpired && !hasStripeCustomer);
     
-    // Check if user has manually dismissed the modal
-    const hasManuallyDismissed = !isPlanSelectionRequired && typeof window !== "undefined" && 
+    // Users with no valid plan should ALWAYS see the modal - never allow dismissal
+    const hasInvalidPlan = (!plan || plan === 'no_plan' || plan === 'NULL') && businessCount > 0;
+    
+    // Check if user has manually dismissed the modal (only applies to users who don't need a plan)
+    const hasManuallyDismissed = !isPlanSelectionRequired && !hasInvalidPlan && typeof window !== "undefined" && 
       sessionStorage.getItem('pricingModalDismissed') === 'true';
     
     if (hasManuallyDismissed) {
+      console.log("❌ Modal dismissed: User previously dismissed and plan selection not required");
       setShowPricingModal(false);
       return;
     }
     
-    // Show pricing modal for users who need to choose plan
-    const shouldShowPricingModal = 
-      ((!plan || plan === 'no_plan' || plan === 'NULL') && businessCount > 0) ||
-      (plan === "grower" && isTrialExpired && !hasStripeCustomer);
+    if (hasInvalidPlan) {
+      console.log("🔒 Invalid plan detected - modal cannot be dismissed:", { plan, businessCount });
+      // Clear any dismissal flags for users with invalid plans
+      if (typeof window !== "undefined" && sessionStorage.getItem('pricingModalDismissed') === 'true') {
+        sessionStorage.removeItem('pricingModalDismissed');
+        console.log("🧹 Cleared dismissal flag for user with invalid plan");
+      }
+    }
     
-    // Debug logging
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🔍 Enhanced plan selection debug:', {
+    // Show pricing modal for users who need to choose plan (but not if they just completed payment)
+    const paidPlans = ['builder', 'maven'];
+    const isPaidUserCheck = paidPlans.includes(plan);
+    const shouldShowPricingModal = 
+      !justCompletedPayment && 
+      !isPaidUser &&
+      !isPaidUserCheck &&
+      (((!plan || plan === 'no_plan' || plan === 'NULL') && businessCount > 0) ||
+      (plan === "grower" && isTrialExpired && !hasStripeCustomer));
+    
+    // Debug logging (simplified for Maven users)
+    if (plan !== 'maven') {
+      console.log('🔍 Plan selection debug:', {
         accountPlan: plan,
         businessCount,
-        trialEnd,
-        isTrialExpired,
-        hasStripeCustomer,
-        isPaidUser,
         shouldShowModal: shouldShowPricingModal,
-        isPlanSelectionRequired: !!isPlanSelectionRequired,
-        businessCreatedParam: typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("businessCreated") : null
+        isPaidUser: isPaidUser,
+        isPaidUserCheck: isPaidUserCheck,
+        showPricingModal,
+        modalDecision: {
+          justCompletedPayment: !!justCompletedPayment,
+          isPaidUser: !!isPaidUser,
+          isPaidUserCheck: !!isPaidUserCheck,
+          hasNoPlan: (!plan || plan === 'no_plan' || plan === 'NULL'),
+          hasBusinesses: businessCount > 0
+        }
       });
+    } else {
+      console.log('✅ Maven user - no modal needed');
     }
     
     setPlanSelectionRequired(!!isPlanSelectionRequired);
     setShowPricingModal(!!shouldShowPricingModal);
-  }, [authLoading, accountLoading, account, businessData]);
+  }, [authLoading, accountLoading, businessesLoading, account, businessData, justCompletedPayment]);
+
+  // EMERGENCY FIX: Close modal and clear flags for Maven users
+  useEffect(() => {
+    if (account?.plan === 'maven' && showPricingModal) {
+      console.log('🎉 Maven plan detected - closing modal and clearing flags');
+      setShowPricingModal(false);
+      setPlanSelectionRequired(false);
+      setJustCompletedPayment(false);
+      
+      // Clear all modal-related session storage
+      if (typeof window !== "undefined") {
+        sessionStorage.removeItem('pricingModalDismissed');
+        localStorage.removeItem('showPostSaveModal');
+        console.log('🧹 Cleared all modal storage flags');
+      }
+    }
+  }, [account?.plan, showPricingModal]);
 
   // Handle URL parameters and celebrations
   useEffect(() => {
@@ -274,6 +406,32 @@ export default function Dashboard() {
       console.log("🎉 Successful payment detected:", { changeType, planName });
       
       setPaymentChangeType(changeType);
+      
+      // CRITICAL: Close pricing modal and refresh account data after successful payment
+      console.log("🎯 Closing pricing modal and refreshing account data after successful payment");
+      setShowPricingModal(false);
+      setPlanSelectionRequired(false);
+      setJustCompletedPayment(true);
+      
+      // Clear any dismissal flags since user now has a valid plan
+      if (typeof window !== "undefined") {
+        sessionStorage.removeItem('pricingModalDismissed');
+        console.log("🧹 Cleared modal dismissal flag after successful payment");
+      }
+      
+      // Refresh account data to get updated plan
+      if (user?.id) {
+        console.log("🔄 Refreshing account data to get updated plan...");
+        refreshAccountDetails().then(() => {
+          console.log("✅ Account data refreshed after successful payment");
+          // Reset the flag after account data is refreshed
+          setTimeout(() => setJustCompletedPayment(false), 1000);
+        }).catch(error => {
+          console.error("❌ Error refreshing account data:", error);
+          // Reset the flag even if refresh fails
+          setTimeout(() => setJustCompletedPayment(false), 1000);
+        });
+      }
       
       // Show celebration for upgrades and new signups
       if (changeType === "upgrade" || changeType === "new") {
@@ -301,6 +459,12 @@ export default function Dashboard() {
       setJustCanceledStripe(true);
       setShowPricingModal(true);
       
+      // Clear any previous modal dismissal since user needs to select a plan
+      if (typeof window !== "undefined") {
+        sessionStorage.removeItem('pricingModalDismissed');
+        console.log("🧹 Cleared modal dismissal flag after Stripe cancellation");
+      }
+      
       // Clean up the URL
       params.delete("canceled");
       const newUrl = window.location.pathname + (params.toString() ? `?${params.toString()}` : "");
@@ -313,6 +477,38 @@ export default function Dashboard() {
     if (params.get("businessCreated") === "1") {
       console.log("🎉 Business created successfully");
       
+      // Clear any previous modal dismissal from sessionStorage since user just created business
+      if (typeof window !== "undefined") {
+        sessionStorage.removeItem('pricingModalDismissed');
+        console.log("🧹 Cleared previous modal dismissal flag");
+      }
+      
+      // Force refresh of dashboard data after business creation
+      if (user?.id) {
+        console.log("🔄 Forcing data refresh after business creation...");
+        
+        // Refresh both AuthContext data and dashboard-specific data
+        Promise.all([
+          refreshAuth(),
+          refreshAccountDetails(),
+          loadDashboardSpecificData()
+        ]).then(() => {
+          console.log("✅ Data refresh completed after business creation");
+          
+          // Force show pricing modal after business creation - new users need to select a plan
+          console.log("✅ Forcing pricing modal to show after business creation");
+          setShowPricingModal(true);
+          setPlanSelectionRequired(true); // Make it required so user can't dismiss
+          
+        }).catch(error => {
+          console.error("❌ Error refreshing data after business creation:", error);
+          // Still show pricing modal even if refresh fails
+          console.log("🔄 Still showing pricing modal despite refresh error");
+          setShowPricingModal(true);
+          setPlanSelectionRequired(true);
+        });
+      }
+      
       // Clean up the URL
       params.delete("businessCreated");
       const newUrl = window.location.pathname + (params.toString() ? `?${params.toString()}` : "");
@@ -321,6 +517,41 @@ export default function Dashboard() {
       return;
     }
   }, []);
+
+  // Get URL search params
+  const searchParams = useSearchParams();
+
+  // Enhanced debugging and safety checks
+  useEffect(() => {
+    // SAFETY CHECK: Detect if user has paid but account wasn't updated
+    if (user && account && searchParams.get('success') === '1') {
+      const planFromUrl = searchParams.get('plan');
+      const changeType = searchParams.get('change');
+      
+      if (planFromUrl && changeType === 'upgrade' && account.plan !== planFromUrl) {
+        console.error('🚨 PAYMENT SUCCESS BUT PLAN NOT UPDATED!');
+        console.error('  URL Plan:', planFromUrl);
+        console.error('  Account Plan:', account.plan);
+        console.error('  User:', user.email);
+        console.error('  Customer ID:', account.stripe_customer_id);
+        
+        // Show user-friendly message
+        console.error('💬 User Message: Payment successful but account update pending. Please refresh in a few minutes or contact support if the issue persists.');
+      }
+    }
+  }, [user, account, searchParams]);
+
+  // Debug logging for Maven users - simplified to prevent re-renders
+  useEffect(() => {
+    if (user && account && account.plan !== 'maven') {
+      console.log('📊 Dashboard Debug Info:');
+      console.log('  Email:', user.email);
+      console.log('  Plan:', account.plan);
+      console.log('  Business Count:', businessData?.businessCount || 0);
+      console.log('  Stripe Customer ID:', account.stripe_customer_id || 'MISSING');
+      console.log('  Subscription Status:', account.subscription_status || 'MISSING');
+    }
+  }, [user?.email, account?.plan, businessData?.businessCount, account?.stripe_customer_id]);
 
   // Loading state
   const isLoading = authLoading || accountLoading || isDashboardLoading;
@@ -370,7 +601,7 @@ export default function Dashboard() {
     );
   }
 
-  if (isDashboardLoading) {
+  if (isDashboardLoading || businessesLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center">
@@ -412,6 +643,36 @@ export default function Dashboard() {
 
   console.log('Dashboard rendering with data:', { data: consolidatedData, isLoading });
 
+  // AGGRESSIVE DEBUG: Show modal status for ANY user if data is loaded
+  if (user && account && businessData) {
+    const shouldShowModal = (!account.plan || account.plan === 'no_plan' || account.plan === 'NULL') && businessData.businessCount > 0;
+    
+    console.log(`🔍 RENDER CHECK (${user.email}): Modal should show: ${shouldShowModal}, Currently showing: ${showPricingModal}`, {
+      plan: account.plan,
+      businessCount: businessData.businessCount,
+      authLoading,
+      accountLoading,
+      businessesLoading,
+      isDashboardLoading,
+      user_email: user.email
+    });
+    
+    // Show alert for ANY user with invalid plan and businesses
+    if (shouldShowModal && !showPricingModal && !authLoading && !accountLoading && !businessesLoading && !isDashboardLoading) {
+      alert(`🚨 MODAL ISSUE!\n\nEmail: ${user.email}\nPlan: ${account.plan}\nBusinesses: ${businessData.businessCount}\nModal showing: ${showPricingModal}\n\nThis should trigger the pricing modal!`);
+      
+      // Force show the modal immediately
+      console.log("🔧 FORCING MODAL TO SHOW");
+      setShowPricingModal(true);
+      setPlanSelectionRequired(true);
+    }
+  }
+  
+  // Also check if we have basic user data
+  if (user) {
+    console.log(`👤 User loaded: ${user.email}, Account: ${account ? 'loaded' : 'not loaded'}, Business: ${businessData ? 'loaded' : 'not loaded'}`);
+  }
+
   // Rest of component handlers...
   const handleCreatePromptPageClick = (
     e: React.MouseEvent<HTMLAnchorElement>,
@@ -433,7 +694,12 @@ export default function Dashboard() {
 
   const handleSelectTier = async (tierKey: string) => {
     try {
-      console.log(`Selected tier: ${tierKey}`);
+      console.log(`🎯 Selected tier: ${tierKey}`);
+      console.log(`📊 Account details:`, { 
+        accountId: account?.id, 
+        currentPlan: account?.plan, 
+        userEmail: user?.email 
+      });
       setShowTopLoader(true);
       
       // Track the plan selection
@@ -444,6 +710,10 @@ export default function Dashboard() {
       
       // Handle grower plan (free trial) - update directly without Stripe
       if (tierKey === "grower") {
+        if (!account?.id) {
+          throw new Error("Account not found");
+        }
+        
         // Update account to grower plan with trial dates
         const { error: updateError } = await supabase
           .from("accounts")
@@ -460,7 +730,14 @@ export default function Dashboard() {
         
         // Close modal and show celebration
         setShowPricingModal(false);
+        setPlanSelectionRequired(false);
         setShowStarfallCelebration(true);
+        
+        // Clear any dismissal flags since user now has a valid plan
+        if (typeof window !== "undefined") {
+          sessionStorage.removeItem('pricingModalDismissed');
+          console.log("🧹 Cleared modal dismissal flag after grower plan selection");
+        }
         
         // Refresh page to show updated data
         setTimeout(() => window.location.reload(), 1000);
@@ -468,27 +745,39 @@ export default function Dashboard() {
       }
       
       // For paid plans, use Stripe checkout
+      if (!account?.id) {
+        throw new Error("Account not found");
+      }
+      
+      const checkoutData = {
+        plan: tierKey,
+        userId: account.id,
+        email: user?.email,
+      };
+      
+      console.log(`💳 Creating Stripe checkout session for:`, checkoutData);
+      
       const response = await fetch("/api/create-checkout-session", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          plan: tierKey,
-          userId: account.id,
-          email: user.email,
-        }),
+        body: JSON.stringify(checkoutData),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
+        console.error(`❌ Stripe checkout API error:`, errorData);
         throw new Error(errorData.error || "Failed to create checkout session");
       }
 
-      const { url } = await response.json();
+      const responseData = await response.json();
+      console.log(`✅ Stripe checkout response:`, responseData);
+      
+      const { url } = responseData;
       
       if (url) {
-        console.log("Redirecting to Stripe Checkout...");
+        console.log(`🚀 Redirecting to Stripe Checkout for ${tierKey}:`, url);
         window.location.href = url;
       } else {
         throw new Error("No checkout URL received");
@@ -501,8 +790,17 @@ export default function Dashboard() {
   };
 
   const handleClosePricingModal = () => {
-    if (planSelectionRequired) {
-      console.log("⚠️ Plan selection required - cannot close modal");
+    // Check if user has invalid plan and needs to select one
+    const hasInvalidPlan = (!account?.plan || account.plan === 'no_plan' || account.plan === 'NULL') && 
+                          businessData && businessData.businessCount > 0;
+    
+    if (planSelectionRequired || hasInvalidPlan) {
+      console.log("⚠️ Plan selection required - cannot close modal", { 
+        planSelectionRequired, 
+        hasInvalidPlan, 
+        currentPlan: account?.plan,
+        businessCount: businessData?.businessCount 
+      });
       return;
     }
     
