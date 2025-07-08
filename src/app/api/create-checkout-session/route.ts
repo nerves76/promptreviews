@@ -205,7 +205,7 @@ export async function POST(req: NextRequest) {
         metadata: { 
           userId, 
           plan,
-          userEmail: userEmail // Add email to metadata for webhook fallback
+          userEmail: userEmail || null // Add email to metadata for webhook fallback
         },
         success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=1&change=${changeType}&plan=${plan}`,
         cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?canceled=1`,
