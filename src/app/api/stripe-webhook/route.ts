@@ -46,7 +46,10 @@ export async function POST(req: NextRequest) {
   if (
     event.type === "customer.subscription.created" ||
     event.type === "customer.subscription.updated" ||
-    event.type === "customer.subscription.deleted"
+    event.type === "customer.subscription.deleted" ||
+    event.type === "customer.subscription.trial_will_end" ||
+    event.type === "customer.subscription.paused" ||
+    event.type === "customer.subscription.resumed"
   ) {
     const subscription = event.data.object as Stripe.Subscription;
     const customerId = subscription.customer as string;
@@ -154,8 +157,54 @@ export async function POST(req: NextRequest) {
         { status: 500 },
       );
     }
+  } else if (
+    event.type === "invoice.payment_succeeded" ||
+    event.type === "invoice.payment_failed"
+  ) {
+    // Handle invoice/payment events
+    const invoice = event.data.object as Stripe.Invoice;
+    const customerId = invoice.customer as string;
+    const subscriptionId = invoice.subscription as string;
+    
+    console.log("💳 Processing payment event:", event.type);
+    console.log("  Customer ID:", customerId);
+    console.log("  Subscription ID:", subscriptionId);
+    console.log("  Invoice ID:", invoice.id);
+    console.log("  Amount:", invoice.amount_paid / 100, "USD");
+    console.log("  Status:", invoice.status);
+    
+    // Update payment status in our database
+    const paymentSucceeded = event.type === "invoice.payment_succeeded";
+    const subscriptionUpdateData = {
+      subscription_status: paymentSucceeded ? 'active' : 'past_due',
+      // We could add more payment-specific fields here
+      updated_at: new Date().toISOString(),
+    };
+    
+    // Update account by customer ID
+    console.log("🔄 Updating payment status for customer:", customerId);
+    const updateResult = await supabase
+      .from("accounts")
+      .update(subscriptionUpdateData)
+      .eq("stripe_customer_id", customerId)
+      .select();
+    
+    console.log("✅ Payment status update result:", updateResult.data?.length || 0, "rows updated");
+    
+    if (updateResult.error) {
+      console.error("Supabase payment update error:", updateResult.error.message);
+      return NextResponse.json(
+        { error: updateResult.error.message },
+        { status: 500 },
+      );
+    }
+    
+    // If payment succeeded and this was a past_due subscription, mark as reactivated
+    if (paymentSucceeded && subscriptionId) {
+      console.log("🎉 Payment succeeded - account reactivated!");
+    }
   } else {
-    console.log("ℹ️  Received non-subscription event:", event.type, "- ignoring");
+    console.log("ℹ️  Received non-handled event:", event.type, "- ignoring");
   }
 
   // Respond to Stripe
