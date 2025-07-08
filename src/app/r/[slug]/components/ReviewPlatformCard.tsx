@@ -274,8 +274,8 @@ export default function ReviewPlatformCard({
               disabled={aiLoading === idx}
               className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               style={{
-                borderColor: businessProfile?.primary_color || "#4F46E5",
-                color: businessProfile?.primary_color || "#4F46E5",
+                borderColor: businessProfile?.secondary_color || "#6B7280",
+                color: businessProfile?.secondary_color || "#6B7280",
               }}
             >
               {aiLoading === idx ? (
@@ -304,7 +304,7 @@ export default function ReviewPlatformCard({
               disabled={isSubmitting === idx || !reviewerFirstNames[idx].trim() || !reviewerLastNames[idx].trim() || !platformReviewTexts[idx].trim()}
               className="flex-1 px-4 py-2 rounded-lg text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               style={{
-                backgroundColor: businessProfile?.primary_color || "#4F46E5",
+                backgroundColor: businessProfile?.secondary_color || "#4F46E5",
               }}
             >
               {isSubmitting === idx ? (
