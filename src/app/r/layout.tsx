@@ -4,15 +4,43 @@ import { createClient } from "@supabase/supabase-js";
 
 // Dynamic metadata generation with og:image support
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  // Default fallback metadata
+  const fallbackMetadata: Metadata = {
+    title: "PromptReviews - Review Page",
+    description: "Share your experience and help businesses improve.",
+    robots: {
+      index: false,
+      follow: false,
+      nocache: true,
+      googleBot: {
+        index: false,
+        follow: false,
+        noimageindex: true,
+        'max-video-preview': -1,
+        'max-image-preview': 'none',
+        'max-snippet': -1,
+      },
+    },
+  };
+
   try {
     // Await the params in Next.js 15
     const { slug } = await params;
     
+    // Check if required environment variables are available
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('Missing environment variables for metadata generation');
+      return fallbackMetadata;
+    }
+    
     // Use service role client for server-side metadata generation
     // This bypasses RLS policies and allows access to all data
     const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      supabaseUrl,
+      supabaseServiceKey,
       {
         auth: {
           autoRefreshToken: false,
@@ -30,22 +58,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       .single();
     
     if (pageError || !promptPage) {
+      console.warn('Prompt page not found for slug:', slug, pageError?.message);
       return {
+        ...fallbackMetadata,
         title: "PromptReviews - Page Not Found",
         description: "The requested prompt page could not be found.",
-        robots: {
-          index: false,
-          follow: false,
-          nocache: true,
-          googleBot: {
-            index: false,
-            follow: false,
-            noimageindex: true,
-            'max-video-preview': -1,
-            'max-image-preview': 'none',
-            'max-snippet': -1,
-          },
-        },
       };
     }
     
@@ -57,22 +74,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       .single();
     
     if (businessError || !business) {
+      console.warn('Business not found for account:', promptPage.account_id, businessError?.message);
       return {
+        ...fallbackMetadata,
         title: "PromptReviews - Business Not Found",
         description: "The business profile could not be found.",
-        robots: {
-          index: false,
-          follow: false,
-          nocache: true,
-          googleBot: {
-            index: false,
-            follow: false,
-            noimageindex: true,
-            'max-video-preview': -1,
-            'max-image-preview': 'none',
-            'max-snippet': -1,
-          },
-        },
       };
     }
     
@@ -100,21 +106,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     }
     
     const metadata: Metadata = {
+      ...fallbackMetadata,
       title,
       description,
-      robots: {
-        index: false,
-        follow: false,
-        nocache: true,
-        googleBot: {
-          index: false,
-          follow: false,
-          noimageindex: true,
-          'max-video-preview': -1,
-          'max-image-preview': 'none',
-          'max-snippet': -1,
-        },
-      },
     };
     
     // Add og:image if available
@@ -143,23 +137,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     return metadata;
   } catch (error) {
     console.error('Error generating metadata:', error);
-    return {
-      title: "PromptReviews - Review Page",
-      description: "Share your experience and help businesses improve.",
-      robots: {
-        index: false,
-        follow: false,
-        nocache: true,
-        googleBot: {
-          index: false,
-          follow: false,
-          noimageindex: true,
-          'max-video-preview': -1,
-          'max-image-preview': 'none',
-          'max-snippet': -1,
-        },
-      },
-    };
+    return fallbackMetadata;
   }
 }
 
