@@ -23,7 +23,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "PromptReviews - Get More Reviews",
-  description: "Get more reviews for your business with our review collection platform",
+  description: "Make it easy and fun for your customers to post reviews online. Grow your presence on traditional and AI search platforms.",
 };
 
 export default function RootLayout({
