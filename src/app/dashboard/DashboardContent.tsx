@@ -489,7 +489,7 @@ export default function DashboardContent({
         </h1>
       </div>
       {/* Existing welcome section (standard design) */}
-      <div className="mb-4">
+      <div className="mb-8">
         <h2 className="text-xl font-bold text-slate-blue">
           Welcome, {userName}!
         </h2>
@@ -500,19 +500,21 @@ export default function DashboardContent({
       </div>
 
       {/* Getting Started Checklist */}
-      <GettingStarted 
-        hasBusiness={hasBusiness}
-        hasCustomPromptPages={hasCustomPromptPages}
-        hasUniversalPromptPage={hasUniversalPromptPage}
-        onComplete={() => {
-          // Optional: Handle completion if needed
-          console.log("Getting Started checklist completed!");
-        }}
-        userId={userId}
-      />
+      <div className="mb-8">
+        <GettingStarted 
+          hasBusiness={hasBusiness}
+          hasCustomPromptPages={hasCustomPromptPages}
+          hasUniversalPromptPage={hasUniversalPromptPage}
+          onComplete={() => {
+            // Optional: Handle completion if needed
+            console.log("Getting Started checklist completed!");
+          }}
+          userId={userId}
+        />
+      </div>
 
       {/* Review Stats Section (standard section style) */}
-      <div className="mb-16">
+      <div className="mb-8">
         <div className="rounded-lg p-6 bg-blue-50 border border-blue-200 flex flex-col md:flex-row items-center gap-8 shadow">
           <div className="flex-1 w-full">
             <div className="flex items-center gap-2 mb-4">
@@ -581,10 +583,10 @@ export default function DashboardContent({
         <div className="relative w-full">
           {/* Main dashboard content, remove pt-12 so title is at the top */}
           <div>
-            <div className="mt-2 space-y-4">
+            <div className="mt-2 space-y-8">
               {/* Universal Prompt Page Card */}
               {universalPromptPage && (
-                <div className="rounded-lg p-6 bg-blue-50 border border-blue-200 flex items-center gap-4 shadow relative my-8">
+                <div className="rounded-lg p-6 bg-blue-50 border border-blue-200 flex items-center gap-4 shadow relative">
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2">
