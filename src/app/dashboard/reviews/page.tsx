@@ -521,7 +521,7 @@ export default function ReviewsPage() {
   return (
     <PageCard>
       {/* Title and Search Row */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-12 w-full gap-2 relative">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-16 w-full gap-2 relative">
         <div className="absolute z-10" style={{ left: "-69px", top: "-37px" }}>
           <div className="rounded-full bg-white w-16 h-16 flex items-center justify-center shadow-lg">
             <FaStar className="w-8 h-8 text-slate-blue" />
