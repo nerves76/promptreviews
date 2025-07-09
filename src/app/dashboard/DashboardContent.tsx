@@ -639,6 +639,32 @@ export default function DashboardContent({
                           <MdDownload size={22} color="#fff" />
                           QR code
                         </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const businessName = business?.name || "your business";
+                            const reviewUrl = universalUrl;
+                            const message = `Hi! I'd love to get your feedback on ${businessName}. Please leave a review here: ${reviewUrl}`;
+                            window.location.href = `sms:?&body=${encodeURIComponent(message)}`;
+                          }}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-100 text-green-800 rounded hover:bg-green-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
+                        >
+                          Send SMS
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const businessName = business?.name || "your business";
+                            const reviewUrl = universalUrl;
+                            const subject = "Please leave a review";
+                            const message = `Hi,\n\nI'd love to get your feedback on ${businessName}. Please leave a review here: ${reviewUrl}\n\nThank you!`;
+                            window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
+                          }}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
+                        >
+                          Send Email
+                        </button>
+
                         {copySuccess && (
                           <span className="ml-2 text-green-600 text-xs font-semibold">
                             {copySuccess}
