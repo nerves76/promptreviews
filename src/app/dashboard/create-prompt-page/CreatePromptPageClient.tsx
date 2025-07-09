@@ -895,8 +895,12 @@ export default function CreatePromptPageClient() {
       <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
         <PageCard icon={<FaBoxOpen className="w-9 h-9 text-slate-blue" />}>
           <ProductPromptPageForm
+            mode="create"
             initialData={{ ...formData, review_type: "product" }}
             onSave={handleProductPageSubmit}
+            pageTitle="Create product prompt page"
+            supabase={supabase}
+            businessProfile={businessProfile}
             accountId={currentUser?.id || ""}
             onGenerateReview={handleGenerateAIReview}
             isLoading={isSaving}

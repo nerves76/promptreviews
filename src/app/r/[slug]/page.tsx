@@ -1656,7 +1656,7 @@ export default function PromptPage() {
                       <a
                         href={businessProfile.business_website}
                         target="_blank"
-                        rel="noopener noreferrer"
+                        rel="noopener"
                         className="inline-block text-xl font-medium hover:opacity-80 transition-opacity"
                         style={{
                           color:
@@ -1737,7 +1737,7 @@ export default function PromptPage() {
                     <a
                       href="https://promptreviews.app"
                       target="_blank"
-                      rel="noopener noreferrer"
+                      rel="noopener"
                       aria-label="Prompt Reviews Home"
                     >
                       <PromptReviewsLogo
@@ -1759,7 +1759,7 @@ export default function PromptPage() {
                     <a
                       href="https://promptreviews.app"
                       target="_blank"
-                      rel="noopener noreferrer"
+                      rel="noopener"
                       className="mt-4 font-medium hover:opacity-80 transition-opacity inline-block underline text-white"
                     >
                       Learn more about Prompt Reviews →
