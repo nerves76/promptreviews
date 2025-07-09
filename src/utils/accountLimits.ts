@@ -4,20 +4,20 @@ import { getAccountIdForUser } from "./accountUtils";
 // Plan limits configuration
 const PLAN_LIMITS = {
   grower: {
-    prompt_page: 4,
-    contact: Infinity,
+    prompt_page: 3, // 3 custom prompt pages
+    contact: 0, // Cannot upload contacts
   },
   builder: {
-    prompt_page: 100,
-    contact: 100,
+    prompt_page: 50, // 50 prompt pages
+    contact: 1000, // 1000 contacts
   },
   maven: {
-    prompt_page: 500,
-    contact: 500,
+    prompt_page: 500, // 500 prompt pages
+    contact: 10000, // 10,000 contacts
   },
   community_champion: {
     prompt_page: 500,
-    contact: 500,
+    contact: 10000,
   },
   free: {
     prompt_page: Infinity,
