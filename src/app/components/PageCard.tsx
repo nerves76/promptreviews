@@ -129,7 +129,7 @@ export default function PageCard({
         {/* Bottom image */}
         {imageToShow && showImage && (
           <div 
-            className={`absolute bottom-4 z-10 pointer-events-none transition-opacity duration-500 ${isRightPositioned ? 'right-4' : 'left-4'}`} 
+            className={`absolute bottom-0 z-10 pointer-events-none transition-opacity duration-500 ${isRightPositioned ? 'right-0' : 'left-0'}`} 
             style={{ width: "auto", maxWidth: "40%" }}
           >
             <Image
