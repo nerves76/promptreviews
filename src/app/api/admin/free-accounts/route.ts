@@ -78,6 +78,7 @@ export async function POST(request: NextRequest) {
           .from('accounts')
           .update({
             free_plan_level: planLevel,
+            plan: planLevel, // Also update the plan field
             updated_at: new Date().toISOString(),
           })
           .eq('id', existingAccount.id);
@@ -107,6 +108,7 @@ export async function POST(request: NextRequest) {
           .update({
             is_free_account: true,
             free_plan_level: planLevel,
+            plan: planLevel, // Also update the plan field  
             updated_at: new Date().toISOString(),
           })
           .eq('id', existingAccount.id);
