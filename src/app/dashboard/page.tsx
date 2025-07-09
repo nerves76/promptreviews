@@ -829,7 +829,7 @@ export default function Dashboard() {
       </div>
       
       {/* PageCard with consistent spacing */}
-      <div className="flex justify-center items-start py-8">
+      <div className="flex justify-center items-start pt-16 pb-8">
         <PageCard
           icon={<FaHome className="w-8 h-8 text-slate-blue" />}
           topMargin="mt-0"
