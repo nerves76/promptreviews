@@ -1,47 +1,94 @@
-graph TD
-    A[Core Processing Server - 100] --> B[Database Layer - 200]
-    A --> C[AI Processing Module - 300]
-    A --> D[Interface Generation Engine - 400]
-    A --> E[Multi-Modal Capture System - 500]
-    A --> F[Submission Distribution Engine - 600]
-    A --> G[Embeddable Widget Framework - 700]
-    A --> H[Physical-Digital Integration Engine - 800]
-    A --> I[Brand Signifier Management System - 900]
-    A --> J[Template Generation Engine - 1000]
+graph TB
+    subgraph "Core System Layer"
+        A[Core Processing Server - 100]
+        B[Database Layer - 200]
+    end
     
-    B --> K[Business Profiles]
-    B --> L[Customer Data]
-    B --> M[Review Content]
-    B --> N[System Metadata]
+    subgraph "AI & Interface Layer"
+        C[AI Processing Module - 300]
+        D[Interface Generation Engine - 400]
+    end
     
-    C --> O[NLP Algorithms]
-    C --> P[Sentiment Analysis]
-    C --> Q[Content Generation]
+    subgraph "Content Processing Layer"
+        E[Multi-Modal Capture System - 500]
+        F[Submission Distribution Engine - 600]
+        G[Embeddable Widget Framework - 700]
+    end
     
-    D --> R[Dynamic Interface Creation]
-    D --> S[Business-Specific Parameters]
+    subgraph "Physical-Digital Integration Layer"
+        H[Physical-Digital Integration Engine - 800]
+        I[Brand Signifier Management System - 900]
+        J[Template Generation Engine - 1000]
+    end
     
-    E --> T[Text Input Processing]
-    E --> U[Photo Capture]
-    E --> V[Video Capture]
-    E --> W[Metadata Processing]
+    subgraph "Database Components"
+        K[Business Profiles]
+        L[Customer Data]
+        M[Review Content]
+        N[System Metadata]
+    end
     
-    F --> X[Internal Storage]
-    F --> Y[Third-Party Platform Distribution]
-    F --> Z[Attribution Tracking]
+    subgraph "AI Components"
+        O[NLP Algorithms]
+        P[Sentiment Analysis]
+        Q[Content Generation]
+        R[SEO/GEO Optimization]
+    end
     
-    G --> AA[Widget Display Components]
-    G --> BB[Cross-Platform Embedding]
-    G --> CC[Real-Time Updates]
+    subgraph "Capture Components"
+        T[Text Input Processing]
+        U[Photo Capture]
+        V[Video Capture]
+        W[Metadata Processing]
+    end
     
-    H --> DD[QR Code Generation]
-    H --> EE[NFC Chip Programming]
-    H --> FF[Physical Media Integration]
+    subgraph "Distribution Components"
+        X[Internal Storage]
+        Y[Third-Party Platform Distribution]
+        Z[Attribution Tracking]
+    end
     
-    I --> GG[Visual Cue Systems]
-    I --> HH[Brand Recognition]
-    I --> II[UX Signifiers]
+    subgraph "Physical Integration Components"
+        DD[QR Code Generation]
+        EE[NFC Chip Programming]
+        FF[Physical Media Integration]
+        GG[Brand Recognition]
+        JJ[Printable Templates]
+    end
     
-    J --> JJ[Printable Templates]
-    J --> KK[Brand Integration]
-    J --> LL[Multi-Format Support] 
+    %% Core connections
+    A --> B
+    A --> C
+    A --> D
+    A --> E
+    A --> F
+    A --> G
+    A --> H
+    A --> I
+    A --> J
+    
+    %% Layer connections
+    B --> K
+    B --> L
+    B --> M
+    B --> N
+    
+    C --> O
+    C --> P
+    C --> Q
+    C --> R
+    
+    E --> T
+    E --> U
+    E --> V
+    E --> W
+    
+    F --> X
+    F --> Y
+    F --> Z
+    
+    H --> DD
+    H --> EE
+    H --> FF
+    I --> GG
+    J --> JJ 
