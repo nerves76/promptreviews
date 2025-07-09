@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/utils/supabaseClient';
 import { getAllEmailTemplates, updateEmailTemplate } from '../../../utils/emailTemplates';
+import { isAdmin } from '@/utils/admin';
 
 export async function GET(request: NextRequest) {
   try {
@@ -18,13 +19,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { data: adminCheck } = await supabase
-      .from('admins')
-      .select('id')
-      .eq('account_id', user.id)
-      .single();
-
-    if (!adminCheck) {
+    const adminStatus = await isAdmin(user.id, supabase);
+    if (!adminStatus) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
     }
 
@@ -50,13 +46,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { data: adminCheck } = await supabase
-      .from('admins')
-      .select('id')
-      .eq('account_id', user.id)
-      .single();
-
-    if (!adminCheck) {
+    const adminStatus = await isAdmin(user.id, supabase);
+    if (!adminStatus) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
     }
 
