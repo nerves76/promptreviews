@@ -612,7 +612,7 @@ export default function DashboardContent({
                         )}
                       </div>
                     </div>
-                    <p className="mt-2 text-blue-900 mb-4 text-sm">
+                    <p className="mt-4 text-blue-900 mb-4 text-sm">
                       Your Universal Prompt Page is general-use and not customer specific.
                     </p>
                     <div className="flex flex-wrap gap-2 items-center">
