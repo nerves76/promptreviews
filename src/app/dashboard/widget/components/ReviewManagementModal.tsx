@@ -143,27 +143,6 @@ export function ReviewManagementModal({
 
       console.log('✅ ReviewManagementModal: Review submissions fetched:', reviews?.length || 0);
 
-      if (!reviews || reviews.length === 0) {
-        console.log('⚠️ ReviewManagementModal: No review submissions found for account:', accountId);
-        setAllReviews([]);
-        setLoadingReviews(false);
-        return;
-      }
-
-      const mappedReviews = reviews.map(r => ({
-        review_id: r.id,
-        first_name: r.first_name,
-        last_name: r.last_name,
-        reviewer_role: r.reviewer_role,
-        review_content: r.review_content,
-        platform: r.platform,
-        created_at: r.created_at
-      }));
-      
-      console.log('✅ ReviewManagementModal: Setting allReviews:', mappedReviews.length);
-      setAllReviews(mappedReviews);
-
-      console.log('🔍 ReviewManagementModal: Fetching widget_reviews...');
       // Fetch selected reviews for this widget from widget_reviews
       const { data: widgetReviews, error: widgetReviewsError } = await supabase
         .from("widget_reviews")
@@ -186,6 +165,39 @@ export function ReviewManagementModal({
       }
       
       console.log('✅ ReviewManagementModal: Widget reviews fetched:', widgetReviews?.length || 0);
+
+      // Map review_submissions to the expected format
+      const mappedReviews = (reviews || []).map(r => ({
+        review_id: r.id,
+        first_name: r.first_name,
+        last_name: r.last_name,
+        reviewer_role: r.reviewer_role,
+        review_content: r.review_content,
+        platform: r.platform,
+        created_at: r.created_at
+      }));
+
+      // Extract custom reviews from widget_reviews that don't exist in review_submissions
+      const customReviews = (widgetReviews || [])
+        .filter(wr => !mappedReviews.some(mr => mr.review_id === wr.review_id))
+        .map(wr => ({
+          review_id: wr.review_id,
+          first_name: wr.first_name,
+          last_name: wr.last_name,
+          reviewer_role: wr.reviewer_role,
+          review_content: wr.review_content,
+          platform: wr.platform || 'custom',
+          created_at: wr.created_at,
+          star_rating: wr.star_rating,
+          isCustom: true // Mark as custom so we can handle it differently if needed
+        }));
+
+      // Combine review_submissions and custom reviews for the available reviews list
+      const allAvailableReviews = [...mappedReviews, ...customReviews];
+      
+      console.log('✅ ReviewManagementModal: Combined available reviews:', allAvailableReviews.length);
+      console.log('✅ ReviewManagementModal: Custom reviews found:', customReviews.length);
+      setAllReviews(allAvailableReviews);
       setSelectedReviews(widgetReviews || []);
       
       // Set edited fields to match the widget's current reviews
@@ -228,6 +240,12 @@ export function ReviewManagementModal({
     
     if (alreadySelected) {
       updated = selectedReviews.filter((r) => r.review_id !== review.review_id);
+      
+      // If this is a custom review and we're removing it completely, also remove from available reviews
+      if (review.isCustom || review.platform === 'custom') {
+        setAllReviews(prev => prev.filter(r => r.review_id !== review.review_id));
+      }
+      
       // Remove from edited fields when removing
       setEditedReviews((prev) => {
         const { [review.review_id]: _, ...rest } = prev;
@@ -242,6 +260,10 @@ export function ReviewManagementModal({
         return rest;
       });
       setEditedRatings((prev) => {
+        const { [review.review_id]: _, ...rest } = prev;
+        return rest;
+      });
+      setPhotoUploads((prev) => {
         const { [review.review_id]: _, ...rest } = prev;
         return rest;
       });
@@ -440,8 +462,14 @@ export function ReviewManagementModal({
       star_rating: null,
       platform: 'custom',
       created_at: new Date().toISOString(),
+      isCustom: true,
     };
+    
+    // Add to both selected reviews and available reviews
     setSelectedReviews([newReview, ...selectedReviews]);
+    setAllReviews(prev => [newReview, ...prev]);
+    
+    // Initialize edited fields
     setEditedNames(prev => ({ ...prev, [newReview.review_id]: '' }));
     setEditedRoles(prev => ({ ...prev, [newReview.review_id]: '' }));
     setEditedReviews(prev => ({ ...prev, [newReview.review_id]: '' }));
