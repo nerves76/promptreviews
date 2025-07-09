@@ -279,16 +279,11 @@ export async function createAnnouncement(message: string, buttonText?: string, b
       return false;
     }
 
-    // Get admin record
-    const { data: admin, error: adminError } = await client
-      .from('admins')
-      .select('id')
-      .eq('account_id', user.id)
-      .single();
-
-    console.log('createAnnouncement: Admin check result:', { admin, error: adminError });
-    if (!admin) {
-      console.error('createAnnouncement: No admin record found for user');
+    // Check if user is admin using the reliable isAdmin function
+    const adminStatus = await isAdmin(user.id, client);
+    console.log('createAnnouncement: Admin status check result:', adminStatus);
+    if (!adminStatus) {
+      console.error('createAnnouncement: User is not an admin');
       return false;
     }
 
@@ -304,7 +299,7 @@ export async function createAnnouncement(message: string, buttonText?: string, b
     const announcementData: any = {
       message,
       is_active: true,
-      created_by: admin.id
+      created_by: user.id  // Use user.id directly instead of admin.id
     };
 
     // Add button fields if provided
@@ -348,15 +343,10 @@ export async function createQuote(text: string, author?: string, buttonText?: st
       return false;
     }
 
-    // Get admin record
-    const { data: admin } = await client
-      .from('admins')
-      .select('id')
-      .eq('account_id', user.id)
-      .single();
-
-    if (!admin) {
-      console.error('createQuote: No admin record found for user');
+    // Check if user is admin using the reliable isAdmin function
+    const adminStatus = await isAdmin(user.id, client);
+    if (!adminStatus) {
+      console.error('createQuote: User is not an admin');
       return false;
     }
 
@@ -365,7 +355,7 @@ export async function createQuote(text: string, author?: string, buttonText?: st
       text,
       author,
       is_active: true,
-      created_by: admin.id
+      created_by: user.id  // Use user.id directly instead of admin.id
     };
 
     // Add button fields if provided
@@ -500,15 +490,10 @@ export async function deleteQuote(id: string, supabaseClient?: any): Promise<boo
       return false;
     }
 
-    // Get admin record
-    const { data: admin } = await client
-      .from('admins')
-      .select('id')
-      .eq('account_id', user.id)
-      .single();
-
-    if (!admin) {
-      console.error('deleteQuote: No admin record found for user');
+    // Check if user is admin using the reliable isAdmin function
+    const adminStatus = await isAdmin(user.id, client);
+    if (!adminStatus) {
+      console.error('deleteQuote: User is not an admin');
       return false;
     }
 
@@ -557,15 +542,10 @@ export async function updateQuote(id: string, text: string, author?: string, but
       return false;
     }
 
-    // Get admin record
-    const { data: admin } = await client
-      .from('admins')
-      .select('id')
-      .eq('account_id', user.id)
-      .single();
-
-    if (!admin) {
-      console.error('updateQuote: No admin record found for user');
+    // Check if user is admin using the reliable isAdmin function
+    const adminStatus = await isAdmin(user.id, client);
+    if (!adminStatus) {
+      console.error('updateQuote: User is not an admin');
       return false;
     }
 
