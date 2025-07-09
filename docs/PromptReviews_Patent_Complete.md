@@ -424,11 +424,13 @@ The invention provides substantial technical advantages over prior art systems a
 
 ---
 
-**Patent Application Filed:** July 2025  
-**Inventor:** [To be filled]  
-**Assignee:** PromptReviews, Inc.  
-**Patent Attorney:** [To be filled]  
+## TECHNICAL SPECIFICATION DOCUMENT
+
+**Document Type:** Patent Application Technical Specification  
+**System:** PromptReviews AI-Assisted Review Generation System  
+**Date Prepared:** January 2025  
+**Status:** Draft for USPTO Provisional Patent Application Filing  
 
 ---
 
-*This document contains confidential and proprietary information. Unauthorized disclosure is prohibited.* 
+*This technical specification document contains confidential and proprietary information prepared for patent application purposes. Unauthorized disclosure is prohibited.* 
