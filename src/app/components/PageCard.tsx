@@ -60,12 +60,12 @@ export default function PageCard({
   const [imgWidth, setImgWidth] = useState(0);
   const imgRef = useRef<HTMLImageElement>(null);
 
-  // Add a delay before showing the image to prevent it from appearing during initial page load
+  // Add a short delay before showing the image to prevent it from appearing during initial page load
   useEffect(() => {
     if (bottomLeftImage || bottomRightImage) {
       const timer = setTimeout(() => {
         setShowImage(true);
-      }, 2000); // 2 second delay
+      }, 500); // Reduced from 2000ms to 500ms for faster appearance
       return () => clearTimeout(timer);
     }
   }, [bottomLeftImage, bottomRightImage]);
