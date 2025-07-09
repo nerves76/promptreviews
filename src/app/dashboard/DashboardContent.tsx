@@ -585,14 +585,15 @@ export default function DashboardContent({
             <div className="mt-2 space-y-4">
               {/* Universal Prompt Page Card */}
               {universalPromptPage && (
-                <div className="rounded-lg p-6 bg-blue-50 border border-blue-200 flex items-center gap-4 shadow relative mb-24">
+                <div className="rounded-lg p-6 bg-blue-50 border border-blue-200 flex items-center gap-4 shadow relative my-8">
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2">
                         <h2 className="text-2xl font-bold text-slate-blue flex items-center gap-3">
-                          <FaGlobe size={28} color="#1A237E" />
+                          <FaGlobe className="w-7 h-7 text-slate-blue" />
                           Universal Prompt Page
                         </h2>
+                        <UniversalTooltip />
                       </div>
                       <div className="flex gap-4 items-center">
                         <Link
@@ -601,32 +602,27 @@ export default function DashboardContent({
                         >
                           View
                         </Link>
-                        <Link
-                          href={"/dashboard/edit-prompt-page/universal"}
-                          className="text-slate-blue underline hover:text-slate-blue/80 hover:underline"
-                        >
-                          Edit
-                        </Link>
+                        {universalPromptPage?.slug && (
+                          <Link
+                            href={"/dashboard/edit-prompt-page/universal"}
+                            className="text-slate-blue underline hover:text-slate-blue/80 hover:underline"
+                          >
+                            Edit
+                          </Link>
+                        )}
                       </div>
                     </div>
-                    <p className="mt-2 text-blue-900 mb-2 text-sm">
-                      Your Universal Prompt Page is general-use and not customer
-                      specific. The reviews are not prewritten but there is an
-                      AI button that will generate a unique review instantly
-                      based on your business profile. Your customers/clients can
-                      edit before they post. Print your QR code, frame it, and
-                      hang it in your place of business for a super-easy way to
-                      get customers/clients to post a review. Add the QR code to
-                      business cards, menus, flyers, etc.
+                    <p className="mt-2 text-blue-900 mb-4 text-sm">
+                      Your Universal Prompt Page is general-use and not customer specific.
                     </p>
-                    <div className="flex flex-wrap gap-2 items-center mt-4">
+                    <div className="flex flex-wrap gap-2 items-center">
                       <div className="flex flex-wrap gap-2 items-center">
                         <button
                           type="button"
                           onClick={handleCopyLink}
                           className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
                         >
-                          <FaLink size={20} color="#1A237E" />
+                          <FaLink className="w-4 h-4" />
                           Copy link
                         </button>
                         <button
@@ -950,5 +946,33 @@ export default function DashboardContent({
         </div>
       </div>
     </>
+  );
+}
+
+function UniversalTooltip() {
+  const [show, setShow] = useState(false);
+  
+  return (
+    <span className="relative inline-block align-middle ml-1">
+      <button
+        type="button"
+        tabIndex={0}
+        aria-label="Show Universal Prompt Page info"
+        className="text-slate-blue hover:text-indigo-600 focus:outline-none"
+        onClick={() => setShow((v) => !v)}
+        onBlur={() => setShow(false)}
+        style={{ lineHeight: 1 }}
+      >
+        <FaQuestionCircle
+          className="inline-block w-4 h-4 align-middle cursor-pointer"
+          title="Universal Prompt Page info"
+        />
+      </button>
+      {show && (
+        <div className="absolute z-20 left-1/2 -translate-x-1/2 mt-2 w-80 p-3 bg-white border border-gray-200 rounded shadow text-sm text-gray-700">
+          Your Universal Prompt Page is a great choice for a QR code featured at your front desk or on tables at your restaurant or even a business card or lanyard. You could also feature it in a newsletter or an auto-reply (For best results, we highly recommend reaching out personally for reviews.) To avoid duplicate or similar reviews, Universal Prompt Pages don't allow pre-written reviews, but users can use Prompty AI to get an optimized review template.
+        </div>
+      )}
+    </span>
   );
 }
