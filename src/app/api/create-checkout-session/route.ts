@@ -86,13 +86,23 @@ export async function POST(req: NextRequest) {
     try {
       const { data: account, error } = await supabase
         .from("accounts")
-        .select("stripe_customer_id, plan, email")
+        .select("stripe_customer_id, plan, email, is_free_account, free_plan_level")
         .eq("id", userId)
         .single();
       
       if (error || !account) {
         console.error("❌ Account not found:", error);
         return NextResponse.json({ error: "Account not found" }, { status: 404 });
+      }
+      
+      // Check if this is a free account
+      if (account.is_free_account) {
+        console.log("🆓 Free account detected, blocking checkout");
+        return NextResponse.json({ 
+          error: "FREE_ACCOUNT", 
+          message: "Free accounts cannot create checkout sessions. Your account has been configured with free access.",
+          free_plan_level: account.free_plan_level 
+        }, { status: 400 });
       }
       
       accountData = account;

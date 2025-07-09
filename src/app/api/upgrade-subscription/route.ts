@@ -41,13 +41,23 @@ export async function POST(req: NextRequest) {
     
     const { data: account, error } = await supabase
       .from("accounts")
-      .select("stripe_customer_id, plan, email")
+      .select("stripe_customer_id, plan, email, is_free_account, free_plan_level")
       .eq("id", userId)
       .single();
       
     if (error || !account) {
       console.error("Error fetching account for upgrade:", error);
       return NextResponse.json({ error: "Account not found" }, { status: 404 });
+    }
+
+    // Check if this is a free account
+    if (account.is_free_account) {
+      console.log("🆓 Free account detected, blocking subscription upgrade");
+      return NextResponse.json({ 
+        error: "FREE_ACCOUNT", 
+        message: "Free accounts cannot upgrade subscriptions. Your account has been configured with free access.",
+        free_plan_level: account.free_plan_level 
+      }, { status: 400 });
     }
 
     // Check if user is on free trial or doesn't have a Stripe customer ID

@@ -94,8 +94,10 @@ export async function getOnboardingStatus(
     }
 
     // User has businesses but no plan or trial expired - needs plan selection
-    if ((!plan || plan === 'no_plan' || plan === 'NULL') || 
-        (plan === 'grower' && isTrialExpired && !hasStripeCustomer)) {
+    // Skip plan requirement for free accounts
+    if (!account.is_free_account && 
+        ((!plan || plan === 'no_plan' || plan === 'NULL') || 
+         (plan === 'grower' && isTrialExpired && !hasStripeCustomer))) {
       return {
         step: 'needs_plan',
         shouldRedirect: false,
