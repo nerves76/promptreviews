@@ -63,6 +63,9 @@ export default function PromptPages() {
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [editingLocation, setEditingLocation] = useState<BusinessLocation | null>(null);
   const [locationLimits, setLocationLimits] = useState({ current: 0, max: 0, canCreateMore: false });
+  
+  // Tab state for Maven users
+  const [activeTab, setActiveTab] = useState<'locations' | 'custom'>('locations');
 
   const router = useRouter();
 
@@ -528,8 +531,46 @@ export default function PromptPages() {
               </div>
             )}
             
-            {/* Business Locations Section - Only show for Maven tier */}
+            {/* Tab Navigation - Only show for Maven tier users with location access */}
             {account && hasLocationAccess(account.plan) && (
+              <div className="my-8">
+                <div className="border-b border-gray-200">
+                  <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('locations')}
+                      className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                        activeTab === 'locations'
+                          ? 'border-slate-blue text-slate-blue'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <FaMapMarkerAlt className="w-4 h-4" />
+                        Locations
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('custom')}
+                      className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                        activeTab === 'custom'
+                          ? 'border-slate-blue text-slate-blue'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <FaPlus className="w-4 h-4" />
+                        Custom
+                      </div>
+                    </button>
+                  </nav>
+                </div>
+              </div>
+            )}
+            
+            {/* Business Locations Section - Only show for Maven tier when locations tab is active */}
+            {account && hasLocationAccess(account.plan) && activeTab === 'locations' && (
               <div className="my-8">
                 <div className="flex items-center justify-between mb-4">
                   <div>
@@ -671,17 +712,18 @@ export default function PromptPages() {
               logoUrl={qrModal?.logoUrl}
             />
             
-            {/* Prompt Pages Table - moved back to page card */}
-            <div className="my-8">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h2 className="text-2xl font-bold text-slate-blue mb-2">
-                    Individual Prompt Pages
-                  </h2>
-                  <p className="text-sm text-gray-600">
-                    These Prompt Pages are great for personlized outreach. For best results, send as a text.
-                  </p>
-                </div>
+            {/* Individual Prompt Pages Section - Show for non-Maven users OR when custom tab is active */}
+            {(!account || !hasLocationAccess(account.plan) || activeTab === 'custom') && (
+              <div className="my-8">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h2 className="text-2xl font-bold text-slate-blue mb-2">
+                      {account && hasLocationAccess(account.plan) ? 'Custom Prompt Pages' : 'Individual Prompt Pages'}
+                    </h2>
+                    <p className="text-sm text-gray-600">
+                      These Prompt Pages are great for personlized outreach. For best results, send as a text.
+                    </p>
+                  </div>
                 <button
                   type="button"
                   onClick={() => setShowTypeModal(true)}
@@ -714,6 +756,7 @@ export default function PromptPages() {
                 />
               </div>
             </div>
+            )}
           </div>
         </PageCard>
       </div>
