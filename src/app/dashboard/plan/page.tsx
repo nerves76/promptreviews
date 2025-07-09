@@ -195,7 +195,7 @@ export default function PlanPage() {
     [account, isNewUser, router, userRole],
   );
 
-  // Show success modal after successful Stripe payment
+  // Show success modal after successful Stripe payment or handle canceled checkout
   useEffect(() => {
     if (typeof window === "undefined") return;
     
@@ -212,6 +212,20 @@ export default function PlanPage() {
       
       // Clean up the URL
       params.delete("success");
+      const newUrl = window.location.pathname + (params.toString() ? `?${params.toString()}` : "");
+      window.history.replaceState({}, document.title, newUrl);
+    }
+    
+    // Handle canceled checkout - reset any processing states
+    if (params.get("canceled") === "1") {
+      console.log("🚫 User canceled checkout, resetting modal states");
+      setUpgradeProcessing(false);
+      setDowngradeProcessing(false);
+      setShowUpgradeModal(false);
+      setShowDowngradeModal(false);
+      
+      // Clean up the URL
+      params.delete("canceled");
       const newUrl = window.location.pathname + (params.toString() ? `?${params.toString()}` : "");
       window.history.replaceState({}, document.title, newUrl);
     }
@@ -572,6 +586,17 @@ export default function PlanPage() {
         {showDowngradeModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-8 max-w-md mx-4 relative">
+              {/* Standardized close button - always available */}
+              <button
+                onClick={handleCancelDowngrade}
+                className="absolute -top-3 -right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow duration-200 z-10"
+                aria-label="Close modal"
+              >
+                <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              
               {downgradeProcessing ? (
                 // Processing State
                 <div className="text-center">
@@ -592,17 +617,6 @@ export default function PlanPage() {
               ) : (
                 // Confirmation State
                 <>
-                  {/* Standardized close button - breaching corner */}
-                  <button
-                    onClick={handleCancelDowngrade}
-                    className="absolute -top-3 -right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow duration-200 z-10"
-                    aria-label="Close modal"
-                  >
-                    <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                  
                   <h2 className="text-2xl font-bold text-gray-900 mb-4">
                     Confirm Plan Downgrade
                   </h2>
@@ -635,6 +649,17 @@ export default function PlanPage() {
         {showUpgradeModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-8 max-w-md mx-4 relative">
+              {/* Standardized close button - always available */}
+              <button
+                onClick={handleCancelUpgrade}
+                className="absolute -top-3 -right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow duration-200 z-10"
+                aria-label="Close modal"
+              >
+                <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              
               {upgradeProcessing ? (
                 // Processing State
                 <div className="text-center">
@@ -655,17 +680,6 @@ export default function PlanPage() {
               ) : (
                 // Confirmation State
                 <>
-                  {/* Standardized close button - breaching corner */}
-                  <button
-                    onClick={handleCancelUpgrade}
-                    className="absolute -top-3 -right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow duration-200 z-10"
-                    aria-label="Close modal"
-                  >
-                    <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                  
                   <h2 className="text-2xl font-bold text-gray-900 mb-4">
                     Confirm Plan Upgrade
                   </h2>
