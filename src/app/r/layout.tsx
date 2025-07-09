@@ -17,9 +17,6 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  other: {
-    'Referrer-Policy': 'no-referrer',
-  },
 };
 
 export default function PublicPromptLayout({

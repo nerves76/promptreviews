@@ -2003,11 +2003,11 @@ export default function PromptPage() {
                             >
                               <span className={`font-bold ${getFontClass(businessProfile?.primary_font || "Inter")}`}>Visit our website</span>
                             </h2>
-                            <a
-                              href={businessProfile.business_website}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-block text-xl font-medium hover:opacity-80 transition-opacity"
+                                                  <a
+                        href={businessProfile.business_website}
+                        target="_blank"
+                        rel="noopener"
+                        className="inline-block text-xl font-medium hover:opacity-80 transition-opacity"
                               style={{
                                 color:
                                   businessProfile?.primary_color || "#4F46E5",
@@ -2091,7 +2091,7 @@ export default function PromptPage() {
                     <a
                       href="https://promptreviews.app"
                       target="_blank"
-                      rel="noopener noreferrer"
+                      rel="noopener"
                       aria-label="Prompt Reviews Home"
                     >
                       <PromptReviewsLogo
@@ -2113,7 +2113,7 @@ export default function PromptPage() {
                     <a
                       href="https://promptreviews.app"
                       target="_blank"
-                      rel="noopener noreferrer"
+                      rel="noopener"
                       className="mt-4 font-medium hover:opacity-80 transition-opacity inline-block underline text-white"
                     >
                       Learn more about Prompt Reviews →

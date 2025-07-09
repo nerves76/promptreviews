@@ -67,7 +67,7 @@ const OfferCard: React.FC<OfferCardProps> = ({
           <a
             href={learnMoreUrl}
             target="_blank"
-            rel="noopener noreferrer"
+            rel="noopener"
             className="underline text-yellow-900 font-bold text-sm sm:text-base text-center"
             style={{ display: "inline", marginTop: 0 }}
           >
