@@ -1,0 +1,56 @@
+graph TD
+    A[Customer Interaction Start] --> B{Physical Deployment Method}
+    B -->|QR Code Scan| C[QR Code Processing]
+    B -->|NFC Touch| D[NFC Chip Reading]
+    B -->|Direct Link| E[URL Access]
+    B -->|Physical Template| F[Brand Signifier Recognition]
+    
+    C --> G[Extract Business Context]
+    D --> G
+    E --> G
+    F --> G
+    
+    G --> H[Interface Generation Engine - 400]
+    H --> I[Dynamic Interface Creation]
+    I --> J[Business-Specific Branding]
+    J --> K[Contextual Information Display]
+    
+    K --> L[Customer Review Creation]
+    L --> M{AI Assistance Request?}
+    M -->|Yes| N[AI Processing Module - 300]
+    M -->|No| O[Manual Review Creation]
+    
+    N --> P[Content Generation]
+    P --> Q[Human Authentication Layer]
+    Q --> R[Customer Review & Approval]
+    R --> S[Customer Modification]
+    
+    O --> T[Multi-Modal Capture]
+    S --> T
+    
+    T --> U[Text Processing]
+    T --> V[Photo Capture]
+    T --> W[Video Capture]
+    
+    U --> X[Sentiment Analysis]
+    V --> X
+    W --> X
+    
+    X --> Y{Sentiment Classification}
+    Y -->|Positive| Z[Direct Publication Path]
+    Y -->|Negative| AA[Private Feedback Collection]
+    Y -->|Neutral| BB[Additional Context Prompts]
+    Y -->|Mixed| CC[Selective Publication Options]
+    
+    Z --> DD[Submission Distribution Engine - 600]
+    AA --> DD
+    BB --> DD
+    CC --> DD
+    
+    DD --> EE[Internal Database Storage]
+    DD --> FF[Third-Party Platform Distribution]
+    DD --> GG[Attribution Tracking with Physical Context]
+    
+    EE --> HH[Widget Framework Display]
+    FF --> HH
+    GG --> HH 
