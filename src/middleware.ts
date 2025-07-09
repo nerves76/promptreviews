@@ -120,6 +120,6 @@ export async function middleware(req: NextRequest) {
 export const config = {
   matcher: [
     '/dashboard/:path*',
-    '/api/((?!auth|upload|stripe-webhook|check-admin|check-env|track-event|track-review|create-checkout-session|create-stripe-portal-session|email-templates|debug-session).*)',
+    '/api/((?!auth|upload|stripe-webhook|check-admin|check-env|track-event|track-review|create-checkout-session|create-stripe-portal-session|email-templates|debug-session|debug-checkout).*)',
   ],
 };
