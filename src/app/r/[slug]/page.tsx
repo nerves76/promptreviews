@@ -156,6 +156,9 @@ interface BusinessProfile {
 
 // Functions now imported from utils
 
+// Note: generateMetadata cannot be exported from client components
+// Dynamic metadata is handled in the layout.tsx file instead
+
 export default function PromptPage() {
   const supabase = createClient();
 
@@ -418,11 +421,29 @@ export default function PromptPage() {
       try {
         console.log('Checking ownership for prompt page slug:', promptPage.slug);
         
-        // Use the singleton supabase client and getUserOrMock utility (same as dashboard)
-        const { data: { user }, error } = await getUserOrMock(supabase);
-        
-        if (error) {
-          console.error("Error getting user:", error);
+        // Add better error handling to prevent validation errors
+        let user = null;
+        try {
+          // Use the singleton supabase client and getUserOrMock utility (same as dashboard)
+          const { data: { user: authUser }, error } = await getUserOrMock(supabase);
+          
+          if (error) {
+            console.error("Error getting user:", error);
+            // Don't throw - just continue without user
+            setCurrentUser(null);
+            setCurrentUserEmail(null);
+            setIsOwner(false);
+            setUserLoading(false);
+            return;
+          }
+          
+          user = authUser;
+        } catch (authError) {
+          console.error("Authentication error:", authError);
+          // Continue silently - user is just not logged in
+          setCurrentUser(null);
+          setCurrentUserEmail(null);
+          setIsOwner(false);
           setUserLoading(false);
           return;
         }
@@ -433,6 +454,7 @@ export default function PromptPage() {
         if (!user) {
           console.log("No authenticated user");
           setCurrentUserEmail(null);
+          setIsOwner(false);
           setUserLoading(false);
           return;
         }
@@ -440,12 +462,22 @@ export default function PromptPage() {
         console.log('Auth session found for user:', user.email);
         setCurrentUserEmail(user.email || null);
         
-        // Get the account ID for the user
-        const accountId = await getAccountIdForUser(user.id, supabase);
-        console.log("User account ID:", accountId);
+        // Get the account ID for the user - with error handling
+        let accountId = null;
+        try {
+          accountId = await getAccountIdForUser(user.id, supabase);
+          console.log("User account ID:", accountId);
+        } catch (accountError) {
+          console.error("Error getting account ID:", accountError);
+          // Continue without account ID
+          setIsOwner(false);
+          setUserLoading(false);
+          return;
+        }
 
         if (!accountId) {
           console.log("No account found for user");
+          setIsOwner(false);
           setUserLoading(false);
           return;
         }
@@ -473,14 +505,19 @@ export default function PromptPage() {
         setUserLoading(false);
       } catch (error) {
         console.error('Error checking ownership:', error);
+        // Don't throw - just fail silently
         setIsOwner(false);
+        setCurrentUser(null);
         setCurrentUserEmail(null);
         setUserLoading(false);
       }
     }
     
-    checkOwnership();
-  }, [promptPage?.slug]);
+    // Only run ownership check if we have a prompt page
+    if (promptPage) {
+      checkOwnership();
+    }
+  }, [promptPage?.slug, promptPage?.account_id]);
 
   const handleFirstNameChange = (idx: number, value: string) => {
     setReviewerFirstNames((prev) =>
