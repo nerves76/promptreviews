@@ -154,8 +154,9 @@ export default function ReviewPlatformCard({
             )}
 
           {/* Name and role inputs */}
+          {/* First and Last Name Row - Full width on mobile */}
           <div className="flex flex-col md:flex-row gap-4 w-full mb-4">
-            <div className="flex-1 min-w-[150px] max-w-[200px]">
+            <div className="flex-1">
               <label
                 htmlFor={`reviewerFirstName-${idx}`}
                 className="block text-sm font-medium text-gray-700"
@@ -177,7 +178,7 @@ export default function ReviewPlatformCard({
                 required
               />
             </div>
-            <div className="flex-1 min-w-[150px] max-w-[200px]">
+            <div className="flex-1">
               <label
                 htmlFor={`reviewerLastName-${idx}`}
                 className="block text-sm font-medium text-gray-700"
@@ -199,7 +200,11 @@ export default function ReviewPlatformCard({
                 required
               />
             </div>
-            <div className="flex-1 min-w-[200px] max-w-[400px]">
+          </div>
+
+          {/* Role Field Row - Full width on mobile */}
+          <div className="w-full mb-4">
+            <div className="flex-1">
               <label
                 htmlFor={`reviewerRole-${idx}`}
                 className="block text-sm font-medium text-gray-700"
