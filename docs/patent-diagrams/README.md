@@ -22,7 +22,7 @@ This directory contains the technical diagrams for the PromptReviews provisional
 ### Figure 4: Human Authentication Layer and Multi-Modal Correlation Sequence
 - **Source**: `figure4-human-authentication-sequence.mermaid`
 - **PNG**: `figure4-human-authentication-sequence.png`
-- **Description**: Illustrates the sequential process flow showing the novel human authentication layer that prevents AI-generated content from being submitted without explicit human approval and modification, the multi-modal capture correlation system that preserves contextual metadata across text, photo, and video content, and the sentiment-based routing with physical deployment context consideration.
+- **Description**: Illustrates the sequential process flow showing the novel human authentication layer that prevents AI-generated content from being submitted without explicit human approval and modification, the multi-modal capture correlation system that preserves contextual metadata across text, photo, and video content, and the emoji sentiment flow with physical deployment context consideration.
 
 ## Technical Specifications
 
