@@ -824,7 +824,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen flex flex-col justify-start px-4 sm:px-0">
       {/* Quotes Display - positioned between nav and PageCard */}
-      <div className="h-96 flex justify-center items-center pt-20">
+      <div className="h-96 flex justify-center items-center pt-8">
         <QuoteDisplay />
       </div>
       
