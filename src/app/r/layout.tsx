@@ -1,5 +1,6 @@
 import "../globals.css";
 import type { Metadata } from "next";
+import { createClient } from "@/utils/supabaseClient";
 
 // Dynamic metadata generation with og:image support
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -7,12 +8,18 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     // Await the params in Next.js 15
     const { slug } = await params;
     
-    // Fetch prompt page data
-    const promptResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://promptreviews.app'}/api/prompt-pages/${slug}`, {
-      cache: 'no-store'
-    });
+    // Use direct database queries instead of HTTP calls to avoid build-time issues
+    const supabase = createClient();
     
-    if (!promptResponse.ok) {
+    // Fetch prompt page data directly from database
+    const { data: promptPage, error: pageError } = await supabase
+      .from('prompt_pages')
+      .select('*')
+      .eq('slug', slug)
+      .eq('status', 'in_queue')
+      .single();
+    
+    if (pageError || !promptPage) {
       return {
         title: "PromptReviews - Page Not Found",
         description: "The requested prompt page could not be found.",
@@ -31,15 +38,15 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         },
       };
     }
-
-    const promptPage = await promptResponse.json();
     
-    // Fetch business profile data
-    const businessResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://promptreviews.app'}/api/businesses/${promptPage.account_id}`, {
-      cache: 'no-store'
-    });
+    // Fetch business profile data directly from database
+    const { data: business, error: businessError } = await supabase
+      .from('businesses')
+      .select('*')
+      .eq('account_id', promptPage.account_id)
+      .single();
     
-    if (!businessResponse.ok) {
+    if (businessError || !business) {
       return {
         title: "PromptReviews - Business Not Found",
         description: "The business profile could not be found.",
@@ -58,8 +65,6 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         },
       };
     }
-
-    const business = await businessResponse.json();
     
     // Determine the best image to use for og:image
     let ogImage = null;
