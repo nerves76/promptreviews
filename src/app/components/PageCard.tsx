@@ -132,8 +132,8 @@ export default function PageCard({
         {/* Bottom image */}
         {imageToShow && showImage && (
           <div 
-            className={`absolute bottom-0 z-0 pointer-events-none transition-opacity duration-500 ${isRightPositioned ? 'right-0' : 'left-0'}`} 
-            style={{ width: "100%", maxWidth: maxImgPx }}
+            className={`absolute bottom-4 z-10 pointer-events-none transition-opacity duration-500 ${isRightPositioned ? 'right-4' : 'left-4'}`} 
+            style={{ width: "auto", maxWidth: "40%" }}
           >
             <Image
               ref={imgRef}
@@ -142,16 +142,14 @@ export default function PageCard({
               width={imageToShow.maxWidth || maxImgPx}
               height={imageToShow.maxHeight || maxImgPx}
               style={{
-                maxWidth: "50%", // Increased from 25% to 50% (doubled)
-                maxHeight: "50%", // Increased from 25% to 50% (doubled)
+                maxWidth: "300px", // Fixed width instead of percentage
+                maxHeight: "300px", // Fixed height instead of percentage
                 width: "auto",
                 height: "auto",
-                minWidth: "240px", // Increased from 120px to 240px (doubled)
-                minHeight: "240px", // Increased from 120px to 240px (doubled)
+                minWidth: "200px", // Reasonable minimum
+                minHeight: "200px", // Reasonable minimum
                 objectFit: "contain" as const,
-                display: "block",
-                marginLeft: isRightPositioned ? "auto" : "0", // Push image to the right if right-positioned
-                marginRight: isRightPositioned ? "0" : "auto" // Ensure it's flush with the right edge if right-positioned
+                display: "block"
               }}
               onLoad={() => setImageLoaded(true)}
               priority={false}
