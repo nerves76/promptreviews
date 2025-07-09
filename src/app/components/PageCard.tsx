@@ -45,7 +45,7 @@ export default function PageCard({
   bottomRightAction,
   bottomLeftImage,
   bottomRightImage,
-  topMargin = "mt-8", // Add configurable top margin prop
+  topMargin = "mt-16", // Increased from mt-8 to mt-16 for more space on other pages
 }: {
   icon?: React.ReactNode;
   children: React.ReactNode;
