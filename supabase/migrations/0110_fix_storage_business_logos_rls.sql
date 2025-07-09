@@ -7,6 +7,13 @@ DROP POLICY IF EXISTS "Authenticated users can upload and read logos" ON storage
 DROP POLICY IF EXISTS "Allow authenticated users to update and read logos 1peuqw_0" ON storage.objects;
 DROP POLICY IF EXISTS "allow authenticated users to delete logo 1peuqw_0" ON storage.objects;
 
+-- Drop existing policies that we're about to recreate
+DROP POLICY IF EXISTS "Authenticated users can upload business logos" ON storage.objects;
+DROP POLICY IF EXISTS "Authenticated users can update business logos" ON storage.objects;
+DROP POLICY IF EXISTS "Authenticated users can delete business logos" ON storage.objects;
+DROP POLICY IF EXISTS "Public read access for logos" ON storage.objects;
+DROP POLICY IF EXISTS "Authenticated users can read logos" ON storage.objects;
+
 -- Create comprehensive policy for logos bucket that allows authenticated users to upload to business-logos folder
 CREATE POLICY "Authenticated users can upload business logos"
     ON storage.objects
