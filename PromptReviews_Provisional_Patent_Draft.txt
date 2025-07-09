@@ -56,11 +56,27 @@ The present invention provides a computer-implemented system and method for AI-a
 
 The invention addresses the technical problem of maintaining review authenticity while providing meaningful assistance to customers in the review creation process, with particular emphasis on bridging physical and digital customer interactions.
 
+BRIEF DESCRIPTION OF THE DRAWINGS
+
+**Figure 1: System Architecture Overview**
+Illustrates the core system components including Core Processing Server (100), Database Layer (200), AI Processing Module (300), Interface Generation Engine (400), Multi-Modal Capture System (500), Submission Distribution Engine (600), Embeddable Widget Framework (700), Physical-Digital Integration Engine (800), Brand Signifier Management System (900), and Template Generation Engine (1000), showing their interconnections and the novel physical-digital integration technologies.
+
+**Figure 2: Physical-Digital Integration Process Flow**
+Depicts the complete customer interaction flow from physical deployment method initiation (QR code scan, NFC touch, direct link, or physical template interaction) through brand signifier recognition, dynamic interface generation, AI-assisted content creation with human authentication, multi-modal capture, sentiment analysis, and multi-platform distribution with physical deployment attribution tracking.
+
+**Figure 3: Multi-Deployment Configuration Architecture**
+Shows the Multi-Deployment Configuration Engine and its five distinct operational modes: 1-on-1 Personal Interactions, Location-Based Universal Access, Service-Specific Configuration, Product-Specific Configuration, and Time-Sensitive Configuration, along with their integration with physical media types (business cards, lanyards, frames, signage, stickers, table tents) and brand signifier deployment strategies.
+
+**Figure 4: Human Authentication Layer and Multi-Modal Correlation Sequence**
+Illustrates the sequential process flow showing the novel human authentication layer that prevents AI-generated content from being submitted without explicit human approval and modification, the multi-modal capture correlation system that preserves contextual metadata across text, photo, and video content, and the sentiment-based routing with physical deployment context consideration.
+
+These drawings demonstrate the technical innovations that distinguish the present invention from prior art systems, particularly the novel integration of physical deployment methods with digital review generation processes, the comprehensive brand signifier recognition system, and the multi-modal capture correlation with preserved contextual metadata.
+
 DETAILED DESCRIPTION OF THE INVENTION
 
 System Architecture
 
-The system comprises a distributed computing architecture including:
+The system comprises a distributed computing architecture including (as shown in Figure 1):
 
 **Core Processing Server (100)**: Houses the main application logic, AI processing capabilities, and data management systems.
 
@@ -82,7 +98,7 @@ The system comprises a distributed computing architecture including:
 
 **Template Generation Engine (1000)**: Creates customizable printable templates with integrated brand signifiers for physical distribution.
 
-Technical Process Flow
+Technical Process Flow (as illustrated in Figure 2)
 
 **Step 1: Contextual Interface Generation**
 The system receives a request containing business identifier, customer identifier (optional), context parameters (location, service, product, etc.), and deployment method (QR code, NFC chip, direct link, or physical template). The Interface Generation Engine (400) queries the Database Layer (200) to retrieve:
@@ -104,7 +120,7 @@ The system dynamically generates a contextual interface containing:
 - **Physical deployment method indicators**
 - **Brand signifier recognition elements**
 
-**Step 3: AI-Assisted Content Generation**
+**Step 3: AI-Assisted Content Generation (detailed in Figure 4)**
 When a customer selects AI assistance, the AI Processing Module (300) generates content suggestions based on:
 - Business-specific context data
 - Customer interaction history
@@ -115,7 +131,7 @@ When a customer selects AI assistance, the AI Processing Module (300) generates 
 
 Critically, the system implements a "human-authentication layer" where AI-generated content cannot be submitted without explicit human review, approval, and potential modification.
 
-**Step 4: Human Control and Authentication**
+**Step 4: Human Control and Authentication (as shown in Figure 4)**
 The system presents AI-generated content to the customer with clear indicators of AI assistance and requires:
 - Explicit acknowledgment of AI-generated content
 - Opportunity for customer modification
@@ -123,7 +139,7 @@ The system presents AI-generated content to the customer with clear indicators o
 - Tracking of human modifications to AI-generated content
 - **Context-aware modification suggestions based on deployment method**
 
-**Step 5: Multi-Modal Content Capture**
+**Step 5: Multi-Modal Content Capture (illustrated in Figure 4)**
 The Multi-Modal Capture System (500) processes:
 - Text reviews with contextual metadata
 - Photo testimonials with location and timestamp data
@@ -198,7 +214,7 @@ The Brand Signifier Management System (900) implements a comprehensive visual cu
 - **Creates brand signifier libraries for multi-location deployment**
 
 **Multi-Deployment Configuration Engine**
-The system supports different interface configurations:
+The system supports different interface configurations (as detailed in Figure 3):
 - **1-on-1 Personal Interactions**: Customized for individual customer relationships with personalized context
 - **Location-Based Universal Access**: Optimized for QR code/NFC deployment in physical locations
 - **Service-Specific Configurations**: Tailored interfaces for different service types
