@@ -408,6 +408,14 @@ export default function AdminPage() {
             <h4 className="font-medium text-gray-900">Account Cleanup</h4>
             <p className="text-sm text-gray-600">Manage 90-day retention policy for cancelled accounts</p>
           </button>
+
+          <button
+            onClick={() => router.push("/admin/free-accounts")}
+            className="w-full text-left p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <h4 className="font-medium text-gray-900">Free Accounts</h4>
+            <p className="text-sm text-gray-600">Create and manage free accounts with specific plan levels</p>
+          </button>
         </div>
       </div>
 
