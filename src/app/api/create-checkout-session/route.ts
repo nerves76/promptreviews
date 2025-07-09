@@ -27,7 +27,7 @@ const validatedEnvVars = {
   growerPriceId: growerPriceId as string,
 };
 
-const stripe = new Stripe(validatedEnvVars.stripeSecretKey);
+const stripe = new Stripe(validatedEnvVars.stripeSecretKey, { apiVersion: "2025-06-30.basil" });
 
 const PRICE_IDS: Record<string, string> = {
   grower: validatedEnvVars.growerPriceId,
@@ -138,7 +138,7 @@ export async function POST(req: NextRequest) {
         metadata: { 
           userId, 
           plan,
-          userEmail: userEmail || "",
+          userEmail: userEmail || null,
           changeType
         },
         success_url: `${validatedEnvVars.appUrl}/dashboard?success=1&change=${changeType}&plan=${plan}`,
