@@ -33,7 +33,7 @@ export default function StylePage() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Style Your Prompt Pages</h1>
+      <h1 className="text-2xl font-bold mb-4">Style your prompt pages</h1>
       <p className="text-gray-600 mb-6">
         Customize the appearance of your prompt pages to match your brand.
       </p>
@@ -42,7 +42,7 @@ export default function StylePage() {
         onClick={() => setShowModal(true)}
         className="bg-slate-blue text-white px-4 py-2 rounded hover:bg-slate-blue/90"
       >
-        Open Style Editor
+        Open style editor
       </button>
 
       {showModal && (

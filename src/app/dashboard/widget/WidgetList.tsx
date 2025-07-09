@@ -185,7 +185,7 @@ export default function WidgetList({
       <DraggableModal 
         isOpen={isEditorOpen} 
         onClose={() => setIsEditorOpen(false)}
-        title={widgetToEdit ? 'Edit Widget' : 'Create New Widget'}
+        title={widgetToEdit ? 'Edit widget' : 'Create new widget'}
       >
         <WidgetEditorForm
           onSaveSuccess={() => { setIsEditorOpen(false); fetchWidgets(); }}

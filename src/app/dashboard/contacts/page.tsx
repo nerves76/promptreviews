@@ -434,14 +434,14 @@ export default function UploadContactsPage() {
             onClick={() => setShowUploadModal(true)}
             className="px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 font-semibold shadow"
           >
-            Upload Contacts
+            Upload contacts
           </button>
         </div>
 
         {/* Contacts Table */}
         <div className="mb-16">
           <h2 className="text-2xl font-bold text-slate-blue mb-6">
-            Your Contacts
+            Your contacts
           </h2>
           {anySelected && (
             <div className="mb-4 flex items-center gap-4">
@@ -547,7 +547,7 @@ export default function UploadContactsPage() {
                             setShowTypeModal(true);
                           }}
                         >
-                          Create Prompt Page
+                          Create prompt page
                         </button>
                       </td>
                     </tr>
@@ -591,7 +591,7 @@ export default function UploadContactsPage() {
               <div className="mb-16 bg-blue-50 rounded-lg p-6 border border-blue-100">
                 <h2 className="text-2xl font-bold text-slate-blue flex items-center gap-3 mb-12">
                   <FaUsers className="w-7 h-7 text-slate-blue" />
-                  Add Your Contacts
+                  Add your contacts
                 </h2>
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-4">
@@ -616,7 +616,7 @@ export default function UploadContactsPage() {
                     className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg hover:bg-gray-50 transition-colors"
                   >
                     <FaDownload className="text-slate-blue" />
-                    Download CSV Template
+                    Download CSV template
                   </button>
                 </div>
                 {/* Error/Success Messages */}

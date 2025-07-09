@@ -102,7 +102,7 @@ export const WidgetEditorForm: React.FC<WidgetEditorFormProps> = ({ onSaveSucces
     <div className="p-4">
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700">Widget Name</label>
+          <label className="block text-sm font-medium text-gray-700">Widget name</label>
           <input
             ref={nameInputRef}
             type="text"
@@ -114,15 +114,15 @@ export const WidgetEditorForm: React.FC<WidgetEditorFormProps> = ({ onSaveSucces
           {nameError && <p className="text-red-500 text-xs mt-1">{nameError}</p>}
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Widget Type</label>
+          <label className="block text-sm font-medium text-gray-700">Widget type</label>
           <select
             value={form.widgetType || ""}
             onChange={(e) => setForm({ ...form, widgetType: e.target.value })}
             className="mt-1 block w-full border border-gray-300 focus:border-slate-600 focus:ring-2 focus:ring-slate-400 rounded-md px-3 py-2 shadow-sm"
             disabled={!!widgetToEdit || isLoading}
           >
-            <option value="multi">Multi-Card Carousel</option>
-            <option value="single">Single Card</option>
+            <option value="multi">Multi-card carousel</option>
+            <option value="single">Single card</option>
             <option value="photo">Photo</option>
           </select>
         </div>
@@ -134,7 +134,7 @@ export const WidgetEditorForm: React.FC<WidgetEditorFormProps> = ({ onSaveSucces
           className="px-4 py-2 bg-slate-600 text-white rounded hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 disabled:opacity-50"
           disabled={isLoading}
         >
-          {isLoading ? 'Saving...' : (widgetToEdit ? 'Save Widget' : 'Create Widget')}
+          {isLoading ? 'Saving...' : (widgetToEdit ? 'Save widget' : 'Create widget')}
         </button>
       </div>
     </div>
