@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient, createServiceRoleClient } from "@/utils/supabaseClient";
+import { sendTemplatedEmail } from "@/utils/emailTemplates";
 
 const supabase = createClient();
-import { sendResendEmail } from "@/utils/resend";
 
 export async function POST(request: Request) {
   try {
@@ -98,80 +98,67 @@ export async function POST(request: Request) {
       );
     }
 
-    if (promptPage && promptPage.account_id) {
-      console.log(
-        "[track-review] promptPageId:",
-        promptPageId,
-        "promptPage.account_id:",
-        promptPage?.account_id,
-      );
-      const supabaseAdmin = createServiceRoleClient(); // use service role
-      const { data: account } = await supabaseAdmin
-        .from("accounts")
-        .select("email, review_notifications_enabled, first_name")
-        .eq("id", promptPage.account_id)
-        .single();
+    // Now find the account to get the email address
+    const { data: account, error: accountError } = await supabase
+      .from("accounts")
+      .select("email, first_name, review_notifications_enabled")
+      .eq("id", business_id)
+      .single();
 
-      console.log("[track-review] Account fetched:", account);
-      console.log("[track-review] Checking notification eligibility:", {
-        review_notifications_enabled: account?.review_notifications_enabled,
-        email: account?.email,
+    if (accountError || !account) {
+      console.error("[track-review] Account not found:", accountError?.message);
+      return NextResponse.json({ error: "Account not found" }, { status: 404 });
+    }
+
+    // Send email notification if enabled
+    if (account.review_notifications_enabled) {
+      const reviewerFullName =
+        [first_name, last_name].filter(Boolean).join(" ") || "A reviewer";
+      const reviewerFirst =
+        first_name || reviewerFullName.split(" ")[0] || "Someone";
+      
+      // Determine if sentiment is positive or negative
+      const isPositiveSentiment = sentiment && ["excellent", "satisfied"].includes(sentiment.toLowerCase());
+      const isNegativeSentiment = sentiment && ["neutral", "unsatisfied", "frustrated", "angry"].includes(sentiment.toLowerCase());
+      
+      // Choose the appropriate email template based on review type and sentiment
+      let templateName = 'review_praise_notification'; // default
+      
+      if (review_type === "feedback" || isNegativeSentiment) {
+        templateName = 'review_feedback_notification';
+      } else if (review_type === "testimonial" || review_type === "photo") {
+        templateName = 'review_testimonial_notification';
+      } else {
+        templateName = 'review_praise_notification';
+      }
+      
+      console.log("[track-review] Sending templated email notification", {
+        to: account.email,
+        template: templateName,
+        reviewerName: reviewerFullName,
+        platform,
+        reviewContent,
+        accountFirstName: account.first_name,
+        sentiment,
+        isPositive: isPositiveSentiment,
+        isNegative: isNegativeSentiment,
       });
 
-      if (account?.review_notifications_enabled && account?.email) {
-        const reviewerFullName =
-          [first_name, last_name].filter(Boolean).join(" ") || "A reviewer";
-        let subject = "";
-        const reviewerFirst =
-          first_name || reviewerFullName.split(" ")[0] || "Someone";
-        
-        // Determine if sentiment is positive or negative
-        const isPositiveSentiment = sentiment && ["excellent", "satisfied"].includes(sentiment.toLowerCase());
-        const isNegativeSentiment = sentiment && ["neutral", "unsatisfied", "frustrated", "angry"].includes(sentiment.toLowerCase());
-        
-        if (review_type === "feedback" || isNegativeSentiment) {
-          subject = `You've got feedback: ${reviewerFirst} submitted feedback`;
-        } else if (review_type === "testimonial" || review_type === "photo") {
-          subject = `You've got praise! ${reviewerFirst} submitted a testimonial & photo`;
-        } else {
-          subject = `You've got praise! ${reviewerFirst} submitted a review on ${platform}`;
-        }
-        console.log("[track-review] Sending review notification email", {
-          to: account.email,
-          review_notifications_enabled: account.review_notifications_enabled,
-          account_first_name: account.first_name,
-          reviewerFullName,
-          review_type,
-          platform,
-          sentiment,
-          isPositive: isPositiveSentiment,
-          isNegative: isNegativeSentiment,
+      try {
+        const emailResult = await sendTemplatedEmail(templateName, account.email, {
+          firstName: account.first_name || "there",
+          reviewerName: reviewerFullName,
+          platform: platform || "your prompt page",
+          reviewContent: reviewContent || "No content provided"
         });
 
-        // For now, keep using the direct email sending until we integrate with the email template system
-        // TODO: Update to use email templates with sentiment-aware template selection
-        // Use the correct production URL as fallback
-        const loginUrl = process.env.NEXT_PUBLIC_APP_URL
-          ? `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`
-          : "https://app.promptreviews.app/dashboard";
-        
-        const text = isNegativeSentiment || review_type === "feedback"
-          ? `Hi ${account.first_name || "there"},\n\n${reviewerFullName} just submitted feedback through your prompt page.\n\nThis feedback can help you improve your business. Log in to view it:\n${loginUrl}\n\nEvery piece of feedback is an opportunity to grow!\n\nChris`
-          : `Hi ${account.first_name || "there"},\n\n${reviewerFullName} just submitted a positive review on ${platform}.\n\nGreat reviews like this help your business get found online!\n\nLog in to check it out:\n${loginUrl}\n\nKeep up the great work!\n\nChris`;
-        
-        try {
-          await sendResendEmail({
-            to: account.email,
-            subject,
-            text,
-          });
-          console.log(
-            "[track-review] Email sent successfully to",
-            account.email,
-          );
-        } catch (emailError) {
-          console.error("[track-review] Error sending email:", emailError);
+        if (emailResult.success) {
+          console.log("[track-review] Templated email sent successfully to", account.email);
+        } else {
+          console.error("[track-review] Failed to send templated email:", emailResult.error);
         }
+      } catch (emailError) {
+        console.error("[track-review] Error sending templated email:", emailError);
       }
     }
 
