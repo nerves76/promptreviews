@@ -121,7 +121,6 @@ export default function DashboardContent({
   setShowStarfallCelebration,
   paymentChangeType,
 }: DashboardContentProps) {
-  console.log("DASHBOARD RENDERED");
   // Note: Authentication is handled by the dashboard layout
   const router = useRouter();
   const [promptPages, setPromptPages] = useState<PromptPage[]>([]);
@@ -287,7 +286,7 @@ export default function DashboardContent({
         localStorage.removeItem("showPostSaveModal");
       } catch {}
     }
-  }, [setShowStarfallCelebration]);
+  }, []); // Empty dependency array since this should only run once on mount
 
   // Note: Modal stays open so users can access sharing options
   // Stars fall automatically when modal appears, but modal remains open

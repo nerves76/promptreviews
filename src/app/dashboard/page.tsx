@@ -573,7 +573,19 @@ export default function Dashboard() {
       customPromptPages: dashboardData.customPromptPages,
       universalUrl: dashboardData.universalUrl
     };
-  }, [user, account, businessData, dashboardData, isAdminUser]);
+  }, [
+    user?.id,
+    user?.email,
+    account?.id,
+    account?.plan,
+    businessData?.businessCount,
+    dashboardData?.promptPages?.length,
+    dashboardData?.widgets?.length,
+    isAdminUser,
+    dashboardData?.universalPromptPage?.id,
+    dashboardData?.customPromptPages?.length,
+    dashboardData?.universalUrl
+  ]);
 
   // Early returns for loading and error states
   if (authLoading) {
@@ -640,10 +652,6 @@ export default function Dashboard() {
       </div>
     );
   }
-
-  console.log('Dashboard rendering with data:', { data: consolidatedData, isLoading });
-
-
 
   // Rest of component handlers...
   const handleCreatePromptPageClick = (
