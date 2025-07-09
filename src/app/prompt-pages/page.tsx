@@ -729,12 +729,11 @@ export default function PromptPages() {
                   onClick={() => setShowTypeModal(true)}
                   className="inline-flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded hover:bg-slate-blue/90 font-medium transition"
                 >
-                  <FaPlus className="w-4 h-4" />
-                  Create Prompt Page
+                  + Prompt Page
                 </button>
               </div>
               
-              <div className="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+              <div className="overflow-x-auto shadow border-l border-r border-b border-gray-200 sm:rounded-b-lg">
                 <PromptPagesTable
                   promptPages={promptPages}
                   business={business}
