@@ -60,13 +60,10 @@ export default function PageCard({
   const [imgWidth, setImgWidth] = useState(0);
   const imgRef = useRef<HTMLImageElement>(null);
 
-  // Add a short delay before showing the image to prevent it from appearing during initial page load
+  // Show image immediately when props are available
   useEffect(() => {
     if (bottomLeftImage || bottomRightImage) {
-      const timer = setTimeout(() => {
-        setShowImage(true);
-      }, 500); // Reduced from 2000ms to 500ms for faster appearance
-      return () => clearTimeout(timer);
+      setShowImage(true);
     }
   }, [bottomLeftImage, bottomRightImage]);
 
@@ -151,36 +148,9 @@ export default function PageCard({
                 objectFit: "contain" as const,
                 display: "block"
               }}
-              onLoad={() => {
-                setImageLoaded(true);
-                console.log('🖼️ Bottom image loaded successfully:', imageToShow.src);
-              }}
-              onError={(e) => {
-                console.error('❌ Bottom image failed to load:', imageToShow.src, e);
-              }}
+              onLoad={() => setImageLoaded(true)}
               priority={false}
             />
-          </div>
-        )}
-        
-        {/* Debug info */}
-        {process.env.NODE_ENV === 'development' && imageToShow && (
-          <div style={{ 
-            position: 'fixed', 
-            top: '100px', 
-            right: '10px', 
-            background: 'rgba(0,0,0,0.8)', 
-            color: 'white', 
-            padding: '10px', 
-            borderRadius: '5px', 
-            fontSize: '12px',
-            zIndex: 9999
-          }}>
-            Image Debug:
-            <br />URL: {imageToShow.src}
-            <br />Show: {showImage.toString()}
-            <br />Loaded: {imageLoaded.toString()}
-            <br />Alt: {imageToShow.alt}
           </div>
         )}
       </div>
