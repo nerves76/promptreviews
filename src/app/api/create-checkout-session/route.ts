@@ -139,6 +139,19 @@ export async function POST(req: NextRequest) {
     // Create checkout session
     console.log("🛒 Creating checkout session");
     
+    // Check if existing customer ID is valid in current Stripe mode
+    let validCustomerId = null;
+    if (stripe_customer_id) {
+      try {
+        await stripe.customers.retrieve(stripe_customer_id);
+        validCustomerId = stripe_customer_id;
+        console.log("✅ Existing customer ID is valid:", stripe_customer_id);
+      } catch (customerError: any) {
+        console.log("⚠️ Existing customer ID is invalid in current mode:", stripe_customer_id);
+        console.log("Will use email instead:", userEmail);
+      }
+    }
+    
     // Debug configuration
     const sessionConfig = {
       payment_method_types: ["card" as const],
@@ -152,16 +165,17 @@ export async function POST(req: NextRequest) {
       },
       success_url: `${validatedEnvVars.appUrl}/dashboard?success=1&change=${changeType}&plan=${plan}`,
       cancel_url: `${validatedEnvVars.appUrl}/dashboard?canceled=1`,
-      // Use existing customer if available, otherwise use email
-      ...(stripe_customer_id 
-        ? { customer: stripe_customer_id }
+      // Use valid customer ID if available, otherwise use email
+      ...(validCustomerId 
+        ? { customer: validCustomerId }
         : { customer_email: userEmail }
       )
     };
 
     console.log("📋 Session config:", {
       priceId: PRICE_IDS[plan],
-      hasCustomer: !!stripe_customer_id,
+      hasValidCustomer: !!validCustomerId,
+      usingCustomerEmail: !validCustomerId,
       customerEmail: userEmail,
       metadata: sessionConfig.metadata
     });
