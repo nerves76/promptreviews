@@ -715,7 +715,7 @@ export default function PromptPages() {
             {/* Individual Prompt Pages Section - Show for non-Maven users OR when custom tab is active */}
             {(!account || !hasLocationAccess(account.plan) || activeTab === 'custom') && (
               <div className="my-8">
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center justify-between mb-[75px]">
                   <div>
                     <h2 className="text-2xl font-bold text-slate-blue mb-2 flex items-center gap-3">
                       <FaStar className="w-7 h-7 text-slate-blue" />
