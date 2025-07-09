@@ -13,6 +13,15 @@ const growerPriceId = process.env.STRIPE_PRICE_ID_GROWER;
 
 if (!stripeSecretKey || !supabaseUrl || !supabaseServiceKey || !appUrl || !builderPriceId || !mavenPriceId || !growerPriceId) {
   console.error("❌ Missing required environment variables");
+  console.error("Environment check:", {
+    stripeSecretKey: !!stripeSecretKey,
+    supabaseUrl: !!supabaseUrl,
+    supabaseServiceKey: !!supabaseServiceKey,
+    appUrl: !!appUrl,
+    builderPriceId: !!builderPriceId,
+    mavenPriceId: !!mavenPriceId,
+    growerPriceId: !!growerPriceId
+  });
   throw new Error("Missing required environment variables");
 }
 
@@ -129,27 +138,36 @@ export async function POST(req: NextRequest) {
 
     // Create checkout session
     console.log("🛒 Creating checkout session");
+    
+    // Debug configuration
+    const sessionConfig = {
+      payment_method_types: ["card" as const],
+      mode: "subscription" as const,
+      line_items: [{ price: PRICE_IDS[plan], quantity: 1 }],
+      metadata: { 
+        userId, 
+        plan,
+        userEmail: userEmail || "",
+        changeType
+      },
+      success_url: `${validatedEnvVars.appUrl}/dashboard?success=1&change=${changeType}&plan=${plan}`,
+      cancel_url: `${validatedEnvVars.appUrl}/dashboard?canceled=1`,
+      // Use existing customer if available, otherwise use email
+      ...(stripe_customer_id 
+        ? { customer: stripe_customer_id }
+        : { customer_email: userEmail }
+      )
+    };
+
+    console.log("📋 Session config:", {
+      priceId: PRICE_IDS[plan],
+      hasCustomer: !!stripe_customer_id,
+      customerEmail: userEmail,
+      metadata: sessionConfig.metadata
+    });
+
     let checkoutSession;
     try {
-      const sessionConfig = {
-        payment_method_types: ["card" as const],
-        mode: "subscription" as const,
-        line_items: [{ price: PRICE_IDS[plan], quantity: 1 }],
-        metadata: { 
-          userId, 
-          plan,
-          userEmail: userEmail || null,
-          changeType
-        },
-        success_url: `${validatedEnvVars.appUrl}/dashboard?success=1&change=${changeType}&plan=${plan}`,
-        cancel_url: `${validatedEnvVars.appUrl}/dashboard?canceled=1`,
-        // Use existing customer if available, otherwise use email
-        ...(stripe_customer_id 
-          ? { customer: stripe_customer_id }
-          : { customer_email: userEmail }
-        )
-      };
-
       checkoutSession = await stripe.checkout.sessions.create(sessionConfig);
       console.log("✅ Checkout session created:", checkoutSession.id);
       
