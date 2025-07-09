@@ -643,35 +643,7 @@ export default function Dashboard() {
 
   console.log('Dashboard rendering with data:', { data: consolidatedData, isLoading });
 
-  // AGGRESSIVE DEBUG: Show modal status for ANY user if data is loaded
-  if (user && account && businessData) {
-    const shouldShowModal = (!account.plan || account.plan === 'no_plan' || account.plan === 'NULL') && businessData.businessCount > 0;
-    
-    console.log(`🔍 RENDER CHECK (${user.email}): Modal should show: ${shouldShowModal}, Currently showing: ${showPricingModal}`, {
-      plan: account.plan,
-      businessCount: businessData.businessCount,
-      authLoading,
-      accountLoading,
-      businessesLoading,
-      isDashboardLoading,
-      user_email: user.email
-    });
-    
-    // Show alert for ANY user with invalid plan and businesses
-    if (shouldShowModal && !showPricingModal && !authLoading && !accountLoading && !businessesLoading && !isDashboardLoading) {
-      alert(`🚨 MODAL ISSUE!\n\nEmail: ${user.email}\nPlan: ${account.plan}\nBusinesses: ${businessData.businessCount}\nModal showing: ${showPricingModal}\n\nThis should trigger the pricing modal!`);
-      
-      // Force show the modal immediately
-      console.log("🔧 FORCING MODAL TO SHOW");
-      setShowPricingModal(true);
-      setPlanSelectionRequired(true);
-    }
-  }
-  
-  // Also check if we have basic user data
-  if (user) {
-    console.log(`👤 User loaded: ${user.email}, Account: ${account ? 'loaded' : 'not loaded'}, Business: ${businessData ? 'loaded' : 'not loaded'}`);
-  }
+
 
   // Rest of component handlers...
   const handleCreatePromptPageClick = (
