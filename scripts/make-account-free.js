@@ -86,11 +86,11 @@ async function makeAccountFree(email, planLevel = 'grower') {
     console.log('  • Plan-based feature limits still apply');
     
     // Show plan-specific limits
-    const planLimits = {
-      grower: { prompt_pages: 4, contacts: 'unlimited' },
-      builder: { prompt_pages: 100, contacts: 100 },
-      maven: { prompt_pages: 500, contacts: 500 }
-    };
+      const planLimits = {
+    grower: { prompt_pages: 3, contacts: 'cannot upload' },
+    builder: { prompt_pages: 50, contacts: 1000 },
+    maven: { prompt_pages: 500, contacts: 10000 }
+  };
     
     const limits = planLimits[planLevel];
     console.log(`📊 ${planLevel} plan limits:`);
