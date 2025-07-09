@@ -490,8 +490,8 @@ export default function DashboardContent({
         </h1>
       </div>
       {/* Existing welcome section (standard design) */}
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold text-slate-blue">
+      <div className="mb-4">
+        <h2 className="text-xl font-bold text-slate-blue">
           Welcome, {userName}!
         </h2>
         <p className="mt-2 text-sm text-gray-600 max-w-[650px]">
