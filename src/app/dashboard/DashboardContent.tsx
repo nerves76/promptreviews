@@ -483,7 +483,7 @@ export default function DashboardContent({
 
   return (
     <>
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-12 w-full gap-2 relative">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 w-full gap-2 relative">
         <h1 className="text-4xl font-bold flex items-center gap-3 text-slate-blue pt-2">
           Dashboard
         </h1>
