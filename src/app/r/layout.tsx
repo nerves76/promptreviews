@@ -1,6 +1,6 @@
 import "../globals.css";
 import type { Metadata } from "next";
-import { createClient } from "@/utils/supabaseClient";
+import { createClient } from "@supabase/supabase-js";
 
 // Dynamic metadata generation with og:image support
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -8,8 +8,18 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     // Await the params in Next.js 15
     const { slug } = await params;
     
-    // Use direct database queries instead of HTTP calls to avoid build-time issues
-    const supabase = createClient();
+    // Use service role client for server-side metadata generation
+    // This bypasses RLS policies and allows access to all data
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    );
     
     // Fetch prompt page data directly from database
     const { data: promptPage, error: pageError } = await supabase
