@@ -5,7 +5,7 @@ import { useRef } from "react";
 // 🔧 CONSOLIDATED: Single import from supabaseClient module
 import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 import Link from "next/link";
-import { FaGlobe, FaLink, FaTimes, FaPalette, FaPlus, FaCheck, FaMapMarkerAlt, FaEdit, FaTrash } from "react-icons/fa";
+import { FaGlobe, FaLink, FaTimes, FaPalette, FaPlus, FaCheck, FaMapMarkerAlt, FaEdit, FaTrash, FaStar } from "react-icons/fa";
 import { MdDownload } from "react-icons/md";
 import PageCard from "@/app/components/PageCard";
 import UniversalPromptPageForm from "../dashboard/edit-prompt-page/universal/UniversalPromptPageForm";
@@ -717,7 +717,8 @@ export default function PromptPages() {
               <div className="my-8">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h2 className="text-2xl font-bold text-slate-blue mb-2">
+                    <h2 className="text-2xl font-bold text-slate-blue mb-2 flex items-center gap-3">
+                      <FaStar className="w-7 h-7 text-slate-blue" />
                       {account && hasLocationAccess(account.plan) ? 'Custom Prompt Pages' : 'Individual Prompt Pages'}
                     </h2>
                     <p className="text-sm text-gray-600">
