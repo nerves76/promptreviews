@@ -909,21 +909,35 @@ export default function DashboardContent({
               ))}
               {/* Modal content - always visible */}
               <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center relative z-10 overflow-hidden">
+                {/* Standardized red X close button */}
                 <button
-                  className="absolute top-2 right-2 w-9 h-9 flex items-center justify-center rounded-full bg-white text-red-500 border border-red-200 shadow hover:bg-red-500 hover:text-white transition-colors text-xl z-20"
                   onClick={() => {
                     setShowPostSaveModal(false);
                     setShowStars(false);
                   }}
-                  aria-label="Close"
+                  className="absolute -top-3 -right-3 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-50"
+                  style={{ width: 48, height: 48 }}
+                  aria-label="Close modal"
                 >
-                  &times;
+                  <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                 </button>
+
+                {/* Prompty Success Image */}
+                <div className="mb-6 flex justify-center">
+                  <img
+                    src="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/small-prompty-success.png"
+                    alt="Prompty Success"
+                    className="w-24 h-24 object-contain"
+                  />
+                </div>
+
                 <h2 className="text-2xl font-bold mb-4 text-slate-blue relative z-10">
-                  Prompt Page Created!
+                  Prompt Page Published! 🎉
                 </h2>
                 <p className="mb-4 text-gray-700 relative z-10">
-                  Share your new prompt page with your customer:
+                  Your prompt page is now live and ready to collect reviews.
                 </p>
                 <div className="flex flex-col gap-3 mb-6 relative z-10">
                   <a
@@ -932,7 +946,7 @@ export default function DashboardContent({
                     rel="noopener noreferrer"
                     className="inline-block px-4 py-2 bg-slate-blue text-white rounded-lg font-medium hover:bg-slate-blue/90 transition"
                   >
-                    View Prompt Page
+                    Open
                   </a>
                   {postSaveData.phone && (
                     <button
@@ -962,7 +976,7 @@ export default function DashboardContent({
                     setShowPostSaveModal(false);
                     setShowStars(false);
                   }}
-                  className="bg-gray-200 text-gray-700 px-6 py-2 rounded hover:bg-gray-300 font-semibold mt-2 relative z-10"
+                  className="bg-slate-blue text-white px-6 py-2 rounded hover:bg-slate-blue/90 font-semibold mt-2 relative z-10"
                 >
                   Close
                 </button>
