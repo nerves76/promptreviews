@@ -129,13 +129,8 @@ export default function AdminPage() {
       }
 
       // Check admin status
-      const { data: adminData, error: adminError } = await supabase
-        .from('admins')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-
-      if (adminError || !adminData) {
+      const adminStatus = await isAdmin(user.id, supabase);
+      if (!adminStatus) {
         setError('Admin privileges required');
         return;
       }

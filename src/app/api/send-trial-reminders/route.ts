@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { sendTrialReminderEmail } from '../../../utils/emailTemplates';
+import { isAdmin } from '@/utils/admin';
 
 export async function POST(request: NextRequest) {
   try {
@@ -42,13 +43,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { data: adminCheck } = await supabase
-      .from('admins')
-      .select('id')
-      .eq('account_id', user.id)
-      .single();
-
-    if (!adminCheck) {
+    const adminStatus = await isAdmin(user.id, supabase);
+    if (!adminStatus) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
     }
 

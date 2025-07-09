@@ -9,6 +9,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabaseClient';
 import { deleteUserCompletely } from '@/utils/adminDelete';
+import { isAdmin } from '@/utils/admin';
 
 /**
  * GET - Get count of accounts eligible for permanent deletion
@@ -24,13 +25,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Check admin status
-    const { data: adminData, error: adminError } = await supabase
-      .from('admins')
-      .select('*')
-      .eq('user_id', session.user.id)
-      .single();
-
-    if (adminError || !adminData) {
+    const adminStatus = await isAdmin(session.user.id, supabase);
+    if (!adminStatus) {
       return NextResponse.json({ error: 'Admin privileges required' }, { status: 403 });
     }
 
@@ -82,13 +78,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Check admin status
-    const { data: adminData, error: adminError } = await supabase
-      .from('admins')
-      .select('*')
-      .eq('user_id', session.user.id)
-      .single();
-
-    if (adminError || !adminData) {
+    const adminStatus = await isAdmin(session.user.id, supabase);
+    if (!adminStatus) {
       return NextResponse.json({ error: 'Admin privileges required' }, { status: 403 });
     }
 

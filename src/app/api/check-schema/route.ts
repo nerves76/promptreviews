@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { isAdmin } from "@/utils/admin";
 
 export async function GET() {
   try {
@@ -23,13 +24,8 @@ export async function GET() {
     }
 
     // Check if user is admin
-    const { data: adminData, error: adminError } = await supabase
-      .from('admins')
-      .select('*')
-      .eq('user_id', session.user.id)
-      .single();
-
-    if (adminError || !adminData) {
+    const adminStatus = await isAdmin(session.user.id, supabase);
+    if (!adminStatus) {
       return NextResponse.json({ error: "Admin access required" }, { status: 403 });
     }
 

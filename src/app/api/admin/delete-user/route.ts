@@ -13,6 +13,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { deleteUserCompletely } from '@/utils/adminDelete';
+import { isAdmin } from '@/utils/admin';
 
 // Initialize Supabase admin client
 const supabaseAdmin = createClient(
@@ -44,14 +45,9 @@ async function checkAdminPrivileges(request: NextRequest): Promise<boolean> {
     }
 
     // Check if user has admin privileges
-    const { data: adminData, error: adminError } = await supabaseAdmin
-      .from('admins')
-      .select('*')
-      .eq('user_id', user.id)
-      .single();
-
-    if (adminError || !adminData) {
-      console.error('Admin check error:', adminError);
+    const adminStatus = await isAdmin(user.id, supabaseAdmin);
+    if (!adminStatus) {
+      console.error('Admin check failed: user does not have admin privileges');
       return false;
     }
 
