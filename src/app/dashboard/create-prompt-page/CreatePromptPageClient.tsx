@@ -244,6 +244,7 @@ export default function CreatePromptPageClient() {
   const [formData, setFormData] = useState(initialFormData);
   const [businessProfile, setBusinessProfile] =
     useState<BusinessProfile | null>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [generatingReview, setGeneratingReview] = useState<number | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -286,6 +287,7 @@ export default function CreatePromptPageClient() {
           console.log("No user found");
           return;
         }
+        setCurrentUser(user);
         const { data: businessData } = await supabase
           .from("businesses")
           .select("*")
@@ -518,6 +520,136 @@ export default function CreatePromptPageClient() {
       );
     } finally {
       setAiLoadingPhoto(false);
+    }
+  };
+
+  const handleProductPageSubmit = async (formData: any) => {
+    console.log("[DEBUG] handleProductPageSubmit called with formData:", formData);
+    setSaveError(null);
+    setSaveSuccess(null);
+    setIsSaving(true);
+    
+    try {
+      const {
+        data: { user },
+      } = await getUserOrMock(supabase);
+      if (!user) throw new Error("No user found");
+
+      const { allowed, reason } = await checkAccountLimits(
+        supabase,
+        user.id,
+        "prompt_page",
+      );
+      if (!allowed) {
+        setUpgradeModalMessage(
+          reason ||
+            "You have reached your plan limit. Please upgrade to create more prompt pages.",
+        );
+        setShowUpgradeModal(true);
+        return;
+      }
+
+      const { data: businessData } = await supabase
+        .from("businesses")
+        .select("*")
+        .eq("account_id", user.id)
+        .single();
+      if (!businessData) throw new Error("No business found");
+
+      // Create the complete prompt page data for product pages
+      let insertData: any = {
+        ...formData,
+        first_name: formData.first_name || "",
+        last_name: formData.last_name || "",
+        phone: formData.phone || "",
+        email: formData.email || "",
+        role: formData.role || "",
+        account_id: user.id,
+        status: "in_queue", // Directly publish (not draft)
+        review_type: "product",
+      };
+
+      // Generate unique slug
+      insertData.slug = slugify(
+        (businessProfile?.business_name || "business") +
+          "-" +
+          (formData.first_name || "customer") +
+          "-" +
+          (formData.last_name || "review"),
+        typeof window !== "undefined" 
+          ? Date.now() + "-" + Math.random().toString(36).substring(2, 8)
+          : "temp-id",
+      );
+
+      // Handle product-specific fields
+      insertData.product_description = formData.product_description || "";
+      insertData.features_or_benefits = formData.features_or_benefits || [];
+      insertData.product_name = formData.product_name || "";
+      insertData.product_photo = formData.product_photo || "";
+      
+      // Handle review platforms
+      if (formData.reviewPlatforms && formData.reviewPlatforms.length > 0) {
+        insertData.review_platforms = formData.reviewPlatforms.map((link: any) => ({
+          ...link,
+          wordCount: link.wordCount ? Math.max(200, Number(link.wordCount)) : 200,
+        }));
+      }
+
+      // Handle offer fields
+      insertData.offer_enabled = formData.offerEnabled || false;
+      insertData.offer_title = formData.offerTitle || "";
+      insertData.offer_body = formData.offerBody || "";
+      insertData.offer_url = formData.offerUrl || "";
+
+      // Handle emoji sentiment fields
+      insertData.emoji_sentiment_enabled = formData.emojiSentimentEnabled || false;
+      insertData.emoji_sentiment_question = formData.emojiSentimentQuestion || "How was your experience?";
+      insertData.emoji_feedback_message = formData.emojiFeedbackMessage || "We value your feedback!";
+      insertData.emoji_thank_you_message = formData.emojiThankYouMessage || "Thank you for your feedback!";
+
+      // Handle falling stars
+      insertData.falling_icon = formData.fallingEnabled ? formData.fallingIcon : null;
+      insertData.ai_button_enabled = formData.aiButtonEnabled !== false;
+
+      // Map to database columns
+      insertData = mapToDbColumns(insertData);
+
+      console.log("[DEBUG] handleProductPageSubmit insertData:", insertData);
+
+      const { data, error } = await supabase
+        .from("prompt_pages")
+        .insert([insertData])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      if (data && data.slug) {
+        setSavedPromptPageUrl(`/r/${data.slug}`);
+        localStorage.setItem(
+          "showPostSaveModal",
+          JSON.stringify({ 
+            url: `/r/${data.slug}`,
+            first_name: formData.first_name,
+            phone: formData.phone,
+            email: formData.email
+          }),
+        );
+        console.log("[DEBUG] handleProductPageSubmit redirecting to /prompt-pages");
+        router.push("/prompt-pages");
+        return;
+      }
+
+      setSaveSuccess("Product prompt page created and published successfully!");
+    } catch (error) {
+      console.error("[DEBUG] handleProductPageSubmit error:", error);
+      setSaveError(
+        error instanceof Error
+          ? error.message
+          : "Failed to create product page. Please try again.",
+      );
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -763,13 +895,11 @@ export default function CreatePromptPageClient() {
       <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
         <PageCard icon={<FaBoxOpen className="w-9 h-9 text-slate-blue" />}>
           <ProductPromptPageForm
-            mode="create"
             initialData={{ ...formData, review_type: "product" }}
-            onSave={handleStep1Submit}
-            onPublish={handleStep2Submit}
-            pageTitle="Create product prompt page"
-            supabase={supabase}
-            businessProfile={businessProfile}
+            onSave={handleProductPageSubmit}
+            accountId={currentUser?.id || ""}
+            onGenerateReview={handleGenerateAIReview}
+            isLoading={isSaving}
           />
         </PageCard>
       </div>
