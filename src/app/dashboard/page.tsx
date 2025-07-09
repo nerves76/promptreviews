@@ -832,6 +832,7 @@ export default function Dashboard() {
       <div className="flex justify-center items-start py-8">
         <PageCard
           icon={<FaHome className="w-8 h-8 text-slate-blue" />}
+          topMargin="mt-0"
           bottomLeftImage={{
             src: "https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompty-fishing-for-stars.png",
             alt: "Prompty fishing for stars",

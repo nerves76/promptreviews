@@ -45,6 +45,7 @@ export default function PageCard({
   bottomRightAction,
   bottomLeftImage,
   bottomRightImage,
+  topMargin = "mt-8", // Add configurable top margin prop
 }: {
   icon?: React.ReactNode;
   children: React.ReactNode;
@@ -53,6 +54,7 @@ export default function PageCard({
   bottomRightAction?: React.ReactNode;
   bottomLeftImage?: BottomImage;
   bottomRightImage?: BottomImage;
+  topMargin?: string; // Add to interface
 }) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [showImage, setShowImage] = useState(false);
@@ -93,7 +95,7 @@ export default function PageCard({
   const isRightPositioned = !!bottomRightImage;
 
   return (
-    <div className="w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-12 mt-8 mb-16 flex justify-center items-start">
+    <div className={`w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-12 ${topMargin} mb-16 flex justify-center items-start`}>
       <div
         className={`page relative w-full max-w-[1000px] rounded-2xl bg-white shadow-lg pt-4 px-8 md:px-12 pb-8 ${className}`}
         style={{ overflow: "visible" }} // Restore to visible for icon breaching
