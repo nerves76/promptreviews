@@ -1,4 +1,4 @@
-# PromptReviews AI-Assisted Review System
+# Prompt Reviews AI-Assisted Review System
 ## Provisional Patent Application
 
 **Title of Invention:**
@@ -427,7 +427,7 @@ The invention provides substantial technical advantages over prior art systems a
 ## TECHNICAL SPECIFICATION DOCUMENT
 
 **Document Type:** Patent Application Technical Specification  
-**System:** PromptReviews AI-Assisted Review Generation System  
+**System:** Prompt Reviews AI-Assisted Review Generation System  
 **Date Prepared:** January 2025  
 **Status:** Draft for USPTO Provisional Patent Application Filing  
 
