@@ -424,22 +424,22 @@ export default function AnalyticsPage() {
 
       <div className="mb-8 flex flex-col md:flex-row md:items-center gap-4">
         <label className="text-base font-semibold text-gray-700">
-          Time Range:
+          Time range:
         </label>
         <select
           value={timeRange}
           onChange={(e) => setTimeRange(e.target.value as any)}
           className="rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
         >
-          <option value="all">All Time</option>
-          <option value="lastYear">Last Year</option>
-          <option value="thisYear">This Year</option>
-          <option value="last6Months">Last 6 Months</option>
-          <option value="last3Months">Last 3 Months</option>
-          <option value="lastMonth">Last Month</option>
-          <option value="thisMonth">This Month</option>
-          <option value="thisWeek">This Week</option>
-          <option value="lastWeek">Last Week</option>
+          <option value="all">All time</option>
+          <option value="lastYear">Last year</option>
+          <option value="thisYear">This year</option>
+          <option value="last6Months">Last 6 months</option>
+          <option value="last3Months">Last 3 months</option>
+          <option value="lastMonth">Last month</option>
+          <option value="thisMonth">This month</option>
+          <option value="thisWeek">This week</option>
+          <option value="lastWeek">Last week</option>
         </select>
       </div>
 

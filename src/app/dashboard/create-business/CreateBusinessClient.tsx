@@ -146,7 +146,7 @@ export default function CreateBusinessClient() {
           <div className="flex items-start justify-between mt-2 mb-4">
             <div className="flex flex-col mt-0 md:mt-[3px]">
               <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
-                Create Your Business Profile
+                Create your business profile
               </h1>
               <p className="text-gray-600 text-base max-w-md mt-0 mb-10">
                 Tell us about your business so we can create the perfect review prompts for you.

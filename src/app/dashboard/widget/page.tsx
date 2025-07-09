@@ -226,7 +226,7 @@ export default function WidgetPage() {
         <div className="relative w-full max-w-4xl mx-auto" style={{ minHeight: '600px' }}>
           <div className="text-center mb-6">
             <div className="flex items-center justify-center gap-4 mb-2">
-              <h2 className="text-2xl font-bold text-white">Widget Preview</h2>
+              <h2 className="text-2xl font-bold text-white">Widget preview</h2>
               
               {/* Action Buttons */}
               <div className="flex gap-2">
@@ -281,12 +281,12 @@ export default function WidgetPage() {
               className="px-4 py-2 text-sm font-medium text-white bg-slate-blue rounded-md hover:bg-slate-blue/90 flex items-center"
             >
               <FaPlus className="mr-2" />
-              Create Widget
+              Create widget
             </button>
           }
         >
           <div className="mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Your Widgets</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Your widgets</h2>
             <p className="text-gray-600">Create up to three widgets and embed them on your site.</p>
           </div>
           <WidgetList

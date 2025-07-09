@@ -591,7 +591,7 @@ export default function DashboardContent({
                       <div className="flex items-center gap-2">
                         <h2 className="text-2xl font-bold text-slate-blue flex items-center gap-3">
                           <FaGlobe className="w-7 h-7 text-slate-blue" />
-                          Universal Prompt Page
+                          Universal prompt page
                         </h2>
                         <UniversalTooltip />
                       </div>
@@ -613,7 +613,7 @@ export default function DashboardContent({
                       </div>
                     </div>
                     <p className="mt-4 text-blue-900 mb-4 text-sm">
-                      Your Universal Prompt Page is general-use and not customer specific.
+                      Your universal prompt page is general-use and not customer specific.
                     </p>
                     <div className="flex flex-wrap gap-2 items-center">
                       <div className="flex flex-wrap gap-2 items-center">
