@@ -824,12 +824,12 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen flex flex-col justify-start px-4 sm:px-0">
       {/* Quotes Display - positioned between nav and PageCard */}
-      <div className="h-96 flex justify-center items-center pt-8">
+      <div className="h-96 flex justify-center items-center pt-0 -mt-2">
         <QuoteDisplay />
       </div>
       
       {/* PageCard with consistent spacing */}
-      <div className="flex justify-center items-start pt-0 pb-8 -mt-3">
+      <div className="flex justify-center items-start pt-0 pb-8 -mt-10">
         <PageCard
           icon={<FaHome className="w-8 h-8 text-slate-blue" />}
           topMargin="mt-0"
