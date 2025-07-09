@@ -4,7 +4,7 @@ import { IconType } from 'react-icons';
 interface FallingAnimationProps {
   fallingIcon: string;
   showStarRain: boolean;
-  getFallingIcon: (icon: string) => { icon: IconType; color: string } | null;
+  getFallingIcon: (icon: string) => { key: string; label: string; icon: IconType; color: string; category: string } | undefined;
 }
 
 export default function FallingAnimation({ 
