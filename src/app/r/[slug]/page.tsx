@@ -1458,7 +1458,7 @@ export default function PromptPage() {
                               onClick={handleFeedbackSubmit}
                               className="px-6 py-3 rounded-lg font-semibold text-lg shadow-lg text-white hover:opacity-90 focus:outline-none transition"
                               style={{
-                                backgroundColor: businessProfile?.secondary_color || "#818CF8",
+                                backgroundColor: businessProfile?.secondary_color || "#4F46E5",
                                 fontFamily: businessProfile?.primary_font || "Inter",
                               }}
                               disabled={feedbackSubmitting}
@@ -1593,8 +1593,8 @@ export default function PromptPage() {
                       <button
                         className="w-full px-6 py-4 rounded-lg font-semibold text-lg shadow-lg text-white hover:opacity-90 focus:outline-none transition border-2"
                         style={{
-                          backgroundColor: businessProfile?.secondary_color || "#818CF8",
-                          borderColor: businessProfile?.secondary_color || "#818CF8",
+                          backgroundColor: businessProfile?.secondary_color || "#4F46E5",
+                          borderColor: businessProfile?.secondary_color || "#4F46E5",
                           fontFamily: businessProfile?.primary_font || "Inter",
                         }}
                         onClick={() => {
@@ -1613,8 +1613,8 @@ export default function PromptPage() {
                         className="w-full px-6 py-4 rounded-lg font-semibold text-lg shadow-lg hover:opacity-90 focus:outline-none transition border-2"
                         style={{
                           backgroundColor: "transparent",
-                          borderColor: businessProfile?.secondary_color || "#818CF8",
-                          color: businessProfile?.secondary_color || "#818CF8",
+                          borderColor: businessProfile?.secondary_color || "#4F46E5",
+                          color: businessProfile?.secondary_color || "#4F46E5",
                           fontFamily: businessProfile?.primary_font || "Inter",
                         }}
                         onClick={() => {
@@ -1872,7 +1872,7 @@ export default function PromptPage() {
             }
           }}
           headerColor={businessProfile?.primary_color || "#4F46E5"}
-          buttonColor={businessProfile?.secondary_color || "#818CF8"}
+                            buttonColor={businessProfile?.secondary_color || "#4F46E5"}
           fontFamily={businessProfile?.primary_font || "Inter"}
         />
       )}
@@ -1906,8 +1906,8 @@ export default function PromptPage() {
               <button
                 className="w-full px-6 py-4 rounded-lg font-semibold text-lg shadow-lg text-white hover:opacity-90 focus:outline-none transition border-2"
                 style={{
-                  backgroundColor: businessProfile?.secondary_color || "#818CF8",
-                  borderColor: businessProfile?.secondary_color || "#818CF8",
+                  backgroundColor: businessProfile?.secondary_color || "#4F46E5",
+                  borderColor: businessProfile?.secondary_color || "#4F46E5",
                   fontFamily: businessProfile?.primary_font || "Inter",
                 }}
                 onClick={() => {
@@ -1926,8 +1926,8 @@ export default function PromptPage() {
                 className="w-full px-6 py-4 rounded-lg font-semibold text-lg shadow-lg hover:opacity-90 focus:outline-none transition border-2"
                 style={{
                   backgroundColor: "transparent",
-                  borderColor: businessProfile?.secondary_color || "#818CF8",
-                  color: businessProfile?.secondary_color || "#818CF8",
+                  borderColor: businessProfile?.secondary_color || "#4F46E5",
+                  color: businessProfile?.secondary_color || "#4F46E5",
                   fontFamily: businessProfile?.primary_font || "Inter",
                 }}
                 onClick={() => {
