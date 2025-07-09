@@ -27,6 +27,7 @@ export interface Account {
   trial_end?: string;
   has_had_paid_plan?: boolean;
   is_free_account?: boolean;
+  free_plan_level?: string; // 'grower', 'builder', 'maven', etc.
   first_name?: string;
   last_name?: string;
   email?: string;

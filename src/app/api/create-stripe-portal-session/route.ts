@@ -48,12 +48,21 @@ export async function POST(req: NextRequest) {
     // Get the account to find the Stripe customer ID
     const { data: account, error: accountError } = await supabase
       .from("accounts")
-      .select("stripe_customer_id")
+      .select("stripe_customer_id, is_free_account, free_plan_level")
       .eq("id", accountUser.account_id)
       .single();
 
     if (accountError || !account) {
       return NextResponse.json({ error: "Account not found" }, { status: 404 });
+    }
+
+    // Check if this is a free account
+    if (account.is_free_account) {
+      return NextResponse.json({ 
+        error: "FREE_ACCOUNT", 
+        message: "Free accounts cannot access the billing portal. Your account has been configured with free access.",
+        free_plan_level: account.free_plan_level 
+      }, { status: 400 });
     }
 
     if (!account.stripe_customer_id) {
