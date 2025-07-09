@@ -824,12 +824,12 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen flex flex-col justify-start px-4 sm:px-0">
       {/* Quotes Display - positioned between nav and PageCard */}
-      <div className="flex justify-center items-center pt-12 pb-4">
+      <div className="flex justify-center items-center py-8">
         <QuoteDisplay />
       </div>
       
-      {/* PageCard with extra top margin to accommodate quotes */}
-      <div className="flex justify-center items-start flex-1">
+      {/* PageCard with consistent spacing */}
+      <div className="flex justify-center items-start flex-1 py-8">
         <PageCard
           icon={<FaHome className="w-8 h-8 text-slate-blue" />}
           bottomLeftImage={{

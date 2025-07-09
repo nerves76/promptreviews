@@ -93,7 +93,7 @@ export default function PageCard({
   const isRightPositioned = !!bottomRightImage;
 
   return (
-    <div className="w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-12 mt-12 md:mt-16 lg:mt-20 mb-16 flex justify-center items-start">
+    <div className="w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-12 mt-8 mb-16 flex justify-center items-start">
       <div
         className={`page relative w-full max-w-[1000px] rounded-2xl bg-white shadow-lg pt-4 px-8 md:px-12 pb-8 ${className}`}
         style={{ overflow: "visible" }} // Restore to visible for icon breaching
@@ -112,7 +112,7 @@ export default function PageCard({
         <div
           className="content w-full px-1 pt-2 sm:pt-0"
           style={{ 
-            paddingBottom: imageToShow && showImage ? "300px" : undefined
+            paddingBottom: imageToShow && showImage ? "400px" : undefined
           }}
         >
           {children}
@@ -139,8 +139,8 @@ export default function PageCard({
               width={imageToShow.maxWidth || maxImgPx}
               height={imageToShow.maxHeight || maxImgPx}
               style={{
-                maxWidth: "300px", // Fixed width instead of percentage
-                maxHeight: "300px", // Fixed height instead of percentage
+                maxWidth: "390px", // Increased from 300px to 390px (30% larger)
+                maxHeight: "390px", // Increased from 300px to 390px (30% larger)
                 width: "auto",
                 height: "auto",
                 minWidth: "200px", // Reasonable minimum
