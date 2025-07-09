@@ -151,9 +151,36 @@ export default function PageCard({
                 objectFit: "contain" as const,
                 display: "block"
               }}
-              onLoad={() => setImageLoaded(true)}
+              onLoad={() => {
+                setImageLoaded(true);
+                console.log('🖼️ Bottom image loaded successfully:', imageToShow.src);
+              }}
+              onError={(e) => {
+                console.error('❌ Bottom image failed to load:', imageToShow.src, e);
+              }}
               priority={false}
             />
+          </div>
+        )}
+        
+        {/* Debug info */}
+        {process.env.NODE_ENV === 'development' && imageToShow && (
+          <div style={{ 
+            position: 'fixed', 
+            top: '100px', 
+            right: '10px', 
+            background: 'rgba(0,0,0,0.8)', 
+            color: 'white', 
+            padding: '10px', 
+            borderRadius: '5px', 
+            fontSize: '12px',
+            zIndex: 9999
+          }}>
+            Image Debug:
+            <br />URL: {imageToShow.src}
+            <br />Show: {showImage.toString()}
+            <br />Loaded: {imageLoaded.toString()}
+            <br />Alt: {imageToShow.alt}
           </div>
         )}
       </div>
