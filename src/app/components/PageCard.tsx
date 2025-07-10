@@ -101,7 +101,7 @@ export default function PageCard({
         style={{ overflow: "visible" }} // Restore to visible for icon breaching
       >
         {icon && (
-          <div key="page-card-icon" className="icon absolute -top-4 -left-4 sm:-top-6 sm:-left-6 z-10 bg-white rounded-full shadow-lg p-3 sm:p-4 flex items-center justify-center">
+          <div key="page-card-icon" className="icon absolute -top-4 -left-4 sm:-top-6 sm:-left-6 z-10 bg-white rounded-full shadow-lg w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center">
             {icon}
           </div>
         )}
