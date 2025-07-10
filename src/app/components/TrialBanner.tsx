@@ -87,18 +87,17 @@ export default function TrialBanner({
         return false;
       }
       
-      // Only show banner if user has an active trial with trial_end date
-      if (accountData.trial_end && new Date() < new Date(accountData.trial_end)) {
+      // Only show banner for Grower plan users who are on an active trial and haven't paid
+      if (accountData.plan === 'grower' && 
+          accountData.trial_end && 
+          new Date() < new Date(accountData.trial_end) &&
+          !accountData.stripe_customer_id) {
         return true;
       }
       
-      // Show for users with no plan (completely new users)
-      if (!accountData.plan) {
-        return true;
-      }
-      
-      // DO NOT show for grower plan without trial_end 
-      // (these are likely downgrades, not new trials)
+      // Don't show for users with no plan (they need to select a plan first)
+      // Don't show for grower plan users who have already paid
+      // Don't show for expired trials
       return false;
     } else if (plan) {
       // Fallback to props if no account data
@@ -139,10 +138,10 @@ export default function TrialBanner({
           </div>
           <div>
             <p className="font-medium">
-              🎉 You're on a {plan || 'free'} trial! {timeRemaining}
+              🎉 You're on a {plan} trial! {timeRemaining}
             </p>
             <p className="text-sm opacity-90">
-              {plan ? 'Upgrade anytime to unlock all features and continue growing your business' : 'Choose a plan to unlock all features and continue growing your business'}
+              Upgrade anytime to unlock all features and continue growing your business
             </p>
           </div>
         </div>
