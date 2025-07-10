@@ -427,7 +427,7 @@ export default function PromptPages() {
                 <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">Prompt pages</h1>
                 <p className="text-gray-600 text-base max-w-md mt-0 mb-10">Create and manage your prompt pages and outreach efforts.</p>
               </div>
-              <div className="flex items-start pr-4 md:pr-6" style={{ alignSelf: "flex-start" }}>
+              <div className="flex items-start" style={{ alignSelf: "flex-start" }}>
                 <button
                   type="button"
                   className="bg-blue-100 text-slate-blue rounded font-semibold px-4 py-2 hover:bg-blue-200 transition whitespace-nowrap flex items-center gap-2"
