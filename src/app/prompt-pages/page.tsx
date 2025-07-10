@@ -825,7 +825,7 @@ export default function PromptPages() {
             <div className="p-6">
               <div className="text-center mb-6">
                 {/* Prompty Success Image */}
-                <div className="mb-6 flex justify-center">
+                <div className="mb-3 flex justify-center">
                   <img
                     src="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/small-prompty-success.png"
                     alt="Prompty Success"
@@ -833,7 +833,7 @@ export default function PromptPages() {
                   />
                 </div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  {postSaveData.isLocationCreation ? 'Location Created! 🎉' : 'Prompt Page Published! 🎉'}
+                  {postSaveData.isLocationCreation ? 'Location created! 🎉' : 'Prompt page published! 🎉'}
                 </h3>
                 <p className="text-sm text-gray-600">
                   {postSaveData.isLocationCreation 
@@ -857,31 +857,27 @@ export default function PromptPages() {
                   </button>
                 </div>
 
-                {/* Conditional SMS link */}
-                {postSaveData.phone && (
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-sm font-medium text-gray-700">Send SMS</span>
-                    <a
-                      href={`sms:${postSaveData.phone}?body=Hi ${postSaveData.first_name || 'there'}, I'd love to get your feedback! Please leave a review here: ${postSaveData.url}`}
-                      className="text-slate-blue hover:text-slate-blue/80 text-sm font-medium"
-                    >
-                      Send
-                    </a>
-                  </div>
-                )}
+                {/* SMS link */}
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <span className="text-sm font-medium text-gray-700">Send SMS</span>
+                  <a
+                    href={`sms:${postSaveData.phone || ''}?body=Hi ${postSaveData.first_name || 'there'}, I'd love to get your feedback! Please leave a review here: ${postSaveData.url}`}
+                    className="text-slate-blue hover:text-slate-blue/80 text-sm font-medium"
+                  >
+                    Send
+                  </a>
+                </div>
 
-                {/* Conditional Email link */}
-                {postSaveData.email && (
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-sm font-medium text-gray-700">Send Email</span>
-                    <a
-                      href={`mailto:${postSaveData.email}?subject=Please leave a review&body=Hi ${postSaveData.first_name || 'there'},%0D%0A%0D%0AI'd love to get your feedback! Please leave a review here: ${postSaveData.url}%0D%0A%0D%0AThank you!`}
-                      className="text-slate-blue hover:text-slate-blue/80 text-sm font-medium"
-                    >
-                      Send
-                    </a>
-                  </div>
-                )}
+                {/* Email link */}
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <span className="text-sm font-medium text-gray-700">Send Email</span>
+                  <a
+                    href={`mailto:${postSaveData.email || ''}?subject=Please leave a review&body=Hi ${postSaveData.first_name || 'there'},%0D%0A%0D%0AI'd love to get your feedback! Please leave a review here: ${postSaveData.url}%0D%0A%0D%0AThank you!`}
+                    className="text-slate-blue hover:text-slate-blue/80 text-sm font-medium"
+                  >
+                    Send
+                  </a>
+                </div>
 
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <span className="text-sm font-medium text-gray-700">View Prompt Page</span>
