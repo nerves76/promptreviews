@@ -424,7 +424,7 @@ export default function PromptPages() {
           <div className="flex flex-col gap-2">
             <div className="flex items-start justify-between mt-2 mb-4">
               <div className="flex flex-col mt-0 md:mt-[3px]">
-                <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">Prompt pages</h1>
+                <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-4">Prompt pages</h1>
                 <p className="text-gray-600 text-base max-w-md mt-0 mb-10">Create and manage your prompt pages and outreach efforts.</p>
               </div>
               <div className="flex items-start pr-4 md:pr-6" style={{ alignSelf: "flex-start" }}>
