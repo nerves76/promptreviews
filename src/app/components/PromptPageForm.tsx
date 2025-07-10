@@ -509,7 +509,7 @@ export default function PromptPageForm({
             {pageTitle || "Photo + Testimonial"}
           </h1>
           {/* Instructional text under header */}
-          <div className="text-base text-gray-700 -mt-2 mb-8 max-w-2xl">
+          <div className="text-base text-gray-700 -mt-2 mb-10 max-w-2xl">
             Grab a glowing testimonial and display it on your site using our
             widget or use it in your promotional materials.
           </div>
