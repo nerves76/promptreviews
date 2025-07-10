@@ -621,7 +621,7 @@ export default function DashboardContent({
                         <button
                           type="button"
                           onClick={handleCopyLink}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
+                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-purple-100 text-purple-800 rounded hover:bg-purple-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
                         >
                           <FaLink className="w-4 h-4" />
                           Copy link
@@ -635,9 +635,9 @@ export default function DashboardContent({
                               clientName: business?.name || "PromptReviews",
                             });
                           }}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-blue text-white rounded hover:bg-slate-blue/90 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
+                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-100 text-amber-800 rounded hover:bg-amber-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
                         >
-                          <MdDownload size={22} color="#fff" />
+                          <MdDownload size={22} color="#b45309" />
                           QR code
                         </button>
                         <button
@@ -661,7 +661,7 @@ export default function DashboardContent({
                             const message = `Hi,\n\nI'd love to get your feedback on ${businessName}. Please leave a review here: ${reviewUrl}\n\nThank you!`;
                             window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
                           }}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
+                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-orange-100 text-orange-800 rounded hover:bg-orange-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
                         >
                           Send Email
                         </button>

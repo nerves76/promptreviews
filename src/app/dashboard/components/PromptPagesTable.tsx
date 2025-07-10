@@ -317,7 +317,7 @@ export default function PromptPagesTable({
                     {!page.is_universal && page.email && (
                       <a
                         href={`mailto:${page.email}?subject=${encodeURIComponent("Quick Review Request")}&body=${encodeURIComponent(`Hi ${page.first_name || "[name]"}, do you have 1-3 minutes to leave a review for ${business?.name || "[Business]"}? I have a review you can use and everything. Positive reviews really help small business get found online. Thanks so much! ${window.location.origin}/r/${page.slug}`)}`}
-                        className="inline-flex items-center px-3 py-1.5 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap w-full sm:w-auto"
+                        className="inline-flex items-center px-3 py-1.5 bg-orange-100 text-orange-800 rounded hover:bg-orange-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap w-full sm:w-auto"
                       >
                         Send Email
                       </a>
@@ -325,7 +325,7 @@ export default function PromptPagesTable({
                     {!page.is_universal && (
                       <button
                         type="button"
-                        className="inline-flex items-center px-2 py-1.5 bg-slate-blue text-white rounded hover:bg-slate-blue/80 text-sm font-medium shadow h-9 align-middle whitespace-nowrap w-full sm:w-auto"
+                        className="inline-flex items-center px-2 py-1.5 bg-purple-100 text-purple-800 rounded hover:bg-purple-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap w-full sm:w-auto"
                         title="Copy link"
                         onClick={async () => {
                           try {
@@ -349,9 +349,9 @@ export default function PromptPagesTable({
                           clientName: page.first_name || "Customer",
                         });
                       }}
-                      className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-blue text-white rounded hover:bg-slate-blue/90 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
+                      className="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-100 text-amber-800 rounded hover:bg-amber-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
                     >
-                      <MdDownload size={22} color="#fff" />
+                      <MdDownload size={22} color="#b45309" />
                       QR code
                     </button>
                   </div>
