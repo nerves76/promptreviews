@@ -123,6 +123,7 @@ import {
   FaClipboard,
   FaClipboardList,
   FaClipboardCheck,
+  FaHorse,
 } from "react-icons/fa";
 import { IconType } from "react-icons";
 
@@ -212,7 +213,8 @@ export const FALLING_STARS_ICONS: {
   
   // Fashion & Accessories
   { key: "tshirt", label: "T-Shirt", icon: FaTshirt, color: "text-blue-500", category: "Fashion & Accessories" },
-  { key: "hat", label: "Hat", icon: FaHatCowboy, color: "text-amber-600", category: "Fashion & Accessories" },
+  { key: "hat", label: "Cowboy Hat", icon: FaHatCowboy, color: "text-amber-600", category: "Fashion & Accessories" },
+  { key: "horseshoe", label: "Horseshoe", icon: FaHorse, color: "text-amber-700", category: "Fashion & Accessories" },
   { key: "glasses", label: "Glasses", icon: FaGlasses, color: "text-indigo-500", category: "Fashion & Accessories" },
   
   // Nature & Outdoors
