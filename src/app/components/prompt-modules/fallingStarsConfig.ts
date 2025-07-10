@@ -124,6 +124,17 @@ import {
   FaClipboardList,
   FaClipboardCheck,
   FaHorse,
+  FaRainbow,
+  FaTransgender,
+  FaMars,
+  FaVenus,
+  FaGenderless,
+  FaNeuter,
+  FaUniversalAccess,
+  FaHandsHelping,
+  FaGlobe,
+  FaFist,
+  FaHandPeace,
 } from "react-icons/fa";
 import { IconType } from "react-icons";
 
@@ -306,6 +317,19 @@ export const FALLING_STARS_ICONS: {
   { key: "clipboard", label: "Clipboard", icon: FaClipboard, color: "text-gray-600", category: "Office & Writing" },
   { key: "clipboard-list", label: "Clipboard List", icon: FaClipboardList, color: "text-blue-600", category: "Office & Writing" },
   { key: "clipboard-check", label: "Clipboard Check", icon: FaClipboardCheck, color: "text-green-600", category: "Office & Writing" },
+  
+  // Diversity & Inclusion
+  { key: "rainbow", label: "Rainbow", icon: FaRainbow, color: "text-pink-500", category: "Diversity & Inclusion" },
+  { key: "transgender", label: "Transgender", icon: FaTransgender, color: "text-blue-500", category: "Diversity & Inclusion" },
+  { key: "mars", label: "Male Symbol", icon: FaMars, color: "text-blue-600", category: "Diversity & Inclusion" },
+  { key: "venus", label: "Female Symbol", icon: FaVenus, color: "text-pink-500", category: "Diversity & Inclusion" },
+  { key: "genderless", label: "Genderless", icon: FaGenderless, color: "text-purple-500", category: "Diversity & Inclusion" },
+  { key: "neuter", label: "Non-Binary", icon: FaNeuter, color: "text-yellow-500", category: "Diversity & Inclusion" },
+  { key: "universal-access", label: "Accessibility", icon: FaUniversalAccess, color: "text-blue-600", category: "Diversity & Inclusion" },
+  { key: "hands-helping", label: "Helping Hands", icon: FaHandsHelping, color: "text-green-600", category: "Diversity & Inclusion" },
+  { key: "globe", label: "Global Unity", icon: FaGlobe, color: "text-green-500", category: "Diversity & Inclusion" },
+  { key: "fist", label: "Solidarity", icon: FaFist, color: "text-purple-600", category: "Diversity & Inclusion" },
+  { key: "hand-peace", label: "Peace", icon: FaHandPeace, color: "text-blue-500", category: "Diversity & Inclusion" },
 ];
 
 // Export in the format expected by FallingStarsSection
