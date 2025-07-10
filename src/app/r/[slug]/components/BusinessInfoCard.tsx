@@ -20,6 +20,9 @@ interface BusinessProfile {
   card_transparency?: number;
   address_city?: string;
   address_state?: string;
+  card_inner_shadow?: boolean;
+  card_shadow_color?: string;
+  card_shadow_intensity?: number;
 }
 
 interface BusinessInfoCardProps {
@@ -35,6 +38,16 @@ export default function BusinessInfoCard({ businessProfile }: BusinessInfoCardPr
         color: businessProfile?.card_text || "#1A1A1A"
       }}
     >
+      {businessProfile?.card_inner_shadow && (
+        <div
+          className="pointer-events-none absolute inset-0 rounded-2xl"
+          style={{
+            boxShadow: `inset 0 0 32px 0 ${businessProfile.card_shadow_color || '#222222'}${Math.round((businessProfile.card_shadow_intensity || 0.2) * 255).toString(16).padStart(2, '0')}`,
+            borderRadius: '1rem',
+            zIndex: 1,
+          }}
+        />
+      )}
       {/* Business Logo - No drop-down animation */}
       <div
         className="absolute left-1/2 -translate-x-1/2 w-52 h-52 aspect-square flex items-center justify-center mb-10"

@@ -11,6 +11,11 @@ import { getFontClass } from '../utils/fontUtils';
 interface BusinessProfile {
   primary_font?: string;
   secondary_font?: string;
+  card_bg?: string;
+  card_text?: string;
+  card_inner_shadow?: boolean;
+  card_shadow_color?: string;
+  card_shadow_intensity?: number;
 }
 
 interface PromptPage {
@@ -38,7 +43,23 @@ export default function ProductModule({
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow p-8 mb-8 flex flex-col md:flex-row items-center md:items-start max-w-[1000px] mx-auto animate-slideup relative mt-12 gap-8">
+    <div 
+      className="rounded-2xl shadow p-8 mb-8 flex flex-col md:flex-row items-center md:items-start max-w-[1000px] mx-auto animate-slideup relative mt-12 gap-8"
+      style={{
+        background: businessProfile?.card_bg || "#F9FAFB",
+        color: businessProfile?.card_text || "#1A1A1A"
+      }}
+    >
+      {businessProfile?.card_inner_shadow && (
+        <div
+          className="pointer-events-none absolute inset-0 rounded-2xl"
+          style={{
+            boxShadow: `inset 0 0 32px 0 ${businessProfile.card_shadow_color || '#222222'}${Math.round((businessProfile.card_shadow_intensity || 0.2) * 255).toString(16).padStart(2, '0')}`,
+            borderRadius: '1rem',
+            zIndex: 1,
+          }}
+        />
+      )}
       {promptPage.product_photo && (
         <div className="flex-shrink-0 mb-4 md:mb-0">
           <img

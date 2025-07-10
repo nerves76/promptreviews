@@ -1674,10 +1674,20 @@ export default function PromptPage() {
                 </div>
               )}
               {/* Website and Social Media Card */}
-              <div className="mb-8 rounded-2xl shadow p-8 animate-slideup" style={{
+              <div className="mb-8 rounded-2xl shadow p-8 animate-slideup relative" style={{
                 background: businessProfile?.card_bg || "#F9FAFB",
                 color: businessProfile?.card_text || "#1A1A1A"
               }}>
+                {businessProfile?.card_inner_shadow && (
+                  <div
+                    className="pointer-events-none absolute inset-0 rounded-2xl"
+                    style={{
+                      boxShadow: `inset 0 0 32px 0 ${businessProfile.card_shadow_color || '#222222'}${Math.round((businessProfile.card_shadow_intensity || 0.2) * 255).toString(16).padStart(2, '0')}`,
+                      borderRadius: '1rem',
+                      zIndex: 1,
+                    }}
+                  />
+                )}
                 <div className="flex flex-col md:flex-row gap-8 w-full">
                   {/* Website Section (left column) */}
                   {businessProfile?.business_website && (
