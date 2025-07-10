@@ -424,7 +424,7 @@ export default function PromptPages() {
           <div className="flex flex-col gap-2">
             <div className="flex items-start justify-between mt-2 mb-4">
               <div className="flex flex-col mt-0 md:mt-[3px]">
-                <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-4">Prompt pages</h1>
+                <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">Prompt pages</h1>
                 <p className="text-gray-600 text-base max-w-md mt-0 mb-10">Create and manage your prompt pages and outreach efforts.</p>
               </div>
               <div className="flex items-start pr-4 md:pr-6" style={{ alignSelf: "flex-start" }}>
@@ -440,7 +440,7 @@ export default function PromptPages() {
             </div>
             {/* Universal Prompt Page Card (dashboard port) */}
             {universalPromptPage && (
-              <div className="rounded-lg p-6 bg-blue-50 border border-blue-200 flex items-center gap-4 shadow relative my-8">
+              <div className="rounded-lg p-6 bg-blue-50 border border-blue-200 flex items-center gap-4 shadow relative mt-4">
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
