@@ -506,7 +506,7 @@ export default function PromptPageForm({
             )}
           </div>
           <div className="flex flex-col mt-0 md:mt-[3px]">
-            <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
+            <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-4">
               {pageTitle || "Photo + Testimonial"}
             </h1>
             <p className="text-gray-600 text-base max-w-md mt-0 mb-10">
@@ -718,7 +718,7 @@ export default function PromptPageForm({
         }}
       >
         <div className="flex flex-col mt-0 md:mt-[3px]">
-          <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
+          <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-4">
             {mode === "create" ? "Create service prompt page" : "Edit service prompt page"}
           </h1>
           <p className="text-gray-600 text-base max-w-md mt-0 mb-10">
@@ -1248,7 +1248,7 @@ export default function PromptPageForm({
       }}
     >
       <div className="flex flex-col mt-0 md:mt-[3px]">
-        <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
+        <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-4">
           {pageTitle}
         </h1>
         <p className="text-gray-600 text-base max-w-md mt-0 mb-10">
