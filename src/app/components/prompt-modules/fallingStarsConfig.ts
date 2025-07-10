@@ -133,7 +133,7 @@ import {
   FaUniversalAccess,
   FaHandsHelping,
   FaGlobe,
-  FaFist,
+  FaHandRock,
   FaHandPeace,
 } from "react-icons/fa";
 import { IconType } from "react-icons";
@@ -328,7 +328,7 @@ export const FALLING_STARS_ICONS: {
   { key: "universal-access", label: "Accessibility", icon: FaUniversalAccess, color: "text-blue-600", category: "Diversity & Inclusion" },
   { key: "hands-helping", label: "Helping Hands", icon: FaHandsHelping, color: "text-green-600", category: "Diversity & Inclusion" },
   { key: "globe", label: "Global Unity", icon: FaGlobe, color: "text-green-500", category: "Diversity & Inclusion" },
-  { key: "fist", label: "Solidarity", icon: FaFist, color: "text-purple-600", category: "Diversity & Inclusion" },
+  { key: "fist", label: "Solidarity", icon: FaHandRock, color: "text-purple-600", category: "Diversity & Inclusion" },
   { key: "hand-peace", label: "Peace", icon: FaHandPeace, color: "text-blue-500", category: "Diversity & Inclusion" },
 ];
 
