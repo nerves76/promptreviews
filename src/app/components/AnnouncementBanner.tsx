@@ -99,7 +99,7 @@ export default function AnnouncementBanner() {
               </svg>
             </span>
             <div className="ml-3">
-              <p className="text-sm font-medium text-blue-800">
+              <p className="text-sm font-medium text-slate-blue">
                 {announcement.message}
               </p>
               {announcement.button_text && announcement.button_url && (
@@ -107,7 +107,7 @@ export default function AnnouncementBanner() {
                   href={announcement.button_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs text-blue-600 hover:text-blue-500 underline mt-1 inline-block"
+                  className="text-xs text-slate-blue hover:text-slate-blue/80 underline mt-1 inline-block"
                 >
                   {announcement.button_text}
                 </a>
@@ -116,7 +116,7 @@ export default function AnnouncementBanner() {
           </div>
           <button
             onClick={handleDismiss}
-            className="flex-shrink-0 text-blue-600 hover:text-blue-800 transition-colors"
+            className="flex-shrink-0 text-slate-blue hover:text-slate-blue/80 transition-colors"
           >
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
