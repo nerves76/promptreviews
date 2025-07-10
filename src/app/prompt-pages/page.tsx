@@ -440,7 +440,7 @@ export default function PromptPages() {
             </div>
             {/* Universal Prompt Page Card (dashboard port) */}
             {universalPromptPage && (
-              <div className="rounded-lg p-6 bg-blue-50 border border-blue-200 flex items-center gap-4 shadow relative mt-4">
+              <div className="rounded-lg p-6 bg-blue-50 border border-blue-200 flex items-center gap-4 shadow relative mt-8">
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
@@ -533,7 +533,7 @@ export default function PromptPages() {
             
             {/* Tab Navigation - Only show for Maven tier users with location access */}
             {account && hasLocationAccess(account.plan) && (
-              <div className="my-8">
+              <div className="my-12">
                 <div className="border-b border-gray-200">
                   <nav className="-mb-px flex space-x-8" aria-label="Tabs">
                     <button
@@ -571,7 +571,7 @@ export default function PromptPages() {
             
             {/* Business Locations Section - Only show for Maven tier when locations tab is active */}
             {account && hasLocationAccess(account.plan) && activeTab === 'locations' && (
-              <div className="my-8">
+              <div className="my-12">
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <h2 className="text-2xl font-bold text-slate-blue flex items-center gap-2">
@@ -712,14 +712,14 @@ export default function PromptPages() {
               logoUrl={qrModal?.logoUrl}
             />
             
-            {/* Individual Prompt Pages Section - Show for non-Maven users OR when custom tab is active */}
+            {/* Custom Prompt Pages Section - Show for non-Maven users OR when custom tab is active */}
             {(!account || !hasLocationAccess(account.plan) || activeTab === 'custom') && (
-              <div className="my-8">
+              <div className="my-12">
                 <div className="flex items-center justify-between mb-[75px]">
                   <div>
                     <h2 className="text-2xl font-bold text-slate-blue mb-2 flex items-center gap-3">
                       <FaStar className="w-7 h-7 text-slate-blue" />
-                      {account && hasLocationAccess(account.plan) ? 'Custom Prompt Pages' : 'Individual Prompt Pages'}
+                      Custom Prompt Pages
                     </h2>
                     <p className="text-sm text-gray-600">
                       These Prompt Pages are great for personlized outreach. For best results, send as a text.
