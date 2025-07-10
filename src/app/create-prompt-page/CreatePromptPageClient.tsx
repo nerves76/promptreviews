@@ -707,92 +707,116 @@ export default function CreatePromptPageClient() {
       </div>
     );
   }
-  if (formData.review_type === "service") {
-    console.log("[DEBUG] Service page render - createdSlug:", createdSlug, "step:", step);
-    // Ensure all required fields for service are present
-    const serviceInitialData = {
-      ...initialFormData,
-      ...formData,
-      review_type: "service",
-      // Ensure all required fields for PromptPageForm are present
-      offer_enabled: formData.offer_enabled ?? false,
-      offer_title: formData.offer_title ?? "",
-      offer_body: formData.offer_body ?? "",
-      offer_url: formData.offer_url ?? "",
-      emojiSentimentEnabled: formData.emojiSentimentEnabled ?? false,
-      emojiSentimentQuestion:
-        formData.emojiSentimentQuestion ?? "How was your experience?",
-      emojiFeedbackMessage:
-        formData.emojiFeedbackMessage ??
-        "We value your feedback! Let us know how we can do better.",
-      emojiThankYouMessage:
-        formData.emojiThankYouMessage ?? initialFormData.emojiThankYouMessage,
-      emojiLabels: formData.emojiLabels ?? [
-        "Excellent",
-        "Satisfied",
-        "Neutral",
-        "Unsatisfied",
-        "Frustrated",
-      ],
-      review_platforms: formData.review_platforms ?? [],
-      fallingEnabled: formData.fallingEnabled ?? false,
-      fallingIcon: formData.falling_icon ?? "star",
-      aiButtonEnabled: formData.aiButtonEnabled ?? true,
-    };
+
+  // Get the appropriate icon based on review type
+  const getPageIcon = (reviewType: string) => {
+    switch (reviewType) {
+      case "service":
+        return <FaHandsHelping className="w-9 h-9 text-slate-blue" />;
+      case "product":
+        return <FaBoxOpen className="w-9 h-9 text-slate-blue" />;
+      case "photo":
+        return <FaCamera className="w-9 h-9 text-slate-blue" />;
+      default:
+        return undefined; // No icon for fallback
+    }
+  };
+
+  // Get the appropriate form component based on review type
+  const getFormComponent = () => {
+    if (formData.review_type === "service") {
+      console.log("[DEBUG] Service page render - createdSlug:", createdSlug, "step:", step);
+      // Ensure all required fields for service are present
+      const serviceInitialData = {
+        ...initialFormData,
+        ...formData,
+        review_type: "service",
+        // Ensure all required fields for PromptPageForm are present
+        offer_enabled: formData.offer_enabled ?? false,
+        offer_title: formData.offer_title ?? "",
+        offer_body: formData.offer_body ?? "",
+        offer_url: formData.offer_url ?? "",
+        emojiSentimentEnabled: formData.emojiSentimentEnabled ?? false,
+        emojiSentimentQuestion:
+          formData.emojiSentimentQuestion ?? "How was your experience?",
+        emojiFeedbackMessage:
+          formData.emojiFeedbackMessage ??
+          "We value your feedback! Let us know how we can do better.",
+        emojiThankYouMessage:
+          formData.emojiThankYouMessage ?? initialFormData.emojiThankYouMessage,
+        emojiLabels: formData.emojiLabels ?? [
+          "Excellent",
+          "Satisfied",
+          "Neutral",
+          "Unsatisfied",
+          "Frustrated",
+        ],
+        review_platforms: formData.review_platforms ?? [],
+        fallingEnabled: formData.fallingEnabled ?? false,
+        fallingIcon: formData.falling_icon ?? "star",
+        aiButtonEnabled: formData.aiButtonEnabled ?? true,
+      };
+      return (
+        <PromptPageForm
+          mode="create"
+          initialData={serviceInitialData}
+          onSave={handleStep1Submit}
+          onPublish={handleStep2Submit}
+          pageTitle="Create service prompt page"
+          supabase={supabase}
+          businessProfile={businessProfile}
+          step={step}
+          onStepChange={setStep}
+        />
+      );
+    }
+    
+    if (formData.review_type === "product") {
+      return (
+        <ProductPromptPageForm
+          mode="create"
+          initialData={{ ...formData, review_type: "product" }}
+          onSave={handleStep1Submit}
+          onPublish={handleStep2Submit}
+          pageTitle="Create product prompt page"
+          supabase={supabase}
+          businessProfile={businessProfile}
+        />
+      );
+    }
+    
+    if (formData.review_type === "photo") {
+      return (
+        <PromptPageForm
+          mode="create"
+          initialData={formData}
+          onSave={handleStep1Submit}
+          onPublish={handleStep2Submit}
+          pageTitle="Photo + Testimonial"
+          supabase={supabase}
+          businessProfile={businessProfile}
+          step={step}
+          onStepChange={setStep}
+        />
+      );
+    }
+    
+    // Fallback for when no type is selected
     return (
-      <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
-        <PageCard icon={<FaHandsHelping className="w-9 h-9 text-slate-blue" />}>
-          <PromptPageForm
-            mode="create"
-            initialData={serviceInitialData}
-            onSave={handleStep1Submit}
-            onPublish={handleStep2Submit}
-            pageTitle="Create service prompt page"
-            supabase={supabase}
-            businessProfile={businessProfile}
-            step={step}
-            onStepChange={setStep}
-          />
-        </PageCard>
-      </div>
+      <PromptPageForm
+        mode="create"
+        initialData={formData}
+        onSave={handleStep1Submit}
+        onPublish={handleStep2Submit}
+        pageTitle="Create Your Prompt Page"
+        supabase={supabase}
+        businessProfile={businessProfile}
+        step={step}
+        onStepChange={setStep}
+      />
     );
-  }
-  if (formData.review_type === "product") {
-    return (
-      <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
-        <PageCard icon={<FaBoxOpen className="w-9 h-9 text-slate-blue" />}>
-          <ProductPromptPageForm
-            mode="create"
-            initialData={{ ...formData, review_type: "product" }}
-            onSave={handleStep1Submit}
-            onPublish={handleStep2Submit}
-            pageTitle="Create product prompt page"
-            supabase={supabase}
-            businessProfile={businessProfile}
-          />
-        </PageCard>
-      </div>
-    );
-  }
-  if (formData.review_type === "photo") {
-    return (
-      <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
-        <PageCard icon={<FaCamera className="w-9 h-9 text-slate-blue" />}>
-          <PromptPageForm
-            mode="create"
-            initialData={formData}
-            onSave={handleStep1Submit}
-            onPublish={handleStep2Submit}
-            pageTitle="Photo + Testimonial"
-            supabase={supabase}
-            businessProfile={businessProfile}
-            step={step}
-            onStepChange={setStep}
-          />
-        </PageCard>
-      </div>
-    );
-  }
+  };
+
   return (
     <>
       {mounted && showTypeModal && (
@@ -878,18 +902,8 @@ export default function CreatePromptPageClient() {
       )}
 
       <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
-        <PageCard>
-          <PromptPageForm
-            mode="create"
-            initialData={formData}
-            onSave={handleStep1Submit}
-            onPublish={handleStep2Submit}
-            pageTitle="Create Your Prompt Page"
-            supabase={supabase}
-            businessProfile={businessProfile}
-            step={step}
-            onStepChange={setStep}
-          />
+        <PageCard icon={getPageIcon(formData.review_type)}>
+          {getFormComponent()}
         </PageCard>
       </div>
     </>
