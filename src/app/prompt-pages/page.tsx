@@ -425,7 +425,7 @@ export default function PromptPages() {
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
               <div>
                 <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">Prompt pages</h1>
-                <p className="text-gray-600 text-base max-w-2xl mb-6">Create and manage your prompt pages and outreach efforts.</p>
+                <p className="text-gray-600 text-base max-w-2xl mb-10">Create and manage your prompt pages and outreach efforts.</p>
               </div>
               <div className="flex gap-2 mt-2 md:mt-0">
                 <button
