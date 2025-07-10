@@ -371,16 +371,16 @@ const ProductPromptPageForm = forwardRef<any, ProductPromptPageFormProps>(
           }}
         >
           {/* Main Title and Subcopy */}
-          <SectionHeader
-            icon={null}
-            title={
-              product_name
+          <div className="flex flex-col mt-0 md:mt-[3px] mb-4">
+            <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
+              {product_name
                 ? `Edit Product Prompt Page`
-                : `Create Product Prompt Page`
-            }
-            subCopy="Let's get a review from a customer who loves your product."
-            className="mb-8 mt-2"
-          />
+                : `Create Product Prompt Page`}
+            </h1>
+            <p className="text-gray-600 text-base max-w-md mt-0 mb-10">
+              Let's get a review from a customer who loves your product.
+            </p>
+          </div>
           {/* Product Photo Upload - always visible for product pages */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">

@@ -428,7 +428,7 @@ export default function UploadContactsPage() {
       <div className="w-full mx-auto relative" style={{ maxWidth: 1000 }}>
         <div className="flex items-center justify-between mb-8">
           <div className="flex flex-col">
-            <h1 className="text-4xl font-bold text-slate-blue">Contacts</h1>
+                            <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">Contacts</h1>
           </div>
           <button
             onClick={() => setShowUploadModal(true)}

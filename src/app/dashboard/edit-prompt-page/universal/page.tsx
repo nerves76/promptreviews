@@ -302,15 +302,17 @@ export default function UniversalEditPromptPage() {
       icon={<FaGlobe className="w-9 h-9 text-slate-blue" />}
       topRightAction={actionButtons}
     >
-      <h1 className="text-3xl font-bold text-slate-blue mb-2 mt-2">
-        Universal prompt page
-      </h1>
-      <p className="text-gray-600 mb-8">
-        The universal prompt page is designed to be shared with many.
-        <br />
-        It is a perfect choice for displaying a QR code in your place of
-        business.
-      </p>
+      <div className="flex flex-col mt-0 md:mt-[3px] mb-4">
+        <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
+          Universal prompt page
+        </h1>
+        <p className="text-gray-600 text-base max-w-md mt-0 mb-10">
+          The universal prompt page is designed to be shared with many.
+          <br />
+          It is a perfect choice for displaying a QR code in your place of
+          business.
+        </p>
+      </div>
       <div className="pb-16">
         {isLoading && (
           <div className="flex items-center justify-center py-8">
