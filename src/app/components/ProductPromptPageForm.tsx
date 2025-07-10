@@ -499,13 +499,14 @@ export default function ProductPromptPageForm({
         }
       }}
     >
-      <SectionHeader
-        icon={null}
-        title={pageTitle}
-        subCopy="Let's get a review from a customer who loves your product."
-        className="mb-8 mt-2"
-        titleClassName="text-4xl font-bold text-slate-blue"
-      />
+      <div className="flex flex-col mt-0 md:mt-[3px] mb-4">
+        <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
+          {pageTitle}
+        </h1>
+        <p className="text-gray-600 text-base max-w-md mt-0 mb-10">
+          Let's get a review from a customer who loves your product.
+        </p>
+      </div>
       {/* Top right button for step 1 (both create and edit) */}
       {step === 1 && (
         <div className="absolute top-4 right-4 z-20 flex gap-2">

@@ -286,7 +286,7 @@ export default function WidgetPage() {
           }
         >
           <div className="mb-6">
-            <h2 className="text-4xl font-bold text-slate-blue mb-2">Your widgets</h2>
+            <h2 className="text-4xl font-bold text-slate-blue mt-0 mb-2">Your widgets</h2>
             <p className="text-gray-600">Create up to three widgets and embed them on your site.</p>
           </div>
           <WidgetList
