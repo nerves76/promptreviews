@@ -527,7 +527,7 @@ export default function ReviewsPage() {
             <FaStar className="w-8 h-8 text-slate-blue" />
           </div>
         </div>
-        <h1 className="text-4xl font-bold flex items-center gap-3 text-slate-blue pl-1.5 pt-2">
+        <h1 className="text-4xl font-bold flex items-center gap-3 text-slate-blue pl-1.5 pt-2 mt-0 mb-2">
           Reviews
         </h1>
         <div className="flex justify-end w-full sm:w-auto">

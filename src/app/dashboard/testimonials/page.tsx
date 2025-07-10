@@ -389,7 +389,7 @@ export default function ReviewsPage() {
 
   return (
     <PageCard>
-      <h1 className="text-3xl font-bold mb-8 flex items-center gap-3 text-slate-blue">
+              <h1 className="text-4xl font-bold mt-0 mb-2 flex items-center gap-3 text-slate-blue">
         <FaStar className="w-7 h-7 text-slate-blue" />
         Reviews
       </h1>
