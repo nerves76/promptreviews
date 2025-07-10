@@ -440,7 +440,7 @@ export default function PromptPages() {
             </div>
             {/* Universal Prompt Page Card (dashboard port) */}
             {universalPromptPage && (
-              <div className="rounded-lg p-6 bg-blue-50 border border-blue-200 flex items-center gap-4 shadow relative mt-8">
+              <div className="rounded-lg p-6 bg-blue-50 border border-blue-200 flex items-center gap-4 shadow relative mt-2">
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
