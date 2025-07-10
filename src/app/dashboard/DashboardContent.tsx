@@ -661,7 +661,7 @@ export default function DashboardContent({
                             const message = `Hi,\n\nI'd love to get your feedback on ${businessName}. Please leave a review here: ${reviewUrl}\n\nThank you!`;
                             window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
                           }}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-orange-100 text-orange-800 rounded hover:bg-orange-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
+                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
                         >
                           Send Email
                         </button>

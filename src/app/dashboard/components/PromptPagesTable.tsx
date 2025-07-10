@@ -143,8 +143,8 @@ export default function PromptPagesTable({
           <button
             className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors
               ${selectedTab === "draft"
-                ? "border-slate-blue bg-white text-slate-blue shadow-sm z-10"
-                : "border-transparent bg-slate-blue text-white hover:bg-slate-blue/90"}
+                ? "border-blue-500 bg-white text-blue-600 shadow-sm z-10"
+                : "border-transparent bg-gray-500 text-white hover:bg-gray-600"}
             `}
             onClick={() => setSelectedTab("draft")}
           >
@@ -153,8 +153,8 @@ export default function PromptPagesTable({
           <button
             className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors
               ${selectedTab === "in_queue"
-                ? "border-slate-blue bg-white text-slate-blue shadow-sm z-10"
-                : "border-transparent bg-slate-blue text-white hover:bg-slate-blue/90"}
+                ? "border-blue-500 bg-white text-blue-600 shadow-sm z-10"
+                : "border-transparent bg-gray-500 text-white hover:bg-gray-600"}
             `}
             onClick={() => setSelectedTab("in_queue")}
           >
@@ -163,8 +163,8 @@ export default function PromptPagesTable({
           <button
             className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors
               ${selectedTab === "in_progress"
-                ? "border-slate-blue bg-white text-slate-blue shadow-sm z-10"
-                : "border-transparent bg-slate-blue text-white hover:bg-slate-blue/90"}
+                ? "border-blue-500 bg-white text-blue-600 shadow-sm z-10"
+                : "border-transparent bg-gray-500 text-white hover:bg-gray-600"}
             `}
             onClick={() => setSelectedTab("in_progress")}
           >
@@ -173,8 +173,8 @@ export default function PromptPagesTable({
           <button
             className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors
               ${selectedTab === "complete"
-                ? "border-slate-blue bg-white text-slate-blue shadow-sm z-10"
-                : "border-transparent bg-slate-blue text-white hover:bg-slate-blue/90"}
+                ? "border-blue-500 bg-white text-blue-600 shadow-sm z-10"
+                : "border-transparent bg-gray-500 text-white hover:bg-gray-600"}
             `}
             onClick={() => setSelectedTab("complete")}
           >
@@ -317,7 +317,7 @@ export default function PromptPagesTable({
                     {!page.is_universal && page.email && (
                       <a
                         href={`mailto:${page.email}?subject=${encodeURIComponent("Quick Review Request")}&body=${encodeURIComponent(`Hi ${page.first_name || "[name]"}, do you have 1-3 minutes to leave a review for ${business?.name || "[Business]"}? I have a review you can use and everything. Positive reviews really help small business get found online. Thanks so much! ${window.location.origin}/r/${page.slug}`)}`}
-                        className="inline-flex items-center px-3 py-1.5 bg-orange-100 text-orange-800 rounded hover:bg-orange-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap w-full sm:w-auto"
+                        className="inline-flex items-center px-3 py-1.5 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap w-full sm:w-auto"
                       >
                         Send Email
                       </a>

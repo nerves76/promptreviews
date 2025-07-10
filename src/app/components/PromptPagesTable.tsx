@@ -143,8 +143,8 @@ export default function PromptPagesTable({
           <button
             className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors
               ${selectedTab === "draft"
-                ? "border-slate-blue bg-white text-slate-blue shadow-sm z-10"
-                : "border-transparent bg-slate-blue text-white hover:bg-slate-blue/90"}
+                ? "border-blue-500 bg-white text-blue-600 shadow-sm z-10"
+                : "border-transparent bg-gray-500 text-white hover:bg-gray-600"}
             `}
             onClick={() => setSelectedTab("draft")}
           >
@@ -153,8 +153,8 @@ export default function PromptPagesTable({
           <button
             className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors
               ${selectedTab === "in_queue"
-                ? "border-slate-blue bg-white text-slate-blue shadow-sm z-10"
-                : "border-transparent bg-slate-blue text-white hover:bg-slate-blue/90"}
+                ? "border-blue-500 bg-white text-blue-600 shadow-sm z-10"
+                : "border-transparent bg-gray-500 text-white hover:bg-gray-600"}
             `}
             onClick={() => setSelectedTab("in_queue")}
           >
@@ -163,8 +163,8 @@ export default function PromptPagesTable({
           <button
             className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors
               ${selectedTab === "in_progress"
-                ? "border-slate-blue bg-white text-slate-blue shadow-sm z-10"
-                : "border-transparent bg-slate-blue text-white hover:bg-slate-blue/90"}
+                ? "border-blue-500 bg-white text-blue-600 shadow-sm z-10"
+                : "border-transparent bg-gray-500 text-white hover:bg-gray-600"}
             `}
             onClick={() => setSelectedTab("in_progress")}
           >
@@ -173,8 +173,8 @@ export default function PromptPagesTable({
           <button
             className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors
               ${selectedTab === "complete"
-                ? "border-slate-blue bg-white text-slate-blue shadow-sm z-10"
-                : "border-transparent bg-slate-blue text-white hover:bg-slate-blue/90"}
+                ? "border-blue-500 bg-white text-blue-600 shadow-sm z-10"
+                : "border-transparent bg-gray-500 text-white hover:bg-gray-600"}
             `}
             onClick={() => setSelectedTab("complete")}
           >

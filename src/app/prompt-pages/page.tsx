@@ -515,7 +515,7 @@ export default function PromptPages() {
                           const message = `Hi,\n\nI'd love to get your feedback on ${businessName}. Please leave a review here: ${reviewUrl}\n\nThank you!`;
                           window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
                         }}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-orange-100 text-orange-800 rounded hover:bg-orange-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
                       >
                         Send Email
                       </button>
@@ -541,7 +541,7 @@ export default function PromptPages() {
                       onClick={() => setActiveTab('locations')}
                       className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
                         activeTab === 'locations'
-                          ? 'border-slate-blue text-slate-blue'
+                          ? 'border-blue-500 text-blue-600'
                           : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                       }`}
                     >
@@ -555,7 +555,7 @@ export default function PromptPages() {
                       onClick={() => setActiveTab('custom')}
                       className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
                         activeTab === 'custom'
-                          ? 'border-slate-blue text-slate-blue'
+                          ? 'border-blue-500 text-blue-600'
                           : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                       }`}
                     >
