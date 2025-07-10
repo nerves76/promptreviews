@@ -116,7 +116,7 @@ export default function QuoteDisplay({
       <div className="border-2 border-white rounded-lg p-6 shadow-lg w-full md:min-w-[800px] md:max-w-[800px]">
         <div className="text-center">
           {/* Quote Text */}
-          <blockquote className="text-lg font-medium text-white mb-2">
+          <blockquote className="text-xl font-medium text-white mb-2">
             "{currentQuote.text}"
           </blockquote>
 
