@@ -505,13 +505,13 @@ export default function PromptPageForm({
               </button>
             )}
           </div>
-          <h1 className="text-4xl font-bold mb-4 flex items-center gap-3 text-slate-blue">
-            {pageTitle || "Photo + Testimonial"}
-          </h1>
-          {/* Instructional text under header */}
-          <div className="text-base text-gray-700 -mt-2 mb-10 max-w-2xl">
-            Grab a glowing testimonial and display it on your site using our
-            widget or use it in your promotional materials.
+          <div className="flex flex-col mt-0 md:mt-[3px]">
+            <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
+              {pageTitle || "Photo + Testimonial"}
+            </h1>
+            <p className="text-gray-600 text-base max-w-md mt-0 mb-10">
+              Grab a glowing testimonial and display it on your site using our widget or use it in your promotional materials.
+            </p>
           </div>
           {/* Standard section header for customer info */}
           <div className="mb-6 flex items-center gap-3">
@@ -717,9 +717,14 @@ export default function PromptPageForm({
           }
         }}
       >
-        <h1 className="text-4xl font-bold mb-10 mt-2 text-slate-blue">
-          {mode === "create" ? "Create service prompt page" : "Edit service prompt page"}
-        </h1>
+        <div className="flex flex-col mt-0 md:mt-[3px]">
+          <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
+            {mode === "create" ? "Create service prompt page" : "Edit service prompt page"}
+          </h1>
+          <p className="text-gray-600 text-base max-w-md mt-0 mb-10">
+            Create a personalized prompt page to collect reviews from your service customers.
+          </p>
+        </div>
         {/* Top right button group */}
         <div className="absolute top-4 right-8 z-20 flex gap-2">
           {step === 1 ? (
@@ -1242,9 +1247,14 @@ export default function PromptPageForm({
         });
       }}
     >
-      <h1 className="text-4xl font-bold mb-10 flex items-center gap-3 text-slate-blue">
-        {pageTitle}
-      </h1>
+      <div className="flex flex-col mt-0 md:mt-[3px]">
+        <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
+          {pageTitle}
+        </h1>
+        <p className="text-gray-600 text-base max-w-md mt-0 mb-10">
+          Create your prompt page to collect reviews and testimonials from customers.
+        </p>
+      </div>
 
       <div>
         {step === 1 ? (
