@@ -422,12 +422,12 @@ export default function PromptPages() {
       <div className="min-h-screen flex flex-col items-start px-4 sm:px-0">
         <PageCard icon={<span className="text-3xl font-bold align-middle text-slate-blue" style={{ fontFamily: 'Inter, sans-serif' }}>[P]</span>}>
           <div className="flex flex-col gap-2">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-              <div>
+            <div className="flex items-start justify-between mt-2 mb-4">
+              <div className="flex flex-col mt-0 md:mt-[3px]">
                 <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">Prompt pages</h1>
-                <p className="text-gray-600 text-base max-w-2xl mb-10">Create and manage your prompt pages and outreach efforts.</p>
+                <p className="text-gray-600 text-base max-w-md mt-0 mb-10">Create and manage your prompt pages and outreach efforts.</p>
               </div>
-              <div className="flex gap-2 mt-2 md:mt-0">
+              <div className="flex items-start pr-4 md:pr-6" style={{ alignSelf: "flex-start" }}>
                 <button
                   type="button"
                   className="bg-blue-100 text-slate-blue rounded font-semibold px-4 py-2 hover:bg-blue-200 transition whitespace-nowrap flex items-center gap-2"
