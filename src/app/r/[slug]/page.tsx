@@ -1684,7 +1684,7 @@ export default function PromptPage() {
                     style={{
                       boxShadow: `inset 0 0 32px 0 ${businessProfile.card_shadow_color || '#222222'}${Math.round((businessProfile.card_shadow_intensity || 0.2) * 255).toString(16).padStart(2, '0')}`,
                       borderRadius: '1rem',
-                      zIndex: 1,
+                      zIndex: 0,
                     }}
                   />
                 )}
