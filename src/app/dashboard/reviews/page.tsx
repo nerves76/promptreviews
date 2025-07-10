@@ -521,15 +521,20 @@ export default function ReviewsPage() {
   return (
     <PageCard>
       {/* Title and Search Row */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-16 w-full gap-2 relative">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-16 w-full gap-2 relative">
         <div className="absolute z-10" style={{ left: "-69px", top: "-37px" }}>
-          <div className="rounded-full bg-white w-16 h-16 flex items-center justify-center shadow-lg">
-            <FaStar className="w-8 h-8 text-slate-blue" />
+          <div className="rounded-full bg-white w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center shadow-lg">
+            <FaStar className="w-6 h-6 sm:w-7 sm:h-7 text-slate-blue" />
           </div>
         </div>
-        <h1 className="text-4xl font-bold flex items-center gap-3 text-slate-blue pl-1.5 pt-2 mt-0 mb-2">
-          Reviews
-        </h1>
+        <div className="flex flex-col mt-0 md:mt-[3px]">
+          <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
+            Reviews
+          </h1>
+          <p className="text-gray-600 text-base max-w-md mt-0 mb-10">
+            Manage and track all your customer reviews in one place.
+          </p>
+        </div>
         <div className="flex justify-end w-full sm:w-auto">
           <div className="relative w-full max-w-xs">
             <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400 pointer-events-none">
