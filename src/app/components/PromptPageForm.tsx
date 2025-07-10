@@ -1242,7 +1242,7 @@ export default function PromptPageForm({
         });
       }}
     >
-      <h1 className="text-4xl font-bold mb-8 flex items-center gap-3 text-slate-blue">
+      <h1 className="text-4xl font-bold mb-10 flex items-center gap-3 text-slate-blue">
         {pageTitle}
       </h1>
 
