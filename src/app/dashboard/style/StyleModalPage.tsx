@@ -113,6 +113,28 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
   const [saving, setSaving] = React.useState(false);
   const [success, setSuccess] = React.useState(false);
   
+  // Helper function to validate hex color
+  const isValidHexColor = (hex: string): boolean => {
+    return /^#[0-9A-F]{6}$/i.test(hex);
+  };
+
+  // Helper function to handle hex input changes
+  const handleHexInputChange = (field: string, value: string) => {
+    // Allow typing # and partial hex codes
+    if (value.startsWith('#') && value.length <= 7) {
+      setSettings(s => ({ ...s, [field]: value }));
+      
+      // Only validate and update if it's a complete hex code
+      if (value.length === 7 && isValidHexColor(value)) {
+        setSettings(s => ({ ...s, [field]: value.toUpperCase() }));
+      }
+    } else if (value.length === 6 && /^[0-9A-F]+$/i.test(value)) {
+      // If user types without #, add it
+      const hexValue = '#' + value.toUpperCase();
+      setSettings(s => ({ ...s, [field]: hexValue }));
+    }
+  };
+
   React.useEffect(() => {
     if (isInitialized && onStyleUpdate) {
       onStyleUpdate({
@@ -188,7 +210,7 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
   // Center modal on mount
   React.useEffect(() => {
     const modalWidth = 672; // max-w-2xl
-    const modalHeight = 600;
+    const modalHeight = Math.min(window.innerHeight * 0.9, 800); // Use 90% of viewport height or 800px max
     const x = Math.max(0, (window.innerWidth - modalWidth) / 2);
     const y = Math.max(0, (window.innerHeight - modalHeight) / 2);
     setModalPos({ x, y });
@@ -317,7 +339,8 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
           left: modalPos.x,
           top: modalPos.y,
           transform: 'none',
-          maxHeight: '80vh',
+          maxHeight: '90vh',
+          height: 'auto',
         }}
         onMouseDown={handleMouseDown}
       >
@@ -359,7 +382,7 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
           </svg>
         </button>
 
-        <div className="p-6 overflow-y-auto" style={{ maxHeight: 'calc(80vh - 4rem)' }}>
+        <div className="p-6 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 5rem)' }}>
           {success && (
             <div className="mb-4 bg-green-50 border border-green-200 text-green-700 rounded-md p-4 text-center font-medium animate-fadein">
               Style settings saved!
@@ -391,11 +414,6 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
                   zIndex: 1,
                 }}
               />
-            )}
-            {success && (
-              <div className="mb-4 p-4 bg-green-50 text-green-700 rounded-lg border border-green-200 text-center font-medium animate-fadein">
-                Style settings saved!
-              </div>
             )}
             <h3 className={`text-xl font-bold mb-2 ${getFontClass(settings.primary_font)}`} style={{ color: settings.primary_color }}>
               Preview heading
@@ -456,7 +474,13 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
               <label className="block text-sm font-medium text-gray-700 mb-5">Primary Color</label>
             <div className="flex items-center gap-2">
                 <input type="color" value={settings.primary_color} onChange={e => setSettings(s => ({ ...s, primary_color: e.target.value }))} className="w-12 h-8 rounded" />
-                <input type="text" value={settings.primary_color} readOnly className="w-24 px-2 py-1 border rounded bg-gray-50 text-gray-800" onFocus={e => e.target.select()} />
+                <input 
+                  type="text" 
+                  value={settings.primary_color} 
+                  onChange={e => handleHexInputChange('primary_color', e.target.value)}
+                  className="w-24 px-2 py-1 border rounded bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent" 
+                  placeholder="#000000"
+                />
           </div>
             </div>
           </div>
@@ -474,14 +498,26 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
                 <label className="block text-xs text-gray-500">Start</label>
                 <div className="flex items-center gap-2">
                       <input type="color" value={settings.gradient_start} onChange={e => setSettings(s => ({ ...s, gradient_start: e.target.value }))} className="w-12 h-8 rounded" />
-                      <input type="text" value={settings.gradient_start} readOnly className="w-24 px-2 py-1 border rounded bg-gray-50 text-gray-800" onFocus={e => e.target.select()} />
+                      <input 
+                        type="text" 
+                        value={settings.gradient_start} 
+                        onChange={e => handleHexInputChange('gradient_start', e.target.value)}
+                        className="w-24 px-2 py-1 border rounded bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent" 
+                        placeholder="#000000"
+                      />
                 </div>
               </div>
               <div>
                 <label className="block text-xs text-gray-500">End</label>
                 <div className="flex items-center gap-2">
                       <input type="color" value={settings.gradient_end} onChange={e => setSettings(s => ({ ...s, gradient_end: e.target.value }))} className="w-12 h-8 rounded" />
-                      <input type="text" value={settings.gradient_end} readOnly className="w-24 px-2 py-1 border rounded bg-gray-50 text-gray-800" onFocus={e => e.target.select()} />
+                      <input 
+                        type="text" 
+                        value={settings.gradient_end} 
+                        onChange={e => handleHexInputChange('gradient_end', e.target.value)}
+                        className="w-24 px-2 py-1 border rounded bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent" 
+                        placeholder="#000000"
+                      />
                 </div>
               </div>
             </div>
@@ -492,7 +528,13 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
               <label className="block text-sm font-medium text-gray-700 mb-5">Secondary Color</label>
               <div className="flex items-center gap-2">
                 <input type="color" value={settings.secondary_color} onChange={e => setSettings(s => ({ ...s, secondary_color: e.target.value }))} className="w-12 h-8 rounded" />
-                <input type="text" value={settings.secondary_color} readOnly className="w-24 px-2 py-1 border rounded bg-gray-50 text-gray-800" onFocus={e => e.target.select()} />
+                <input 
+                  type="text" 
+                  value={settings.secondary_color} 
+                  onChange={e => handleHexInputChange('secondary_color', e.target.value)}
+                  className="w-24 px-2 py-1 border rounded bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent" 
+                  placeholder="#000000"
+                />
               </div>
             </div>
         {/* Card background and text color options */}

@@ -619,7 +619,7 @@ export function ReviewManagementModal({
                   <h3 className="text-lg font-medium text-gray-800">Selected Reviews ({selectedReviews.length}/{MAX_WIDGET_REVIEWS})</h3>
                   <button
                     onClick={() => setShowAddCustomReview(true)}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                    className="px-4 py-2 bg-blue-100 text-blue-800 rounded-md hover:bg-blue-200"
                   >
                     Add Custom Review
                   </button>
