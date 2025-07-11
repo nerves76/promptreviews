@@ -301,8 +301,49 @@ export default function AccountPage() {
             </div>
           </div>
 
-          {/* Actions */}
+          {/* Notification Settings */}
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Notification Settings</h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Review Notifications</label>
+                  <p className="mt-1 text-sm text-gray-500">Get email notifications when customers submit reviews</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleNotifToggle}
+                  disabled={notifSaving}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 disabled:opacity-50 ${
+                    account?.review_notifications_enabled ? "bg-slate-blue" : "bg-gray-200"
+                  }`}
+                  aria-pressed={account?.review_notifications_enabled}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                      account?.review_notifications_enabled ? "translate-x-6" : "translate-x-1"
+                    }`}
+                  />
+                </button>
+              </div>
+              {notifSaving && (
+                <div className="text-sm text-gray-500">Saving...</div>
+              )}
+              <div className="text-sm text-gray-600">
+                <p>
+                  <strong>Status:</strong> {account?.review_notifications_enabled ? "Enabled" : "Disabled"}
+                </p>
+                <p className="mt-1">
+                  When enabled, you'll receive email notifications at <strong>{user?.email}</strong> whenever customers submit reviews through your widgets or prompt pages.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+          {/* Actions */}
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 md:col-span-2">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Actions</h3>
             
             {/* Success/Error Messages */}

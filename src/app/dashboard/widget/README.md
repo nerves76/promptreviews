@@ -14,16 +14,19 @@ This module provides UI and logic for managing reviews associated with widgets i
 ## Data Flow
 - **Available Reviews (Left Column):**
   - Pulled from the `review_submissions` table.
+  - Only shows actual customer submissions, NOT custom reviews.
   - Only fields that exist in the table are selected (e.g., `id`, `first_name`, `last_name`, `reviewer_role`, `review_content`, `platform`, `created_at`).
   - These reviews are not editable in the global table from this UI.
 
 - **Selected Reviews (Right Column):**
   - Pulled from the `widget_reviews` table, filtered by the current widget.
+  - Includes both customer submissions that have been selected AND custom reviews.
   - Each selected review can have a custom `star_rating` (which is only stored in `widget_reviews`).
   - Users can add, edit, or remove reviews for the widget.
 
 - **Custom Reviews:**
   - When a user adds a custom review, it is stored only in `widget_reviews` (not in `review_submissions`).
+  - Custom reviews only appear in the Selected Reviews section, never in Available Reviews.
 
 ## Key Behaviors
 - **Review Modal:**
