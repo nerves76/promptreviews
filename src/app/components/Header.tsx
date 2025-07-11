@@ -174,7 +174,7 @@ export default function Header() {
   return (
     <header className="bg-transparent backdrop-blur-sm mt-2.5">
       <nav className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center h-16">
+        <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex-shrink-0 flex items-center">
             <Link href="/dashboard" className="flex items-center">
@@ -193,7 +193,7 @@ export default function Header() {
                   isActive("/dashboard")
                     ? "border-white text-white"
                     : "border-transparent text-white hover:border-white/30 hover:text-white/90"
-                } inline-flex items-center px-1 pt-1 border-b-4 text-sm font-medium transition-colors duration-200 h-16`}
+                } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16`}
               >
                 Dashboard
               </Link>
@@ -213,12 +213,12 @@ export default function Header() {
                         : hasBusiness 
                           ? "border-transparent text-white hover:border-white/30 hover:text-white/90"
                           : "border-transparent text-white/50 cursor-not-allowed"
-                    } inline-flex items-center px-1 pt-1 border-b-4 text-sm font-medium transition-colors duration-200 h-16 relative group`}
+                    } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16 relative group`}
                     title={!hasBusiness ? "Create your business profile first" : ""}
                   >
                     Prompt pages
                     {!hasBusiness && (
-                      <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-[100]">
+                      <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-[200]">
                         Create business profile first
                       </span>
                     )}
@@ -237,12 +237,12 @@ export default function Header() {
                         : hasBusiness 
                           ? "border-transparent text-white hover:border-white/30 hover:text-white/90"
                           : "border-transparent text-white/50 cursor-not-allowed"
-                    } inline-flex items-center px-1 pt-1 border-b-4 text-sm font-medium transition-colors duration-200 h-16 relative group`}
+                    } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16 relative group`}
                     title={!hasBusiness ? "Create your business profile first" : ""}
                   >
                     Your business
                     {!hasBusiness && (
-                      <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-[100]">
+                      <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-[200]">
                         Create business profile first
                       </span>
                     )}
@@ -261,12 +261,12 @@ export default function Header() {
                         : hasBusiness 
                           ? "border-transparent text-white hover:border-white/30 hover:text-white/90"
                           : "border-transparent text-white/50 cursor-not-allowed"
-                    } inline-flex items-center px-1 pt-1 border-b-4 text-sm font-medium transition-colors duration-200 h-16 relative group`}
+                    } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16 relative group`}
                     title={!hasBusiness ? "Create your business profile first" : ""}
                   >
                     Widgets
                     {!hasBusiness && (
-                      <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-[100]">
+                      <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-[200]">
                         Create business profile first
                       </span>
                     )}
@@ -276,9 +276,9 @@ export default function Header() {
             </div>
           </div>
           
-          {/* Right Side - Notifications and User Account */}
+          {/* Right Side - Desktop: Notifications and User Account | Mobile: Hamburger Menu */}
           <div className="flex items-center gap-4">
-            {/* Notification Bell */}
+            {/* Notification Bell - Desktop Only */}
             <div className="hidden md:flex items-center">
               <div className="relative top-1">
                 <button
@@ -296,7 +296,7 @@ export default function Header() {
                 {showNotifications && (
                   <div
                     ref={menuRef}
-                    className="absolute right-0 mt-8 w-80 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-white/20 z-[100]"
+                    className="absolute right-0 mt-8 w-80 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-white/20 z-[200]"
                     style={{
                       maxHeight: '400px',
                       overflowY: 'auto',
@@ -331,14 +331,14 @@ export default function Header() {
               </div>
             </div>
             
-            {/* User Account */}
+            {/* User Account - Desktop Only */}
             <div className="hidden md:flex md:items-center">
             {user ? (
               <Menu as="div" className="relative inline-block text-left">
                 <Menu.Button className="flex items-center focus:outline-none">
                   <CowboyUserIcon />
                 </Menu.Button>
-                <Menu.Items className="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white/95 backdrop-blur-sm ring-1 ring-black ring-opacity-5 focus:outline-none z-[100]">
+                <Menu.Items className="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white/95 backdrop-blur-sm ring-1 ring-black ring-opacity-5 focus:outline-none z-[200]">
                   <div className="py-1">
                     <Menu.Item>
                       {({ active }) => (
@@ -409,8 +409,8 @@ export default function Header() {
             )}
             </div>
             
-            {/* Hamburger Icon for Mobile */}
-            <div className="flex md:hidden">
+            {/* Hamburger Icon for Mobile - Now on Far Right */}
+            <div className="md:hidden">
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
                 className="inline-flex items-center justify-center p-2 rounded-md text-white hover:text-white/80 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white/30"
@@ -423,7 +423,7 @@ export default function Header() {
         </div>
         {/* Mobile Menu Dropdown */}
         {menuOpen && (
-          <div className="md:hidden absolute left-0 right-0 bg-white/95 backdrop-blur-sm shadow-lg z-[100] mt-2 rounded-b-xl border border-white/20">
+          <div className="md:hidden absolute left-0 right-0 bg-white/95 backdrop-blur-sm shadow-lg z-[200] mt-2 rounded-b-xl border border-white/20">
             <div className="px-2 pt-2 pb-3 space-y-1 flex flex-col">
               <Link
                 href="/dashboard"
