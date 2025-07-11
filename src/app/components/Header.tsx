@@ -185,7 +185,7 @@ export default function Header() {
           </div>
           
           {/* Centered Desktop Nav */}
-          <div className="flex-1 flex justify-center">
+          <div className="hidden md:flex flex-1 justify-center">
             <div className="flex space-x-8">
               <Link
                 href="/dashboard"
@@ -218,7 +218,7 @@ export default function Header() {
                   >
                     Prompt pages
                     {!hasBusiness && (
-                      <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
+                      <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-[100]">
                         Create business profile first
                       </span>
                     )}
@@ -242,7 +242,7 @@ export default function Header() {
                   >
                     Your business
                     {!hasBusiness && (
-                      <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
+                      <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-[100]">
                         Create business profile first
                       </span>
                     )}
@@ -266,7 +266,7 @@ export default function Header() {
                   >
                     Widgets
                     {!hasBusiness && (
-                      <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
+                      <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-[100]">
                         Create business profile first
                       </span>
                     )}
@@ -296,7 +296,7 @@ export default function Header() {
                 {showNotifications && (
                   <div
                     ref={menuRef}
-                    className="absolute right-0 mt-8 w-80 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-white/20 z-50"
+                    className="absolute right-0 mt-8 w-80 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-white/20 z-[100]"
                     style={{
                       maxHeight: '400px',
                       overflowY: 'auto',
@@ -338,7 +338,7 @@ export default function Header() {
                 <Menu.Button className="flex items-center focus:outline-none">
                   <CowboyUserIcon />
                 </Menu.Button>
-                <Menu.Items className="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white/95 backdrop-blur-sm ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                <Menu.Items className="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white/95 backdrop-blur-sm ring-1 ring-black ring-opacity-5 focus:outline-none z-[100]">
                   <div className="py-1">
                     <Menu.Item>
                       {({ active }) => (
@@ -423,7 +423,7 @@ export default function Header() {
         </div>
         {/* Mobile Menu Dropdown */}
         {menuOpen && (
-          <div className="md:hidden absolute left-0 right-0 bg-white/95 backdrop-blur-sm shadow-lg z-50 mt-2 rounded-b-xl border border-white/20">
+          <div className="md:hidden absolute left-0 right-0 bg-white/95 backdrop-blur-sm shadow-lg z-[100] mt-2 rounded-b-xl border border-white/20">
             <div className="px-2 pt-2 pb-3 space-y-1 flex flex-col">
               <Link
                 href="/dashboard"
