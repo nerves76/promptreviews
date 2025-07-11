@@ -324,7 +324,7 @@ export default function ReviewPlatformCard({
             <button
               type="button"
               onClick={() => onCopyAndSubmit(idx, platform.url)}
-              disabled={isSubmitting === idx || !reviewerFirstNames[idx].trim() || !reviewerLastNames[idx].trim() || !platformReviewTexts[idx].trim()}
+              disabled={isSubmitting === idx}
               className="flex-1 px-4 py-2 rounded-lg text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all duration-200 border-2"
               style={{
                 backgroundColor: businessProfile?.secondary_color || "#4F46E5",
