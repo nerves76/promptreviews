@@ -17,18 +17,18 @@ const CowboyUserIcon = () => {
   
   if (imageError) {
     return (
-      <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center hover:opacity-80 transition-opacity">
-        <FaUserCircle className="w-5 h-5 text-gray-600" />
+      <div className="w-8 h-8 border-2 border-white rounded-full flex items-center justify-center hover:opacity-80 transition-opacity">
+        <FaUserCircle className="w-5 h-5 text-white" />
       </div>
     );
   }
   
   return (
-    <div className="w-8 h-8 bg-white rounded-full relative hover:opacity-80 transition-opacity">
+    <div className="w-8 h-8 border-2 border-white rounded-full relative hover:opacity-80 transition-opacity p-0.5">
       <img
         src="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/new-cowboy-icon.png"
         alt="Account"
-        className="absolute inset-0 w-6 h-6 m-auto object-contain mix-blend-multiply"
+        className="w-full h-full object-contain filter brightness-0 invert"
         onError={() => setImageError(true)}
       />
     </div>
