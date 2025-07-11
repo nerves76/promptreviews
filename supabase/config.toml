@@ -176,20 +176,32 @@ otp_length = 6
 # Increased to 24 hours for development testing
 otp_expiry = 86400
 
-# Use Mailgun SMTP server
+# Use Resend SMTP server for auth emails
 [auth.email.smtp]
-enabled = false
-host = "smtp.mailgun.org"
+enabled = true
+host = "smtp.resend.com"
 port = 587
-user = "chris@mg.promptreviews.app"
-pass = "env(MAILGUN_SMTP_PASSWORD)"
-admin_email = "chris@mg.promptreviews.app"
+user = "resend"
+pass = "env(RESEND_SMTP_PASSWORD)"
+admin_email = "noreply@updates.promptreviews.app"
 sender_name = "Prompt Reviews"
 
 # Uncomment to customize email template
-# [auth.email.template.invite]
-# subject = "You have been invited"
-# content_path = "./supabase/templates/invite.html"
+[auth.email.template.confirm]
+subject = "Confirm your PromptReviews account"
+content_path = "./supabase/templates/confirm.html"
+
+[auth.email.template.invite]
+subject = "You have been invited to PromptReviews"
+content_path = "./supabase/templates/invite.html"
+
+[auth.email.template.magic_link]
+subject = "Your PromptReviews sign-in link"
+content_path = "./supabase/templates/magic_link.html"
+
+[auth.email.template.recovery]
+subject = "Reset your PromptReviews password"
+content_path = "./supabase/templates/recovery.html"
 
 [auth.sms]
 # Allow/disallow new user signups via SMS to your project.

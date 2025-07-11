@@ -1388,3 +1388,35 @@ The `type` field on prompt pages uses the following enum values:
 - `employee`: Employee feedback prompt page
 
 All prompt page creation and filtering logic should use these values. Legacy values like `custom` and `experience` are no longer supported. 
+
+## Email Configuration
+
+### Custom Auth Emails
+
+**Updated: January 2025**
+
+All Supabase authentication emails (sign-up confirmation, password reset, etc.) now use your branded email templates and send from your own email address.
+
+#### Configuration:
+- **SMTP Provider**: Resend (same as other app emails)
+- **Sender**: `Prompt Reviews <noreply@updates.promptreviews.app>`
+- **Templates**: Custom HTML templates in `supabase/templates/`
+
+#### Setup:
+1. Add `RESEND_SMTP_PASSWORD=your_resend_api_key` to `.env.local`
+2. Restart Supabase: `supabase stop && supabase start`
+
+#### Email Templates:
+- **Account Confirmation**: `supabase/templates/confirm.html`
+- **Password Reset**: `supabase/templates/recovery.html`
+- **Team Invitations**: `supabase/templates/invite.html`
+- **Magic Links**: `supabase/templates/magic_link.html`
+
+All templates use your brand colors and styling for consistent user experience.
+
+### Other Email Services
+
+- **Transactional Emails**: Resend (`emailTemplates.ts`)
+- **Review Notifications**: Resend
+- **Welcome Emails**: Resend
+- **Trial Reminders**: Resend 
