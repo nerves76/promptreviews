@@ -5,7 +5,7 @@
  *
  * - Only a single action button is shown (Save/Create), no Cancel button.
  * - The Save/Create button uses the brand's accent color (slate blue) for high visibility:
- *   - bg-slate-600 (default), hover:bg-slate-700, text-white
+ *   - bg-slate-blue (default), hover:bg-slate-blue/90, text-white
  * - All form fields (inputs, selects) have a clear outline for visibility:
  *   - border, border-gray-300, focus:border-slate-600, focus:ring-2, focus:ring-slate-400, rounded-md, px-3, py-2
  *   - This matches the convention used in other forms for clarity and accessibility.
@@ -131,7 +131,7 @@ export const WidgetEditorForm: React.FC<WidgetEditorFormProps> = ({ onSaveSucces
         {/* Only show the Save/Create button, styled with slate blue */}
         <button
           onClick={handleSave}
-          className="px-4 py-2 bg-slate-600 text-white rounded hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 disabled:opacity-50"
+          className="px-4 py-2 bg-slate-blue text-white rounded hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue/50 focus:ring-offset-2 disabled:opacity-50"
           disabled={isLoading}
         >
           {isLoading ? 'Saving...' : (widgetToEdit ? 'Save widget' : 'Create widget')}

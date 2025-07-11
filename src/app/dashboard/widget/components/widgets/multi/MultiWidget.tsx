@@ -230,7 +230,10 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
 
   if (reviews.length === 0) {
     return (
-      <div className="flex items-center justify-center min-h-[200px] text-white text-lg">
+      <div 
+        className="flex items-center justify-center min-h-[200px] text-white text-lg w-full max-w-4xl mx-auto"
+        style={{ maxWidth: '800px' }}
+      >
         <div className="text-center">
           <div className="flex items-center justify-center gap-2 mb-2">
             <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
@@ -248,8 +251,8 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
     <div 
       id={`promptreviews-widget-container-${data.id}`}
       ref={containerRef}
-      className="pr-widget-container pr-multi-widget"
-      style={{ minHeight: '200px' }}
+      className="pr-widget-container pr-multi-widget w-full max-w-4xl mx-auto"
+      style={{ minHeight: '200px', maxWidth: '800px' }}
       data-widget-id={data.id}
     />
   );
