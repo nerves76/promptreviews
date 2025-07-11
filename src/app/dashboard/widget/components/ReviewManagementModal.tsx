@@ -177,28 +177,13 @@ export function ReviewManagementModal({
         created_at: r.created_at
       }));
 
-      // Extract custom reviews from widget_reviews that don't exist in review_submissions
-      const customReviews = (widgetReviews || [])
-        .filter(wr => !mappedReviews.some(mr => mr.review_id === wr.review_id))
-        .map(wr => ({
-          review_id: wr.review_id,
-          first_name: wr.first_name,
-          last_name: wr.last_name,
-          reviewer_role: wr.reviewer_role,
-          review_content: wr.review_content,
-          platform: wr.platform || 'custom',
-          created_at: wr.created_at,
-          star_rating: wr.star_rating,
-          isCustom: true // Mark as custom so we can handle it differently if needed
-        }));
-
-      // Combine review_submissions and custom reviews for the available reviews list
-      const allAvailableReviews = [...mappedReviews, ...customReviews];
-      
-      console.log('✅ ReviewManagementModal: Combined available reviews:', allAvailableReviews.length);
-      console.log('✅ ReviewManagementModal: Custom reviews found:', customReviews.length);
-      setAllReviews(allAvailableReviews);
+      // Available reviews should ONLY be actual customer submissions from review_submissions
+      // Custom reviews should only appear in selected reviews, not in available reviews
+      setAllReviews(mappedReviews);
       setSelectedReviews(widgetReviews || []);
+      
+      console.log('✅ ReviewManagementModal: Available reviews (customer submissions only):', mappedReviews.length);
+      console.log('✅ ReviewManagementModal: Selected reviews (includes custom reviews):', widgetReviews?.length || 0);
       
       // Set edited fields to match the widget's current reviews
       const editedReviewsObj: { [id: string]: string } = {};
@@ -240,11 +225,6 @@ export function ReviewManagementModal({
     
     if (alreadySelected) {
       updated = selectedReviews.filter((r) => r.review_id !== review.review_id);
-      
-      // If this is a custom review and we're removing it completely, also remove from available reviews
-      if (review.isCustom || review.platform === 'custom') {
-        setAllReviews(prev => prev.filter(r => r.review_id !== review.review_id));
-      }
       
       // Remove from edited fields when removing
       setEditedReviews((prev) => {
@@ -465,9 +445,9 @@ export function ReviewManagementModal({
       isCustom: true,
     };
     
-    // Add to both selected reviews and available reviews
+    // Add custom review only to selected reviews (right side)
+    // Custom reviews should NOT appear in available reviews (left side)
     setSelectedReviews([newReview, ...selectedReviews]);
-    setAllReviews(prev => [newReview, ...prev]);
     
     // Initialize edited fields
     setEditedNames(prev => ({ ...prev, [newReview.review_id]: '' }));
