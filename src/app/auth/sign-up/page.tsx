@@ -20,6 +20,7 @@ function SignUpContent() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [message, setMessage] = useState("");
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [invitationData, setInvitationData] = useState<{
     inviterName: string;
     businessName: string;
@@ -130,6 +131,13 @@ function SignUpContent() {
     // Password validation
     if (password.length < 6) {
       setError("Password must be at least 6 characters");
+      setLoading(false);
+      return;
+    }
+
+    // Terms of Service validation
+    if (!acceptTerms) {
+      setError("You must accept the Terms of Service to create an account");
       setLoading(false);
       return;
     }
@@ -399,6 +407,29 @@ function SignUpContent() {
               disabled={loading}
             />
           </div>
+          
+          <div className="flex items-start space-x-2">
+            <input
+              type="checkbox"
+              id="accept-terms"
+              checked={acceptTerms}
+              onChange={(e) => setAcceptTerms(e.target.checked)}
+              className="mt-1 w-4 h-4 text-slate-blue border-gray-300 rounded focus:ring-slate-blue focus:ring-2"
+              disabled={loading}
+            />
+            <label htmlFor="accept-terms" className="text-sm text-gray-700">
+              I agree to the{" "}
+              <a
+                href="https://promptreviews.app/terms-of-service/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-slate-blue hover:text-slate-700 underline"
+              >
+                Terms of Service
+              </a>
+            </label>
+          </div>
+          
           {error && (
             <div className="text-red-600 bg-red-50 p-3 rounded border border-red-200">
               {error}
