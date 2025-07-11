@@ -17,18 +17,18 @@ const CowboyUserIcon = () => {
   
   if (imageError) {
     return (
-      <div className="w-8 h-8 bg-slate-blue rounded-full flex items-center justify-center hover:opacity-80 transition-opacity">
-        <FaUserCircle className="w-5 h-5 text-white" />
+      <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center hover:opacity-80 transition-opacity">
+        <FaUserCircle className="w-5 h-5 text-gray-600" />
       </div>
     );
   }
   
   return (
-    <div className="w-8 h-8 bg-slate-blue rounded-full relative hover:opacity-80 transition-opacity">
+    <div className="w-8 h-8 bg-white rounded-full relative hover:opacity-80 transition-opacity">
       <img
         src="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/new-cowboy-icon.png"
         alt="Account"
-        className="absolute inset-0 w-6 h-6 m-auto object-contain"
+        className="absolute inset-0 w-6 h-6 m-auto object-contain mix-blend-multiply"
         onError={() => setImageError(true)}
       />
     </div>
@@ -172,19 +172,21 @@ export default function Header() {
   // DashboardLayout handles business profile state management
 
   return (
-    <header className="bg-transparent backdrop-blur-sm">
+    <header className="bg-transparent backdrop-blur-sm mt-2.5">
       <nav className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16 items-center">
-          <div className="flex items-center">
-            <div className="flex-shrink-0 flex items-center mr-6">
-              <Link href="/dashboard" className="flex items-center">
-                <span className="h-20 w-auto flex items-center p-1" aria-label="PromptReviews Logo">
-                  <PromptReviewsLogo size={110} color="#FFFFFF" />
-                </span>
-              </Link>
-            </div>
-            {/* Desktop Nav */}
-            <div className="flex ml-10 space-x-8">
+        <div className="flex items-center h-16">
+          {/* Logo */}
+          <div className="flex-shrink-0 flex items-center">
+            <Link href="/dashboard" className="flex items-center">
+              <span className="h-20 w-auto flex items-center p-1" aria-label="PromptReviews Logo">
+                <PromptReviewsLogo size={110} color="#FFFFFF" />
+              </span>
+            </Link>
+          </div>
+          
+          {/* Centered Desktop Nav */}
+          <div className="flex-1 flex justify-center">
+            <div className="flex space-x-8">
               <Link
                 href="/dashboard"
                 className={`${
@@ -272,8 +274,12 @@ export default function Header() {
                 </>
               )}
             </div>
+          </div>
+          
+          {/* Right Side - Notifications and User Account */}
+          <div className="flex items-center gap-4">
             {/* Notification Bell */}
-            <div className="hidden md:flex items-center ml-10 mr-4">
+            <div className="hidden md:flex items-center">
               <div className="relative top-1">
                 <button
                   className="relative focus:outline-none"
@@ -324,8 +330,9 @@ export default function Header() {
                 )}
               </div>
             </div>
-          </div>
-          <div className="hidden md:ml-6 md:flex md:items-center gap-4">
+            
+            {/* User Account */}
+            <div className="hidden md:flex md:items-center">
             {user ? (
               <Menu as="div" className="relative inline-block text-left">
                 <Menu.Button className="flex items-center focus:outline-none">
@@ -400,16 +407,18 @@ export default function Header() {
                 Sign in
               </Link>
             )}
-          </div>
-          {/* Hamburger Icon for Mobile */}
-          <div className="flex md:hidden">
-            <button
-              onClick={() => setMenuOpen(!menuOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-white hover:text-white/80 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white/30"
-              aria-label="Open main menu"
-            >
-              {menuOpen ? <FiX className="h-6 w-6" /> : <FiMenu className="h-6 w-6" />}
-            </button>
+            </div>
+            
+            {/* Hamburger Icon for Mobile */}
+            <div className="flex md:hidden">
+              <button
+                onClick={() => setMenuOpen(!menuOpen)}
+                className="inline-flex items-center justify-center p-2 rounded-md text-white hover:text-white/80 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white/30"
+                aria-label="Open main menu"
+              >
+                {menuOpen ? <FiX className="h-6 w-6" /> : <FiMenu className="h-6 w-6" />}
+              </button>
+            </div>
           </div>
         </div>
         {/* Mobile Menu Dropdown */}
