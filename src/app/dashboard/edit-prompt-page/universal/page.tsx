@@ -306,11 +306,8 @@ export default function UniversalEditPromptPage() {
         <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
           Universal prompt page
         </h1>
-        <p className="text-gray-600 text-base max-w-md mt-0 mb-10">
+        <p className="text-gray-600 text-base max-w-md mt-0 mb-6">
           The universal prompt page is designed to be shared with many.
-          <br />
-          It is a perfect choice for displaying a QR code in your place of
-          business.
         </p>
       </div>
       <div className="pb-16">
