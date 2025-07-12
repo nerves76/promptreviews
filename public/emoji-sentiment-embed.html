@@ -528,6 +528,18 @@
             box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
         }
 
+        /* Copy indicator animation */
+        @keyframes fadeInCopy {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         /* Google Review Page Styles */
         .google-header {
             display: flex;
@@ -944,17 +956,8 @@
         }
 
         function submitReview() {
-            const submitBtn = document.querySelector('.submit-btn');
-            if (submitBtn) {
-                submitBtn.textContent = 'Redirecting...';
-                submitBtn.disabled = true;
-                submitBtn.style.opacity = '0.7';
-            }
-            
-            // Show Google review form after brief delay
-            setTimeout(() => {
-                showGoogleReviewPage();
-            }, 1500);
+            // Show Google review form immediately without the "Redirecting..." message
+            showGoogleReviewPage();
         }
 
         function showGoogleReviewPage() {
@@ -999,12 +1002,16 @@
                         </div>
                         
                         <div class="action-buttons" style="display: flex; gap: 12px; justify-content: flex-end;">
-                            <button style="background: transparent; color: #1a73e8; border: none; padding: 8px 16px; border-radius: 4px; font-size: 14px; font-weight: 500; cursor: pointer;">
+                            <button onclick="restartDemo()" style="background: transparent; color: #1a73e8; border: none; padding: 8px 16px; border-radius: 4px; font-size: 14px; font-weight: 500; cursor: pointer;">
                                 Cancel
                             </button>
                             <button class="google-submit-btn" onclick="finalSubmit()" style="background: #1a73e8; color: white; border: none; padding: 8px 24px; border-radius: 4px; font-size: 14px; font-weight: 500; cursor: pointer;">
                                 Post
                             </button>
+                        </div>
+                        
+                        <div class="copy-indicator" style="margin-top: 16px; text-align: center; color: #10B981; font-size: 14px; font-weight: 500; opacity: 0; animation: fadeInCopy 0.5s ease-in-out 1s forwards;">
+                            ✓ Review copied and ready to post!
                         </div>
                     </div>
                 </div>
@@ -1014,7 +1021,24 @@
         }
 
         function finalSubmit() {
-            showThankYou('Review posted to Google!');
+            // Show brief "posting" message then restart demo
+            const submitBtn = document.querySelector('.google-submit-btn');
+            const cancelBtn = document.querySelector('.action-buttons button:first-child');
+            
+            if (submitBtn) {
+                submitBtn.textContent = 'Posting...';
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = '0.7';
+            }
+            
+            if (cancelBtn) {
+                cancelBtn.style.display = 'none';
+            }
+            
+            // Restart demo after brief delay
+            setTimeout(() => {
+                restartDemo();
+            }, 1500);
         }
 
         function submitFeedback() {
