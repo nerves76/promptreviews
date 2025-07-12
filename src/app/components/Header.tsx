@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { FiMenu, FiX } from "react-icons/fi";
 import { FaUserCircle, FaBell } from "react-icons/fa";
-import { Menu } from "@headlessui/react";
 import { createPortal } from "react-dom";
 import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 import { useAuth } from "@/contexts/AuthContext";
@@ -45,7 +44,9 @@ export default function Header() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const accountButtonRef = useRef<HTMLButtonElement>(null);
   
   const { isAdminUser, adminLoading } = useAuth();
   // 🔧 REMOVED: useBusinessProfile call that was causing infinite auth loops
@@ -168,6 +169,18 @@ export default function Header() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showNotifications]);
+
+  // Handle account menu click outside
+  useEffect(() => {
+    if (!accountMenuOpen) return;
+    function handleClickOutside(event: MouseEvent) {
+      if (accountButtonRef.current && !accountButtonRef.current.contains(event.target as Node)) {
+        setAccountMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [accountMenuOpen]);
 
   // 🔧 REMOVED: Business profile refresh listeners since Header no longer manages business state
   // DashboardLayout handles business profile state management
@@ -336,74 +349,64 @@ export default function Header() {
             {/* User Account - Desktop Only */}
             <div className="hidden md:flex md:items-center">
             {user ? (
-              <Menu as="div" className="relative inline-block text-left">
-                <Menu.Button className="flex items-center focus:outline-none">
+              <div className="relative">
+                <button
+                  ref={accountButtonRef}
+                  onClick={() => setAccountMenuOpen(!accountMenuOpen)}
+                  className="flex items-center focus:outline-none"
+                >
                   <CowboyUserIcon />
-                </Menu.Button>
-                <Menu.Items className="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white/95 backdrop-blur-sm ring-1 ring-black ring-opacity-5 focus:outline-none" style={{ zIndex: 2147483647 }}>
-                  <div className="py-1">
-                    <Menu.Item>
-                      {({ active }) => (
-                        <Link href="/dashboard/account" className={`${active ? "bg-slate-blue/10 text-slate-blue" : "text-gray-700"} block px-4 py-2 text-sm`}>
+                </button>
+                {/* Account Menu Dropdown - Rendered in Portal */}
+                {accountMenuOpen && typeof window !== 'undefined' && createPortal(
+                  <div 
+                    className="fixed"
+                    style={{ 
+                      zIndex: 2147483647,
+                      top: accountButtonRef.current ? accountButtonRef.current.getBoundingClientRect().bottom + 8 : 0,
+                      right: window.innerWidth - (accountButtonRef.current ? accountButtonRef.current.getBoundingClientRect().right : 0)
+                    }}
+                  >
+                    <div className="w-56 rounded-md shadow-lg bg-white/95 backdrop-blur-sm ring-1 ring-black ring-opacity-5">
+                      <div className="py-1">
+                        <Link href="/dashboard/account" className="block px-4 py-2 text-sm text-gray-700 hover:bg-slate-blue/10 hover:text-slate-blue" onClick={() => setAccountMenuOpen(false)}>
                           Account details
                         </Link>
-                      )}
-                    </Menu.Item>
-                    <Menu.Item>
-                      {({ active }) => (
-                        <Link href="/dashboard/analytics" className={`${active ? "bg-slate-blue/10 text-slate-blue" : "text-gray-700"} block px-4 py-2 text-sm`}>
+                        <Link href="/dashboard/analytics" className="block px-4 py-2 text-sm text-gray-700 hover:bg-slate-blue/10 hover:text-slate-blue" onClick={() => setAccountMenuOpen(false)}>
                           Analytics
                         </Link>
-                      )}
-                    </Menu.Item>
-                    <Menu.Item>
-                      {({ active }) => (
-                        <Link href="/dashboard/plan" className={`${active ? "bg-slate-blue/10 text-slate-blue" : "text-gray-700"} block px-4 py-2 text-sm`}>
+                        <Link href="/dashboard/plan" className="block px-4 py-2 text-sm text-gray-700 hover:bg-slate-blue/10 hover:text-slate-blue" onClick={() => setAccountMenuOpen(false)}>
                           Plan
                         </Link>
-                      )}
-                    </Menu.Item>
-                    <Menu.Item>
-                      {({ active }) => (
-                        <Link href="/dashboard/contacts" className={`${active ? "bg-slate-blue/10 text-slate-blue" : "text-gray-700"} block px-4 py-2 text-sm`}>
+                        <Link href="/dashboard/contacts" className="block px-4 py-2 text-sm text-gray-700 hover:bg-slate-blue/10 hover:text-slate-blue" onClick={() => setAccountMenuOpen(false)}>
                           Contacts
                         </Link>
-                      )}
-                    </Menu.Item>
-                    <Menu.Item>
-                      {({ active }) => (
-                        <Link href="/dashboard/team" className={`${active ? "bg-slate-blue/10 text-slate-blue" : "text-gray-700"} block px-4 py-2 text-sm`}>
+                        <Link href="/dashboard/team" className="block px-4 py-2 text-sm text-gray-700 hover:bg-slate-blue/10 hover:text-slate-blue" onClick={() => setAccountMenuOpen(false)}>
                           Team
                         </Link>
-                      )}
-                    </Menu.Item>
-                    {isAdminUser && (
-                      <Menu.Item>
-                        {({ active }) => (
-                          <Link href="/admin" className={`${active ? "bg-purple-50 text-purple-700" : "text-purple-600"} block px-4 py-2 text-sm font-medium`}>
+                        {isAdminUser && (
+                          <Link href="/admin" className="block px-4 py-2 text-sm font-medium text-purple-600 hover:bg-purple-50 hover:text-purple-700" onClick={() => setAccountMenuOpen(false)}>
                             Admin Panel
                           </Link>
                         )}
-                      </Menu.Item>
-                    )}
-                    <div className="border-t border-gray-100 my-1" />
-                    <Menu.Item>
-                      {({ active }) => (
+                        <div className="border-t border-gray-100 my-1" />
                         <button
                           onClick={async () => {
                             trackEvent(GA_EVENTS.SIGN_OUT, { timestamp: new Date().toISOString() });
                             await supabase.auth.signOut();
                             router.push("/auth/sign-in");
+                            setAccountMenuOpen(false);
                           }}
-                          className={`${active ? "bg-red-50 text-red-700" : "text-red-600"} block w-full text-left px-4 py-2 text-sm`}
+                          className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700"
                         >
                           Sign out
                         </button>
-                      )}
-                    </Menu.Item>
-                  </div>
-                </Menu.Items>
-              </Menu>
+                      </div>
+                    </div>
+                  </div>,
+                  document.body
+                )}
+              </div>
             ) : (
               <Link href="/auth/sign-in" className="inline-flex items-center px-4 py-2 border border-white/30 text-sm font-medium rounded-md bg-white/10 text-white hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/30 transition-colors duration-200">
                 Sign in
