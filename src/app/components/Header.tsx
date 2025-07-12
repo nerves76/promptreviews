@@ -435,19 +435,19 @@ export default function Header() {
               onClick={() => setMenuOpen(false)}
             />
             {/* Menu Content */}
-            <div className="absolute top-20 left-4 right-4 bg-white/95 backdrop-blur-sm shadow-lg rounded-xl border border-white/20">
+            <div className="absolute top-20 left-4 right-4 bg-blue-50 shadow-lg rounded-xl border border-blue-200">
               <div className="px-2 pt-2 pb-3 space-y-1 flex flex-col">
-                <Link
-                  href="/dashboard"
-                  className={`${
-                    isActive("/dashboard")
-                      ? "bg-slate-blue/10 text-slate-blue"
-                      : "text-gray-700 hover:bg-slate-blue/10"
-                  } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Dashboard
-                </Link>
+                                  <Link
+                    href="/dashboard"
+                    className={`${
+                      isActive("/dashboard")
+                        ? "bg-slate-blue/10 text-slate-blue"
+                        : "text-blue-900 hover:bg-slate-blue/10 hover:text-slate-blue"
+                    } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Dashboard
+                  </Link>
                 {!businessLoading && (
                   <>
                     <Link
@@ -465,13 +465,13 @@ export default function Header() {
                         isActive("/prompt-pages")
                           ? "bg-slate-blue/10 text-slate-blue"
                           : hasBusiness 
-                            ? "text-gray-700 hover:bg-slate-blue/10"
-                            : "text-gray-400 cursor-not-allowed"
+                            ? "text-blue-900 hover:bg-slate-blue/10 hover:text-slate-blue"
+                            : "text-blue-400 cursor-not-allowed"
                       } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                     >
                       Prompt pages
                       {!hasBusiness && (
-                        <span className="text-xs text-gray-500 block mt-1">Create business profile first</span>
+                        <span className="text-xs text-blue-600 block mt-1">Create business profile first</span>
                       )}
                     </Link>
                     <Link
@@ -489,13 +489,13 @@ export default function Header() {
                         isActive("/dashboard/business-profile")
                           ? "bg-slate-blue/10 text-slate-blue"
                           : hasBusiness 
-                            ? "text-gray-700 hover:bg-slate-blue/10"
-                            : "text-gray-400 cursor-not-allowed"
+                            ? "text-blue-900 hover:bg-slate-blue/10 hover:text-slate-blue"
+                            : "text-blue-400 cursor-not-allowed"
                       } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                     >
                       Your business
                       {!hasBusiness && (
-                        <span className="text-xs text-gray-500 block mt-1">Create business profile first</span>
+                        <span className="text-xs text-blue-600 block mt-1">Create business profile first</span>
                       )}
                     </Link>
                     <Link
@@ -513,13 +513,13 @@ export default function Header() {
                         isActive("/dashboard/widget")
                           ? "bg-slate-blue/10 text-slate-blue"
                           : hasBusiness 
-                            ? "text-gray-700 hover:bg-slate-blue/10"
-                            : "text-gray-400 cursor-not-allowed"
+                            ? "text-blue-900 hover:bg-slate-blue/10 hover:text-slate-blue"
+                            : "text-blue-400 cursor-not-allowed"
                       } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                     >
                       Widgets
                       {!hasBusiness && (
-                        <span className="text-xs text-gray-500 block mt-1">Create business profile first</span>
+                        <span className="text-xs text-blue-600 block mt-1">Create business profile first</span>
                       )}
                     </Link>
                   </>
@@ -531,7 +531,7 @@ export default function Header() {
                       className={`${
                         isActive("/dashboard/account")
                           ? "bg-slate-blue/10 text-slate-blue"
-                          : "text-gray-700 hover:bg-slate-blue/10"
+                          : "text-blue-900 hover:bg-slate-blue/10 hover:text-slate-blue"
                       } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                       onClick={() => setMenuOpen(false)}
                     >
@@ -542,7 +542,7 @@ export default function Header() {
                       className={`${
                         isActive("/dashboard/analytics")
                           ? "bg-slate-blue/10 text-slate-blue"
-                          : "text-gray-700 hover:bg-slate-blue/10"
+                          : "text-blue-900 hover:bg-slate-blue/10 hover:text-slate-blue"
                       } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                       onClick={() => setMenuOpen(false)}
                     >
@@ -553,7 +553,7 @@ export default function Header() {
                       className={`${
                         isActive("/dashboard/plan")
                           ? "bg-slate-blue/10 text-slate-blue"
-                          : "text-gray-700 hover:bg-slate-blue/10"
+                          : "text-blue-900 hover:bg-slate-blue/10 hover:text-slate-blue"
                       } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                       onClick={() => setMenuOpen(false)}
                     >
@@ -564,7 +564,7 @@ export default function Header() {
                       className={`${
                         isActive("/dashboard/contacts")
                           ? "bg-slate-blue/10 text-slate-blue"
-                          : "text-gray-700 hover:bg-slate-blue/10"
+                          : "text-blue-900 hover:bg-slate-blue/10 hover:text-slate-blue"
                       } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                       onClick={() => setMenuOpen(false)}
                     >
@@ -594,7 +594,7 @@ export default function Header() {
                 ) : (
                   <Link
                     href="/auth/sign-in"
-                    className="text-gray-700 hover:bg-slate-blue/10 block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
+                    className="text-blue-900 hover:bg-slate-blue/10 hover:text-slate-blue block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
                     onClick={() => setMenuOpen(false)}
                   >
                     Sign in
