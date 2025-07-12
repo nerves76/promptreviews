@@ -47,6 +47,7 @@ export default function Header() {
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const accountButtonRef = useRef<HTMLButtonElement>(null);
+  const accountMenuRef = useRef<HTMLDivElement>(null);
   
   const { isAdminUser, adminLoading } = useAuth();
   // 🔧 REMOVED: useBusinessProfile call that was causing infinite auth loops
@@ -174,7 +175,12 @@ export default function Header() {
   useEffect(() => {
     if (!accountMenuOpen) return;
     function handleClickOutside(event: MouseEvent) {
-      if (accountButtonRef.current && !accountButtonRef.current.contains(event.target as Node)) {
+      if (
+        accountButtonRef.current && 
+        !accountButtonRef.current.contains(event.target as Node) &&
+        accountMenuRef.current &&
+        !accountMenuRef.current.contains(event.target as Node)
+      ) {
         setAccountMenuOpen(false);
       }
     }
@@ -360,6 +366,7 @@ export default function Header() {
                 {/* Account Menu Dropdown - Rendered in Portal */}
                 {accountMenuOpen && typeof window !== 'undefined' && createPortal(
                   <div 
+                    ref={accountMenuRef}
                     className="fixed"
                     style={{ 
                       zIndex: 2147483647,

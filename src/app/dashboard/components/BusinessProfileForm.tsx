@@ -596,86 +596,92 @@ export default function BusinessProfileForm({
           Get reviews where it matters most. Set up your review platforms here, and they will be made available for any Prompt Page.
         </div>
         <div className="space-y-4">
-          <div className="flex gap-2 items-center mb-2">
-            <span className="w-1/3 text-xs font-semibold text-gray-500">
-              Platform Name
-            </span>
-            <span className="w-1/2 text-xs font-semibold text-gray-500">
-              Platform URL
-            </span>
-            <span className="w-1/6 text-xs font-semibold text-gray-500">
-              Word Count
-            </span>
-          </div>
           {platforms.map((platform, idx) => (
-            <div key={idx} className="flex gap-2 items-center">
-              <select
-                className="w-1/3 border px-3 py-2 rounded-lg bg-white"
-                value={platform.name || ""}
-                onChange={(e) =>
-                  handlePlatformChange(idx, "name", e.target.value)
-                }
-              >
-                <option value="">Select a platform</option>
-                <option value="Google Business Profile">
-                  Google Business Profile
-                </option>
-                <option value="Yelp">Yelp</option>
-                <option value="Facebook">Facebook</option>
-                <option value="TripAdvisor">TripAdvisor</option>
-                <option value="G2">G2</option>
-                <option value="BBB">BBB</option>
-                <option value="Thumbtack">Thumbtack</option>
-                <option value="Clutch">Clutch</option>
-                <option value="Capterra">Capterra</option>
-                <option value="Angi">Angi</option>
-                <option value="Houzz">Houzz</option>
-                <option value="HomeAdvisor">HomeAdvisor</option>
-                <option value="Trustpilot">Trustpilot</option>
-                <option value="Other">Other</option>
-              </select>
-              {platform.name === "Other" && (
-                <input
-                  type="text"
-                  className="w-1/3 border px-3 py-2 rounded-lg bg-white"
-                  placeholder="Custom platform name"
-                  value={platform.customPlatform || ""}
-                  onChange={(e) =>
-                    handlePlatformChange(idx, "customPlatform", e.target.value)
-                  }
-                />
-              )}
-              <input
-                type="url"
-                className="w-1/2 border px-3 py-2 rounded-lg bg-white"
-                placeholder="Review URL"
-                value={platform.url || ""}
-                onChange={(e) =>
-                  handlePlatformChange(idx, "url", e.target.value)
-                }
-              />
-              <input
-                type="number"
-                className="w-1/6 border px-3 py-2 rounded-lg bg-white"
-                placeholder="Word Count"
-                value={platform.wordCount || ""}
-                onChange={(e) =>
-                  handlePlatformChange(idx, "wordCount", e.target.value)
-                }
-                min={50}
-                max={1000}
-              />
-              {platforms.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => removePlatform(idx)}
-                  className="text-red-600 font-bold text-xl"
-                >
-                  &times;
-                </button>
-              )}
+            <div key={idx} className="space-y-2">
+              <div className="flex gap-2 items-start">
+                <div className="flex flex-col w-1/3">
+                  <label className="text-xs font-semibold text-gray-500 mb-1">
+                    Platform Name
+                  </label>
+                  <select
+                    className="w-full border px-3 py-2 rounded-lg bg-white"
+                    value={platform.name || ""}
+                    onChange={(e) =>
+                      handlePlatformChange(idx, "name", e.target.value)
+                    }
+                  >
+                    <option value="">Select a platform</option>
+                    <option value="Google Business Profile">
+                      Google Business Profile
+                    </option>
+                    <option value="Yelp">Yelp</option>
+                    <option value="Facebook">Facebook</option>
+                    <option value="TripAdvisor">TripAdvisor</option>
+                    <option value="G2">G2</option>
+                    <option value="BBB">BBB</option>
+                    <option value="Thumbtack">Thumbtack</option>
+                    <option value="Clutch">Clutch</option>
+                    <option value="Capterra">Capterra</option>
+                    <option value="Angi">Angi</option>
+                    <option value="Houzz">Houzz</option>
+                    <option value="HomeAdvisor">HomeAdvisor</option>
+                    <option value="Trustpilot">Trustpilot</option>
+                    <option value="Other">Other</option>
+                  </select>
+                  {platform.name === "Other" && (
+                    <input
+                      type="text"
+                      className="w-full border px-3 py-2 rounded-lg bg-white mt-1"
+                      placeholder="Custom platform name"
+                      value={platform.customPlatform || ""}
+                      onChange={(e) =>
+                        handlePlatformChange(idx, "customPlatform", e.target.value)
+                      }
+                    />
+                  )}
+                </div>
+                <div className="flex flex-col w-1/2">
+                  <label className="text-xs font-semibold text-gray-500 mb-1">
+                    Platform URL
+                  </label>
+                  <input
+                    type="url"
+                    className="w-full border px-3 py-2 rounded-lg bg-white"
+                    placeholder="Review URL"
+                    value={platform.url || ""}
+                    onChange={(e) =>
+                      handlePlatformChange(idx, "url", e.target.value)
+                    }
+                  />
+                </div>
+                <div className="flex flex-col w-1/6">
+                  <label className="text-xs font-semibold text-gray-500 mb-1">
+                    Word Count
+                  </label>
+                  <input
+                    type="number"
+                    className="w-full border px-3 py-2 rounded-lg bg-white"
+                    placeholder="200"
+                    value={platform.wordCount || ""}
+                    onChange={(e) =>
+                      handlePlatformChange(idx, "wordCount", e.target.value)
+                    }
+                    min={50}
+                    max={1000}
+                  />
+                </div>
+                {platforms.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removePlatform(idx)}
+                    className="text-red-600 font-bold text-xl mt-6"
+                  >
+                    &times;
+                  </button>
+                )}
+              </div>
               {platformErrors[idx] && (
-                <span className="text-red-500 text-xs ml-2">
+                <span className="text-red-500 text-xs">
                   {platformErrors[idx]}
                 </span>
               )}

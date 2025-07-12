@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PromptReviews - WordPress Embed</title>
+</head>
+<body>
+    <!-- WordPress Embed Instructions -->
+    <div style="background: #f0f9ff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #4F46E5;">
+        <h3 style="color: #4F46E5; margin-top: 0;">WordPress Embedding Instructions</h3>
+        <p><strong>Method 1: iframe Embed (Recommended)</strong></p>
+        <ol>
+            <li>Upload <code>emoji-sentiment-embed.html</code> to your WordPress Media Library</li>
+            <li>Get the direct URL to the file</li>
+            <li>Use this HTML in your WordPress editor:</li>
+        </ol>
+        <pre style="background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto;"><code>&lt;iframe 
+    src="https://yoursite.com/wp-content/uploads/2025/01/emoji-sentiment-embed.html" 
+    width="420" 
+    height="620" 
+    frameborder="0" 
+    style="border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);"&gt;
+&lt;/iframe&gt;</code></pre>
+        
+        <p><strong>Method 2: WordPress Shortcode</strong></p>
+        <p>Add this to your theme's <code>functions.php</code> file:</p>
+        <pre style="background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto;"><code>function emoji_sentiment_demo_shortcode() {
+    $upload_dir = wp_upload_dir();
+    $file_url = $upload_dir['baseurl'] . '/emoji-sentiment-embed.html';
+    
+    return '&lt;iframe 
+        src="' . esc_url($file_url) . '" 
+        width="420" 
+        height="620" 
+        frameborder="0" 
+        style="border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);"&gt;
+    &lt;/iframe&gt;';
+}
+add_shortcode('emoji_sentiment_demo', 'emoji_sentiment_demo_shortcode');</code></pre>
+        
+        <p>Then use <code>[emoji_sentiment_demo]</code> in your posts/pages.</p>
+        
+        <p><strong>Method 3: Gutenberg Block</strong></p>
+        <ol>
+            <li>In WordPress editor, add a "Custom HTML" block</li>
+            <li>Paste the iframe code above</li>
+            <li>Preview/publish your page</li>
+        </ol>
+        
+        <p><strong>Method 4: Direct Hosting</strong></p>
+        <ol>
+            <li>Upload <code>emoji-sentiment-embed.html</code> to your web server</li>
+            <li>Access it directly: <code>https://yoursite.com/emoji-sentiment-embed.html</code></li>
+            <li>Share the direct link or embed via iframe</li>
+        </ol>
+        
+        <h4 style="color: #4F46E5;">Responsive Design</h4>
+        <p>For mobile-responsive embedding, use this CSS:</p>
+        <pre style="background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto;"><code>&lt;style&gt;
+.emoji-demo-container {
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+}
+.emoji-demo-container iframe {
+    width: 100%;
+    height: 620px;
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+@media (max-width: 480px) {
+    .emoji-demo-container iframe {
+        height: 500px;
+    }
+}
+&lt;/style&gt;
+
+&lt;div class="emoji-demo-container"&gt;
+    &lt;iframe src="https://yoursite.com/wp-content/uploads/2025/01/emoji-sentiment-embed.html"&gt;&lt;/iframe&gt;
+&lt;/div&gt;</code></pre>
+    </div>
+    
+    <!-- Demo Preview -->
+    <div style="text-align: center; margin: 40px 0;">
+        <h3 style="color: #4F46E5;">Demo Preview</h3>
+        <p>This is how it will look when embedded:</p>
+        <div style="display: inline-block; margin: 20px; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+            <p style="color: #666; font-size: 14px; margin: 0;">iframe container</p>
+            <div style="width: 380px; height: 580px; background: #e5e7eb; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 10px auto;">
+                <p style="color: #666; text-align: center;">Emoji Sentiment Demo<br/>Would appear here</p>
+            </div>
+        </div>
+    </div>
+    
+    <div style="background: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0;">
+        <h4 style="color: #d97706; margin-top: 0;">Important Notes:</h4>
+        <ul style="margin-bottom: 0;">
+            <li>The demo is completely self-contained with CSS and JavaScript</li>
+            <li>No external dependencies required</li>
+            <li>Works on all modern browsers</li>
+            <li>Mobile-responsive design</li>
+            <li>Includes star animations and AI review generation</li>
+        </ul>
+    </div>
+</body>
+</html> 

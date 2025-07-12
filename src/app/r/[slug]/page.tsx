@@ -1667,7 +1667,7 @@ export default function PromptPage() {
                           }, 100);
                         }}
                       >
-                        Publish Review Publicly
+                        Post review publically
                       </button>
                     </div>
                   </div>
@@ -1990,7 +1990,7 @@ export default function PromptPage() {
                   }, 100);
                 }}
               >
-                Publish Review Publicly
+                Post review publically
               </button>
             </div>
             

@@ -343,7 +343,7 @@ export default function UniversalEditPromptPage() {
       </div>
       
       {/* Bottom Action Buttons */}
-      <div className="border-t border-gray-200 pt-6 mt-8 flex justify-between items-center">
+      <div className={`border-t border-gray-200 pt-6 mt-8 flex items-center ${showResetButton ? 'justify-between' : 'justify-end'}`}>
         {/* Reset Button - Bottom Left */}
         {showResetButton && (
           <button

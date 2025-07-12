@@ -176,6 +176,13 @@ import {
   FaIdCard,
   FaCalculator,
   FaFileInvoiceDollar,
+  FaBug,
+  FaSpider,
+  FaShoppingBag,
+  FaTint,
+  FaCloudRain,
+  FaSunglasses,
+  FaRose,
 } from "react-icons/fa";
 import { IconType } from "react-icons";
 
@@ -234,12 +241,13 @@ export const FALLING_STARS_ICONS: {
   { key: "seedling", label: "Seedling", icon: FaSeedling, color: "text-green-500", category: "Plants & animals" },
   { key: "leaf", label: "Leaf", icon: FaLeaf, color: "text-green-400", category: "Plants & animals" },
   { key: "tree", label: "Tree", icon: FaTree, color: "text-green-700", category: "Plants & animals" },
+  { key: "rose", label: "Rose", icon: FaRose, color: "text-red-500", category: "Plants & animals" },
+  { key: "bug", label: "Bug", icon: FaBug, color: "text-green-600", category: "Plants & animals" },
+  { key: "spider", label: "Spider", icon: FaSpider, color: "text-gray-700", category: "Plants & animals" },
   
   // Tools & Services
   { key: "wrench", label: "Wrench", icon: FaWrench, color: "text-blue-600", category: "Tools & Services" },
   { key: "hammer", label: "Hammer", icon: FaHammer, color: "text-orange-600", category: "Tools & Services" },
-  { key: "spray-can", label: "Spray Bottle", icon: FaSprayCan, color: "text-blue-500", category: "Tools & Services" },
-  { key: "scissors", label: "Scissors", icon: FaCut, color: "text-purple-500", category: "Tools & Services" },
   { key: "briefcase", label: "Briefcase", icon: FaBriefcase, color: "text-blue-600", category: "Tools & Services" },
   { key: "gavel", label: "Gavel", icon: FaGavel, color: "text-amber-700", category: "Tools & Services" },
   { key: "key", label: "Key", icon: FaKey, color: "text-yellow-600", category: "Tools & Services" },
@@ -251,6 +259,13 @@ export const FALLING_STARS_ICONS: {
   { key: "bicycle", label: "Bike", icon: FaBicycle, color: "text-green-600", category: "Transportation" },
   { key: "ship", label: "Boat", icon: FaShip, color: "text-blue-600", category: "Transportation" },
   { key: "anchor", label: "Anchor", icon: FaAnchor, color: "text-indigo-600", category: "Transportation" },
+  { key: "rocket", label: "Rocket", icon: FaRocket, color: "text-purple-600", category: "Transportation" },
+  { key: "plane", label: "Airplane", icon: FaPlane, color: "text-blue-500", category: "Transportation" },
+  { key: "motorcycle", label: "Motorcycle", icon: FaMotorcycle, color: "text-red-600", category: "Transportation" },
+  { key: "truck", label: "Truck", icon: FaTruck, color: "text-blue-600", category: "Transportation" },
+  { key: "bus", label: "Bus", icon: FaBus, color: "text-green-600", category: "Transportation" },
+  { key: "train", label: "Train", icon: FaTrain, color: "text-blue-700", category: "Transportation" },
+  { key: "taxi", label: "Taxi", icon: FaTaxi, color: "text-yellow-600", category: "Transportation" },
   
   // Technology & Business
   { key: "laptop", label: "Computer", icon: FaLaptop, color: "text-blue-500", category: "Technology & Business" },
@@ -296,6 +311,8 @@ export const FALLING_STARS_ICONS: {
   { key: "snowman", label: "Snowman", icon: FaSnowman, color: "text-blue-300", category: "Nature & Outdoors" },
   { key: "compass", label: "Compass", icon: FaCompass, color: "text-red-600", category: "Nature & Outdoors" },
   { key: "hiking", label: "Hiking", icon: FaHiking, color: "text-green-700", category: "Nature & Outdoors" },
+  { key: "rain", label: "Rain", icon: FaCloudRain, color: "text-blue-500", category: "Nature & Outdoors" },
+  { key: "water-drop", label: "Water Drop", icon: FaTint, color: "text-blue-400", category: "Nature & Outdoors" },
   
   // Business & Communication
   { key: "phone", label: "Phone", icon: FaPhone, color: "text-green-600", category: "Business & Communication" },
@@ -315,23 +332,32 @@ export const FALLING_STARS_ICONS: {
   { key: "paint-brush", label: "Paint Brush", icon: FaPaintBrush, color: "text-purple-500", category: "Creative & Design" },
   { key: "palette", label: "Palette", icon: FaPalette, color: "text-pink-500", category: "Creative & Design" },
   { key: "magic", label: "Magic Wand", icon: FaMagic, color: "text-purple-600", category: "Creative & Design" },
+  { key: "camera", label: "Camera", icon: FaCamera, color: "text-gray-700", category: "Creative & Design" },
+  { key: "feather", label: "Feather", icon: FaFeather, color: "text-gray-600", category: "Creative & Design" },
+  { key: "pen", label: "Pen", icon: FaPen, color: "text-blue-600", category: "Creative & Design" },
+  { key: "pencil", label: "Pencil", icon: FaPencilAlt, color: "text-gray-600", category: "Creative & Design" },
+  { key: "marker", label: "Marker", icon: FaMarker, color: "text-pink-500", category: "Creative & Design" },
+  { key: "highlighter", label: "Highlighter", icon: FaHighlighter, color: "text-yellow-400", category: "Creative & Design" },
+  { key: "eraser", label: "Eraser", icon: FaEraser, color: "text-gray-500", category: "Creative & Design" },
+  { key: "scissors", label: "Scissors", icon: FaCut, color: "text-purple-500", category: "Creative & Design" },
+  { key: "spray-can", label: "Spray Can", icon: FaSprayCan, color: "text-blue-500", category: "Creative & Design" },
+  { key: "laptop-code", label: "Web Design", icon: FaLaptopCode, color: "text-blue-600", category: "Creative & Design" },
   
-  // Education & Learning
-  { key: "book", label: "Book", icon: FaBook, color: "text-blue-600", category: "Education & Learning" },
-  { key: "graduation-cap", label: "Graduation Cap", icon: FaGraduationCap, color: "text-blue-700", category: "Education & Learning" },
-  { key: "book-open", label: "Open Book", icon: FaBookOpen, color: "text-green-600", category: "Education & Learning" },
-  { key: "scroll", label: "Scroll", icon: FaScroll, color: "text-amber-600", category: "Education & Learning" },
+
   
-  // Family & Children
-  { key: "baby", label: "Baby", icon: FaBaby, color: "text-pink-400", category: "Family & Children" },
-  { key: "child", label: "Child", icon: FaChild, color: "text-blue-400", category: "Family & Children" },
+  // Family & Education
+  { key: "baby", label: "Baby", icon: FaBaby, color: "text-pink-400", category: "Family & Education" },
+  { key: "child", label: "Child", icon: FaChild, color: "text-blue-400", category: "Family & Education" },
+  { key: "book", label: "Book", icon: FaBook, color: "text-blue-600", category: "Family & Education" },
+  { key: "graduation-cap", label: "Graduation Cap", icon: FaGraduationCap, color: "text-blue-700", category: "Family & Education" },
+  { key: "book-open", label: "Open Book", icon: FaBookOpen, color: "text-green-600", category: "Family & Education" },
+  { key: "scroll", label: "Scroll", icon: FaScroll, color: "text-amber-600", category: "Family & Education" },
   
   // Professional Services
   { key: "user-tie", label: "Business Person", icon: FaUserTie, color: "text-blue-700", category: "Professional Services" },
   { key: "award", label: "Award", icon: FaAward, color: "text-yellow-600", category: "Professional Services" },
   { key: "medal", label: "Medal", icon: FaMedal, color: "text-yellow-500", category: "Professional Services" },
   { key: "crown", label: "Crown", icon: FaCrown, color: "text-yellow-600", category: "Professional Services" },
-  { key: "laptop-code", label: "Coding", icon: FaLaptopCode, color: "text-blue-600", category: "Professional Services" },
   { key: "balance-scale", label: "Legal Services", icon: FaBalanceScale, color: "text-gray-700", category: "Professional Services" },
   { key: "file-signature", label: "Document Signing", icon: FaFileSignature, color: "text-blue-600", category: "Professional Services" },
   { key: "business-time", label: "Business Hours", icon: FaBusinessTime, color: "text-green-600", category: "Professional Services" },
@@ -342,24 +368,19 @@ export const FALLING_STARS_ICONS: {
   // Retail & Shopping
   { key: "store", label: "Store", icon: FaStore, color: "text-blue-600", category: "Retail & Shopping" },
   { key: "shopping-cart", label: "Shopping Cart", icon: FaShoppingCart, color: "text-green-600", category: "Retail & Shopping" },
+  { key: "shopping-bag", label: "Shopping Bag", icon: FaShoppingBag, color: "text-brown-500", category: "Retail & Shopping" },
   { key: "tag", label: "Price Tag", icon: FaTag, color: "text-red-500", category: "Retail & Shopping" },
   { key: "percent", label: "Percent", icon: FaPercent, color: "text-green-600", category: "Retail & Shopping" },
   { key: "tshirt", label: "T-Shirt", icon: FaTshirt, color: "text-blue-500", category: "Retail & Shopping" },
   { key: "hat", label: "Cowboy Hat", icon: FaHatCowboy, color: "text-amber-800", category: "Retail & Shopping" },
   { key: "glasses", label: "Glasses", icon: FaGlasses, color: "text-indigo-500", category: "Retail & Shopping" },
+  { key: "sunglasses", label: "Sunglasses", icon: FaSunglasses, color: "text-gray-800", category: "Retail & Shopping" },
   { key: "shirt", label: "Shirt", icon: FaShirt, color: "text-blue-400", category: "Retail & Shopping" },
   { key: "shoes", label: "Shoes", icon: FaShoes, color: "text-brown-600", category: "Retail & Shopping" },
   { key: "ring", label: "Ring", icon: FaRing, color: "text-yellow-500", category: "Retail & Shopping" },
   { key: "watch", label: "Watch", icon: FaWatch, color: "text-gray-600", category: "Retail & Shopping" },
   
-  // Transportation & Travel
-  { key: "rocket", label: "Rocket", icon: FaRocket, color: "text-purple-600", category: "Transportation & Travel" },
-  { key: "plane", label: "Airplane", icon: FaPlane, color: "text-blue-500", category: "Transportation & Travel" },
-  { key: "motorcycle", label: "Motorcycle", icon: FaMotorcycle, color: "text-red-600", category: "Transportation & Travel" },
-  { key: "truck", label: "Truck", icon: FaTruck, color: "text-blue-600", category: "Transportation & Travel" },
-  { key: "bus", label: "Bus", icon: FaBus, color: "text-green-600", category: "Transportation & Travel" },
-  { key: "train", label: "Train", icon: FaTrain, color: "text-blue-700", category: "Transportation & Travel" },
-  { key: "taxi", label: "Taxi", icon: FaTaxi, color: "text-yellow-600", category: "Transportation & Travel" },
+
   
   // Hospitality & Leisure
   { key: "umbrella", label: "Umbrella", icon: FaUmbrella, color: "text-blue-500", category: "Hospitality & Leisure" },
@@ -386,11 +407,6 @@ export const FALLING_STARS_ICONS: {
   { key: "hat-wizard", label: "Wizard Hat", icon: FaHatWizard, color: "text-purple-600", category: "Games & Entertainment" },
   
   // Office & Writing
-  { key: "pen", label: "Pen", icon: FaPen, color: "text-blue-600", category: "Office & Writing" },
-  { key: "pencil", label: "Pencil", icon: FaPencilAlt, color: "text-gray-600", category: "Office & Writing" },
-  { key: "marker", label: "Marker", icon: FaMarker, color: "text-pink-500", category: "Office & Writing" },
-  { key: "highlighter", label: "Highlighter", icon: FaHighlighter, color: "text-yellow-400", category: "Office & Writing" },
-  { key: "eraser", label: "Eraser", icon: FaEraser, color: "text-gray-500", category: "Office & Writing" },
   { key: "paperclip", label: "Paperclip", icon: FaPaperclip, color: "text-gray-600", category: "Office & Writing" },
   { key: "sticky-note", label: "Sticky Note", icon: FaStickyNote, color: "text-yellow-400", category: "Office & Writing" },
   { key: "clipboard", label: "Clipboard", icon: FaClipboard, color: "text-gray-600", category: "Office & Writing" },
@@ -399,7 +415,7 @@ export const FALLING_STARS_ICONS: {
   
   // Equality
   { key: "rainbow", label: "Rainbow", icon: FaRainbow, color: "text-pink-500", category: "Equality" },
-  { key: "scales-justice", label: "Scales of Justice", icon: FaGavel, color: "text-amber-700", category: "Equality" },
+  { key: "scales-justice", label: "Gavel", icon: FaGavel, color: "text-amber-700", category: "Equality" },
   { key: "transgender", label: "Transgender", icon: FaTransgender, color: "text-blue-500", category: "Equality" },
   { key: "mars", label: "Male Symbol", icon: FaMars, color: "text-blue-600", category: "Equality" },
   { key: "venus", label: "Female Symbol", icon: FaVenus, color: "text-pink-500", category: "Equality" },
