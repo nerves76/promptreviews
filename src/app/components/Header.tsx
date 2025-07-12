@@ -7,6 +7,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { FiMenu, FiX } from "react-icons/fi";
 import { FaUserCircle, FaBell } from "react-icons/fa";
 import { Menu } from "@headlessui/react";
+import { createPortal } from "react-dom";
 import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 import { useAuth } from "@/contexts/AuthContext";
 import { trackEvent, GA_EVENTS } from '../../utils/analytics';
@@ -422,175 +423,187 @@ export default function Header() {
             </div>
           </div>
         </div>
-        {/* Mobile Menu Dropdown */}
-        {menuOpen && (
-          <div className="md:hidden absolute left-0 right-0 bg-white/95 backdrop-blur-sm shadow-lg mt-2 rounded-b-xl border border-white/20" style={{ zIndex: 2147483647 }}>
-            <div className="px-2 pt-2 pb-3 space-y-1 flex flex-col">
-              <Link
-                href="/dashboard"
-                className={`${
-                  isActive("/dashboard")
-                    ? "bg-slate-blue/10 text-slate-blue"
-                    : "text-gray-700 hover:bg-slate-blue/10"
-                } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
-                onClick={() => setMenuOpen(false)}
-              >
-                Dashboard
-              </Link>
-              {!businessLoading && (
-                <>
-                  <Link
-                    href={hasBusiness ? "/prompt-pages" : "#"}
-                    onClick={(e) => {
-                      if (!hasBusiness) {
-                        e.preventDefault();
-                        router.push("/dashboard/create-business");
-                        setMenuOpen(false);
-                      } else {
-                        setMenuOpen(false);
-                      }
-                    }}
-                    className={`${
-                      isActive("/prompt-pages")
-                        ? "bg-slate-blue/10 text-slate-blue"
-                        : hasBusiness 
-                          ? "text-gray-700 hover:bg-slate-blue/10"
-                          : "text-gray-400 cursor-not-allowed"
-                    } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
-                  >
-                    Prompt pages
-                    {!hasBusiness && (
-                      <span className="text-xs text-gray-500 block mt-1">Create business profile first</span>
-                    )}
-                  </Link>
-                  <Link
-                    href={hasBusiness ? "/dashboard/business-profile" : "#"}
-                    onClick={(e) => {
-                      if (!hasBusiness) {
-                        e.preventDefault();
-                        router.push("/dashboard/create-business");
-                        setMenuOpen(false);
-                      } else {
-                        setMenuOpen(false);
-                      }
-                    }}
-                    className={`${
-                      isActive("/dashboard/business-profile")
-                        ? "bg-slate-blue/10 text-slate-blue"
-                        : hasBusiness 
-                          ? "text-gray-700 hover:bg-slate-blue/10"
-                          : "text-gray-400 cursor-not-allowed"
-                    } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
-                  >
-                    Your business
-                    {!hasBusiness && (
-                      <span className="text-xs text-gray-500 block mt-1">Create business profile first</span>
-                    )}
-                  </Link>
-                  <Link
-                    href={hasBusiness ? "/dashboard/widget" : "#"}
-                    onClick={(e) => {
-                      if (!hasBusiness) {
-                        e.preventDefault();
-                        router.push("/dashboard/create-business");
-                        setMenuOpen(false);
-                      } else {
-                        setMenuOpen(false);
-                      }
-                    }}
-                    className={`${
-                      isActive("/dashboard/widget")
-                        ? "bg-slate-blue/10 text-slate-blue"
-                        : hasBusiness 
-                          ? "text-gray-700 hover:bg-slate-blue/10"
-                          : "text-gray-400 cursor-not-allowed"
-                    } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
-                  >
-                    Widgets
-                    {!hasBusiness && (
-                      <span className="text-xs text-gray-500 block mt-1">Create business profile first</span>
-                    )}
-                  </Link>
-                </>
-              )}
-              {user ? (
-                <>
-                  <Link
-                    href="/dashboard/account"
-                    className={`${
-                      isActive("/dashboard/account")
-                        ? "bg-slate-blue/10 text-slate-blue"
-                        : "text-gray-700 hover:bg-slate-blue/10"
-                    } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    Account
-                  </Link>
-                  <Link
-                    href="/dashboard/analytics"
-                    className={`${
-                      isActive("/dashboard/analytics")
-                        ? "bg-slate-blue/10 text-slate-blue"
-                        : "text-gray-700 hover:bg-slate-blue/10"
-                    } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    Analytics
-                  </Link>
-                  <Link
-                    href="/dashboard/plan"
-                    className={`${
-                      isActive("/dashboard/plan")
-                        ? "bg-slate-blue/10 text-slate-blue"
-                        : "text-gray-700 hover:bg-slate-blue/10"
-                    } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    Plan
-                  </Link>
-                  <Link
-                    href="/dashboard/contacts"
-                    className={`${
-                      isActive("/dashboard/contacts")
-                        ? "bg-slate-blue/10 text-slate-blue"
-                        : "text-gray-700 hover:bg-slate-blue/10"
-                    } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    Contacts
-                  </Link>
-                  {isAdminUser && (
-                    <Link
-                      href="/admin"
-                      className="text-purple-600 hover:bg-purple-50 block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
-                      onClick={() => setMenuOpen(false)}
-                    >
-                      Admin Panel
-                    </Link>
-                  )}
-                  <button
-                    onClick={async () => {
-                      trackEvent(GA_EVENTS.SIGN_OUT, { timestamp: new Date().toISOString() });
-                      await supabase.auth.signOut();
-                      router.push("/auth/sign-in");
-                      setMenuOpen(false);
-                    }}
-                    className="text-red-600 hover:bg-red-50 block w-full text-left px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
-                  >
-                    Sign out
-                  </button>
-                </>
-              ) : (
+        {/* Mobile Menu Dropdown - Rendered in Portal */}
+        {menuOpen && typeof window !== 'undefined' && createPortal(
+          <div 
+            className="fixed inset-0 md:hidden"
+            style={{ zIndex: 2147483647 }}
+          >
+            {/* Backdrop */}
+            <div 
+              className="absolute inset-0 bg-black/20 backdrop-blur-sm"
+              onClick={() => setMenuOpen(false)}
+            />
+            {/* Menu Content */}
+            <div className="absolute top-20 left-4 right-4 bg-white/95 backdrop-blur-sm shadow-lg rounded-xl border border-white/20">
+              <div className="px-2 pt-2 pb-3 space-y-1 flex flex-col">
                 <Link
-                  href="/auth/sign-in"
-                  className="text-gray-700 hover:bg-slate-blue/10 block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
+                  href="/dashboard"
+                  className={`${
+                    isActive("/dashboard")
+                      ? "bg-slate-blue/10 text-slate-blue"
+                      : "text-gray-700 hover:bg-slate-blue/10"
+                  } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                   onClick={() => setMenuOpen(false)}
                 >
-                  Sign in
+                  Dashboard
                 </Link>
-              )}
+                {!businessLoading && (
+                  <>
+                    <Link
+                      href={hasBusiness ? "/prompt-pages" : "#"}
+                      onClick={(e) => {
+                        if (!hasBusiness) {
+                          e.preventDefault();
+                          router.push("/dashboard/create-business");
+                          setMenuOpen(false);
+                        } else {
+                          setMenuOpen(false);
+                        }
+                      }}
+                      className={`${
+                        isActive("/prompt-pages")
+                          ? "bg-slate-blue/10 text-slate-blue"
+                          : hasBusiness 
+                            ? "text-gray-700 hover:bg-slate-blue/10"
+                            : "text-gray-400 cursor-not-allowed"
+                      } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
+                    >
+                      Prompt pages
+                      {!hasBusiness && (
+                        <span className="text-xs text-gray-500 block mt-1">Create business profile first</span>
+                      )}
+                    </Link>
+                    <Link
+                      href={hasBusiness ? "/dashboard/business-profile" : "#"}
+                      onClick={(e) => {
+                        if (!hasBusiness) {
+                          e.preventDefault();
+                          router.push("/dashboard/create-business");
+                          setMenuOpen(false);
+                        } else {
+                          setMenuOpen(false);
+                        }
+                      }}
+                      className={`${
+                        isActive("/dashboard/business-profile")
+                          ? "bg-slate-blue/10 text-slate-blue"
+                          : hasBusiness 
+                            ? "text-gray-700 hover:bg-slate-blue/10"
+                            : "text-gray-400 cursor-not-allowed"
+                      } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
+                    >
+                      Your business
+                      {!hasBusiness && (
+                        <span className="text-xs text-gray-500 block mt-1">Create business profile first</span>
+                      )}
+                    </Link>
+                    <Link
+                      href={hasBusiness ? "/dashboard/widget" : "#"}
+                      onClick={(e) => {
+                        if (!hasBusiness) {
+                          e.preventDefault();
+                          router.push("/dashboard/create-business");
+                          setMenuOpen(false);
+                        } else {
+                          setMenuOpen(false);
+                        }
+                      }}
+                      className={`${
+                        isActive("/dashboard/widget")
+                          ? "bg-slate-blue/10 text-slate-blue"
+                          : hasBusiness 
+                            ? "text-gray-700 hover:bg-slate-blue/10"
+                            : "text-gray-400 cursor-not-allowed"
+                      } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
+                    >
+                      Widgets
+                      {!hasBusiness && (
+                        <span className="text-xs text-gray-500 block mt-1">Create business profile first</span>
+                      )}
+                    </Link>
+                  </>
+                )}
+                {user ? (
+                  <>
+                    <Link
+                      href="/dashboard/account"
+                      className={`${
+                        isActive("/dashboard/account")
+                          ? "bg-slate-blue/10 text-slate-blue"
+                          : "text-gray-700 hover:bg-slate-blue/10"
+                      } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Account
+                    </Link>
+                    <Link
+                      href="/dashboard/analytics"
+                      className={`${
+                        isActive("/dashboard/analytics")
+                          ? "bg-slate-blue/10 text-slate-blue"
+                          : "text-gray-700 hover:bg-slate-blue/10"
+                      } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Analytics
+                    </Link>
+                    <Link
+                      href="/dashboard/plan"
+                      className={`${
+                        isActive("/dashboard/plan")
+                          ? "bg-slate-blue/10 text-slate-blue"
+                          : "text-gray-700 hover:bg-slate-blue/10"
+                      } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Plan
+                    </Link>
+                    <Link
+                      href="/dashboard/contacts"
+                      className={`${
+                        isActive("/dashboard/contacts")
+                          ? "bg-slate-blue/10 text-slate-blue"
+                          : "text-gray-700 hover:bg-slate-blue/10"
+                      } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Contacts
+                    </Link>
+                    {isAdminUser && (
+                      <Link
+                        href="/admin"
+                        className="text-purple-600 hover:bg-purple-50 block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        Admin Panel
+                      </Link>
+                    )}
+                    <button
+                      onClick={async () => {
+                        trackEvent(GA_EVENTS.SIGN_OUT, { timestamp: new Date().toISOString() });
+                        await supabase.auth.signOut();
+                        router.push("/auth/sign-in");
+                        setMenuOpen(false);
+                      }}
+                      className="text-red-600 hover:bg-red-50 block w-full text-left px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
+                    >
+                      Sign out
+                    </button>
+                  </>
+                ) : (
+                  <Link
+                    href="/auth/sign-in"
+                    className="text-gray-700 hover:bg-slate-blue/10 block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Sign in
+                  </Link>
+                )}
+              </div>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
       </nav>
     </header>
