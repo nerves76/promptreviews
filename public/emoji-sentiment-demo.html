@@ -19,17 +19,20 @@
             justify-content: center;
             min-height: 100vh;
             padding: 20px;
+            text-align: center;
         }
 
         .demo-container {
             position: relative;
-            display: inline-block;
+            display: block;
+            margin: 0 auto;
+            text-align: center;
+            width: fit-content;
         }
 
         .phone-container {
             position: relative;
             display: inline-block;
-            filter: drop-shadow(0 15px 30px rgba(0,0,0,0.15));
         }
 
         .phone {
@@ -440,8 +443,8 @@
 
         .falling-star {
             position: absolute;
-            width: 12px;
-            height: 12px;
+            width: 36px;
+            height: 36px;
             background: #FFD700;
             clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
             animation: fall linear infinite;
@@ -488,8 +491,8 @@
 
         .rain-star {
             position: absolute;
-            width: 10px;
-            height: 10px;
+            width: 30px;
+            height: 30px;
             background: #FFD700;
             clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
             animation: rainFall linear forwards;
@@ -520,24 +523,169 @@
 
         /* Reset button */
         .reset-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
+            display: block;
+            margin: 20px auto 0;
             background: #4F46E5;
             color: white;
             border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
+            padding: 10px 20px;
+            border-radius: 8px;
             font-size: 14px;
             cursor: pointer;
             transition: all 0.3s ease;
-            z-index: 20;
+            text-align: center;
         }
         
         .reset-btn:hover {
             background: #3B2BBF;
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+
+        /* Google Review Page Styles */
+        .google-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid #e8eaed;
+            background: white;
+            margin: -24px -24px 20px -24px;
+        }
+
+        .google-logo {
+            font-size: 20px;
+            font-weight: 500;
+            font-family: 'Product Sans', Arial, sans-serif;
+        }
+
+        .back-arrow {
+            font-size: 18px;
+            color: #5f6368;
+            cursor: pointer;
+        }
+
+        .google-content {
+            padding: 0;
+        }
+
+        .business-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e8eaed;
+        }
+
+        .business-avatar {
+            width: 48px;
+            height: 48px;
+            background: #4F46E5;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-right: 12px;
+        }
+
+        .business-details .business-name {
+            font-size: 16px;
+            font-weight: 500;
+            color: #202124;
+            margin-bottom: 4px;
+        }
+
+        .business-rating {
+            font-size: 14px;
+            color: #5f6368;
+        }
+
+        .review-section {
+            padding-top: 8px;
+        }
+
+        .rating-selector {
+            margin-bottom: 20px;
+        }
+
+        .rating-stars {
+            display: flex;
+            gap: 4px;
+        }
+
+        .rating-stars .star {
+            font-size: 32px;
+            color: #dadce0;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .rating-stars .star.active {
+            color: #fbbc04;
+        }
+
+        .review-input {
+            margin-bottom: 20px;
+        }
+
+        .google-textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 12px;
+            border: 1px solid #dadce0;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            background: #f8f9fa;
+        }
+
+        .reviewer-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .reviewer-avatar {
+            width: 32px;
+            height: 32px;
+            background: #4285f4;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 500;
+            margin-right: 8px;
+        }
+
+        .reviewer-name {
+            font-size: 14px;
+            color: #202124;
+            font-weight: 500;
+        }
+
+        .google-submit-btn {
+            background: #1a73e8;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .google-submit-btn:hover {
+            background: #1557b0;
+            box-shadow: 0 1px 2px 0 rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15);
         }
 
         /* Responsive design */
@@ -562,9 +710,8 @@
             }
             
             .reset-btn {
-                top: 10px;
-                right: 10px;
-                padding: 6px 12px;
+                margin: 15px auto 0;
+                padding: 8px 16px;
                 font-size: 12px;
             }
         }
@@ -572,7 +719,6 @@
 </head>
 <body>
     <div class="demo-container">
-        <button class="reset-btn" onclick="resetDemo()">⟲ Reset Demo</button>
         <div class="phone-container">
             <div class="countdown-info" id="countdown">15</div>
             
@@ -592,11 +738,9 @@
                     </div>
                 </div>
             </div>
-            
-            <a href="https://promptreviews.app" target="_blank" class="brand-badge">
-                PromptReviews
-            </a>
         </div>
+        
+        <button class="reset-btn" onclick="resetDemo()">Reset Demo</button>
     </div>
 
     <script>
@@ -819,7 +963,8 @@
                 "Love the atmosphere. The player piano was delightful. Staff was super friendly. Highly recommended!",
                 "Excellent service! The staff was incredibly friendly and helpful. Definitely recommend to everyone!",
                 "Amazing experience from start to finish. Professional team and great attention to detail. Will be back!",
-                "Outstanding quality and service. Exceeded all my expectations. Highly recommend this business!"
+                "Such a talented team. They make the complex, simple. You can't go wrong with Diviner.",
+                "These guys are straight shooters. Always open and honest about pricing. Great craftmenship. Highly recomended."
             ];
             
             const randomReview = sampleReviews[Math.floor(Math.random() * sampleReviews.length)];
@@ -843,6 +988,77 @@
                 submitBtn.disabled = true;
                 submitBtn.style.opacity = '0.7';
             }
+            
+            // Show Google review form after brief delay
+            setTimeout(() => {
+                showGoogleReviewPage();
+            }, 1500);
+        }
+
+        function showGoogleReviewPage() {
+            const phoneContent = document.querySelector('.phone-content');
+            const reviewText = document.querySelector('.review-textarea')?.value || "Amazing experience from start to finish. Professional team and great attention to detail. Will be back!";
+            
+            phoneContent.innerHTML = `
+                <div class="page-layout fade-in">
+                    <div class="google-content" style="background: white; padding: 20px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); max-width: 350px; margin: 0 auto;">
+                        <div class="business-header" style="text-align: center; margin-bottom: 20px;">
+                            <div style="font-size: 18px; font-weight: 500; color: #202124; margin-bottom: 8px;">Your Business</div>
+                        </div>
+                        
+                        <div class="reviewer-info" style="display: flex; align-items: center; margin-bottom: 16px; padding: 0; background: transparent;">
+                            <div class="reviewer-avatar" style="width: 40px; height: 40px; background: #4285f4; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; margin-right: 12px;">CB</div>
+                            <div>
+                                <div style="font-size: 16px; color: #202124; font-weight: 500; margin-bottom: 2px;">Chris Bolton</div>
+                                <div style="font-size: 14px; color: #5f6368; display: flex; align-items: center;">
+                                    Posting publicly across Google
+                                    <svg style="width: 16px; height: 16px; margin-left: 4px; fill: #5f6368;" viewBox="0 0 24 24">
+                                        <path d="M12,2C13.1,2 14,2.9 14,4C14,5.1 13.1,6 12,6C10.9,6 10,5.1 10,4C10,2.9 10.9,2 12,2M21,9V7L15,1H5C3.89,1 3,1.89 3,3V21A2,2 0 0,0 5,23H19A2,2 0 0,0 21,21V9M19,9H14V4H19V9Z" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="rating-selector" style="margin-bottom: 20px;">
+                            <div class="rating-stars" style="display: flex; gap: 8px; justify-content: center;">
+                                <span class="star active" style="font-size: 32px; color: #fbbc04;">★</span>
+                                <span class="star active" style="font-size: 32px; color: #fbbc04;">★</span>
+                                <span class="star active" style="font-size: 32px; color: #fbbc04;">★</span>
+                                <span class="star active" style="font-size: 32px; color: #fbbc04;">★</span>
+                                <span class="star active" style="font-size: 32px; color: #fbbc04;">★</span>
+                            </div>
+                        </div>
+                        
+                        <div class="review-input" style="margin-bottom: 16px;">
+                            <textarea class="google-textarea" style="width: 100%; min-height: 120px; padding: 16px; border: 2px solid #1a73e8; border-radius: 8px; font-size: 16px; font-family: inherit; resize: none; outline: none;" placeholder="Share details of your own experience at this place">${reviewText}</textarea>
+                        </div>
+                        
+                        <div class="photo-section" style="margin-bottom: 20px;">
+                            <div style="display: flex; align-items: center; padding: 12px; background: #f8f9fa; border-radius: 8px; color: #1a73e8; cursor: pointer;">
+                                <svg style="width: 20px; height: 20px; margin-right: 8px; fill: #1a73e8;" viewBox="0 0 24 24">
+                                    <path d="M9,2V7.5L12,4.5L15,7.5V2H9M21,9H15L13.5,7.5H9.5L8,9H2V20A2,2 0 0,0 4,22H20A2,2 0 0,0 22,20V9H21M4,20V11H8L9.5,9.5H14.5L16,11H20V20H4Z" />
+                                </svg>
+                                <span style="font-size: 14px; color: #1a73e8;">Add photos & videos</span>
+                            </div>
+                        </div>
+                        
+                        <div class="action-buttons" style="display: flex; gap: 12px; justify-content: flex-end;">
+                            <button style="background: transparent; color: #1a73e8; border: none; padding: 8px 16px; border-radius: 4px; font-size: 14px; font-weight: 500; cursor: pointer;">
+                                Cancel
+                            </button>
+                            <button class="google-submit-btn" onclick="finalSubmit()" style="background: #1a73e8; color: white; border: none; padding: 8px 24px; border-radius: 4px; font-size: 14px; font-weight: 500; cursor: pointer;">
+                                Post
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            currentStep = 5;
+        }
+
+        function finalSubmit() {
+            showThankYou('Review posted to Google!');
         }
 
         function submitFeedback() {
@@ -853,7 +1069,7 @@
             const phoneContent = document.querySelector('.phone-content');
             phoneContent.innerHTML = `
                 <div class="modal fade-in">
-                    <div class="modal-title">✨ Thank you!</div>
+                    <div class="modal-title">Thank you for your feedback! We'll get back to you within 24-hours.</div>
                     <p style="color: #10B981; font-weight: 500; margin-top: 16px;">${message}</p>
                 </div>
                 <div class="star-fall" id="starFall"></div>
