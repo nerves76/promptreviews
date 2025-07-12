@@ -224,12 +224,12 @@ export default function WidgetPage() {
       {/* Top Section: Widget Preview */}
       <div className="mb-8">
         <div className="relative w-full max-w-4xl mx-auto" style={{ minHeight: '600px' }}>
-          <div className="text-center mb-6">
+          <div className="text-center mb-12">
             <div className="flex items-center justify-center gap-4 mb-2">
               <h2 className="text-2xl font-bold text-white">Widget preview</h2>
               
               {/* Action Buttons */}
-              <div className="flex gap-2">
+              <div className="flex gap-4">
                 <button
                   onClick={handleEditStyle}
                   className="p-2 bg-white/40 backdrop-blur-sm rounded-full shadow-lg hover:bg-white/50 transition-all duration-200 group"
