@@ -108,21 +108,49 @@ export async function generatePromptPageMetadata(
   const template = await getActiveMetadataTemplate(pageType);
   
   if (!template) {
-    // Fallback metadata if no template found
+    // Helper function to format page type
+    const formatPageType = (type: string): string => {
+      switch (type.toLowerCase()) {
+        case 'universal':
+          return 'Universal';
+        case 'product':
+          return 'Product';
+        case 'service':
+          return 'Service';
+        case 'photo':
+          return 'Photo';
+        case 'video':
+          return 'Video';
+        case 'event':
+          return 'Event';
+        case 'employee':
+          return 'Employee';
+        default:
+          return 'Service';
+      }
+    };
+
+    const businessName = context.business_name || 'Business';
+    const formattedPageType = formatPageType(pageType);
+    
+    // Updated fallback metadata using new format: "Give [Business Name] a review - Prompt Reviews - [Page Type]"
+    const title = `Give ${businessName} a review - Prompt Reviews - ${formattedPageType}`;
+    const description = `Share your experience with ${businessName}. Your feedback helps them improve their services.`;
+    
     return {
-      title: `Review ${context.business_name || 'Business'}`,
-      description: `Share your experience with ${context.business_name || 'this business'}`,
+      title,
+      description,
       openGraph: {
-        title: `Review ${context.business_name || 'Business'}`,
-        description: `Share your experience with ${context.business_name || 'this business'}`,
+        title,
+        description,
         images: context.logo ? [context.logo] : undefined,
       },
       twitter: {
-        title: `Review ${context.business_name || 'Business'}`,
-        description: `Share your experience with ${context.business_name || 'this business'}`,
+        title,
+        description,
         images: context.logo ? [context.logo] : undefined,
       },
-      keywords: `${context.business_name || 'business'}, reviews, feedback`,
+      keywords: `${businessName}, reviews, feedback, ${formattedPageType.toLowerCase()}`,
     };
   }
   
