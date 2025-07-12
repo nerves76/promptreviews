@@ -19,7 +19,7 @@ export const EMOJI_SENTIMENT_ICONS = [
 export const EMOJI_SENTIMENT_TITLE = "Emoji Sentiment Flow";
 
 export const EMOJI_SENTIMENT_SUBTEXT =
-  'This feature keeps negative reviews off the web and allows you to respond directly while gathering valuable feedback. Users who select "Delighted" or "Satisfied" are sent to your public prompt page, while those who select "Neutral" or "Unsatisfied" are shown a private feedback form that is saved to your account but not shared publicly.';
+  'This feature encourages users to think twice before pasting negative reviews online. If users select "Delighted" or "Satisfied," they are sent to your public prompt page, while those who select "Neutral, Unsatisfied, or Frustrated" receive a secondary message which asks if they would rather leave feedback directly or publish publicly. (This is designed to satisfy Google\'s "no gating" policy where users are not given a choice.)';
 
 export const EMOJI_SENTIMENT_NOTE =
   'Note: If you have Falling stars feature enabled, it will only run when a user selects "Excellent" or "Satisfied."';
