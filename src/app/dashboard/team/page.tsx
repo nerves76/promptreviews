@@ -256,7 +256,7 @@ export default function TeamPage() {
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-white">Team Management</h1>
+          <h1 className="text-3xl font-bold text-white">Team management</h1>
           <p className="text-white mt-1">
             Manage your team members and invitations
           </p>

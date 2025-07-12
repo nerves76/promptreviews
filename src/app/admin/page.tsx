@@ -365,7 +365,7 @@ export default function AdminPage() {
             onClick={() => router.push("/admin/announcements")}
             className="w-full text-left p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
           >
-            <h4 className="font-medium text-gray-900">Manage Announcements</h4>
+            <h4 className="font-medium text-gray-900">Manage announcements</h4>
             <p className="text-sm text-gray-600">Create and manage banner notifications</p>
           </button>
 
@@ -373,7 +373,7 @@ export default function AdminPage() {
             onClick={() => router.push("/admin/quotes")}
             className="w-full text-left p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
           >
-            <h4 className="font-medium text-gray-900">Manage Quotes</h4>
+            <h4 className="font-medium text-gray-900">Manage quotes</h4>
             <p className="text-sm text-gray-600">Create and manage dashboard quotes</p>
           </button>
 
@@ -381,7 +381,7 @@ export default function AdminPage() {
             onClick={() => router.push("/admin/feedback")}
             className="w-full text-left p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
           >
-            <h4 className="font-medium text-gray-900">Manage Feedback</h4>
+            <h4 className="font-medium text-gray-900">Manage feedback</h4>
             <p className="text-sm text-gray-600">View and manage user feedback</p>
           </button>
 
@@ -397,7 +397,7 @@ export default function AdminPage() {
             onClick={() => router.push("/admin/email-templates")}
             className="w-full text-left p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
           >
-            <h4 className="font-medium text-gray-900">Email Templates</h4>
+            <h4 className="font-medium text-gray-900">Email templates</h4>
             <p className="text-sm text-gray-600">Edit welcome emails, review notifications, and more</p>
           </button>
 
@@ -405,7 +405,7 @@ export default function AdminPage() {
             onClick={() => setShowAccountCleanup(true)}
             className="w-full text-left p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
           >
-            <h4 className="font-medium text-gray-900">Account Cleanup</h4>
+            <h4 className="font-medium text-gray-900">Account cleanup</h4>
             <p className="text-sm text-gray-600">Manage 90-day retention policy for cancelled accounts</p>
           </button>
 
@@ -413,7 +413,7 @@ export default function AdminPage() {
             onClick={() => router.push("/admin/free-accounts")}
             className="w-full text-left p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
           >
-            <h4 className="font-medium text-gray-900">Free Accounts</h4>
+            <h4 className="font-medium text-gray-900">Free accounts</h4>
             <p className="text-sm text-gray-600">Create and manage free accounts with specific plan levels</p>
           </button>
         </div>
@@ -423,7 +423,7 @@ export default function AdminPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Admin User Management</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Admin user management</h1>
             <p className="mt-2 text-gray-600">
               Search and manage users with comprehensive data cleanup and repair capabilities
             </p>
@@ -431,7 +431,7 @@ export default function AdminPage() {
 
           {/* Repair Users Section */}
           <div className="bg-white shadow rounded-lg p-6 mb-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Repair User-Account Relationships</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Repair user-account relationships</h2>
             <p className="text-sm text-gray-600 mb-4">
               Check and repair broken user-account relationships that cause "Database error granting user" authentication issues.
             </p>
@@ -440,7 +440,7 @@ export default function AdminPage() {
               <div className="flex gap-4">
                 <div className="flex-1">
                   <label htmlFor="repairEmail" className="block text-sm font-medium text-gray-700 mb-2">
-                    Email Address (optional - leave empty to check all users)
+                    Email address (optional - leave empty to check all users)
                   </label>
                   <input
                     type="email"
@@ -463,7 +463,7 @@ export default function AdminPage() {
                       onChange={(e) => setRepairMode(e.target.value as 'check' | 'repair')}
                       className="mr-2"
                     />
-                    <span className="text-sm text-gray-700">Check Only</span>
+                    <span className="text-sm text-gray-700">Check only</span>
                   </label>
                   <label className="flex items-center">
                     <input
@@ -473,7 +473,7 @@ export default function AdminPage() {
                       onChange={(e) => setRepairMode(e.target.value as 'check' | 'repair')}
                       className="mr-2"
                     />
-                    <span className="text-sm text-gray-700">Check & Repair</span>
+                    <span className="text-sm text-gray-700">Check & repair</span>
                   </label>
                 </div>
               </div>
@@ -484,7 +484,7 @@ export default function AdminPage() {
                   disabled={isRepairing}
                   className="px-4 py-2 bg-slate-blue text-white rounded-md hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isRepairing ? 'Processing...' : repairMode === 'repair' ? 'Check & Repair' : 'Check Users'}
+                  {isRepairing ? 'Processing...' : repairMode === 'repair' ? 'Check & repair' : 'Check users'}
                 </button>
               </div>
             </div>
@@ -499,7 +499,7 @@ export default function AdminPage() {
           {/* Repair Results */}
           {repairResult && (
             <div className="bg-white shadow rounded-lg p-6 mb-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Repair Results</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Repair results</h2>
               
               <div className={`p-4 rounded-md mb-4 ${
                 repairResult.success 
@@ -516,11 +516,11 @@ export default function AdminPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div className="bg-gray-50 rounded-md p-4">
                   <div className="text-2xl font-bold text-gray-900">{repairResult.results.checked}</div>
-                  <div className="text-sm text-gray-600">Users Checked</div>
+                  <div className="text-sm text-gray-600">Users checked</div>
                 </div>
                 <div className="bg-yellow-50 rounded-md p-4">
                   <div className="text-2xl font-bold text-yellow-800">{repairResult.results.broken}</div>
-                  <div className="text-sm text-yellow-600">Broken Relationships</div>
+                  <div className="text-sm text-yellow-600">Broken relationships</div>
                 </div>
                 <div className="bg-green-50 rounded-md p-4">
                   <div className="text-2xl font-bold text-green-800">{repairResult.results.repaired}</div>
@@ -530,7 +530,7 @@ export default function AdminPage() {
 
               {repairResult.results.details.length > 0 && (
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-3">User Details</h3>
+                  <h3 className="text-lg font-medium text-gray-900 mb-3">User details</h3>
                   <div className="space-y-3">
                     {repairResult.results.details.map((detail, index) => (
                       <div key={index} className="border border-gray-200 rounded-md p-4">
@@ -590,12 +590,12 @@ export default function AdminPage() {
 
           {/* Search Section */}
           <div className="bg-white shadow rounded-lg p-6 mb-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Search User</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Search user</h2>
             
             <div className="flex gap-4">
               <div className="flex-1">
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address
+                  Email address
                 </label>
                 <input
                   type="email"
@@ -628,7 +628,7 @@ export default function AdminPage() {
           {/* User Information */}
           {userInfo && (
             <div className="bg-white shadow rounded-lg p-6 mb-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">User Information</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">User information</h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -640,11 +640,11 @@ export default function AdminPage() {
                   <p className="mt-1 text-sm text-gray-900">{userInfo.email}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Created At</label>
+                  <label className="block text-sm font-medium text-gray-700">Created at</label>
                   <p className="mt-1 text-sm text-gray-900">{formatDate(userInfo.created_at)}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Last Sign In</label>
+                  <label className="block text-sm font-medium text-gray-700">Last sign in</label>
                   <p className="mt-1 text-sm text-gray-900">
                     {userInfo.last_sign_in_at ? formatDate(userInfo.last_sign_in_at) : 'Never'}
                   </p>
@@ -656,7 +656,7 @@ export default function AdminPage() {
                   onClick={() => setShowConfirmation(true)}
                   className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
                 >
-                  Delete User & All Data
+                  Delete user & all data
                 </button>
               </div>
             </div>
@@ -666,7 +666,7 @@ export default function AdminPage() {
           {showConfirmation && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
               <div className="bg-white rounded-lg p-6 max-w-md mx-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Confirm Deletion</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Confirm deletion</h3>
                 <p className="text-gray-600 mb-6">
                   This action will permanently delete the user <strong>{userInfo?.email}</strong> and ALL associated data including:
                 </p>
@@ -694,7 +694,7 @@ export default function AdminPage() {
                     disabled={isDeleting}
                     className="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
                   >
-                    {isDeleting ? 'Deleting...' : 'Delete Permanently'}
+                    {isDeleting ? 'Deleting...' : 'Delete permanently'}
                   </button>
                 </div>
               </div>
@@ -704,7 +704,7 @@ export default function AdminPage() {
           {/* Delete Results */}
           {deleteResult && (
             <div className="bg-white shadow rounded-lg p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Deletion Results</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Deletion results</h2>
               
               <div className={`p-4 rounded-md mb-4 ${
                 deleteResult.success 
@@ -720,7 +720,7 @@ export default function AdminPage() {
 
               {deleteResult.details && (
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-3">Cleanup Details</h3>
+                  <h3 className="text-lg font-medium text-gray-900 mb-3">Cleanup details</h3>
                   <div className="bg-gray-50 rounded-md p-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {Object.entries(deleteResult.details).map(([table, result]) => (
@@ -748,7 +748,7 @@ export default function AdminPage() {
               <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
                 <div className="p-6 border-b border-gray-200">
                   <div className="flex justify-between items-center">
-                    <h2 className="text-xl font-semibold text-gray-900">Account Cleanup - 90 Day Retention</h2>
+                    <h2 className="text-xl font-semibold text-gray-900">Account cleanup - 90 day retention</h2>
                     <button
                       onClick={() => {
                         setShowAccountCleanup(false);
@@ -766,7 +766,7 @@ export default function AdminPage() {
 
                 <div className="p-6">
                   <div className="mb-6">
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">Retention Policy</h3>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Retention policy</h3>
                     <p className="text-sm text-gray-600 mb-4">
                       Accounts that have been cancelled for more than 90 days can be permanently deleted. 
                       This removes all user data, businesses, widgets, and associated records.
@@ -781,7 +781,7 @@ export default function AdminPage() {
                         </div>
                         <div className="ml-3">
                           <h3 className="text-sm font-medium text-yellow-800">
-                            Permanent Deletion Warning
+                            Permanent deletion warning
                           </h3>
                           <div className="mt-2 text-sm text-yellow-700">
                             <p>This action cannot be undone. All data will be permanently removed.</p>
@@ -796,7 +796,7 @@ export default function AdminPage() {
                         disabled={isLoadingCleanup}
                         className="bg-slate-blue hover:bg-slate-blue/90 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg transition-colors"
                       >
-                        {isLoadingCleanup ? 'Checking...' : 'Check Eligible Accounts'}
+                        {isLoadingCleanup ? 'Checking...' : 'Check eligible accounts'}
                       </button>
                       
                       {cleanupData && cleanupData.count > 0 && (
@@ -806,7 +806,7 @@ export default function AdminPage() {
                             disabled={isLoadingCleanup}
                             className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg transition-colors"
                           >
-                            {isLoadingCleanup ? 'Previewing...' : 'Preview Deletion'}
+                            {isLoadingCleanup ? 'Previewing...' : 'Preview deletion'}
                           </button>
                           
                           <button
@@ -814,7 +814,7 @@ export default function AdminPage() {
                             disabled={isLoadingCleanup}
                             className="bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg transition-colors"
                           >
-                            {isLoadingCleanup ? 'Deleting...' : 'Delete Permanently'}
+                            {isLoadingCleanup ? 'Deleting...' : 'Delete permanently'}
                           </button>
                         </>
                       )}
@@ -878,7 +878,7 @@ export default function AdminPage() {
                         <h4 className={`font-medium mb-2 ${
                           cleanupResult.success ? 'text-green-800' : 'text-red-800'
                         }`}>
-                          {cleanupResult.dryRun ? 'Preview Results' : 'Deletion Results'}
+                          {cleanupResult.dryRun ? 'Preview results' : 'Deletion results'}
                         </h4>
                         
                         <p className={`text-sm mb-3 ${

@@ -386,7 +386,7 @@ export default function Header() {
                         </Link>
                         {isAdminUser && (
                           <Link href="/admin" className="block px-4 py-2 text-sm font-medium text-purple-600 hover:bg-purple-50 hover:text-purple-700" onClick={() => setAccountMenuOpen(false)}>
-                            Admin Panel
+                            Admin panel
                           </Link>
                         )}
                         <div className="border-t border-gray-100 my-1" />
@@ -579,7 +579,7 @@ export default function Header() {
                         className="text-purple-600 hover:bg-purple-50 block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
                         onClick={() => setMenuOpen(false)}
                       >
-                        Admin Panel
+                        Admin panel
                       </Link>
                     )}
                     <button

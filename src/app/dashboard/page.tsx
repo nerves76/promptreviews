@@ -600,13 +600,13 @@ export default function Dashboard() {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Error Loading Dashboard</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Error loading dashboard</h2>
           <p className="text-gray-600 mb-4">{error}</p>
           <Button 
             onClick={() => window.location.reload()} 
             className="bg-slate-700 hover:bg-slate-800"
           >
-            Try Again
+            Try again
           </Button>
         </div>
       </div>
@@ -638,7 +638,7 @@ export default function Dashboard() {
             className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-slate-700 hover:bg-slate-800"
           >
             <FaPlus className="mr-2" />
-            Create Your Business
+            Create your business
           </Link>
         </div>
       </div>
