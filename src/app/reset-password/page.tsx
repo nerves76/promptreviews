@@ -163,7 +163,7 @@ function ResetPasswordContent() {
                 </svg>
               </div>
               <h2 className="mt-4 text-xl font-semibold text-gray-900">
-                Reset Link Required
+                Reset link required
               </h2>
               <p className="mt-2 text-sm text-gray-600">
                 {error}
@@ -173,7 +173,7 @@ function ResetPasswordContent() {
                   href="/auth/sign-in"
                   className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-slate-blue hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue"
                 >
-                  Back to Sign In
+                  Back to sign in
                 </Link>
               </div>
             </div>
@@ -187,7 +187,7 @@ function ResetPasswordContent() {
     <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
-          Reset Your Password
+          Reset your password
         </h2>
         <p className="mt-2 text-center text-sm text-white/80">
           Enter your new password for {userEmail}
@@ -199,7 +199,7 @@ function ResetPasswordContent() {
           <form className="space-y-6" onSubmit={handlePasswordUpdate}>
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                New Password
+                New password
               </label>
               <div className="mt-1">
                 <input
@@ -217,7 +217,7 @@ function ResetPasswordContent() {
 
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-                Confirm New Password
+                Confirm new password
               </label>
               <div className="mt-1">
                 <input
@@ -245,14 +245,14 @@ function ResetPasswordContent() {
                 disabled={isLoading}
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-slate-blue hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue disabled:bg-gray-400"
               >
-                {isLoading ? "Updating..." : "Update Password"}
+                {isLoading ? "Updating..." : "Update password"}
               </button>
             </div>
           </form>
 
           <div className="mt-6 text-center">
             <Link href="/auth/sign-in" className="text-sm text-slate-blue hover:text-slate-blue/80">
-              Back to Sign In
+              Back to sign in
             </Link>
           </div>
         </div>

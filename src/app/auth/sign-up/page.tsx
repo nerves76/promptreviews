@@ -308,7 +308,7 @@ function SignUpContent() {
       <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <h1 className="mt-6 text-center text-3xl font-extrabold text-white">
-            {invitationToken ? 'Join the Team' : 'Create your account'}
+            {invitationToken ? 'Join the team' : 'Create your account'}
           </h1>
           <p className="mt-2 text-center text-sm text-white">
             {invitationToken ? (
@@ -355,7 +355,7 @@ function SignUpContent() {
           className="mt-8 p-8 rounded shadow w-full max-w-md space-y-6 bg-white"
         >
           <div>
-            <label className="block font-medium mb-1">First Name</label>
+            <label className="block font-medium mb-1">First name</label>
             <input
               type="text"
               required
@@ -367,7 +367,7 @@ function SignUpContent() {
             />
           </div>
           <div>
-            <label className="block font-medium mb-1">Last Name</label>
+            <label className="block font-medium mb-1">Last name</label>
             <input
               type="text"
               required
@@ -425,7 +425,7 @@ function SignUpContent() {
                 rel="noopener noreferrer"
                 className="text-slate-blue hover:text-slate-700 underline"
               >
-                Terms of Service
+                Terms of service
               </a>
             </label>
           </div>
@@ -453,7 +453,7 @@ function SignUpContent() {
             className="w-full py-3 bg-slate-blue text-white rounded font-semibold hover:bg-indigo-900 disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={loading}
           >
-            {loading ? (invitationToken ? "Creating account..." : "Signing up...") : (invitationToken ? "Create Account & Join Team" : "Sign Up")}
+            {loading ? (invitationToken ? "Creating account..." : "Signing up...") : (invitationToken ? "Create account & join team" : "Sign up")}
           </button>
 
           {/* Development-only debug link */}
