@@ -732,6 +732,36 @@
     <script>
         let currentStep = 1;
         let isAnimating = false;
+        let countdown = 15;
+        let countdownInterval;
+        let restartTimeout;
+
+        function startCountdown() {
+            countdownInterval = setInterval(() => {
+                countdown--;
+                // Check if countdown element exists (it doesn't in embed version)
+                const countdownElement = document.getElementById('countdown');
+                if (countdownElement) {
+                    countdownElement.textContent = countdown;
+                }
+                
+                if (countdown <= 0) {
+                    clearInterval(countdownInterval);
+                    restartDemo();
+                }
+            }, 1000);
+        }
+
+        function resetCountdown() {
+            clearInterval(countdownInterval);
+            clearTimeout(restartTimeout);
+            countdown = 15;
+            // Check if countdown element exists (it doesn't in embed version)
+            const countdownElement = document.getElementById('countdown');
+            if (countdownElement) {
+                countdownElement.textContent = countdown;
+            }
+        }
 
         function createStars(container) {
             container.innerHTML = '';
@@ -995,7 +1025,7 @@
                             <button onclick="restartDemo()" style="background: transparent; color: #1a73e8; border: none; padding: 8px 16px; border-radius: 4px; font-size: 14px; font-weight: 500; cursor: pointer;">
                                 Cancel
                             </button>
-                            <button class="google-submit-btn" onclick="restartDemo()" style="background: #1a73e8; color: white; border: none; padding: 8px 24px; border-radius: 4px; font-size: 14px; font-weight: 500; cursor: pointer;">
+                            <button class="google-submit-btn" onclick="console.log('Post button clicked!'); restartDemo();" style="background: #1a73e8; color: white; border: none; padding: 8px 24px; border-radius: 4px; font-size: 14px; font-weight: 500; cursor: pointer;">
                                 Post
                             </button>
                         </div>
@@ -1029,12 +1059,25 @@
         }
 
         function resetDemo() {
+            console.log('resetDemo called!');
+            resetCountdown();
             showStep1();
+            startCountdown();
+            console.log('resetDemo finished, currentStep:', currentStep);
+        }
+
+        function restartDemo() {
+            console.log('restartDemo called!');
+            resetCountdown();
+            showStep1();
+            startCountdown();
+            console.log('restartDemo finished, currentStep:', currentStep);
         }
 
         // Initialize the demo
         document.addEventListener('DOMContentLoaded', function() {
             showStep1();
+            startCountdown();
         });
     </script>
 </body>
