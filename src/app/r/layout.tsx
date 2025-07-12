@@ -2,11 +2,38 @@ import "../globals.css";
 import type { Metadata } from "next";
 import { createClient } from "@supabase/supabase-js";
 
+// Helper function to get formatted page type
+function getPageType(promptPage: any): string {
+  if (promptPage.is_universal) {
+    return "Universal";
+  }
+  
+  const type = promptPage.type || promptPage.review_type || "service";
+  
+  // Capitalize first letter and return proper format
+  switch (type.toLowerCase()) {
+    case "product":
+      return "Product";
+    case "service":
+      return "Service";
+    case "photo":
+      return "Photo";
+    case "video":
+      return "Video";
+    case "event":
+      return "Event";
+    case "employee":
+      return "Employee";
+    default:
+      return "Service";
+  }
+}
+
 // Dynamic metadata generation with og:image support
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   // Default fallback metadata
   const fallbackMetadata: Metadata = {
-    title: "PromptReviews - Review Page",
+    title: "Give Business a review - Prompt Reviews - Service",
     description: "Share your experience and help businesses improve.",
     robots: {
       index: false,
@@ -61,7 +88,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       console.warn('Prompt page not found for slug:', slug, pageError?.message);
       return {
         ...fallbackMetadata,
-        title: "PromptReviews - Page Not Found",
+        title: "Give Business a review - Prompt Reviews - Page Not Found",
         description: "The requested prompt page could not be found.",
       };
     }
@@ -77,7 +104,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       console.warn('Business not found for account:', promptPage.account_id, businessError?.message);
       return {
         ...fallbackMetadata,
-        title: "PromptReviews - Business Not Found",
+        title: "Give Business a review - Prompt Reviews - Business Not Found",
         description: "The business profile could not be found.",
       };
     }
@@ -92,16 +119,16 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       ogImage = business.logo_url;
     }
     
-    // Build dynamic title and description
+    // Build dynamic title and description using new format
     const businessName = business.name || "Business";
-    const pageType = promptPage.review_type || "service";
+    const pageType = getPageType(promptPage);
     const productName = promptPage.product_name;
     
-    let title = `Review ${businessName}`;
+    // New title format: "Give [Business Name] a review - Prompt Reviews - [Page Type]"
+    let title = `Give ${businessName} a review - Prompt Reviews - ${pageType}`;
     let description = `Share your experience with ${businessName}. Your feedback helps them improve their services.`;
     
-    if (pageType === "product" && productName) {
-      title = `Review ${productName} - ${businessName}`;
+    if (pageType === "Product" && productName) {
       description = `Share your experience with ${productName} from ${businessName}. Your feedback matters.`;
     }
     
