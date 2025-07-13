@@ -1403,8 +1403,9 @@ All Supabase authentication emails (sign-up confirmation, password reset, etc.) 
 - **Templates**: Custom HTML templates in `supabase/templates/`
 
 #### Setup:
-1. Add `RESEND_SMTP_PASSWORD=your_resend_api_key` to `.env.local`
-2. Restart Supabase: `supabase stop && supabase start`
+- **Local Development**: Ensure `RESEND_SMTP_PASSWORD` is NOT in `.env.local` (uses Inbucket)
+- **Production**: Add `RESEND_SMTP_PASSWORD=your_resend_api_key` to production environment
+- **Documentation**: See `EMAIL_CONFIGURATION.md` for detailed setup instructions
 
 #### Email Templates:
 - **Account Confirmation**: `supabase/templates/confirm.html`

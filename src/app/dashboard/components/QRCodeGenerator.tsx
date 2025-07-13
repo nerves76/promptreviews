@@ -52,6 +52,8 @@ interface QRCodeGeneratorProps {
   starColor?: string;
   mainColor?: string;
   showStars?: boolean;
+  clientLogoUrl?: string;
+  showClientLogo?: boolean;
 }
 
 // Helper function to draw a star
@@ -75,6 +77,8 @@ export default function QRCodeGenerator({
   starColor = "#FFD700",
   mainColor = "#2E4A7D",
   showStars = true,
+  clientLogoUrl,
+  showClientLogo = false,
 }: QRCodeGeneratorProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -113,11 +117,12 @@ export default function QRCodeGenerator({
       const headlineFontSize = Math.floor(frameSize.height * 0.065);
       const starSize = Math.floor(frameSize.height * 0.055);
       const starSpacing = Math.floor(starSize * 0.7);
+      const clientLogoHeight = Math.floor(frameSize.height * 0.08); // Client logo height
       const qrSize = Math.min(frameSize.width, frameSize.height) * 0.38;
       const qrX = (frameSize.width - qrSize) / 2;
       
-      // New layout: stars at top, content in middle, logo at bottom
-      let y = padding; // Start from top
+      // Start layout from top
+      let y = padding;
 
       // Draw stars if enabled (at the very top)
       if (showStars) {
@@ -126,14 +131,38 @@ export default function QRCodeGenerator({
         for (let i = 0; i < 5; i++) {
           drawStar(ctx, starStartX + i * (starSize + starSpacing), y + starSize / 2, starSize, starColor);
         }
-        y += starSize + 20; // Reduced from 40 to bring headline closer
+        y += starSize + 20;
       }
 
-      // Calculate center area for QR and headline (adjusted to be closer to top)
+      // Draw client logo if enabled (after stars)
+      if (showClientLogo && clientLogoUrl) {
+        try {
+          const clientLogoImg = new window.Image();
+          clientLogoImg.crossOrigin = 'anonymous';
+          clientLogoImg.src = clientLogoUrl;
+          await new Promise((resolve, reject) => {
+            clientLogoImg.onload = resolve;
+            clientLogoImg.onerror = reject;
+          });
+          
+          // Calculate client logo dimensions to maintain aspect ratio
+          const clientLogoAspectRatio = clientLogoImg.width / clientLogoImg.height;
+          const clientLogoWidth = clientLogoHeight * clientLogoAspectRatio;
+          const clientLogoX = (frameSize.width - clientLogoWidth) / 2;
+          
+          ctx.drawImage(clientLogoImg, clientLogoX, y, clientLogoWidth, clientLogoHeight);
+          y += clientLogoHeight + 20;
+        } catch (error) {
+          console.error('Error loading client logo:', error);
+          // Continue without client logo if it fails to load
+        }
+      }
+
+      // Calculate center area for QR and headline
       const centerAreaHeight = headlineFontSize + qrSize + 40;
-      const centerY = y + 20; // Start closer to stars instead of true center
+      const centerY = y + 20;
       
-      // Draw headline text (closer to stars)
+      // Draw headline text
       ctx.fillStyle = mainColor;
       ctx.font = `bold ${headlineFontSize}px Arial, sans-serif`;
       ctx.textAlign = 'center';
@@ -229,7 +258,7 @@ export default function QRCodeGenerator({
   // Generate QR code when component mounts or props change
   useEffect(() => {
     generateQRCode();
-  }, [frameSize, headline, starColor, mainColor, showStars, url]);
+  }, [frameSize, headline, starColor, mainColor, showStars, url, clientLogoUrl, showClientLogo]);
 
   // Expose download function via ref
   useEffect(() => {
