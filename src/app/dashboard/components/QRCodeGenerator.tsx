@@ -65,6 +65,7 @@ interface QRCodeGeneratorProps {
   decorativeIconType?: string;
   decorativeIconCount?: number;
   decorativeIconSize?: number;
+  decorativeIconColor?: string;
 }
 
 // Helper function to draw a star
@@ -142,25 +143,31 @@ function generateDecorativeIconPositions(
   count: number,
   canvasWidth: number,
   canvasHeight: number,
-  excludeAreas: { x: number, y: number, width: number, height: number }[]
+  excludeAreas: { x: number, y: number, width: number, height: number }[],
+  iconSize: number
 ): { x: number, y: number }[] {
   const positions: { x: number, y: number }[] = [];
-  const margin = 50; // Minimum distance from edges
-  const minDistance = 40; // Minimum distance between icons
+  // Allow icons to go partially off-page for dynamic look
+  const topMargin = -iconSize * 0.3; // Allow icons to go above canvas
+  const sideMargin = -iconSize * 0.3; // Allow icons to go off the sides
+  const bottomMargin = -iconSize * 0.3; // Allow icons to go below canvas
+  const minDistance = Math.max(iconSize * 0.8, 30); // Reduced minimum distance for denser placement
   
   for (let i = 0; i < count; i++) {
     let attempts = 0;
     let validPosition = false;
     
-    while (!validPosition && attempts < 100) {
-      const x = margin + Math.random() * (canvasWidth - 2 * margin);
-      const y = margin + Math.random() * (canvasHeight - 2 * margin);
+    while (!validPosition && attempts < 200) { // Increased attempts for better placement
+      const x = sideMargin + Math.random() * (canvasWidth - 2 * sideMargin);
+      const y = topMargin + Math.random() * (canvasHeight - topMargin - bottomMargin);
       
-      // Check if position conflicts with exclude areas
+      // Check if position conflicts with exclude areas (only check center of icon)
       let conflictsWithExcludeArea = false;
       for (const area of excludeAreas) {
-        if (x >= area.x - margin && x <= area.x + area.width + margin &&
-            y >= area.y - margin && y <= area.y + area.height + margin) {
+        // Only check if the center of the icon is within the exclude area
+        // This allows icons to appear at the edges of excluded areas
+        if (x >= area.x && x <= area.x + area.width &&
+            y >= area.y && y <= area.y + area.height) {
           conflictsWithExcludeArea = true;
           break;
         }
@@ -209,6 +216,7 @@ export default function QRCodeGenerator({
   decorativeIconType = "star",
   decorativeIconCount = 8,
   decorativeIconSize = 24,
+  decorativeIconColor = "#FFD700",
 }: QRCodeGeneratorProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -234,16 +242,6 @@ export default function QRCodeGenerator({
       const isBusinessCard = frameSize.label.includes('business card');
       const isSmallSize = frameSize.width <= 1050 || frameSize.height <= 600; // Business card and smaller
 
-      // Draw dotted cutout line for small sizes
-      const smallSizes = ['4x6"', '5x7"', '5x8"'];
-      if (smallSizes.includes(frameSize.label)) {
-        ctx.strokeStyle = '#CCCCCC';
-        ctx.lineWidth = 1;
-        ctx.setLineDash([5, 5]);
-        ctx.strokeRect(10, 10, frameSize.width - 20, frameSize.height - 20);
-        ctx.setLineDash([]);
-      }
-
       // Layout constants with size-specific adjustments
       const padding = isSmallSize ? 40 : 60; // Smaller padding for small sizes
       const logoHeight = Math.floor(frameSize.height * 0.06); // Reduced from 0.10 to make smaller
@@ -258,7 +256,7 @@ export default function QRCodeGenerator({
       let y = padding;
 
       // Draw client logo if enabled (at the very top)
-      if (showClientLogo && clientLogoUrl && clientLogoUrl.trim() !== '') {
+      if (showClientLogo && clientLogoUrl && typeof clientLogoUrl === 'string' && clientLogoUrl.trim() !== '') {
         try {
           const clientLogoImg = new window.Image();
           clientLogoImg.crossOrigin = 'anonymous';
@@ -300,6 +298,8 @@ export default function QRCodeGenerator({
           y += clientLogoHeight + (isSmallSize ? 20 : 40);
         } catch (error) {
           console.error('Error loading client logo:', error);
+          console.error('Client logo URL:', clientLogoUrl);
+          console.error('Show client logo:', showClientLogo);
           // Continue without client logo if it fails to load
         }
       }
@@ -361,20 +361,29 @@ export default function QRCodeGenerator({
       const qrCenterY = (frameSize.height - qrSize) / 2;
       ctx.drawImage(qrImg, qrX, qrCenterY, qrSize, qrSize);
 
+      // Pre-calculate logo dimensions for exclusion areas
+      const logoAspectRatio = 2.5; // Approximate aspect ratio of the Prompt Reviews logo
+      const logoWidth = logoHeight * logoAspectRatio;
+      const logoX = (frameSize.width - logoWidth) / 2;
+      const logoY = frameSize.height - logoHeight - websiteFontSize - padding - 20;
+
       // Draw decorative icons if enabled
       if (showDecorativeIcons && decorativeIconCount > 0) {
         // Define areas to exclude (where we don't want decorative icons)
+        // Made more targeted to allow icons above text and below logo
         const excludeAreas = [
-          // QR code area
-          { x: qrX - 20, y: qrCenterY - 20, width: qrSize + 40, height: qrSize + 40 },
-          // Headline area (approximate)
-          { x: 0, y: y - headlineFontSize, width: frameSize.width, height: headlineFontSize * lines.length + 60 },
-          // Star area (if stars are shown)
-          ...(showStars ? [{ x: 0, y: y, width: frameSize.width, height: starSize + 40 }] : []),
-          // Client logo area (if shown)
-          ...(showClientLogo && clientLogoUrl ? [{ x: 0, y: padding, width: frameSize.width, height: clientLogoHeight + 40 }] : []),
-          // Bottom logo and text area
-          { x: 0, y: frameSize.height - logoHeight - websiteFontSize - padding - 60, width: frameSize.width, height: logoHeight + websiteFontSize + 60 }
+          // QR code area (keep generous margin around QR code)
+          { x: qrX - 30, y: qrCenterY - 30, width: qrSize + 60, height: qrSize + 60 },
+          // Headline area (more targeted - only the actual text area)
+          { x: frameSize.width * 0.1, y: centerY - 10, width: frameSize.width * 0.8, height: headlineFontSize * lines.length + 20 },
+          // Star area (if stars are shown) - more targeted
+          ...(showStars ? [{ x: frameSize.width * 0.2, y: y - 10, width: frameSize.width * 0.6, height: starSize + 20 }] : []),
+          // Client logo area (if shown) - more targeted around actual logo
+          ...(showClientLogo && clientLogoUrl ? [{ x: frameSize.width * 0.3, y: padding - 10, width: frameSize.width * 0.4, height: clientLogoHeight + 20 }] : []),
+          // Bottom logo area - more targeted around actual logo
+          { x: logoX - 20, y: logoY - 10, width: logoWidth + 40, height: logoHeight + 20 },
+          // Bottom text area - more targeted around actual text
+          { x: frameSize.width * 0.2, y: logoY + logoHeight + 5, width: frameSize.width * 0.6, height: websiteFontSize + 10 }
         ];
 
         // Generate random positions for decorative icons
@@ -382,32 +391,13 @@ export default function QRCodeGenerator({
           decorativeIconCount,
           frameSize.width,
           frameSize.height,
-          excludeAreas
+          excludeAreas,
+          decorativeIconSize
         );
-
-        // Get the color for the decorative icons (use star color as default)
-        const iconConfig = getFallingIcon(decorativeIconType);
-        const iconColor = iconConfig ? iconConfig.color.replace(/text-([^-]*)-(\d+)/, '#') : starColor;
-        
-        // Convert Tailwind color classes to hex colors (simplified mapping)
-        const colorMap: { [key: string]: string } = {
-          'text-yellow-500': '#EAB308',
-          'text-red-500': '#EF4444',
-          'text-green-500': '#22C55E',
-          'text-blue-500': '#3B82F6',
-          'text-orange-500': '#F97316',
-          'text-purple-500': '#A855F7',
-          'text-pink-500': '#EC4899',
-          'text-amber-500': '#F59E0B',
-          'text-teal-500': '#14B8A6',
-          'text-lime-500': '#84CC16',
-        };
-        
-        const finalIconColor = iconConfig && colorMap[iconConfig.color] ? colorMap[iconConfig.color] : starColor;
 
         // Draw decorative icons at generated positions
         iconPositions.forEach(position => {
-          drawDecorativeIcon(ctx, decorativeIconType, position.x, position.y, decorativeIconSize, finalIconColor);
+          drawDecorativeIcon(ctx, decorativeIconType, position.x, position.y, decorativeIconSize, decorativeIconColor);
         });
       }
 
@@ -420,12 +410,7 @@ export default function QRCodeGenerator({
         logoImg.onerror = reject;
       });
       
-      // Calculate logo dimensions to maintain aspect ratio
-      const logoAspectRatio = logoImg.width / logoImg.height;
-      const logoWidth = logoHeight * logoAspectRatio;
-      const logoX = (frameSize.width - logoWidth) / 2;
-      const logoY = frameSize.height - logoHeight - websiteFontSize - padding - 20; // Position towards bottom
-      
+      // Use pre-calculated logo dimensions
       ctx.drawImage(logoImg, logoX, logoY, logoWidth, logoHeight);
 
       // Draw website text (below logo, at bottom)
@@ -459,9 +444,35 @@ export default function QRCodeGenerator({
     }
   };
 
-  const downloadQRCode = useCallback(() => {
+  const downloadQRCode = useCallback(async () => {
     if (!canvasRef.current) return;
-    canvasRef.current.toBlob((blob) => {
+    
+    // Generate a new canvas with dotted lines for download
+    const downloadCanvas = document.createElement('canvas');
+    const downloadCtx = downloadCanvas.getContext('2d');
+    if (!downloadCtx) return;
+    
+    // Copy the current canvas
+    downloadCanvas.width = canvasRef.current.width;
+    downloadCanvas.height = canvasRef.current.height;
+    downloadCtx.drawImage(canvasRef.current, 0, 0);
+    
+    // Add dotted cutout line for small sizes on the download version
+    const scale = 2; // Match the scale used in generateQRCode
+    downloadCtx.scale(1/scale, 1/scale); // Adjust for the scale
+    downloadCtx.scale(scale, scale); // Re-apply scale for drawing
+    
+    const smallSizes = ['4x6"', '5x7"', '5x8"'];
+    if (smallSizes.includes(frameSize.label)) {
+      downloadCtx.strokeStyle = '#CCCCCC';
+      downloadCtx.lineWidth = 1;
+      downloadCtx.setLineDash([5, 5]);
+      downloadCtx.strokeRect(10, 10, frameSize.width - 20, frameSize.height - 20);
+      downloadCtx.setLineDash([]);
+    }
+    
+    // Create blob from the download canvas with dotted lines
+    downloadCanvas.toBlob((blob) => {
       if (blob) {
         if (onDownload) onDownload(blob);
         const link = document.createElement("a");

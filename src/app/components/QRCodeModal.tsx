@@ -16,7 +16,10 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import QRCodeGenerator, { QR_FRAME_SIZES } from '../dashboard/components/QRCodeGenerator';
-import { FALLING_STARS_ICONS } from './prompt-modules/fallingStarsConfig';
+import { FALLING_STARS_ICONS, getFallingIcon } from './prompt-modules/fallingStarsConfig';
+import { Dialog } from "@headlessui/react";
+import { XMarkIcon, ChevronDownIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
+import { FaStar } from "react-icons/fa";
 
 interface QRCodeModalProps {
   isOpen: boolean;
@@ -32,12 +35,17 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
   const [headline, setHeadline] = useState('Leave us a review!');
   const [starColor, setStarColor] = useState('#FFD700');
   const [mainColor, setMainColor] = useState('#2E4A7D');
-  const [showStars, setShowStars] = useState(true);
-  const [showClientLogo, setShowClientLogo] = useState(false);
-  const [starSize, setStarSize] = useState(40);
-  const [circularLogo, setCircularLogo] = useState(false);
-  const [logoSize, setLogoSize] = useState(60);
-  const [fontSize, setFontSize] = useState(48);
+  const [showStars, setShowStars] = useState(false);
+  const [showClientLogo, setShowClientLogo] = useState(logoUrl && logoUrl.trim() !== '');
+  const [starSize, setStarSize] = useState(48);
+
+  // Update showClientLogo when logoUrl changes
+  useEffect(() => {
+    setShowClientLogo(logoUrl && logoUrl.trim() !== '');
+  }, [logoUrl]);
+  const [circularLogo, setCircularLogo] = useState(true);
+  const [logoSize, setLogoSize] = useState(200);
+  const [fontSize, setFontSize] = useState(112);
   const [qrPreviewUrl, setQrPreviewUrl] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -46,7 +54,11 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
   const [showDecorativeIcons, setShowDecorativeIcons] = useState(false);
   const [decorativeIconType, setDecorativeIconType] = useState('star');
   const [decorativeIconCount, setDecorativeIconCount] = useState(8);
-  const [decorativeIconSize, setDecorativeIconSize] = useState(24);
+  const [decorativeIconSize, setDecorativeIconSize] = useState(150);
+  const [decorativeIconColor, setDecorativeIconColor] = useState('#FFD700');
+  const [showIconSelector, setShowIconSelector] = useState(false);
+  const [expandedCategories, setExpandedCategories] = useState<string[]>(['General']);
+  const [randomizeKey, setRandomizeKey] = useState(0);
   const qrGeneratorRef = useRef<HTMLCanvasElement>(null);
 
   const maxChars = 50;
@@ -139,10 +151,10 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4">
-      <div className="bg-white shadow-lg p-0 max-w-4xl w-full relative flex flex-col md:flex-row gap-8 text-left rounded-xl max-h-[90vh] overflow-y-auto">
-        {/* Standardized circular close button */}
+      <div className="relative max-w-4xl w-full">
+        {/* Standardized circular close button - positioned outside modal container */}
         <button
-          className="absolute top-3 right-3 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-20"
+          className="absolute -top-6 -right-6 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-50"
           style={{ width: 48, height: 48 }}
           onClick={onClose}
           aria-label="Close modal"
@@ -151,6 +163,19 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
+        
+        <div className="bg-white shadow-lg p-0 w-full relative flex flex-col md:flex-row gap-8 text-left rounded-xl max-h-[90vh] overflow-y-auto">
+
+        {/* Top Right Download Button - Only show when preview is available */}
+        {showPreview && (
+          <button
+            onClick={handleDownloadClick}
+            disabled={isDownloading}
+            className="absolute top-4 right-8 bg-slate-blue text-white px-4 py-2 rounded-md hover:bg-slate-blue/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium z-20"
+          >
+            {isDownloading ? 'Downloading...' : 'Download QR code'}
+          </button>
+        )}
         
         {/* Left side: Controls */}
         <div className="flex-1 space-y-4 py-6 px-8 min-h-0">
@@ -245,146 +270,24 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
                   </div>
                 </div>
 
-                {/* Color Pickers */}
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Star Color
-                    </label>
-                    <input
-                      type="color"
-                      value={starColor}
-                      onChange={(e) => setStarColor(e.target.value)}
-                      className="w-full h-10 border border-gray-300 rounded-md cursor-pointer"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Main Color
-                    </label>
-                    <input
-                      type="color"
-                      value={mainColor}
-                      onChange={(e) => setMainColor(e.target.value)}
-                      className="w-full h-10 border border-gray-300 rounded-md cursor-pointer"
-                    />
-                  </div>
-                </div>
-
-                {/* Star Size Control */}
+                {/* Main Color - Always visible */}
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Star Size: {starSize}px
+                    Main Color
                   </label>
                   <input
-                    type="range"
-                    min="20"
-                    max="150"
-                    step="5"
-                    value={starSize}
-                    onChange={(e) => setStarSize(Number(e.target.value))}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                    type="color"
+                    value={mainColor}
+                    onChange={(e) => setMainColor(e.target.value)}
+                    className="w-full h-10 border border-gray-300 rounded-md cursor-pointer"
                   />
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
-                    <span>20px</span>
-                    <span>85px</span>
-                    <span>150px</span>
-                  </div>
                 </div>
 
-                {/* Decorative Icons Controls */}
-                {showDecorativeIcons && (
-                  <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <h4 className="text-sm font-medium text-gray-700 mb-3">Decorative Design Elements</h4>
-                    
-                    {/* Icon Type Selection */}
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Design Element Type
-                      </label>
-                      <select
-                        value={decorativeIconType}
-                        onChange={(e) => setDecorativeIconType(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-slate-blue focus:border-slate-blue"
-                      >
-                        {FALLING_STARS_ICONS.map((icon) => (
-                          <option key={icon.key} value={icon.key}>
-                            {icon.label} ({icon.category})
-                          </option>
-                        ))}
-                      </select>
-                    </div>
 
-                    {/* Icon Count Control */}
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Number of Elements: {decorativeIconCount}
-                      </label>
-                      <input
-                        type="range"
-                        min="3"
-                        max="20"
-                        step="1"
-                        value={decorativeIconCount}
-                        onChange={(e) => setDecorativeIconCount(Number(e.target.value))}
-                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-                      />
-                      <div className="flex justify-between text-xs text-gray-500 mt-1">
-                        <span>3</span>
-                        <span>12</span>
-                        <span>20</span>
-                      </div>
-                    </div>
 
-                    {/* Icon Size Control */}
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Element Size: {decorativeIconSize}px
-                      </label>
-                      <input
-                        type="range"
-                        min="16"
-                        max="48"
-                        step="2"
-                        value={decorativeIconSize}
-                        onChange={(e) => setDecorativeIconSize(Number(e.target.value))}
-                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-                      />
-                      <div className="flex justify-between text-xs text-gray-500 mt-1">
-                        <span>16px</span>
-                        <span>32px</span>
-                        <span>48px</span>
-                      </div>
-                    </div>
-                    
-                    <p className="text-xs text-blue-700">
-                      Design elements will be randomly scattered around your QR code to make it more visually appealing.
-                    </p>
-                  </div>
-                )}
 
-                {/* Logo Size Control */}
-                {showClientLogo && logoUrl && logoUrl.trim() !== '' && (
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Logo Size: {logoSize}px
-                    </label>
-                    <input
-                      type="range"
-                      min="30"
-                      max="200"
-                      step="5"
-                      value={logoSize}
-                      onChange={(e) => setLogoSize(Number(e.target.value))}
-                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-                    />
-                    <div className="flex justify-between text-xs text-gray-500 mt-1">
-                      <span>30px</span>
-                      <span>115px</span>
-                      <span>200px</span>
-                    </div>
-                  </div>
-                )}
+
+
 
                 {/* Font Size Control */}
                 <div className="mb-4">
@@ -394,7 +297,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
                   <input
                     type="range"
                     min="24"
-                    max="200"
+                    max="600"
                     step="4"
                     value={fontSize}
                     onChange={(e) => setFontSize(Number(e.target.value))}
@@ -402,8 +305,8 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
                   />
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
                     <span>24px</span>
-                    <span>112px</span>
-                    <span>200px</span>
+                    <span>300px</span>
+                    <span>600px</span>
                   </div>
                 </div>
 
@@ -418,8 +321,47 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
                         onChange={(e) => setShowStars(e.target.checked)}
                         className="mr-2"
                       />
-                      <span className="text-sm font-medium text-gray-700">Show Stars</span>
+                      <span className="text-sm font-medium text-gray-700">5 gold stars</span>
                     </label>
+                    
+                    {/* Star Controls - Only show when stars are enabled */}
+                    {showStars && (
+                      <div className="mt-3 ml-6 space-y-4">
+                        {/* Star Color */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Star Color
+                          </label>
+                          <input
+                            type="color"
+                            value={starColor}
+                            onChange={(e) => setStarColor(e.target.value)}
+                            className="w-full h-10 border border-gray-300 rounded-md cursor-pointer"
+                          />
+                        </div>
+                        
+                        {/* Star Size */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Star Size: {starSize}px
+                          </label>
+                          <input
+                            type="range"
+                            min="20"
+                            max="150"
+                            step="5"
+                            value={starSize}
+                            onChange={(e) => setStarSize(Number(e.target.value))}
+                            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                          />
+                          <div className="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>20px</span>
+                            <span>85px</span>
+                            <span>150px</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Show Decorative Icons Toggle */}
@@ -431,81 +373,207 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
                         onChange={(e) => setShowDecorativeIcons(e.target.checked)}
                         className="mr-2"
                       />
-                      <span className="text-sm font-medium text-gray-700">Show Decorative Design Elements</span>
+                      <span className="text-sm font-medium text-gray-700">Add decorative icons</span>
                     </label>
                   </div>
 
                   {/* Show Client Logo Toggle */}
-                  <div className="mb-4">
-                    <label className="flex items-center gap-2 cursor-pointer">
+                  <div>
+                    <label className="flex items-center">
                       <input
                         type="checkbox"
                         checked={showClientLogo}
                         onChange={(e) => setShowClientLogo(e.target.checked)}
-                        className="w-4 h-4 text-slate-blue border-gray-300 rounded focus:ring-slate-blue"
+                        className="mr-2"
                         disabled={!logoUrl || logoUrl.trim() === ''}
                       />
                       <span className={`text-sm font-medium ${!logoUrl || logoUrl.trim() === '' ? 'text-gray-400' : 'text-gray-700'}`}>
-                        Show Your Logo
+                        Show your logo
                       </span>
                     </label>
-                    {!logoUrl || logoUrl.trim() === '' ? (
+                    {(!logoUrl || logoUrl.trim() === '') && (
                       <p className="text-xs text-gray-500 mt-1">
-                        Upload a logo in Your Business section to use this feature
+                        You must upload your logo for this feature in{" "}
+                        <a 
+                          href="/dashboard/business-profile" 
+                          className="text-slate-blue underline hover:text-slate-blue/80"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Your Business
+                        </a>
+                        .
                       </p>
-                    ) : showClientLogo && (
-                        <>
-                          <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                            <p className="text-xs text-amber-700">
-                              If your logo appears pixelated or blurry, consider uploading a higher quality logo in{" "}
-                              <a 
-                                href="/dashboard/business-profile" 
-                                className="text-amber-800 underline hover:text-amber-900"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                Your Business
-                              </a>
-                              .
-                            </p>
-                          </div>
-                          
-                          {/* Circular Logo Option */}
-                          <div className="mt-3">
-                            <label className="flex items-center gap-2 cursor-pointer">
-                              <input
-                                type="checkbox"
-                                checked={circularLogo}
-                                onChange={(e) => setCircularLogo(e.target.checked)}
-                                className="w-4 h-4 text-slate-blue border-gray-300 rounded focus:ring-slate-blue"
-                              />
-                              <span className="text-sm font-medium text-gray-700">Display logo in circle</span>
-                            </label>
-                          </div>
-                        </>
-                      )}
+                    )}
                   </div>
                 </div>
 
-                {/* Logo Size Control */}
+                {/* Decorative Icons Controls */}
+                {showDecorativeIcons && (
+                  <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <h4 className="text-sm font-medium text-gray-700 mb-3">Decorative Icons</h4>
+                    
+                    {/* Icon Selection with same UI as falling stars */}
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Icon Type
+                      </label>
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center justify-center w-12 h-12 rounded-full border-2 border-blue-500 bg-blue-50">
+                          {(() => {
+                            const iconConfig = getFallingIcon(decorativeIconType);
+                            if (iconConfig) {
+                              const IconComponent = iconConfig.icon;
+                              return <IconComponent className={`w-6 h-6 ${iconConfig.color}`} />;
+                            }
+                            return <FaStar className="w-6 h-6 text-yellow-500" />;
+                          })()}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setShowIconSelector(true)}
+                          className="px-4 py-2 text-sm font-medium text-slate-blue bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2"
+                        >
+                          Choose icon
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Icon Count Control */}
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Number of Icons: {decorativeIconCount}
+                      </label>
+                      <input
+                        type="range"
+                        min="0"
+                        max="40"
+                        step="1"
+                        value={decorativeIconCount}
+                        onChange={(e) => setDecorativeIconCount(Number(e.target.value))}
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                      />
+                      <div className="flex justify-between text-xs text-gray-500 mt-1">
+                        <span>0</span>
+                        <span>20</span>
+                        <span>40</span>
+                      </div>
+                    </div>
+
+                    {/* Icon Size Control - Updated to 600px max */}
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Icon Size: {decorativeIconSize}px
+                      </label>
+                      <input
+                        type="range"
+                        min="12"
+                        max="600"
+                        step="4"
+                        value={decorativeIconSize}
+                        onChange={(e) => setDecorativeIconSize(Number(e.target.value))}
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                      />
+                      <div className="flex justify-between text-xs text-gray-500 mt-1">
+                        <span>12px</span>
+                        <span>300px</span>
+                        <span>600px</span>
+                      </div>
+                    </div>
+
+                    {/* Decorative Icon Color */}
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Icon Color
+                      </label>
+                      <input
+                        type="color"
+                        value={decorativeIconColor}
+                        onChange={(e) => setDecorativeIconColor(e.target.value)}
+                        className="w-full h-10 border border-gray-300 rounded-md cursor-pointer"
+                      />
+                    </div>
+
+                    {/* Randomize Button */}
+                    <div className="flex gap-2 mb-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          // Force regeneration with new random positions
+                          if (showPreview) {
+                            // Update the randomize key to force new random positions
+                            setRandomizeKey(prev => prev + 1);
+                            setIsGenerating(true);
+                          } else {
+                            // If no preview yet, generate for first time
+                            handleGenerateQRCode();
+                          }
+                        }}
+                        className="px-3 py-2 text-sm font-medium text-white bg-slate-blue rounded-md hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+                      >
+                        🎲 Randomize icon positions
+                      </button>
+                    </div>
+                    
+                    <p className="text-xs text-blue-700">
+                      Icons will be scattered around the QR code to add visual interest to your design.
+                    </p>
+                  </div>
+                )}
+
+                {/* Logo Controls */}
                 {showClientLogo && logoUrl && logoUrl.trim() !== '' && (
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Logo Size: {logoSize}px
-                    </label>
-                    <input
-                      type="range"
-                      min="30"
-                      max="200"
-                      step="5"
-                      value={logoSize}
-                      onChange={(e) => setLogoSize(Number(e.target.value))}
-                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-                    />
-                    <div className="flex justify-between text-xs text-gray-500 mt-1">
-                      <span>30px</span>
-                      <span>115px</span>
-                      <span>200px</span>
+                  <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <h4 className="text-sm font-medium text-gray-700 mb-3">Logo Settings</h4>
+                    
+                    {/* Quality Warning */}
+                    <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                      <p className="text-xs text-amber-700">
+                        If your logo appears pixelated or blurry, consider uploading a higher quality logo in{" "}
+                        <a 
+                          href="/dashboard/business-profile" 
+                          className="text-amber-800 underline hover:text-amber-900"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Your Business
+                        </a>
+                        .
+                      </p>
+                    </div>
+                    
+                    {/* Circular Logo Option */}
+                    <div className="mb-4">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={circularLogo}
+                          onChange={(e) => setCircularLogo(e.target.checked)}
+                          className="w-4 h-4 text-slate-blue border-gray-300 rounded focus:ring-slate-blue"
+                        />
+                        <span className="text-sm font-medium text-gray-700">Display logo in circle</span>
+                      </label>
+                    </div>
+                    
+                    {/* Logo Size Control */}
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Logo Size: {logoSize}px
+                      </label>
+                      <input
+                        type="range"
+                        min="30"
+                        max="800"
+                        step="5"
+                        value={logoSize}
+                        onChange={(e) => setLogoSize(Number(e.target.value))}
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                      />
+                      <div className="flex justify-between text-xs text-gray-500 mt-1">
+                        <span>30px</span>
+                        <span>400px</span>
+                        <span>800px</span>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -518,6 +586,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
                   {['4x6"', '5x7"', '5x8"'].includes(selectedFrameSize.label) && (
                     <p>• Cut along the dotted line for perfect fit</p>
                   )}
+                  <p>• Trim to size as needed for your display</p>
                 </div>
               </>
             )}
@@ -528,18 +597,18 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
               disabled={isGenerating || isDownloading}
               className="w-full bg-slate-blue text-white py-2 px-4 rounded-md hover:bg-slate-blue/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {!showPreview ? 'Generate QR Code' : (isDownloading ? 'Downloading...' : 'Download QR Code')}
+              {!showPreview ? 'Generate QR code' : (isDownloading ? 'Downloading...' : 'Download QR code')}
             </button>
           </div>
         </div>
 
         {/* Right side: Preview */}
-        <div className="flex-1 bg-blue-50 p-8 rounded-r-xl min-h-0">
+        <div className="flex-1 bg-blue-50 p-8 rounded-r-xl min-h-0 relative">
           {showPreview ? (
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-900">Preview</h3>
               {qrPreviewUrl ? (
-                <div className="bg-white p-4 rounded-lg shadow-sm">
+                <div>
                   <img 
                     src={qrPreviewUrl} 
                     alt="QR Code Preview" 
@@ -547,18 +616,27 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
                   />
                 </div>
               ) : (
-                <div className="bg-white p-8 rounded-lg shadow-sm text-center">
+                <div className="text-center">
                   <p className="text-gray-500">Preview will appear here</p>
                 </div>
               )}
-              
 
             </div>
           ) : (
-            <div className="bg-white p-8 rounded-lg shadow-sm text-center">
+            <div className="text-center">
               <p className="text-gray-500">Preview will appear here after you generate your QR code</p>
             </div>
           )}
+          
+          {/* Branding Removal Link - Left side of right column */}
+          <div className="absolute bottom-4 left-8">
+            <button
+              onClick={() => setShowBrandingPopup(true)}
+              className="text-blue-600 hover:text-blue-800 text-xs underline"
+            >
+              Remove Prompt Reviews branding?
+            </button>
+          </div>
         </div>
 
         {/* Branding Removal Popup */}
@@ -593,25 +671,95 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
                 onClick={() => setShowBrandingPopup(false)}
                 className="w-full bg-slate-blue text-white py-2 px-4 rounded-md hover:bg-slate-blue/90 transition-colors"
               >
-                Got it!
+                Got it
               </button>
             </div>
           </div>
         )}
 
-        {/* Branding Removal Link - Bottom of Modal */}
-        <div className="mt-6 pt-4 border-t border-gray-200 text-left">
-          <button
-            onClick={() => setShowBrandingPopup(true)}
-            className="text-blue-600 hover:text-blue-800 text-sm underline"
-          >
-            Remove Prompt Reviews branding?
-          </button>
-        </div>
+        {/* Icon Selection Modal */}
+        <Dialog
+          open={showIconSelector}
+          onClose={() => setShowIconSelector(false)}
+          className="relative z-50"
+        >
+          <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+          <div className="fixed inset-0 flex items-center justify-center p-4">
+            <Dialog.Panel className="mx-auto max-w-5xl w-full bg-white rounded-lg shadow-xl max-h-[80vh] overflow-hidden">
+              <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                <Dialog.Title className="text-lg font-semibold text-gray-900">
+                  Select decorative icon
+                </Dialog.Title>
+                <button
+                  onClick={() => setShowIconSelector(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <XMarkIcon className="h-6 w-6" />
+                </button>
+              </div>
+              <div className="overflow-y-auto max-h-[calc(80vh-120px)]">
+                <div className="p-6">
+                  {Array.from(new Set(FALLING_STARS_ICONS.map(icon => icon.category))).map(category => {
+                    const categoryIcons = FALLING_STARS_ICONS.filter(icon => icon.category === category);
+                    const isExpanded = expandedCategories.includes(category);
+                    
+                    return (
+                      <div key={category} className="mb-4 border border-gray-200 rounded-lg overflow-hidden">
+                        <button
+                          type="button"
+                          className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors"
+                          onClick={() => {
+                            setExpandedCategories(prev => 
+                              prev.includes(category) 
+                                ? prev.filter(c => c !== category)
+                                : [...prev, category]
+                            );
+                          }}
+                        >
+                          <span className="font-medium text-gray-900">{category} ({categoryIcons.length} icons)</span>
+                          {isExpanded ? (
+                            <ChevronDownIcon className="h-5 w-5 text-gray-500" />
+                          ) : (
+                            <ChevronRightIcon className="h-5 w-5 text-gray-500" />
+                          )}
+                        </button>
+                        
+                        {isExpanded && (
+                          <div className="p-4 border-t border-gray-200">
+                            <div className="grid grid-cols-6 gap-3">
+                              {categoryIcons.map(iconItem => {
+                                const Icon = iconItem.icon;
+                                return (
+                                  <button
+                                    key={iconItem.key}
+                                    type="button"
+                                    className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-colors ${decorativeIconType === iconItem.key ? 'border-slate-blue bg-slate-50' : 'border-transparent bg-white hover:bg-gray-50'}`}
+                                    onClick={() => {
+                                      setDecorativeIconType(iconItem.key);
+                                      setShowIconSelector(false);
+                                    }}
+                                  >
+                                    <Icon className={`w-6 h-6 ${iconItem.color}`} />
+                                    <span className="text-xs text-gray-600 mt-1 text-center">{iconItem.label}</span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </Dialog.Panel>
+          </div>
+        </Dialog>
 
         {/* Hidden QR Code Generator Component */}
         {showPreview && (
           <QRCodeGenerator
+            key={randomizeKey}
             url={url}
             clientName={clientName}
             frameSize={selectedFrameSize}
@@ -621,8 +769,8 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
             starColor={starColor}
             mainColor={mainColor}
             showStars={showStars}
-            clientLogoUrl={logoUrl}
-            showClientLogo={showClientLogo}
+            clientLogoUrl={logoUrl && logoUrl.trim() !== '' ? logoUrl : undefined}
+            showClientLogo={showClientLogo && logoUrl && logoUrl.trim() !== ''}
             starSize={starSize}
             circularLogo={circularLogo}
             logoSize={logoSize}
@@ -631,9 +779,22 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
             decorativeIconType={decorativeIconType}
             decorativeIconCount={decorativeIconCount}
             decorativeIconSize={decorativeIconSize}
+            decorativeIconColor={decorativeIconColor}
           />
         )}
+
+        {/* Bottom Right Download Button - Only show when preview is available */}
+        {showPreview && (
+          <button
+            onClick={handleDownloadClick}
+            disabled={isDownloading}
+            className="absolute bottom-12 right-8 bg-slate-blue text-white px-4 py-2 rounded-md hover:bg-slate-blue/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium z-20"
+          >
+            {isDownloading ? 'Downloading...' : 'Download QR code'}
+          </button>
+        )}
+        </div>
       </div>
     </div>
   );
-} 
+}
