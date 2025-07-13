@@ -136,7 +136,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
       <div className="bg-white shadow-lg p-0 max-w-4xl w-full relative flex flex-col md:flex-row gap-8 text-left rounded-xl max-h-[90vh] overflow-y-auto">
         {/* Standardized circular close button */}
         <button
-          className="absolute -top-3 -right-3 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-20"
+          className="absolute top-3 right-3 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-20"
           style={{ width: 48, height: 48 }}
           onClick={onClose}
           aria-label="Close modal"
@@ -419,27 +419,6 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
                     </div>
                   </div>
                 )}
-
-                {/* Font Size Control */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Headline Font Size: {fontSize}px
-                  </label>
-                  <input
-                    type="range"
-                    min="24"
-                    max="200"
-                    step="4"
-                    value={fontSize}
-                    onChange={(e) => setFontSize(Number(e.target.value))}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-                  />
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
-                    <span>24px</span>
-                    <span>112px</span>
-                    <span>200px</span>
-                  </div>
-                </div>
 
                 {/* Print Note */}
                 <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded-md">
