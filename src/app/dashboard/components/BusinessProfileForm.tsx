@@ -170,18 +170,15 @@ export default function BusinessProfileForm({
               Upload your logo or your face (whichever is more iconic).
             </label>
             <div className="text-sm text-gray-500 mb-2">
-              Up to 1200x1200px supported (PNG, JPG, or WEBP) - optimized for both web and print quality
+              PNG, JPG, or WEBP supported - optimized for both web and print quality
             </div>
             <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-sm text-blue-800 font-medium mb-1">
-                For Print-Quality QR Codes:
+                QR Code Template Printing:
               </p>
-              <ul className="text-xs text-blue-700 space-y-1">
-                <li>• Upload high-resolution logos (1200x1200px or larger)</li>
-                <li>• Use PNG format for logos with transparency</li>
-                <li>• Avoid over-compressed images for best print results</li>
-                <li>• Consider uploading larger files for professional printing</li>
-              </ul>
+              <p className="text-xs text-blue-700">
+                If you plan on printing a QR code template with your logo included, we recommend uploading at 1200x1200px
+              </p>
             </div>
             <input
               type="file"

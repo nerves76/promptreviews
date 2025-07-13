@@ -249,15 +249,18 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
                       </label>
                       {showClientLogo && (
                         <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                          <p className="text-sm text-amber-800 font-medium mb-1">
-                            Print Quality Guidelines:
+                          <p className="text-xs text-amber-700">
+                            If your logo appears pixelated or blurry, consider uploading a higher quality logo in{" "}
+                            <a 
+                              href="/dashboard/business-profile" 
+                              className="text-amber-800 underline hover:text-amber-900"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              Your Business
+                            </a>
+                            .
                           </p>
-                          <ul className="text-xs text-amber-700 space-y-1">
-                            <li>• For best print quality, use logos at least 600x600px</li>
-                            <li>• High resolution (300+ DPI) recommended for professional printing</li>
-                            <li>• PNG format preferred for logos with transparency</li>
-                            <li>• Avoid highly compressed images for print materials</li>
-                          </ul>
                         </div>
                       )}
                     </div>
