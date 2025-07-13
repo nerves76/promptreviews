@@ -216,6 +216,52 @@
             100% { transform: scale(1.15); }
         }
 
+        /* Pulsing glow animation for interactive emojis */
+        .emoji.excellent,
+        .emoji.frustrated {
+            border-radius: 50%;
+            animation: pulseGlow 12s ease-in-out infinite;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.2);
+            }
+            50% {
+                box-shadow: 0 0 0 8px rgba(255, 255, 255, 0.4),
+                            0 0 15px 0 rgba(255, 255, 255, 0.2);
+            }
+        }
+
+        /* Specific glow colors for happy and sad emojis */
+        .emoji.excellent {
+            animation: pulseGlowHappy 12s ease-in-out infinite;
+        }
+
+        .emoji.frustrated {
+            animation: pulseGlowSad 12s ease-in-out infinite;
+        }
+
+        @keyframes pulseGlowHappy {
+            0%, 40%, 60%, 100% {
+                box-shadow: 0 0 0 0 rgba(244, 114, 182, 0);
+            }
+            50% {
+                box-shadow: 0 0 0 8px rgba(244, 114, 182, 0.6),
+                            0 0 20px 0 rgba(244, 114, 182, 0.4);
+            }
+        }
+
+        @keyframes pulseGlowSad {
+            0%, 40%, 60%, 100% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+            }
+            50% {
+                box-shadow: 0 0 0 8px rgba(239, 68, 68, 0.6),
+                            0 0 20px 0 rgba(239, 68, 68, 0.4);
+            }
+        }
+
         .choice-buttons {
             display: flex;
             flex-direction: column;
@@ -237,17 +283,30 @@
 
         .choice-btn.private {
             border-color: #4F46E5;
-            color: #4F46E5;
+            background: #4F46E5;
+            color: white;
         }
 
         .choice-btn.public {
-            border-color: #10B981;
-            color: #10B981;
+            border-color: #4F46E5;
+            color: #4F46E5;
         }
 
         .choice-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .choice-btn.private:hover {
+            background: #3B37A8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+
+        .choice-btn.public:hover {
+            background: rgba(79, 70, 229, 0.05);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
         }
 
         /* Google Review Form Styles */
@@ -819,7 +878,14 @@
             currentStep = 2;
         }
 
-        function showGoogleReviewForm(withStars = false) {
+        function showGoogleReviewForm(withStars = false, userName = '') {
+            const nameField = userName ? `
+                <div style="margin-bottom: 16px; padding: 8px 12px; background-color: #f9fafb; border-radius: 6px; border: 1px solid #e5e7eb;">
+                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 2px;">Reviewer name:</div>
+                    <div style="font-size: 14px; color: #374151; font-weight: 500;">${userName}</div>
+                </div>
+            ` : '';
+            
             const phoneContent = document.querySelector('.phone-content');
             phoneContent.innerHTML = `
                 <div class="page-layout fade-in">
@@ -830,6 +896,11 @@
                     <div class="page-content">
                         <div class="google-form">
                             <div style="font-size: 18px; font-weight: 600; color: #4F46E5; margin-bottom: 20px;">Write a Google review</div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Name</label>
+                                <input class="form-input" type="text" placeholder="Your name" value="${userName}" style="margin-bottom: 15px;">
+                            </div>
                             
                             <textarea class="review-textarea" placeholder="Share details of your experience..."></textarea>
                             
@@ -856,7 +927,14 @@
             }
         }
 
-        function showFeedbackForm() {
+        function showFeedbackForm(userName = '') {
+            const nameField = userName ? `
+                <div class="form-group">
+                    <label class="form-label">Name</label>
+                    <input class="form-input" type="text" value="${userName}" readonly style="background-color: #f9fafb;">
+                </div>
+            ` : '';
+            
             const phoneContent = document.querySelector('.phone-content');
             phoneContent.innerHTML = `
                 <div class="page-layout fade-in">
@@ -866,11 +944,13 @@
                     </div>
                     <div class="page-content">
                         <div class="feedback-form">
-                            <div class="feedback-header">How can we improve?</div>
+                            <div class="feedback-header">Your feedback helps us grow</div>
+                            
+                            ${nameField}
                             
                             <div class="form-group">
-                                <label class="form-label">Subject</label>
-                                <input class="form-input" type="text" placeholder="What can we improve?">
+                                <label class="form-label">Email</label>
+                                <input class="form-input" type="email" placeholder="Your email address">
                             </div>
                             
                             <div class="form-group">
@@ -1011,7 +1091,7 @@
 
 
         function submitFeedback() {
-            showThankYou('Private feedback sent to business!');
+            showThankYou();
         }
 
         function showThankYou(message) {
@@ -1019,7 +1099,7 @@
             phoneContent.innerHTML = `
                 <div class="modal fade-in">
                     <div class="modal-title">Thank you for your feedback! We'll get back to you within 24-hours.</div>
-                    <p style="color: #10B981; font-weight: 500; margin-top: 16px;">${message}</p>
+                    ${message ? `<p style="color: #10B981; font-weight: 500; margin-top: 16px;">${message}</p>` : ''}
                 </div>
                 <div class="star-fall" id="starFall"></div>
             `;
