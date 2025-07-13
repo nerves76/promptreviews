@@ -904,11 +904,7 @@
                                 <input class="form-input" type="text" placeholder="Your name" value="${userName}" style="margin-bottom: 15px;">
                             </div>
                             
-                            <textarea class="review-textarea" placeholder="Share details of your experience..."></textarea>
-                            
-                            <button class="ai-generate-btn" onclick="generateAIReview()">
-                                ✨ Generate with AI
-                            </button>
+                            <textarea class="review-textarea" placeholder="Share your experience"></textarea>
                             
                             <button class="submit-btn" onclick="submitReview()">
                                 Copy & Submit
@@ -983,13 +979,13 @@
                     // Add clicked animation
                     this.classList.add('clicked');
                     
-                    // Auto-progress based on sentiment
+                    // Route based on sentiment
                     setTimeout(() => {
                         if (sentiment === 'excellent' || sentiment === 'satisfied') {
-                            // Happy face - show Google review form with stars
+                            // Happy emojis go directly to Google review form
                             showGoogleReviewForm(true);
                         } else {
-                            // Sad face - show step 2 choice
+                            // Sad emojis go to choice screen
                             showStep2();
                         }
                     }, 800);
@@ -1007,26 +1003,9 @@
 
         function generateAIReview() {
             const textarea = document.querySelector('.review-textarea');
-            const sampleReviews = [
-                "Love the atmosphere. The player piano was delightful. Staff was super friendly. Highly recommended!",
-                "Excellent service! The staff was incredibly friendly and helpful. Definitely recommend to everyone!",
-                "Amazing experience from start to finish. Professional team and great attention to detail. Will be back!",
-                "Such a talented team. They make the complex, simple. You can't go wrong with Diviner.",
-                "These guys are straight shooters. Always open and honest about pricing. Great craftmenship. Highly recomended."
-            ];
-            
-            const randomReview = sampleReviews[Math.floor(Math.random() * sampleReviews.length)];
-            
-            // Simulate typing effect
+            // Just clear the textarea - no auto-generated positive reviews
             textarea.value = '';
-            let i = 0;
-            const typeWriter = setInterval(() => {
-                textarea.value += randomReview.charAt(i);
-                i++;
-                if (i >= randomReview.length) {
-                    clearInterval(typeWriter);
-                }
-            }, 30);
+            textarea.focus();
         }
 
         function submitReview() {
@@ -1036,7 +1015,7 @@
 
         function showGoogleReviewPage() {
             const phoneContent = document.querySelector('.phone-content');
-            const reviewText = document.querySelector('.review-textarea')?.value || "Amazing experience from start to finish. Professional team and great attention to detail. Will be back!";
+            const reviewText = document.querySelector('.review-textarea')?.value || "";
             
             phoneContent.innerHTML = `
                 <div class="page-layout fade-in">
@@ -1066,7 +1045,7 @@
                         </div>
                         
                         <div class="review-input" style="margin-bottom: 16px;">
-                            <textarea class="google-textarea" style="width: 100%; min-height: 120px; padding: 16px; border: 2px solid #1a73e8; border-radius: 8px; font-size: 16px; font-family: inherit; resize: none; outline: none;" placeholder="Share details of your own experience at this place">${reviewText}</textarea>
+                            <textarea class="google-textarea" style="width: 100%; min-height: 120px; padding: 16px; border: 2px solid #1a73e8; border-radius: 8px; font-size: 16px; font-family: inherit; resize: none; outline: none;" placeholder="Share your experience">${reviewText}</textarea>
                         </div>
                         
                         <div class="photo-section" style="margin-bottom: 20px;">

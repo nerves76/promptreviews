@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PromptReviews - QR Code Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #000;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* Coffee Shop Scene */
+        .coffee-scene {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #8B4513, #A0522D);
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(139, 69, 19, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(160, 82, 45, 0.3) 0%, transparent 50%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1;
+        }
+
+        .coffee-table {
+            width: 80%;
+            height: 40%;
+            background: #4A4A4A;
+            border-radius: 20px;
+            position: relative;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            background-image: 
+                linear-gradient(45deg, #4A4A4A 25%, transparent 25%, transparent 75%, #4A4A4A 75%, #4A4A4A),
+                linear-gradient(45deg, #4A4A4A 25%, transparent 25%, transparent 75%, #4A4A4A 75%, #4A4A4A);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+        }
+
+        .qr-code-stand {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 120px;
+            height: 160px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px;
+        }
+
+        .qr-code {
+            width: 80px;
+            height: 80px;
+            background: #000;
+            border-radius: 4px;
+            position: relative;
+            background-image: 
+                radial-gradient(circle at 12% 12%, #fff 8%, transparent 8%),
+                radial-gradient(circle at 88% 12%, #fff 8%, transparent 8%),
+                radial-gradient(circle at 12% 88%, #fff 8%, transparent 8%),
+                linear-gradient(45deg, #000 25%, #fff 25%, #fff 75%, #000 75%),
+                linear-gradient(-45deg, #000 25%, #fff 25%, #fff 75%, #000 75%);
+            background-size: 100% 100%, 100% 100%, 100% 100%, 8px 8px, 8px 8px;
+        }
+
+        .qr-text {
+            margin-top: 8px;
+            font-size: 11px;
+            color: #333;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .logo {
+            font-size: 10px;
+            font-weight: bold;
+            color: #6366f1;
+            margin-top: 4px;
+        }
+
+        /* iPhone Camera Interface */
+        .camera-interface {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            opacity: 0;
+            animation: fadeInCamera 1s ease-in-out 2s forwards;
+        }
+
+        .camera-viewfinder {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(0.5px);
+        }
+
+        .camera-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .camera-corners {
+            position: absolute;
+            top: 20%;
+            left: 20%;
+            width: 60%;
+            height: 60%;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+        }
+
+        .camera-corners::before,
+        .camera-corners::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #fff;
+        }
+
+        .camera-corners::before {
+            top: -2px;
+            left: -2px;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        .camera-corners::after {
+            bottom: -2px;
+            right: -2px;
+            border-left: none;
+            border-top: none;
+        }
+
+        /* iPhone QR Detection Notification */
+        .qr-notification {
+            position: absolute;
+            top: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #FFCC00;
+            color: #000;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            opacity: 0;
+            animation: slideDownNotification 0.5s ease-out 3.5s forwards;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 3;
+        }
+
+        .qr-notification:hover {
+            background: #FFD700;
+            transform: translateX(-50%) scale(1.05);
+            transition: all 0.2s ease;
+        }
+
+        /* Phone Container for Emoji Demo */
+        .phone-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 340px;
+            height: 600px;
+            background: #000;
+            border-radius: 30px;
+            padding: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            z-index: 4;
+        }
+
+        .phone-content {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+            padding: 20px;
+        }
+
+        /* Stars Animation */
+        .star {
+            position: absolute;
+            background: #FFD700;
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+            animation: fall linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* Emoji Section */
+        .emoji-section {
+            text-align: center;
+            margin-top: 40px;
+            opacity: 0;
+            animation: fadeIn 1s ease-in-out 5s forwards;
+        }
+
+        .title {
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 16px;
+            margin-bottom: 30px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .emoji-container {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+            gap: 10px;
+        }
+
+        .emoji {
+            font-size: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 10px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            z-index: 10;
+        }
+
+        .emoji:hover {
+            transform: scale(1.2);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .emoji.clicked {
+            transform: scale(1.4);
+            background: rgba(255, 255, 255, 0.3);
+            animation: pulse 0.6s ease-in-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1.4); }
+            50% { transform: scale(1.6); }
+        }
+
+        /* Pulsing Animation for Pink and Red Emojis */
+        .emoji[data-sentiment="satisfied"],
+        .emoji[data-sentiment="frustrated"] {
+            animation: gentlePulse 12s infinite;
+        }
+
+        @keyframes gentlePulse {
+            0%, 40%, 60%, 100% {
+                box-shadow: none;
+            }
+            50% {
+                box-shadow: 0 0 20px rgba(255, 182, 193, 0.6);
+            }
+        }
+
+        .emoji[data-sentiment="frustrated"] {
+            animation: gentlePulseRed 12s infinite;
+        }
+
+        @keyframes gentlePulseRed {
+            0%, 40%, 60%, 100% {
+                box-shadow: none;
+            }
+            50% {
+                box-shadow: 0 0 20px rgba(255, 99, 71, 0.6);
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeInCamera {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        @keyframes slideDownNotification {
+            0% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        /* Hidden sections for later parts of the demo */
+        .choice-screen,
+        .review-form,
+        .feedback-form,
+        .google-review,
+        .completion-screen {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            overflow-y: auto;
+        }
+
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 280px;
+            margin: 0 auto;
+        }
+
+        .form-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .form-input {
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.9);
+            outline: none;
+        }
+
+        .form-button {
+            padding: 15px 30px;
+            background: #6366f1;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .form-button:hover {
+            background: #4f46e5;
+            transform: translateY(-2px);
+        }
+
+        .form-button.outline {
+            background: transparent;
+            border: 2px solid #6366f1;
+        }
+
+        .form-button.outline:hover {
+            background: #6366f1;
+        }
+
+        .choice-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .star-rating {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin: 20px 0;
+        }
+
+        .star-rating .star {
+            position: static;
+            font-size: 30px;
+            cursor: pointer;
+            transition: color 0.3s ease;
+            color: #ddd;
+            animation: none;
+        }
+
+        .star-rating .star.active {
+            color: #FFD700;
+        }
+
+        .completion-message {
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .business-info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Coffee Shop Scene -->
+    <div class="coffee-scene">
+        <div class="coffee-table">
+            <div class="qr-code-stand">
+                <div class="qr-code"></div>
+                <div class="qr-text">
+                    Scan to share your<br>
+                    experience
+                </div>
+                <div class="logo">PromptReviews</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- iPhone Camera Interface -->
+    <div class="camera-interface">
+        <div class="camera-viewfinder"></div>
+        <div class="camera-overlay">
+            <div class="camera-corners"></div>
+        </div>
+    </div>
+
+    <!-- QR Code Detection Notification -->
+    <div class="qr-notification" onclick="startDemo()">
+        📱 Open "promptreviews.app"
+    </div>
+
+    <!-- Phone Container for Demo -->
+    <div class="phone-container" id="phoneContainer">
+        <div class="phone-content">
+            <!-- Star Animation Container -->
+            <div class="stars-container"></div>
+
+            <!-- Step 1: Emoji Selection -->
+            <div class="emoji-section" id="step1">
+                <div class="title">How was your experience?</div>
+                <div class="subtitle">Tap an emoji to get started</div>
+                <div class="emoji-container">
+                    <div class="emoji" data-sentiment="excellent" onclick="handleEmojiClick('excellent')">🤩</div>
+                    <div class="emoji" data-sentiment="satisfied" onclick="handleEmojiClick('satisfied')">😊</div>
+                    <div class="emoji" data-sentiment="neutral" onclick="handleEmojiClick('neutral')">😐</div>
+                    <div class="emoji" data-sentiment="frustrated" onclick="handleEmojiClick('frustrated')">😞</div>
+                </div>
+            </div>
+
+            <!-- Step 2: Choice Screen -->
+            <div class="choice-screen" id="step2">
+                <div class="form-title">How can we improve?</div>
+                <div class="choice-buttons">
+                    <button class="form-button" onclick="showPrivateFeedback()">Send private feedback</button>
+                    <button class="form-button outline" onclick="showGoogleReviewForm()">Post review publically</button>
+                </div>
+            </div>
+
+            <!-- Private Feedback Form -->
+            <div class="feedback-form" id="feedbackForm">
+                <div class="form-title">Your feedback helps us grow</div>
+                <div class="form-container">
+                    <input type="email" class="form-input" id="feedbackEmail" placeholder="Email" required>
+                    <textarea class="form-input textarea" id="feedbackText" placeholder="Tell us how we can improve..."></textarea>
+                    <button class="form-button" onclick="submitFeedback()">Send feedback</button>
+                </div>
+            </div>
+
+            <!-- Google Review Form -->
+            <div class="review-form" id="reviewForm">
+                <div class="form-title">Leave a Google Review</div>
+                <div class="form-container">
+                    <div class="star-rating" id="starRating">
+                        <span class="star" onclick="setStars(1)">★</span>
+                        <span class="star" onclick="setStars(2)">★</span>
+                        <span class="star" onclick="setStars(3)">★</span>
+                        <span class="star" onclick="setStars(4)">★</span>
+                        <span class="star" onclick="setStars(5)">★</span>
+                    </div>
+                    <textarea class="form-input textarea" id="reviewText" placeholder="Share your experience"></textarea>
+                    <button class="form-button" onclick="showGoogleReviewPage()">Copy & Submit</button>
+                </div>
+            </div>
+
+            <!-- Google Review Page -->
+            <div class="google-review" id="googleReview">
+                <div class="form-title">Google Review</div>
+                <div class="business-info">
+                    <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px;">The Coffee Corner</div>
+                    <div style="font-size: 14px; opacity: 0.9;">123 Main Street, Downtown</div>
+                    <div style="font-size: 14px; opacity: 0.9;">Coffee Shop • 4.2 ⭐ (127 reviews)</div>
+                </div>
+                <div class="form-container">
+                    <div class="star-rating" id="finalStars">
+                        <span class="star active">★</span>
+                        <span class="star active">★</span>
+                        <span class="star active">★</span>
+                        <span class="star active">★</span>
+                        <span class="star active">★</span>
+                    </div>
+                    <textarea class="form-input textarea" id="finalReview" style="border: 2px solid #1a73e8; background: white; color: #333;"></textarea>
+                    <button class="form-button" style="background: #1a73e8;" onclick="submitGoogleReview()">Post Review</button>
+                </div>
+            </div>
+
+            <!-- Completion Screen -->
+            <div class="completion-screen" id="completionScreen">
+                <div class="form-title">Thank you! 🎉</div>
+                <div class="completion-message">
+                    Your feedback has been sent to the business and helps them improve their service.
+                </div>
+                <button class="form-button" onclick="resetDemo()">Leave another review</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        let selectedStars = 5;
+        let isAnimating = false;
+
+        function startDemo() {
+            // Hide camera interface and show phone demo
+            document.querySelector('.camera-interface').style.opacity = '0';
+            document.querySelector('.qr-notification').style.opacity = '0';
+            document.querySelector('.coffee-scene').style.opacity = '0';
+            document.getElementById('phoneContainer').style.opacity = '1';
+            
+            // Start star animation
+            startStarAnimation();
+            
+            // Transition timing
+            setTimeout(() => {
+                document.querySelector('.camera-interface').style.display = 'none';
+                document.querySelector('.qr-notification').style.display = 'none';
+                document.querySelector('.coffee-scene').style.display = 'none';
+            }, 1000);
+        }
+
+        function startStarAnimation() {
+            const container = document.querySelector('.stars-container');
+            
+            function createStar() {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.width = (Math.random() * 10 + 5) + 'px';
+                star.style.height = star.style.width;
+                star.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                star.style.animationDelay = Math.random() * 2 + 's';
+                
+                container.appendChild(star);
+                
+                setTimeout(() => {
+                    if (star.parentNode) {
+                        star.parentNode.removeChild(star);
+                    }
+                }, 5000);
+            }
+
+            // Create stars periodically
+            setInterval(createStar, 300);
+        }
+
+        function handleEmojiClick(sentiment) {
+            if (isAnimating) return;
+            
+            const emoji = document.querySelector(`[data-sentiment="${sentiment}"]`);
+            emoji.classList.add('clicked');
+            
+            setTimeout(() => {
+                if (sentiment === 'excellent' || sentiment === 'satisfied') {
+                    showGoogleReviewForm();
+                } else {
+                    showStep2();
+                }
+            }, 800);
+        }
+
+        function showStep2() {
+            document.getElementById('step1').style.display = 'none';
+            document.getElementById('step2').style.display = 'block';
+            currentStep = 2;
+        }
+
+        function showPrivateFeedback() {
+            document.getElementById('step2').style.display = 'none';
+            document.getElementById('feedbackForm').style.display = 'block';
+        }
+
+        function showGoogleReviewForm() {
+            document.getElementById('step1').style.display = 'none';
+            document.getElementById('step2').style.display = 'none';
+            document.getElementById('reviewForm').style.display = 'block';
+            // Auto-select 5 stars
+            setStars(5);
+        }
+
+        function setStars(rating) {
+            selectedStars = rating;
+            const stars = document.querySelectorAll('#starRating .star');
+            stars.forEach((star, index) => {
+                star.classList.toggle('active', index < rating);
+            });
+        }
+
+        function showGoogleReviewPage() {
+            const reviewText = document.getElementById('reviewText').value || "";
+            document.getElementById('finalReview').value = reviewText;
+            
+            // Set final stars
+            const finalStars = document.querySelectorAll('#finalStars .star');
+            finalStars.forEach((star, index) => {
+                star.classList.toggle('active', index < selectedStars);
+            });
+            
+            document.getElementById('reviewForm').style.display = 'none';
+            document.getElementById('googleReview').style.display = 'block';
+        }
+
+        function submitFeedback() {
+            const email = document.getElementById('feedbackEmail').value;
+            const feedback = document.getElementById('feedbackText').value;
+            
+            if (!email || !feedback) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            showCompletionScreen();
+        }
+
+        function submitGoogleReview() {
+            showCompletionScreen();
+        }
+
+        function showCompletionScreen() {
+            document.querySelectorAll('.choice-screen, .feedback-form, .review-form, .google-review').forEach(el => {
+                el.style.display = 'none';
+            });
+            document.getElementById('completionScreen').style.display = 'block';
+        }
+
+        function resetDemo() {
+            // Reset all forms
+            document.getElementById('feedbackEmail').value = '';
+            document.getElementById('feedbackText').value = '';
+            document.getElementById('reviewText').value = '';
+            selectedStars = 5;
+            
+            // Reset display
+            document.querySelectorAll('.choice-screen, .feedback-form, .review-form, .google-review, .completion-screen').forEach(el => {
+                el.style.display = 'none';
+            });
+            
+            // Remove clicked class from emojis
+            document.querySelectorAll('.emoji').forEach(emoji => {
+                emoji.classList.remove('clicked');
+            });
+            
+            // Show initial step
+            document.getElementById('step1').style.display = 'block';
+            currentStep = 1;
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // The demo starts with the QR code scanning experience
+            console.log('QR Code Demo loaded');
+        });
+    </script>
+</body>
+</html> 

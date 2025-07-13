@@ -156,10 +156,7 @@ import {
   FaHospital,
   FaWheelchair,
   FaBandAid,
-  FaShirt,
-  FaShoes,
   FaRing,
-  FaWatch,
   FaMountain,
   FaSnowman,
   FaCompass,
@@ -167,7 +164,6 @@ import {
   FaVideo,
   FaFilm,
   FaTheaterMasks,
-  FaDrums,
   FaTicketAlt,
   FaLaptopCode,
   FaBalanceScale,
@@ -181,8 +177,6 @@ import {
   FaShoppingBag,
   FaTint,
   FaCloudRain,
-  FaSunglasses,
-  FaRose,
 } from "react-icons/fa";
 import { IconType } from "react-icons";
 
@@ -241,7 +235,7 @@ export const FALLING_STARS_ICONS: {
   { key: "seedling", label: "Seedling", icon: FaSeedling, color: "text-green-500", category: "Plants & animals" },
   { key: "leaf", label: "Leaf", icon: FaLeaf, color: "text-green-400", category: "Plants & animals" },
   { key: "tree", label: "Tree", icon: FaTree, color: "text-green-700", category: "Plants & animals" },
-  { key: "rose", label: "Rose", icon: FaRose, color: "text-red-500", category: "Plants & animals" },
+  { key: "rose", label: "Rose", icon: FaLeaf, color: "text-red-500", category: "Plants & animals" },
   { key: "bug", label: "Bug", icon: FaBug, color: "text-green-600", category: "Plants & animals" },
   { key: "spider", label: "Spider", icon: FaSpider, color: "text-gray-700", category: "Plants & animals" },
   
@@ -301,7 +295,7 @@ export const FALLING_STARS_ICONS: {
   { key: "video", label: "Video", icon: FaVideo, color: "text-blue-600", category: "Entertainment & Music" },
   { key: "film", label: "Film", icon: FaFilm, color: "text-gray-700", category: "Entertainment & Music" },
   { key: "theater-masks", label: "Theater", icon: FaTheaterMasks, color: "text-purple-600", category: "Entertainment & Music" },
-  { key: "drums", label: "Drums", icon: FaDrums, color: "text-red-600", category: "Entertainment & Music" },
+  { key: "drums", label: "Drums", icon: FaMusic, color: "text-red-600", category: "Entertainment & Music" },
   { key: "ticket", label: "Ticket", icon: FaTicketAlt, color: "text-orange-500", category: "Entertainment & Music" },
   
   // Nature & Outdoors
@@ -374,11 +368,11 @@ export const FALLING_STARS_ICONS: {
   { key: "tshirt", label: "T-Shirt", icon: FaTshirt, color: "text-blue-500", category: "Retail & Shopping" },
   { key: "hat", label: "Cowboy Hat", icon: FaHatCowboy, color: "text-amber-800", category: "Retail & Shopping" },
   { key: "glasses", label: "Glasses", icon: FaGlasses, color: "text-indigo-500", category: "Retail & Shopping" },
-  { key: "sunglasses", label: "Sunglasses", icon: FaSunglasses, color: "text-gray-800", category: "Retail & Shopping" },
-  { key: "shirt", label: "Shirt", icon: FaShirt, color: "text-blue-400", category: "Retail & Shopping" },
-  { key: "shoes", label: "Shoes", icon: FaShoes, color: "text-brown-600", category: "Retail & Shopping" },
+  { key: "sunglasses", label: "Sunglasses", icon: FaGlasses, color: "text-gray-800", category: "Retail & Shopping" },
+  { key: "shirt", label: "Shirt", icon: FaTshirt, color: "text-blue-400", category: "Retail & Shopping" },
+  { key: "shoes", label: "Shoes", icon: FaTshirt, color: "text-brown-600", category: "Retail & Shopping" },
   { key: "ring", label: "Ring", icon: FaRing, color: "text-yellow-500", category: "Retail & Shopping" },
-  { key: "watch", label: "Watch", icon: FaWatch, color: "text-gray-600", category: "Retail & Shopping" },
+  { key: "watch", label: "Watch", icon: FaClock, color: "text-gray-600", category: "Retail & Shopping" },
   
 
   
