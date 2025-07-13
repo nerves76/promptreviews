@@ -184,7 +184,16 @@ export default function QRCodeGenerator({
 
       // Draw stars if enabled (after logo)
       if (showStars) {
-        const adjustedStarSize = isSmallSize ? Math.min(starSize, 16) : starSize; // Cap star size for small formats
+        // Business cards need larger stars to be visible, other small sizes can be smaller
+        let adjustedStarSize;
+        if (isBusinessCard) {
+          adjustedStarSize = Math.max(Math.min(starSize, 28), 20); // Business cards: min 20px, max 28px
+        } else if (isSmallSize) {
+          adjustedStarSize = Math.min(starSize, 16); // Other small formats: max 16px
+        } else {
+          adjustedStarSize = starSize; // Normal sizes: use full star size
+        }
+        
         const totalStarWidth = 5 * adjustedStarSize + 4 * starSpacing;
         const starStartX = (frameSize.width - totalStarWidth) / 2 + adjustedStarSize / 2;
         for (let i = 0; i < 5; i++) {
