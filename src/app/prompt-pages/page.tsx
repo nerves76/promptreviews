@@ -684,7 +684,7 @@ export default function PromptPages() {
                                         open: true,
                                         url: url,
                                         clientName: getLocationDisplayName(location),
-                                        logoUrl: location.logo_url,
+                                        logoUrl: location.logo_print_url || location.logo_url,
                                       });
                                     }}
                                     className="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-100 text-amber-800 rounded hover:bg-amber-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
