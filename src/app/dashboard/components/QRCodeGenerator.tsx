@@ -56,6 +56,8 @@ interface QRCodeGeneratorProps {
   showClientLogo?: boolean;
   starSize?: number;
   circularLogo?: boolean;
+  logoSize?: number;
+  fontSize?: number;
 }
 
 // Helper function to draw a star
@@ -83,6 +85,8 @@ export default function QRCodeGenerator({
   showClientLogo = false,
   starSize = 20, // Default star size
   circularLogo = false,
+  logoSize = 60, // Default logo size
+  fontSize = 48, // Default font size
 }: QRCodeGeneratorProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -118,9 +122,9 @@ export default function QRCodeGenerator({
       const padding = 60;
       const logoHeight = Math.floor(frameSize.height * 0.06); // Reduced from 0.10 to make smaller
       const websiteFontSize = 20; // Slightly bigger than 16px (about 15pt)
-      const headlineFontSize = Math.floor(frameSize.height * 0.065);
+      const headlineFontSize = fontSize; // Use the fontSize prop
       const starSpacing = Math.floor(starSize * 0.7);
-      const clientLogoHeight = Math.floor(frameSize.height * 0.08); // Client logo height
+      const clientLogoHeight = logoSize; // Use the logoSize prop
       const qrSize = Math.min(frameSize.width, frameSize.height) * 0.38;
       const qrX = (frameSize.width - qrSize) / 2;
       
@@ -283,7 +287,7 @@ export default function QRCodeGenerator({
   // Generate QR code when component mounts or props change
   useEffect(() => {
     generateQRCode();
-  }, [frameSize, headline, starColor, mainColor, showStars, url, clientLogoUrl, showClientLogo, starSize, circularLogo]);
+  }, [frameSize, headline, starColor, mainColor, showStars, url, clientLogoUrl, showClientLogo, starSize, circularLogo, logoSize, fontSize]);
 
   // Expose download function via ref
   useEffect(() => {

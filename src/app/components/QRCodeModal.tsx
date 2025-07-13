@@ -35,9 +35,12 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
   const [showClientLogo, setShowClientLogo] = useState(false);
   const [starSize, setStarSize] = useState(40);
   const [circularLogo, setCircularLogo] = useState(false);
+  const [logoSize, setLogoSize] = useState(60);
+  const [fontSize, setFontSize] = useState(48);
   const [qrPreviewUrl, setQrPreviewUrl] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [showBrandingPopup, setShowBrandingPopup] = useState(false);
   const qrGeneratorRef = useRef<HTMLCanvasElement>(null);
 
   const maxChars = 50;
@@ -243,6 +246,50 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
                   </div>
                 </div>
 
+                {/* Logo Size Control */}
+                {showClientLogo && (
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Logo Size: {logoSize}px
+                    </label>
+                    <input
+                      type="range"
+                      min="30"
+                      max="120"
+                      step="5"
+                      value={logoSize}
+                      onChange={(e) => setLogoSize(Number(e.target.value))}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                    />
+                    <div className="flex justify-between text-xs text-gray-500 mt-1">
+                      <span>30px</span>
+                      <span>75px</span>
+                      <span>120px</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Font Size Control */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Headline Font Size: {fontSize}px
+                  </label>
+                  <input
+                    type="range"
+                    min="24"
+                    max="96"
+                    step="4"
+                    value={fontSize}
+                    onChange={(e) => setFontSize(Number(e.target.value))}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                  />
+                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>24px</span>
+                    <span>60px</span>
+                    <span>96px</span>
+                  </div>
+                </div>
+
                 {/* Toggle Controls */}
                 <div className="mb-4 space-y-3">
                   {/* Show Stars Toggle */}
@@ -305,6 +352,50 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
                   )}
                 </div>
 
+                {/* Logo Size Control */}
+                {showClientLogo && (
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Logo Size: {logoSize}px
+                    </label>
+                    <input
+                      type="range"
+                      min="30"
+                      max="120"
+                      step="5"
+                      value={logoSize}
+                      onChange={(e) => setLogoSize(Number(e.target.value))}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                    />
+                    <div className="flex justify-between text-xs text-gray-500 mt-1">
+                      <span>30px</span>
+                      <span>75px</span>
+                      <span>120px</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Font Size Control */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Headline Font Size: {fontSize}px
+                  </label>
+                  <input
+                    type="range"
+                    min="24"
+                    max="96"
+                    step="4"
+                    value={fontSize}
+                    onChange={(e) => setFontSize(Number(e.target.value))}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                  />
+                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>24px</span>
+                    <span>60px</span>
+                    <span>96px</span>
+                  </div>
+                </div>
+
                 {/* Print Note */}
                 <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded-md">
                   <p className="font-medium mb-1">Printing Tips:</p>
@@ -338,29 +429,59 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
                   <img 
                     src={qrPreviewUrl} 
                     alt="QR Code Preview" 
-                    className="w-full h-auto max-w-md mx-auto"
+                    className="w-full h-auto max-w-md mx-auto rounded-lg shadow-sm"
                   />
                 </div>
               ) : (
                 <div className="bg-white p-8 rounded-lg shadow-sm text-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-blue mx-auto"></div>
-                  <p className="mt-2 text-sm text-gray-600">Generating preview...</p>
+                  <p className="text-gray-500">Preview will appear here</p>
                 </div>
               )}
+              
+              {/* Branding Removal Text */}
+              <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <button
+                  onClick={() => setShowBrandingPopup(true)}
+                  className="text-yellow-800 hover:text-yellow-900 font-medium text-sm underline"
+                >
+                  Remove Prompt Reviews branding?
+                </button>
+              </div>
             </div>
           ) : (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center">
-                <div className="w-32 h-32 bg-gray-200 rounded-lg mx-auto mb-4 flex items-center justify-center">
-                  <svg className="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V6a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1zm12 0h2a1 1 0 001-1V6a1 1 0 00-1-1h-2a1 1 0 00-1 1v1a1 1 0 001 1zM5 20h2a1 1 0 001-1v-1a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1z" />
-                  </svg>
-                </div>
-                <p className="text-gray-500">Click "Generate QR Code" to see a preview</p>
-              </div>
+            <div className="bg-white p-8 rounded-lg shadow-sm text-center">
+              <p className="text-gray-500">Preview will appear here after you generate your QR code</p>
             </div>
           )}
         </div>
+
+        {/* Branding Removal Popup */}
+        {showBrandingPopup && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg max-w-md mx-4">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Remove Prompt Reviews Branding</h3>
+                <button
+                  onClick={() => setShowBrandingPopup(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-sm border border-gray-300">
+                    <span className="text-red-500 font-bold text-sm">×</span>
+                  </div>
+                </button>
+              </div>
+              <p className="text-gray-700 mb-4">
+                You most certainly can open up your downloaded PDF in any design program and remove the Prompt Reviews logo, but you also might not want to. People who have used Prompt Reviews before will know that reviews are easier and quicker to submit with Prompt Reviews, so it may improve the number of reviews you get.
+              </p>
+              <button
+                onClick={() => setShowBrandingPopup(false)}
+                className="w-full bg-slate-blue text-white py-2 px-4 rounded-md hover:bg-slate-blue/90 transition-colors"
+              >
+                Got it!
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Hidden QR Code Generator Component */}
         {showPreview && (
@@ -378,6 +499,8 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
             showClientLogo={showClientLogo}
             starSize={starSize}
             circularLogo={circularLogo}
+            logoSize={logoSize}
+            fontSize={fontSize}
           />
         )}
       </div>
