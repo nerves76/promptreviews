@@ -63,6 +63,8 @@ interface BusinessProfileFormProps {
   setLogoUrl: (url: string | null) => void;
   logoFile: File | null;
   setLogoFile: (file: File | null) => void;
+  logoPrintFile: File | null;
+  setLogoPrintFile: (file: File | null) => void;
   logoError: string;
   setLogoError: (error: string) => void;
   fileInputRef: React.RefObject<HTMLInputElement>;
@@ -76,6 +78,8 @@ interface BusinessProfileFormProps {
   setCroppedAreaPixels: (pixels: any) => void;
   rawLogoFile: File | null;
   setRawLogoFile: (file: File | null) => void;
+  rawLogoPrintFile: File | null;
+  setRawLogoPrintFile: (file: File | null) => void;
   loading: boolean;
   error: string;
   success: string;
@@ -106,6 +110,8 @@ export default function BusinessProfileForm({
   setLogoUrl,
   logoFile,
   setLogoFile,
+  logoPrintFile,
+  setLogoPrintFile,
   logoError,
   setLogoError,
   fileInputRef,
@@ -119,6 +125,8 @@ export default function BusinessProfileForm({
   setCroppedAreaPixels,
   rawLogoFile,
   setRawLogoFile,
+  rawLogoPrintFile,
+  setRawLogoPrintFile,
   loading,
   error,
   success,
@@ -162,7 +170,18 @@ export default function BusinessProfileForm({
               Upload your logo or your face (whichever is more iconic).
             </label>
             <div className="text-sm text-gray-500 mb-2">
-              Up to 800x800px supported (PNG, JPG, or WEBP) - automatically compressed for optimal performance
+              Up to 1200x1200px supported (PNG, JPG, or WEBP) - optimized for both web and print quality
+            </div>
+            <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-800 font-medium mb-1">
+                For Print-Quality QR Codes:
+              </p>
+              <ul className="text-xs text-blue-700 space-y-1">
+                <li>• Upload high-resolution logos (1200x1200px or larger)</li>
+                <li>• Use PNG format for logos with transparency</li>
+                <li>• Avoid over-compressed images for best print results</li>
+                <li>• Consider uploading larger files for professional printing</li>
+              </ul>
             </div>
             <input
               type="file"

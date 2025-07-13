@@ -903,6 +903,10 @@
                             
                             <textarea class="review-textarea" placeholder="Share your experience"></textarea>
                             
+                            <button class="ai-generate-btn" onclick="generateAIReview()">
+                                ✨ Generate with AI
+                            </button>
+                            
                             <button class="submit-btn" onclick="submitReview()">
                                 Copy & Submit
                             </button>
@@ -963,6 +967,31 @@
             `;
             
             currentStep = 4;
+        }
+
+        function generateAIReview() {
+            const textarea = document.querySelector('.review-textarea');
+            const sampleReviews = [
+                "Love the atmosphere. The player piano was delightful. Staff was super friendly. Highly recommended!",
+                "Excellent service! The staff was incredibly friendly and helpful. Definitely recommend to everyone!",
+                "Amazing experience from start to finish. Professional team and great attention to detail. Will be back!",
+                "Such a talented team. They make the complex, simple. You can't go wrong with Diviner.",
+                "These guys are straight shooters. Always open and honest about pricing. Great craftmenship. Highly recomended."
+            ];
+            
+            const randomReview = sampleReviews[Math.floor(Math.random() * sampleReviews.length)];
+            
+            // Simulate typing effect
+            textarea.value = '';
+            let i = 0;
+            const typeInterval = setInterval(() => {
+                if (i < randomReview.length) {
+                    textarea.value += randomReview.charAt(i);
+                    i++;
+                } else {
+                    clearInterval(typeInterval);
+                }
+            }, 30);
         }
 
         function attachEmojiListeners() {

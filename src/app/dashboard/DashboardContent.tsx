@@ -633,6 +633,7 @@ export default function DashboardContent({
                               open: true,
                               url: universalUrl,
                               clientName: business?.name || "PromptReviews",
+                              logoUrl: business?.logo_print_url || business?.logo_url,
                             });
                           }}
                           className="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-100 text-amber-800 rounded hover:bg-amber-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"

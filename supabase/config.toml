@@ -177,6 +177,9 @@ otp_length = 6
 otp_expiry = 86400
 
 # Use Resend SMTP server for auth emails
+# This is controlled by environment variables - see .env files
+# LOCAL: Uses inbucket (email testing server) when RESEND_SMTP_PASSWORD is not set
+# PRODUCTION: Uses Resend SMTP when RESEND_SMTP_PASSWORD is set
 [auth.email.smtp]
 enabled = true
 host = "smtp.resend.com"

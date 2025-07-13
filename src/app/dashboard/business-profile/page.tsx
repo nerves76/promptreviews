@@ -134,6 +134,7 @@ export default function BusinessProfilePage() {
   const [platformErrors, setPlatformErrors] = useState<string[]>([]);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPrintFile, setLogoPrintFile] = useState<File | null>(null);
   const [logoError, setLogoError] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
@@ -142,6 +143,7 @@ export default function BusinessProfilePage() {
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
   const [rawLogoFile, setRawLogoFile] = useState<File | null>(null);
+  const [rawLogoPrintFile, setRawLogoPrintFile] = useState<File | null>(null);
   const [copySuccess, setCopySuccess] = useState("");
   const [accountId, setAccountId] = useState<string | null>(null);
 
@@ -311,18 +313,33 @@ export default function BusinessProfilePage() {
     }
     
     try {
-      console.log("Starting image compression...");
-      const compressedFile = await imageCompression(file, {
-        maxSizeMB: 0.3, // 300KB
-        maxWidthOrHeight: 400,
+      console.log("Starting image compression for web version...");
+      // Create web version (optimized for fast loading)
+      const webVersion = await imageCompression(file, {
+        maxSizeMB: 0.3, // 300KB for web display
+        maxWidthOrHeight: 400, // 400px for web
         useWebWorker: true,
-        fileType: 'image/webp', // Always convert to webp
+        fileType: 'image/webp',
+        quality: 0.8,
       });
-      console.log("Image compression successful:", compressedFile.size);
       
-      setRawLogoFile(compressedFile);
+      console.log("Starting image compression for print version...");
+      // Create print version (optimized for print quality)
+      const printVersion = await imageCompression(file, {
+        maxSizeMB: 2.0, // 2MB for better print quality
+        maxWidthOrHeight: 1200, // 1200px for print quality
+        useWebWorker: true,
+        fileType: 'image/webp',
+        quality: 0.95, // Higher quality for print
+      });
+      
+      console.log("Web version size:", webVersion.size, "Print version size:", printVersion.size);
+      
+      // Store both versions for upload after cropping
+      setRawLogoFile(webVersion); // Use web version for cropping preview
+      setRawLogoPrintFile(printVersion); // Store print version for later upload
       setShowCropper(true);
-      setLogoUrl(URL.createObjectURL(compressedFile));
+      setLogoUrl(URL.createObjectURL(webVersion));
     } catch (err) {
       console.error("Image compression failed:", err);
       setLogoError("Failed to compress image. Please try another file.");
@@ -344,17 +361,34 @@ export default function BusinessProfilePage() {
     }
     
     try {
-      console.log("Starting image cropping...");
-      const croppedBlob = await getCroppedImg(logoUrl, croppedAreaPixels);
-      console.log("Image cropping successful, blob size:", croppedBlob.size);
+      console.log("Starting image cropping for web version...");
+      const croppedWebBlob = await getCroppedImg(logoUrl, croppedAreaPixels);
+      console.log("Web image cropping successful, blob size:", croppedWebBlob.size);
       
-      const croppedFile = new File(
-        [croppedBlob],
+      const croppedWebFile = new File(
+        [croppedWebBlob],
         (rawLogoFile?.name?.replace(/\.[^.]+$/, '') || "logo") + ".webp",
         { type: "image/webp" },
       );
-      setLogoFile(croppedFile);
-      setLogoUrl(URL.createObjectURL(croppedFile));
+      
+      // If we have a print version, crop it too
+      let croppedPrintFile = null;
+      if (rawLogoPrintFile) {
+        console.log("Starting image cropping for print version...");
+        const printLogoUrl = URL.createObjectURL(rawLogoPrintFile);
+        const croppedPrintBlob = await getCroppedImg(printLogoUrl, croppedAreaPixels);
+        console.log("Print image cropping successful, blob size:", croppedPrintBlob.size);
+        
+        croppedPrintFile = new File(
+          [croppedPrintBlob],
+          (rawLogoPrintFile?.name?.replace(/\.[^.]+$/, '') || "logo") + "_print.webp",
+          { type: "image/webp" },
+        );
+      }
+      
+      setLogoFile(croppedWebFile);
+      setLogoPrintFile(croppedPrintFile); // Store print version for upload
+      setLogoUrl(URL.createObjectURL(croppedWebFile));
       setShowCropper(false);
     } catch (err) {
       console.error("Image cropping failed:", err);
@@ -365,8 +399,10 @@ export default function BusinessProfilePage() {
   const handleCropCancel = () => {
     setShowCropper(false);
     setLogoFile(null);
+    setLogoPrintFile(null);
     setLogoUrl(null);
     setRawLogoFile(null);
+    setRawLogoPrintFile(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -409,41 +445,67 @@ export default function BusinessProfilePage() {
       
       console.log("User authenticated, proceeding with logo upload...");
       let uploadedLogoUrl = logoUrl;
+      let uploadedLogoPrintUrl = null;
       
       if (logoFile) {
         console.log("Logo file detected, starting upload process...");
         try {
           // Always use the 'logos' bucket and store in 'business-logos/{user.id}.webp' for consistency
           const bucketName = 'logos';
-          const filePath = `business-logos/${user.id}.webp`;
-          const uploadPath = filePath;
-          console.log("Uploading logo to:", bucketName, uploadPath, "with file:", logoFile);
-          // If the bucket is not found, skip upload and show a clear error
-          const { error: uploadError } = await supabase.storage
+          const webFilePath = `business-logos/${user.id}.webp`;
+          const printFilePath = `business-logos/${user.id}_print.webp`;
+          
+          console.log("Uploading web logo to:", bucketName, webFilePath, "with file:", logoFile);
+          
+          // Upload web version
+          const { error: webUploadError } = await supabase.storage
             .from(bucketName)
-            .upload(uploadPath, logoFile, {
+            .upload(webFilePath, logoFile, {
               upsert: true,
               contentType: "image/webp",
             });
           
-          if (uploadError) {
-            if (uploadError.message && uploadError.message.includes("Bucket not found")) {
+          if (webUploadError) {
+            if (webUploadError.message && webUploadError.message.includes("Bucket not found")) {
               setLogoError("Logo upload failed: Storage bucket not found in this environment. Please create the bucket or contact support. Profile will be saved without a logo.");
               console.error("Supabase upload error: Bucket not found. Skipping logo upload.");
             } else {
               setLogoError("Failed to upload logo, but profile will be saved.");
-              console.error("Supabase upload error details:", uploadError);
-              console.error("Error message:", uploadError.message);
+              console.error("Supabase upload error details:", webUploadError);
+              console.error("Error message:", webUploadError.message);
             }
             // Continue without logo upload rather than failing the entire save
             uploadedLogoUrl = logoUrl;
           } else {
-            console.log("Logo upload successful, getting public URL...");
+            console.log("Web logo upload successful, getting public URL...");
             const { data: publicUrlData } = supabase.storage
               .from(bucketName)
-              .getPublicUrl(uploadPath);
+              .getPublicUrl(webFilePath);
             console.log("Supabase publicUrlData:", publicUrlData);
             uploadedLogoUrl = publicUrlData?.publicUrl || null;
+          }
+          
+          // Upload print version if available
+          if (logoPrintFile) {
+            console.log("Uploading print logo to:", bucketName, printFilePath, "with file:", logoPrintFile);
+            
+            const { error: printUploadError } = await supabase.storage
+              .from(bucketName)
+              .upload(printFilePath, logoPrintFile, {
+                upsert: true,
+                contentType: "image/webp",
+              });
+            
+            if (!printUploadError) {
+              console.log("Print logo upload successful, getting public URL...");
+              const { data: printPublicUrlData } = supabase.storage
+                .from(bucketName)
+                .getPublicUrl(printFilePath);
+              console.log("Print logo publicUrlData:", printPublicUrlData);
+              uploadedLogoPrintUrl = printPublicUrlData?.publicUrl || null;
+            } else {
+              console.error("Print logo upload failed:", printUploadError);
+            }
           }
         } catch (uploadException) {
           console.error("Exception during logo upload:", uploadException);
@@ -505,6 +567,7 @@ export default function BusinessProfilePage() {
           review_platforms: platforms,
           platform_word_counts: form.platform_word_counts,
           logo_url: uploadedLogoUrl,
+          logo_print_url: uploadedLogoPrintUrl,
           facebook_url: form.facebook_url,
           instagram_url: form.instagram_url,
           bluesky_url: form.bluesky_url,
@@ -647,6 +710,8 @@ export default function BusinessProfilePage() {
         setLogoUrl={setLogoUrl}
         logoFile={logoFile}
         setLogoFile={setLogoFile}
+        logoPrintFile={logoPrintFile}
+        setLogoPrintFile={setLogoPrintFile}
         logoError={logoError}
         setLogoError={setLogoError}
         fileInputRef={fileInputRef as React.RefObject<HTMLInputElement>}
@@ -660,6 +725,8 @@ export default function BusinessProfilePage() {
         setCroppedAreaPixels={setCroppedAreaPixels}
         rawLogoFile={rawLogoFile}
         setRawLogoFile={setRawLogoFile}
+        rawLogoPrintFile={rawLogoPrintFile}
+        setRawLogoPrintFile={setRawLogoPrintFile}
         loading={isSubmitting}
         error={error}
         success={success}

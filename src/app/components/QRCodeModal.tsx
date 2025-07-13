@@ -7,6 +7,7 @@
  * Features:
  * - Marketing copy display before generation
  * - Frame size selection
+ * - Client logo toggle
  * - Customizable headline, colors, and star display
  * - Live preview after generation
  * - Download functionality
@@ -31,6 +32,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
   const [starColor, setStarColor] = useState('#FFD700');
   const [mainColor, setMainColor] = useState('#2E4A7D');
   const [showStars, setShowStars] = useState(true);
+  const [showClientLogo, setShowClientLogo] = useState(false);
   const [qrPreviewUrl, setQrPreviewUrl] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -115,12 +117,12 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
       <div className="bg-white shadow-lg p-0 max-w-4xl w-full relative flex flex-col md:flex-row gap-8 text-left rounded-xl mx-2 md:mx-0">
         {/* Standardized circular close button */}
         <button
-          className="absolute top-2 right-2 md:-top-4 md:-right-4 bg-white border border-gray-200 rounded-full shadow-lg shadow-[inset_0_0_8px_0_rgba(0,0,0,0.25)] flex items-center justify-center hover:bg-gray-100 focus:outline-none z-20 transition-colors p-4"
-          style={{ width: 64, height: 64 }}
+          className="absolute -top-3 -right-3 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-20"
+          style={{ width: 48, height: 48 }}
           onClick={onClose}
           aria-label="Close modal"
         >
-          <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
@@ -218,17 +220,48 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
                   </div>
                 </div>
 
-                {/* Show Stars Toggle */}
-                <div className="mb-4">
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={showStars}
-                      onChange={(e) => setShowStars(e.target.checked)}
-                      className="mr-2"
-                    />
-                    <span className="text-sm font-medium text-gray-700">Show Stars</span>
-                  </label>
+                {/* Toggle Controls */}
+                <div className="mb-4 space-y-3">
+                  {/* Show Stars Toggle */}
+                  <div>
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={showStars}
+                        onChange={(e) => setShowStars(e.target.checked)}
+                        className="mr-2"
+                      />
+                      <span className="text-sm font-medium text-gray-700">Show Stars</span>
+                    </label>
+                  </div>
+
+                  {/* Show Client Logo Toggle */}
+                  {logoUrl && (
+                    <div className="mb-4">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={showClientLogo}
+                          onChange={(e) => setShowClientLogo(e.target.checked)}
+                          className="w-4 h-4 text-slate-blue border-gray-300 rounded focus:ring-slate-blue"
+                        />
+                        <span className="text-sm font-medium text-gray-700">Show Your Logo</span>
+                      </label>
+                      {showClientLogo && (
+                        <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                          <p className="text-sm text-amber-800 font-medium mb-1">
+                            Print Quality Guidelines:
+                          </p>
+                          <ul className="text-xs text-amber-700 space-y-1">
+                            <li>• For best print quality, use logos at least 600x600px</li>
+                            <li>• High resolution (300+ DPI) recommended for professional printing</li>
+                            <li>• PNG format preferred for logos with transparency</li>
+                            <li>• Avoid highly compressed images for print materials</li>
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Print Note */}
@@ -255,7 +288,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
         </div>
 
         {/* Right side: Preview */}
-        <div className="flex-1 bg-gray-50 p-8 rounded-r-xl">
+        <div className="flex-1 bg-blue-50 p-8 rounded-r-xl">
           {showPreview ? (
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-900">Preview</h3>
@@ -300,6 +333,8 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
             starColor={starColor}
             mainColor={mainColor}
             showStars={showStars}
+            clientLogoUrl={logoUrl}
+            showClientLogo={showClientLogo}
           />
         )}
       </div>
