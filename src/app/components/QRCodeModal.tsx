@@ -458,18 +458,20 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
         {/* Branding Removal Popup */}
         {showBrandingPopup && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg max-w-md mx-4">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Remove Prompt Reviews Branding</h3>
-                <button
-                  onClick={() => setShowBrandingPopup(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-sm border border-gray-300">
-                    <span className="text-red-500 font-bold text-sm">×</span>
-                  </div>
-                </button>
-              </div>
+            <div className="bg-white p-6 rounded-lg max-w-md mx-4 relative">
+              {/* Standardized circular close button */}
+              <button
+                onClick={() => setShowBrandingPopup(false)}
+                className="absolute -top-3 -right-3 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-20"
+                style={{ width: 48, height: 48 }}
+                aria-label="Close modal"
+              >
+                <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Remove Prompt Reviews Branding</h3>
               <p className="text-gray-700 mb-4">
                 You most certainly can open up your downloaded PDF in any design program and remove the Prompt Reviews logo, but you also might not want to. People who have used Prompt Reviews before will know that reviews are easier and quicker to submit with Prompt Reviews, so it may improve the number of reviews you get.
               </p>
