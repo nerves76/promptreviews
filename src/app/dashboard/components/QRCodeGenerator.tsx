@@ -108,6 +108,10 @@ export default function QRCodeGenerator({
       ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(0, 0, frameSize.width, frameSize.height);
 
+      // Detect small sizes for better spacing
+      const isBusinessCard = frameSize.label.includes('business card');
+      const isSmallSize = frameSize.width <= 1050 || frameSize.height <= 600; // Business card and smaller
+
       // Draw dotted cutout line for small sizes
       const smallSizes = ['4x6"', '5x7"', '5x8"'];
       if (smallSizes.includes(frameSize.label)) {
@@ -118,14 +122,14 @@ export default function QRCodeGenerator({
         ctx.setLineDash([]);
       }
 
-      // Layout constants
-      const padding = 60;
+      // Layout constants with size-specific adjustments
+      const padding = isSmallSize ? 40 : 60; // Smaller padding for small sizes
       const logoHeight = Math.floor(frameSize.height * 0.06); // Reduced from 0.10 to make smaller
-      const websiteFontSize = 20; // Slightly bigger than 16px (about 15pt)
-      const headlineFontSize = fontSize; // Use the fontSize prop
+      const websiteFontSize = isSmallSize ? 16 : 20; // Smaller website text for small sizes
+      const headlineFontSize = isSmallSize ? Math.min(fontSize, 36) : fontSize; // Cap font size for small formats
       const starSpacing = Math.floor(starSize * 0.7);
-      const clientLogoHeight = logoSize; // Use the logoSize prop
-      const qrSize = Math.min(frameSize.width, frameSize.height) * 0.38;
+      const clientLogoHeight = isSmallSize ? Math.min(logoSize, 40) : logoSize; // Cap logo size for small formats
+      const qrSize = Math.min(frameSize.width, frameSize.height) * (isSmallSize ? 0.35 : 0.38); // Slightly smaller QR for small sizes
       const qrX = (frameSize.width - qrSize) / 2;
       
       // Start layout from top
@@ -170,7 +174,8 @@ export default function QRCodeGenerator({
             ctx.drawImage(clientLogoImg, clientLogoX, y, clientLogoWidth, clientLogoHeight);
           }
           
-          y += clientLogoHeight + 40;
+          // Adjusted spacing after client logo - smaller for small sizes
+          y += clientLogoHeight + (isSmallSize ? 20 : 40);
         } catch (error) {
           console.error('Error loading client logo:', error);
           // Continue without client logo if it fails to load
@@ -179,17 +184,17 @@ export default function QRCodeGenerator({
 
       // Draw stars if enabled (after logo)
       if (showStars) {
-        const totalStarWidth = 5 * starSize + 4 * starSpacing;
-        const starStartX = (frameSize.width - totalStarWidth) / 2 + starSize / 2;
+        const adjustedStarSize = isSmallSize ? Math.min(starSize, 16) : starSize; // Cap star size for small formats
+        const totalStarWidth = 5 * adjustedStarSize + 4 * starSpacing;
+        const starStartX = (frameSize.width - totalStarWidth) / 2 + adjustedStarSize / 2;
         for (let i = 0; i < 5; i++) {
-          drawStar(ctx, starStartX + i * (starSize + starSpacing), y + starSize / 2, starSize, starColor);
+          drawStar(ctx, starStartX + i * (adjustedStarSize + starSpacing), y + adjustedStarSize / 2, adjustedStarSize, starColor);
         }
-        y += starSize + 20;
+        y += adjustedStarSize + (isSmallSize ? 15 : 20); // Less spacing for small sizes
       }
 
-      // Calculate center area for QR and headline
-      const centerAreaHeight = headlineFontSize + qrSize + 40;
-      const centerY = y + 20;
+      // Calculate center area for QR and headline with size-specific spacing
+      const centerY = y + (isSmallSize ? 15 : 20);
       
       // Draw headline text
       ctx.fillStyle = mainColor;
@@ -200,7 +205,10 @@ export default function QRCodeGenerator({
       lines.forEach((line, index) => {
         ctx.fillText(line, frameSize.width / 2, centerY + index * (headlineFontSize + 8));
       });
-      let qrY = centerY + lines.length * (headlineFontSize + 8) + 24;
+      
+      // Increased spacing between headline and QR code for business cards and small sizes
+      const headlineToQRSpacing = isBusinessCard ? 40 : isSmallSize ? 32 : 24;
+      let qrY = centerY + lines.length * (headlineFontSize + 8) + headlineToQRSpacing;
 
       // Generate QR code
       const qrDataUrl = await QRCode.toDataURL(url, {
