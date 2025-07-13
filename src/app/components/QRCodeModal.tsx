@@ -462,15 +462,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
                 </div>
               )}
               
-              {/* Branding Removal Text */}
-              <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <button
-                  onClick={() => setShowBrandingPopup(true)}
-                  className="text-yellow-800 hover:text-yellow-900 font-medium text-sm underline"
-                >
-                  Remove Prompt Reviews branding?
-                </button>
-              </div>
+
             </div>
           ) : (
             <div className="bg-white p-8 rounded-lg shadow-sm text-center">
@@ -495,10 +487,18 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
                 </svg>
               </button>
               
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Remove Prompt Reviews Branding</h3>
-              <p className="text-gray-700 mb-4">
-                You most certainly can open up your downloaded PDF in any design program and remove the Prompt Reviews logo, but you also might not want to. People who have used Prompt Reviews before will know that reviews are easier and quicker to submit with Prompt Reviews, so it may improve the number of reviews you get.
-              </p>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Remove Prompt Reviews branding?</h3>
+              <div className="text-gray-700 mb-4">
+                <p className="mb-3">
+                  You most certainly can. Just open up your downloaded PDF in any design program and remove the Prompt Reviews logo, BUT you also might not want to.
+                </p>
+                <p className="mb-3">
+                  This is because people who have used Prompt Reviews before, will know that reviews are easier and quicker to submit with Prompt Reviews. It might just lead to more reviews!
+                </p>
+                <p className="text-right text-sm text-gray-600 mt-4">
+                  - Chris
+                </p>
+              </div>
               <button
                 onClick={() => setShowBrandingPopup(false)}
                 className="w-full bg-slate-blue text-white py-2 px-4 rounded-md hover:bg-slate-blue/90 transition-colors"
@@ -508,6 +508,16 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
             </div>
           </div>
         )}
+
+        {/* Branding Removal Link - Bottom of Modal */}
+        <div className="mt-6 pt-4 border-t border-gray-200 text-left">
+          <button
+            onClick={() => setShowBrandingPopup(true)}
+            className="text-blue-600 hover:text-blue-800 text-sm underline"
+          >
+            Remove Prompt Reviews branding?
+          </button>
+        </div>
 
         {/* Hidden QR Code Generator Component */}
         {showPreview && (
