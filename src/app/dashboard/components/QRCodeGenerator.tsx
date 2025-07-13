@@ -170,7 +170,7 @@ export default function QRCodeGenerator({
             ctx.drawImage(clientLogoImg, clientLogoX, y, clientLogoWidth, clientLogoHeight);
           }
           
-          y += clientLogoHeight + 20;
+          y += clientLogoHeight + 40;
         } catch (error) {
           console.error('Error loading client logo:', error);
           // Continue without client logo if it fails to load
