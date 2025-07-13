@@ -15,13 +15,15 @@
             <li>Get the direct URL to the file</li>
             <li>Use this HTML in your WordPress editor:</li>
         </ol>
-        <pre style="background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto;"><code>&lt;iframe 
-    src="https://yoursite.com/wp-content/uploads/2025/01/emoji-sentiment-embed.html" 
-    width="420" 
-    height="620" 
-    frameborder="0" 
-    style="border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);"&gt;
-&lt;/iframe&gt;</code></pre>
+        <pre style="background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto;"><code>&lt;div style="text-align: center; margin: 20px 0;"&gt;
+    &lt;iframe 
+        src="https://yoursite.com/wp-content/uploads/2025/01/emoji-sentiment-embed.html" 
+        width="420" 
+        height="620" 
+        frameborder="0" 
+        style="border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);"&gt;
+    &lt;/iframe&gt;
+&lt;/div&gt;</code></pre>
         
         <p><strong>Method 2: WordPress Shortcode</strong></p>
         <p>Add this to your theme's <code>functions.php</code> file:</p>
@@ -29,13 +31,15 @@
     $upload_dir = wp_upload_dir();
     $file_url = $upload_dir['baseurl'] . '/emoji-sentiment-embed.html';
     
-    return '&lt;iframe 
-        src="' . esc_url($file_url) . '" 
-        width="420" 
-        height="620" 
-        frameborder="0" 
-        style="border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);"&gt;
-    &lt;/iframe&gt;';
+    return '&lt;div style="text-align: center; margin: 20px 0;"&gt;
+        &lt;iframe 
+            src="' . esc_url($file_url) . '" 
+            width="420" 
+            height="620" 
+            frameborder="0" 
+            style="border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);"&gt;
+        &lt;/iframe&gt;
+    &lt;/div&gt;';
 }
 add_shortcode('emoji_sentiment_demo', 'emoji_sentiment_demo_shortcode');</code></pre>
         
@@ -55,8 +59,9 @@ add_shortcode('emoji_sentiment_demo', 'emoji_sentiment_demo_shortcode');</code><
             <li>Share the direct link or embed via iframe</li>
         </ol>
         
-        <h4 style="color: #4F46E5;">Responsive Design</h4>
-        <p>For mobile-responsive embedding, use this CSS:</p>
+        <h4 style="color: #4F46E5;">Centering & Responsive Design</h4>
+        <p><strong>Centering:</strong> The examples above include a wrapper div with <code>text-align: center</code> to center the demo on your page.</p>
+        <p><strong>Mobile-responsive:</strong> For advanced responsive embedding, use this CSS:</p>
         <pre style="background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto;"><code>&lt;style&gt;
 .emoji-demo-container {
     width: 100%;
