@@ -320,7 +320,7 @@ export default function BusinessProfilePage() {
         maxWidthOrHeight: 400, // 400px for web
         useWebWorker: true,
         fileType: 'image/webp',
-        quality: 0.8,
+        initialQuality: 0.8,
       });
       
       console.log("Starting image compression for print version...");
@@ -330,7 +330,7 @@ export default function BusinessProfilePage() {
         maxWidthOrHeight: 1200, // 1200px for print quality
         useWebWorker: true,
         fileType: 'image/webp',
-        quality: 0.95, // Higher quality for print
+        initialQuality: 0.95, // Higher quality for print
       });
       
       console.log("Web version size:", webVersion.size, "Print version size:", printVersion.size);
