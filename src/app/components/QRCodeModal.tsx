@@ -36,13 +36,13 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
   const [starColor, setStarColor] = useState('#FFD700');
   const [mainColor, setMainColor] = useState('#2E4A7D');
   const [showStars, setShowStars] = useState(false);
-  const [showClientLogo, setShowClientLogo] = useState(logoUrl && logoUrl.trim() !== '');
+  const [showClientLogo, setShowClientLogo] = useState(Boolean(logoUrl && logoUrl.trim() !== ''));
   const [starSize, setStarSize] = useState(48);
   const [logoError, setLogoError] = useState(false);
 
   // Update showClientLogo when logoUrl changes
   useEffect(() => {
-    setShowClientLogo(logoUrl && logoUrl.trim() !== '');
+    setShowClientLogo(Boolean(logoUrl && logoUrl.trim() !== ''));
     setLogoError(false); // Reset error when logoUrl changes
   }, [logoUrl]);
 
