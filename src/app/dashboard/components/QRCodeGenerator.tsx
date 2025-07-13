@@ -55,6 +55,7 @@ interface QRCodeGeneratorProps {
   clientLogoUrl?: string;
   showClientLogo?: boolean;
   starSize?: number;
+  circularLogo?: boolean;
 }
 
 // Helper function to draw a star
@@ -81,6 +82,7 @@ export default function QRCodeGenerator({
   clientLogoUrl,
   showClientLogo = false,
   starSize = 20, // Default star size
+  circularLogo = false,
 }: QRCodeGeneratorProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -141,7 +143,29 @@ export default function QRCodeGenerator({
           const clientLogoWidth = clientLogoHeight * clientLogoAspectRatio;
           const clientLogoX = (frameSize.width - clientLogoWidth) / 2;
           
-          ctx.drawImage(clientLogoImg, clientLogoX, y, clientLogoWidth, clientLogoHeight);
+          if (circularLogo) {
+            // Save the current state
+            ctx.save();
+            
+            // Create circular clipping path
+            const radius = clientLogoHeight / 2;
+            const centerX = clientLogoX + clientLogoWidth / 2;
+            const centerY = y + clientLogoHeight / 2;
+            
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.clip();
+            
+            // Draw the image within the circular clip
+            ctx.drawImage(clientLogoImg, clientLogoX, y, clientLogoWidth, clientLogoHeight);
+            
+            // Restore the state to remove the clipping path
+            ctx.restore();
+          } else {
+            // Draw logo normally (rectangular)
+            ctx.drawImage(clientLogoImg, clientLogoX, y, clientLogoWidth, clientLogoHeight);
+          }
+          
           y += clientLogoHeight + 20;
         } catch (error) {
           console.error('Error loading client logo:', error);
@@ -259,7 +283,7 @@ export default function QRCodeGenerator({
   // Generate QR code when component mounts or props change
   useEffect(() => {
     generateQRCode();
-  }, [frameSize, headline, starColor, mainColor, showStars, url, clientLogoUrl, showClientLogo, starSize]);
+  }, [frameSize, headline, starColor, mainColor, showStars, url, clientLogoUrl, showClientLogo, starSize, circularLogo]);
 
   // Expose download function via ref
   useEffect(() => {
