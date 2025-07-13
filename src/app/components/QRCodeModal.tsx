@@ -34,6 +34,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
   const [showStars, setShowStars] = useState(true);
   const [showClientLogo, setShowClientLogo] = useState(false);
   const [starSize, setStarSize] = useState(40);
+  const [circularLogo, setCircularLogo] = useState(false);
   const [qrPreviewUrl, setQrPreviewUrl] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -270,20 +271,35 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
                         <span className="text-sm font-medium text-gray-700">Show Your Logo</span>
                       </label>
                       {showClientLogo && (
-                        <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                          <p className="text-xs text-amber-700">
-                            If your logo appears pixelated or blurry, consider uploading a higher quality logo in{" "}
-                            <a 
-                              href="/dashboard/business-profile" 
-                              className="text-amber-800 underline hover:text-amber-900"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              Your Business
-                            </a>
-                            .
-                          </p>
-                        </div>
+                        <>
+                          <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                            <p className="text-xs text-amber-700">
+                              If your logo appears pixelated or blurry, consider uploading a higher quality logo in{" "}
+                              <a 
+                                href="/dashboard/business-profile" 
+                                className="text-amber-800 underline hover:text-amber-900"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                Your Business
+                              </a>
+                              .
+                            </p>
+                          </div>
+                          
+                          {/* Circular Logo Option */}
+                          <div className="mt-3">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={circularLogo}
+                                onChange={(e) => setCircularLogo(e.target.checked)}
+                                className="w-4 h-4 text-slate-blue border-gray-300 rounded focus:ring-slate-blue"
+                              />
+                              <span className="text-sm font-medium text-gray-700">Display logo in circle</span>
+                            </label>
+                          </div>
+                        </>
                       )}
                     </div>
                   )}
@@ -361,6 +377,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
             clientLogoUrl={logoUrl}
             showClientLogo={showClientLogo}
             starSize={starSize}
+            circularLogo={circularLogo}
           />
         )}
       </div>
