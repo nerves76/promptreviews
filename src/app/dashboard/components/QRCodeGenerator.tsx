@@ -9,6 +9,7 @@
  * - Show/hide stars toggle
  * - Multiple frame sizes with dotted cutout lines for small sizes
  * - High DPI canvas generation for print quality
+ * - Decorative falling stars/icons scattered around the QR code
  * 
  * Usage:
  * - Parent components pass headline, colors, and showStars props
@@ -21,6 +22,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import QRCode from "qrcode";
 import React from "react";
+import { FALLING_STARS_ICONS, getFallingIcon } from "../../components/prompt-modules/fallingStarsConfig";
 
 export const QR_FRAME_SIZES = [
   { label: '4x6" (postcard)', width: 1200, height: 1800 },
@@ -58,6 +60,11 @@ interface QRCodeGeneratorProps {
   circularLogo?: boolean;
   logoSize?: number;
   fontSize?: number;
+  // Decorative icons props
+  showDecorativeIcons?: boolean;
+  decorativeIconType?: string;
+  decorativeIconCount?: number;
+  decorativeIconSize?: number;
 }
 
 // Helper function to draw a star
@@ -69,6 +76,116 @@ function drawStar(ctx: CanvasRenderingContext2D, x: number, y: number, size: num
   ctx.textBaseline = 'middle';
   ctx.fillText('★', x, y);
   ctx.restore();
+}
+
+// Helper function to draw decorative icons using Unicode symbols
+function drawDecorativeIcon(ctx: CanvasRenderingContext2D, iconKey: string, x: number, y: number, size: number, color: string) {
+  ctx.save();
+  ctx.fillStyle = color;
+  ctx.font = `${size}px Arial, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  
+  // Map common icon keys to Unicode symbols
+  const iconMap: { [key: string]: string } = {
+    'star': '★',
+    'heart': '♥',
+    'smile': '😊',
+    'bolt': '⚡',
+    'fire': '🔥',
+    'sun': '☀️',
+    'moon': '🌙',
+    'peace': '☮',
+    'gem': '💎',
+    'trophy': '🏆',
+    'snowflake': '❄️',
+    'gift': '🎁',
+    'coffee': '☕',
+    'utensils': '🍴',
+    'wine-glass': '🍷',
+    'beer': '🍺',
+    'pizza': '🍕',
+    'pepper': '🌶️',
+    'cat': '🐱',
+    'dog': '🐶',
+    'seedling': '🌱',
+    'leaf': '🍃',
+    'tree': '🌳',
+    'wrench': '🔧',
+    'hammer': '🔨',
+    'briefcase': '💼',
+    'key': '🔑',
+    'camera': '📷',
+    'music': '🎵',
+    'anchor': '⚓',
+    'crown': '👑',
+    'magic': '✨',
+    'rocket': '🚀',
+    'plane': '✈️',
+    'car': '🚗',
+    'bicycle': '🚲',
+    'umbrella': '☔',
+    'diamond': '♦',
+    'club': '♣',
+    'spade': '♠',
+    'flower': '🌸',
+    'butterfly': '🦋',
+  };
+  
+  const symbol = iconMap[iconKey] || '★'; // Default to star if not found
+  ctx.fillText(symbol, x, y);
+  ctx.restore();
+}
+
+// Helper function to generate random decorative icon positions
+function generateDecorativeIconPositions(
+  count: number,
+  canvasWidth: number,
+  canvasHeight: number,
+  excludeAreas: { x: number, y: number, width: number, height: number }[]
+): { x: number, y: number }[] {
+  const positions: { x: number, y: number }[] = [];
+  const margin = 50; // Minimum distance from edges
+  const minDistance = 40; // Minimum distance between icons
+  
+  for (let i = 0; i < count; i++) {
+    let attempts = 0;
+    let validPosition = false;
+    
+    while (!validPosition && attempts < 100) {
+      const x = margin + Math.random() * (canvasWidth - 2 * margin);
+      const y = margin + Math.random() * (canvasHeight - 2 * margin);
+      
+      // Check if position conflicts with exclude areas
+      let conflictsWithExcludeArea = false;
+      for (const area of excludeAreas) {
+        if (x >= area.x - margin && x <= area.x + area.width + margin &&
+            y >= area.y - margin && y <= area.y + area.height + margin) {
+          conflictsWithExcludeArea = true;
+          break;
+        }
+      }
+      
+      // Check if position conflicts with other icons
+      let conflictsWithOtherIcons = false;
+      for (const pos of positions) {
+        const distance = Math.sqrt((x - pos.x) ** 2 + (y - pos.y) ** 2);
+        if (distance < minDistance) {
+          conflictsWithOtherIcons = true;
+          break;
+        }
+      }
+      
+      if (!conflictsWithExcludeArea && !conflictsWithOtherIcons) {
+        positions.push({ x, y });
+        validPosition = true;
+      }
+      
+      attempts++;
+    }
+  }
+  
+  return positions;
 }
 
 export default function QRCodeGenerator({
@@ -87,6 +204,11 @@ export default function QRCodeGenerator({
   circularLogo = false,
   logoSize = 60, // Default logo size
   fontSize = 48, // Default font size
+  // Decorative icons
+  showDecorativeIcons = false,
+  decorativeIconType = "star",
+  decorativeIconCount = 8,
+  decorativeIconSize = 24,
 }: QRCodeGeneratorProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -239,6 +361,56 @@ export default function QRCodeGenerator({
       const qrCenterY = (frameSize.height - qrSize) / 2;
       ctx.drawImage(qrImg, qrX, qrCenterY, qrSize, qrSize);
 
+      // Draw decorative icons if enabled
+      if (showDecorativeIcons && decorativeIconCount > 0) {
+        // Define areas to exclude (where we don't want decorative icons)
+        const excludeAreas = [
+          // QR code area
+          { x: qrX - 20, y: qrCenterY - 20, width: qrSize + 40, height: qrSize + 40 },
+          // Headline area (approximate)
+          { x: 0, y: y - headlineFontSize, width: frameSize.width, height: headlineFontSize * lines.length + 60 },
+          // Star area (if stars are shown)
+          ...(showStars ? [{ x: 0, y: y, width: frameSize.width, height: starSize + 40 }] : []),
+          // Client logo area (if shown)
+          ...(showClientLogo && clientLogoUrl ? [{ x: 0, y: padding, width: frameSize.width, height: clientLogoHeight + 40 }] : []),
+          // Bottom logo and text area
+          { x: 0, y: frameSize.height - logoHeight - websiteFontSize - padding - 60, width: frameSize.width, height: logoHeight + websiteFontSize + 60 }
+        ];
+
+        // Generate random positions for decorative icons
+        const iconPositions = generateDecorativeIconPositions(
+          decorativeIconCount,
+          frameSize.width,
+          frameSize.height,
+          excludeAreas
+        );
+
+        // Get the color for the decorative icons (use star color as default)
+        const iconConfig = getFallingIcon(decorativeIconType);
+        const iconColor = iconConfig ? iconConfig.color.replace(/text-([^-]*)-(\d+)/, '#') : starColor;
+        
+        // Convert Tailwind color classes to hex colors (simplified mapping)
+        const colorMap: { [key: string]: string } = {
+          'text-yellow-500': '#EAB308',
+          'text-red-500': '#EF4444',
+          'text-green-500': '#22C55E',
+          'text-blue-500': '#3B82F6',
+          'text-orange-500': '#F97316',
+          'text-purple-500': '#A855F7',
+          'text-pink-500': '#EC4899',
+          'text-amber-500': '#F59E0B',
+          'text-teal-500': '#14B8A6',
+          'text-lime-500': '#84CC16',
+        };
+        
+        const finalIconColor = iconConfig && colorMap[iconConfig.color] ? colorMap[iconConfig.color] : starColor;
+
+        // Draw decorative icons at generated positions
+        iconPositions.forEach(position => {
+          drawDecorativeIcon(ctx, decorativeIconType, position.x, position.y, decorativeIconSize, finalIconColor);
+        });
+      }
+
       // Draw Prompt Reviews logo (smaller, towards bottom)
       const logoImg = new window.Image();
       logoImg.crossOrigin = 'anonymous';
@@ -304,7 +476,7 @@ export default function QRCodeGenerator({
   // Generate QR code when component mounts or props change
   useEffect(() => {
     generateQRCode();
-  }, [frameSize, headline, starColor, mainColor, showStars, url, clientLogoUrl, showClientLogo, starSize, circularLogo, logoSize, fontSize]);
+  }, [frameSize, headline, starColor, mainColor, showStars, url, clientLogoUrl, showClientLogo, starSize, circularLogo, logoSize, fontSize, showDecorativeIcons, decorativeIconType, decorativeIconCount, decorativeIconSize]);
 
   // Expose download function via ref
   useEffect(() => {
