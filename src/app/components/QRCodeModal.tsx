@@ -788,7 +788,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
             mainColor={mainColor}
             showStars={showStars}
             clientLogoUrl={logoUrl && logoUrl.trim() !== '' ? logoUrl : undefined}
-            showClientLogo={showClientLogo && logoUrl && logoUrl.trim() !== ''}
+            showClientLogo={Boolean(showClientLogo && logoUrl && logoUrl.trim() !== '')}
             starSize={starSize}
             circularLogo={circularLogo}
             logoSize={logoSize}
