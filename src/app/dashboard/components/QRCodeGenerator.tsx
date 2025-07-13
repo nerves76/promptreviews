@@ -262,7 +262,7 @@ export default function QRCodeGenerator({
           if (clientLogoUrl.startsWith('blob:')) {
             // Test if blob URL is still valid by trying to create an image
             const testImg = new window.Image();
-            const isValidBlob = await new Promise((resolve) => {
+            const isValidBlob = await new Promise<boolean>((resolve) => {
               testImg.onload = () => resolve(true);
               testImg.onerror = () => resolve(false);
               testImg.src = clientLogoUrl;
@@ -284,7 +284,7 @@ export default function QRCodeGenerator({
               clientLogoImg.src = clientLogoUrl;
               
               await Promise.race([
-                new Promise((resolve, reject) => {
+                new Promise<void>((resolve, reject) => {
                   clientLogoImg.onload = () => {
                     resolve();
                   };
@@ -338,7 +338,7 @@ export default function QRCodeGenerator({
             clientLogoImg.src = clientLogoUrl;
             
             await Promise.race([
-              new Promise((resolve, reject) => {
+              new Promise<void>((resolve, reject) => {
                 clientLogoImg.onload = () => {
                   resolve();
                 };
@@ -444,7 +444,7 @@ export default function QRCodeGenerator({
       // Draw QR code (perfectly centered)
       const qrImg = new window.Image();
       qrImg.src = qrDataUrl;
-      await new Promise((resolve) => {
+      await new Promise<void>((resolve) => {
         qrImg.onload = resolve;
       });
       
@@ -496,7 +496,7 @@ export default function QRCodeGenerator({
       const logoImg = new window.Image();
       logoImg.crossOrigin = 'anonymous';
       logoImg.src = 'https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompt-reviews-get-more-reviews-logo.png';
-      await new Promise((resolve, reject) => {
+      await new Promise<void>((resolve, reject) => {
         logoImg.onload = resolve;
         logoImg.onerror = reject;
       });
