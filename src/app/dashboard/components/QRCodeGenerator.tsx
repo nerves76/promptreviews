@@ -256,7 +256,12 @@ export default function QRCodeGenerator({
       let y = padding;
 
       // Draw client logo if enabled (at the very top)
-      console.log('Logo check:', { showClientLogo, clientLogoUrl, clientLogoUrlType: typeof clientLogoUrl });
+      console.log('Logo check:', { 
+        showClientLogo, 
+        clientLogoUrl, 
+        clientLogoUrlType: typeof clientLogoUrl,
+        clientLogoUrlLength: clientLogoUrl?.length 
+      });
       if (showClientLogo && clientLogoUrl && typeof clientLogoUrl === 'string' && clientLogoUrl.trim() !== '') {
         try {
           const clientLogoImg = new window.Image();
@@ -265,10 +270,21 @@ export default function QRCodeGenerator({
             clientLogoImg.crossOrigin = 'anonymous';
           }
           clientLogoImg.src = clientLogoUrl;
-          await new Promise((resolve, reject) => {
-            clientLogoImg.onload = resolve;
-            clientLogoImg.onerror = reject;
-          });
+          await Promise.race([
+            new Promise((resolve, reject) => {
+              clientLogoImg.onload = () => {
+                console.log('Logo loaded successfully');
+                resolve();
+              };
+              clientLogoImg.onerror = (event) => {
+                console.log('Logo failed to load:', event);
+                reject(new Error(`Failed to load logo from URL: ${clientLogoUrl}`));
+              };
+            }),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Logo loading timeout')), 5000)
+            )
+          ]);
           
           // Calculate client logo dimensions to maintain aspect ratio
           const clientLogoAspectRatio = clientLogoImg.width / clientLogoImg.height;
@@ -305,7 +321,9 @@ export default function QRCodeGenerator({
             message: error instanceof Error ? error.message : String(error),
             logoUrl: clientLogoUrl,
             showClientLogo,
-            errorType: error instanceof Error ? error.constructor.name : typeof error
+            errorType: error instanceof Error ? error.constructor.name : typeof error,
+            isBlob: clientLogoUrl?.startsWith('blob:'),
+            urlValid: !!clientLogoUrl
           });
           // Continue without client logo if it fails to load
         }
