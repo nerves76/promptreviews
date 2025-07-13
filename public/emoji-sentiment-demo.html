@@ -379,19 +379,7 @@
             font-size: 14px;
         }
 
-        .countdown-info {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            background: #4F46E5;
-            color: white;
-            font-size: 12px;
-            font-weight: 600;
-            padding: 4px 8px;
-            border-radius: 12px;
-            min-width: 32px;
-            text-align: center;
-        }
+
 
         .brand-badge {
             position: absolute;
@@ -722,8 +710,6 @@
 <body>
     <div class="demo-container">
         <div class="phone-container">
-            <div class="countdown-info" id="countdown">15</div>
-            
             <div class="phone">
                 <div class="phone-screen">
                     <div class="phone-content">
@@ -748,28 +734,8 @@
     <script>
         let currentStep = 1;
         let isAnimating = false;
-        let countdown = 15;
-        let countdownInterval;
-        let restartTimeout;
 
-        function startCountdown() {
-            countdownInterval = setInterval(() => {
-                countdown--;
-                document.getElementById('countdown').textContent = countdown;
-                
-                if (countdown <= 0) {
-                    clearInterval(countdownInterval);
-                    restartDemo();
-                }
-            }, 1000);
-        }
 
-        function resetCountdown() {
-            clearInterval(countdownInterval);
-            clearTimeout(restartTimeout);
-            countdown = 15;
-            document.getElementById('countdown').textContent = countdown;
-        }
 
         function createStars(container) {
             container.innerHTML = '';
@@ -1062,28 +1028,21 @@
             
             // Reset after 3 seconds
             setTimeout(() => {
-                resetCountdown();
-                startCountdown();
                 showStep1();
             }, 3000);
         }
 
         function restartDemo() {
-            resetCountdown();
             showStep1();
-            startCountdown();
         }
 
         function resetDemo() {
-            resetCountdown();
             showStep1();
-            startCountdown();
         }
 
         // Initialize the demo
         document.addEventListener('DOMContentLoaded', function() {
             showStep1();
-            startCountdown();
             
             // Auto-click satisfied emoji after 3 seconds
             setTimeout(() => {
