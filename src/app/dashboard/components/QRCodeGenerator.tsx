@@ -256,66 +256,132 @@ export default function QRCodeGenerator({
       let y = padding;
 
       // Draw client logo if enabled (at the very top)
-      console.log('Logo check:', { 
-        showClientLogo, 
-        clientLogoUrl, 
-        clientLogoUrlType: typeof clientLogoUrl,
-        clientLogoUrlLength: clientLogoUrl?.length 
-      });
       if (showClientLogo && clientLogoUrl && typeof clientLogoUrl === 'string' && clientLogoUrl.trim() !== '') {
         try {
-          const clientLogoImg = new window.Image();
-          // Only set crossOrigin for external URLs, not for blob URLs
-          if (!clientLogoUrl.startsWith('blob:')) {
-            clientLogoImg.crossOrigin = 'anonymous';
-          }
-          clientLogoImg.src = clientLogoUrl;
-          await Promise.race([
-            new Promise((resolve, reject) => {
-              clientLogoImg.onload = () => {
-                console.log('Logo loaded successfully');
-                resolve();
-              };
-              clientLogoImg.onerror = (event) => {
-                console.log('Logo failed to load:', event);
-                reject(new Error(`Failed to load logo from URL: ${clientLogoUrl}`));
-              };
-            }),
-            new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('Logo loading timeout')), 5000)
-            )
-          ]);
-          
-          // Calculate client logo dimensions to maintain aspect ratio
-          const clientLogoAspectRatio = clientLogoImg.width / clientLogoImg.height;
-          const clientLogoWidth = clientLogoHeight * clientLogoAspectRatio;
-          const clientLogoX = (frameSize.width - clientLogoWidth) / 2;
-          
-          if (circularLogo) {
-            // Save the current state
-            ctx.save();
+          // For blob URLs, check if they're still valid
+          if (clientLogoUrl.startsWith('blob:')) {
+            // Test if blob URL is still valid by trying to create an image
+            const testImg = new window.Image();
+            const isValidBlob = await new Promise((resolve) => {
+              testImg.onload = () => resolve(true);
+              testImg.onerror = () => resolve(false);
+              testImg.src = clientLogoUrl;
+              // Quick timeout for blob validation
+              setTimeout(() => resolve(false), 1000);
+            });
             
-            // Create circular clipping path
-            const radius = clientLogoHeight / 2;
-            const centerX = clientLogoX + clientLogoWidth / 2;
-            const centerY = y + clientLogoHeight / 2;
-            
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-            ctx.clip();
-            
-            // Draw the image within the circular clip
-            ctx.drawImage(clientLogoImg, clientLogoX, y, clientLogoWidth, clientLogoHeight);
-            
-            // Restore the state to remove the clipping path
-            ctx.restore();
+            if (!isValidBlob) {
+              console.log('Blob URL is invalid, skipping logo');
+              // Continue without logo - don't process this logo section
+              // The rest of the QR code generation will continue
+            } else {
+              // Blob is valid, proceed with logo loading
+              const clientLogoImg = new window.Image();
+              // Only set crossOrigin for external URLs, not for blob URLs
+              if (!clientLogoUrl.startsWith('blob:')) {
+                clientLogoImg.crossOrigin = 'anonymous';
+              }
+              clientLogoImg.src = clientLogoUrl;
+              
+              await Promise.race([
+                new Promise((resolve, reject) => {
+                  clientLogoImg.onload = () => {
+                    resolve();
+                  };
+                  clientLogoImg.onerror = (event) => {
+                    reject(new Error(`Failed to load logo from URL: ${clientLogoUrl}`));
+                  };
+                }),
+                new Promise((_, reject) => 
+                  setTimeout(() => reject(new Error('Logo loading timeout')), 5000)
+                )
+              ]);
+              
+              // Calculate client logo dimensions to maintain aspect ratio
+              const clientLogoAspectRatio = clientLogoImg.width / clientLogoImg.height;
+              const clientLogoWidth = clientLogoHeight * clientLogoAspectRatio;
+              const clientLogoX = (frameSize.width - clientLogoWidth) / 2;
+              
+              if (circularLogo) {
+                // Save the current state
+                ctx.save();
+                
+                // Create circular clipping path
+                const radius = clientLogoHeight / 2;
+                const centerX = clientLogoX + clientLogoWidth / 2;
+                const centerY = y + clientLogoHeight / 2;
+                
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+                ctx.clip();
+                
+                // Draw the image within the circular clip
+                ctx.drawImage(clientLogoImg, clientLogoX, y, clientLogoWidth, clientLogoHeight);
+                
+                // Restore the state to remove the clipping path
+                ctx.restore();
+              } else {
+                // Draw logo normally (rectangular)
+                ctx.drawImage(clientLogoImg, clientLogoX, y, clientLogoWidth, clientLogoHeight);
+              }
+              
+              // Adjusted spacing after client logo - smaller for small sizes
+              y += clientLogoHeight + (isSmallSize ? 20 : 40);
+            }
           } else {
-            // Draw logo normally (rectangular)
-            ctx.drawImage(clientLogoImg, clientLogoX, y, clientLogoWidth, clientLogoHeight);
+            // Non-blob URL processing
+            const clientLogoImg = new window.Image();
+            // Only set crossOrigin for external URLs, not for blob URLs
+            if (!clientLogoUrl.startsWith('blob:')) {
+              clientLogoImg.crossOrigin = 'anonymous';
+            }
+            clientLogoImg.src = clientLogoUrl;
+            
+            await Promise.race([
+              new Promise((resolve, reject) => {
+                clientLogoImg.onload = () => {
+                  resolve();
+                };
+                clientLogoImg.onerror = (event) => {
+                  reject(new Error(`Failed to load logo from URL: ${clientLogoUrl}`));
+                };
+              }),
+              new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Logo loading timeout')), 5000)
+              )
+            ]);
+            
+            // Calculate client logo dimensions to maintain aspect ratio
+            const clientLogoAspectRatio = clientLogoImg.width / clientLogoImg.height;
+            const clientLogoWidth = clientLogoHeight * clientLogoAspectRatio;
+            const clientLogoX = (frameSize.width - clientLogoWidth) / 2;
+            
+            if (circularLogo) {
+              // Save the current state
+              ctx.save();
+              
+              // Create circular clipping path
+              const radius = clientLogoHeight / 2;
+              const centerX = clientLogoX + clientLogoWidth / 2;
+              const centerY = y + clientLogoHeight / 2;
+              
+              ctx.beginPath();
+              ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+              ctx.clip();
+              
+              // Draw the image within the circular clip
+              ctx.drawImage(clientLogoImg, clientLogoX, y, clientLogoWidth, clientLogoHeight);
+              
+              // Restore the state to remove the clipping path
+              ctx.restore();
+            } else {
+              // Draw logo normally (rectangular)
+              ctx.drawImage(clientLogoImg, clientLogoX, y, clientLogoWidth, clientLogoHeight);
+            }
+            
+            // Adjusted spacing after client logo - smaller for small sizes
+            y += clientLogoHeight + (isSmallSize ? 20 : 40);
           }
-          
-          // Adjusted spacing after client logo - smaller for small sizes
-          y += clientLogoHeight + (isSmallSize ? 20 : 40);
         } catch (error) {
           console.error('Error loading client logo:', {
             message: error instanceof Error ? error.message : String(error),
