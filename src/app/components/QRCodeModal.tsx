@@ -247,7 +247,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
                 </div>
 
                 {/* Logo Size Control */}
-                {showClientLogo && (
+                {showClientLogo && logoUrl && logoUrl.trim() !== '' && (
                   <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Logo Size: {logoSize}px
@@ -306,18 +306,24 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
                   </div>
 
                   {/* Show Client Logo Toggle */}
-                  {logoUrl && (
-                    <div className="mb-4">
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={showClientLogo}
-                          onChange={(e) => setShowClientLogo(e.target.checked)}
-                          className="w-4 h-4 text-slate-blue border-gray-300 rounded focus:ring-slate-blue"
-                        />
-                        <span className="text-sm font-medium text-gray-700">Show Your Logo</span>
-                      </label>
-                      {showClientLogo && (
+                  <div className="mb-4">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={showClientLogo}
+                        onChange={(e) => setShowClientLogo(e.target.checked)}
+                        className="w-4 h-4 text-slate-blue border-gray-300 rounded focus:ring-slate-blue"
+                        disabled={!logoUrl || logoUrl.trim() === ''}
+                      />
+                      <span className={`text-sm font-medium ${!logoUrl || logoUrl.trim() === '' ? 'text-gray-400' : 'text-gray-700'}`}>
+                        Show Your Logo
+                      </span>
+                    </label>
+                    {!logoUrl || logoUrl.trim() === '' ? (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Upload a logo in Your Business section to use this feature
+                      </p>
+                    ) : showClientLogo && (
                         <>
                           <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                             <p className="text-xs text-amber-700">
@@ -348,12 +354,11 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
                           </div>
                         </>
                       )}
-                    </div>
-                  )}
+                  </div>
                 </div>
 
                 {/* Logo Size Control */}
-                {showClientLogo && (
+                {showClientLogo && logoUrl && logoUrl.trim() !== '' && (
                   <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Logo Size: {logoSize}px

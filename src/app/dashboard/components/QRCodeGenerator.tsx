@@ -132,7 +132,7 @@ export default function QRCodeGenerator({
       let y = padding;
 
       // Draw client logo if enabled (at the very top)
-      if (showClientLogo && clientLogoUrl) {
+      if (showClientLogo && clientLogoUrl && clientLogoUrl.trim() !== '') {
         try {
           const clientLogoImg = new window.Image();
           clientLogoImg.crossOrigin = 'anonymous';
