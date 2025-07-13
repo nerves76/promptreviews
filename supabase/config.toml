@@ -177,17 +177,16 @@ otp_length = 6
 otp_expiry = 86400
 
 # Use Resend SMTP server for auth emails
-# This is controlled by environment variables - see .env files
-# LOCAL: Uses inbucket (email testing server) when RESEND_SMTP_PASSWORD is not set
-# PRODUCTION: Uses Resend SMTP when RESEND_SMTP_PASSWORD is set
-[auth.email.smtp]
-enabled = true
-host = "smtp.resend.com"
-port = 587
-user = "resend"
-pass = "env(RESEND_SMTP_PASSWORD)"
-admin_email = "noreply@updates.promptreviews.app"
-sender_name = "Prompt Reviews"
+# SMTP is disabled for local development - emails will use inbucket
+# For production, this section should be enabled with proper credentials
+# [auth.email.smtp]
+# enabled = true
+# host = "smtp.resend.com"
+# port = 587
+# user = "resend"
+# pass = "env(RESEND_SMTP_PASSWORD)"
+# admin_email = "noreply@updates.promptreviews.app"
+# sender_name = "Prompt Reviews"
 
 # Uncomment to customize email template
 [auth.email.template.confirm]

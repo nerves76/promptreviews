@@ -9,79 +9,104 @@ This project uses different email configurations for local development and produ
 
 ## How It Works
 
-The system automatically detects which email service to use based on environment variables:
+The system uses different configuration approaches for local vs production:
 
-1. **If `RESEND_SMTP_PASSWORD` is set**: Uses Resend SMTP for production email sending
-2. **If `RESEND_SMTP_PASSWORD` is NOT set**: Falls back to Inbucket for local email testing
+### Local Development
+- **SMTP Configuration**: Disabled in `supabase/config.toml`
+- **Email Service**: Automatically falls back to Inbucket for local email testing
+- **No API Keys Required**: No need for `RESEND_SMTP_PASSWORD`
 
-## Environment Files
+### Production
+- **SMTP Configuration**: Enabled in production config
+- **Email Service**: Uses Resend SMTP when `RESEND_SMTP_PASSWORD` is set
+- **API Key Required**: Production environment must have `RESEND_SMTP_PASSWORD`
 
-### `.env.local` (Local Development)
-- **Purpose**: Local development configuration
-- **Email Service**: Inbucket (local email testing server)
-- **Should NOT contain**: `RESEND_SMTP_PASSWORD`
+## Configuration Files
 
-### `.env.local.production` (Production Backup)
-- **Purpose**: Production configuration backup
-- **Email Service**: Resend SMTP
-- **Should contain**: `RESEND_SMTP_PASSWORD=your_resend_api_key`
+### Local Development Configuration
 
-## Setup Instructions
-
-### For Local Development
-1. Ensure `.env.local` does **NOT** contain `RESEND_SMTP_PASSWORD`
-2. Start Supabase: `supabase start`
-3. Start Next.js: `npm run dev`
-4. View emails at: http://127.0.0.1:54324
-
-### For Production Deployment
-1. Copy production config: `cp .env.local.production .env.local`
-2. Deploy to production
-3. Restore local config: `git checkout .env.local` (or recreate without RESEND_SMTP_PASSWORD)
-
-## Testing Email Locally
-
-1. **Go to signup page**: http://localhost:3002/auth/sign-up
-2. **Create account** with any email (e.g., `test@example.com`)
-3. **Check Inbucket**: http://127.0.0.1:54324
-4. **Click confirmation link** in the email
-5. **Complete signup process**
-
-## Troubleshooting
-
-### Problem: Welcome emails not showing in Inbucket
-- **Solution**: Ensure `RESEND_SMTP_PASSWORD` is not in `.env.local`
-- **Check**: `grep RESEND_SMTP_PASSWORD .env.local` should return nothing
-
-### Problem: Production emails not sending
-- **Solution**: Ensure `RESEND_SMTP_PASSWORD` is set in production environment
-- **Check**: Verify Resend API key is valid
-
-## Git Management
-
-The `.env.local` file should be configured for local development by default. The production configuration is stored in `.env.local.production` for reference.
-
-### .gitignore
-```
-.env.local
-.env.local.production
+In `supabase/config.toml`, SMTP is commented out:
+```toml
+# SMTP is disabled for local development - emails will use inbucket
+# [auth.email.smtp]
+# enabled = true
+# host = "smtp.resend.com"
+# port = 587
+# user = "resend"
+# pass = "env(RESEND_SMTP_PASSWORD)"
+# admin_email = "noreply@updates.promptreviews.app"
+# sender_name = "Prompt Reviews"
 ```
 
-This ensures sensitive production credentials are not committed to the repository.
+### Production Configuration
 
-## Automatic Fallback
-
-The Supabase configuration in `config.toml` is set up to automatically handle this:
-
+For production, uncomment and enable the SMTP section:
 ```toml
 [auth.email.smtp]
 enabled = true
 host = "smtp.resend.com"
 port = 587
 user = "resend"
-pass = "env(RESEND_SMTP_PASSWORD)"  # When not set, falls back to inbucket
+pass = "env(RESEND_SMTP_PASSWORD)"
 admin_email = "noreply@updates.promptreviews.app"
 sender_name = "Prompt Reviews"
 ```
 
-When `RESEND_SMTP_PASSWORD` is not available, Supabase automatically uses the local Inbucket server instead. 
+## Environment Files
+
+### `.env.local` (Local Development)
+- **Purpose**: Local development configuration
+- **Email Service**: Inbucket (local email testing server)
+- **Required**: No `RESEND_SMTP_PASSWORD` needed
+
+### `.env.local.production` (Production Backup)
+- **Purpose**: Backup of production settings
+- **Email Service**: Resend SMTP
+- **Required**: Contains `RESEND_SMTP_PASSWORD=your_resend_api_key`
+
+## Testing Email Locally
+
+1. **Start Supabase**: `supabase start`
+2. **Access Inbucket**: http://127.0.0.1:54324
+3. **Test Signup**: Create an account at http://localhost:3002/auth/sign-up
+4. **Check Email**: Confirmation email appears in Inbucket
+
+## Deployment Safety
+
+### For Local Development
+- Keep SMTP disabled in `supabase/config.toml`
+- No `RESEND_SMTP_PASSWORD` in `.env.local`
+- Emails automatically use Inbucket
+
+### For Production Deployment
+- Enable SMTP in production config
+- Set `RESEND_SMTP_PASSWORD` in production environment
+- Emails sent via Resend service
+
+## Troubleshooting
+
+### "Error sending confirmation email"
+- **Cause**: SMTP enabled but no API key
+- **Solution**: Disable SMTP in `supabase/config.toml` for local development
+
+### Emails not appearing in Inbucket
+- **Check**: Supabase services running (`supabase status`)
+- **Check**: Inbucket accessible at http://127.0.0.1:54324
+- **Check**: SMTP disabled in config file
+
+### Production emails not sending
+- **Check**: SMTP enabled in production config
+- **Check**: `RESEND_SMTP_PASSWORD` set in production environment
+- **Check**: Resend API key is valid
+
+## Configuration History
+
+- **Initial**: Manual environment variable switching (error-prone)
+- **Improved**: Automatic environment detection (still had issues)
+- **Final**: Separate config files for local vs production (current solution)
+
+This approach ensures:
+- ✅ No manual configuration switching required
+- ✅ No risk of deploying wrong configuration
+- ✅ Clear separation between local and production setups
+- ✅ Easy testing and development workflow 
