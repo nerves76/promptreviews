@@ -192,8 +192,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
                       <p className="font-medium text-amber-800 mb-1">Limited space at this size</p>
                       <p className="text-amber-700">
                         {selectedFrameSize.label.includes('business card') ? (
-                          <>For business cards, we recommend: <strong>headline + QR code only</strong>. 
-                          Logo and stars may make the design too crowded. Consider using larger sizes for full branding.</>
+                          <>For business cards, enabling logo and stars may make the design too crowded. Consider using larger sizes for full branding.</>
                         ) : (
                           <>This small format works best with <strong>simple layouts</strong>. 
                           Consider reducing logo/star sizes or using headline + QR code only.</>
