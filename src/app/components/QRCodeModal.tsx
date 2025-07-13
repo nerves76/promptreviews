@@ -38,10 +38,25 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
   const [showStars, setShowStars] = useState(false);
   const [showClientLogo, setShowClientLogo] = useState(logoUrl && logoUrl.trim() !== '');
   const [starSize, setStarSize] = useState(48);
+  const [logoError, setLogoError] = useState(false);
 
   // Update showClientLogo when logoUrl changes
   useEffect(() => {
     setShowClientLogo(logoUrl && logoUrl.trim() !== '');
+    setLogoError(false); // Reset error when logoUrl changes
+  }, [logoUrl]);
+
+  // Check if blob URL is valid
+  useEffect(() => {
+    if (logoUrl && logoUrl.startsWith('blob:')) {
+      const testImg = new window.Image();
+      testImg.onload = () => setLogoError(false);
+      testImg.onerror = () => {
+        setLogoError(true);
+        setShowClientLogo(false); // Disable logo when invalid
+      };
+      testImg.src = logoUrl;
+    }
   }, [logoUrl]);
   const [circularLogo, setCircularLogo] = useState(true);
   const [logoSize, setLogoSize] = useState(200);
@@ -385,18 +400,21 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
                         checked={showClientLogo}
                         onChange={(e) => setShowClientLogo(e.target.checked)}
                         className="mr-2"
-                        disabled={!logoUrl || logoUrl.trim() === ''}
+                        disabled={!logoUrl || logoUrl.trim() === '' || logoError}
                       />
-                      <span className={`text-sm font-medium ${!logoUrl || logoUrl.trim() === '' ? 'text-gray-400' : 'text-gray-700'}`}>
+                      <span className={`text-sm font-medium ${!logoUrl || logoUrl.trim() === '' || logoError ? 'text-gray-400' : 'text-gray-700'}`}>
                         Show your logo
                       </span>
                     </label>
-                    {(!logoUrl || logoUrl.trim() === '') && (
+                    {(!logoUrl || logoUrl.trim() === '' || logoError) && (
                       <p className="text-xs text-gray-500 mt-1">
-                        You must upload your logo for this feature in{" "}
+                        {logoError 
+                          ? "Your logo file is invalid. Please upload a new logo in "
+                          : "You must upload your logo for this feature in "
+                        }
                         <a 
                           href="/dashboard/business-profile" 
-                          className="text-slate-blue underline hover:text-slate-blue/80"
+                          className="text-blue-600 underline hover:text-blue-800"
                           target="_blank"
                           rel="noopener noreferrer"
                         >
