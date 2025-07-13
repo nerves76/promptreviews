@@ -445,7 +445,7 @@ export default function QRCodeGenerator({
       const qrImg = new window.Image();
       qrImg.src = qrDataUrl;
       await new Promise<void>((resolve) => {
-        qrImg.onload = resolve;
+        qrImg.onload = () => resolve();
       });
       
       // Ensure QR code is always perfectly centered
@@ -497,8 +497,8 @@ export default function QRCodeGenerator({
       logoImg.crossOrigin = 'anonymous';
       logoImg.src = 'https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompt-reviews-get-more-reviews-logo.png';
       await new Promise<void>((resolve, reject) => {
-        logoImg.onload = resolve;
-        logoImg.onerror = reject;
+        logoImg.onload = () => resolve();
+        logoImg.onerror = () => reject(new Error('Failed to load Prompt Reviews logo'));
       });
       
       // Use pre-calculated logo dimensions
