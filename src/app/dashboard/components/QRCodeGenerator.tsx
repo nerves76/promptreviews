@@ -54,6 +54,7 @@ interface QRCodeGeneratorProps {
   showStars?: boolean;
   clientLogoUrl?: string;
   showClientLogo?: boolean;
+  starSize?: number;
 }
 
 // Helper function to draw a star
@@ -79,6 +80,7 @@ export default function QRCodeGenerator({
   showStars = true,
   clientLogoUrl,
   showClientLogo = false,
+  starSize = 20, // Default star size
 }: QRCodeGeneratorProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -115,7 +117,6 @@ export default function QRCodeGenerator({
       const logoHeight = Math.floor(frameSize.height * 0.06); // Reduced from 0.10 to make smaller
       const websiteFontSize = 20; // Slightly bigger than 16px (about 15pt)
       const headlineFontSize = Math.floor(frameSize.height * 0.065);
-      const starSize = Math.floor(frameSize.height * 0.055);
       const starSpacing = Math.floor(starSize * 0.7);
       const clientLogoHeight = Math.floor(frameSize.height * 0.08); // Client logo height
       const qrSize = Math.min(frameSize.width, frameSize.height) * 0.38;
@@ -124,17 +125,7 @@ export default function QRCodeGenerator({
       // Start layout from top
       let y = padding;
 
-      // Draw stars if enabled (at the very top)
-      if (showStars) {
-        const totalStarWidth = 5 * starSize + 4 * starSpacing;
-        const starStartX = (frameSize.width - totalStarWidth) / 2 + starSize / 2;
-        for (let i = 0; i < 5; i++) {
-          drawStar(ctx, starStartX + i * (starSize + starSpacing), y + starSize / 2, starSize, starColor);
-        }
-        y += starSize + 20;
-      }
-
-      // Draw client logo if enabled (after stars)
+      // Draw client logo if enabled (at the very top)
       if (showClientLogo && clientLogoUrl) {
         try {
           const clientLogoImg = new window.Image();
@@ -156,6 +147,16 @@ export default function QRCodeGenerator({
           console.error('Error loading client logo:', error);
           // Continue without client logo if it fails to load
         }
+      }
+
+      // Draw stars if enabled (after logo)
+      if (showStars) {
+        const totalStarWidth = 5 * starSize + 4 * starSpacing;
+        const starStartX = (frameSize.width - totalStarWidth) / 2 + starSize / 2;
+        for (let i = 0; i < 5; i++) {
+          drawStar(ctx, starStartX + i * (starSize + starSpacing), y + starSize / 2, starSize, starColor);
+        }
+        y += starSize + 20;
       }
 
       // Calculate center area for QR and headline
@@ -258,7 +259,7 @@ export default function QRCodeGenerator({
   // Generate QR code when component mounts or props change
   useEffect(() => {
     generateQRCode();
-  }, [frameSize, headline, starColor, mainColor, showStars, url, clientLogoUrl, showClientLogo]);
+  }, [frameSize, headline, starColor, mainColor, showStars, url, clientLogoUrl, showClientLogo, starSize]);
 
   // Expose download function via ref
   useEffect(() => {
