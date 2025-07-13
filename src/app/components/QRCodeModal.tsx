@@ -33,6 +33,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
   const [mainColor, setMainColor] = useState('#2E4A7D');
   const [showStars, setShowStars] = useState(true);
   const [showClientLogo, setShowClientLogo] = useState(false);
+  const [starSize, setStarSize] = useState(40);
   const [qrPreviewUrl, setQrPreviewUrl] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -220,6 +221,27 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
                   </div>
                 </div>
 
+                {/* Star Size Control */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Star Size: {starSize}px
+                  </label>
+                  <input
+                    type="range"
+                    min="20"
+                    max="80"
+                    step="5"
+                    value={starSize}
+                    onChange={(e) => setStarSize(Number(e.target.value))}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                  />
+                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>20px</span>
+                    <span>50px</span>
+                    <span>80px</span>
+                  </div>
+                </div>
+
                 {/* Toggle Controls */}
                 <div className="mb-4 space-y-3">
                   {/* Show Stars Toggle */}
@@ -338,6 +360,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
             showStars={showStars}
             clientLogoUrl={logoUrl}
             showClientLogo={showClientLogo}
+            starSize={starSize}
           />
         )}
       </div>
