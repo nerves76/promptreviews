@@ -259,7 +259,10 @@ export default function QRCodeGenerator({
       if (showClientLogo && clientLogoUrl && typeof clientLogoUrl === 'string' && clientLogoUrl.trim() !== '') {
         try {
           const clientLogoImg = new window.Image();
-          clientLogoImg.crossOrigin = 'anonymous';
+          // Only set crossOrigin for external URLs, not for blob URLs
+          if (!clientLogoUrl.startsWith('blob:')) {
+            clientLogoImg.crossOrigin = 'anonymous';
+          }
           clientLogoImg.src = clientLogoUrl;
           await new Promise((resolve, reject) => {
             clientLogoImg.onload = resolve;
@@ -298,8 +301,6 @@ export default function QRCodeGenerator({
           y += clientLogoHeight + (isSmallSize ? 20 : 40);
         } catch (error) {
           console.error('Error loading client logo:', error);
-          console.error('Client logo URL:', clientLogoUrl);
-          console.error('Show client logo:', showClientLogo);
           // Continue without client logo if it fails to load
         }
       }
