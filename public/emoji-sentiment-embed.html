@@ -732,36 +732,8 @@
     <script>
         let currentStep = 1;
         let isAnimating = false;
-        let countdown = 15;
-        let countdownInterval;
-        let restartTimeout;
 
-        function startCountdown() {
-            countdownInterval = setInterval(() => {
-                countdown--;
-                // Check if countdown element exists (it doesn't in embed version)
-                const countdownElement = document.getElementById('countdown');
-                if (countdownElement) {
-                    countdownElement.textContent = countdown;
-                }
-                
-                if (countdown <= 0) {
-                    clearInterval(countdownInterval);
-                    restartDemo();
-                }
-            }, 1000);
-        }
 
-        function resetCountdown() {
-            clearInterval(countdownInterval);
-            clearTimeout(restartTimeout);
-            countdown = 15;
-            // Check if countdown element exists (it doesn't in embed version)
-            const countdownElement = document.getElementById('countdown');
-            if (countdownElement) {
-                countdownElement.textContent = countdown;
-            }
-        }
 
         function createStars(container) {
             container.innerHTML = '';
@@ -1059,21 +1031,16 @@
         }
 
         function resetDemo() {
-            resetCountdown();
             showStep1();
-            startCountdown();
         }
 
         function restartDemo() {
-            resetCountdown();
             showStep1();
-            startCountdown();
         }
 
         // Initialize the demo
         document.addEventListener('DOMContentLoaded', function() {
             showStep1();
-            startCountdown();
         });
     </script>
 </body>
