@@ -16,6 +16,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import QRCodeGenerator, { QR_FRAME_SIZES } from '../dashboard/components/QRCodeGenerator';
+import { FALLING_STARS_ICONS } from './prompt-modules/fallingStarsConfig';
 
 interface QRCodeModalProps {
   isOpen: boolean;
@@ -41,6 +42,11 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [showBrandingPopup, setShowBrandingPopup] = useState(false);
+  // Decorative icons state
+  const [showDecorativeIcons, setShowDecorativeIcons] = useState(false);
+  const [decorativeIconType, setDecorativeIconType] = useState('star');
+  const [decorativeIconCount, setDecorativeIconCount] = useState(8);
+  const [decorativeIconSize, setDecorativeIconSize] = useState(24);
   const qrGeneratorRef = useRef<HTMLCanvasElement>(null);
 
   const maxChars = 50;
@@ -286,6 +292,77 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
                   </div>
                 </div>
 
+                {/* Decorative Icons Controls */}
+                {showDecorativeIcons && (
+                  <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <h4 className="text-sm font-medium text-gray-700 mb-3">Decorative Design Elements</h4>
+                    
+                    {/* Icon Type Selection */}
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Design Element Type
+                      </label>
+                      <select
+                        value={decorativeIconType}
+                        onChange={(e) => setDecorativeIconType(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-slate-blue focus:border-slate-blue"
+                      >
+                        {FALLING_STARS_ICONS.map((icon) => (
+                          <option key={icon.key} value={icon.key}>
+                            {icon.label} ({icon.category})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Icon Count Control */}
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Number of Elements: {decorativeIconCount}
+                      </label>
+                      <input
+                        type="range"
+                        min="3"
+                        max="20"
+                        step="1"
+                        value={decorativeIconCount}
+                        onChange={(e) => setDecorativeIconCount(Number(e.target.value))}
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                      />
+                      <div className="flex justify-between text-xs text-gray-500 mt-1">
+                        <span>3</span>
+                        <span>12</span>
+                        <span>20</span>
+                      </div>
+                    </div>
+
+                    {/* Icon Size Control */}
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Element Size: {decorativeIconSize}px
+                      </label>
+                      <input
+                        type="range"
+                        min="16"
+                        max="48"
+                        step="2"
+                        value={decorativeIconSize}
+                        onChange={(e) => setDecorativeIconSize(Number(e.target.value))}
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                      />
+                      <div className="flex justify-between text-xs text-gray-500 mt-1">
+                        <span>16px</span>
+                        <span>32px</span>
+                        <span>48px</span>
+                      </div>
+                    </div>
+                    
+                    <p className="text-xs text-blue-700">
+                      Design elements will be randomly scattered around your QR code to make it more visually appealing.
+                    </p>
+                  </div>
+                )}
+
                 {/* Logo Size Control */}
                 {showClientLogo && logoUrl && logoUrl.trim() !== '' && (
                   <div className="mb-4">
@@ -342,6 +419,19 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
                         className="mr-2"
                       />
                       <span className="text-sm font-medium text-gray-700">Show Stars</span>
+                    </label>
+                  </div>
+
+                  {/* Show Decorative Icons Toggle */}
+                  <div>
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={showDecorativeIcons}
+                        onChange={(e) => setShowDecorativeIcons(e.target.checked)}
+                        className="mr-2"
+                      />
+                      <span className="text-sm font-medium text-gray-700">Show Decorative Design Elements</span>
                     </label>
                   </div>
 
@@ -537,6 +627,10 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
             circularLogo={circularLogo}
             logoSize={logoSize}
             fontSize={fontSize}
+            showDecorativeIcons={showDecorativeIcons}
+            decorativeIconType={decorativeIconType}
+            decorativeIconCount={decorativeIconCount}
+            decorativeIconSize={decorativeIconSize}
           />
         )}
       </div>
