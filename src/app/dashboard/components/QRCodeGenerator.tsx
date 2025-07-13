@@ -256,6 +256,7 @@ export default function QRCodeGenerator({
       let y = padding;
 
       // Draw client logo if enabled (at the very top)
+      console.log('Logo check:', { showClientLogo, clientLogoUrl, clientLogoUrlType: typeof clientLogoUrl });
       if (showClientLogo && clientLogoUrl && typeof clientLogoUrl === 'string' && clientLogoUrl.trim() !== '') {
         try {
           const clientLogoImg = new window.Image();
@@ -300,7 +301,12 @@ export default function QRCodeGenerator({
           // Adjusted spacing after client logo - smaller for small sizes
           y += clientLogoHeight + (isSmallSize ? 20 : 40);
         } catch (error) {
-          console.error('Error loading client logo:', error);
+          console.error('Error loading client logo:', {
+            message: error instanceof Error ? error.message : String(error),
+            logoUrl: clientLogoUrl,
+            showClientLogo,
+            errorType: error instanceof Error ? error.constructor.name : typeof error
+          });
           // Continue without client logo if it fails to load
         }
       }
