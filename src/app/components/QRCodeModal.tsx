@@ -14,7 +14,7 @@
  * - Responsive design with edge-to-edge marketing image
  */
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import QRCodeGenerator, { QR_FRAME_SIZES } from '../dashboard/components/QRCodeGenerator';
 
 interface QRCodeModalProps {
@@ -45,6 +45,20 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
 
   const maxChars = 50;
   const maxLines = 2;
+
+  // Handle body scroll lock when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    // Cleanup function to restore scroll when component unmounts
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
 
   const handleHeadlineChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     let value = e.target.value.replace(/\r/g, "");
@@ -118,8 +132,8 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-      <div className="bg-white shadow-lg p-0 max-w-4xl w-full relative flex flex-col md:flex-row gap-8 text-left rounded-xl mx-2 md:mx-0">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4">
+      <div className="bg-white shadow-lg p-0 max-w-4xl w-full relative flex flex-col md:flex-row gap-8 text-left rounded-xl max-h-[90vh] overflow-y-auto">
         {/* Standardized circular close button */}
         <button
           className="absolute -top-3 -right-3 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-20"
@@ -133,7 +147,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
         </button>
         
         {/* Left side: Controls */}
-        <div className="flex-1 space-y-4 py-6 px-8">
+        <div className="flex-1 space-y-4 py-6 px-8 min-h-0">
           <div>
             {/* Marketing Copy - Show when preview is not generated */}
             {!showPreview && (
@@ -259,7 +273,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
                   <input
                     type="range"
                     min="20"
-                    max="80"
+                    max="150"
                     step="5"
                     value={starSize}
                     onChange={(e) => setStarSize(Number(e.target.value))}
@@ -267,8 +281,8 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
                   />
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
                     <span>20px</span>
-                    <span>50px</span>
-                    <span>80px</span>
+                    <span>85px</span>
+                    <span>150px</span>
                   </div>
                 </div>
 
@@ -281,7 +295,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
                     <input
                       type="range"
                       min="30"
-                      max="120"
+                      max="200"
                       step="5"
                       value={logoSize}
                       onChange={(e) => setLogoSize(Number(e.target.value))}
@@ -289,8 +303,8 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
                     />
                     <div className="flex justify-between text-xs text-gray-500 mt-1">
                       <span>30px</span>
-                      <span>75px</span>
-                      <span>120px</span>
+                      <span>115px</span>
+                      <span>200px</span>
                     </div>
                   </div>
                 )}
@@ -303,7 +317,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
                   <input
                     type="range"
                     min="24"
-                    max="96"
+                    max="200"
                     step="4"
                     value={fontSize}
                     onChange={(e) => setFontSize(Number(e.target.value))}
@@ -311,8 +325,8 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
                   />
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
                     <span>24px</span>
-                    <span>60px</span>
-                    <span>96px</span>
+                    <span>112px</span>
+                    <span>200px</span>
                   </div>
                 </div>
 
@@ -392,7 +406,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
                     <input
                       type="range"
                       min="30"
-                      max="120"
+                      max="200"
                       step="5"
                       value={logoSize}
                       onChange={(e) => setLogoSize(Number(e.target.value))}
@@ -400,8 +414,8 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
                     />
                     <div className="flex justify-between text-xs text-gray-500 mt-1">
                       <span>30px</span>
-                      <span>75px</span>
-                      <span>120px</span>
+                      <span>115px</span>
+                      <span>200px</span>
                     </div>
                   </div>
                 )}
@@ -414,7 +428,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
                   <input
                     type="range"
                     min="24"
-                    max="96"
+                    max="200"
                     step="4"
                     value={fontSize}
                     onChange={(e) => setFontSize(Number(e.target.value))}
@@ -422,8 +436,8 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
                   />
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
                     <span>24px</span>
-                    <span>60px</span>
-                    <span>96px</span>
+                    <span>112px</span>
+                    <span>200px</span>
                   </div>
                 </div>
 
@@ -451,7 +465,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
         </div>
 
         {/* Right side: Preview */}
-        <div className="flex-1 bg-blue-50 p-8 rounded-r-xl">
+        <div className="flex-1 bg-blue-50 p-8 rounded-r-xl min-h-0">
           {showPreview ? (
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-900">Preview</h3>
