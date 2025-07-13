@@ -188,7 +188,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
             disabled={isDownloading}
             className="absolute top-4 right-8 bg-slate-blue text-white px-4 py-2 rounded-md hover:bg-slate-blue/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium z-20"
           >
-            {isDownloading ? 'Downloading...' : 'Download QR code'}
+            {isDownloading ? 'Downloading...' : 'Download PDF'}
           </button>
         )}
         
@@ -615,7 +615,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
               disabled={isGenerating || isDownloading}
               className="w-full bg-slate-blue text-white py-2 px-4 rounded-md hover:bg-slate-blue/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {!showPreview ? 'Generate QR code' : (isDownloading ? 'Downloading...' : 'Download QR code')}
+              {!showPreview ? 'Generate QR code' : (isDownloading ? 'Downloading...' : 'Download PDF')}
             </button>
           </div>
         </div>
@@ -646,14 +646,25 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
             </div>
           )}
           
-          {/* Branding Removal Link - Left side of right column */}
-          <div className="absolute bottom-4 left-8">
+                    {/* Bottom buttons - both on same line */}
+          <div className="absolute bottom-4 left-8 right-8 flex justify-between items-center">
             <button
               onClick={() => setShowBrandingPopup(true)}
               className="text-blue-600 hover:text-blue-800 text-xs underline"
             >
-              Remove Prompt Reviews branding?
+              Remove Prompt Reviews logo?
             </button>
+            
+            {/* Download button - only show when preview is available */}
+            {showPreview && (
+              <button
+                onClick={handleDownloadClick}
+                disabled={isDownloading}
+                className="bg-slate-blue text-white px-4 py-2 rounded-md hover:bg-slate-blue/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+              >
+                {isDownloading ? 'Downloading...' : 'Download PDF'}
+              </button>
+            )}
           </div>
         </div>
 
@@ -673,7 +684,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
                 </svg>
               </button>
               
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Remove Prompt Reviews branding?</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Remove Prompt Reviews logo?</h3>
               <div className="text-gray-700 mb-4">
                 <p className="mb-3">
                   You most certainly can. Just open up your downloaded PDF in any design program and remove the Prompt Reviews logo, BUT you also might not want to.
@@ -801,16 +812,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
           />
         )}
 
-        {/* Bottom Right Download Button - Only show when preview is available */}
-        {showPreview && (
-          <button
-            onClick={handleDownloadClick}
-            disabled={isDownloading}
-            className="absolute bottom-12 right-8 bg-slate-blue text-white px-4 py-2 rounded-md hover:bg-slate-blue/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium z-20"
-          >
-            {isDownloading ? 'Downloading...' : 'Download QR code'}
-          </button>
-        )}
+
         </div>
       </div>
     </div>
