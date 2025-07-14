@@ -99,7 +99,6 @@ export default function BusinessGuard({ children }: BusinessGuardProps) {
 
     // If authenticated user doesn't have a business, redirect to create-business
     if (!hasBusiness) {
-      console.log("🔄 BusinessGuard: User authenticated but no business found, redirecting to create-business");
       router.push("/dashboard/create-business");
       return;
     }

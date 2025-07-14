@@ -38,16 +38,13 @@ export async function authenticateApiRequest(request: NextRequest): Promise<Auth
       const { data: { user }, error } = await supabase.auth.getUser(token);
       
       if (error) {
-        console.log('API Auth: Bearer token invalid:', error.message);
         return { user: null, supabase, error: 'Invalid token' };
       }
       
       if (!user) {
-        console.log('API Auth: No user found for Bearer token');
         return { user: null, supabase, error: 'User not found' };
       }
       
-      console.log('API Auth: Bearer token authentication successful:', { userId: user.id, email: user.email });
       return { user, supabase, error: null };
     }
 
@@ -55,16 +52,13 @@ export async function authenticateApiRequest(request: NextRequest): Promise<Auth
     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
     
     if (sessionError) {
-      console.log('API Auth: Session error:', sessionError.message);
       return { user: null, supabase, error: 'Session error' };
     }
     
     if (!session?.user) {
-      console.log('API Auth: No valid session found');
       return { user: null, supabase, error: 'No valid session' };
     }
     
-    console.log('API Auth: Session authentication successful:', { userId: session.user.id, email: session.user.email });
     return { user: session.user, supabase, error: null };
 
   } catch (error) {

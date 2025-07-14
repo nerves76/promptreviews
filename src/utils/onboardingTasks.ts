@@ -29,11 +29,10 @@ export interface TaskCompletionStatus {
  */
 export async function fetchOnboardingTasks(userId: string): Promise<TaskCompletionStatus> {
   try {
-    const accountId = await getAccountIdForUser(userId, supabase);
-    if (!accountId) {
-      console.log('No account found for user, returning empty task status');
-      return {};
-    }
+      const accountId = await getAccountIdForUser(userId, supabase);
+  if (!accountId) {
+    return {};
+  }
 
     const { data, error } = await supabase
       .from('onboarding_tasks')
@@ -85,7 +84,6 @@ export async function markTaskAsCompleted(userId: string, taskId: string): Promi
       return false;
     }
 
-    console.log(`Task ${taskId} marked as completed for user ${userId}`);
     return true;
   } catch (error) {
     console.error('Error in markTaskAsCompleted:', error);
@@ -120,7 +118,6 @@ export async function markTaskAsIncomplete(userId: string, taskId: string): Prom
       return false;
     }
 
-    console.log(`Task ${taskId} marked as incomplete for user ${userId}`);
     return true;
   } catch (error) {
     console.error('Error in markTaskAsIncomplete:', error);
@@ -193,7 +190,6 @@ export async function initializeDefaultTasks(userId: string): Promise<boolean> {
       return false;
     }
 
-    console.log(`Initialized ${defaultTasks.length} default tasks for user ${userId}`);
     return true;
   } catch (error) {
     console.error('Error in initializeDefaultTasks:', error);
