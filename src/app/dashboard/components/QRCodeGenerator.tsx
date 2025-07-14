@@ -79,64 +79,261 @@ function drawStar(ctx: CanvasRenderingContext2D, x: number, y: number, size: num
   ctx.restore();
 }
 
-// Helper function to draw decorative icons using Unicode symbols
-function drawDecorativeIcon(ctx: CanvasRenderingContext2D, iconKey: string, x: number, y: number, size: number, color: string) {
-  ctx.save();
+// Helper functions for drawing simple flat icons that match FontAwesome aesthetic
+function drawSimpleStar(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
+  ctx.beginPath();
   ctx.fillStyle = color;
-  ctx.font = `${size}px Arial, sans-serif`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
+  const points = 5;
+  const outerRadius = radius * 0.8;
+  const innerRadius = radius * 0.35;
   
-  // Map common icon keys to Unicode symbols
-  const iconMap: { [key: string]: string } = {
-    'star': '★',
-    'heart': '♥',
-    'smile': '😊',
-    'bolt': '⚡',
-    'fire': '🔥',
-    'sun': '☀️',
-    'moon': '🌙',
-    'peace': '☮',
-    'gem': '💎',
-    'trophy': '🏆',
-    'snowflake': '❄️',
-    'gift': '🎁',
-    'coffee': '☕',
-    'utensils': '🍴',
-    'wine-glass': '🍷',
-    'beer': '🍺',
-    'pizza': '🍕',
-    'pepper': '🌶️',
-    'cat': '🐱',
-    'dog': '🐶',
-    'seedling': '🌱',
-    'leaf': '🍃',
-    'tree': '🌳',
-    'wrench': '🔧',
-    'hammer': '🔨',
-    'briefcase': '💼',
-    'key': '🔑',
-    'camera': '📷',
-    'music': '🎵',
-    'anchor': '⚓',
-    'crown': '👑',
-    'magic': '✨',
-    'rocket': '🚀',
-    'plane': '✈️',
-    'car': '🚗',
-    'bicycle': '🚲',
-    'umbrella': '☔',
-    'diamond': '♦',
-    'club': '♣',
-    'spade': '♠',
-    'flower': '🌸',
-    'butterfly': '🦋',
-  };
+  for (let i = 0; i < points * 2; i++) {
+    const angle = (i * Math.PI) / points;
+    const r = i % 2 === 0 ? outerRadius : innerRadius;
+    const px = x + Math.cos(angle - Math.PI / 2) * r;
+    const py = y + Math.sin(angle - Math.PI / 2) * r;
+    
+    if (i === 0) {
+      ctx.moveTo(px, py);
+    } else {
+      ctx.lineTo(px, py);
+    }
+  }
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawSimpleHeart(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
+  ctx.beginPath();
+  ctx.fillStyle = color;
+  const width = radius * 1.2;
+  const height = radius * 1.1;
+  const topCurveHeight = height * 0.3;
   
-  const symbol = iconMap[iconKey] || '★'; // Default to star if not found
-  ctx.fillText(symbol, x, y);
+  ctx.moveTo(x, y + topCurveHeight);
+  ctx.bezierCurveTo(x, y, x - width / 2, y, x - width / 2, y + topCurveHeight);
+  ctx.bezierCurveTo(x - width / 2, y + (height + topCurveHeight) / 2, x, y + (height + topCurveHeight) / 2, x, y + height);
+  ctx.bezierCurveTo(x, y + (height + topCurveHeight) / 2, x + width / 2, y + (height + topCurveHeight) / 2, x + width / 2, y + topCurveHeight);
+  ctx.bezierCurveTo(x + width / 2, y, x, y, x, y + topCurveHeight);
+  ctx.fill();
+}
+
+function drawSimpleSmile(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = Math.max(1, radius / 8);
+  ctx.fillStyle = 'none';
+  
+  // Face circle
+  ctx.beginPath();
+  ctx.arc(x, y, radius * 0.8, 0, 2 * Math.PI);
+  ctx.stroke();
+  
+  // Eyes
+  ctx.beginPath();
+  ctx.arc(x - radius * 0.3, y - radius * 0.3, radius * 0.1, 0, 2 * Math.PI);
+  ctx.arc(x + radius * 0.3, y - radius * 0.3, radius * 0.1, 0, 2 * Math.PI);
+  ctx.fill();
+  
+  // Smile
+  ctx.beginPath();
+  ctx.arc(x, y + radius * 0.2, radius * 0.4, 0, Math.PI);
+  ctx.stroke();
+}
+
+function drawSimpleBolt(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(x - radius * 0.3, y - radius * 0.8);
+  ctx.lineTo(x + radius * 0.2, y - radius * 0.8);
+  ctx.lineTo(x - radius * 0.1, y - radius * 0.1);
+  ctx.lineTo(x + radius * 0.3, y - radius * 0.1);
+  ctx.lineTo(x - radius * 0.2, y + radius * 0.8);
+  ctx.lineTo(x + radius * 0.1, y + radius * 0.1);
+  ctx.lineTo(x - radius * 0.3, y + radius * 0.1);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawSimpleSun(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
+  ctx.fillStyle = color;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = Math.max(1, radius / 10);
+  
+  // Center circle
+  ctx.beginPath();
+  ctx.arc(x, y, radius * 0.4, 0, 2 * Math.PI);
+  ctx.fill();
+  
+  // Rays
+  const rays = 8;
+  for (let i = 0; i < rays; i++) {
+    const angle = (i * 2 * Math.PI) / rays;
+    const startX = x + Math.cos(angle) * radius * 0.6;
+    const startY = y + Math.sin(angle) * radius * 0.6;
+    const endX = x + Math.cos(angle) * radius * 0.9;
+    const endY = y + Math.sin(angle) * radius * 0.9;
+    
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(endX, endY);
+    ctx.stroke();
+  }
+}
+
+function drawSimpleMoon(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(x, y, radius * 0.8, 0, 2 * Math.PI);
+  ctx.fill();
+  
+  // Create crescent by removing a portion
+  ctx.globalCompositeOperation = 'destination-out';
+  ctx.beginPath();
+  ctx.arc(x + radius * 0.3, y - radius * 0.1, radius * 0.7, 0, 2 * Math.PI);
+  ctx.fill();
+  ctx.globalCompositeOperation = 'source-over';
+}
+
+function drawSimpleGem(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(x, y - radius * 0.8);
+  ctx.lineTo(x + radius * 0.6, y - radius * 0.3);
+  ctx.lineTo(x + radius * 0.4, y + radius * 0.8);
+  ctx.lineTo(x - radius * 0.4, y + radius * 0.8);
+  ctx.lineTo(x - radius * 0.6, y - radius * 0.3);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawSimpleCoffee(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = Math.max(1, radius / 8);
+  ctx.fillStyle = 'none';
+  
+  // Cup
+  ctx.beginPath();
+  ctx.roundRect(x - radius * 0.4, y - radius * 0.3, radius * 0.8, radius * 1.1, radius * 0.1);
+  ctx.stroke();
+  
+  // Handle
+  ctx.beginPath();
+  ctx.arc(x + radius * 0.6, y + radius * 0.2, radius * 0.3, -Math.PI / 2, Math.PI / 2);
+  ctx.stroke();
+  
+  // Steam
+  for (let i = 0; i < 3; i++) {
+    ctx.beginPath();
+    ctx.moveTo(x - radius * 0.2 + i * radius * 0.2, y - radius * 0.7);
+    ctx.quadraticCurveTo(x - radius * 0.1 + i * radius * 0.2, y - radius * 0.9, x + i * radius * 0.2, y - radius * 0.8);
+    ctx.stroke();
+  }
+}
+
+function drawSimpleUtensils(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = Math.max(1, radius / 10);
+  
+  // Fork
+  ctx.beginPath();
+  ctx.moveTo(x - radius * 0.3, y - radius * 0.8);
+  ctx.lineTo(x - radius * 0.3, y + radius * 0.8);
+  ctx.moveTo(x - radius * 0.4, y - radius * 0.8);
+  ctx.lineTo(x - radius * 0.4, y - radius * 0.3);
+  ctx.moveTo(x - radius * 0.2, y - radius * 0.8);
+  ctx.lineTo(x - radius * 0.2, y - radius * 0.3);
+  ctx.stroke();
+  
+  // Knife
+  ctx.beginPath();
+  ctx.moveTo(x + radius * 0.3, y - radius * 0.8);
+  ctx.lineTo(x + radius * 0.3, y + radius * 0.8);
+  ctx.moveTo(x + radius * 0.2, y - radius * 0.8);
+  ctx.lineTo(x + radius * 0.4, y - radius * 0.5);
+  ctx.lineTo(x + radius * 0.3, y - radius * 0.3);
+  ctx.stroke();
+}
+
+// Add more simple drawing functions for other icons...
+function drawSimpleKey(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = Math.max(1, radius / 8);
+  ctx.fillStyle = 'none';
+  
+  // Key head (circle)
+  ctx.beginPath();
+  ctx.arc(x - radius * 0.3, y - radius * 0.3, radius * 0.4, 0, 2 * Math.PI);
+  ctx.stroke();
+  
+  // Key shaft
+  ctx.beginPath();
+  ctx.moveTo(x + radius * 0.1, y - radius * 0.3);
+  ctx.lineTo(x + radius * 0.8, y - radius * 0.3);
+  ctx.stroke();
+  
+  // Key teeth
+  ctx.beginPath();
+  ctx.moveTo(x + radius * 0.5, y - radius * 0.3);
+  ctx.lineTo(x + radius * 0.5, y - radius * 0.1);
+  ctx.moveTo(x + radius * 0.7, y - radius * 0.3);
+  ctx.lineTo(x + radius * 0.7, y);
+  ctx.stroke();
+}
+
+function drawDefaultIcon(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
+  // Default to a simple circle
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(x, y, radius * 0.7, 0, 2 * Math.PI);
+  ctx.fill();
+}
+
+function drawDecorativeIcon(ctx: CanvasRenderingContext2D, iconKey: string, x: number, y: number, size: number, color: string) {
+  const iconConfig = getFallingIcon(iconKey);
+  
+  ctx.save();
+  const radius = size / 2;
+  
+  // Draw simple geometric shapes that match FontAwesome's flat aesthetic
+  switch (iconKey) {
+    case 'star':
+      drawSimpleStar(ctx, x, y, radius, color);
+      break;
+    case 'heart':
+      drawSimpleHeart(ctx, x, y, radius, color);
+      break;
+    case 'smile':
+      drawSimpleSmile(ctx, x, y, radius, color);
+      break;
+    case 'bolt':
+      drawSimpleBolt(ctx, x, y, radius, color);
+      break;
+    case 'sun':
+      drawSimpleSun(ctx, x, y, radius, color);
+      break;
+    case 'moon':
+      drawSimpleMoon(ctx, x, y, radius, color);
+      break;
+    case 'gem':
+      drawSimpleGem(ctx, x, y, radius, color);
+      break;
+    case 'coffee':
+      drawSimpleCoffee(ctx, x, y, radius, color);
+      break;
+    case 'utensils':
+      drawSimpleUtensils(ctx, x, y, radius, color);
+      break;
+    case 'key':
+      drawSimpleKey(ctx, x, y, radius, color);
+      break;
+    default:
+      drawDefaultIcon(ctx, x, y, radius, color);
+      break;
+  }
+  
   ctx.restore();
 }
+
 
 // Helper function to generate random decorative icon positions
 function generateDecorativeIconPositions(
