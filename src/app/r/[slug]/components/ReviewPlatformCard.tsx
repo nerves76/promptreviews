@@ -17,6 +17,7 @@ interface ReviewPlatformCardProps {
   isSubmitting: number | null;
   aiRewriteCounts: number[];
   openInstructionsIdx: number | null;
+  submitError: string | null;
   onToggleAccordion: (idx: number) => void;
   onFirstNameChange: (idx: number, value: string) => void;
   onLastNameChange: (idx: number, value: string) => void;
@@ -44,6 +45,7 @@ export default function ReviewPlatformCard({
   isSubmitting,
   aiRewriteCounts,
   openInstructionsIdx,
+  submitError,
   onToggleAccordion,
   onFirstNameChange,
   onLastNameChange,
@@ -364,6 +366,13 @@ export default function ReviewPlatformCard({
               )}
             </button>
           </div>
+          
+          {/* Error message display */}
+          {submitError && (
+            <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+              {submitError}
+            </div>
+          )}
         </>
       )}
     </div>
