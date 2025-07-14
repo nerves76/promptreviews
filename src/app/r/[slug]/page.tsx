@@ -555,7 +555,7 @@ export default function PromptPage() {
       return;
     }
     if (currentUser) {
-      setSubmitError("Copy & submit is not available for logged-in users.");
+      setSubmitError("Sorry, you can't do that while you are logged in.");
       setIsSubmitting(null);
       return;
     }
@@ -634,7 +634,7 @@ export default function PromptPage() {
     
     // Check if user is logged in and prevent AI generation
     if (currentUser) {
-      setSubmitError("AI generation is not available for logged-in users.");
+      setSubmitError("Sorry, you can't do that while you are logged in.");
       return;
     }
     
@@ -1557,6 +1557,7 @@ export default function PromptPage() {
                   isSubmitting={isSubmitting}
                   aiRewriteCounts={aiRewriteCounts}
                   openInstructionsIdx={openInstructionsIdx}
+                  submitError={submitError}
                   onToggleAccordion={(idx) => {
                     const newOpenPlatforms = [...openPlatforms];
                     newOpenPlatforms[idx] = !newOpenPlatforms[idx];
