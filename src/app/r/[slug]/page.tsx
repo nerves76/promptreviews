@@ -555,7 +555,7 @@ export default function PromptPage() {
       return;
     }
     if (currentUser) {
-      setSubmitError("For logged in users, submits are not saved to account.");
+      setSubmitError("Copy & submit is not available for logged-in users.");
       setIsSubmitting(null);
       return;
     }
@@ -631,6 +631,13 @@ export default function PromptPage() {
 
   const handleRewriteWithAI = async (idx: number) => {
     if (!promptPage || !businessProfile) return;
+    
+    // Check if user is logged in and prevent AI generation
+    if (currentUser) {
+      setSubmitError("AI generation is not available for logged-in users.");
+      return;
+    }
+    
     setAiLoading(idx);
     try {
       const platform = promptPage.review_platforms[idx];
@@ -912,6 +919,13 @@ export default function PromptPage() {
 
   const handleGeneratePhotoTestimonial = async () => {
     if (!promptPage || !businessProfile) return;
+    
+    // Check if user is logged in and prevent AI generation
+    if (currentUser) {
+      setSubmitError("AI generation is not available for logged-in users.");
+      return;
+    }
+    
     setAiLoadingPhoto(true);
     try {
       const prompt = `Generate a positive testimonial for ${businessProfile.business_name}. The testimonial should be authentic, specific, and highlight the business's strengths.`;

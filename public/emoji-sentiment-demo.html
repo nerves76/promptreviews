@@ -1030,12 +1030,7 @@
             showGoogleReviewForm(false); // No star fall for public negative reviews
         }
 
-        function generateAIReview() {
-            const textarea = document.querySelector('.review-textarea');
-            // Just clear the textarea - no auto-generated positive reviews
-            textarea.value = '';
-            textarea.focus();
-        }
+
 
         function submitReview() {
             // Show Google review form immediately without the "Redirecting..." message
