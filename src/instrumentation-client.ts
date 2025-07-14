@@ -13,6 +13,9 @@ export function register() {
   try {
     // Only import Sentry when actually needed
     const Sentry = require('@sentry/nextjs');
+    
+    // Import types for TypeScript support
+    type Event = Parameters<typeof Sentry.init>[0]['beforeSend'] extends (event: infer T) => any ? T : any;
 
     Sentry.init({
       dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
@@ -23,36 +26,19 @@ export function register() {
       // Environment configuration
       environment: process.env.NODE_ENV,
       
-      // Release tracking
-      release: process.env.NEXT_PUBLIC_SENTRY_RELEASE,
-      
-      // Disable debug mode in all environments for better performance
-      debug: false,
-      
-      // **CLIENT-SIDE INTEGRATIONS**
-      // Only enable browser-specific integrations
+      // Only essential integrations to reduce bundle size
       integrations: [
-        // Essential browser integrations
-        new Sentry.Integrations.GlobalHandlers(),
-        new Sentry.Integrations.TryCatch(),
-        new Sentry.Integrations.Breadcrumbs(),
-        new Sentry.Integrations.LinkedErrors(),
-        new Sentry.Integrations.HttpContext(),
-        new Sentry.Integrations.Dedupe(),
-        
-        // Browser-specific error tracking
-        ...(typeof window !== 'undefined' ? [
-          new Sentry.Integrations.BrowserTracing({
-            tracingOrigins: ['localhost', 'promptreviews.app', /^\//],
-          }),
-        ] : []),
+        Sentry.httpClientIntegration(),
+        Sentry.consoleIntegration(),
+        Sentry.linkedErrorsIntegration(),
+        Sentry.requestDataIntegration(),
       ],
       
       // Disable automatic instrumentation discovery
       defaultIntegrations: false,
       
       // Client-specific configuration
-      beforeSend: (event) => {
+      beforeSend: (event: Event) => {
         // Filter out development errors
         if (process.env.NODE_ENV === 'development') {
           return null;
