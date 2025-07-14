@@ -14,22 +14,37 @@ async function debugAuthIssues() {
   const issues = [];
   const warnings = [];
 
-  // Check 1: Verify Direct Supabase Authentication
-  console.log('📍 Check 1: Direct Supabase Authentication Configuration');
+  // Check 1: Verify Supabase Authentication Configuration
+  console.log('📍 Check 1: Supabase Authentication Configuration');
   const signinPath = path.join(process.cwd(), 'src/app/auth/sign-in/page.tsx');
+  const authContextPath = path.join(process.cwd(), 'src/contexts/AuthContext.tsx');
+  
   if (fs.existsSync(signinPath)) {
     console.log('✅ Sign-in page exists');
     
-    // Check for direct Supabase auth
-    const content = fs.readFileSync(signinPath, 'utf8');
-    if (content.includes('supabase.auth.signInWithPassword')) {
-      console.log('✅ Direct Supabase authentication present');
+    // Check for proper authentication pattern (either direct or through AuthContext)
+    const signinContent = fs.readFileSync(signinPath, 'utf8');
+    const hasDirectAuth = signinContent.includes('supabase.auth.signInWithPassword');
+    const hasAuthContext = signinContent.includes('useAuth()') || signinContent.includes('signIn(');
+    
+    if (hasDirectAuth || hasAuthContext) {
+      console.log('✅ Authentication pattern found');
+      
+      // If using AuthContext, verify it has proper Supabase calls
+      if (hasAuthContext && fs.existsSync(authContextPath)) {
+        const authContent = fs.readFileSync(authContextPath, 'utf8');
+        if (authContent.includes('supabase.auth.signInWithPassword')) {
+          console.log('✅ AuthContext has proper Supabase authentication');
+        } else {
+          issues.push('❌ AuthContext missing Supabase authentication');
+        }
+      }
     } else {
-      issues.push('❌ Direct Supabase authentication missing');
+      issues.push('❌ No authentication pattern found');
     }
     
     // Check that old API route calls are removed
-    if (content.includes('/api/auth/signin')) {
+    if (signinContent.includes('/api/auth/signin')) {
       warnings.push('⚠️ Old API route call still present in sign-in page');
     } else {
       console.log('✅ Old API route calls removed');
