@@ -76,7 +76,7 @@ import ReviewPlatformCard from "./components/ReviewPlatformCard";
 import SaveMenu from "./components/SaveMenu";
 import FallingAnimation from "./components/FallingAnimation";
 import TopActionButtons from "./components/TopActionButtons";
-import { getFontClass } from "./utils/fontUtils";
+import { getFontClass, loadGoogleFont } from "./utils/fontUtils";
 import { getPlatformIcon, splitName, sendAnalyticsEvent, isOffWhiteOrCream } from "./utils/helperFunctions";
 import { sentimentOptions } from "./utils/sentimentConfig";
 
@@ -386,6 +386,29 @@ export default function PromptPage() {
       }
     }
   }, [promptPage, businessProfile]);
+
+  // Dynamically load fonts when business profile is loaded
+  useEffect(() => {
+    const loadFonts = async () => {
+      if (businessProfile?.primary_font && businessProfile.primary_font !== "Inter") {
+        try {
+          await loadGoogleFont(businessProfile.primary_font);
+        } catch (error) {
+          console.warn(`Failed to load primary font: ${businessProfile.primary_font}`, error);
+        }
+      }
+      
+      if (businessProfile?.secondary_font && businessProfile.secondary_font !== "Inter") {
+        try {
+          await loadGoogleFont(businessProfile.secondary_font);
+        } catch (error) {
+          console.warn(`Failed to load secondary font: ${businessProfile.secondary_font}`, error);
+        }
+      }
+    };
+
+    loadFonts();
+  }, [businessProfile?.primary_font, businessProfile?.secondary_font]);
 
   // Track page view (exclude logged-in users)
   useEffect(() => {
