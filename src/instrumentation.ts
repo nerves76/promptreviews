@@ -28,6 +28,32 @@ export function register() {
       
       // Disable debug mode in all environments for better performance
       debug: false,
+      
+      // **DISABLE UNNECESSARY AUTO-INSTRUMENTATIONS**
+      // Only enable instrumentations for technologies actually used
+      integrations: [
+        // Keep essential integrations
+        new Sentry.Integrations.Http({ tracing: true }),
+        new Sentry.Integrations.Console(),
+        new Sentry.Integrations.LinkedErrors(),
+        new Sentry.Integrations.RequestData(),
+        
+        // PostgreSQL instrumentation (for Supabase)
+        ...(process.env.NODE_ENV === 'production' ? [
+          new Sentry.Integrations.Postgres()
+        ] : []),
+      ],
+      
+      // **DISABLE UNUSED AUTO-INSTRUMENTATIONS**
+      // This prevents loading of MongoDB, Redis, MySQL, Hapi, Knex, etc.
+      autoInstrumentMiddleware: false,
+      autoInstrumentServerFunctions: false,
+      
+      // Only instrument what we actually use
+      instrumenter: 'sentry',
+      
+      // Disable automatic instrumentation discovery
+      defaultIntegrations: false,
     });
   } catch (error) {
     console.log('Sentry initialization failed:', error);
