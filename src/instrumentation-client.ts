@@ -28,6 +28,37 @@ export function register() {
       
       // Disable debug mode in all environments for better performance
       debug: false,
+      
+      // **CLIENT-SIDE INTEGRATIONS**
+      // Only enable browser-specific integrations
+      integrations: [
+        // Essential browser integrations
+        new Sentry.Integrations.GlobalHandlers(),
+        new Sentry.Integrations.TryCatch(),
+        new Sentry.Integrations.Breadcrumbs(),
+        new Sentry.Integrations.LinkedErrors(),
+        new Sentry.Integrations.HttpContext(),
+        new Sentry.Integrations.Dedupe(),
+        
+        // Browser-specific error tracking
+        ...(typeof window !== 'undefined' ? [
+          new Sentry.Integrations.BrowserTracing({
+            tracingOrigins: ['localhost', 'promptreviews.app', /^\//],
+          }),
+        ] : []),
+      ],
+      
+      // Disable automatic instrumentation discovery
+      defaultIntegrations: false,
+      
+      // Client-specific configuration
+      beforeSend: (event) => {
+        // Filter out development errors
+        if (process.env.NODE_ENV === 'development') {
+          return null;
+        }
+        return event;
+      },
     });
   } catch (error) {
     console.log('Sentry initialization failed:', error);
