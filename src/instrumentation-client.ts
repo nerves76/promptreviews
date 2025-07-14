@@ -13,9 +13,6 @@ export function register() {
   try {
     // Only import Sentry when actually needed
     const Sentry = require('@sentry/nextjs');
-    
-    // Import types for TypeScript support
-    type Event = Parameters<typeof Sentry.init>[0]['beforeSend'] extends (event: infer T) => any ? T : any;
 
     Sentry.init({
       dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
@@ -38,7 +35,7 @@ export function register() {
       defaultIntegrations: false,
       
       // Client-specific configuration
-      beforeSend: (event: Event) => {
+      beforeSend: (event: any) => {
         // Filter out development errors
         if (process.env.NODE_ENV === 'development') {
           return null;
