@@ -97,42 +97,69 @@ export default function Header() {
 
   useEffect(() => {
     const fetchNotifications = async () => {
-      const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-      const { data, error } = await supabase
-        .from("review_submissions")
-        .select("id, first_name, last_name, platform, review_content, created_at, sentiment, review_type")
-        .gte("created_at", since)
-        .order("created_at", { ascending: false })
-        .limit(7);
-      if (!error && data) {
-        setNotifications(
-          data.map((r: any) => {
-            const name = r.first_name
-              ? r.last_name
-                ? `${r.first_name} ${r.last_name}`
-                : r.first_name
-              : "Anonymous";
-            
-            // Determine if this is positive or negative based on sentiment
-            const isNegativeSentiment = r.sentiment && ["neutral", "unsatisfied", "frustrated", "angry"].includes(r.sentiment.toLowerCase());
-            const isFeedback = r.review_type === "feedback" || isNegativeSentiment;
-            
-            const message = isFeedback
-              ? `New feedback from ${name}${r.platform ? ` via ${r.platform}` : ""}`
-              : `New review from ${name} on ${r.platform}`;
-            
-            return {
-              id: r.id,
-              message,
-              preview: r.review_content?.slice(0, 60) || "",
-              created_at: r.created_at,
-              read: false,
-              isFeedback,
-            };
-          }),
-        );
+      try {
+        // Calculate 7 days ago with validation
+        const now = new Date();
+        const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        
+        // Validate that the calculated date is not in the future
+        if (sevenDaysAgo > now) {
+          console.error('🚨 Header: Invalid date calculation - sevenDaysAgo is in the future:', sevenDaysAgo.toISOString());
+          return; // Skip API call to prevent 400 error
+        }
+        
+        const since = sevenDaysAgo.toISOString();
+        
+        console.log('🔔 Header: Fetching notifications since:', since);
+        
+        const { data, error } = await supabase
+          .from("review_submissions")
+          .select("id, first_name, last_name, platform, review_content, created_at, sentiment, review_type")
+          .gte("created_at", since)
+          .order("created_at", { ascending: false })
+          .limit(7);
+          
+        if (error) {
+          console.error('🚨 Header: Notifications fetch failed:', error);
+          // Don't throw - just skip setting notifications to prevent reload
+          return;
+        }
+        
+        if (data) {
+          console.log('✅ Header: Notifications fetched successfully:', data.length);
+          setNotifications(
+            data.map((r: any) => {
+              const name = r.first_name
+                ? r.last_name
+                  ? `${r.first_name} ${r.last_name}`
+                  : r.first_name
+                : "Anonymous";
+              
+              // Determine if this is positive or negative based on sentiment
+              const isNegativeSentiment = r.sentiment && ["neutral", "unsatisfied", "frustrated", "angry"].includes(r.sentiment.toLowerCase());
+              const isFeedback = r.review_type === "feedback" || isNegativeSentiment;
+              
+              const message = isFeedback
+                ? `New feedback from ${name}${r.platform ? ` via ${r.platform}` : ""}`
+                : `New review from ${name} on ${r.platform}`;
+              
+              return {
+                id: r.id,
+                message,
+                preview: r.review_content?.slice(0, 60) || "",
+                created_at: r.created_at,
+                read: false,
+                isFeedback,
+              };
+            }),
+          );
+        }
+      } catch (error) {
+        console.error('🚨 Header: Unexpected error in fetchNotifications:', error);
+        // Don't throw - just log the error to prevent reload
       }
     };
+    
     fetchNotifications();
   }, []);
 

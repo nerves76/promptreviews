@@ -107,6 +107,8 @@ export default function Dashboard() {
     try {
       setBusinessesLoading(true);
       
+      console.log('🏢 Dashboard: Loading businesses data...');
+      
       const { data: businesses, error } = await supabase
         .from('businesses')
         .select('*')
@@ -114,16 +116,19 @@ export default function Dashboard() {
         .order('created_at', { ascending: false });
       
       if (error) {
-        console.error('Dashboard: Error loading businesses:', error);
+        console.error('❌ Dashboard: Error loading businesses:', error);
         setBusinessesData([]);
+        // Don't throw - just set empty data to prevent reload
         return;
       }
       
+      console.log('✅ Dashboard: Loaded businesses:', { count: businesses?.length || 0, businesses });
       setBusinessesData(businesses || []);
       
     } catch (error) {
-      console.error('Dashboard: Error loading businesses:', error);
+      console.error('❌ Dashboard: Error loading businesses:', error);
       setBusinessesData([]);
+      // Don't throw - just set empty data to prevent reload
     } finally {
       setBusinessesLoading(false);
     }
@@ -136,6 +141,8 @@ export default function Dashboard() {
     try {
       setIsDashboardLoading(true);
       setError(null);
+      
+      console.log('📊 Dashboard: Loading dashboard-specific data...');
       
       // Fetch only dashboard-specific data (not what AuthContext already provides)
       const [promptPagesResult, widgetsResult, reviewsResult, limitsResult] = await Promise.allSettled([
@@ -151,19 +158,50 @@ export default function Dashboard() {
           .eq("account_id", account.id)
           .order("created_at", { ascending: false }),
         
-        supabase
-          .from("widget_reviews")
-          .select("id, is_verified")
-          .eq("account_id", account.id),
+        // Use a more defensive approach for widget_reviews
+        (async () => {
+          try {
+            console.log('🔍 Dashboard: Attempting to fetch widget_reviews...');
+            const result = await supabase
+              .from("widget_reviews")
+              .select("id, is_verified")
+              .eq("account_id", account.id);
+            
+            if (result.error) {
+              console.error('❌ Dashboard: widget_reviews query failed:', result.error);
+              // Return empty data instead of throwing
+              return { data: [], error: null };
+            }
+            return result;
+          } catch (error) {
+            console.error('❌ Dashboard: widget_reviews query exception:', error);
+            // Return empty data instead of throwing
+            return { data: [], error: null };
+          }
+        })(),
         
         checkAccountLimits(supabase, user.id, "prompt_page")
       ]);
 
-      // Process results
+      // Process results with better error handling
       const promptPages = promptPagesResult.status === 'fulfilled' ? promptPagesResult.value.data || [] : [];
       const widgets = widgetsResult.status === 'fulfilled' ? widgetsResult.value.data || [] : [];
       const reviews = reviewsResult.status === 'fulfilled' ? reviewsResult.value.data || [] : [];
       const limits = limitsResult.status === 'fulfilled' ? limitsResult.value : null;
+
+      // Log any failed results
+      if (promptPagesResult.status === 'rejected') {
+        console.error('❌ Dashboard: prompt_pages query failed:', promptPagesResult.reason);
+      }
+      if (widgetsResult.status === 'rejected') {
+        console.error('❌ Dashboard: widgets query failed:', widgetsResult.reason);
+      }
+      if (reviewsResult.status === 'rejected') {
+        console.error('❌ Dashboard: widget_reviews query failed:', reviewsResult.reason);
+      }
+      if (limitsResult.status === 'rejected') {
+        console.error('❌ Dashboard: account limits check failed:', limitsResult.reason);
+      }
 
       // Separate universal and custom prompt pages
       const universalPromptPage = promptPages.find(pp => pp.is_universal);
@@ -199,9 +237,12 @@ export default function Dashboard() {
         universalUrl
       });
       
+      console.log('✅ Dashboard: Dashboard data loaded successfully');
+      
     } catch (error) {
-      console.error("Dashboard: Error loading dashboard data:", error);
+      console.error("❌ Dashboard: Error loading dashboard data:", error);
       setError("Failed to load dashboard data");
+      // Don't throw - just set error state to prevent reload
     } finally {
       setIsDashboardLoading(false);
     }
