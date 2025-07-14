@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log(`[REVIEW-SUBMISSIONS] Successfully created review submission: ${submission.id}`);
+    
     return NextResponse.json(submission);
   } catch (error) {
     console.error('[REVIEW-SUBMISSIONS] Unexpected error:', error);

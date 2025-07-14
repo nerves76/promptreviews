@@ -14,7 +14,6 @@ export default function AuthTest() {
   const [message, setMessage] = useState("Starting up...");
 
   useEffect(() => {
-    console.log("🚀 AuthTest component mounted");
     setMessage("Component mounted, checking auth...");
     
     // Add a small delay to ensure we can see the loading state change
@@ -24,31 +23,25 @@ export default function AuthTest() {
   }, []);
 
   const checkAuth = async () => {
-    console.log("🔍 Starting auth check...");
     setMessage("Checking session...");
     
     try {
-      console.log("🔍 Calling getSession...");
       const result = await supabase.auth.getSession();
-      console.log("📦 getSession result:", result);
-      
       const { data: { session }, error } = result;
       
       if (error) {
-        console.error("❌ Session error:", error);
+        console.error("AuthTest session error:", error);
         setMessage(`Session error: ${error.message}`);
       } else {
-        console.log("✅ Session check complete:", session ? "Active" : "None");
         setMessage(session ? "Session found!" : "No active session");
       }
       
       setSession(session);
       setUser(session?.user || null);
     } catch (err) {
-      console.error("💥 Auth check exception:", err);
+      console.error("AuthTest auth check exception:", err);
       setMessage(`Auth check failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {
-      console.log("🏁 Auth check complete, setting loading to false");
       setLoading(false);
     }
   };

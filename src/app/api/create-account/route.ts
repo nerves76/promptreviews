@@ -9,31 +9,21 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('[CREATE-ACCOUNT] Starting account creation process...');
-    
     const { userId, email, first_name, last_name } = await request.json();
 
     if (!userId || !email) {
-      console.error('[CREATE-ACCOUNT] Missing required fields:', { userId: !!userId, email: !!email });
+      console.error('CREATE-ACCOUNT: Missing required fields:', { userId: !!userId, email: !!email });
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    console.log(`[CREATE-ACCOUNT] Received request for user: ${userId}, email: ${email}`);
-
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-    console.log('[CREATE-ACCOUNT] Environment check:', {
-      supabaseUrl: !!supabaseUrl,
-      supabaseServiceKey: !!supabaseServiceKey,
-      supabaseUrlValue: supabaseUrl
-    });
-
     if (!supabaseUrl || !supabaseServiceKey) {
-      console.error(`[CREATE-ACCOUNT] Missing Supabase configuration:`, {
+      console.error('CREATE-ACCOUNT: Missing Supabase configuration:', {
         supabaseUrl: !!supabaseUrl,
         supabaseServiceKey: !!supabaseServiceKey
       });
@@ -54,7 +44,6 @@ export async function POST(request: NextRequest) {
     console.log('[CREATE-ACCOUNT] Using service key for authentication');
 
     // Create new account with only the fields that exist in the accounts table
-    console.log(`[CREATE-ACCOUNT] Creating new account for user: ${userId}`);
     const accountData = {
       id: userId,
               plan: 'no_plan', // Use 'no_plan' as the default for new users (matches DB default)
@@ -72,23 +61,15 @@ export async function POST(request: NextRequest) {
       review_notifications_enabled: true
     };
 
-    console.log('[CREATE-ACCOUNT] Account data to create:', accountData);
-
     const createAccountResponse = await fetch(`${supabaseUrl}/rest/v1/accounts`, {
       method: 'POST',
       headers,
       body: JSON.stringify(accountData)
     });
 
-    console.log('[CREATE-ACCOUNT] Account creation response:', {
-      status: createAccountResponse.status,
-      statusText: createAccountResponse.statusText,
-      ok: createAccountResponse.ok
-    });
-
     if (!createAccountResponse.ok) {
       const errorText = await createAccountResponse.text();
-      console.error(`[CREATE-ACCOUNT] Error creating account:`, {
+      console.error('CREATE-ACCOUNT: Error creating account:', {
         status: createAccountResponse.status,
         statusText: createAccountResponse.statusText,
         error: errorText
@@ -96,7 +77,6 @@ export async function POST(request: NextRequest) {
       
       // If it's a duplicate key error, that's okay - account already exists
       if (createAccountResponse.status === 409) {
-        console.log(`[CREATE-ACCOUNT] Account already exists for user: ${userId}`);
         return NextResponse.json({ 
           success: true, 
           message: "Account already exists",
@@ -111,10 +91,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('[CREATE-ACCOUNT] Account created successfully, creating account_users record...');
-
     // Create account_users record
-    console.log(`[CREATE-ACCOUNT] Creating account_users record for account: ${userId}, user: ${userId}`);
     const accountUserData = {
       account_id: userId,
       user_id: userId,
@@ -122,23 +99,15 @@ export async function POST(request: NextRequest) {
       created_at: new Date().toISOString()
     };
 
-    console.log('[CREATE-ACCOUNT] Account user data to create:', accountUserData);
-
     const createAccountUserResponse = await fetch(`${supabaseUrl}/rest/v1/account_users`, {
       method: 'POST',
       headers,
       body: JSON.stringify(accountUserData)
     });
 
-    console.log('[CREATE-ACCOUNT] Account user creation response:', {
-      status: createAccountUserResponse.status,
-      statusText: createAccountUserResponse.statusText,
-      ok: createAccountUserResponse.ok
-    });
-
     if (!createAccountUserResponse.ok) {
       const errorText = await createAccountUserResponse.text();
-      console.error(`[CREATE-ACCOUNT] Error creating account_users record:`, {
+      console.error('CREATE-ACCOUNT: Error creating account_users record:', {
         status: createAccountUserResponse.status,
         statusText: createAccountUserResponse.statusText,
         error: errorText
@@ -146,7 +115,6 @@ export async function POST(request: NextRequest) {
       
       // If it's a duplicate key error, that's okay - record already exists
       if (createAccountUserResponse.status === 409) {
-        console.log(`[CREATE-ACCOUNT] Account_users record already exists for user: ${userId}`);
         return NextResponse.json({ 
           success: true, 
           message: "Account and user record already exist",
@@ -160,8 +128,6 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
-
-    console.log(`[CREATE-ACCOUNT] Successfully created account and account_users for user: ${userId}`);
     return NextResponse.json({ 
       success: true, 
       message: "Account created successfully",
@@ -170,7 +136,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error(`[CREATE-ACCOUNT] Unexpected error:`, error);
+    console.error('CREATE-ACCOUNT: Unexpected error:', error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

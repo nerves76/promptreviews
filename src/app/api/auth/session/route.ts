@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    console.log('✅ Session API: Valid session found');
+    
     console.log('👤 Session API: User ID:', user.id);
     console.log('📧 Session API: Email:', user.email);
 

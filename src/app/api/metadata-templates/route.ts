@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    console.log(`[METADATA-TEMPLATES] Successfully fetched ${templates?.length || 0} templates`);
+    
     return NextResponse.json(templates);
   } catch (error) {
     console.error('[METADATA-TEMPLATES] Unexpected error:', error);

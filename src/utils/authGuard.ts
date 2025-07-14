@@ -24,31 +24,23 @@ export function useAuthGuard(options: AuthGuardOptions = {}): AuthGuardResult {
   useEffect(() => {
     const checkAuthAndProfile = async () => {
       try {
-        console.log('🔐 useAuthGuard: Starting authentication check...');
-        
         // 🔧 CONSOLIDATED: Use shared client instance
         const { data: { user }, error } = await supabase.auth.getUser();
 
         if (error) {
-          console.log('❌ useAuthGuard: Authentication check failed:', error.message);
           setShouldRedirect(true);
           setLoading(false);
           return;
         }
 
         if (!user) {
-          console.log('ℹ️  useAuthGuard: No authenticated user found, redirecting to sign-in');
           setShouldRedirect(true);
           setLoading(false);
           return;
         }
 
-        console.log('✅ useAuthGuard: User authenticated:', user.id);
-
         // If we require business profile, check for it
         if (requireBusinessProfile) {
-          console.log('📊 useAuthGuard: Checking business profile requirement...');
-          
           // Check for existing account/business
           const { data: accounts, error: accountError } = await supabase
             .from('accounts')
@@ -57,28 +49,25 @@ export function useAuthGuard(options: AuthGuardOptions = {}): AuthGuardResult {
             .limit(1);
 
           if (accountError) {
-            console.error('❌ useAuthGuard: Error checking business profile:', accountError);
+            console.error('AuthGuard: Error checking business profile:', accountError);
             // Don't redirect on database errors, just log them
             setLoading(false);
             return;
           }
 
           const hasBusiness = accounts && accounts.length > 0;
-          console.log('📊 useAuthGuard: Business profile check result:', { hasBusiness });
 
           if (!hasBusiness && redirectToCreateBusiness) {
-            console.log('🔄 useAuthGuard: No business profile found, redirecting to create business');
             router.push('/dashboard/create-business');
             setLoading(false);
             return;
           }
         }
 
-        console.log('✅ useAuthGuard: Authentication and profile checks passed');
         setLoading(false);
         
       } catch (error) {
-        console.error('💥 useAuthGuard: Unexpected error:', error);
+        console.error('AuthGuard: Unexpected error:', error);
         setShouldRedirect(true);
         setLoading(false);
       }
@@ -90,7 +79,6 @@ export function useAuthGuard(options: AuthGuardOptions = {}): AuthGuardResult {
   // Handle redirect outside of the main effect to avoid loops
   useEffect(() => {
     if (shouldRedirect && !loading) {
-      console.log('🔄 useAuthGuard: Redirecting to sign-in page');
       router.push('/auth/sign-in');
     }
   }, [shouldRedirect, loading, router]);
@@ -113,12 +101,9 @@ export function useBusinessProfile() {
       const { data: { user }, error: userError } = await supabase.auth.getUser();
 
       if (userError || !user) {
-        console.log('❌ useBusinessProfile: No authenticated user');
         setLoading(false);
         return;
       }
-
-      console.log('📊 useBusinessProfile: User found:', user.id);
 
       // Check for business account
       const { data: accounts, error: accountError } = await supabase
@@ -128,17 +113,15 @@ export function useBusinessProfile() {
         .limit(1);
 
       if (accountError) {
-        console.error('❌ useBusinessProfile: Error checking accounts:', accountError);
+        console.error('BusinessProfile: Error checking accounts:', accountError);
         setLoading(false);
         return;
       }
 
       if (accounts && accounts.length > 0) {
-        console.log('✅ useBusinessProfile: Business profile found:', accounts[0].id);
         setHasBusiness(true);
         setBusinessId(accounts[0].id);
       } else {
-        console.log('📊 useBusinessProfile: No account found, setting hasBusiness to false');
         setHasBusiness(false);
         setBusinessId(null);
       }
@@ -146,7 +129,7 @@ export function useBusinessProfile() {
       setLoading(false);
 
     } catch (error) {
-      console.error('💥 useBusinessProfile: Unexpected error:', error);
+      console.error('BusinessProfile: Unexpected error:', error);
       setLoading(false);
     }
   };
@@ -156,7 +139,6 @@ export function useBusinessProfile() {
   }, [refreshCounter]);
 
   const refresh = () => {
-    console.log('🔄 useBusinessProfile: Manual refresh triggered');
     setLoading(true);
     setRefreshCounter(prev => prev + 1);
   };

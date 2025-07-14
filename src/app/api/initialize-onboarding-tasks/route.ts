@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('✅ Authenticated user:', user.id);
+    
 
     // Create a service role client for database operations
     const serviceClient = createServiceRoleClient();
@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log(`✅ Successfully initialized ${defaultTasks.length} default tasks for user ${user.id}`);
+
 
     return NextResponse.json({
       success: true,
