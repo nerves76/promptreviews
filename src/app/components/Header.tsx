@@ -98,6 +98,19 @@ export default function Header() {
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
+        // Check if Supabase client is properly initialized
+        if (!supabase) {
+          console.error('🚨 Header: Supabase client not initialized');
+          return;
+        }
+        
+        // Check if user is authenticated first
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          console.log('🔔 Header: No active session, skipping notifications fetch');
+          return;
+        }
+        
         // Calculate 7 days ago with validation
         const now = new Date();
         const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);

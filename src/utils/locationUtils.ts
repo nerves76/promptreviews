@@ -192,3 +192,13 @@ export function createLocationPromptPageData(location: {
     ai_review_enabled: location.ai_review_enabled !== false,
   };
 } 
+
+// Function to check if a location name is unique
+export async function isLocationNameUnique(name: string): Promise<boolean> {
+  const { data: existingLocation } = await supabase
+    .from('business_locations')
+    .select('id')
+    .eq('name', name)
+    .single();
+  return !existingLocation;
+} 

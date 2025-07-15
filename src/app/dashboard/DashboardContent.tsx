@@ -31,6 +31,12 @@ import GettingStarted from "../components/GettingStarted";
 import { useRouter } from "next/navigation";
 import AppLoader from "@/app/components/AppLoader";
 import React from "react";
+import StarfallCelebration from "@/app/components/StarfallCelebration";
+import { getAccountIdForUser } from "@/utils/accountUtils";
+import BusinessLocationModal from "@/app/components/BusinessLocationModal";
+import { BusinessLocation } from "@/types/business";
+import { hasLocationAccess, formatLocationAddress, getLocationDisplayName } from "@/utils/locationUtils";
+import EmojiEmbedButton from "@/app/components/EmojiEmbedButton";
 
 interface DashboardContentProps {
   userName: string;
@@ -641,6 +647,12 @@ export default function DashboardContent({
                           <MdDownload size={22} color="#b45309" />
                           QR code
                         </button>
+                        
+                        {/* Emoji Embed Button - only show when sentiment flow is enabled */}
+                        {universalPromptPage?.emoji_sentiment_enabled && universalPromptPage?.slug && (
+                          <EmojiEmbedButton slug={universalPromptPage.slug} />
+                        )}
+                        
                         <button
                           type="button"
                           onClick={() => {

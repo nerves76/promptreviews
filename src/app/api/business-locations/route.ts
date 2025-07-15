@@ -193,6 +193,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if the location name already exists
+    const { data: existingLocation } = await supabase
+      .from('business_locations')
+      .select('id')
+      .eq('name', name)
+      .single();
+
+    if (existingLocation) {
+      return NextResponse.json(
+        { error: 'Location name already exists. Please choose a different name.' },
+        { status: 400 }
+      );
+    }
+
     // Create the location (use service role client to bypass RLS)
     const { data: location, error: createError } = await serviceRoleClient
       .from('business_locations')

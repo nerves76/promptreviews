@@ -382,7 +382,7 @@ export default function IndustrySelector({
               setTouched(true);
             }}
           />{" "}
-          B2B
+          B2B (business-to-business)
         </label>
         <label>
           <input
@@ -395,7 +395,7 @@ export default function IndustrySelector({
               setTouched(true);
             }}
           />{" "}
-          B2C
+          B2C (business-to-customer)
         </label>
         <label>
           <input

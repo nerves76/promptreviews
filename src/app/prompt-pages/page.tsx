@@ -24,6 +24,7 @@ import BusinessLocationModal from "@/app/components/BusinessLocationModal";
 import { BusinessLocation } from "@/types/business";
 import { hasLocationAccess, formatLocationAddress, getLocationDisplayName } from "@/utils/locationUtils";
 import { FaQuestionCircle } from "react-icons/fa";
+import EmojiEmbedButton from "@/app/components/EmojiEmbedButton";
 
 const StylePage = dynamic(() => import("../dashboard/style/StyleModalPage"), { ssr: false });
 
@@ -495,18 +496,24 @@ export default function PromptPages() {
                         <MdDownload size={22} color="#b45309" />
                         QR code
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const businessName = business?.name || "your business";
-                          const reviewUrl = `${window.location.origin}/r/${universalPromptPage.slug}`;
-                          const message = `Hi! I'd love to get your feedback on ${businessName}. Please leave a review here: ${reviewUrl}`;
-                          window.location.href = `sms:?&body=${encodeURIComponent(message)}`;
-                        }}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-100 text-green-800 rounded hover:bg-green-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
-                      >
-                        Send SMS
-                      </button>
+                        
+                        {/* Emoji Embed Button - only show when sentiment flow is enabled */}
+                        {universalPromptPage?.emoji_sentiment_enabled && universalPromptPage?.slug && (
+                          <EmojiEmbedButton slug={universalPromptPage.slug} />
+                        )}
+                        
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const businessName = business?.name || "your business";
+                            const reviewUrl = `${window.location.origin}/r/${universalPromptPage.slug}`;
+                            const message = `Hi! I'd love to get your feedback on ${businessName}. Please leave a review here: ${reviewUrl}`;
+                            window.location.href = `sms:?&body=${encodeURIComponent(message)}`;
+                          }}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-100 text-green-800 rounded hover:bg-green-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
+                        >
+                          Send SMS
+                        </button>
                       <button
                         type="button"
                         onClick={() => {
@@ -676,6 +683,14 @@ export default function PromptPages() {
                                   >
                                     <FaLink className="w-4 h-4" />
                                   </button>
+                                  
+                                  {/* Emoji Embed Button - only show when sentiment flow is enabled */}
+                                  {(location.emoji_sentiment_enabled || locationPage?.emoji_sentiment_enabled) && locationPage?.slug && (
+                                    <div className="flex items-center">
+                                      <EmojiEmbedButton slug={locationPage.slug} />
+                                    </div>
+                                  )}
+                                  
                                   <button
                                     type="button"
                                     onClick={() => {

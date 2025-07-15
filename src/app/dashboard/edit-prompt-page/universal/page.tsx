@@ -330,6 +330,7 @@ export default function UniversalEditPromptPage() {
             initialData={initialData}
             showResetButton={showResetButton}
             businessReviewPlatforms={businessReviewPlatforms}
+            slug={slug}
           />
         )}
         {!isLoading && !error && !initialData && (

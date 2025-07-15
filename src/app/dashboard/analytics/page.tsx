@@ -108,6 +108,8 @@ export default function AnalyticsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const [locationNames, setLocationNames] = useState<string[]>([]);
+  const [filter, setFilter] = useState<'all' | 'universal' | string>('all');
 
   useEffect(() => {
     const fetchPromptPages = async () => {
@@ -130,6 +132,27 @@ export default function AnalyticsPage() {
     };
     fetchPromptPages();
   }, [supabase]);
+
+  useEffect(() => {
+    const fetchLocationNames = async () => {
+      try {
+        const { data: locations, error } = await supabase
+          .from('business_locations')
+          .select('name');
+        if (error) throw error;
+        setLocationNames(locations.map((loc: any) => loc.name));
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : 'Failed to load location names',
+        );
+      }
+    };
+    fetchLocationNames();
+  }, [supabase]);
+
+  const handleFilterChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setFilter(event.target.value);
+  };
 
   useEffect(() => {
     const loadAnalytics = async () => {
@@ -230,6 +253,8 @@ export default function AnalyticsPage() {
           const eventDate = new Date(e.created_at);
           if (startDate && eventDate < startDate) return false;
           if (endDate && eventDate > endDate) return false;
+          if (filter === 'universal' && !e.is_universal) return false;
+          if (filter !== 'all' && filter !== 'universal' && e.location_name !== filter) return false;
           return true;
         });
 
@@ -383,7 +408,7 @@ export default function AnalyticsPage() {
       }
     };
     loadAnalytics();
-  }, [promptPages, timeRange, router]);
+  }, [promptPages, timeRange, router, filter]);
 
   if (isLoading) {
     return (
@@ -440,6 +465,25 @@ export default function AnalyticsPage() {
           <option value="thisMonth">This month</option>
           <option value="thisWeek">This week</option>
           <option value="lastWeek">Last week</option>
+        </select>
+      </div>
+
+      <div className="filter-container">
+        <label htmlFor="filter" className="block text-sm font-medium text-gray-700">
+          Filter by:
+        </label>
+        <select
+          id="filter"
+          name="filter"
+          value={filter}
+          onChange={handleFilterChange}
+          className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-slate-blue focus:border-slate-blue sm:text-sm rounded-md"
+        >
+          <option value="all">All</option>
+          <option value="universal">Universal prompt page</option>
+          {locationNames.map((name) => (
+            <option key={name} value={name}>{name}</option>
+          ))}
         </select>
       </div>
 
