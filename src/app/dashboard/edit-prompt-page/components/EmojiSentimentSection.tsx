@@ -26,8 +26,8 @@ interface EmojiSentimentSectionProps {
   onFeedbackMessageChange: (message: string) => void;
   thankYouMessage: string;
   onThankYouMessageChange: (message: string) => void;
-  emojiLabels: string[];
-  onEmojiLabelsChange: (labels: string[]) => void;
+  emojiLabels?: string[];
+  onEmojiLabelsChange?: (labels: string[]) => void;
   headerColor?: string;
   onHeaderColorChange?: (color: string) => void;
   buttonColor?: string;
@@ -37,6 +37,11 @@ interface EmojiSentimentSectionProps {
   promptPageId?: string;
   onEmojiEmbed?: (emoji: string) => void;
   slug?: string;
+  feedbackPopupHeader?: string;
+  onFeedbackPopupHeaderChange?: (header: string) => void;
+  feedbackPageHeader?: string;
+  onFeedbackPageHeaderChange?: (header: string) => void;
+  disabled?: boolean;
 }
 
 const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({

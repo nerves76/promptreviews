@@ -165,7 +165,7 @@ export default function SimpleBusinessForm({
   const [success, setSuccess] = useState("");
   const [industryType, setIndustryType] = useState<"B2B" | "B2C" | "Both">("Both");
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
   };

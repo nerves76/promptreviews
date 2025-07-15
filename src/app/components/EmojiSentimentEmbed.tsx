@@ -110,9 +110,7 @@ const EmojiSentimentEmbed: React.FC<EmojiSentimentEmbedProps> = ({
               style={{ 
                 fontSize: '10px', 
                 backgroundColor: '#f8fafc', 
-                color: '#2E4A7D',
-                '--hover-bg': '#2E4A7D',
-                '--hover-color': '#f8fafc'
+                color: '#2E4A7D'
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = '#2E4A7D';
@@ -167,9 +165,7 @@ const EmojiSentimentEmbed: React.FC<EmojiSentimentEmbedProps> = ({
               style={{ 
                 fontSize: '10px', 
                 backgroundColor: '#f8fafc', 
-                color: '#2E4A7D',
-                '--hover-bg': '#2E4A7D',
-                '--hover-color': '#f8fafc'
+                color: '#2E4A7D'
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = '#2E4A7D';
