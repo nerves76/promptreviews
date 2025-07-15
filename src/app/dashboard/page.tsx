@@ -162,15 +162,27 @@ export default function Dashboard() {
         (async () => {
           try {
             console.log('🔍 Dashboard: Attempting to fetch widget_reviews...');
+            // First get the widget IDs for this account
+            const widgetIdsResult = await supabase
+              .from("widgets")
+              .select("id")
+              .eq("account_id", account.id);
+            
+            if (widgetIdsResult.error) {
+              console.error("Error fetching widget IDs:", widgetIdsResult.error);
+              return;
+            }
+            
+            const widgetIds = widgetIdsResult.data?.map(w => w.id) || [];
+            
+            if (widgetIds.length === 0) {
+              return; // No widgets, no reviews to check
+            }
+            
             const result = await supabase
               .from("widget_reviews")
               .select("id, verified")
-              .in("widget_id", 
-                supabase
-                  .from("widgets")
-                  .select("id")
-                  .eq("account_id", account.id)
-              );
+              .in("widget_id", widgetIds);
             
             if (result.error) {
               console.error('❌ Dashboard: widget_reviews query failed:', result.error);
@@ -191,7 +203,7 @@ export default function Dashboard() {
       // Process results with better error handling
       const promptPages = promptPagesResult.status === 'fulfilled' ? promptPagesResult.value.data || [] : [];
       const widgets = widgetsResult.status === 'fulfilled' ? widgetsResult.value.data || [] : [];
-      const reviews = reviewsResult.status === 'fulfilled' ? reviewsResult.value.data || [] : [];
+      const reviews = reviewsResult.status === 'fulfilled' ? (reviewsResult.value?.data || []) : [];
       const limits = limitsResult.status === 'fulfilled' ? limitsResult.value : null;
 
       // Log any failed results
