@@ -194,7 +194,7 @@ export function createLocationPromptPageData(location: {
 } 
 
 // Function to check if a location name is unique
-export async function isLocationNameUnique(name: string): Promise<boolean> {
+export async function isLocationNameUnique(supabase: any, name: string): Promise<boolean> {
   const { data: existingLocation } = await supabase
     .from('business_locations')
     .select('id')
