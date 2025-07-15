@@ -1019,6 +1019,8 @@ export default function EditPromptPage() {
           pageTitle="Edit Product Prompt Page"
           supabase={supabase}
           businessProfile={businessProfile}
+          accountId={accountId}
+          slug={formData.slug}
         />
       </PageCard>
     );
@@ -1076,6 +1078,7 @@ export default function EditPromptPage() {
           showResetButton={showResetButton}
           businessReviewPlatforms={businessReviewPlatforms}
           onGenerateReview={handleGenerateAIReview}
+          slug={formData.slug}
         />
       </PageCard>
     );

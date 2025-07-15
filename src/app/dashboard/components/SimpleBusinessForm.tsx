@@ -189,7 +189,7 @@ export default function SimpleBusinessForm({
     }
 
     // Check if all required fields are filled
-    const requiredFields = ['name', 'business_email', 'address_street', 'address_city', 'address_state', 'address_zip', 'address_country'];
+    const requiredFields = ['name', 'business_email', 'address_city', 'address_state', 'address_zip', 'address_country'];
     const missingFields = requiredFields.filter(field => !form[field as keyof typeof form]);
     
     if (missingFields.length > 0) {
@@ -365,13 +365,16 @@ export default function SimpleBusinessForm({
         
         <div className="mb-4">
           <label className="block font-semibold text-sm text-gray-500 mb-1">
-            Business address
+            Business location
           </label>
+          <p className="text-xs text-gray-500 mb-3 italic">
+            You do not need to have a street address listed, but knowing your approximate location can help Prompty AI.
+          </p>
           <label
             className="block text-xs font-medium text-gray-500 mb-1"
             htmlFor="address_street"
           >
-            Street address
+            Street address (optional)
           </label>
           <input
             type="text"
@@ -380,11 +383,10 @@ export default function SimpleBusinessForm({
             className="w-full border px-3 py-2 rounded mb-4"
             value={form.address_street || ""}
             onChange={handleChange}
-            required
-            placeholder="Street address"
+            placeholder="Street address (optional)"
           />
-          <div className="flex gap-2 mb-2">
-            <div className="flex flex-col w-32">
+          <div className="flex flex-col md:flex-row gap-2 mb-2">
+            <div className="flex flex-col flex-1">
               <label
                 className="block text-xs font-medium text-gray-500 mb-1 flex items-center gap-1"
                 htmlFor="address_city"
@@ -403,13 +405,13 @@ export default function SimpleBusinessForm({
                 placeholder="City"
               />
             </div>
-            <div className="flex flex-col w-20">
+            <div className="flex flex-col flex-1">
               <label
                 className="block text-xs font-medium text-gray-500 mb-1 flex items-center gap-1"
                 htmlFor="address_state"
               >
-                State *
-                <RobotTooltip text="Your business state location. This information is made available for AI prompt generation." />
+                State/Province *
+                <RobotTooltip text="Your business state or province location. This information is made available for AI prompt generation." />
               </label>
               <input
                 type="text"
@@ -419,16 +421,16 @@ export default function SimpleBusinessForm({
                 value={form.address_state || ""}
                 onChange={handleChange}
                 required
-                placeholder="State"
+                placeholder="State/Province"
               />
             </div>
-            <div className="flex flex-col w-24">
+            <div className="flex flex-col flex-1">
               <label
                 className="block text-xs font-medium text-gray-500 mb-1 flex items-center gap-1"
                 htmlFor="address_zip"
               >
-                Zip *
-                <RobotTooltip text="Your business zip code. This information is made available for AI prompt generation." />
+                ZIP/Postal Code *
+                <RobotTooltip text="Your business zip or postal code. This information is made available for AI prompt generation." />
               </label>
               <input
                 type="text"
@@ -438,7 +440,7 @@ export default function SimpleBusinessForm({
                 value={form.address_zip || ""}
                 onChange={handleChange}
                 required
-                placeholder="ZIP"
+                placeholder="ZIP/Postal Code"
               />
             </div>
           </div>
@@ -448,16 +450,40 @@ export default function SimpleBusinessForm({
           >
             Country *
           </label>
-          <input
-            type="text"
+          <select
             id="address_country"
             name="address_country"
             className="w-full border px-3 py-2 rounded"
             value={form.address_country || ""}
             onChange={handleChange}
             required
-            placeholder="Country"
-          />
+          >
+            <option value="">Select a country</option>
+            <option value="United States">United States</option>
+            <option value="Canada">Canada</option>
+            <option value="United Kingdom">United Kingdom</option>
+            <option value="Australia">Australia</option>
+            <option value="New Zealand">New Zealand</option>
+            <option value="Ireland">Ireland</option>
+            <option value="South Africa">South Africa</option>
+            <option value="India">India</option>
+            <option value="Singapore">Singapore</option>
+            <option value="Hong Kong">Hong Kong</option>
+            <option value="Philippines">Philippines</option>
+            <option value="Malaysia">Malaysia</option>
+            <option value="Nigeria">Nigeria</option>
+            <option value="Kenya">Kenya</option>
+            <option value="Ghana">Ghana</option>
+            <option value="Uganda">Uganda</option>
+            <option value="Tanzania">Tanzania</option>
+            <option value="Zimbabwe">Zimbabwe</option>
+            <option value="Zambia">Zambia</option>
+            <option value="Botswana">Botswana</option>
+            <option value="Namibia">Namibia</option>
+            <option value="Mauritius">Mauritius</option>
+            <option value="Seychelles">Seychelles</option>
+            <option value="Other">Other</option>
+          </select>
         </div>
         
         {/* Industry Selector Integration */}

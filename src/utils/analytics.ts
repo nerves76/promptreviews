@@ -175,3 +175,19 @@ export const trackError = (error: Error | string, context?: Record<string, any>)
     timestamp: new Date().toISOString(),
   });
 }; 
+
+// Add a function to track emoji sentiment clicks
+/**
+ * Track emoji sentiment click events
+ * @param sentiment - The sentiment of the emoji clicked (e.g., excellent, satisfied)
+ * @param promptPage - The identifier for the Universal prompt page
+ * @param businessLocation - The identifier for the business location
+ */
+export const trackEmojiSentimentClick = (sentiment: string, promptPage: string, businessLocation: string) => {
+  trackEvent('emoji_sentiment_click', {
+    sentiment,
+    promptPage,
+    businessLocation,
+    timestamp: new Date().toISOString(),
+  });
+}; 

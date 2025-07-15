@@ -49,6 +49,7 @@ interface ServicePromptPageFormProps {
   showResetButton?: boolean;
   businessReviewPlatforms?: ReviewWritePlatform[];
   onGenerateReview: (idx: number) => void;
+  slug?: string;
 }
 
 const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
@@ -60,6 +61,7 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
       showResetButton,
       businessReviewPlatforms = [],
       onGenerateReview,
+      slug,
     },
     ref,
   ) => {
@@ -281,6 +283,7 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
             onFeedbackMessageChange={setEmojiFeedbackMessage}
             thankYouMessage={emojiThankYouMessage}
             onThankYouMessageChange={setEmojiThankYouMessage}
+            slug={slug}
             disabled={!!notePopupEnabled}
           />
           {/* AI Review Generation Toggle */}

@@ -1,3 +1,10 @@
+/**
+ * Emoji Sentiment Modal Component
+ * 
+ * This component displays a modal with emoji sentiment options for users to select.
+ * It renders Font Awesome icons and handles user interaction for sentiment selection.
+ */
+
 import React, { useState, useEffect } from "react";
 import {
   EMOJI_SENTIMENT_LABELS,
@@ -6,7 +13,6 @@ import {
   EMOJI_SENTIMENT_SUBTEXT,
   EMOJI_SENTIMENT_NOTE,
 } from "./prompt-modules/emojiSentimentConfig";
-import { FaSmile } from "react-icons/fa";
 
 interface EmojiSentimentModalProps {
   open: boolean;
@@ -19,6 +25,8 @@ interface EmojiSentimentModalProps {
   headerColor?: string;
   buttonColor?: string;
   fontFamily?: string;
+  promptPageId?: string;
+  onEmojiEmbed?: (emoji: string, sentiment: string) => void;
 }
 
 const EmojiSentimentModal: React.FC<EmojiSentimentModalProps> = ({
@@ -32,6 +40,8 @@ const EmojiSentimentModal: React.FC<EmojiSentimentModalProps> = ({
   headerColor = "#4F46E5",
   buttonColor = "#4F46E5",
   fontFamily = "Inter",
+  promptPageId,
+  onEmojiEmbed,
 }) => {
   const [selected, setSelected] = useState<number | null>(0);
   const [feedback, setFeedback] = useState("");
@@ -60,39 +70,52 @@ const EmojiSentimentModal: React.FC<EmojiSentimentModalProps> = ({
         <div className="flex justify-center gap-6 my-8 select-none">
           {emojiLabels.map((label, i) => {
             const iconDef = EMOJI_SENTIMENT_ICONS[i];
-            const Icon = iconDef?.icon || EMOJI_SENTIMENT_ICONS[1].icon;
+            const IconComponent = iconDef?.icon || EMOJI_SENTIMENT_ICONS[1].icon;
             const color = iconDef?.color || "text-gray-400";
             return (
               <button
                 key={i}
                 className={`flex flex-col items-center focus:outline-none ${selected === i ? "scale-110" : ""}`}
-                onClick={() => setSelected(i)}
+                onClick={() => {
+                  setSelected(i);
+                  // Immediately trigger the action when emoji is clicked
+                  const sentiment = label.toLowerCase();
+                  
+                  // Track emoji selection for analytics
+                  if (promptPageId) {
+                    fetch("/api/track-event", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        event: 'emoji_sentiment_selected',
+                        sentiment: sentiment,
+                        promptPageId: promptPageId,
+                        source: 'modal_interaction'
+                      }),
+                    }).catch(() => {
+                      // Silently fail if analytics tracking fails
+                    });
+                  }
+                  
+                  onPositive && onPositive(sentiment);
+                  onClose();
+                }}
                 disabled={submitted}
                 aria-label={label}
                 type="button"
               >
-                <Icon
+                <IconComponent
                   className={`w-12 h-12 ${color} ${selected === i ? "ring-2 ring-blue-400" : ""}`}
+                  style={{ filter: selected === i ? "drop-shadow(0 0 8px rgba(59, 130, 246, 0.5))" : "none" }}
                 />
                 <span className="text-sm mt-2 text-gray-700">{label}</span>
               </button>
             );
           })}
         </div>
-        {/* Feedback/Continue logic */}
+        {/* Emoji click immediately triggers action */}
         <div className="mt-8 text-center">
-          <button
-            className="px-8 py-3 rounded-lg font-bold text-lg shadow-lg text-white hover:opacity-90 focus:outline-none transition"
-            style={{ backgroundColor: buttonColor }}
-            onClick={() => {
-              if (selected !== null) {
-                onPositive && onPositive(emojiLabels[selected].toLowerCase());
-              }
-              onClose();
-            }}
-          >
-            Continue
-          </button>
+          {/* No buttons - clicking emojis immediately triggers the action */}
         </div>
       </div>
     </div>

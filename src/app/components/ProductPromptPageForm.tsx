@@ -958,7 +958,7 @@ export default function ProductPromptPageForm({
                   emojiThankYouMessage: val,
                 }))
               }
-
+              slug={formData.slug}
               disabled={!!notePopupEnabled}
             />
             <DisableAIGenerationSection

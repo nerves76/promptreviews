@@ -176,8 +176,8 @@ export default function PromptPageForm({
   // Ensure slug is set for the View button
   useEffect(() => {
     if (!formData.slug) {
-      // Try to get slug from initialData or from the URL
-      let slug = initialData.slug;
+      // Try to get slug from initialData, props, or from the URL
+      let slug = initialData.slug || rest.slug;
       if (!slug && typeof window !== "undefined") {
         // Try to extract slug from the pathname (e.g. /dashboard/edit-prompt-page/universal-foo)
         const match = window.location.pathname.match(/edit-prompt-page\/(.+)$/);
@@ -189,7 +189,7 @@ export default function PromptPageForm({
         setFormData((prev: any) => ({ ...prev, slug }));
       }
     }
-  }, [formData.slug, initialData.slug]);
+  }, [formData.slug, initialData.slug, rest.slug]);
 
 
   const [formError, setFormError] = useState<string | null>(null);
@@ -1139,15 +1139,15 @@ export default function PromptPageForm({
                 )}
               </div>
               {/* Emoji Sentiment Section (modular) */}
-                          <EmojiSentimentSection
-              enabled={emojiSentimentEnabled}
-              onToggle={() => {
-                if (notePopupEnabled) {
-                  setShowPopupConflictModal("emoji");
-                  return;
-                }
-                setEmojiSentimentEnabled((v: boolean) => !v);
-              }}
+              <EmojiSentimentSection
+                enabled={emojiSentimentEnabled}
+                onToggle={() => {
+                  if (notePopupEnabled) {
+                    setShowPopupConflictModal("emoji");
+                    return;
+                  }
+                  setEmojiSentimentEnabled((v: boolean) => !v);
+                }}
                 question={emojiSentimentQuestion}
                 onQuestionChange={setEmojiSentimentQuestion}
                 feedbackMessage={emojiFeedbackMessage}
@@ -1159,7 +1159,7 @@ export default function PromptPageForm({
                     emojiThankYouMessage: val,
                   }))
                 }
-
+                slug={formData.slug}
                 disabled={!!notePopupEnabled}
               />
               {/* AI Generation Toggle (modular) */}
@@ -1668,7 +1668,7 @@ export default function PromptPageForm({
                   emojiThankYouMessage: val,
                 }))
               }
-
+              slug={formData.slug}
               disabled={!!notePopupEnabled}
             />
             {/* AI Generation Toggle (modular) */}

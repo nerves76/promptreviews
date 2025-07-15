@@ -7,7 +7,7 @@ import {
   useLayoutEffect,
   useCallback,
 } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import SocialMediaIcons from "@/app/components/SocialMediaIcons";
 import { Button } from "@/app/components/ui/button";
 import { Textarea } from "@/app/components/ui/textarea";
@@ -81,6 +81,7 @@ import FontLoader from "../../components/FontLoader";
 import { getFontClass } from "./utils/fontUtils";
 import { getPlatformIcon, splitName, sendAnalyticsEvent, isOffWhiteOrCream } from "./utils/helperFunctions";
 import { sentimentOptions } from "./utils/sentimentConfig";
+import { EMOJI_SENTIMENT_ICONS } from "@/app/components/prompt-modules/emojiSentimentConfig";
 
 const StyleModalPage = dynamic(() => import("../../dashboard/style/StyleModalPage"), { ssr: false });
 
@@ -164,6 +165,7 @@ export default function PromptPage() {
 
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const [promptPage, setPromptPage] = useState<any>(null);
   const [businessProfile, setBusinessProfile] = useState<BusinessProfile>({
     name: "",
@@ -987,23 +989,42 @@ export default function PromptPage() {
     }
   };
 
-  // Show modal on load if enabled
+  // Handle URL parameters for emoji sentiment flow
   useEffect(() => {
-    console.log(
-      "PromptPage.emoji_sentiment_enabled:",
-      promptPage?.emoji_sentiment_enabled,
-      "PromptPage.emoji_sentiment_question:",
-      promptPage?.emoji_sentiment_question,
-    );
+    const emojiStep = searchParams.get('emoji_step');
+    const emojiSentiment = searchParams.get('emoji_sentiment');
+    const source = searchParams.get('source');
+    
     if (promptPage?.emoji_sentiment_enabled) {
-      setShowSentimentModal(true);
-      setSentiment("love");
+      // If URL has emoji_step=2 OR emoji_sentiment with source=embed, skip the sentiment modal
+      if ((emojiStep === '2' && emojiSentiment) || (emojiSentiment && source === 'embed')) {
+        setSentiment(emojiSentiment);
+        setSentimentComplete(true);
+        
+        // If it's a negative sentiment, show the choice modal
+        if (["neutral", "unsatisfied", "frustrated"].includes(emojiSentiment)) {
+          setSelectedNegativeSentiment(emojiSentiment);
+          setShowChoiceModal(true);
+        }
+        
+        // Track the emoji selection for analytics
+        sendAnalyticsEvent({
+          event: 'emoji_sentiment_selected',
+          sentiment: emojiSentiment,
+          promptPageId: promptPage?.id,
+          source: source || 'url_parameter'
+        });
+      } else {
+        // Normal flow - show sentiment modal
+        setShowSentimentModal(true);
+        setSentiment("love");
+      }
     } else {
       // If emoji sentiment is disabled, set sentimentComplete to true immediately
       // so that review platforms are shown without requiring sentiment interaction
       setSentimentComplete(true);
     }
-  }, [promptPage]);
+  }, [promptPage, searchParams]);
 
   // Merge logic: use promptPage value if set, otherwise businessProfile default
   const mergedOfferEnabled =
@@ -1076,6 +1097,14 @@ export default function PromptPage() {
       setTimeout(() => setShowStarRain(true), 50);
     }
   }, [promptPage, mergedFallingEnabled, sentimentComplete, sentiment]);
+
+  // Function to generate direct links to emoji sentiment step 2
+  const generateEmojiStep2Link = (sentiment: string) => {
+    const currentUrl = new URL(window.location.href);
+    currentUrl.searchParams.set('emoji_step', '2');
+    currentUrl.searchParams.set('emoji_sentiment', sentiment);
+    return currentUrl.toString();
+  };
 
   // Hide Save text on mobile when scrolling down
   useEffect(() => {
@@ -1934,8 +1963,9 @@ export default function PromptPage() {
             }
           }}
           headerColor={businessProfile?.primary_color || "#4F46E5"}
-                            buttonColor={businessProfile?.secondary_color || "#4F46E5"}
+          buttonColor={businessProfile?.secondary_color || "#4F46E5"}
           fontFamily={businessProfile?.primary_font || "Inter"}
+          promptPageId={promptPage?.id}
         />
       )}
       

@@ -164,8 +164,13 @@ export default function Dashboard() {
             console.log('🔍 Dashboard: Attempting to fetch widget_reviews...');
             const result = await supabase
               .from("widget_reviews")
-              .select("id, is_verified")
-              .eq("account_id", account.id);
+              .select("id, verified")
+              .in("widget_id", 
+                supabase
+                  .from("widgets")
+                  .select("id")
+                  .eq("account_id", account.id)
+              );
             
             if (result.error) {
               console.error('❌ Dashboard: widget_reviews query failed:', result.error);
@@ -219,7 +224,7 @@ export default function Dashboard() {
         stats.total.week++;
         stats.total.month++;
         stats.total.year++;
-        if (review.is_verified) {
+        if (review.verified) {
           stats.verified.week++;
           stats.verified.month++;
           stats.verified.year++;
@@ -248,11 +253,15 @@ export default function Dashboard() {
     }
   }, [user?.id, user?.email, account?.id, supabase]);
 
+  // Add a ref to track if businessCreated param was handled
+  const businessCreatedHandled = useRef(false);
+
   // Load dashboard data when auth is ready
   useEffect(() => {
     if (authLoading || accountLoading) return;
     if (!isAuthenticated || !user || !account) return;
-    
+    // Prevent double load if businessCreated was just handled
+    if (businessCreatedHandled.current) return;
     loadDashboardSpecificData();
     loadBusinessesData();
   }, [authLoading, accountLoading, isAuthenticated, user?.id, account?.id]);
@@ -426,6 +435,8 @@ export default function Dashboard() {
       
       // Force refresh of dashboard data after business creation
       if (user?.id) {
+        // Set flag to prevent double load
+        businessCreatedHandled.current = true;
         // Refresh both AuthContext data and dashboard-specific data
         Promise.all([
           refreshAuth(),
@@ -648,8 +659,13 @@ export default function Dashboard() {
           console.log("🧹 Cleared modal dismissal flag after grower plan selection");
         }
         
-        // Refresh page to show updated data
-        setTimeout(() => window.location.reload(), 1000);
+        // Instead of window.location.reload(), reload data and update state
+        await Promise.all([
+          refreshAuth(),
+          refreshAccountDetails(),
+          loadDashboardSpecificData()
+        ]);
+        setShowTopLoader(false);
         return;
       }
       

@@ -130,3 +130,6 @@ CREATE TRIGGER update_business_locations_updated_at
     BEFORE UPDATE ON business_locations
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column(); 
+
+ALTER TABLE business_locations
+ADD CONSTRAINT unique_location_name UNIQUE (name); 

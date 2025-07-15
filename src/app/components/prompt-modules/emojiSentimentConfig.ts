@@ -1,8 +1,15 @@
+/**
+ * Emoji Sentiment Configuration
+ * 
+ * This file contains the configuration for the emoji sentiment flow feature.
+ * It defines the labels, Font Awesome icons, and related text for the emoji sentiment interface.
+ */
+
 import { FaGrinHearts, FaSmile, FaMeh, FaFrown, FaAngry } from "react-icons/fa";
 
 export const EMOJI_SENTIMENT_LABELS = [
   "Excellent",
-  "Satisfied",
+  "Satisfied", 
   "Neutral",
   "Unsatisfied",
   "Frustrated",

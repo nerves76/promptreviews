@@ -56,6 +56,7 @@ interface ProductPromptPageFormProps {
   businessReviewPlatforms?: ReviewWritePlatform[];
   onGenerateReview: (idx: number) => void;
   accountId: string;
+  slug?: string;
 }
 
 const ProductPromptPageForm = forwardRef<any, ProductPromptPageFormProps>(
@@ -68,6 +69,7 @@ const ProductPromptPageForm = forwardRef<any, ProductPromptPageFormProps>(
       businessReviewPlatforms = [],
       onGenerateReview,
       accountId,
+      slug,
     },
     ref,
   ) => {
@@ -445,6 +447,7 @@ const ProductPromptPageForm = forwardRef<any, ProductPromptPageFormProps>(
             onFeedbackMessageChange={setEmojiFeedbackMessage}
             thankYouMessage={emojiThankYouMessage}
             onThankYouMessageChange={setEmojiThankYouMessage}
+            slug={slug}
           />
           {/* AI Review Generation Toggle (shared design) */}
           <DisableAIGenerationSection

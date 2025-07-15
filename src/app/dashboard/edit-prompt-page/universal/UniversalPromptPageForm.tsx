@@ -37,6 +37,7 @@ interface UniversalPromptPageFormProps {
   initialData?: Partial<UniversalPromptFormState>;
   showResetButton?: boolean;
   businessReviewPlatforms?: ReviewPlatformLink[];
+  slug?: string;
 }
 
 const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
@@ -47,6 +48,7 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
       initialData,
       showResetButton,
       businessReviewPlatforms = [],
+      slug,
     },
     ref,
   ) => {
@@ -293,6 +295,7 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
           onFeedbackPopupHeaderChange={setEmojiFeedbackPopupHeader}
           feedbackPageHeader={emojiFeedbackPageHeader}
           onFeedbackPageHeaderChange={setEmojiFeedbackPageHeader}
+          slug={slug}
           disabled={!!notePopupEnabled}
         />
         {/* AI Review Generation Toggle */}
