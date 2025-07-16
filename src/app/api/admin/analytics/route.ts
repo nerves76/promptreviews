@@ -85,10 +85,10 @@ export async function GET(request: NextRequest) {
       reviewsThisWeek: reviews?.filter(r => new Date(r.created_at) >= weekAgo).length || 0,
       newUsersThisMonth: accounts?.filter(u => new Date(u.created_at) >= monthAgo).length || 0,
       newBusinessesThisMonth: businesses?.filter(b => new Date(b.created_at) >= monthAgo).length || 0,
-      topPlatforms: [],
-      recentActivity: [],
-      businessGrowth: [],
-      reviewTrends: []
+      topPlatforms: [] as { platform: string; count: number }[],
+      recentActivity: [] as { date: string; reviews: number; users: number }[],
+      businessGrowth: [] as { date: string; count: number }[],
+      reviewTrends: [] as { date: string; count: number }[]
     };
 
     // Calculate platform distribution
@@ -143,8 +143,8 @@ export async function GET(request: NextRequest) {
     });
 
     analyticsData.businessGrowth = Object.entries(growthMap)
-      .map(([month, count]) => ({ month, count }))
-      .sort((a, b) => a.month.localeCompare(b.month));
+      .map(([month, count]) => ({ date: month, count }))
+      .sort((a, b) => a.date.localeCompare(b.date));
 
     // Calculate review trends (last 30 days)
     const trendMap: Record<string, number> = {};

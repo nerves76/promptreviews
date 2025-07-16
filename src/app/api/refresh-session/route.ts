@@ -34,20 +34,20 @@ export async function POST(request: NextRequest) {
     }
     
     // Get the updated user data
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const { data: { user: updatedUser }, error: updatedUserError } = await supabase.auth.getUser();
     
-    if (userError) {
-      console.error('Error getting user:', userError);
+    if (updatedUserError) {
+      console.error('Error getting user:', updatedUserError);
       return NextResponse.json({ error: 'Failed to get user data' }, { status: 500 });
     }
     
     return NextResponse.json({
       success: true,
       user: {
-        id: user?.id,
-        email: user?.email,
-        email_confirmed_at: user?.email_confirmed_at,
-        created_at: user?.created_at
+        id: updatedUser?.id,
+        email: updatedUser?.email,
+        email_confirmed_at: updatedUser?.email_confirmed_at,
+        created_at: updatedUser?.created_at
       },
       session: refreshedSession ? {
         access_token: refreshedSession.access_token ? 'present' : 'missing',
