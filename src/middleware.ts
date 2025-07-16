@@ -127,7 +127,7 @@ export const config = {
     '/api/create-account',
     '/api/delete-user',
     '/api/feedback',
-    '/api/generate-review',
+    // '/api/generate-review', // Removed: Should be publicly accessible for anonymous users
     '/api/generate-reviews',
     '/api/initialize-onboarding-tasks',
     '/api/metadata-templates/:path*',
