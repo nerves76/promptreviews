@@ -666,7 +666,12 @@ export default function PromptPage() {
         });
       }
     } catch (err) {
-      // Optionally show error
+      console.error("AI generation error:", err);
+      setSubmitError(
+        err instanceof Error 
+          ? `AI generation failed: ${err.message}` 
+          : "AI generation failed. Please try again."
+      );
     } finally {
       setAiLoading(null);
     }
@@ -932,7 +937,12 @@ export default function PromptPage() {
       const { text } = await response.json();
       setTestimonial(text);
     } catch (err) {
-      // Optionally show error
+      console.error("Photo testimonial AI generation error:", err);
+      setPhotoError(
+        err instanceof Error 
+          ? `AI generation failed: ${err.message}` 
+          : "AI generation failed. Please try again."
+      );
     } finally {
       setAiLoadingPhoto(false);
     }
