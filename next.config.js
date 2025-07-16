@@ -6,9 +6,9 @@ require("dotenv").config({
 const path = require('path');
 
 const nextConfig = {
-  // Only enable instrumentation in production or when Sentry is explicitly enabled
+  // Instrumentation is now available by default, no config needed
   experimental: {
-    instrumentationHook: process.env.DISABLE_SENTRY !== 'true' && process.env.NODE_ENV === 'production'
+    // instrumentationHook removed - it's deprecated and no longer needed
   },
   
   images: {

@@ -4,8 +4,10 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
+import { createServerClient } from '@supabase/ssr';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { createClient, getUserOrMock } from "./supabaseClient";
+import { getUserSelectedAccountId } from './accountSelection';
 
 export interface AccountUser {
   account_id: string;
@@ -328,6 +330,31 @@ export async function getAccountIdForUser(userId: string, supabaseClient?: any):
       }
     );
 
+    // PRIORITY 0: Check if the user has manually selected an account
+    const selectedAccountId = await getUserSelectedAccountId(userId, client);
+    if (selectedAccountId) {
+      console.log('🎯 User has manually selected account:', selectedAccountId);
+      // Validate that this account still exists and user has access
+      const { data: accountValidation, error: validationError } = await client
+        .from("account_users")
+        .select("account_id, role")
+        .eq("user_id", userId)
+        .eq("account_id", selectedAccountId)
+        .single();
+      
+      if (!validationError && accountValidation) {
+        console.log('✅ Manual selection validated, using account:', selectedAccountId);
+        return selectedAccountId;
+      } else {
+        console.log('❌ Manual selection invalid, falling back to automatic selection');
+        // Clear invalid selection and continue with automatic selection
+        if (typeof window !== 'undefined') {
+          const { clearStoredAccountSelection } = await import('./accountSelection');
+          clearStoredAccountSelection(userId);
+        }
+      }
+    }
+
     // Get ALL account relationships for this user with account details
     const { data: accountUsers, error: accountUserError } = await client
       .from("account_users")
@@ -341,7 +368,7 @@ export async function getAccountIdForUser(userId: string, supabaseClient?: any):
         )
       `)
       .eq("user_id", userId)
-      .order("role", { ascending: true }); // Owner roles come first
+      .order("role", { ascending: true });
 
     if (accountUsers && accountUsers.length > 0) {
       console.log('🔍 Account selection debug for user:', userId);

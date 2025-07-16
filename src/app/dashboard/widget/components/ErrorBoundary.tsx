@@ -4,7 +4,6 @@
  */
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import * as Sentry from '@sentry/nextjs';
 
 interface Props {
   children: ReactNode;
@@ -31,25 +30,38 @@ export class ErrorBoundary extends Component<Props, State> {
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('[DEBUG] Uncaught error:', error, errorInfo);
     
-    // Report error to Sentry
-    const eventId = Sentry.captureException(error, {
-      contexts: {
-        react: {
-          componentStack: errorInfo.componentStack,
-        },
-      },
-      tags: {
-        errorBoundary: 'true',
-        component: 'ErrorBoundary',
-      },
-      extra: {
-        errorInfo,
-        errorBoundaryProps: this.props,
-      },
-    });
-
-    // Update state with error ID for user feedback
-    this.setState({ errorId: eventId });
+    let eventId: string | undefined;
+    
+    // Only report to Sentry in production when enabled
+    if (process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_SENTRY_DSN && process.env.DISABLE_SENTRY !== 'true') {
+      try {
+        // Dynamic import to prevent loading Sentry in disabled environments
+        import('@sentry/nextjs').then((Sentry) => {
+          eventId = Sentry.captureException(error, {
+            contexts: {
+              react: {
+                componentStack: errorInfo.componentStack,
+              },
+            },
+            tags: {
+              errorBoundary: 'true',
+              component: 'ErrorBoundary',
+            },
+            extra: {
+              errorInfo,
+              errorBoundaryProps: this.props,
+            },
+          });
+          
+          // Update state with error ID for user feedback
+          this.setState({ errorId: eventId });
+        }).catch((importError) => {
+          console.warn('Failed to import Sentry for error reporting:', importError);
+        });
+      } catch (sentryError) {
+        console.warn('Error reporting to Sentry:', sentryError);
+      }
+    }
 
     // Call custom error handler if provided
     if (this.props.onError) {

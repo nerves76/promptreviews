@@ -4,10 +4,21 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import * as Sentry from '@sentry/nextjs';
 
 export async function GET(request: NextRequest) {
   try {
+    // Skip Sentry operations in development or when disabled
+    if (process.env.DISABLE_SENTRY === 'true' || process.env.NODE_ENV === 'development') {
+      return NextResponse.json({ 
+        message: 'Sentry testing skipped in development mode',
+        environment: process.env.NODE_ENV,
+        sentryDisabled: process.env.DISABLE_SENTRY === 'true'
+      });
+    }
+
+    // Dynamic import to prevent loading Sentry in disabled environments
+    const Sentry = await import('@sentry/nextjs');
+
     // Add breadcrumb for tracking
     Sentry.addBreadcrumb({
       message: 'Test API route accessed',

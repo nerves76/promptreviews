@@ -11,6 +11,7 @@ import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 import { useAuth } from "@/contexts/AuthContext";
 import { trackEvent, GA_EVENTS } from '../../utils/analytics';
 import PromptReviewsLogo from "@/app/dashboard/components/PromptReviewsLogo";
+import { AccountSwitcher } from './AccountSwitcher';
 
 const CowboyUserIcon = () => {
   const [imageError, setImageError] = useState(false);
@@ -360,8 +361,13 @@ export default function Header() {
             </div>
           </div>
           
-          {/* Right Side - Desktop: Notifications and User Account | Mobile: Hamburger Menu */}
+          {/* Right Side - Desktop: Account Switcher, Notifications and User Account | Mobile: Hamburger Menu */}
           <div className="flex items-center gap-4">
+            {/* Account Switcher - Desktop Only */}
+            <div className="hidden md:flex items-center">
+              <AccountSwitcher />
+            </div>
+            
             {/* Notification Bell - Desktop Only */}
             <div className="hidden md:flex items-center">
               <div className="relative top-1">
@@ -511,6 +517,11 @@ export default function Header() {
             {/* Menu Content */}
             <div className="absolute top-20 left-4 right-4 bg-blue-50 shadow-lg rounded-xl border border-blue-200">
               <div className="px-2 pt-2 pb-3 space-y-1 flex flex-col">
+                {/* Account Switcher - Mobile */}
+                <div className="px-3 py-2">
+                  <AccountSwitcher />
+                </div>
+                
                 <Link
                   href="/dashboard"
                   className={`${
