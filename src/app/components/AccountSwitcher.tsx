@@ -7,7 +7,8 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { useAccountSelection, type UserAccount } from '@/utils/accountSelection';
+import { useAccountSelection } from '@/utils/accountSelectionHooks';
+import { type UserAccount } from '@/utils/accountSelection';
 
 export function AccountSwitcher() {
   const {

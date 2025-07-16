@@ -1,9 +1,8 @@
 /**
- * Account Selection State Management
+ * Account Selection State Management (Server-Safe)
  * Handles user's manual account selection for multi-account support
  */
 
-import { useState, useEffect } from 'react';
 import { createClient } from './supabaseClient';
 
 const SELECTED_ACCOUNT_KEY = 'promptreviews_selected_account';
@@ -17,13 +16,6 @@ export interface UserAccount {
   last_name?: string;
   business_name?: string;
   is_primary?: boolean; // The account that would be selected by default algorithm
-}
-
-export interface AccountSelectionState {
-  selectedAccountId: string | null;
-  availableAccounts: UserAccount[];
-  loading: boolean;
-  error: string | null;
 }
 
 /**
@@ -68,203 +60,50 @@ export function clearStoredAccountSelection(userId: string): void {
 }
 
 /**
- * Fetch all accounts available to a user
+ * Fetch user's available accounts
  */
-export async function fetchUserAccounts(userId: string): Promise<UserAccount[]> {
+export async function fetchUserAccounts(userId: string, supabaseClient?: any): Promise<UserAccount[]> {
   try {
-    const client = createClient();
+    const client = supabaseClient || createClient();
     
-    // Get ALL account relationships for this user with account details
     const { data: accountUsers, error } = await client
       .from("account_users")
       .select(`
-        account_id, 
+        account_id,
         role,
-        accounts (
+        accounts!inner (
           id,
-          plan,
           first_name,
           last_name,
-          business_name
+          business_name,
+          plan
         )
       `)
-      .eq("user_id", userId)
-      .order("role", { ascending: true });
+      .eq("user_id", userId);
 
     if (error) {
       console.error('Error fetching user accounts:', error);
-      throw error;
-    }
-
-    if (!accountUsers || accountUsers.length === 0) {
       return [];
     }
 
-    // Transform the data and determine which would be the primary account
-    const accounts: UserAccount[] = accountUsers.map((au: any) => ({
+    return accountUsers?.map((au: any) => ({
       account_id: au.account_id,
       role: au.role,
-      plan: au.accounts?.plan,
-      first_name: au.accounts?.first_name,
-      last_name: au.accounts?.last_name,
-      business_name: au.accounts?.business_name,
-      is_primary: false // Will be set below
-    }));
-
-    // Apply the same priority logic as getAccountIdForUser to mark primary account
-    let primaryAccountId: string | null = null;
-    
-    // PRIORITY 1: Team accounts with plans
-    const teamAccountWithPlan = accounts.find(acc => 
-      acc.role === 'member' && 
-      acc.plan && 
-      acc.plan !== 'no_plan'
-    );
-    
-    if (teamAccountWithPlan) {
-      primaryAccountId = teamAccountWithPlan.account_id;
-    } else {
-      // PRIORITY 2: Owned accounts with plans
-      const ownedAccountWithPlan = accounts.find(acc => 
-        acc.role === 'owner' && 
-        acc.plan && 
-        acc.plan !== 'no_plan'
-      );
-      
-      if (ownedAccountWithPlan) {
-        primaryAccountId = ownedAccountWithPlan.account_id;
-      } else {
-        // PRIORITY 3: Any team account
-        const anyTeamAccount = accounts.find(acc => acc.role === 'member');
-        if (anyTeamAccount) {
-          primaryAccountId = anyTeamAccount.account_id;
-        } else {
-          // PRIORITY 4: Fallback to first account
-          primaryAccountId = accounts[0]?.account_id || null;
-        }
-      }
-    }
-
-    // Mark the primary account
-    if (primaryAccountId) {
-      const primaryAccount = accounts.find(acc => acc.account_id === primaryAccountId);
-      if (primaryAccount) {
-        primaryAccount.is_primary = true;
-      }
-    }
-
-    return accounts;
+      account_name: au.accounts.business_name || `${au.accounts.first_name} ${au.accounts.last_name}`.trim(),
+      plan: au.accounts.plan,
+      first_name: au.accounts.first_name,
+      last_name: au.accounts.last_name,
+      business_name: au.accounts.business_name,
+    })) || [];
   } catch (error) {
-    console.error('Error in fetchUserAccounts:', error);
-    throw error;
+    console.error('Error fetching user accounts:', error);
+    return [];
   }
 }
 
 /**
- * React hook for managing account selection state
- */
-export function useAccountSelection() {
-  const [state, setState] = useState<AccountSelectionState>({
-    selectedAccountId: null,
-    availableAccounts: [],
-    loading: true,
-    error: null
-  });
-
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-
-  // Load user and accounts
-  useEffect(() => {
-    const loadAccountData = async () => {
-      try {
-        const client = createClient();
-        const { data: { user }, error: userError } = await client.auth.getUser();
-        
-        if (userError || !user) {
-          setState(prev => ({
-            ...prev,
-            loading: false,
-            error: userError?.message || 'User not found'
-          }));
-          return;
-        }
-
-        setCurrentUserId(user.id);
-
-        // Fetch available accounts
-        const accounts = await fetchUserAccounts(user.id);
-        
-        // Get stored selection or use primary account
-        let selectedAccountId = getStoredAccountSelection(user.id);
-        
-        // Validate stored selection exists in available accounts
-        if (selectedAccountId && !accounts.find(acc => acc.account_id === selectedAccountId)) {
-          selectedAccountId = null;
-          clearStoredAccountSelection(user.id);
-        }
-        
-        // If no valid stored selection, use primary account
-        if (!selectedAccountId) {
-          const primaryAccount = accounts.find(acc => acc.is_primary);
-          selectedAccountId = primaryAccount?.account_id || null;
-        }
-
-        setState({
-          selectedAccountId,
-          availableAccounts: accounts,
-          loading: false,
-          error: null
-        });
-
-      } catch (error) {
-        console.error('Error loading account data:', error);
-        setState(prev => ({
-          ...prev,
-          loading: false,
-          error: error instanceof Error ? error.message : 'Failed to load accounts'
-        }));
-      }
-    };
-
-    loadAccountData();
-  }, []);
-
-  // Switch to a different account
-  const switchAccount = (accountId: string) => {
-    if (!currentUserId) return;
-    
-    const account = state.availableAccounts.find(acc => acc.account_id === accountId);
-    if (!account) {
-      console.error('Account not found:', accountId);
-      return;
-    }
-
-    setStoredAccountSelection(currentUserId, accountId);
-    setState(prev => ({
-      ...prev,
-      selectedAccountId: accountId
-    }));
-
-    // Force page reload to refresh all data with new account context
-    window.location.reload();
-  };
-
-  // Get current selected account details
-  const selectedAccount = state.selectedAccountId 
-    ? state.availableAccounts.find(acc => acc.account_id === state.selectedAccountId)
-    : null;
-
-  return {
-    ...state,
-    selectedAccount,
-    switchAccount,
-    hasMultipleAccounts: state.availableAccounts.length > 1
-  };
-}
-
-/**
- * Get the user's selected account ID (used by modified getAccountIdForUser)
- * This version validates that the stored selection is still valid
+ * Get the account ID that should be used for this user
+ * Respects manual selection if valid, otherwise returns null for default algorithm
  */
 export async function getUserSelectedAccountId(userId: string, supabaseClient?: any): Promise<string | null> {
   // Get stored selection
