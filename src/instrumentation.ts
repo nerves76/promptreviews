@@ -17,8 +17,8 @@ export function register() {
     Sentry.init({
       dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
       
-      // Performance monitoring - reduced sampling for better performance
-      tracesSampleRate: 0.2,
+      // Minimal performance monitoring to reduce overhead
+      tracesSampleRate: 0.1, // Reduced from 0.2
       
       // Environment configuration
       environment: process.env.NODE_ENV,
@@ -29,31 +29,36 @@ export function register() {
       // Disable debug mode in all environments for better performance
       debug: false,
       
-      // **DISABLE UNNECESSARY AUTO-INSTRUMENTATIONS**
-      // Only enable instrumentations for technologies actually used
+      // **MINIMAL INTEGRATIONS - ONLY WHAT YOU NEED**
       integrations: [
-        // Keep essential integrations
-        new Sentry.Integrations.Http({ tracing: true }),
+        // Essential error tracking
+        new Sentry.Integrations.Http({ tracing: false }), // Disable HTTP tracing
         new Sentry.Integrations.Console(),
         new Sentry.Integrations.LinkedErrors(),
-        new Sentry.Integrations.RequestData(),
         
-        // PostgreSQL instrumentation (for Supabase)
-        ...(process.env.NODE_ENV === 'production' ? [
-          new Sentry.Integrations.Postgres()
-        ] : []),
+        // Skip all database instrumentations since you use Supabase
+        // Skip Redis, MongoDB, MySQL, etc. since you don't use them
       ],
       
-      // **DISABLE UNUSED AUTO-INSTRUMENTATIONS**
-      // This prevents loading of MongoDB, Redis, MySQL, Hapi, Knex, etc.
+      // **DISABLE ALL AUTO-INSTRUMENTATIONS TO ELIMINATE WARNINGS**
+      defaultIntegrations: false, // This stops the OpenTelemetry spam
       autoInstrumentMiddleware: false,
       autoInstrumentServerFunctions: false,
       
-      // Only instrument what we actually use
-      instrumenter: 'sentry',
-      
-      // Disable automatic instrumentation discovery
-      defaultIntegrations: false,
+      // Only capture what matters
+      beforeSend: (event) => {
+        // Filter out noisy errors
+        const errorMessage = event.exception?.values?.[0]?.value || '';
+        
+        // Skip common non-critical errors
+        if (errorMessage.includes('ResizeObserver loop limit exceeded') ||
+            errorMessage.includes('Non-Error promise rejection captured') ||
+            errorMessage.includes('Script error')) {
+          return null;
+        }
+        
+        return event;
+      },
     });
   } catch (error) {
     console.log('Sentry initialization failed:', error);

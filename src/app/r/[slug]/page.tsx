@@ -12,6 +12,7 @@ import SocialMediaIcons from "@/app/components/SocialMediaIcons";
 import { Button } from "@/app/components/ui/button";
 import { Textarea } from "@/app/components/ui/textarea";
 import { Card } from "@/app/components/ui/card";
+// ⚡ PERFORMANCE: Only import essential icons to reduce bundle size
 import {
   FaStar,
   FaGoogle,
@@ -25,11 +26,8 @@ import {
   FaBookmark,
   FaHome,
   FaEnvelope,
-  FaCommentDots,
   FaStar as FaFavorites,
   FaCalendarAlt,
-  FaBell,
-  FaThumbsUp,
   FaLink,
   FaImage,
   FaCamera,
@@ -38,17 +36,6 @@ import {
   FaFrown,
   FaAngry,
   FaGrinHearts,
-  FaBolt,
-  FaCoffee,
-  FaWrench,
-  FaRainbow,
-  FaGlassCheers,
-  FaDumbbell,
-  FaPagelines,
-  FaPeace,
-  FaBicycle,
-  FaAnchor,
-  FaGripLines,
   FaPalette,
   FaCopy,
 } from "react-icons/fa";
@@ -56,9 +43,6 @@ import { IconType } from "react-icons";
 import ReviewSubmissionForm from "@/components/ReviewSubmissionForm";
 import { useReviewer } from "@/contexts/ReviewerContext";
 import AppLoader from "@/app/components/AppLoader";
-import OfferCard from "../../components/OfferCard";
-import offerConfig from "@/app/components/prompt-modules/offerConfig";
-import EmojiSentimentModal from "@/app/components/EmojiSentimentModal";
 import FiveStarSpinner from "@/app/components/FiveStarSpinner";
 import PromptReviewsLogo from "@/app/dashboard/components/PromptReviewsLogo";
 import PageCard from "@/app/components/PageCard";
@@ -69,6 +53,19 @@ import dynamic from "next/dynamic";
 // 🔧 CONSOLIDATED: Single import from supabaseClient module
 import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 import { getAccountIdForUser } from "@/utils/accountUtils";
+import offerConfig from "@/app/components/prompt-modules/offerConfig";
+
+// ⚡ PERFORMANCE: Dynamic imports for heavy React components only
+const OfferCard = dynamic(() => import("../../components/OfferCard"), { 
+  ssr: false,
+  loading: () => <div className="h-32 bg-gray-100 animate-pulse rounded-lg" />
+});
+const EmojiSentimentModal = dynamic(() => import("@/app/components/EmojiSentimentModal"), { 
+  ssr: false 
+});
+const StyleModalPage = dynamic(() => import("../../dashboard/style/StyleModalPage"), { 
+  ssr: false 
+});
 
 // Import our extracted components
 import BusinessInfoCard from "./components/BusinessInfoCard";
@@ -82,8 +79,6 @@ import { getFontClass } from "./utils/fontUtils";
 import { getPlatformIcon, splitName, sendAnalyticsEvent, isOffWhiteOrCream } from "./utils/helperFunctions";
 import { sentimentOptions } from "./utils/sentimentConfig";
 import { EMOJI_SENTIMENT_ICONS } from "@/app/components/prompt-modules/emojiSentimentConfig";
-
-const StyleModalPage = dynamic(() => import("../../dashboard/style/StyleModalPage"), { ssr: false });
 
 interface StyleSettings {
   name: string;
@@ -284,6 +279,25 @@ export default function PromptPage() {
     }
   }, []);
 
+  // ⚡ PERFORMANCE: Prefetch API endpoint as soon as component mounts
+  useEffect(() => {
+    const slug = params.slug as string;
+    if (slug) {
+      // Add prefetch hint to browser for the API endpoint
+      const link = document.createElement('link');
+      link.rel = 'prefetch';
+      link.href = `/api/prompt-pages/${slug}`;
+      document.head.appendChild(link);
+
+      // Cleanup function to remove the prefetch link
+      return () => {
+        if (document.head.contains(link)) {
+          document.head.removeChild(link);
+        }
+      };
+    }
+  }, [params.slug]);
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -291,68 +305,46 @@ export default function PromptPage() {
       const slug = params.slug as string;
 
       try {
-        // Log Supabase configuration (without sensitive data)
-        console.log("Supabase configuration:", {
-          url: process.env.NEXT_PUBLIC_SUPABASE_URL ? "set" : "not set",
-          anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? "set" : "not set"
-        });
-
-        // First query - Get prompt page via API to bypass RLS
-        try {
-          console.log("Fetching prompt page via API for slug:", slug);
-          
-          const promptResponse = await fetch(`/api/prompt-pages/${slug}`);
-          
-          if (!promptResponse.ok) {
-            if (promptResponse.status === 404) {
-              setError(`Page not found: ${slug}`);
-              setLoading(false);
-              return;
-            }
-            throw new Error(`Failed to fetch prompt page: ${promptResponse.statusText}`);
+        console.log("Fetching prompt page and business data for slug:", slug);
+        
+        // ⚡ PERFORMANCE: Single API call to get both prompt page and business data
+        const response = await fetch(`/api/prompt-pages/${slug}`);
+        
+        if (!response.ok) {
+          if (response.status === 404) {
+            setError(`Page not found: ${slug}`);
+            setLoading(false);
+            return;
           }
-
-          const promptData = await promptResponse.json();
-          console.log("Successfully fetched prompt page:", promptData);
-          setPromptPage(promptData);
-
-          // Second query - Get business profile via API to bypass RLS
-          try {
-            console.log("Fetching business profile via API for account:", promptData.account_id);
-            
-            const response = await fetch(`/api/businesses/${promptData.account_id}`);
-            
-            if (!response.ok) {
-              if (response.status === 404) {
-                setError(`Business profile not found for account: ${promptData.account_id}`);
-                setLoading(false);
-                return;
-              }
-              throw new Error(`Failed to fetch business: ${response.statusText}`);
-            }
-
-            const businessData = await response.json();
-            console.log("Successfully fetched business profile:", businessData);
-            setBusinessProfile({
-              ...businessData,
-              business_name: businessData.name,
-              review_platforms: [],
-              business_website: businessData.business_website,
-              default_offer_url: businessData.default_offer_url,
-              card_bg: businessData.card_bg,
-              card_text: businessData.card_text,
-              card_inner_shadow: businessData.card_inner_shadow,
-              card_shadow_color: businessData.card_shadow_color,
-              card_shadow_intensity: businessData.card_shadow_intensity,
-            });
-          } catch (businessErr: unknown) {
-            console.error("Error fetching business profile:", businessErr);
-            throw businessErr;
-          }
-        } catch (promptErr: unknown) {
-          console.error("Error fetching prompt page:", promptErr);
-          throw promptErr;
+          throw new Error(`Failed to fetch data: ${response.statusText}`);
         }
+
+        const { promptPage, businessProfile } = await response.json();
+        console.log("Successfully fetched data:", { promptPage: promptPage.id, business: businessProfile?.id });
+        
+        // Set prompt page data
+        setPromptPage(promptPage);
+        
+        // Set business profile data
+        if (businessProfile) {
+          setBusinessProfile({
+            ...businessProfile,
+            business_name: businessProfile.name,
+            review_platforms: [],
+            business_website: businessProfile.business_website,
+            default_offer_url: businessProfile.default_offer_url,
+            card_bg: businessProfile.card_bg,
+            card_text: businessProfile.card_text,
+            card_inner_shadow: businessProfile.card_inner_shadow,
+            card_shadow_color: businessProfile.card_shadow_color,
+            card_shadow_intensity: businessProfile.card_shadow_intensity,
+          });
+        } else {
+          setError("Business profile not found");
+          setLoading(false);
+          return;
+        }
+
       } catch (err: unknown) {
         console.error("PromptPage fetch error:", {
           error: err,

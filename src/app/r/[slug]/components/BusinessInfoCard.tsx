@@ -6,6 +6,7 @@
  */
 
 import React from 'react';
+import Image from 'next/image';
 import { getFontClass } from '../utils/fontUtils';
 import { applyCardTransparency } from '@/utils/colorUtils';
 
@@ -58,10 +59,18 @@ export default function BusinessInfoCard({ businessProfile }: BusinessInfoCardPr
           style={{ backgroundColor: businessProfile?.card_bg || '#ffffff' }}
         >
           {businessProfile?.logo_url ? (
-            <img
+            <Image
               src={businessProfile.logo_url}
               alt={`${businessProfile?.business_name || "Business"} logo`}
+              width={192}
+              height={192}
+              priority={true}
+              quality={85}
               className="h-48 w-48 aspect-square object-contain rounded-full"
+              style={{ objectFit: 'contain' }}
+              sizes="(max-width: 768px) 160px, 192px"
+              placeholder="blur"
+              blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
             />
           ) : (
             <div className="h-48 w-48 aspect-square bg-gray-200 rounded-full flex items-center justify-center">

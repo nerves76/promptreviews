@@ -5,7 +5,6 @@
 
 'use client';
 
-import * as Sentry from '@sentry/nextjs';
 import { useEffect } from 'react';
 
 export default function GlobalError({
@@ -16,20 +15,24 @@ export default function GlobalError({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Report the error to Sentry
-    Sentry.captureException(error, {
-      tags: {
-        errorType: 'global-error',
-        component: 'GlobalError',
-      },
-      contexts: {
-        error: {
-          digest: error.digest,
-          message: error.message,
-          stack: error.stack,
+    // Only import and use Sentry if not disabled
+    if (process.env.DISABLE_SENTRY !== 'true' && process.env.NODE_ENV !== 'development') {
+      const Sentry = require('@sentry/nextjs');
+      // Report the error to Sentry
+        Sentry.captureException(error, {
+        tags: {
+          errorType: 'global-error',
+          component: 'GlobalError',
         },
-      },
-    });
+        contexts: {
+          error: {
+            digest: error.digest,
+            message: error.message,
+            stack: error.stack,
+          },
+        },
+      });
+    }
   }, [error]);
 
   return (

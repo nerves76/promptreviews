@@ -1,15 +1,14 @@
 /**
  * Prompt Page by Slug API Route
  * 
- * This endpoint fetches and updates prompt page data for a specific slug
- * using the service key to bypass RLS policies for public access
+ * This endpoint fetches prompt page data and associated business profile
+ * in a single request for optimal performance
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from '@/utils/supabaseClient';
 
 // 🔧 CONSOLIDATION: Use centralized service role client
-// This eliminates duplicate client creation patterns and uses the centralized pattern
 const supabaseAdmin = createServiceRoleClient();
 
 export async function GET(
@@ -28,15 +27,15 @@ export async function GET(
 
     console.log(`[PROMPT-PAGE-BY-SLUG] Fetching prompt page for slug: ${slug}`);
 
-    // 🔧 CONSOLIDATED: Use centralized service role client
-    const { data: promptPage, error } = await supabaseAdmin
+    // First, get the prompt page
+    const { data: promptPage, error: promptError } = await supabaseAdmin
       .from('prompt_pages')
       .select('*')
       .eq('slug', slug)
       .maybeSingle();
 
-    if (error) {
-      console.error('[PROMPT-PAGE-BY-SLUG] Error fetching prompt page:', error);
+    if (promptError) {
+      console.error('[PROMPT-PAGE-BY-SLUG] Error fetching prompt page:', promptError);
       return NextResponse.json(
         { error: "Failed to fetch prompt page" },
         { status: 500 }
@@ -51,8 +50,62 @@ export async function GET(
       );
     }
 
+    // Then get the business profile using account_id
+    const { data: businessProfile, error: businessError } = await supabaseAdmin
+      .from('businesses')
+      .select(`
+        id,
+        name,
+        logo_url,
+        logo_print_url,
+        primary_font,
+        secondary_font,
+        primary_color,
+        secondary_color,
+        background_color,
+        text_color,
+        facebook_url,
+        instagram_url,
+        bluesky_url,
+        tiktok_url,
+        youtube_url,
+        linkedin_url,
+        pinterest_url,
+        background_type,
+        gradient_start,
+        gradient_middle,
+        gradient_end,
+        business_website,
+        default_offer_url,
+        card_bg,
+        card_text,
+        card_inner_shadow,
+        card_shadow_color,
+        card_shadow_intensity,
+        account_id
+      `)
+      .eq('account_id', promptPage.account_id)
+      .maybeSingle();
+
+    if (businessError) {
+      console.error('[PROMPT-PAGE-BY-SLUG] Error fetching business profile:', businessError);
+      return NextResponse.json(
+        { error: "Failed to fetch business profile" },
+        { status: 500 }
+      );
+    }
+
+    // ⚡ PERFORMANCE: Set caching headers for faster subsequent loads
+    const response = NextResponse.json({
+      promptPage: promptPage,
+      businessProfile: businessProfile
+    });
+    
+    // Cache for 5 minutes for dynamic content, 1 hour for CDN
+    response.headers.set('Cache-Control', 'public, s-maxage=300, max-age=60');
+    
     console.log(`[PROMPT-PAGE-BY-SLUG] Successfully fetched prompt page: ${promptPage.id}`);
-    return NextResponse.json(promptPage);
+    return response;
   } catch (error) {
     console.error('[PROMPT-PAGE-BY-SLUG] Unexpected error:', error);
     return NextResponse.json(

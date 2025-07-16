@@ -97,7 +97,7 @@ const EmojiEmbedModal: React.FC<EmojiEmbedModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-12 my-12 max-h-[80vh] relative">
+      <div className="bg-white rounded-lg shadow-xl max-w-5xl w-full mx-12 my-12 max-h-[85vh] relative">
         {/* Standardized red X close button */}
         <button
           onClick={onClose}
@@ -111,89 +111,101 @@ const EmojiEmbedModal: React.FC<EmojiEmbedModalProps> = ({
         </button>
 
         {/* Scrollable content area */}
-        <div className="p-6 overflow-y-auto max-h-[80vh]">
-          <div className="mb-2">
-            <h2 className="text-xl font-semibold text-slate-700 flex items-center gap-2">
+        <div className="p-8 overflow-y-auto max-h-[85vh]">
+          {/* Header section */}
+          <div className="mb-6">
+            <h2 className="text-2xl font-semibold text-slate-700 flex items-center gap-3">
               <FaSmile className="text-slate-600" />
               Emoji Sentiment Embed
             </h2>
-          </div>
-
-          <div className="mb-4">
-            <p className="text-sm text-gray-600">
+            <p className="text-gray-600 mt-2 text-base">
               Add Emoji Sentiment Flow to your website, newsletter, or auto-responders
             </p>
           </div>
 
-          <div className="mb-4 flex gap-4 items-center flex-wrap">
-            <label className="font-medium">Emoji size:</label>
-            <select value={emojiSize} onChange={e => setEmojiSize(e.target.value as any)} className="border rounded px-2 py-1">
-              <option value="xs">Small</option>
-              <option value="sm">Medium</option>
-              <option value="md">Large</option>
-            </select>
-            
-            <label className="font-medium">Header size:</label>
-            <select value={headerSize} onChange={e => setHeaderSize(e.target.value as any)} className="border rounded px-2 py-1">
-              <option value="sm">Small</option>
-              <option value="md">Medium</option>
-              <option value="lg">Large</option>
-            </select>
-
-            <label className="font-medium">Header color:</label>
-            <input 
-              type="color" 
-              value={headerColor} 
-              onChange={(e) => setHeaderColor(e.target.value)}
-              className="w-8 h-8 border rounded cursor-pointer"
-            />
-            
-            <label className="flex items-center gap-2 font-medium">
-              <input 
-                type="checkbox" 
-                checked={showCard} 
-                onChange={(e) => setShowCard(e.target.checked)}
-                className="rounded"
+          {/* Live Preview section */}
+          <div className="mb-8">
+            <h3 className="text-lg font-medium text-gray-800 mb-4">Live preview</h3>
+            <div className="border border-gray-200 rounded-lg p-8 bg-gray-50 flex justify-center">
+              <EmojiSentimentEmbed
+                header={question}
+                headerColor={headerColor}
+                emojiLinks={EMOJI_SENTIMENT_LABELS.map((label, idx) => {
+                  const url = window.location.origin + `/r/${slug}?emoji_sentiment=${label.toLowerCase()}&source=embed`;
+                  return {
+                    label,
+                    emoji: "😊",
+                    url,
+                  };
+                })}
+                emojiSize={emojiSize === 'xs' ? 24 : emojiSize === 'sm' ? 32 : 48}
+                headerSize={headerSize}
+                showCard={showCard}
               />
-              Show background card
-            </label>
+            </div>
           </div>
 
-          {/* Live Preview */}
-          <div className="mb-4">
-            <EmojiSentimentEmbed
-              header={question}
-              headerColor={headerColor}
-              emojiLinks={EMOJI_SENTIMENT_LABELS.map((label, idx) => {
-                const url = window.location.origin + `/r/${slug}?emoji_sentiment=${label.toLowerCase()}&source=embed`;
-                return {
-                  label,
-                  emoji: "😊",
-                  url,
-                };
-              })}
-              emojiSize={emojiSize === 'xs' ? 24 : emojiSize === 'sm' ? 32 : 48}
-              headerSize={headerSize}
-              showCard={showCard}
-            />
+          {/* Configuration section */}
+          <div className="mb-8 bg-gray-50 p-6 rounded-lg">
+            <h3 className="text-lg font-medium text-gray-800 mb-4">Customize your embed</h3>
+            <div className="grid grid-cols-2 gap-6">
+              <div className="flex flex-col gap-2">
+                <label className="font-medium text-gray-700">Emoji size:</label>
+                <select value={emojiSize} onChange={e => setEmojiSize(e.target.value as any)} className="border border-gray-300 rounded-md px-3 py-2 bg-white">
+                  <option value="xs">Small</option>
+                  <option value="sm">Medium</option>
+                  <option value="md">Large</option>
+                </select>
+              </div>
+              
+              <div className="flex flex-col gap-2">
+                <label className="font-medium text-gray-700">Header size:</label>
+                <select value={headerSize} onChange={e => setHeaderSize(e.target.value as any)} className="border border-gray-300 rounded-md px-3 py-2 bg-white">
+                  <option value="sm">Small</option>
+                  <option value="md">Medium</option>
+                  <option value="lg">Large</option>
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label className="font-medium text-gray-700">Header color:</label>
+                <input 
+                  type="color" 
+                  value={headerColor} 
+                  onChange={(e) => setHeaderColor(e.target.value)}
+                  className="w-12 h-10 border border-gray-300 rounded-md cursor-pointer"
+                />
+              </div>
+              
+              <div className="flex items-center gap-3 mt-6">
+                <input 
+                  type="checkbox" 
+                  checked={showCard} 
+                  onChange={(e) => setShowCard(e.target.checked)}
+                  className="w-4 h-4 text-slate-600 border-gray-300 rounded focus:ring-slate-500"
+                />
+                <label className="font-medium text-gray-700">Show background card</label>
+              </div>
+            </div>
           </div>
 
-          {/* HTML Code Box */}
-          <div className="mb-2">
-            <label className="font-medium mb-1 block">Embed HTML:</label>
+          {/* HTML Code section */}
+          <div className="mb-6">
+            <h3 className="text-lg font-medium text-gray-800 mb-4">Embed code</h3>
             <textarea
               id="emoji-embed-html-modal"
-              className="w-full border rounded p-2 font-mono text-xs bg-white"
-              rows={8}
+              className="w-full border border-gray-300 rounded-md p-4 font-mono text-sm bg-white resize-none"
+              rows={5}
               value={generateEmbedHTML()}
               readOnly
+              placeholder="HTML embed code will appear here..."
             />
           </div>
           
           <div className="flex justify-start">
             <button
               type="button"
-              className="px-4 py-2 bg-slate-blue text-white rounded hover:bg-blue-700 transition"
+              className="px-6 py-3 bg-slate-blue text-white rounded-md hover:bg-blue-700 transition-colors font-medium"
               onClick={() => {
                 const textarea = document.getElementById('emoji-embed-html-modal') as HTMLTextAreaElement;
                 if (textarea) {
