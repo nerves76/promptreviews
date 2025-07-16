@@ -578,15 +578,23 @@ export default function PromptPage() {
         setIsSubmitting(null);
         return;
       }
-      // Try to copy
+      // Try to copy with monitoring
       let copied = false;
       if (platformReviewTexts[idx]) {
         try {
-          await navigator.clipboard.writeText(platformReviewTexts[idx]);
+          const { monitorClipboardOperation } = await import('@/utils/criticalFunctionMonitoring');
+          copied = await monitorClipboardOperation(
+            platformReviewTexts[idx],
+            {
+              userId: currentUser?.id,
+              promptPageId: promptPage.id,
+              platform: promptPage.review_platforms[idx].platform || promptPage.review_platforms[idx].name
+            }
+          );
+          
           setCopySuccess(
             "Copied to clipboard! Now paste it on the review site.",
           );
-          copied = true;
           if (url) {
             window.open(url, "_blank", "noopener,noreferrer");
           }
@@ -636,15 +644,30 @@ export default function PromptPage() {
     try {
       const platform = promptPage.review_platforms[idx];
       const prompt = `Generate a positive review for ${businessProfile.business_name} on ${platform.platform || platform.name}. The review should be authentic, specific, and highlight the business's strengths.`;
-      const response = await fetch("/api/generate-review", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt }),
-      });
-      if (!response.ok) throw new Error("Failed to generate review");
-      const { text } = await response.json();
+      
+      // Use monitoring wrapper for critical AI generation
+      const { monitorCriticalAPIRequest, CRITICAL_FUNCTIONS } = await import('@/utils/criticalFunctionMonitoring');
+      const data = await monitorCriticalAPIRequest<{ text: string }>(
+        CRITICAL_FUNCTIONS.AI_GENERATE_REVIEW,
+        "/api/generate-review",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt }),
+        },
+        {
+          userId: currentUser?.id,
+          promptPageId: promptPage.id,
+          platform: platform.platform || platform.name,
+          additionalContext: {
+            reviewIndex: idx,
+            businessName: businessProfile.business_name
+          }
+        }
+      );
+      
       setPlatformReviewTexts((prev) =>
-        prev.map((t, i) => (i === idx ? text : t)),
+        prev.map((t, i) => (i === idx ? data.text : t)),
       );
       setAiRewriteCounts((prev) => {
         const newCounts = prev.map((c, i) => (i === idx ? c + 1 : c));
@@ -928,14 +951,28 @@ export default function PromptPage() {
     setAiLoadingPhoto(true);
     try {
       const prompt = `Generate a positive testimonial for ${businessProfile.business_name}. The testimonial should be authentic, specific, and highlight the business's strengths.`;
-      const response = await fetch("/api/generate-review", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt }),
-      });
-      if (!response.ok) throw new Error("Failed to generate testimonial");
-      const { text } = await response.json();
-      setTestimonial(text);
+      
+      // Use monitoring wrapper for critical photo testimonial generation
+      const { monitorCriticalAPIRequest, CRITICAL_FUNCTIONS } = await import('@/utils/criticalFunctionMonitoring');
+      const data = await monitorCriticalAPIRequest<{ text: string }>(
+        CRITICAL_FUNCTIONS.AI_GENERATE_PHOTO_TESTIMONIAL,
+        "/api/generate-review",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt }),
+        },
+        {
+          userId: currentUser?.id,
+          promptPageId: promptPage.id,
+          additionalContext: {
+            testimonialType: 'photo',
+            businessName: businessProfile.business_name
+          }
+        }
+      );
+      
+      setTestimonial(data.text);
     } catch (err) {
       console.error("Photo testimonial AI generation error:", err);
       setPhotoError(
