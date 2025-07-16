@@ -4,66 +4,58 @@
  */
 
 export function register() {
-  // Completely disable Sentry in development to prevent performance issues
+  // Completely skip all Sentry code in development or when disabled
   if (process.env.DISABLE_SENTRY === 'true' || process.env.NODE_ENV === 'development') {
-    console.log('Sentry disabled via DISABLE_SENTRY environment variable or development mode');
-    return; // No-op when Sentry is disabled
+    console.log('📴 Sentry client completely disabled - skipping all initialization');
+    return;
   }
 
-  try {
-    // Only import Sentry when actually needed
-    const Sentry = require('@sentry/nextjs');
-
-    Sentry.init({
-      dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
-      
-      // Minimal performance monitoring to reduce overhead
-      tracesSampleRate: 0.05, // Very low for client-side
-      
-      // Environment configuration
-      environment: process.env.NODE_ENV,
-      
-      // **MINIMAL CLIENT INTEGRATIONS**
-      integrations: [
-        // Only essential client-side tracking
-        Sentry.httpClientIntegration({ tracing: false }),
-        Sentry.consoleIntegration(),
-        Sentry.linkedErrorsIntegration(),
-      ],
-      
-      // Disable automatic instrumentation discovery
-      defaultIntegrations: false, // This stops client-side noise too
-      
-      // Client-specific filtering
-      beforeSend: (event) => {
-        // Filter out development errors
-        if (process.env.NODE_ENV === 'development') {
-          return null;
-        }
-
-        // Filter out noisy client errors
-        const errorMessage = event.exception?.values?.[0]?.value || '';
+  // Only execute Sentry code in production when explicitly enabled
+  if (process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_SENTRY_DSN) {
+    console.log('🔧 Initializing Sentry client for production...');
+    
+    // Dynamic import to prevent loading Sentry in disabled environments
+    import('@sentry/nextjs').then((Sentry) => {
+      Sentry.init({
+        dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
         
-        if (errorMessage.includes('ResizeObserver loop limit exceeded') ||
-            errorMessage.includes('Script error') ||
-            errorMessage.includes('Network Error') ||
-            errorMessage.includes('Non-Error promise rejection captured')) {
-          return null;
-        }
+        // Very minimal client-side monitoring
+        tracesSampleRate: 0.01,
         
-        return event;
-      },
+        // Environment configuration
+        environment: process.env.NODE_ENV,
+        
+        // Disable all auto-instrumentations
+        defaultIntegrations: false,
+        
+        // Only essential client integrations
+        integrations: [
+          Sentry.browserTracingIntegration({ enableLongTask: false }),
+          Sentry.replayIntegration({ maskAllText: false, blockAllMedia: false }),
+        ],
+        
+        // Filter out client-side noise
+        beforeSend(event) {
+          // Skip performance transactions
+          if (event.type === 'transaction') {
+            return null;
+          }
+          
+          // Filter out common client errors
+          const errorMessage = event.exception?.values?.[0]?.value || '';
+          if (errorMessage.includes('Script error') ||
+              errorMessage.includes('Network request failed') ||
+              errorMessage.includes('Loading chunk')) {
+            return null;
+          }
+          
+          return event;
+        },
+      });
       
-      // Reduce noise from user interactions
-      beforeSendTransaction: (transaction) => {
-        // Only send important transactions in production
-        if (transaction.name?.includes('pageload') || transaction.name?.includes('navigation')) {
-          return transaction;
-        }
-        return null; // Skip most client transactions to reduce noise
-      },
+      console.log('✅ Sentry client initialized successfully for production');
+    }).catch((error) => {
+      console.error('❌ Failed to initialize Sentry client:', error);
     });
-  } catch (error) {
-    console.log('Sentry initialization failed:', error);
   }
 } 

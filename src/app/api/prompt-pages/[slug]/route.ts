@@ -50,8 +50,12 @@ export async function GET(
       );
     }
 
-    // Then get the business profile using account_id
-    const { data: businessProfile, error: businessError } = await supabaseAdmin
+    // Get business profile - try businesses table first, fallback to business_locations
+    let businessProfile = null;
+    let businessError = null;
+
+    // Try businesses table first
+    const { data: businessData, error: businessErr } = await supabaseAdmin
       .from('businesses')
       .select(`
         id,
@@ -86,6 +90,53 @@ export async function GET(
       `)
       .eq('account_id', promptPage.account_id)
       .maybeSingle();
+
+    if (businessErr) {
+      console.log('[PROMPT-PAGE-BY-SLUG] Businesses table error, trying business_locations:', businessErr);
+      
+      // Fallback to business_locations table
+      const { data: locationData, error: locationErr } = await supabaseAdmin
+        .from('business_locations')
+        .select(`
+          id,
+          name,
+          logo_url,
+          website_url,
+          phone,
+          address_street,
+          address_city,
+          address_state,
+          address_zip,
+          account_id
+        `)
+        .eq('account_id', promptPage.account_id)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (locationErr) {
+        console.error('[PROMPT-PAGE-BY-SLUG] Error fetching business data from both tables:', { businessErr, locationErr });
+        businessError = locationErr;
+      } else {
+        // Map business_locations data to businesses format
+        businessProfile = locationData ? {
+          ...locationData,
+          business_website: locationData.website_url,
+          // Set defaults for missing styling fields
+          primary_font: 'Inter',
+          secondary_font: 'Inter',
+          primary_color: '#4F46E5',
+          secondary_color: '#818CF8',
+          background_color: '#FFFFFF',
+          text_color: '#1F2937',
+          background_type: 'gradient',
+          gradient_start: '#4F46E5',
+          gradient_middle: '#818CF8',
+          gradient_end: '#C7D2FE'
+        } : null;
+      }
+    } else {
+      businessProfile = businessData;
+    }
 
     if (businessError) {
       console.error('[PROMPT-PAGE-BY-SLUG] Error fetching business profile:', businessError);
