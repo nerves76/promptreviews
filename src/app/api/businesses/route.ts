@@ -99,6 +99,20 @@ export async function POST(request: NextRequest) {
 
     console.log('[BUSINESSES] Business created successfully:', business.id);
 
+    // 🔧 CRITICAL FIX: Update accounts.business_name for metadata templates
+    console.log('[BUSINESSES] Updating accounts.business_name for metadata templates...');
+    const { error: accountUpdateError } = await supabase
+      .from('accounts')
+      .update({ business_name: name })
+      .eq('id', account_id);
+
+    if (accountUpdateError) {
+      console.error('[BUSINESSES] Warning: Failed to update accounts.business_name:', accountUpdateError);
+      // Don't fail the entire operation, just log the warning
+    } else {
+      console.log('[BUSINESSES] Successfully updated accounts.business_name to:', name);
+    }
+
     // Create universal prompt page (same logic as SimpleBusinessForm)
     try {
       console.log('[BUSINESSES] Creating universal prompt page...');

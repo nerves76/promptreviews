@@ -69,8 +69,8 @@ CREATE POLICY "Users can view their critical successes" ON critical_function_suc
 -- Create a view for easy error rate calculation
 CREATE OR REPLACE VIEW critical_function_health AS
 SELECT 
-    function_name,
-    DATE_TRUNC('hour', timestamp) as hour,
+    combined.function_name,
+    DATE_TRUNC('hour', combined.timestamp) as hour,
     COUNT(*) as total_calls,
     COUNT(*) FILTER (WHERE errors.id IS NOT NULL) as error_count,
     COUNT(*) FILTER (WHERE successes.id IS NOT NULL) as success_count,
@@ -86,9 +86,9 @@ FROM (
 ) combined
 LEFT JOIN critical_function_errors errors ON errors.id = combined.id
 LEFT JOIN critical_function_successes successes ON successes.id = combined.id  
-WHERE timestamp > NOW() - INTERVAL '24 hours'
-GROUP BY function_name, DATE_TRUNC('hour', timestamp)
-ORDER BY hour DESC, function_name;
+WHERE combined.timestamp > NOW() - INTERVAL '24 hours'
+GROUP BY combined.function_name, DATE_TRUNC('hour', combined.timestamp)
+ORDER BY hour DESC, combined.function_name;
 
 -- Grant access to the view
 GRANT SELECT ON critical_function_health TO authenticated;
