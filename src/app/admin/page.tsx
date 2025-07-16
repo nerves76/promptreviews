@@ -129,6 +129,13 @@ export default function AdminPage() {
    */
   const loadAnalytics = async () => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setAnalyticsLoading(false);
+        return;
+      }
+
+      // Get session only when needed for the token
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         setAnalyticsLoading(false);

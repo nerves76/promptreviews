@@ -13,16 +13,16 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
     
-    // Get the current session
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    // Get the current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
     
-    if (sessionError) {
-      console.error('Error getting session:', sessionError);
-      return NextResponse.json({ error: 'Failed to get session' }, { status: 500 });
+    if (userError) {
+      console.error('Error getting user:', userError);
+      return NextResponse.json({ error: 'Failed to get user' }, { status: 500 });
     }
     
-    if (!session) {
-      return NextResponse.json({ error: 'No active session' }, { status: 401 });
+    if (!user) {
+      return NextResponse.json({ error: 'No authenticated user' }, { status: 401 });
     }
     
     // Force refresh the session to get updated user data

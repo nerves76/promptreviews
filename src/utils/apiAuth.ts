@@ -48,18 +48,18 @@ export async function authenticateApiRequest(request: NextRequest): Promise<Auth
       return { user, supabase, error: null };
     }
 
-    // Try session-based authentication (cookies)
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    // Try user authentication (more secure than session)
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
     
-    if (sessionError) {
-      return { user: null, supabase, error: 'Session error' };
+    if (userError) {
+      return { user: null, supabase, error: 'User authentication error' };
     }
     
-    if (!session?.user) {
-      return { user: null, supabase, error: 'No valid session' };
+    if (!user) {
+      return { user: null, supabase, error: 'No authenticated user' };
     }
     
-    return { user: session.user, supabase, error: null };
+    return { user, supabase, error: null };
 
   } catch (error) {
     console.error('API Auth: Unexpected error:', error);

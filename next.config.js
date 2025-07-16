@@ -6,7 +6,11 @@ require("dotenv").config({
 const path = require('path');
 
 const nextConfig = {
-  reactStrictMode: true,
+  // Only enable instrumentation in production or when Sentry is explicitly enabled
+  experimental: {
+    instrumentationHook: process.env.DISABLE_SENTRY !== 'true' && process.env.NODE_ENV === 'production'
+  },
+  
   images: {
     remotePatterns: [
       {
@@ -63,9 +67,6 @@ const nextConfig = {
         ],
       },
     ];
-  },
-  experimental: {
-    optimizeCss: true,
   },
 };
 
