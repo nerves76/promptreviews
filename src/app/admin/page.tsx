@@ -21,6 +21,17 @@ interface UserInfo {
   last_sign_in_at?: string;
 }
 
+interface AdminAnalytics {
+  totalUsers: number;
+  totalBusinesses: number;
+  totalReviews: number;
+  totalPromptPages: number;
+  reviewsThisMonth: number;
+  reviewsThisWeek: number;
+  newUsersThisMonth: number;
+  newBusinessesThisMonth: number;
+}
+
 interface DeleteResult {
   success: boolean;
   message: string;
@@ -78,6 +89,10 @@ export default function AdminPage() {
   const [cleanupResult, setCleanupResult] = useState<any | null>(null);
   const [isLoadingCleanup, setIsLoadingCleanup] = useState(false);
 
+  // Analytics state
+  const [analytics, setAnalytics] = useState<AdminAnalytics | null>(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState(true);
+
   useEffect(() => {
     const checkAdminAccess = async () => {
       try {
@@ -99,6 +114,7 @@ export default function AdminPage() {
         }
         
         setLoading(false);
+        loadAnalytics(); // Load analytics after admin check passes
       } catch (error) {
         console.error("Admin access check error:", error);
         router.push("/dashboard");
@@ -107,6 +123,38 @@ export default function AdminPage() {
 
     checkAdminAccess();
   }, [router]);
+
+  /**
+   * Load admin analytics data
+   */
+  const loadAnalytics = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setAnalyticsLoading(false);
+        return;
+      }
+
+      const response = await fetch('/api/admin/analytics', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setAnalytics(data);
+      } else {
+        console.error('Failed to load analytics:', await response.text());
+      }
+    } catch (error) {
+      console.error('Error loading analytics:', error);
+    } finally {
+      setAnalyticsLoading(false);
+    }
+  };
 
   /**
    * Search for a user by email address
@@ -338,23 +386,52 @@ export default function AdminPage() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Users</h3>
-          <p className="text-3xl font-bold text-slate-blue">-</p>
+          <p className="text-3xl font-bold text-slate-blue">
+            {analyticsLoading ? '...' : analytics?.totalUsers || 0}
+          </p>
           <p className="text-sm text-gray-600">Total registered users</p>
+          {analytics && !analyticsLoading && (
+            <p className="text-sm text-green-600 mt-1">
+              +{analytics.newUsersThisMonth} this month
+            </p>
+          )}
         </div>
 
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Businesses</h3>
-          <p className="text-3xl font-bold text-slate-blue">-</p>
+          <p className="text-3xl font-bold text-slate-blue">
+            {analyticsLoading ? '...' : analytics?.totalBusinesses || 0}
+          </p>
           <p className="text-sm text-gray-600">Total businesses</p>
+          {analytics && !analyticsLoading && (
+            <p className="text-sm text-green-600 mt-1">
+              +{analytics.newBusinessesThisMonth} this month
+            </p>
+          )}
         </div>
 
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Widgets</h3>
-          <p className="text-3xl font-bold text-slate-blue">-</p>
-          <p className="text-sm text-gray-600">Total widgets created</p>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Reviews</h3>
+          <p className="text-3xl font-bold text-slate-blue">
+            {analyticsLoading ? '...' : analytics?.totalReviews || 0}
+          </p>
+          <p className="text-sm text-gray-600">Total reviews submitted</p>
+          {analytics && !analyticsLoading && (
+            <p className="text-sm text-green-600 mt-1">
+              +{analytics.reviewsThisMonth} this month
+            </p>
+          )}
+        </div>
+
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Prompt Pages</h3>
+          <p className="text-3xl font-bold text-slate-blue">
+            {analyticsLoading ? '...' : analytics?.totalPromptPages || 0}
+          </p>
+          <p className="text-sm text-gray-600">Total prompt pages created</p>
         </div>
       </div>
 
