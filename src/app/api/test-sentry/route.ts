@@ -47,14 +47,19 @@ export async function GET(request: NextRequest) {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    // This should also be captured by Sentry
-    Sentry.captureException(error, {
-      tags: {
-        test: 'true',
-        route: '/api/test-sentry',
-        errorType: 'unexpected',
-      },
-    });
+    // Try to capture error with Sentry if available
+    try {
+      const Sentry = await import('@sentry/nextjs');
+      Sentry.captureException(error, {
+        tags: {
+          test: 'true',
+          route: '/api/test-sentry',
+          errorType: 'unexpected',
+        },
+      });
+    } catch (sentryError) {
+      console.error('Failed to capture error with Sentry:', sentryError);
+    }
 
     return NextResponse.json(
       { error: 'Test failed' },
@@ -65,7 +70,19 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    // Skip Sentry operations in development or when disabled
+    if (process.env.DISABLE_SENTRY === 'true' || process.env.NODE_ENV === 'development') {
+      return NextResponse.json({ 
+        message: 'Sentry testing skipped in development mode',
+        environment: process.env.NODE_ENV,
+        sentryDisabled: process.env.DISABLE_SENTRY === 'true'
+      });
+    }
+
     const body = await request.json();
+    
+    // Dynamic import to prevent loading Sentry in disabled environments
+    const Sentry = await import('@sentry/nextjs');
     
     // Test message capture
     Sentry.captureMessage('Test message from API', {
@@ -85,13 +102,19 @@ export async function POST(request: NextRequest) {
       data: body,
     });
   } catch (error) {
-    Sentry.captureException(error, {
-      tags: {
-        test: 'true',
-        route: '/api/test-sentry',
-        method: 'POST',
-      },
-    });
+    // Try to capture error with Sentry if available
+    try {
+      const Sentry = await import('@sentry/nextjs');
+      Sentry.captureException(error, {
+        tags: {
+          test: 'true',
+          route: '/api/test-sentry',
+          method: 'POST',
+        },
+      });
+    } catch (sentryError) {
+      console.error('Failed to capture error with Sentry:', sentryError);
+    }
 
     return NextResponse.json(
       { error: 'Test failed' },
