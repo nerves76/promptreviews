@@ -1,52 +1,32 @@
 import "../globals.css";
-import type { Metadata } from "next";
-import { createClient } from "@supabase/supabase-js";
+import { Metadata } from 'next';
+import { createClient } from '@supabase/supabase-js';
+import { generatePromptPageMetadata, createVariableContext } from '@/utils/metadataTemplates';
 
 // Helper function to get formatted page type
 function getPageType(promptPage: any): string {
-  if (promptPage.is_universal) {
-    return "Universal";
-  }
-  
-  const type = promptPage.type || promptPage.review_type || "service";
-  
-  // Capitalize first letter and return proper format
-  switch (type.toLowerCase()) {
-    case "product":
-      return "Product";
-    case "service":
-      return "Service";
-    case "photo":
-      return "Photo";
-    case "video":
-      return "Video";
-    case "event":
-      return "Event";
-    case "employee":
-      return "Employee";
-    default:
-      return "Service";
-  }
+  if (promptPage.is_universal) return 'universal';
+  if (promptPage.review_type === 'product') return 'product';
+  if (promptPage.review_type === 'service') return 'service';
+  if (promptPage.review_type === 'photo') return 'photo';
+  if (promptPage.review_type === 'video') return 'video';
+  if (promptPage.review_type === 'event') return 'event';
+  if (promptPage.review_type === 'employee') return 'employee';
+  return 'universal';
 }
 
 // Dynamic metadata generation with og:image support
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  // Default fallback metadata
+export async function generateMetadata({ params }: {
+  params: Promise<{ slug: string }>
+}): Promise<Metadata> {
   const fallbackMetadata: Metadata = {
-    title: "Give Business a review - Prompt Reviews - Service",
-    description: "Share your experience and help businesses improve.",
-    robots: {
-      index: false,
-      follow: false,
-      nocache: true,
-      googleBot: {
-        index: false,
-        follow: false,
-        noimageindex: true,
-        'max-video-preview': -1,
-        'max-image-preview': 'none',
-        'max-snippet': -1,
-      },
+    title: "Give Business a review - Prompt Reviews",
+    description: "Share your experience and help others discover great businesses.",
+    keywords: ["review", "testimonial", "business", "customer feedback"],
+    openGraph: {
+      title: "Give Business a review - Prompt Reviews",
+      description: "Share your experience and help others discover great businesses.",
+      type: "website",
     },
   };
 
@@ -81,31 +61,57 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       .from('prompt_pages')
       .select('*')
       .eq('slug', slug)
-      .eq('status', 'in_queue')
       .single();
     
     if (pageError || !promptPage) {
       console.warn('Prompt page not found for slug:', slug, pageError?.message);
       return {
         ...fallbackMetadata,
-        title: "Give Business a review - Prompt Reviews - Page Not Found",
+        title: "Page Not Found - Prompt Reviews",
         description: "The requested prompt page could not be found.",
       };
     }
     
-    // Fetch business profile data directly from database
-    const { data: business, error: businessError } = await supabase
-      .from('businesses')
-      .select('*')
-      .eq('account_id', promptPage.account_id)
-      .single();
+    // Try to fetch business profile data, but don't fail if it doesn't exist
+    let business = null;
+    if (promptPage.account_id) {
+      const { data: businessData, error: businessError } = await supabase
+        .from('businesses')
+        .select('*')
+        .eq('account_id', promptPage.account_id)
+        .maybeSingle();
+      
+      if (businessError) {
+        console.warn('Error fetching business for account:', promptPage.account_id, businessError.message);
+      } else {
+        business = businessData;
+      }
+    }
     
-    if (businessError || !business) {
-      console.warn('Business not found for account:', promptPage.account_id, businessError?.message);
-      return {
-        ...fallbackMetadata,
-        title: "Give Business a review - Prompt Reviews - Business Not Found",
-        description: "The business profile could not be found.",
+    // Create fallback business data if no business record exists
+    if (!business) {
+      console.log('No business record found, creating fallback business data');
+      business = {
+        id: promptPage.account_id,
+        account_id: promptPage.account_id,
+        name: promptPage.client_name || 'Business',
+        // Provide sensible defaults for missing business data
+        logo_url: null,
+        website_url: null,
+        business_email: null,
+        phone: null,
+        address: promptPage.location || null,
+        category: promptPage.category || null,
+        description: null,
+        // Style defaults
+        primary_font: 'Inter',
+        secondary_font: 'Inter', 
+        primary_color: '#4F46E5',
+        secondary_color: '#818CF8',
+        background_color: '#FFFFFF',
+        text_color: '#1F2937',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
     }
     
@@ -119,46 +125,34 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       ogImage = business.logo_url;
     }
     
-    // Build dynamic title and description using new format
-    const businessName = business.name || "Business";
+    // Get the page type and create variable context
     const pageType = getPageType(promptPage);
-    const productName = promptPage.product_name;
+    const variableContext = createVariableContext(business, promptPage);
     
-    // New title format: "Give [Business Name] a review - Prompt Reviews - [Page Type]"
-    let title = `Give ${businessName} a review - Prompt Reviews - ${pageType}`;
-    let description = `Share your experience with ${businessName}. Your feedback helps them improve their services.`;
-    
-    if (pageType === "Product" && productName) {
-      description = `Share your experience with ${productName} from ${businessName}. Your feedback matters.`;
-    }
+    // Generate metadata using templates with variable substitution
+    const templateMetadata = await generatePromptPageMetadata(pageType, variableContext);
     
     const metadata: Metadata = {
       ...fallbackMetadata,
-      title,
-      description,
+      title: templateMetadata.title,
+      description: templateMetadata.description,
+      keywords: templateMetadata.keywords,
     };
     
-    // Add og:image if available
-    if (ogImage) {
-      metadata.openGraph = {
-        title,
-        description,
-        images: [
+    // Add OpenGraph metadata
+    if (metadata.openGraph) {
+      metadata.openGraph.title = templateMetadata.title;
+      metadata.openGraph.description = templateMetadata.description;
+      if (ogImage) {
+        metadata.openGraph.images = [
           {
             url: ogImage,
             width: 1200,
             height: 630,
-            alt: productName ? `${productName} from ${businessName}` : `${businessName} Logo`,
+            alt: `${business.name} - Leave a Review`,
           },
-        ],
-      };
-      
-      metadata.twitter = {
-        card: 'summary_large_image',
-        title,
-        description,
-        images: [ogImage],
-      };
+        ];
+      }
     }
     
     return metadata;
