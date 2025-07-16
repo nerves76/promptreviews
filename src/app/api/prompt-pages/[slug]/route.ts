@@ -50,44 +50,15 @@ export async function GET(
       );
     }
 
+    console.log(`[PROMPT-PAGE-BY-SLUG] Successfully fetched prompt page: ${promptPage.id}`);
+
     // Get business profile - try businesses table first, fallback to business_locations
     let businessProfile = null;
-    let businessError = null;
 
-    // Try businesses table first
+    // Try businesses table first with a simple select
     const { data: businessData, error: businessErr } = await supabaseAdmin
       .from('businesses')
-      .select(`
-        id,
-        name,
-        logo_url,
-        logo_print_url,
-        primary_font,
-        secondary_font,
-        primary_color,
-        secondary_color,
-        background_color,
-        text_color,
-        facebook_url,
-        instagram_url,
-        bluesky_url,
-        tiktok_url,
-        youtube_url,
-        linkedin_url,
-        pinterest_url,
-        background_type,
-        gradient_start,
-        gradient_middle,
-        gradient_end,
-        business_website,
-        default_offer_url,
-        card_bg,
-        card_text,
-        card_inner_shadow,
-        card_shadow_color,
-        card_shadow_intensity,
-        account_id
-      `)
+      .select('*')
       .eq('account_id', promptPage.account_id)
       .maybeSingle();
 
@@ -97,25 +68,15 @@ export async function GET(
       // Fallback to business_locations table
       const { data: locationData, error: locationErr } = await supabaseAdmin
         .from('business_locations')
-        .select(`
-          id,
-          name,
-          logo_url,
-          website_url,
-          phone,
-          address_street,
-          address_city,
-          address_state,
-          address_zip,
-          account_id
-        `)
+        .select('*')
         .eq('account_id', promptPage.account_id)
         .eq('is_active', true)
         .maybeSingle();
 
       if (locationErr) {
         console.error('[PROMPT-PAGE-BY-SLUG] Error fetching business data from both tables:', { businessErr, locationErr });
-        businessError = locationErr;
+        // Continue without business profile - the prompt page can still work
+        businessProfile = null;
       } else {
         // Map business_locations data to businesses format
         businessProfile = locationData ? {
@@ -138,14 +99,6 @@ export async function GET(
       businessProfile = businessData;
     }
 
-    if (businessError) {
-      console.error('[PROMPT-PAGE-BY-SLUG] Error fetching business profile:', businessError);
-      return NextResponse.json(
-        { error: "Failed to fetch business profile" },
-        { status: 500 }
-      );
-    }
-
     // ⚡ PERFORMANCE: Set caching headers for faster subsequent loads
     const response = NextResponse.json({
       promptPage: promptPage,
@@ -155,7 +108,6 @@ export async function GET(
     // Cache for 5 minutes for dynamic content, 1 hour for CDN
     response.headers.set('Cache-Control', 'public, s-maxage=300, max-age=60');
     
-    console.log(`[PROMPT-PAGE-BY-SLUG] Successfully fetched prompt page: ${promptPage.id}`);
     return response;
   } catch (error) {
     console.error('[PROMPT-PAGE-BY-SLUG] Unexpected error:', error);
