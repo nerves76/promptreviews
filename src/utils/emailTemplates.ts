@@ -120,13 +120,102 @@ export async function sendTemplatedEmail(
 }
 
 /**
- * Send trial reminder email (3 days before expiry)
+ * Send trial reminder email using template
  */
 export async function sendTrialReminderEmail(
   email: string,
   firstName: string
 ): Promise<{ success: boolean; error?: string }> {
   return sendTemplatedEmail('trial_reminder', email, { firstName });
+}
+
+/**
+ * Send admin notification when a new user joins the app
+ */
+export async function sendAdminNewUserNotification(
+  userEmail: string,
+  userFirstName: string,
+  userLastName: string
+): Promise<{ success: boolean; error?: string }> {
+  // Get admin emails from environment
+  const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+  
+  if (adminEmails.length === 0) {
+    console.log('No admin emails configured, skipping admin notification');
+    return { success: true }; // Don't treat this as an error
+  }
+
+  const results = [];
+  let overallSuccess = true;
+
+  for (const adminEmail of adminEmails) {
+    try {
+      // Try to use the template system first
+      const templateResult = await sendTemplatedEmail('admin_new_user_notification', adminEmail, {
+        firstName: userFirstName,
+        lastName: userLastName,
+        userEmail: userEmail,
+        joinDate: new Date().toLocaleString()
+      });
+
+      if (templateResult.success) {
+        results.push({ email: adminEmail, success: true });
+        console.log(`✅ Admin notification sent to ${adminEmail} using template`);
+      } else {
+        // Fallback to direct email if template doesn't exist
+        console.log(`Template not found, falling back to direct email for ${adminEmail}`);
+        
+        const result = await resend.emails.send({
+          from: "Prompt Reviews <noreply@updates.promptreviews.app>",
+          to: adminEmail,
+          subject: `New user joined: ${userFirstName} ${userLastName}`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+              <h2 style="color: #475569; margin-bottom: 20px;">🎉 New User Signup</h2>
+              
+              <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <p style="margin: 0 0 10px 0;"><strong>Name:</strong> ${userFirstName} ${userLastName}</p>
+                <p style="margin: 0 0 10px 0;"><strong>Email:</strong> ${userEmail}</p>
+                <p style="margin: 0;"><strong>Joined:</strong> ${new Date().toLocaleString()}</p>
+              </div>
+
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://app.promptreviews.app'}/admin" 
+                   style="background: #475569; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+                  View Admin Dashboard
+                </a>
+              </div>
+
+              <p style="color: #64748b; font-size: 14px; text-align: center; margin-top: 30px;">
+                This is an automated notification from Prompt Reviews
+              </p>
+            </div>
+          `,
+          text: `
+New User Signup
+
+Name: ${userFirstName} ${userLastName}
+Email: ${userEmail}
+Joined: ${new Date().toLocaleString()}
+
+View admin dashboard: ${process.env.NEXT_PUBLIC_APP_URL || 'https://app.promptreviews.app'}/admin
+          `
+        });
+
+        results.push({ email: adminEmail, success: true });
+        console.log(`✅ Admin notification sent to ${adminEmail} using fallback method`);
+      }
+    } catch (error) {
+      console.error(`❌ Failed to send admin notification to ${adminEmail}:`, error);
+      results.push({ email: adminEmail, success: false, error });
+      overallSuccess = false;
+    }
+  }
+
+  return { 
+    success: overallSuccess,
+    error: overallSuccess ? undefined : `Failed to send to some admins: ${results.filter(r => !r.success).map(r => r.email).join(', ')}`
+  };
 }
 
 /**

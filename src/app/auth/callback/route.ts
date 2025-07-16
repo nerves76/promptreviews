@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { sendWelcomeEmail } from "@/utils/resend-welcome";
+import { sendAdminNewUserNotification } from "@/utils/emailTemplates";
 import { ensureAdminForEmail } from '@/utils/admin';
 
 export const dynamic = "force-dynamic";
@@ -311,6 +312,29 @@ export async function GET(request: NextRequest) {
       } catch (emailError) {
         console.error("❌ Error sending welcome email:", emailError);
         // Don't fail the whole flow for email errors
+      }
+    }
+
+    // Send admin notification for new individual users (not team members)
+    if (isNewUser && email && !hasAcceptedInvitation) {
+      try {
+        let firstName = "there";
+        if (user.user_metadata?.first_name) {
+          firstName = user.user_metadata.first_name;
+        } else if (email) {
+          firstName = email.split("@")[0];
+        }
+
+        let lastName = "";
+        if (user.user_metadata?.last_name) {
+          lastName = user.user_metadata.last_name;
+        }
+
+        await sendAdminNewUserNotification(email, firstName, lastName);
+        console.log("📧 Admin notification sent for new user:", email);
+      } catch (adminNotificationError) {
+        console.error("❌ Error sending admin notification:", adminNotificationError);
+        // Don't fail the whole flow for admin notification errors
       }
     }
 
