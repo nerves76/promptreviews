@@ -75,7 +75,7 @@ const EmojiSentimentModal: React.FC<EmojiSentimentModalProps> = ({
             return (
               <button
                 key={i}
-                className={`flex flex-col items-center focus:outline-none ${selected === i ? "scale-110" : ""}`}
+                className={`flex flex-col items-center focus:outline-none transition-transform duration-200 hover:scale-105 ${selected === i ? "scale-110" : ""}`}
                 onClick={() => {
                   setSelected(i);
                   // Immediately trigger the action when emoji is clicked
