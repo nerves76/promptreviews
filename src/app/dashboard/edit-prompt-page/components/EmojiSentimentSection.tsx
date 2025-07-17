@@ -176,9 +176,14 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
           <button
             type="button"
             onClick={onToggle}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${enabled ? "bg-slate-blue" : "bg-gray-200"}`}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+              enabled 
+                ? "bg-slate-blue" 
+                : disabled 
+                  ? "bg-gray-300 cursor-not-allowed opacity-50" 
+                  : "bg-gray-200"
+            }`}
             aria-pressed={!!enabled}
-            disabled={disabled}
             title={
               disabled ? "Disable the other popup feature to enable this." : ""
             }

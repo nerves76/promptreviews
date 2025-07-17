@@ -1134,7 +1134,7 @@ export default function PromptPageForm({
                     }
                     rows={4}
                     className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring shadow-inner"
-                    placeholder="Ty! It was so great having you in yesterday. You left your scarf! I can drop it by tomorrow on my way in. Thanks for leaving us a review, we need all the positivity we can get.  :)"
+                    placeholder="Jonas, it was so good to catch up yesterday. I'm excited about the project. Would you mind dropping us a review? I have a review template you can use or you can write your own. Thanks!"
                   />
                 )}
               </div>
@@ -1643,7 +1643,7 @@ export default function PromptPageForm({
                   }
                   rows={4}
                   className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring shadow-inner"
-                  placeholder="Ty! It was so great having you in yesterday. You left your scarf! I can drop it by tomorrow on my way in. Thanks for leaving us a review, we need all the positivity we can get.  :)"
+                  placeholder="Jonas, it was so good to catch up yesterday. I'm excited about the project. Would you mind dropping us a review? I have a review template you can use or you can write your own. Thanks!"
                 />
               )}
             </div>

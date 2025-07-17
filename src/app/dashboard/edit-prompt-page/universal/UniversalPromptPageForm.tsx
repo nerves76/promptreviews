@@ -1,4 +1,4 @@
-import React, { useState, useEffect, forwardRef } from "react";
+import React, { useState, useEffect, forwardRef, useCallback } from "react";
 
 import OfferToggle from "../components/OfferToggle";
 import EmojiSentimentSection from "../components/EmojiSentimentSection";
@@ -103,6 +103,27 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
       null | "emoji" | "note"
     >(null);
 
+    const handleNotePopupClick = () => {
+      if (emojiSentimentEnabled) {
+        setShowPopupConflictModal("note");
+      } else {
+        setNotePopupEnabled(prev => !prev);
+      }
+    };
+
+    const handleEmojiSentimentClick = () => {
+      if (notePopupEnabled) {
+        setShowPopupConflictModal("emoji");
+      } else {
+        setEmojiSentimentEnabled(prev => !prev);
+      }
+    };
+
+    // Debug: Log when modal state changes
+    React.useEffect(() => {
+      console.log('🔍 Modal state changed:', showPopupConflictModal);
+    }, [showPopupConflictModal]);
+
     // Expose a submit function via ref
     React.useImperativeHandle(
       ref,
@@ -113,7 +134,7 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
             offerTitle,
             offerBody,
             offerUrl,
-            emojiSentimentEnabled,
+            emojiSentimentEnabled: emojiSentimentEnabled,
             emojiSentimentQuestion,
             emojiFeedbackMessage,
             emojiThankYouMessage,
@@ -123,7 +144,7 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
             fallingEnabled,
             fallingIcon,
             aiButtonEnabled,
-            notePopupEnabled,
+            notePopupEnabled: notePopupEnabled,
             friendlyNote,
           });
         },
@@ -132,7 +153,7 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
           offerTitle,
           offerBody,
           offerUrl,
-          emojiSentimentEnabled,
+          emojiSentimentEnabled: emojiSentimentEnabled,
           emojiSentimentQuestion,
           emojiFeedbackMessage,
           emojiThankYouMessage,
@@ -142,7 +163,7 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
           fallingEnabled,
           fallingIcon,
           aiButtonEnabled,
-          notePopupEnabled,
+          notePopupEnabled: notePopupEnabled,
           friendlyNote,
         }),
       }),
@@ -244,16 +265,15 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
             </div>
             <button
               type="button"
-              onClick={() => {
-                if (emojiSentimentEnabled) {
-                  setShowPopupConflictModal("note");
-                  return;
-                }
-                setNotePopupEnabled((v) => !v);
-              }}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${notePopupEnabled ? "bg-slate-blue" : "bg-gray-200"}`}
+              onClick={handleNotePopupClick}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                notePopupEnabled 
+                  ? "bg-slate-blue" 
+                  : emojiSentimentEnabled 
+                    ? "bg-gray-300 cursor-not-allowed opacity-50" 
+                    : "bg-gray-200"
+              }`}
               aria-pressed={!!notePopupEnabled}
-              disabled={emojiSentimentEnabled}
             >
               <span
                 className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${notePopupEnabled ? "translate-x-5" : "translate-x-1"}`}
@@ -271,20 +291,14 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
               onChange={(e) => setFriendlyNote(e.target.value)}
               rows={4}
               className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring shadow-inner"
-              placeholder="Ty! It was so great having you in yesterday. You left your scarf! I can drop it by tomorrow on my way in. Thanks for leaving us a review, we need all the positivity we can get.  :)"
+              placeholder="Jonas, it was so good to catch up yesterday. I'm excited about the project. Would you mind dropping us a review? I have a review template you can use or you can write your own. Thanks!"
             />
           )}
         </div>
         {/* Emoji Sentiment Section (shared design) */}
         <EmojiSentimentSection
           enabled={emojiSentimentEnabled}
-          onToggle={() => {
-            if (notePopupEnabled) {
-              setShowPopupConflictModal("emoji");
-              return;
-            }
-            setEmojiSentimentEnabled((v) => !v);
-          }}
+          onToggle={handleEmojiSentimentClick}
           question={emojiSentimentQuestion}
           onQuestionChange={setEmojiSentimentQuestion}
           feedbackMessage={emojiFeedbackMessage}

@@ -123,6 +123,11 @@ RESEND_API_KEY=your_resend_api_key_here
 # OpenAI Configuration
 OPENAI_API_KEY=your_openai_api_key_here
 
+# Google OAuth Configuration (for Google Business Profile integration)
+GOOGLE_CLIENT_ID=your_google_oauth_client_id_here
+GOOGLE_CLIENT_SECRET=your_google_oauth_client_secret_here
+GOOGLE_REDIRECT_URI=http://localhost:3002/api/auth/google/callback
+
 # Cron Job Configuration
 CRON_SECRET_TOKEN=your_cron_secret_token_here
 
