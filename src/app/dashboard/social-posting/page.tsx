@@ -63,72 +63,162 @@ export default function SocialPostingDashboard() {
   ];
 
   useEffect(() => {
-    // Check for OAuth callback results in URL parameters
+    // Check for OAuth callback success message
     const urlParams = new URLSearchParams(window.location.search);
-    const oauthSuccess = urlParams.get('connected');
-    const oauthError = urlParams.get('error');
-
-    if (oauthSuccess === 'true') {
-      setPostResult({ success: true, message: 'Successfully connected to Google Business Profile!' });
-      // Clean up URL parameters
-      window.history.replaceState({}, '', '/dashboard/social-posting');
-    } else if (oauthError) {
-      const errorMessage = urlParams.get('message') || 'Failed to connect to Google Business Profile';
-      setPostResult({ success: false, message: decodeURIComponent(errorMessage) });
-      // Clean up URL parameters
-      window.history.replaceState({}, '', '/dashboard/social-posting');
+    const connected = urlParams.get('connected');
+    const message = urlParams.get('message');
+    
+    if (connected === 'true' && message) {
+      setPostResult({ 
+        success: true, 
+        message: decodeURIComponent(message) + ' Note: Business locations may take a few minutes to load due to API rate limits.' 
+      });
+      
+      // Clear URL parameters
+      window.history.replaceState({}, document.title, window.location.pathname);
     }
-
-    // Load platform connections and check connection status
-    const loadPlatforms = async () => {
+    
+    const loadData = async () => {
       try {
-        // Check for existing Google Business Profile connection
-        const response = await fetch('/api/social-posting/platforms');
-        if (response.ok) {
-          const responseData = await response.json();
-          const platforms = responseData.data?.platforms || [];
-          const googlePlatform = platforms.find((p: any) => p.platform === 'google-business-profile');
-          
-          if (googlePlatform && googlePlatform.isConnected) {
-            setIsConnected(true);
-            
-            // Load business locations from Google Business Profile API
-            try {
-              const locationsResponse = await fetch('/api/social-posting/platforms/google-business-profile/locations');
-              if (locationsResponse.ok) {
-                const locationsData = await locationsResponse.json();
-                setLocations(locationsData.locations || []);
-                setSelectedLocation(locationsData.locations?.[0]?.id || '');
-              }
-            } catch (locationError) {
-              console.error('Failed to load business locations:', locationError);
-              // Fall back to mock data for demo purposes
-              const mockLocations: GoogleBusinessLocation[] = [
-                { id: '1', name: 'Main Office', address: '123 Business St, City, State', status: 'active' },
-                { id: '2', name: 'Downtown Branch', address: '456 Main Ave, City, State', status: 'active' }
-              ];
-              setLocations(mockLocations);
-              setSelectedLocation(mockLocations[0]?.id || '');
-            }
-          } else {
-            setIsConnected(false);
-            setLocations([]);
-            setSelectedLocation('');
-          }
-        } else {
-          console.error('Failed to check platform connections');
-          setIsConnected(false);
-        }
+        await loadPlatforms();
       } catch (error) {
-        console.error('Failed to load platform information:', error);
-        setIsConnected(false);
-      } finally {
+        console.error('Error loading platforms:', error);
+        // Ensure loading state is cleared even if there's an error
         setIsLoading(false);
+        setIsConnected(false);
       }
     };
-
-    loadPlatforms();
+    
+    loadData();
+    
+    // Fallback timeout to ensure page loads
+    const fallbackTimeout = setTimeout(() => {
+      console.log('Fallback timeout reached, setting isLoading to false');
+      setIsLoading(false);
+      setIsConnected(false);
+    }, 15000); // 15 second fallback
+    
+    return () => clearTimeout(fallbackTimeout);
   }, []);
+
+  useEffect(() => {
+    loadPlatforms();
+    
+    // Fallback timeout to ensure page loads
+    const fallbackTimeout = setTimeout(() => {
+      console.log('Fallback timeout reached, setting isLoading to false');
+      setIsLoading(false);
+    }, 15000); // 15 second fallback
+    
+    return () => clearTimeout(fallbackTimeout);
+  }, []);
+
+  const loadPlatforms = async () => {
+    console.log('Loading platforms...');
+    
+    // Add a timeout to prevent getting stuck
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Request timeout')), 10000); // 10 second timeout
+    });
+    
+    const fetchWithRetry = async (url: string, retries = 2) => {
+      for (let i = 0; i <= retries; i++) {
+        try {
+          const response = await Promise.race([
+            fetch(url),
+            timeoutPromise
+          ]);
+          return response;
+        } catch (error) {
+          console.log(`Attempt ${i + 1} failed for ${url}:`, error);
+          if (i === retries) throw error;
+          await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1))); // Exponential backoff
+        }
+      }
+    };
+    
+    try {
+      // Check for existing Google Business Profile connection
+      const response = await fetchWithRetry('/api/social-posting/platforms');
+      console.log('Platforms API response status:', response.status);
+      
+      if (response.ok) {
+        const responseData = await response.json();
+        console.log('Platforms API response data:', responseData);
+        
+        const platforms = responseData.data?.platforms || [];
+        const googlePlatform = platforms.find((p: any) => p.platform === 'google-business-profile');
+        
+        console.log('Google platform found:', googlePlatform);
+        
+        if (googlePlatform && googlePlatform.isConnected) {
+          setIsConnected(true);
+          console.log('Google Business Profile is connected');
+          
+          // Load business locations from Google Business Profile API
+          try {
+            const locationsResponse = await fetchWithRetry('/api/social-posting/platforms/google-business-profile/locations');
+            console.log('Locations API response status:', locationsResponse.status);
+            
+            if (locationsResponse.ok) {
+              const locationsData = await locationsResponse.json();
+              console.log('Locations API response data:', locationsData);
+              
+              setLocations(locationsData.locations || []);
+              setSelectedLocation(locationsData.locations?.[0]?.id || '');
+            } else {
+              // Handle API errors gracefully
+              const errorData = await locationsResponse.json();
+              console.log('Locations API error:', errorData);
+              
+              if (errorData.error?.code === 429) {
+                console.log('Rate limit hit while loading locations - this is normal for new connections');
+                setPostResult({ 
+                  success: false, 
+                  message: 'Google Business Profile is connected! Business locations are still loading due to API rate limits. Please try again in a few minutes.' 
+                });
+              }
+            }
+          } catch (locationError) {
+            console.error('Failed to load business locations:', locationError);
+            
+            // Check if it's a rate limiting error
+            if (locationError instanceof Error && 
+                (locationError.message.includes('rate limit') || 
+                 locationError.message.includes('429'))) {
+              console.log('Rate limit hit while loading locations - this is normal for new connections');
+              setPostResult({ 
+                success: false, 
+                message: 'Google Business Profile is connected! Business locations are still loading due to API rate limits. Please try again in a few minutes.' 
+              });
+            }
+            
+            // Fall back to mock data for demo purposes
+            const mockLocations: GoogleBusinessLocation[] = [
+              { id: '1', name: 'Main Office', address: '123 Business St, City, State', status: 'active' },
+              { id: '2', name: 'Downtown Branch', address: '456 Main Ave, City, State', status: 'active' }
+            ];
+            setLocations(mockLocations);
+            setSelectedLocation(mockLocations[0]?.id || '');
+          }
+        } else {
+          setIsConnected(false);
+          setLocations([]);
+          setSelectedLocation('');
+          console.log('Google Business Profile is not connected');
+        }
+      } else {
+        console.error('Failed to check platform connections, status:', response.status);
+        setIsConnected(false);
+      }
+    } catch (error) {
+      console.error('Failed to load platform information:', error);
+      setIsConnected(false);
+    } finally {
+      console.log('Setting isLoading to false');
+      setIsLoading(false);
+    }
+  };
 
   const handleConnect = async () => {
     try {
@@ -137,7 +227,7 @@ export default function SocialPostingDashboard() {
       // Get Google OAuth credentials from environment
       const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '984479581786-8h619lvt0jvhakg7riaom9bs7mlo1lku.apps.googleusercontent.com';
       const redirectUri = encodeURIComponent('http://localhost:3002/api/auth/google/callback');
-      const scope = encodeURIComponent('https://www.googleapis.com/auth/business.manage openid email profile');
+      const scope = encodeURIComponent('https://www.googleapis.com/auth/plus.business.manage openid email profile');
       const responseType = 'code';
       const state = encodeURIComponent(JSON.stringify({ 
         platform: 'google-business-profile',
@@ -147,10 +237,12 @@ export default function SocialPostingDashboard() {
       // Construct Google OAuth URL
       const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&response_type=${responseType}&state=${state}&access_type=offline&prompt=consent`;
       
+      console.log('🔗 Redirecting to Google OAuth:', googleAuthUrl);
+      
       // Redirect to Google OAuth
       window.location.href = googleAuthUrl;
     } catch (error) {
-      console.error('Failed to initiate Google OAuth:', error);
+      console.error('❌ Failed to initiate Google OAuth:', error);
       setPostResult({ success: false, message: 'Failed to connect to Google Business Profile' });
       setIsLoading(false);
     }
