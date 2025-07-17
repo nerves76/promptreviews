@@ -148,6 +148,13 @@ export default function Header() {
           
         if (error) {
           console.error('🚨 Header: Notifications fetch failed:', error);
+          // Log additional debugging info
+          console.error('🚨 Header: Error details:', {
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            code: error.code
+          });
           // Don't throw - just skip setting notifications to prevent reload
           return;
         }
@@ -345,30 +352,54 @@ export default function Header() {
                       </span>
                     )}
                   </Link>
-                  <Link
-                    href={hasBusiness ? "/dashboard/widget" : "#"}
-                    onClick={(e) => {
-                      if (!hasBusiness) {
-                        e.preventDefault();
-                        router.push("/dashboard/create-business");
-                      }
-                    }}
-                    className={`${
-                      isActive("/dashboard/widget")
-                        ? "border-white text-white"
-                        : hasBusiness 
-                          ? "border-transparent text-white hover:border-white/30 hover:text-white/90"
-                          : "border-transparent text-white/50 cursor-not-allowed"
-                    } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16 relative group`}
-                    title={!hasBusiness ? "Create your business profile first" : ""}
-                  >
-                    Widgets
-                    {!hasBusiness && (
-                      <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap" style={{ zIndex: 2147483647 }}>
-                        Create business profile first
-                      </span>
-                    )}
-                  </Link>
+                                      <Link
+                      href={hasBusiness ? "/dashboard/widget" : "#"}
+                      onClick={(e) => {
+                        if (!hasBusiness) {
+                          e.preventDefault();
+                          router.push("/dashboard/create-business");
+                        }
+                      }}
+                      className={`${
+                        isActive("/dashboard/widget")
+                          ? "border-white text-white"
+                          : hasBusiness 
+                            ? "border-transparent text-white hover:border-white/30 hover:text-white/90"
+                            : "border-transparent text-white/50 cursor-not-allowed"
+                      } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16 relative group`}
+                      title={!hasBusiness ? "Create your business profile first" : ""}
+                    >
+                      Widgets
+                      {!hasBusiness && (
+                        <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap" style={{ zIndex: 2147483647 }}>
+                          Create business profile first
+                        </span>
+                      )}
+                    </Link>
+                    <Link
+                      href={hasBusiness ? "/dashboard/social-posting" : "#"}
+                      onClick={(e) => {
+                        if (!hasBusiness) {
+                          e.preventDefault();
+                          router.push("/dashboard/create-business");
+                        }
+                      }}
+                      className={`${
+                        isActive("/dashboard/social-posting")
+                          ? "border-white text-white"
+                          : hasBusiness 
+                            ? "border-transparent text-white hover:border-white/30 hover:text-white/90"
+                            : "border-transparent text-white/50 cursor-not-allowed"
+                      } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16 relative group`}
+                      title={!hasBusiness ? "Create your business profile first" : ""}
+                    >
+                      Social Posting
+                      {!hasBusiness && (
+                        <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap" style={{ zIndex: 2147483647 }}>
+                          Create business profile first
+                        </span>
+                      )}
+                    </Link>
                 </>
               )}
             </div>
@@ -640,6 +671,30 @@ export default function Header() {
                       } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                     >
                       Widgets
+                      {!hasBusiness && (
+                        <span className="text-xs text-blue-600 block mt-1">Create business profile first</span>
+                      )}
+                    </Link>
+                    <Link
+                      href={hasBusiness ? "/dashboard/social-posting" : "#"}
+                      onClick={(e) => {
+                        if (!hasBusiness) {
+                          e.preventDefault();
+                          router.push("/dashboard/create-business");
+                          setMenuOpen(false);
+                        } else {
+                          setMenuOpen(false);
+                        }
+                      }}
+                      className={`${
+                        isActive("/dashboard/social-posting")
+                          ? "bg-slate-blue/10 text-slate-blue"
+                          : hasBusiness 
+                            ? "text-blue-900 hover:bg-slate-blue/10 hover:text-slate-blue"
+                            : "text-blue-400 cursor-not-allowed"
+                      } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
+                    >
+                      Social Posting
                       {!hasBusiness && (
                         <span className="text-xs text-blue-600 block mt-1">Create business profile first</span>
                       )}
