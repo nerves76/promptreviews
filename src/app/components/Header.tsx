@@ -376,6 +376,7 @@ export default function Header() {
                         </span>
                       )}
                     </Link>
+                    {/* Social Posting temporarily hidden until feature is ready
                     <Link
                       href={hasBusiness ? "/dashboard/social-posting" : "#"}
                       onClick={(e) => {
@@ -400,6 +401,7 @@ export default function Header() {
                         </span>
                       )}
                     </Link>
+                    */}
                 </>
               )}
             </div>
@@ -675,6 +677,7 @@ export default function Header() {
                         <span className="text-xs text-blue-600 block mt-1">Create business profile first</span>
                       )}
                     </Link>
+                    {/* Social Posting temporarily hidden until feature is ready
                     <Link
                       href={hasBusiness ? "/dashboard/social-posting" : "#"}
                       onClick={(e) => {
@@ -699,6 +702,7 @@ export default function Header() {
                         <span className="text-xs text-blue-600 block mt-1">Create business profile first</span>
                       )}
                     </Link>
+                    */}
                   </>
                 )}
                 {user ? (
