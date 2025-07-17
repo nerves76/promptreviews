@@ -15,6 +15,8 @@ interface ReviewPlatformCardProps {
   platformReviewTexts: string[];
   aiLoading: number | null;
   isSubmitting: number | null;
+  isCopied: number | null;
+  isRedirecting: number | null;
   aiRewriteCounts: number[];
   openInstructionsIdx: number | null;
   submitError: string | null;
@@ -43,6 +45,8 @@ export default function ReviewPlatformCard({
   platformReviewTexts,
   aiLoading,
   isSubmitting,
+  isCopied,
+  isRedirecting,
   aiRewriteCounts,
   openInstructionsIdx,
   submitError,
@@ -326,20 +330,20 @@ export default function ReviewPlatformCard({
             <button
               type="button"
               onClick={() => onCopyAndSubmit(idx, platform.url)}
-              disabled={isSubmitting === idx}
+              disabled={isSubmitting === idx || isCopied === idx || isRedirecting === idx}
               className="flex-1 px-4 py-2 rounded-lg text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all duration-200 border-2"
               style={{
                 backgroundColor: businessProfile?.secondary_color || "#4F46E5",
                 borderColor: businessProfile?.secondary_color || "#4F46E5",
               }}
               onMouseEnter={(e) => {
-                if (isSubmitting !== idx && !e.currentTarget.disabled) {
+                if (isSubmitting !== idx && isCopied !== idx && isRedirecting !== idx && !e.currentTarget.disabled) {
                   e.currentTarget.style.backgroundColor = "transparent";
                   e.currentTarget.style.color = businessProfile?.secondary_color || "#4F46E5";
                 }
               }}
               onMouseLeave={(e) => {
-                if (isSubmitting !== idx && !e.currentTarget.disabled) {
+                if (isSubmitting !== idx && isCopied !== idx && isRedirecting !== idx && !e.currentTarget.disabled) {
                   e.currentTarget.style.backgroundColor = businessProfile?.secondary_color || "#4F46E5";
                   e.currentTarget.style.color = "white";
                 }
@@ -349,6 +353,24 @@ export default function ReviewPlatformCard({
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                   Submitting...
+                </>
+              ) : isCopied === idx ? (
+                <>
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    className="w-4 h-4"
+                  >
+                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                  </svg>
+                  Copied
+                </>
+              ) : isRedirecting === idx ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  Redirecting...
                 </>
               ) : (
                 <>
