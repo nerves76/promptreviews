@@ -212,6 +212,8 @@ export default function PromptPage() {
   const saveMenuRef = useRef<HTMLDivElement>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<number | null>(null);
+  const [isCopied, setIsCopied] = useState<number | null>(null);
+  const [isRedirecting, setIsRedirecting] = useState<number | null>(null);
   const [reviewerFirstNames, setReviewerFirstNames] = useState<string[]>(
     () => promptPage?.review_platforms?.map(() => "") || [],
   );
@@ -592,9 +594,20 @@ export default function PromptPage() {
             }
           );
           
+          // Show "Copied" state
+          setIsSubmitting(null);
+          setIsCopied(idx);
           setCopySuccess(
             "Copied to clipboard! Now paste it on the review site.",
           );
+          
+          // Wait briefly to show "Copied" state, then show "Redirecting"
+          await new Promise(resolve => setTimeout(resolve, 800));
+          setIsCopied(null);
+          setIsRedirecting(idx);
+          
+          // Wait briefly to show "Redirecting" state, then open URL
+          await new Promise(resolve => setTimeout(resolve, 600));
           if (url) {
             window.open(url, "_blank", "noopener,noreferrer");
           }
@@ -606,6 +619,8 @@ export default function PromptPage() {
           setCopySuccess(null);
           copied = false;
           setIsSubmitting(null);
+          setIsCopied(null);
+          setIsRedirecting(null);
           return;
         }
       }
@@ -627,6 +642,8 @@ export default function PromptPage() {
       setSubmitError("Failed to submit review. Please try again.");
     } finally {
       setIsSubmitting(null);
+      setIsCopied(null);
+      setIsRedirecting(null);
       setTimeout(() => setCopySuccess(null), 4000);
     }
   };
@@ -1623,6 +1640,8 @@ export default function PromptPage() {
                   platformReviewTexts={platformReviewTexts}
                   aiLoading={aiLoading}
                   isSubmitting={isSubmitting}
+                  isCopied={isCopied}
+                  isRedirecting={isRedirecting}
                   aiRewriteCounts={aiRewriteCounts}
                   openInstructionsIdx={openInstructionsIdx}
                   submitError={submitError}
