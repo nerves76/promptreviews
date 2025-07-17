@@ -126,9 +126,22 @@ export default function Header() {
         
         console.log('🔔 Header: Fetching notifications since:', since);
         
+        // Get user's account info first to filter notifications properly
+        const { data: accountUser, error: accountError } = await supabase
+          .from('account_users')
+          .select('account_id')
+          .eq('user_id', session.user.id)
+          .single();
+          
+        if (accountError) {
+          console.error('🚨 Header: Could not get user account:', accountError);
+          return;
+        }
+        
         const { data, error } = await supabase
           .from("review_submissions")
           .select("id, first_name, last_name, platform, review_content, created_at, sentiment, review_type")
+          .eq("business_id", accountUser.account_id)
           .gte("created_at", since)
           .order("created_at", { ascending: false })
           .limit(7);
