@@ -25,12 +25,12 @@ The Google Business Profile integration allows users to:
 2. Create a new project or select an existing one
 3. Note your project ID for reference
 
-### 2. Enable Google My Business API
+### 2. Enable Google Business Profile API
 
 1. In the Google Cloud Console, go to **APIs & Services** > **Library**
-2. Search for "Google My Business API"
+2. Search for "Google My Business API" (this is the correct API name)
 3. Click on it and press **Enable**
-4. Also enable "Google My Business Account Management API"
+4. Also enable "Google My Business Account Management API" if available
 
 ### 3. Create OAuth 2.0 Credentials
 
@@ -41,7 +41,9 @@ The Google Business Profile integration allows users to:
    - Fill in required application information
    - Add your domain to authorized domains
    - Add the following scopes:
-     - `https://www.googleapis.com/auth/business.manage`
+     - `https://www.googleapis.com/auth/plus.business.manage` (for Google Business Profile)
+     - `https://www.googleapis.com/auth/userinfo.email`
+     - `https://www.googleapis.com/auth/userinfo.profile`
 4. For the OAuth client ID:
    - Application type: **Web application**
    - Name: "PromptReviews Google Business Profile"
@@ -61,11 +63,9 @@ Add the following to your `.env.local` file:
 GOOGLE_CLIENT_ID=your_google_oauth_client_id_here
 GOOGLE_CLIENT_SECRET=your_google_oauth_client_secret_here
 GOOGLE_REDIRECT_URI=http://localhost:3002/api/auth/google/callback
-```
 
-For production, update the redirect URI to match your domain:
-```bash
-GOOGLE_REDIRECT_URI=https://yourdomain.com/api/auth/google/callback
+# For production, update the redirect URI to match your domain:
+# GOOGLE_REDIRECT_URI=https://yourdomain.com/api/auth/google/callback
 ```
 
 ### 5. OAuth Consent Screen Configuration
@@ -100,7 +100,14 @@ The integration uses these API endpoints:
 4. Complete the OAuth flow with a test user account
 5. Select a business location and create a test post
 
-### Debugging
+### Test Page
+
+Use the test page at `/test-google-oauth` to verify:
+- OAuth flow works correctly
+- Token exchange succeeds
+- API credentials are properly configured
+
+## Debugging
 
 Check the browser console and server logs for:
 - OAuth flow errors
@@ -128,6 +135,7 @@ Common issues:
 - **Character limit**: 1500 characters per post
 - **Media size**: Max 10MB for images, 100MB for videos
 - **Supported formats**: JPEG, PNG, GIF for images; MP4, MOV, AVI for videos
+- **Rate limits**: 1 request per minute per project
 
 ## Troubleshooting
 
@@ -142,6 +150,9 @@ Common issues:
 **Error: invalid_client**
 - Solution: Check client ID and secret are correct
 
+**Error: Bad Request**
+- Solution: Check that all required OAuth parameters are present and correct
+
 ### API Errors
 
 **Error: 403 Forbidden**
@@ -151,7 +162,21 @@ Common issues:
 - Solution: Verify business location ID and user has access
 
 **Error: 429 Too Many Requests**
-- Solution: Implement rate limiting and respect API quotas
+- Solution: Implement rate limiting and respect API quotas (1 request per minute)
+
+**Error: 401 Unauthorized**
+- Solution: Check access token is valid and not expired
+
+### Authentication Issues
+
+**User gets logged out during OAuth**
+- Solution: Ensure cookies are handled properly in Next.js 15
+- Use `await cookies()` before accessing cookie store
+- Use `getUser()` instead of `getSession()` for better reliability
+
+**Cookie parsing errors**
+- Solution: Remove JSON.parse calls on base64-encoded cookies
+- Use proper cookie handling in API routes
 
 ## Production Deployment
 

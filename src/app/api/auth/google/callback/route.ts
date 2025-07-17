@@ -1,129 +1,222 @@
 /**
- * Google OAuth Callback Route
- * Handles the OAuth callback from Google for Business Profile integration
+ * OAuth Callback Route for Google Business Profile
+ * Handles the OAuth callback from Google and stores tokens
+ * Updated to fix authentication issues and prevent user logout
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
 import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
-import { createServerSupabaseClient, createServiceRoleClient } from '@/utils/supabaseClient';
 
+/**
+ * OAuth Callback Route for Google Business Profile
+ * Handles the OAuth callback from Google and stores tokens
+ */
 export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams;
-  const code = searchParams.get('code');
-  const state = searchParams.get('state');
-  const error = searchParams.get('error');
-
-  // Handle OAuth errors
-  if (error) {
-    console.error('Google OAuth error:', error);
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/dashboard/social-posting?error=oauth_failed&message=${encodeURIComponent(error)}`);
-  }
-
-  if (!code) {
-    console.error('No authorization code received');
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/dashboard/social-posting?error=no_code`);
-  }
-
   try {
-    // Use server client to properly read session cookies
-    const supabase = await createServerSupabaseClient();
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-
-    if (sessionError || !session?.user) {
-      console.error('User not authenticated in OAuth callback:', sessionError);
-      // Instead of redirecting to sign-in, redirect back to social posting with error
-      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/dashboard/social-posting?error=not_authenticated&message=${encodeURIComponent('Please sign in to connect Google Business Profile')}`);
+    console.log('🔗 OAuth callback started');
+    
+    // Get cookies properly for Next.js 15
+    const cookieStore = await cookies();
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+    
+    const { searchParams } = new URL(request.url);
+    const code = searchParams.get('code');
+    const state = searchParams.get('state');
+    const error = searchParams.get('error');
+    
+    console.log('📝 OAuth callback parameters:', { 
+      hasCode: !!code, 
+      hasState: !!state, 
+      hasError: !!error,
+      error 
+    });
+    
+    // Handle OAuth errors
+    if (error) {
+      console.log('❌ OAuth error received:', error);
+      return NextResponse.redirect(
+        new URL('/dashboard/social-posting?error=oauth_denied&message=Access was denied', request.url)
+      );
+    }
+    
+    if (!code) {
+      console.log('❌ No authorization code received');
+      return NextResponse.redirect(
+        new URL('/dashboard/social-posting?error=callback_failed&message=No authorization code received', request.url)
+      );
     }
 
-    const user = session.user;
-    console.log('OAuth callback - User authenticated:', user.id);
-
-    // Initialize Google Business Profile client
-    const gbpClient = new GoogleBusinessProfileClient({
-      credentials: {
-        clientId: process.env.GOOGLE_CLIENT_ID!,
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-        redirectUri: process.env.GOOGLE_REDIRECT_URI!
+    // Parse state to get return URL
+    let returnUrl = '/dashboard/social-posting';
+    if (state) {
+      try {
+        const stateData = JSON.parse(decodeURIComponent(state));
+        returnUrl = stateData.returnUrl || '/dashboard/social-posting';
+        console.log('🔄 Return URL from state:', returnUrl);
+      } catch (e) {
+        console.log('⚠️ Failed to parse state:', e);
       }
+    }
+
+    // Get current user - use getUser() instead of getSession() for better reliability
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError) {
+      console.log('❌ Authentication error in OAuth callback:', authError);
+      return NextResponse.redirect(
+        new URL(`/auth/sign-in?message=Please sign in to connect Google Business Profile`, request.url)
+      );
+    }
+    
+    if (!user) {
+      console.log('❌ No user found in OAuth callback');
+      return NextResponse.redirect(
+        new URL(`/auth/sign-in?message=Please sign in to connect Google Business Profile`, request.url)
+      );
+    }
+
+    console.log('✅ OAuth callback - User authenticated:', user.id);
+
+    // Check environment variables
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+    const redirectUri = process.env.GOOGLE_REDIRECT_URI;
+
+    if (!clientId || !clientSecret || !redirectUri) {
+      console.log('❌ Missing environment variables:', {
+        hasClientId: !!clientId,
+        hasClientSecret: !!clientSecret,
+        hasRedirectUri: !!redirectUri
+      });
+      return NextResponse.redirect(
+        new URL(`${returnUrl}?error=callback_failed&message=Missing environment variables`, request.url)
+      );
+    }
+
+    // Exchange code for tokens
+    console.log('🔄 Exchanging code for tokens...');
+    console.log('📝 Token exchange parameters:', {
+      clientId: clientId.substring(0, 10) + '...',
+      redirectUri,
+      hasCode: !!code
     });
 
-    // Exchange authorization code for tokens
-    const auth = await gbpClient.exchangeCodeForTokens(code);
-    console.log('OAuth tokens received successfully');
+    const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        code,
+        client_id: clientId,
+        client_secret: clientSecret,
+        redirect_uri: redirectUri,
+        grant_type: 'authorization_code',
+      }),
+    });
 
-    // Set the auth on the client for subsequent API calls
-    gbpClient.setAuth(auth);
+    console.log('📊 Token response status:', tokenResponse.status, tokenResponse.statusText);
 
-    // Store the authentication tokens in the database
-    const { error: insertError } = await supabase
-      .from('google_business_profiles')
+    if (!tokenResponse.ok) {
+      const errorText = await tokenResponse.text();
+      console.log('❌ Failed to exchange code for tokens:', {
+        status: tokenResponse.status,
+        statusText: tokenResponse.statusText,
+        errorText: errorText.substring(0, 500)
+      });
+      return NextResponse.redirect(
+        new URL(`${returnUrl}?error=callback_failed&message=Failed to exchange code for tokens: ${tokenResponse.statusText}`, request.url)
+      );
+    }
+
+    const tokens = await tokenResponse.json();
+    console.log('✅ OAuth tokens received successfully');
+
+    // Store tokens in database
+    console.log('💾 Storing tokens in database...');
+    const { error: tokenError } = await supabase
+      .from('google_business_tokens')
       .upsert({
         user_id: user.id,
-        access_token: auth.accessToken,
-        refresh_token: auth.refreshToken,
-        expires_at: new Date(auth.expiresAt).toISOString(),
-        scopes: auth.scope,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      }, {
-        onConflict: 'user_id'
+        access_token: tokens.access_token,
+        refresh_token: tokens.refresh_token,
+        expires_at: new Date(Date.now() + tokens.expires_in * 1000).toISOString(),
+        token_type: tokens.token_type,
+        scope: tokens.scope
       });
 
-    if (insertError) {
-      console.error('Error storing Google Business Profile tokens:', insertError);
-      throw new Error('Failed to store authentication tokens');
+    if (tokenError) {
+      console.error('❌ Error storing tokens:', tokenError);
+      return NextResponse.redirect(
+        new URL(`${returnUrl}?error=callback_failed&message=Failed to store tokens`, request.url)
+      );
     }
 
-    console.log('Google Business Profile tokens stored successfully');
+    console.log('✅ Google Business Profile tokens stored successfully');
 
-    // Fetch and store business locations
+    // Try to fetch business locations (but don't fail if this doesn't work)
     try {
-      const accounts = await gbpClient.listAccounts();
+      console.log('🔍 Fetching Google Business Profile accounts...');
+      const client = new GoogleBusinessProfileClient({
+        credentials: {
+          clientId,
+          clientSecret,
+          redirectUri
+        },
+        auth: {
+          accessToken: tokens.access_token,
+          refreshToken: tokens.refresh_token,
+          expiresAt: Date.now() + (tokens.expires_in * 1000),
+          scope: tokens.scope?.split(' ') || []
+        }
+      });
+
+      const accounts = await client.listAccounts();
+      console.log('✅ Found Google Business Profile accounts:', accounts.length);
       
+      // Store account information for later use
       if (accounts.length > 0) {
-        const firstAccount = accounts[0];
-        const locations = await gbpClient.listLocations(firstAccount.name);
-        
-        console.log(`Found ${locations.length} business locations`);
-        
-        // Store locations in the database
-        for (const location of locations) {
-          await supabase
-            .from('google_business_locations')
-            .upsert({
-              user_id: user.id,
-              location_id: location.name,
-              location_name: location.locationName,
-              address: location.address ? 
-                location.address.addressLines.join(', ') + 
-                (location.address.locality ? `, ${location.address.locality}` : '') +
-                (location.address.administrativeArea ? `, ${location.address.administrativeArea}` : '') : '',
-              primary_phone: location.primaryPhone,
-              website_uri: location.websiteUri,
-              status: location.openInfo?.status || 'UNKNOWN',
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            }, {
-              onConflict: 'user_id,location_id'
-            });
+        for (const account of accounts) {
+          try {
+            const locations = await client.listLocations(account.name);
+            console.log(`✅ Found ${locations.length} locations for account ${account.name}`);
+            
+            // Store locations in database
+            for (const location of locations) {
+              await supabase
+                .from('google_business_locations')
+                .upsert({
+                  user_id: user.id,
+                  location_id: location.name,
+                  location_name: location.title || location.name,
+                  address: location.address?.formattedAddress,
+                  primary_phone: location.phoneNumbers?.primaryPhone,
+                  website_uri: location.websiteUri,
+                  status: location.verificationStatus || 'UNKNOWN'
+                });
+            }
+          } catch (locationError) {
+            console.log('⚠️ Error fetching locations for account:', account.name, locationError);
+          }
         }
       }
-    } catch (locationError) {
-      console.warn('Failed to fetch locations, but OAuth was successful:', locationError);
-      // Don't fail the entire flow if location fetching fails
+    } catch (apiError) {
+      console.log('⚠️ Error fetching business data (non-critical):', apiError);
+      // Don't fail the OAuth flow if API calls fail - the user can still connect
     }
 
-    // Redirect back to social posting dashboard with success
+    // Redirect with success message
+    console.log('✅ OAuth callback completed successfully');
     return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/social-posting?connected=true&message=${encodeURIComponent('Successfully connected Google Business Profile!')}`
+      new URL(`${returnUrl}?connected=true&message=Successfully connected Google Business Profile!`, request.url)
     );
 
   } catch (error) {
-    console.error('Google OAuth callback error:', error);
-    
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    console.error('❌ Error in OAuth callback:', error);
     return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/social-posting?error=callback_failed&message=${encodeURIComponent(errorMessage)}`
+      new URL('/dashboard/social-posting?error=callback_failed&message=Unexpected error during OAuth callback', request.url)
     );
   }
 } 

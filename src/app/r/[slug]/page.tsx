@@ -1725,7 +1725,7 @@ export default function PromptPage() {
                       className="text-center mb-8"
                       style={{ color: businessProfile?.card_text || "#374151" }}
                     >
-                      We appreciate your feedback and want to make sure it's handled appropriately.
+                      Your feedback can help us learn and grow. Please consider sharing your feedback privately so we can address it promptly.
                     </p>
                     
                     <div className="space-y-4">
@@ -1745,7 +1745,7 @@ export default function PromptPage() {
                           setShowFeedbackForm(true);
                         }}
                       >
-                        Send Private Feedback to Business
+                        Send private feedback
                       </button>
                       
                       <button
@@ -2049,7 +2049,7 @@ export default function PromptPage() {
               className="text-center mb-8"
               style={{ color: businessProfile?.card_text || "#374151" }}
             >
-              We appreciate your feedback and want to make sure it's handled appropriately.
+              Your feedback can help us learn and grow. Please consider sharing your feedback privately so we can address it promptly.
             </p>
             
             <div className="space-y-4">
@@ -2069,7 +2069,7 @@ export default function PromptPage() {
                   setShowFeedbackForm(true);
                 }}
               >
-                Send Private Feedback to Business
+                Send private feedback
               </button>
               
               <button
