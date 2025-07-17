@@ -325,10 +325,14 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
               &times;
             </button>
             <h2 className="text-2xl font-bold text-red-700 mb-4">
-              Popup Feature Conflict
+              Cannot Enable Multiple Popups
             </h2>
             <p className="mb-6 text-gray-700">
-              Sorry you can't have "Personalized note" and "Emoji sentiment flow" enabled at the same time because that would be pop-ups on top of pop-ups.
+              You cannot have 2 popups enabled at the same time. You must disable{" "}
+              <strong>
+                {showPopupConflictModal === "note" ? "Emoji Sentiment Flow" : "Personalized Note Pop-up"}
+              </strong>{" "}
+              first.
             </p>
             <button
               onClick={() => setShowPopupConflictModal(null)}

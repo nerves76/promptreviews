@@ -450,11 +450,15 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
                 &times;
               </button>
               <h2 className="text-2xl font-bold text-red-700 mb-4">
-                Popup Feature Conflict
+                Cannot Enable Multiple Popups
               </h2>
-                          <p className="mb-6 text-gray-700">
-              Sorry you can't have "Personalized note" and "Emoji sentiment flow" enabled at the same time because that would be pop-ups on top of pop-ups.
-            </p>
+              <p className="mb-6 text-gray-700">
+                You cannot have 2 popups enabled at the same time. You must disable{" "}
+                <strong>
+                  {showPopupConflictModal === "note" ? "Emoji Sentiment Flow" : "Personalized Note Pop-up"}
+                </strong>{" "}
+                first.
+              </p>
               <button
                 onClick={() => setShowPopupConflictModal(null)}
                 className="bg-slate-blue text-white px-6 py-2 rounded hover:bg-slate-blue/90 font-semibold mt-2"
