@@ -196,6 +196,8 @@ export default function PromptPage() {
   const [platformReviewTexts, setPlatformReviewTexts] = useState<string[]>([]);
   const [aiRewriteCounts, setAiRewriteCounts] = useState<number[]>(Array(promptPage?.review_platforms?.length || 0).fill(0));
   const [aiLoading, setAiLoading] = useState<number | null>(null);
+  const [fixGrammarCounts, setFixGrammarCounts] = useState<number[]>(Array(promptPage?.review_platforms?.length || 0).fill(0));
+  const [fixGrammarLoading, setFixGrammarLoading] = useState<number | null>(null);
   const [showRewardsBanner, setShowRewardsBanner] = useState(true);
   const [showPersonalNote, setShowPersonalNote] = useState(true);
   const [openInstructionsIdx, setOpenInstructionsIdx] = useState<number | null>(
@@ -278,6 +280,11 @@ export default function PromptPage() {
     const savedCounts = sessionStorage.getItem('aiRewriteCounts');
     if (savedCounts) {
       setAiRewriteCounts(JSON.parse(savedCounts));
+    }
+    
+    const savedGrammarCounts = sessionStorage.getItem('fixGrammarCounts');
+    if (savedGrammarCounts) {
+      setFixGrammarCounts(JSON.parse(savedGrammarCounts));
     }
   }, []);
 
@@ -373,6 +380,7 @@ export default function PromptPage() {
         platforms.map((p: any) => p.reviewText || ""),
       );
       setAiRewriteCounts(platforms.map(() => 0));
+      setFixGrammarCounts(platforms.map(() => 0));
       if (promptPage.is_universal) {
         setReviewerFirstNames(platforms.map(() => ""));
         setReviewerLastNames(platforms.map(() => ""));
@@ -651,12 +659,6 @@ export default function PromptPage() {
   const handleRewriteWithAI = async (idx: number) => {
     if (!promptPage || !businessProfile) return;
     
-    // Check if user is logged in and prevent AI generation
-    if (currentUser) {
-      setSubmitError("Sorry, you can't do that while you are logged in.");
-      return;
-    }
-    
     setAiLoading(idx);
     try {
       const platform = promptPage.review_platforms[idx];
@@ -714,6 +716,76 @@ export default function PromptPage() {
       );
     } finally {
       setAiLoading(null);
+    }
+  };
+
+  const handleFixGrammar = async (idx: number) => {
+    if (!promptPage || !businessProfile) return;
+    
+    // Check if there's text to fix
+    if (!platformReviewTexts[idx] || platformReviewTexts[idx].trim() === "") {
+      setSubmitError("Please write a review first before fixing grammar.");
+      return;
+    }
+    
+    setFixGrammarLoading(idx);
+    try {
+      const currentText = platformReviewTexts[idx];
+      
+      // Use monitoring wrapper for critical grammar fixing
+      const { monitorCriticalAPIRequest, CRITICAL_FUNCTIONS } = await import('@/utils/criticalFunctionMonitoring');
+      const data = await monitorCriticalAPIRequest<{ text: string }>(
+        CRITICAL_FUNCTIONS.AI_GENERATE_REVIEW, // Reuse the same critical function for now
+        "/api/fix-grammar",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: currentText }),
+        },
+        {
+          userId: currentUser?.id,
+          promptPageId: promptPage.id,
+          platform: promptPage.review_platforms[idx]?.platform || promptPage.review_platforms[idx]?.name || "",
+          additionalContext: {
+            reviewIndex: idx,
+            businessName: businessProfile.business_name,
+            operation: 'grammar_fix'
+          }
+        }
+      );
+      
+      setPlatformReviewTexts((prev) =>
+        prev.map((t, i) => (i === idx ? data.text : t)),
+      );
+      setFixGrammarCounts((prev) => {
+        const newCounts = prev.map((c, i) => (i === idx ? c + 1 : c));
+        sessionStorage.setItem('fixGrammarCounts', JSON.stringify(newCounts));
+        return newCounts;
+      });
+      
+      if (
+        !currentUser &&
+        promptPage?.id &&
+        promptPage.review_platforms?.[idx]
+      ) {
+        sendAnalyticsEvent({
+          promptPageId: promptPage.id,
+          eventType: "grammar_fix",
+          platform:
+            promptPage.review_platforms[idx].platform ||
+            promptPage.review_platforms[idx].name ||
+            "",
+        });
+      }
+    } catch (err) {
+      console.error("Grammar fixing error:", err);
+      setSubmitError(
+        err instanceof Error 
+          ? `Grammar fixing failed: ${err.message}` 
+          : "Grammar fixing failed. Please try again."
+      );
+    } finally {
+      setFixGrammarLoading(null);
     }
   };
 
@@ -1639,10 +1711,12 @@ export default function PromptPage() {
                   reviewerRoles={reviewerRoles}
                   platformReviewTexts={platformReviewTexts}
                   aiLoading={aiLoading}
+                  fixGrammarLoading={fixGrammarLoading}
                   isSubmitting={isSubmitting}
                   isCopied={isCopied}
                   isRedirecting={isRedirecting}
                   aiRewriteCounts={aiRewriteCounts}
+                  fixGrammarCounts={fixGrammarCounts}
                   openInstructionsIdx={openInstructionsIdx}
                   submitError={submitError}
                   onToggleAccordion={(idx) => {
@@ -1667,6 +1741,7 @@ export default function PromptPage() {
                   }}
                   onReviewTextChange={handleReviewTextChange}
                   onRewriteWithAI={handleRewriteWithAI}
+                  onFixGrammar={handleFixGrammar}
                   onCopyAndSubmit={handleCopyAndSubmit}
                   onToggleInstructions={(idx) => setOpenInstructionsIdx(idx)}
                   getPlatformIcon={getPlatformIcon}

@@ -180,6 +180,40 @@ This project is currently focused on developing a standalone widget for collecti
 - **Consistent UI**: Matches existing account page styling and button design patterns
 - **Email Flow**: Sends password reset email that redirects to `/reset-password` page after email confirmation
 
+### Google Business Profile Social Posting Rate Limit Fix (July 2025)
+- **Rate Limit Handling Improvements**: Enhanced Google Business Profile API rate limit handling with better user feedback and retry mechanisms
+- **Frontend Redirect Issue Resolution**: Fixed duplicate `useEffect` hooks that were causing unwanted redirects after rate limit errors
+- **URL Parameter Handling**: Added proper error parameter handling to prevent redirect loops and improve user experience
+- **Try Again Button Enhancement**: Improved "Try Again" button visibility and functionality with proper loading states and icon changes
+- **TypeScript Type Safety**: Fixed TypeScript errors in fetch functions with proper type annotations and Promise handling
+- **Error Message Clarity**: Enhanced rate limit error messages to be more user-friendly and informative
+- **Component State Management**: Improved state management to prevent unnecessary re-renders and redirects
+- **URL Parameter Fixes**: Resolved issues with page getting stuck on success URL parameters by improving useEffect logic and preventing duplicate loadPlatforms() calls
+- **Rate Limit UX Enhancements**: Improved rate limit error messages with clearer guidance and retry instructions
+- **Location Count Display**: Added dynamic location count in success messages to show users how many locations were fetched
+- **Conservative Rate Limit Strategy**: Updated API configuration to use only 1 retry attempt with 2-minute delays for strict Google API limits
+- **Enhanced Error Logging**: Added detailed logging for rate limit situations with clear explanations about Google's 1 request/minute limit
+- **User Guidance Documentation**: Created comprehensive documentation explaining rate limits and best practices for users
+
+#### **Technical Fixes**
+1. **Duplicate useEffect Removal**: Removed duplicate `useEffect` hook that was calling `loadPlatforms()` twice
+2. **URL Parameter Handling**: Added proper handling for error URL parameters to prevent redirect loops
+3. **Rate Limit Detection**: Enhanced rate limit detection to check both `result.isRateLimit` and `response.status === 429`
+4. **Try Again Button Logic**: Improved button visibility logic to show for both "rate limit" and "Rate limit" message variations
+5. **TypeScript Improvements**: Added proper type annotations for `fetchWithRetry` function and timeout promises
+6. **API Configuration Updates**: Reduced retry attempts to 1 and increased delay to 120 seconds for strict Google API compliance
+7. **Enhanced Logging**: Added detailed console logging explaining rate limit situations and Google API restrictions
+8. **Documentation**: Created `docs/GOOGLE_BUSINESS_PROFILE_RATE_LIMITS.md` with comprehensive rate limit guidance
+6. **Icon Import Fix**: Added `FaRedo` icon import and replaced `FaRefresh` with proper icon name
+7. **OAuth State Management**: Added `hasHandledOAuth` state to prevent multiple useEffect executions
+8. **Success Message Enhancement**: Added dynamic location count display in success messages
+
+#### **User Experience Improvements**
+- **Persistent Try Again Button**: Button now stays visible after rate limit errors and shows proper loading states
+- **Clear Error Messages**: Rate limit messages are more informative and explain the normal nature of rate limits for new connections
+- **No More Redirects**: Fixed the issue where users were redirected to the starting page after rate limit errors
+- **Better Loading States**: Improved loading indicators and disabled states during API calls
+
 ### Authentication System Debugging & Resolution (July 2025)
 - **Critical Authentication Issues Resolved**: Comprehensive debugging session that resolved persistent authentication errors including "Invalid Refresh Token" and "AuthSessionMissingError"
 - **Supabase Service Discovery**: Identified that the root cause was Supabase not running locally (`supabase start` resolved the core issue)
@@ -1256,11 +1290,64 @@ If you need a custom loading message or style, consider extending `AppLoader` or
 
 **User Experience Flow**:
 1. User completes business creation form
-2. Business saved → localStorage celebration flag set → `businessCreated` event dispatched
+2. Business saved → localStorage celebration flag set → `businessCreated` event dispatched → URL redirect with `businessCreated=1` parameter
 3. Redirect to dashboard → Starfall animation triggers → Navigation refreshes
 4. User can immediately access all main navigation features
 
 The complete onboarding experience now works seamlessly from authentication through business creation to full platform access.
+
+## 2025-01-17: Business Creation Pricing Modal Fix
+- **Issue**: After business creation, the pricing modal wasn't showing up correctly
+- **Root Cause**: URL parameter mismatch - business creation was setting `businessCreated=true` but dashboard expected `businessCreated=1`
+- **Fix**: Updated `CreateBusinessClient.tsx` to use correct parameter value `businessCreated=1`
+- **Result**: Pricing modal now appears correctly after business creation for new users
+- **Files Modified**: `src/app/dashboard/create-business/CreateBusinessClient.tsx`
+- **Testing**: Verified pricing modal appears after business creation flow
+
+## 2025-01-17: Google Business Profile OAuth Fix
+- **Issue**: Google OAuth was working but API calls were failing with "Cannot read properties of undefined (reading 'substring')", duplicate key constraint errors, 404 errors on API endpoints, and rate limiting causing OAuth flow to stall
+- **Root Cause**: 
+  1. `GoogleBusinessProfileClient` constructor was expecting wrong interface - trying to access `accessToken` from `GoogleBusinessProfileCredentials` which only contains OAuth app credentials
+  2. Database upsert was failing due to unique constraint on `user_id` in `google_business_profiles` table
+  3. API endpoints were using incorrect Google Business Profile API version (v4 instead of v1)
+  4. Google Business Profile API has strict rate limits (1 request/minute) causing OAuth flow to stall during retries
+- **Fix**: 
+  1. Updated constructor to accept direct token credentials and fixed OAuth callback instantiation
+  2. Replaced upsert with explicit check-then-insert/update logic to handle unique constraint properly
+  3. Updated API configuration to use correct Google Business Profile API v1 endpoints and base URL
+  4. Removed blocking API calls from OAuth callback to prevent rate limit stalls
+  5. Reduced retry attempts and delays to prevent long waits
+- **Result**: Google Business Profile OAuth flow now completes quickly without stalling
+- **Files Modified**: 
+  - `src/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient.ts`
+  - `src/app/api/auth/google/callback/route.ts`
+  - `src/features/social-posting/platforms/google-business-profile/api.ts`
+- **Testing**: Verified OAuth flow completes successfully without stalling
+
+## 2025-01-17: Google Business Profile Locations and Posting Functionality
+- **Issue**: After OAuth connection, users couldn't post because business locations weren't being fetched and stored, and the social posting page was showing blank due to API response structure mismatches and authentication errors
+- **Root Cause**: 
+  1. OAuth callback was skipping API calls due to rate limits, so no locations were stored
+  2. Locations API endpoint was using wrong table name (`google_business_tokens` instead of `google_business_profiles`)
+  3. No way for users to manually fetch locations after connection
+  4. Frontend was expecting different API response structure than what was being returned
+  5. Locations API was using old `@supabase/auth-helpers-nextjs` instead of `@supabase/ssr`, causing cookie parsing errors
+  6. Google Business Profile API has strict rate limits (1 request/minute) causing fetch-locations to fail
+- **Fix**: 
+  1. Fixed locations API endpoint to use correct table name `google_business_profiles`
+  2. Updated locations API to use `@supabase/ssr` for proper cookie handling
+  3. Created new `/api/social-posting/platforms/google-business-profile/fetch-locations` endpoint for on-demand location fetching
+  4. Added "Fetch Business Locations" button to social posting page for connected users
+  5. Updated social posting page to show location fetching option when connected but no locations available
+  6. Fixed API response structure mismatches in frontend code
+  7. Added localStorage fallback for connection status detection
+  8. Improved rate limit handling with better user feedback and retry options
+- **Result**: Users can now connect to Google Business Profile and fetch their business locations to enable posting functionality, with proper rate limit handling
+- **Files Modified**: 
+  - `src/app/api/social-posting/platforms/google-business-profile/locations/route.ts`
+  - `src/app/api/social-posting/platforms/google-business-profile/fetch-locations/route.ts` (new)
+  - `src/app/dashboard/social-posting/page.tsx`
+- **Testing**: Verified OAuth connection works and users can fetch locations to enable posting
 
 ## 2025-06-30: Back Button for Multi-Step Prompt Pages
 - Added back button functionality to multi-step prompt page forms

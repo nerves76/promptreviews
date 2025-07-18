@@ -71,7 +71,9 @@ export class GoogleBusinessProfileAdapter implements PlatformAdapter {
     clientSecret: string;
     redirectUri: string;
   }) {
-    this.client = new GoogleBusinessProfileClient(config);
+    // Note: The client will be created when we have actual credentials
+    // This is just a placeholder for the adapter interface
+    this.client = null as any;
   }
   
   async authenticate(): Promise<boolean> {
@@ -122,15 +124,49 @@ export class GoogleBusinessProfileAdapter implements PlatformAdapter {
       // Convert universal post to Google Business Profile format
       const gbpPost = this.convertToGBPPost(post);
       
-      // TODO: Implement actual posting when we have the location ID
-      // const result = await this.client.createLocalPost(locationId, gbpPost);
+      // Get the location ID from post metadata (should be set by frontend)
+      const locationId = post.metadata?.locationId;
+      if (!locationId) {
+        return {
+          success: false,
+          error: 'Location ID is required for Google Business Profile posts. Please select a business location.'
+        };
+      }
       
-      // For now, simulate success
-      return {
-        success: true,
-        platformPostId: `gbp_${Date.now()}`,
-        warnings: ['This is a simulated post - actual Google Business Profile integration pending']
-      };
+      try {
+        // Extract account ID from location ID (format: accounts/{accountId}/locations/{locationId})
+        const accountId = locationId.split('/')[1];
+        const actualLocationId = locationId.split('/')[3];
+        
+        if (!accountId || !actualLocationId) {
+          throw new Error('Invalid location ID format');
+        }
+        
+        // Create the actual post
+        const result = await this.client.createLocalPost(accountId, actualLocationId, gbpPost);
+        
+        return {
+          success: true,
+          platformPostId: result.name || `gbp_${Date.now()}`,
+          message: 'Post successfully published to Google Business Profile!'
+        };
+      } catch (error) {
+        console.error('Google Business Profile posting error:', error);
+        
+        // Check if it's a rate limit error
+        if (error instanceof Error && error.message.includes('rate limit')) {
+          return {
+            success: false,
+            error: 'Google Business Profile rate limit exceeded. Please try again in a few minutes.',
+            isRateLimit: true
+          };
+        }
+        
+        return {
+          success: false,
+          error: `Failed to post to Google Business Profile: ${error instanceof Error ? error.message : 'Unknown error'}`
+        };
+      }
     } catch (error) {
       return {
         success: false,

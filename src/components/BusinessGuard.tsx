@@ -98,7 +98,16 @@ export default function BusinessGuard({ children }: BusinessGuardProps) {
     }
 
     // If authenticated user doesn't have a business, redirect to create-business
-    if (!hasBusiness) {
+    if (!hasBusiness && pathname !== '/dashboard/create-business') {
+      console.log('🔄 BusinessGuard: No business found, redirecting to create-business', {
+        isAuthenticated,
+        hasBusiness,
+        isLoading,
+        businessLoading,
+        accountLoading,
+        pathname,
+        timestamp: new Date().toISOString()
+      });
       router.push("/dashboard/create-business");
       return;
     }

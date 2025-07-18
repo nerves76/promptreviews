@@ -55,15 +55,12 @@ export default function RootLayout({
           crossOrigin=""
         />
         
-        {/* Preload critical CSS for faster rendering */}
-        <link rel="preload" href="/globals.css" as="style" />
-        
         {/* Prefetch widget assets for faster embedding */}
-        <link rel="prefetch" href="/public/emojis/delighted.svg" />
-        <link rel="prefetch" href="/public/emojis/happy.svg" />
-        <link rel="prefetch" href="/public/emojis/neutral.svg" />
-        <link rel="prefetch" href="/public/emojis/sad.svg" />
-        <link rel="prefetch" href="/public/emojis/angry.svg" />
+        <link rel="prefetch" href="/emojis/delighted.svg" />
+        <link rel="prefetch" href="/emojis/satisfied.svg" />
+        <link rel="prefetch" href="/emojis/neutral.svg" />
+        <link rel="prefetch" href="/emojis/unsatisfied.svg" />
+        <link rel="prefetch" href="/emojis/angry.svg" />
         
         {/* Resource hints for performance */}
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />

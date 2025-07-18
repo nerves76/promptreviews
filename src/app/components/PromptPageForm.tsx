@@ -220,6 +220,11 @@ export default function PromptPageForm({
       ? initialData.aiReviewEnabled
       : true,
   );
+  const [fixGrammarEnabled, setFixGrammarEnabled] = useState(
+    initialData.fixGrammarEnabled !== undefined
+      ? initialData.fixGrammarEnabled
+      : true,
+  );
   const [fallingEnabled, setFallingEnabled] = useState(
     !!initialData.falling_icon
   );
@@ -708,7 +713,11 @@ export default function PromptPageForm({
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          const formDataToSubmit = { ...formData, ai_button_enabled: aiReviewEnabled };
+          const formDataToSubmit = { 
+            ...formData, 
+            ai_button_enabled: aiReviewEnabled,
+            fix_grammar_enabled: fixGrammarEnabled
+          };
           
           if (step === 2 && onPublish) {
             onPublish(formDataToSubmit);
@@ -1673,8 +1682,10 @@ export default function PromptPageForm({
             />
             {/* AI Generation Toggle (modular) */}
             <DisableAIGenerationSection
-              enabled={aiReviewEnabled}
-              onToggle={() => setAiReviewEnabled((v: boolean) => !v)}
+              aiGenerationEnabled={aiReviewEnabled}
+              fixGrammarEnabled={fixGrammarEnabled}
+              onToggleAI={() => setAiReviewEnabled((v: boolean) => !v)}
+              onToggleGrammar={() => setFixGrammarEnabled((v: boolean) => !v)}
             />
             {/* Falling Stars Section (modular, inline for now) */}
             <FallingStarsSection

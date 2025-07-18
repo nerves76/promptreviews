@@ -27,7 +27,10 @@ export class GoogleBusinessProfileClient {
   private expiresAt: number;
   private config: GoogleBusinessProfileConfig;
 
-  constructor(credentials: GoogleBusinessProfileCredentials, config?: Partial<GoogleBusinessProfileConfig>) {
+  constructor(
+    credentials: { accessToken: string; refreshToken: string; expiresAt?: number }, 
+    config?: Partial<GoogleBusinessProfileConfig>
+  ) {
     this.accessToken = credentials.accessToken;
     this.refreshToken = credentials.refreshToken;
     this.expiresAt = credentials.expiresAt || Date.now() + 3600000; // 1 hour default
@@ -39,6 +42,8 @@ export class GoogleBusinessProfileClient {
       retryDelay: GOOGLE_BUSINESS_PROFILE.RATE_LIMITS.RETRY_DELAY_MS,
       ...config
     };
+    
+    console.log('🔍 GoogleBusinessProfileClient created - Real API calls only');
   }
 
   /**
@@ -85,16 +90,19 @@ export class GoogleBusinessProfileClient {
       console.log(`📋 Response headers:`, Object.fromEntries(response.headers.entries()));
       console.log(`📄 Response text (first 500 chars):`, responseText.substring(0, 500));
 
-      // Handle rate limiting
+      // Handle rate limiting - Google Business Profile API has strict 1 request/minute limits
       if (response.status === GOOGLE_BUSINESS_PROFILE.ERROR_CODES.RATE_LIMIT_EXCEEDED) {
-        if (retryCount < this.config.retryAttempts) {
-          const delay = this.config.retryDelay * Math.pow(2, retryCount);
-          console.log(`⏳ Rate limited. Retrying in ${delay}ms (attempt ${retryCount + 1}/${this.config.retryAttempts})`);
-          await new Promise(resolve => setTimeout(resolve, delay));
-          return this.makeRequest(endpoint, options, retryCount + 1);
-        } else {
-          throw new Error('Rate limit exceeded after all retry attempts');
-        }
+        // Don't retry on rate limits - return immediately to avoid hanging the frontend
+        console.log(`❌ Rate limit exceeded - returning immediately to avoid frontend timeout`);
+        console.log(`💡 Google Business Profile API allows only 1 request per minute. Please wait before trying again.`);
+        
+        const error: GoogleBusinessProfileError = new Error(
+          'Rate limit exceeded. Google Business Profile API allows only 1 request per minute. Please wait and try again.'
+        ) as GoogleBusinessProfileError;
+        error.code = 429;
+        error.status = 'RESOURCE_EXHAUSTED';
+        error.details = data.error?.details || [];
+        throw error;
       }
 
       // Handle other errors
@@ -115,6 +123,8 @@ export class GoogleBusinessProfileClient {
       throw error;
     }
   }
+
+
 
   /**
    * Refreshes the access token using the refresh token
@@ -184,7 +194,11 @@ export class GoogleBusinessProfileClient {
       console.log(`📍 Fetching locations for account: ${accountId}`);
       
       const endpoint = GOOGLE_BUSINESS_PROFILE.ENDPOINTS.LOCATIONS.replace('{accountId}', accountId);
+      console.log(`📍 Using endpoint: ${endpoint}`);
+      
       const response = await this.makeRequest(endpoint);
+      console.log(`📍 Response data:`, response.data);
+      console.log(`📍 Response data.locations:`, response.data.locations);
       
       if (!response.data.locations) {
         console.log('⚠️ No locations found in response');

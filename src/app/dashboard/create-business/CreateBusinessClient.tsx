@@ -10,7 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import SimpleBusinessForm from "../components/SimpleBusinessForm";
 import AppLoader from "@/app/components/AppLoader";
 import PageCard from "@/app/components/PageCard";
-import WelcomePopup from "@/app/components/WelcomePopup";
+
 import { ensureAccountExists, getAccountIdForUser } from "@/utils/accountUtils";
 
 export default function CreateBusinessClient() {
@@ -22,18 +22,18 @@ export default function CreateBusinessClient() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [showWelcomePopup, setShowWelcomePopup] = useState(false);
+
   const [user, setUser] = useState<any>(null);
   const [accountId, setAccountId] = useState<string | null>(null);
 
   // Memoize router functions to prevent infinite loops
   const redirectToDashboard = useCallback(() => {
+    console.log("🔄 CreateBusinessClient: redirectToDashboard called");
     router.push("/dashboard");
+    console.log("🔄 CreateBusinessClient: router.push called");
   }, [router]);
 
-  const redirectToDashboardWithFlag = useCallback(() => {
-    router.push("/dashboard?businessCreated=true");
-  }, [router]);
+
 
   // 🔧 SIMPLIFIED: Since DashboardLayout already handles authentication, just get user and do business logic
   useEffect(() => {
@@ -54,28 +54,10 @@ export default function CreateBusinessClient() {
         console.log('✅ CreateBusinessClient: User found:', user.id);
         setUser(user);
 
-        // Check if user already has businesses
-        const accountId = await getAccountIdForUser(user.id, supabase);
-        
-        if (accountId) {
-          const { data: businesses } = await supabase
-            .from("businesses")
-            .select("id")
-            .eq("account_id", accountId);
-
-          if (businesses && businesses.length > 0) {
-            console.log("✅ CreateBusinessClient: User already has businesses, redirecting to dashboard");
-            redirectToDashboard();
-            return;
-          }
-        }
-
         // Ensure account exists for the user
         const finalAccountId = await ensureAccountExists(supabase, user.id);
+        console.log('🔍 CreateBusinessClient: Final account ID:', finalAccountId);
         setAccountId(finalAccountId);
-        
-        // Show welcome popup for new users
-        setShowWelcomePopup(true);
         
         console.log('✅ CreateBusinessClient: Setup complete, ready to create business');
         setLoading(false);
@@ -92,19 +74,20 @@ export default function CreateBusinessClient() {
     };
 
     setupBusinessCreation();
-  }, [redirectToDashboard]);
+  }, []); // Remove redirectToDashboard dependency to prevent infinite loops
 
   // Handle business creation success
   const handleBusinessCreated = useCallback(async () => {
     console.log("✅ CreateBusinessClient: Business created successfully");
+    console.log("🔄 CreateBusinessClient: Starting redirect process...");
     
-    // Redirect to dashboard with success flag
-    redirectToDashboardWithFlag();
-  }, [redirectToDashboardWithFlag]);
+    // Redirect to dashboard with businessCreated parameter to trigger tier selection
+    console.log("🔄 CreateBusinessClient: Redirecting to dashboard with tier selection");
+    router.push("/dashboard?businessCreated=1");
+    console.log("🔄 CreateBusinessClient: Redirect function called");
+  }, [router]);
 
-  const handleCloseWelcome = () => {
-    setShowWelcomePopup(false);
-  };
+
 
   // Show loading while setting up business creation
   console.log('🔍 CreateBusinessClient: Render state - loading:', loading, 'adminLoading:', adminLoading);
@@ -162,26 +145,7 @@ export default function CreateBusinessClient() {
         </div>
       </PageCard>
 
-      {/* Welcome popup for new users */}
-      {showWelcomePopup && (
-        <WelcomePopup
-          isOpen={showWelcomePopup}
-          onClose={handleCloseWelcome}
-          title={`Howdy ${user?.user_metadata?.first_name || user?.email?.split('@')[0] || 'there'},`}
-          message={`Did you know you're a star?
 
-Carl Sagan said it best:
-
-"The cosmos is within us. We are made of star-stuff. We are a way for the universe to know itself."
-
-Beautiful right! There is a flaming gas giant in you too! Er . . . that didn't come out quite right . . .
-
-Anyway, I am here to help you get the stars you deserve—on Google, Facebook, TripAdvisor, Trust Pilot—you name it.
-
-Here's your first tip: [icon]. <- click here`}
-          buttonText="Let's wrangle some reviews!"
-        />
-      )}
     </div>
   );
 }
