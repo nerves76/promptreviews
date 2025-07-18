@@ -7,15 +7,15 @@
 // Google Business Profile API Configuration
 export const GOOGLE_BUSINESS_PROFILE = {
   // API Base URLs - Updated to use the correct Google Business Profile API
-  BASE_URL: 'https://mybusiness.googleapis.com',
-  API_VERSION: 'v4',
+  BASE_URL: 'https://mybusinessaccountmanagement.googleapis.com',
+  API_VERSION: 'v1',
   ENDPOINTS: {
-    ACCOUNTS: '/v4/accounts',
-    LOCATIONS: '/v4/accounts/{accountId}/locations',
-    LOCAL_POSTS: '/v4/accounts/{accountId}/locations/{locationId}/localPosts',
-    MEDIA: '/v4/accounts/{accountId}/locations/{locationId}/media',
-    REVIEWS: '/v4/accounts/{accountId}/locations/{locationId}/reviews',
-    INSIGHTS: '/v4/accounts/{accountId}/locations/{locationId}/reportInsights'
+    ACCOUNTS: '/v1/accounts',
+    LOCATIONS: '/v1/accounts/{accountId}/locations',
+    LOCAL_POSTS: '/v1/accounts/{accountId}/locations/{locationId}/localPosts',
+    MEDIA: '/v1/accounts/{accountId}/locations/{locationId}/media',
+    REVIEWS: '/v1/accounts/{accountId}/locations/{locationId}/reviews',
+    INSIGHTS: '/v1/accounts/{accountId}/locations/{locationId}/reportInsights'
   },
 
   // OAuth Configuration
@@ -24,6 +24,7 @@ export const GOOGLE_BUSINESS_PROFILE = {
     TOKEN_URL: 'https://oauth2.googleapis.com/token',
     SCOPES: [
       'https://www.googleapis.com/auth/plus.business.manage',
+      'https://www.googleapis.com/auth/business.manage',
       'openid',
       'email',
       'profile'
@@ -34,9 +35,10 @@ export const GOOGLE_BUSINESS_PROFILE = {
   RATE_LIMITS: {
     REQUESTS_PER_MINUTE: 1,
     REQUESTS_PER_DAY: 1000,
-    RETRY_ATTEMPTS: 3,
-    RETRY_DELAY_MS: 60000, // 1 minute
-    EXPONENTIAL_BACKOFF: true
+    RETRY_ATTEMPTS: 1, // Only 1 retry attempt due to strict 1 request/minute limit
+    RETRY_DELAY_MS: 120000, // 2 minutes minimum wait for Google Business Profile API
+    EXPONENTIAL_BACKOFF: true, // Enable exponential backoff for strict rate limits
+    MIN_WAIT_BETWEEN_REQUESTS: 60000 // Minimum 60 seconds between any requests
   },
 
   // Error Codes

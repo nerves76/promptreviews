@@ -440,36 +440,27 @@ export default function Dashboard() {
     
     // Handle business creation success
     if (params.get("businessCreated") === "1") {
+      // Check if we've already handled this business creation
+      if (typeof window !== "undefined" && sessionStorage.getItem('businessCreatedHandled') === 'true') {
+        // Already handled, just clean up the URL
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+        return;
+      }
+      
       // Clear any previous modal dismissal from sessionStorage since user just created business
       if (typeof window !== "undefined") {
         sessionStorage.removeItem('pricingModalDismissed');
+        // Set a flag to prevent multiple triggers
+        sessionStorage.setItem('businessCreatedHandled', 'true');
       }
       
-      // Force refresh of dashboard data after business creation
-      if (user?.id) {
-        // Set flag to prevent double load
-        businessCreatedHandled.current = true;
-        // Refresh both AuthContext data and dashboard-specific data
-        Promise.all([
-          refreshAuth(),
-          refreshAccountDetails(),
-          loadDashboardSpecificData()
-        ]).then(() => {
-          // Force show pricing modal after business creation - new users need to select a plan
-          setShowPricingModal(true);
-          setPlanSelectionRequired(true); // Make it required so user can't dismiss
-          
-        }).catch(error => {
-          console.error("Error refreshing data after business creation:", error);
-          // Still show pricing modal even if refresh fails
-          setShowPricingModal(true);
-          setPlanSelectionRequired(true);
-        });
-      }
+      // Show pricing modal after business creation - new users need to select a plan
+      setShowPricingModal(true);
+      setPlanSelectionRequired(true); // Make it required so user can't dismiss
       
-      // Clean up the URL
-      params.delete("businessCreated");
-      const newUrl = window.location.pathname + (params.toString() ? `?${params.toString()}` : "");
+      // Clean up the URL immediately
+      const newUrl = window.location.pathname;
       window.history.replaceState({}, document.title, newUrl);
       
       return;
@@ -582,26 +573,7 @@ export default function Dashboard() {
     );
   }
 
-  // Show welcome message for new users
-  if (!hasBusiness) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="text-center max-w-md">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Welcome to PromptReviews! 🎉</h2>
-          <p className="text-gray-600 mb-8">
-            Let's get you started by creating your first business profile.
-          </p>
-          <Link 
-            href="/dashboard/create-business"
-            className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-slate-700 hover:bg-slate-800"
-          >
-            <FaPlus className="mr-2" />
-            Create your business
-          </Link>
-        </div>
-      </div>
-    );
-  }
+
 
   if (!consolidatedData) {
     return (
@@ -668,6 +640,7 @@ export default function Dashboard() {
         // Clear any dismissal flags since user now has a valid plan
         if (typeof window !== "undefined") {
           sessionStorage.removeItem('pricingModalDismissed');
+          sessionStorage.removeItem('businessCreatedHandled');
           console.log("🧹 Cleared modal dismissal flag after grower plan selection");
         }
         
@@ -747,6 +720,7 @@ export default function Dashboard() {
     // Remember that user dismissed the modal for this session
     if (typeof window !== "undefined") {
       sessionStorage.setItem('pricingModalDismissed', 'true');
+      sessionStorage.removeItem('businessCreatedHandled');
     }
   };
 

@@ -169,14 +169,24 @@ Common issues:
 
 ### Authentication Issues
 
-**User gets logged out during OAuth**
-- Solution: Ensure cookies are handled properly in Next.js 15
-- Use `await cookies()` before accessing cookie store
-- Use `getUser()` instead of `getSession()` for better reliability
+**User gets logged out during OAuth** ✅ **FIXED** (July 17, 2025)
+- **Problem**: Users were being logged out during Google OAuth flow due to cookie parsing errors
+- **Root Cause**: Supabase auth helpers package was trying to parse base64-encoded cookies as JSON
+- **Solution Implemented**:
+  - ✅ **Migrated to SSR package**: Updated from `@supabase/auth-helpers-nextjs` to `@supabase/ssr` for better cookie handling
+  - ✅ **Added retry logic**: Implemented 5-retry mechanism with exponential backoff for session timing issues
+  - ✅ **Enhanced error handling**: Added fallback authentication methods (getUser() and getSession())
+  - ✅ **Improved cookie handling**: Proper Next.js 15 async cookie handling in API routes
+- **✅ VALIDATION**: Test script confirms APIs return proper 401/redirect responses without crashing
 
-**Cookie parsing errors**
-- Solution: Remove JSON.parse calls on base64-encoded cookies
-- Use proper cookie handling in API routes
+**Cookie parsing errors** ✅ **FIXED** (July 17, 2025)
+- **Problem**: "Failed to parse cookie string: SyntaxError: Unexpected token 'b', "base64-eyJ"... is not valid JSON"
+- **Root Cause**: Auth helpers package was incorrectly parsing base64-encoded Supabase cookies
+- **Solution Implemented**:
+  - ✅ **Updated to SSR package**: Replaced auth helpers with SSR package for better compatibility
+  - ✅ **Proper cookie handling**: Direct cookie access without JSON parsing
+  - ✅ **Enhanced error recovery**: Multiple authentication methods with graceful fallbacks
+- **✅ VALIDATION**: No more cookie parsing errors in server logs
 
 ## Production Deployment
 

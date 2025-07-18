@@ -5,7 +5,10 @@ UPDATE prompt_pages SET type = 'service' WHERE type = 'custom';
 -- 2. Drop the default value before changing the column type
 ALTER TABLE prompt_pages ALTER COLUMN type DROP DEFAULT;
 
--- 3. Alter the enum to remove 'custom'
+-- 3. Update metadata_templates table to use text instead of enum
+ALTER TABLE metadata_templates ALTER COLUMN page_type TYPE text;
+
+-- 4. Alter the enum to remove 'custom'
 DO $$
 DECLARE
   new_enum_values text[] := ARRAY['universal', 'photo', 'product', 'service'];
@@ -23,3 +26,6 @@ BEGIN
   -- Drop the old enum
   DROP TYPE prompt_page_type_old;
 END $$;
+
+-- 5. Update metadata_templates to use the new enum
+ALTER TABLE metadata_templates ALTER COLUMN page_type TYPE prompt_page_type USING page_type::prompt_page_type;

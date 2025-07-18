@@ -51,10 +51,8 @@ export default function Header() {
   const accountMenuRef = useRef<HTMLDivElement>(null);
   
   const { isAdminUser, adminLoading } = useAuth();
-  // 🔧 REMOVED: useBusinessProfile call that was causing infinite auth loops
-  // Header is already protected by DashboardLayout authentication
-  const hasBusiness = true; // Assume business exists since we're in dashboard
-  const businessLoading = false;
+  // 🔧 FIXED: Use actual hasBusiness state from AuthContext instead of hardcoded true
+  const { hasBusiness, businessLoading } = useAuth();
 
   useEffect(() => {
     const getUser = async () => {
@@ -140,7 +138,7 @@ export default function Header() {
         
         const { data, error } = await supabase
           .from("review_submissions")
-          .select("id, first_name, last_name, platform, review_content, created_at, sentiment, review_type")
+          .select("id, first_name, last_name, platform, review_content, created_at, emoji_sentiment_selection, review_type")
           .eq("business_id", accountUser.account_id)
           .gte("created_at", since)
           .order("created_at", { ascending: false })
@@ -170,7 +168,7 @@ export default function Header() {
                 : "Anonymous";
               
               // Determine if this is positive or negative based on sentiment
-              const isNegativeSentiment = r.sentiment && ["neutral", "unsatisfied", "frustrated", "angry"].includes(r.sentiment.toLowerCase());
+              const isNegativeSentiment = r.emoji_sentiment_selection && ["neutral", "unsatisfied", "frustrated", "angry"].includes(r.emoji_sentiment_selection.toLowerCase());
               const isFeedback = r.review_type === "feedback" || isNegativeSentiment;
               
               const message = isFeedback
@@ -474,8 +472,18 @@ export default function Header() {
               <div className="relative">
                 <button
                   ref={accountButtonRef}
-                  onClick={() => setAccountMenuOpen(!accountMenuOpen)}
-                  className="flex items-center focus:outline-none"
+                  onClick={() => {
+                    // 🔧 FIXED: Prevent account menu from opening if user hasn't created a business
+                    if (!hasBusiness) {
+                      router.push("/dashboard/create-business");
+                      return;
+                    }
+                    setAccountMenuOpen(!accountMenuOpen);
+                  }}
+                  className={`flex items-center focus:outline-none ${
+                    !hasBusiness ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                  title={!hasBusiness ? "Create your business profile first" : ""}
                 >
                   <CowboyUserIcon />
                 </button>
@@ -708,48 +716,100 @@ export default function Header() {
                 {user ? (
                   <>
                     <Link
-                      href="/dashboard/account"
+                      href={hasBusiness ? "/dashboard/account" : "#"}
+                      onClick={(e) => {
+                        if (!hasBusiness) {
+                          e.preventDefault();
+                          router.push("/dashboard/create-business");
+                          setMenuOpen(false);
+                        } else {
+                          setMenuOpen(false);
+                        }
+                      }}
                       className={`${
                         isActive("/dashboard/account")
                           ? "bg-slate-blue/10 text-slate-blue"
-                          : "text-blue-900 hover:bg-slate-blue/10 hover:text-slate-blue"
+                          : hasBusiness 
+                            ? "text-blue-900 hover:bg-slate-blue/10 hover:text-slate-blue"
+                            : "text-blue-400 cursor-not-allowed"
                       } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
-                      onClick={() => setMenuOpen(false)}
                     >
                       Account
+                      {!hasBusiness && (
+                        <span className="text-xs text-blue-600 block mt-1">Create business profile first</span>
+                      )}
                     </Link>
                     <Link
-                      href="/dashboard/analytics"
+                      href={hasBusiness ? "/dashboard/analytics" : "#"}
+                      onClick={(e) => {
+                        if (!hasBusiness) {
+                          e.preventDefault();
+                          router.push("/dashboard/create-business");
+                          setMenuOpen(false);
+                        } else {
+                          setMenuOpen(false);
+                        }
+                      }}
                       className={`${
                         isActive("/dashboard/analytics")
                           ? "bg-slate-blue/10 text-slate-blue"
-                          : "text-blue-900 hover:bg-slate-blue/10 hover:text-slate-blue"
+                          : hasBusiness 
+                            ? "text-blue-900 hover:bg-slate-blue/10 hover:text-slate-blue"
+                            : "text-blue-400 cursor-not-allowed"
                       } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
-                      onClick={() => setMenuOpen(false)}
                     >
                       Analytics
+                      {!hasBusiness && (
+                        <span className="text-xs text-blue-600 block mt-1">Create business profile first</span>
+                      )}
                     </Link>
                     <Link
-                      href="/dashboard/plan"
+                      href={hasBusiness ? "/dashboard/plan" : "#"}
+                      onClick={(e) => {
+                        if (!hasBusiness) {
+                          e.preventDefault();
+                          router.push("/dashboard/create-business");
+                          setMenuOpen(false);
+                        } else {
+                          setMenuOpen(false);
+                        }
+                      }}
                       className={`${
                         isActive("/dashboard/plan")
                           ? "bg-slate-blue/10 text-slate-blue"
-                          : "text-blue-900 hover:bg-slate-blue/10 hover:text-slate-blue"
+                          : hasBusiness 
+                            ? "text-blue-900 hover:bg-slate-blue/10 hover:text-slate-blue"
+                            : "text-blue-400 cursor-not-allowed"
                       } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
-                      onClick={() => setMenuOpen(false)}
                     >
                       Plan
+                      {!hasBusiness && (
+                        <span className="text-xs text-blue-600 block mt-1">Create business profile first</span>
+                      )}
                     </Link>
                     <Link
-                      href="/dashboard/contacts"
+                      href={hasBusiness ? "/dashboard/contacts" : "#"}
+                      onClick={(e) => {
+                        if (!hasBusiness) {
+                          e.preventDefault();
+                          router.push("/dashboard/create-business");
+                          setMenuOpen(false);
+                        } else {
+                          setMenuOpen(false);
+                        }
+                      }}
                       className={`${
                         isActive("/dashboard/contacts")
                           ? "bg-slate-blue/10 text-slate-blue"
-                          : "text-blue-900 hover:bg-slate-blue/10 hover:text-slate-blue"
+                          : hasBusiness 
+                            ? "text-blue-900 hover:bg-slate-blue/10 hover:text-slate-blue"
+                            : "text-blue-400 cursor-not-allowed"
                       } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
-                      onClick={() => setMenuOpen(false)}
                     >
                       Contacts
+                      {!hasBusiness && (
+                        <span className="text-xs text-blue-600 block mt-1">Create business profile first</span>
+                      )}
                     </Link>
                     {isAdminUser && (
                       <Link

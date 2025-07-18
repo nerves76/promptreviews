@@ -367,6 +367,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return sessionTimeRemaining > 0 && sessionTimeRemaining < 300; // 5 minutes
   }, [sessionTimeRemaining]);
 
+  // Listen for business creation events to refresh state
+  useEffect(() => {
+    const handleBusinessCreated = (event: CustomEvent) => {
+      console.log('🔄 AuthContext: Business created event received, refreshing state...');
+      console.log('🔄 AuthContext: Event detail:', event?.detail);
+      console.log('🔄 AuthContext: Current hasBusiness state before refresh:', hasBusiness);
+      // Force refresh business state by calling the functions directly
+      if (user) {
+        // Use setTimeout to ensure the functions are available
+        setTimeout(() => {
+          if (typeof window !== 'undefined') {
+            // Dispatch a custom event to trigger a refresh
+            window.dispatchEvent(new CustomEvent('forceRefreshBusiness'));
+          }
+        }, 100);
+      }
+      console.log('🔄 AuthContext: Business refresh trigger dispatched');
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('businessCreated', handleBusinessCreated);
+      console.log('🔄 AuthContext: Event listener registered for businessCreated');
+      
+      return () => {
+        window.removeEventListener('businessCreated', handleBusinessCreated);
+      };
+    }
+  }, [user, hasBusiness]);
+
   // Core authentication functions
   const checkAuthState = useCallback(async (forceRefresh = false) => {
     if (isRefreshing && !forceRefresh) return;
@@ -456,8 +485,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     try {
       const userAccountId = await getAccountIdForUser(currentUser.id, supabase);
+      console.log('🔍 AuthContext: User account ID:', userAccountId);
       setAccountId(userAccountId);
-      setHasBusiness(!!userAccountId);
+      
+      // 🔧 FIXED: Check for actual businesses, not just account existence
+      if (userAccountId) {
+        console.log('🔍 AuthContext: Checking businesses for account:', userAccountId);
+        const { data: businesses, error: businessError } = await supabase
+          .from('businesses')
+          .select('id')
+          .eq('account_id', userAccountId);
+          
+        if (businessError) {
+          console.error('AuthContext: Error checking businesses:', businessError);
+          setHasBusiness(false);
+        } else {
+          // Only set hasBusiness to true if user has actual businesses
+          const hasBusinesses = businesses && businesses.length > 0;
+          console.log('🔍 AuthContext: Business check result:', {
+            userAccountId,
+            businessesCount: businesses?.length || 0,
+            hasBusinesses,
+            businesses,
+            timestamp: new Date().toISOString(),
+            isForceRefresh: forceRefresh
+          });
+          console.log('🔍 AuthContext: Setting hasBusiness to:', hasBusinesses);
+          setHasBusiness(hasBusinesses);
+        }
+      } else {
+        setHasBusiness(false);
+      }
+      
       setLastBusinessCheck(now);
       
     } catch (err) {
@@ -568,8 +627,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [user, checkAdminStatus]);
 
   const refreshBusinessProfile = useCallback(async () => {
+    console.log('🔄 AuthContext: refreshBusinessProfile called with user:', user?.id);
     if (user) {
       await checkBusinessProfile(user, true);
+    } else {
+      console.log('🔄 AuthContext: refreshBusinessProfile called but no user found');
     }
   }, [user, checkBusinessProfile]);
 
@@ -578,6 +640,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await checkAccountDetails(user, true);
     }
   }, [user, checkAccountDetails]);
+
+  // Listen for force refresh events (after functions are initialized)
+  useEffect(() => {
+    const handleForceRefresh = () => {
+      console.log('🔄 AuthContext: Force refresh event received');
+      if (user) {
+        // Call the functions directly without dependencies to avoid initialization issues
+        setTimeout(() => {
+          if (user) {
+            checkBusinessProfile(user, true);
+            checkAccountDetails(user, true);
+          }
+        }, 100);
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('forceRefreshBusiness', handleForceRefresh);
+      console.log('🔄 AuthContext: Force refresh event listener registered');
+      
+      return () => {
+        window.removeEventListener('forceRefreshBusiness', handleForceRefresh);
+      };
+    }
+  }, [user]);
 
   // Navigation guards
   const requireAuth = useCallback((redirectTo = '/auth/sign-in') => {

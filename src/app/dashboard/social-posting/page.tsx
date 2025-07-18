@@ -6,9 +6,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FaGoogle, FaMapMarkerAlt, FaImage, FaClock, FaExclamationTriangle, FaCheck, FaTimes, FaPlus, FaSpinner } from 'react-icons/fa';
+import { FaGoogle, FaMapMarkerAlt, FaImage, FaClock, FaExclamationTriangle, FaCheck, FaTimes, FaPlus, FaSpinner, FaRedo } from 'react-icons/fa';
 import PageCard from '@/app/components/PageCard';
 import FiveStarSpinner from '@/app/components/FiveStarSpinner';
+// Using built-in alert for notifications instead of react-toastify
 
 interface GoogleBusinessLocation {
   id: string;
@@ -34,6 +35,48 @@ export default function SocialPostingDashboard() {
   const [isPosting, setIsPosting] = useState(false);
   const [postResult, setPostResult] = useState<{ success: boolean; message: string } | null>(null);
   const [showTemplates, setShowTemplates] = useState(false);
+  const [hasHandledOAuth, setHasHandledOAuth] = useState(false);
+  const [hasLoadedPlatforms, setHasLoadedPlatforms] = useState(false);
+  const [hasRateLimitError, setHasRateLimitError] = useState(false);
+  const [rateLimitCountdown, setRateLimitCountdown] = useState(0);
+  const [isConnecting, setIsConnecting] = useState<string | null>(null);
+  const [fetchingLocations, setFetchingLocations] = useState<string | null>(null);
+  const [rateLimitedUntil, setRateLimitedUntil] = useState<number | null>(null);
+
+
+  // Handle post-OAuth redirects
+  useEffect(() => {
+    // Check if we're coming back from OAuth (has 'connected=true' in URL)
+    const urlParams = new URLSearchParams(window.location.search);
+    const isPostOAuth = urlParams.get('connected') === 'true';
+    
+    if (isPostOAuth) {
+      console.log('🔄 Post-OAuth redirect detected - adding extended delay for session stability');
+      setIsLoading(false);
+      setHasHandledOAuth(true); // Mark that we've handled OAuth
+      
+      // Show success message from OAuth
+      const message = urlParams.get('message');
+      if (message) {
+        setPostResult({ success: true, message: decodeURIComponent(message) });
+      }
+      
+      // Clean up URL parameters
+      window.history.replaceState({}, '', window.location.pathname);
+      
+      // Add a longer delay to allow session to fully stabilize after OAuth redirect
+      setTimeout(() => {
+        console.log('🔄 Session should be fully stable now, allowing platform loading');
+        setHasLoadedPlatforms(false); // Allow platform loading
+        setHasHandledOAuth(false); // Reset OAuth handling flag
+      }, 4000); // Increased to 4 seconds for better stability
+    } else {
+      // Normal page load - start with loading false and let the other useEffect handle it
+      setIsLoading(false);
+    }
+  }, []);
+
+
 
   const postTemplates: PostTemplate[] = [
     {
@@ -63,71 +106,50 @@ export default function SocialPostingDashboard() {
   ];
 
   useEffect(() => {
-    // Check for OAuth callback success message
-    const urlParams = new URLSearchParams(window.location.search);
-    const connected = urlParams.get('connected');
-    const message = urlParams.get('message');
-    
-    if (connected === 'true' && message) {
-      setPostResult({ 
-        success: true, 
-        message: decodeURIComponent(message) + ' Note: Business locations may take a few minutes to load due to API rate limits.' 
-      });
-      
-      // Clear URL parameters
-      window.history.replaceState({}, document.title, window.location.pathname);
+    // Don't load platforms if we have rate limit errors or are handling OAuth
+    if (hasRateLimitError || rateLimitCountdown > 0 || hasHandledOAuth) {
+      console.log('⏸️ Skipping platform load - rate limit or OAuth handling active');
+      setIsLoading(false); // Ensure loading state is cleared
+      return;
     }
     
-    const loadData = async () => {
-      try {
-        await loadPlatforms();
-      } catch (error) {
-        console.error('Error loading platforms:', error);
-        // Ensure loading state is cleared even if there's an error
-        setIsLoading(false);
-        setIsConnected(false);
-      }
-    };
-    
-    loadData();
-    
-    // Fallback timeout to ensure page loads
-    const fallbackTimeout = setTimeout(() => {
-      console.log('Fallback timeout reached, setting isLoading to false');
-      setIsLoading(false);
-      setIsConnected(false);
-    }, 15000); // 15 second fallback
-    
-    return () => clearTimeout(fallbackTimeout);
-  }, []);
+    // Only load platforms if we haven't loaded them yet and we're not already loading
+    if (!hasLoadedPlatforms && !isLoading) {
+      console.log('🔄 Loading platforms...');
+      setIsLoading(true);
+      loadPlatforms();
+    }
+  }, [hasLoadedPlatforms, hasRateLimitError, rateLimitCountdown, hasHandledOAuth]);
 
+  // Handle rate limit countdown
   useEffect(() => {
-    loadPlatforms();
-    
-    // Fallback timeout to ensure page loads
-    const fallbackTimeout = setTimeout(() => {
-      console.log('Fallback timeout reached, setting isLoading to false');
-      setIsLoading(false);
-    }, 15000); // 15 second fallback
-    
-    return () => clearTimeout(fallbackTimeout);
-  }, []);
+    if (rateLimitCountdown > 0) {
+      const timer = setTimeout(() => {
+        setRateLimitCountdown(rateLimitCountdown - 1);
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    } else if (rateLimitCountdown === 0 && hasRateLimitError) {
+      // Countdown finished, allow retry
+      setHasRateLimitError(false);
+    }
+  }, [rateLimitCountdown, hasRateLimitError]);
 
   const loadPlatforms = async () => {
     console.log('Loading platforms...');
     
     // Add a timeout to prevent getting stuck
-    const timeoutPromise = new Promise((_, reject) => {
+    const timeoutPromise = new Promise<never>((_, reject) => {
       setTimeout(() => reject(new Error('Request timeout')), 10000); // 10 second timeout
     });
     
-    const fetchWithRetry = async (url: string, retries = 2) => {
+    const fetchWithRetry = async (url: string, retries = 2): Promise<Response> => {
       for (let i = 0; i <= retries; i++) {
         try {
           const response = await Promise.race([
             fetch(url),
             timeoutPromise
-          ]);
+          ]) as Response;
           return response;
         } catch (error) {
           console.log(`Attempt ${i + 1} failed for ${url}:`, error);
@@ -135,6 +157,7 @@ export default function SocialPostingDashboard() {
           await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1))); // Exponential backoff
         }
       }
+      throw new Error('All retry attempts failed');
     };
     
     try {
@@ -142,16 +165,50 @@ export default function SocialPostingDashboard() {
       const response = await fetchWithRetry('/api/social-posting/platforms');
       console.log('Platforms API response status:', response.status);
       
+      // Handle authentication errors gracefully with better retry logic
+      if (response.status === 401) {
+        console.log('Authentication error - checking if retry is suggested');
+        
+        try {
+          const errorData = await response.json();
+          const retryAfter = errorData.retryAfter || 3;
+          
+          console.log(`Authentication failed, retrying in ${retryAfter} seconds...`);
+          setPostResult({ 
+            success: false, 
+            message: `Session is being refreshed, retrying in ${retryAfter} seconds...` 
+          });
+          
+          // Retry after the suggested delay
+          setTimeout(() => {
+            console.log('Retrying platform load after authentication delay...');
+            setHasLoadedPlatforms(false); // Reset to allow retry
+            setIsLoading(false); // Reset loading state
+          }, retryAfter * 1000);
+          
+        } catch (parseError) {
+          console.log('Could not parse 401 response, using default handling');
+          setIsConnected(false);
+          setLocations([]);
+          setSelectedLocation('');
+          setPostResult({ 
+            success: false, 
+            message: 'Please refresh the page or sign in again to access Google Business Profile features.' 
+          });
+        }
+        return; // Exit early on auth error
+      }
+      
       if (response.ok) {
         const responseData = await response.json();
         console.log('Platforms API response data:', responseData);
         
-        const platforms = responseData.data?.platforms || [];
-        const googlePlatform = platforms.find((p: any) => p.platform === 'google-business-profile');
+        const platforms = responseData.platforms || [];
+        const googlePlatform = platforms.find((p: any) => p.id === 'google-business-profile');
         
         console.log('Google platform found:', googlePlatform);
         
-        if (googlePlatform && googlePlatform.isConnected) {
+        if (googlePlatform && googlePlatform.connected) {
           setIsConnected(true);
           console.log('Google Business Profile is connected');
           
@@ -160,12 +217,22 @@ export default function SocialPostingDashboard() {
             const locationsResponse = await fetchWithRetry('/api/social-posting/platforms/google-business-profile/locations');
             console.log('Locations API response status:', locationsResponse.status);
             
+            // Handle authentication errors for locations API too
+            if (locationsResponse.status === 401) {
+              console.log('Authentication error while loading locations');
+              setPostResult({ 
+                success: false, 
+                message: 'Authentication expired. Please refresh the page to reconnect.' 
+              });
+              return;
+            }
+            
             if (locationsResponse.ok) {
               const locationsData = await locationsResponse.json();
               console.log('Locations API response data:', locationsData);
               
-              setLocations(locationsData.locations || []);
-              setSelectedLocation(locationsData.locations?.[0]?.id || '');
+              setLocations(locationsData.data?.locations || []);
+              setSelectedLocation(locationsData.data?.locations?.[0]?.id || '');
             } else {
               // Handle API errors gracefully
               const errorData = await locationsResponse.json();
@@ -193,30 +260,42 @@ export default function SocialPostingDashboard() {
               });
             }
             
-            // Fall back to mock data for demo purposes
-            const mockLocations: GoogleBusinessLocation[] = [
-              { id: '1', name: 'Main Office', address: '123 Business St, City, State', status: 'active' },
-              { id: '2', name: 'Downtown Branch', address: '456 Main Ave, City, State', status: 'active' }
-            ];
-            setLocations(mockLocations);
-            setSelectedLocation(mockLocations[0]?.id || '');
+            // No fallback to mock data - show error instead
+            setLocations([]);
+            setSelectedLocation('');
           }
         } else {
-          setIsConnected(false);
-          setLocations([]);
-          setSelectedLocation('');
-          console.log('Google Business Profile is not connected');
+          // Check if we have tokens in localStorage as a fallback
+          const hasStoredConnection = localStorage.getItem('google-business-connected') === 'true';
+          if (hasStoredConnection) {
+            setIsConnected(true);
+            console.log('Google Business Profile connection detected from localStorage');
+          } else {
+            setIsConnected(false);
+            setLocations([]);
+            setSelectedLocation('');
+            console.log('Google Business Profile is not connected');
+          }
         }
       } else {
         console.error('Failed to check platform connections, status:', response.status);
         setIsConnected(false);
+        setPostResult({ 
+          success: false, 
+          message: `Unable to load social posting platforms (status: ${response.status}). Please try refreshing the page.` 
+        });
       }
     } catch (error) {
       console.error('Failed to load platform information:', error);
       setIsConnected(false);
+      setPostResult({ 
+        success: false, 
+        message: 'Failed to load social posting features. Please check your internet connection and try again.' 
+      });
     } finally {
       console.log('Setting isLoading to false');
       setIsLoading(false);
+      setHasLoadedPlatforms(true); // Mark as loaded to prevent retry loops
     }
   };
 
@@ -255,6 +334,53 @@ export default function SocialPostingDashboard() {
     setSelectedLocation('');
   };
 
+  const handleFetchLocations = async (platformId: string) => {
+    if (rateLimitedUntil && Date.now() < rateLimitedUntil) {
+      const remainingTime = Math.ceil((rateLimitedUntil - Date.now()) / 1000);
+      alert(`Rate limited. Please wait ${remainingTime} more seconds.`);
+      return;
+    }
+
+    setFetchingLocations(platformId);
+    
+    try {
+      const response = await fetch(`/api/social-posting/platforms/${platformId}/fetch-locations`, {
+        method: 'POST',
+      });
+
+      if (response.status === 429) {
+        // Rate limited - set a 5 minute cooldown
+        const cooldownTime = Date.now() + (5 * 60 * 1000); // 5 minutes
+        setRateLimitedUntil(cooldownTime);
+        alert('Google Business Profile API rate limit exceeded. The API allows only 1 request per minute. Please wait 5 minutes before trying again, or consider creating a new Google Cloud project for fresh quota.');
+        return;
+      }
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(`Failed to fetch locations: ${errorData}`);
+      }
+
+      const result = await response.json();
+      console.log(`✅ Fetched ${result.count || 0} business locations`);
+      
+      // Refresh platforms to show new locations
+      await loadPlatforms();
+    } catch (error) {
+      console.error('Error fetching locations:', error);
+      if (error instanceof Error && error.message.includes('rate limit')) {
+        // Rate limited - set a 5 minute cooldown
+        const cooldownTime = Date.now() + (5 * 60 * 1000);
+        setRateLimitedUntil(cooldownTime);
+        alert('Google Business Profile API rate limit exceeded. Please wait 5 minutes before trying again.');
+      } else {
+        alert('Failed to fetch business locations. Please try again.');
+      }
+    } finally {
+      setFetchingLocations(null);
+    }
+  };
+
   const handlePost = async () => {
     if (!postContent.trim() || !selectedLocation) {
       setPostResult({ success: false, message: 'Please enter post content and select a location' });
@@ -265,15 +391,54 @@ export default function SocialPostingDashboard() {
       setIsPosting(true);
       setPostResult(null);
       
-      // Simulate posting process
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      // Create the post data with proper structure
+      const postData = {
+        content: postContent,
+        platforms: ['google-business-profile'],
+        type: postType,
+        metadata: {
+          locationId: selectedLocation // This is crucial for posting to work!
+        }
+      };
       
-      // Simulate successful post
-      setPostResult({ success: true, message: 'Post published successfully to Google Business Profile!' });
-      setPostContent('');
+      console.log('📝 Posting to Google Business Profile:', postData);
+      
+      // Make actual API call to post
+      const response = await fetch('/api/social-posting/posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(postData),
+      });
+
+      const result = await response.json();
+      console.log('📊 Post response:', result);
+
+      if (result.success) {
+        setPostResult({ 
+          success: true, 
+          message: result.data?.publishResults?.['google-business-profile']?.message || 'Post published successfully to Google Business Profile!' 
+        });
+        setPostContent(''); // Clear content on success
+      } else {
+        // Handle specific error types
+        const gbpResult = result.data?.publishResults?.['google-business-profile'];
+        if (gbpResult?.isRateLimit) {
+          setPostResult({ 
+            success: false, 
+            message: 'Google Business Profile rate limit exceeded. Please try again in a few minutes.' 
+          });
+        } else {
+          setPostResult({ 
+            success: false, 
+            message: gbpResult?.error || result.error || 'Failed to publish post. Please try again.' 
+          });
+        }
+      }
     } catch (error) {
       console.error('Post failed:', error);
-      setPostResult({ success: false, message: 'Failed to publish post. Please try again.' });
+      setPostResult({ success: false, message: 'Failed to publish post. Please check your connection and try again.' });
     } finally {
       setIsPosting(false);
     }
@@ -321,6 +486,8 @@ export default function SocialPostingDashboard() {
               Create and publish posts to your Google Business Profile
             </p>
           </div>
+
+
 
           {/* Google Business Profile Connection Status */}
           <div className="bg-gray-50 rounded-lg p-6">
@@ -379,6 +546,59 @@ export default function SocialPostingDashboard() {
                       To post updates to your business locations, you need to connect your Google Business Profile. 
                       This allows you to reach customers directly on Google Search and Maps.
                     </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {isConnected && locations.length === 0 && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
+                <div className="flex items-start space-x-3">
+                  <FaExclamationTriangle className="w-5 h-5 text-yellow-600 mt-0.5" />
+                  <div>
+                    <h4 className="text-sm font-medium text-yellow-800 mb-1">
+                      Fetch Your Business Locations
+                    </h4>
+                    <p className="text-sm text-yellow-700 mb-3">
+                      Your Google Business Profile is connected! Now you need to fetch your business locations to start posting.
+                    </p>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleFetchLocations('google-business-profile')}
+                        disabled={fetchingLocations === 'google-business-profile' || Boolean(rateLimitedUntil && Date.now() < rateLimitedUntil)}
+                                                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                            fetchingLocations === 'google-business-profile' || Boolean(rateLimitedUntil && Date.now() < rateLimitedUntil)
+                              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                              : 'bg-slate-600 text-white hover:bg-slate-700'
+                          }`}
+                      >
+                        {fetchingLocations === 'google-business-profile' ? (
+                          <div className="flex items-center space-x-2">
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            <span>Fetching...</span>
+                          </div>
+                        ) : Boolean(rateLimitedUntil && Date.now() < rateLimitedUntil) ? (
+                          `Rate limited (${rateLimitedUntil ? Math.ceil((rateLimitedUntil - Date.now()) / 1000) : 0}s)`
+                        ) : (
+                          'Fetch Business Locations'
+                        )}
+                      </button>
+                                              {postResult && !postResult.success && (
+                          <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-md">
+                            <div className="flex items-center space-x-2 text-red-800 mb-2">
+                              <FaExclamationTriangle className="w-4 h-4" />
+                              <span className="text-sm font-medium">Error</span>
+                            </div>
+                            <p className="text-sm text-red-700">{postResult.message}</p>
+                            {rateLimitCountdown > 0 && (
+                              <div className="mt-2 flex items-center space-x-2 text-sm text-red-600">
+                                <FaClock className="w-3 h-3" />
+                                <span>You can retry in {rateLimitCountdown} seconds</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                    </div>
                   </div>
                 </div>
               </div>
