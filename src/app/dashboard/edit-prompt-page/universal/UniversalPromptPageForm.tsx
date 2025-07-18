@@ -314,8 +314,10 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
         />
         {/* AI Review Generation Toggle */}
         <DisableAIGenerationSection
-          enabled={aiButtonEnabled}
-          onToggle={() => setAiButtonEnabled((v) => !v)}
+          aiGenerationEnabled={aiButtonEnabled}
+          fixGrammarEnabled={false}
+          onToggleAI={() => setAiButtonEnabled((v) => !v)}
+          onToggleGrammar={() => {}}
         />
         {/* Falling Stars Section (using new component) */}
         <FallingStarsSection

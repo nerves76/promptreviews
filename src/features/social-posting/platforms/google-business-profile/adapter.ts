@@ -147,8 +147,7 @@ export class GoogleBusinessProfileAdapter implements PlatformAdapter {
         
         return {
           success: true,
-          platformPostId: result.name || `gbp_${Date.now()}`,
-          message: 'Post successfully published to Google Business Profile!'
+          platformPostId: result.name || `gbp_${Date.now()}`
         };
       } catch (error) {
         console.error('Google Business Profile posting error:', error);
@@ -157,8 +156,7 @@ export class GoogleBusinessProfileAdapter implements PlatformAdapter {
         if (error instanceof Error && error.message.includes('rate limit')) {
           return {
             success: false,
-            error: 'Google Business Profile rate limit exceeded. Please try again in a few minutes.',
-            isRateLimit: true
+            error: 'Google Business Profile rate limit exceeded. Please try again in a few minutes.'
           };
         }
         
@@ -259,12 +257,13 @@ export class GoogleBusinessProfileAdapter implements PlatformAdapter {
   private convertToGBPPost(post: UniversalPost) {
     // Convert universal post format to Google Business Profile API format
     return {
-      topicType: GOOGLE_BUSINESS_PROFILE.POST_TYPES.WHATS_NEW, // Default type
+      topicType: 'WHATS_NEW', // Default type - TODO: Define POST_TYPES constant
       summary: post.content,
       media: post.mediaUrls?.map(url => ({
-        mediaFormat: 'PHOTO', // Determine from URL or metadata
+        mediaFormat: 'PHOTO' as const, // Determine from URL or metadata
         sourceUrl: url
-      })) || []
+      })) || [],
+      languageCode: 'en-US' // Default language code
     };
   }
 } 

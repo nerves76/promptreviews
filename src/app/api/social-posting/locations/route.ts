@@ -4,18 +4,31 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { GoogleBusinessProfileClient } from '@/features/google-business-profile/services';
-import { GOOGLE_BUSINESS_PROFILE, GBP_ERROR_MESSAGES } from '@/features/google-business-profile/constants';
+import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
+// Constants for Google Business Profile API
+const GOOGLE_BUSINESS_PROFILE = {
+  BASE_URL: 'https://mybusinessaccountmanagement.googleapis.com',
+  API_VERSION: 'v1',
+  ENDPOINTS: {
+    ACCOUNTS: '/accounts',
+    LOCATIONS: '/locations',
+    LOCAL_POSTS: '/localPosts',
+    MEDIA: '/media',
+    REVIEWS: '/reviews',
+    INSIGHTS: '/locationReports'
+  }
+};
 
 export async function GET(request: NextRequest) {
   try {
     // TODO: Implement proper authentication
     // TODO: Get user credentials from session/database
     
+    // TODO: Get actual tokens from user session/database
     const client = new GoogleBusinessProfileClient({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      redirectUri: process.env.GOOGLE_REDIRECT_URI!
+      accessToken: 'dummy-access-token',
+      refreshToken: 'dummy-refresh-token',
+      expiresAt: Date.now() + 3600000
     });
 
     // TODO: Implement location fetching logic
@@ -32,7 +45,7 @@ export async function GET(request: NextRequest) {
     
     return NextResponse.json({
       success: false,
-      error: GBP_ERROR_MESSAGES.LOCATIONS_FETCH_FAILED
+      error: 'Failed to fetch locations'
     }, { status: 500 });
   }
 }
@@ -50,7 +63,7 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json({
       success: false,
-      error: GBP_ERROR_MESSAGES.LOCATIONS_FETCH_FAILED
+      error: 'Failed to create location'
     }, { status: 500 });
   }
 } 
