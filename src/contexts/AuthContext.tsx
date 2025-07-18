@@ -369,9 +369,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Listen for business creation events to refresh state
   useEffect(() => {
-    const handleBusinessCreated = (event: CustomEvent) => {
+    const handleBusinessCreated = (event: Event) => {
+      const customEvent = event as CustomEvent;
       console.log('🔄 AuthContext: Business created event received, refreshing state...');
-      console.log('🔄 AuthContext: Event detail:', event?.detail);
+      console.log('🔄 AuthContext: Event detail:', customEvent?.detail);
       console.log('🔄 AuthContext: Current hasBusiness state before refresh:', hasBusiness);
       // Force refresh business state by calling the functions directly
       if (user) {

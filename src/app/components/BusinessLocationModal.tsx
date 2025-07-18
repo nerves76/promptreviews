@@ -694,8 +694,10 @@ export default function BusinessLocationModal({
 
                   {/* AI Review Generation Toggle */}
                   <DisableAIGenerationSection
-                    enabled={aiReviewEnabled}
-                    onToggle={() => setAiReviewEnabled((v) => !v)}
+                    aiGenerationEnabled={aiReviewEnabled}
+                    fixGrammarEnabled={false}
+                    onToggleAI={() => setAiReviewEnabled((v) => !v)}
+                    onToggleGrammar={() => {}}
                   />
 
                   {/* Falling Stars Section */}

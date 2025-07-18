@@ -1173,8 +1173,10 @@ export default function PromptPageForm({
               />
               {/* AI Generation Toggle (modular) */}
               <DisableAIGenerationSection
-                enabled={aiReviewEnabled}
-                onToggle={() => setAiReviewEnabled((v: boolean) => !v)}
+                aiGenerationEnabled={aiReviewEnabled}
+                fixGrammarEnabled={false}
+                onToggleAI={() => setAiReviewEnabled((v: boolean) => !v)}
+                onToggleGrammar={() => {}}
               />
               {/* Falling Stars Section (modular, inline for now) */}
               <FallingStarsSection

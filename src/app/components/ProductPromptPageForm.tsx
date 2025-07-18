@@ -962,8 +962,10 @@ export default function ProductPromptPageForm({
               disabled={!!notePopupEnabled}
             />
             <DisableAIGenerationSection
-              enabled={aiReviewEnabled}
-              onToggle={() => setAiReviewEnabled((v: boolean) => !v)}
+              aiGenerationEnabled={aiReviewEnabled}
+              fixGrammarEnabled={false}
+              onToggleAI={() => setAiReviewEnabled((v: boolean) => !v)}
+              onToggleGrammar={() => {}}
             />
             <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-2 shadow relative mb-8">
               <div className="flex items-center justify-between mb-2 px-2 py-2">

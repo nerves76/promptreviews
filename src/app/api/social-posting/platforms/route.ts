@@ -113,10 +113,10 @@ export async function GET(request: NextRequest) {
     }
     
     if (userError || !user) {
-      console.log('❌ Authentication error:', userError?.message || 'No user found');
+      console.log('❌ Authentication error:', (userError as any)?.message || 'No user found');
       return NextResponse.json({ 
         error: 'Authentication required',
-        details: userError?.message,
+        details: (userError as any)?.message,
         retryAfter: 3 // Suggest frontend retry after 3 seconds
       }, { status: 401 });
     }
@@ -195,41 +195,49 @@ export async function POST(request: NextRequest) {
   try {
     const { platformId, action } = await request.json();
     
-    const adapter = postManager.getAdapter(platformId);
-    if (!adapter) {
-      return NextResponse.json(
-        { success: false, error: 'Platform not found' },
-        { status: 404 }
-      );
-    }
+    // TODO: Implement postManager
+    // const adapter = postManager.getAdapter(platformId);
+    // if (!adapter) {
+    //   return NextResponse.json(
+    //     { success: false, error: 'Platform not found' },
+    //     { status: 404 }
+    //   );
+    // }
     
-    let result = false;
+    // TODO: Implement adapter functionality
+    // let result = false;
     
-    switch (action) {
-      case 'connect':
-        result = await adapter.authenticate();
-        break;
-      case 'disconnect':
-        // TODO: Implement disconnect logic
-        break;
-      case 'refresh':
-        result = await adapter.refreshAuth();
-        break;
-      default:
-        return NextResponse.json(
-          { success: false, error: 'Invalid action' },
-          { status: 400 }
-        );
-    }
+    // switch (action) {
+    //   case 'connect':
+    //     result = await adapter.authenticate();
+    //     break;
+    //   case 'disconnect':
+    //     // TODO: Implement disconnect logic
+    //     break;
+    //   case 'refresh':
+    //     result = await adapter.refreshAuth();
+    //     break;
+    //   default:
+    //     return NextResponse.json(
+    //       { success: false, error: 'Invalid action' },
+    //       { status: 400 }
+    //     );
+    // }
     
+    // return NextResponse.json({
+    //   success: result,
+    //   data: {
+    //     platformId,
+    //     action,
+    //     isConnected: adapter.isAuthenticated()
+    //   }
+    // });
+    
+    // Temporary response until adapter is implemented
     return NextResponse.json({
-      success: result,
-      data: {
-        platformId,
-        action,
-        isConnected: adapter.isAuthenticated()
-      }
-    });
+      success: false,
+      error: 'Platform management not yet implemented'
+    }, { status: 501 });
   } catch (error) {
     console.error('Error managing platform:', error);
     return NextResponse.json(

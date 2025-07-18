@@ -106,10 +106,10 @@ export async function POST(request: NextRequest) {
             const locationData = {
               user_id: user.id,
               location_id: location.name,
-              location_name: location.title || location.name,
-              address: location.address?.formattedAddress || '',
-              status: location.state?.status || 'UNKNOWN',
-              primary_phone: location.phoneNumbers?.primaryPhone || '',
+              location_name: location.name,
+              address: location.address?.addressLines?.join(', ') || '',
+              status: 'UNKNOWN',
+              primary_phone: location.primaryPhone || '',
               website_uri: location.websiteUri || '',
               created_at: new Date().toISOString()
             };

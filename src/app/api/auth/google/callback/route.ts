@@ -261,7 +261,7 @@ export async function GET(request: NextRequest) {
       // We skip the actual API call due to rate limits but log success
       console.log('✅ Tokens appear valid for Google Business Profile API');
     } catch (testError) {
-      console.log('⚠️ Token test failed, but proceeding with OAuth success:', testError.message);
+      console.log('⚠️ Token test failed, but proceeding with OAuth success:', testError instanceof Error ? testError.message : 'Unknown error');
     }
 
     // Redirect with success message
