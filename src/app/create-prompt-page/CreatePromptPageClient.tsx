@@ -608,11 +608,14 @@ export default function CreatePromptPageClient() {
       insertData.phone = formData.phone || "";
       insertData.email = formData.email || "";
       insertData.role = formData.role || "";
+      
+      console.log("[DEBUG] handleStep1Submit insertData:", insertData);
       const { data, error } = await supabase
         .from("prompt_pages")
         .insert([insertData])
         .select()
         .single();
+      console.log("[DEBUG] handleStep1Submit Supabase response:", { data, error });
       if (error) throw error;
       if (data && data.slug) {
         console.log("[DEBUG] handleStep1Submit setting createdSlug to:", data.slug);
@@ -623,11 +626,12 @@ export default function CreatePromptPageClient() {
       }
       setSaveSuccess("Step 1 saved! Continue to next step.");
     } catch (error) {
-      setSaveError(
-        error instanceof Error
-          ? error.message
-          : "Failed to save. Please try again.",
-      );
+      const errorMessage = error instanceof Error
+        ? error.message
+        : "Failed to save. Please try again.";
+      setSaveError(errorMessage);
+      console.error("[DEBUG] handleStep1Submit error:", error);
+      throw new Error(errorMessage); // Re-throw so ProductPromptPageForm can catch it
     } finally {
       setIsSaving(false);
     }
