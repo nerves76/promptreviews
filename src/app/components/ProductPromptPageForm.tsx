@@ -556,7 +556,7 @@ export default function ProductPromptPageForm({
           Let's get a review from a customer who loves your product.
         </p>
       </div>
-      {/* Top right button for step 1 in create mode, or single save button in edit mode */}
+      {/* Top right button for step 1 in create mode only */}
       {(mode === "create" && step === 1) && (
         <div className="absolute top-4 right-4 z-20 flex gap-2">
           <button
@@ -574,33 +574,8 @@ export default function ProductPromptPageForm({
           </button>
         </div>
       )}
-      {/* Single save button for edit mode */}
-      {mode === "edit" && (
-        <div className="absolute top-4 right-4 z-20 flex gap-2">
-          <button
-            type="button"
-            className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-            onClick={() => {
-              console.log("[DEBUG] Edit mode Save button clicked!");
-              console.log("[DEBUG] formData:", formData);
-              console.log("[DEBUG] isSaving:", isSaving);
-              // In edit mode, save everything at once
-              const completeFormData = {
-                ...formData,
-                product_name: productName,
-                product_photo: productPhotoUrl,
-                review_type: "product",
-              };
-              onSave(completeFormData);
-            }}
-            disabled={isSaving}
-          >
-            {isSaving ? "Saving..." : "Save"}
-          </button>
-        </div>
-      )}
-      {/* Top right button group for step 2 in create mode only */}
-      {(mode === "create" && step === 2) && (
+      {/* Top right button group for step 2 in create mode or edit mode */}
+      {(mode === "create" && step === 2) || mode === "edit" ? (
         <div className="absolute top-4 right-4 z-20 flex flex-row-reverse gap-2">
           <button
             type="submit"
@@ -614,7 +589,7 @@ export default function ProductPromptPageForm({
         </div>
       )}
       <div>
-        {(mode === "create" && step === 1) ? (
+        {(mode === "create" && step === 1) || mode === "edit" ? (
           <div className="custom-space-y">
             {formError && (
               <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded">
@@ -952,8 +927,8 @@ export default function ProductPromptPageForm({
               </button>
             </div>
           </div>
-        ) : (
-          // Show step 2 content for create mode step 2, or all content for edit mode
+        ) : mode === "create" ? (
+          // Show step 2 content for create mode step 2 only
           <div className="space-y-12">
             <ReviewWriteSection
               value={formData.review_platforms}
@@ -1061,11 +1036,99 @@ export default function ProductPromptPageForm({
               onColorChange={handleColorChange}
             />
           </div>
+          {/* In edit mode, also show step 2 content */}
+          {mode === "edit" && (
+            <div className="space-y-12 mt-12">
+              <ReviewWriteSection
+                value={formData.review_platforms}
+                onChange={(platforms) =>
+                  setFormData((prev: any) => ({
+                    ...prev,
+                    review_platforms: platforms,
+                  }))
+                }
+                onGenerateReview={handleGenerateAIReview}
+                hideReviewTemplateFields={isUniversal}
+              />
+              <OfferSection
+                enabled={offerEnabled}
+                onToggle={() => setOfferEnabled((v: boolean) => !v)}
+                title={offerTitle}
+                onTitleChange={setOfferTitle}
+                description={offerBody}
+                onDescriptionChange={setOfferBody}
+                url={offerUrl}
+                onUrlChange={setOfferUrl}
+              />
+              {/* Personalized Note Pop-up Section */}
+              <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-2 shadow relative mb-8">
+                <div className="flex items-center justify-between mb-2 px-2 py-2">
+                  <div className="flex items-center gap-2">
+                    <FaCommentDots className="w-7 h-7 text-slate-blue" />
+                    <SectionHeader text="Personalized Note Pop-up" />
+                  </div>
+                  <ToggleSwitch
+                    enabled={notePopupEnabled}
+                    onToggle={() => setNotePopupEnabled((v: boolean) => !v)}
+                    label="Enabled"
+                  />
+                </div>
+                {notePopupEnabled && (
+                  <div className="px-2">
+                    <label
+                      htmlFor="friendly_note"
+                      className="block text-sm font-medium text-gray-700 mb-2"
+                    >
+                      Friendly note content
+                    </label>
+                    <textarea
+                      id="friendly_note"
+                      value={formData.friendly_note || ""}
+                      onChange={(e) =>
+                        setFormData((prev: any) => ({
+                          ...prev,
+                          friendly_note: e.target.value,
+                        }))
+                      }
+                      className="w-full p-3 border border-gray-300 rounded-md focus:ring-slate-blue focus:border-slate-blue"
+                      rows={4}
+                      placeholder="Enter a friendly note to show in a popup before the review form..."
+                    />
+                  </div>
+                )}
+              </div>
+              <EmojiSentimentSection
+                enabled={emojiSentimentEnabled}
+                onToggle={() => setEmojiSentimentEnabled((v: boolean) => !v)}
+                question={emojiSentimentQuestion}
+                onQuestionChange={setEmojiSentimentQuestion}
+                feedbackMessage={emojiFeedbackMessage}
+                onFeedbackMessageChange={setEmojiFeedbackMessage}
+                thankYouMessage={emojiThankYouMessage}
+                onThankYouMessageChange={setEmojiThankYouMessage}
+              />
+              <AIReviewSection
+                enabled={aiReviewEnabled}
+                onToggle={() => setAiReviewEnabled((v: boolean) => !v)}
+                fixGrammarEnabled={fixGrammarEnabled}
+                onToggleAI={() => setAiReviewEnabled((v: boolean) => !v)}
+                onToggleGrammar={() => setFixGrammarEnabled((v: boolean) => !v)}
+              />
+              <FallingStarsSection
+                enabled={fallingEnabled}
+                onToggle={handleToggleFalling}
+                icon={fallingIcon}
+                onIconChange={handleIconChange}
+                color={fallingIconColor}
+                onColorChange={handleColorChange}
+              />
+            </div>
+          )}
         )}
       </div>
       {(mode === "edit" || (mode === "create" && step === 2)) && (
         <>
-          {/* Bottom action row: left (Back) and right (Save/View or Save & publish/View) for step 2 */}
+          {/* Bottom action row: left (Back) and right (Save/View or Save & publish/View) for step 2 and edit mode */}
           {(mode === "create" && step === 2) && (
             <div className="w-full flex justify-between items-center pr-2 pb-4 md:pr-6 md:pb-6 mt-8">
               {/* Bottom left Back button */}
@@ -1089,6 +1152,55 @@ export default function ProductPromptPageForm({
                   {isSaving
                     ? mode === "create" ? "Publishing..." : "Saving..."
                     : "Save & publish"}
+                </button>
+                {formData.slug && (
+                  <a
+                    href={`/r/${formData.slug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex justify-center rounded-md border border-slate-blue bg-white py-2 px-4 w-28 text-sm font-medium text-slate-blue shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+                  >
+                    View
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
+          
+          {/* Bottom action row for edit mode */}
+          {mode === "edit" && (
+            <div className="w-full flex justify-end items-center pr-2 pb-4 md:pr-6 md:pb-6 mt-8">
+              <div className="flex flex-row-reverse gap-2">
+                <button
+                  type="button"
+                  className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 w-28 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+                  onClick={() => {
+                    // In edit mode, save everything at once
+                    const completeFormData = {
+                      ...formData,
+                      product_name: productName,
+                      product_photo: productPhotoUrl,
+                      review_type: "product",
+                      review_platforms: formData.review_platforms,
+                      offer_enabled: offerEnabled,
+                      offer_title: offerTitle,
+                      offer_body: offerBody,
+                      offer_url: offerUrl,
+                      emoji_sentiment_enabled: emojiSentimentEnabled,
+                      emoji_sentiment_question: emojiSentimentQuestion,
+                      emoji_feedback_message: emojiFeedbackMessage,
+                      emoji_thank_you_message: emojiThankYouMessage,
+                      falling_enabled: fallingEnabled,
+                      falling_icon: fallingIcon,
+                      falling_icon_color: fallingIconColor,
+                      ai_button_enabled: aiReviewEnabled,
+                      show_friendly_note: notePopupEnabled,
+                    };
+                    onSave(completeFormData);
+                  }}
+                  disabled={isSaving}
+                >
+                  {isSaving ? "Saving..." : "Save & publish"}
                 </button>
                 {formData.slug && (
                   <a
