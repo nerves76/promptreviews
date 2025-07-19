@@ -180,11 +180,19 @@ export default function ProductPromptPageForm({
   };
 
   // Handle AI review generation
-  const handleGenerateAIReview = async (platform: string) => {
+  const handleGenerateAIReview = async (idx: number) => {
     if (!businessProfile) {
-      throw new Error("Business profile not loaded");
+      console.error("Business profile not loaded");
+      return;
     }
     
+    const platforms = formData.review_platforms || [];
+    if (!platforms[idx]) {
+      console.error("Platform not found at index", idx);
+      return;
+    }
+    
+    const platform = platforms[idx];
     const promptPageData = {
       first_name: formData.first_name,
       last_name: formData.last_name,
@@ -196,15 +204,26 @@ export default function ProductPromptPageForm({
       const review = await generateAIReview(
         businessProfile,
         promptPageData,
-        platform,
-        200, // word count limit
-        "", // custom instructions
-        "customer" // reviewer type
+        platform.name || platform.platform || "Google Business Profile",
+        platform.wordCount || 200,
+        platform.customInstructions || "",
+        "customer"
       );
-      return review;
+      
+      // Update the review text for this platform
+      const updatedPlatforms = [...platforms];
+      updatedPlatforms[idx] = {
+        ...updatedPlatforms[idx],
+        reviewText: review
+      };
+      
+      setFormData(prev => ({
+        ...prev,
+        review_platforms: updatedPlatforms
+      }));
+      
     } catch (error) {
       console.error("Failed to generate AI review:", error);
-      throw error;
     }
   };
 
