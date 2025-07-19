@@ -28,20 +28,15 @@ export default function StepNavigation({
   onStep1Continue
 }: StepNavigationProps) {
 
-  // For product forms, we want "Save & Continue" behavior in both create and edit modes
-  // Only show "Save & publish" for step 2 in create mode
-  const showContinueButton = (mode === "edit") || (mode === "create" && step === 1);
-  const showPublishButton = (mode === "create" && step === 2);
-
   return (
     <>
-      {/* Top right button for Save & Continue */}
-      {showContinueButton && (
+      {/* Top right buttons - ONLY for create mode */}
+      {mode === "create" && step === 1 && (
         <div className="absolute top-4 right-4 z-20 flex gap-2">
           <button
             type="button"
             className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-            onClick={mode === "edit" ? onSave : onStep1Continue}
+            onClick={onStep1Continue}
             disabled={isSaving}
           >
             {isSaving ? "Saving..." : "Save & Continue"}
@@ -49,12 +44,12 @@ export default function StepNavigation({
         </div>
       )}
 
-      {/* Top right button for Save & Publish (step 2 only) */}
-      {showPublishButton && (
-        <div className="absolute top-4 right-4 z-20 flex flex-row-reverse gap-2">
+      {/* Top right button for Save & Publish (create step 2 only) */}
+      {mode === "create" && step === 2 && (
+        <div className="absolute top-4 right-4 z-20 flex gap-2">
           <button
             type="submit"
-            className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 w-28 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+            className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
             disabled={isSaving}
           >
             {isSaving ? "Publishing..." : "Save & publish"}
@@ -90,52 +85,30 @@ export default function StepNavigation({
               Back
             </button>
           </div>
-          {/* Bottom right Save/Publish and View buttons */}
-          <div className="flex flex-row-reverse gap-2">
+          {/* Bottom right Save & Publish button (removed View button) */}
+          <div className="flex gap-2">
             <button
               type="submit"
-              className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 w-28 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+              className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
               disabled={isSaving}
             >
               {isSaving ? "Publishing..." : "Save & publish"}
             </button>
-            {formData.slug && (
-              <a
-                href={`/r/${formData.slug}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex justify-center rounded-md border border-slate-blue bg-white py-2 px-4 w-28 text-sm font-medium text-slate-blue shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-              >
-                View
-              </a>
-            )}
           </div>
         </div>
       )}
 
-      {/* Bottom navigation for edit mode */}
+      {/* Bottom navigation for edit mode - ONLY bottom right button */}
       {mode === "edit" && (
         <div className="w-full flex justify-end items-center pr-2 pb-4 md:pr-6 md:pb-6 mt-8">
-          <div className="flex flex-row-reverse gap-2">
-            <button
-              type="button"
-              className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-              onClick={onSave}
-              disabled={isSaving}
-            >
-              {isSaving ? "Saving..." : "Save & Continue"}
-            </button>
-            {formData.slug && (
-              <a
-                href={`/r/${formData.slug}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex justify-center rounded-md border border-slate-blue bg-white py-2 px-4 w-28 text-sm font-medium text-slate-blue shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-              >
-                View
-              </a>
-            )}
-          </div>
+          <button
+            type="button"
+            className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+            onClick={onSave}
+            disabled={isSaving}
+          >
+            {isSaving ? "Saving..." : "Save & Continue"}
+          </button>
         </div>
       )}
     </>
