@@ -49,7 +49,7 @@ import FallingStarsSection from "@/app/components/FallingStarsSection";
 import { useFallingStars } from "@/hooks/useFallingStars";
 import RobotTooltip from "./RobotTooltip";
 import SectionHeader from "./SectionHeader";
-import { getFallingIcon } from "@/app/components/prompt-modules/fallingStarsConfig";
+
 
 /**
  * PromptPageForm component

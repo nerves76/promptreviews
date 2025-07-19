@@ -457,16 +457,6 @@ export const FALLING_ICON_COLORS = [
   { key: "slate", label: "Slate", class: "text-slate-500" },
 ];
 
-/**
- * Get the color class for an icon (custom or default)
- */
-export const getFallingIconColor = (iconKey: string, customColor?: string) => {
-  if (customColor) {
-    const colorOption = FALLING_ICON_COLORS.find(c => c.key === customColor);
-    return colorOption?.class || customColor;
-  }
-  const icon = getFallingIcon(iconKey);
-  return icon?.color || "text-yellow-500";
-};
+
 
 
