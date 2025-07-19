@@ -911,7 +911,7 @@ export default function EditPromptPage() {
     }
   };
 
-  const handleIconChange = async (iconKey: string) => {
+  const handleIconChangeAndSave = async (iconKey: string) => {
     if (aiButtonEnabled) return;
     setAiButtonEnabled(true);
     setFallingIcon(iconKey);
