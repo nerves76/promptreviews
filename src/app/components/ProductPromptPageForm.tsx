@@ -360,12 +360,9 @@ export default function ProductPromptPageForm({
     setFallingEnabled((prev) => !prev);
   };
 
-  const handleIconChange = (iconKey: string) => {
-    setFallingIcon(iconKey);
-  };
-
   const handleColorChange = (colorKey: string) => {
     setFallingIconColor(colorKey);
+    setFormData((prev: any) => ({ ...prev, falling_icon_color: colorKey }));
   };
 
   useEffect(() => {
