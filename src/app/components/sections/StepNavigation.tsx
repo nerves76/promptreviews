@@ -21,8 +21,16 @@ export function TopNavigation({
   isSaving, 
   onSave
 }: StepNavigationProps) {
-  const handleClick = () => {
-    if (isSaving) return; // Prevent clicks while saving
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    if (isSaving) {
+      console.log("TopNavigation: Save already in progress, ignoring click");
+      return;
+    }
+    
+    console.log("TopNavigation: Triggering save operation");
     onSave?.();
   };
 
@@ -50,8 +58,16 @@ export function BottomNavigation({
   isSaving, 
   onSave
 }: StepNavigationProps) {
-  const handleClick = () => {
-    if (isSaving) return; // Prevent clicks while saving
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    if (isSaving) {
+      console.log("BottomNavigation: Save already in progress, ignoring click");
+      return;
+    }
+    
+    console.log("BottomNavigation: Triggering save operation");
     onSave?.();
   };
 

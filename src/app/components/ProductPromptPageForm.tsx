@@ -187,20 +187,22 @@ export default function ProductPromptPageForm({
 
   // Handle edit mode save with proper click prevention
   const handleEditSave = async () => {
+    const saveId = Date.now() + Math.random(); // Unique identifier for this save operation
+    
     // Prevent multiple simultaneous saves
     if (isSaving) {
-      console.log("Save already in progress, ignoring click");
+      console.log(`[${saveId}] Save already in progress, ignoring click`);
       return;
     }
     
-    console.log("Starting save operation...");
+    console.log(`[${saveId}] Starting save operation...`);
     setIsSaving(true);
     setFormError("");
     
     try {
       let uploadedPhotoUrl = productPhotoUrl;
       if (productPhotoFile && (!formData.product_photo || productPhotoUrl !== formData.product_photo)) {
-        console.log("Uploading photo...");
+        console.log(`[${saveId}] Uploading photo...`);
         uploadedPhotoUrl = await handleProductPhotoUpload();
       }
       
@@ -226,15 +228,15 @@ export default function ProductPromptPageForm({
         ai_button_enabled: formData.aiButtonEnabled,
       };
       
-      console.log("Calling onSave with data...", completeFormData);
+      console.log(`[${saveId}] Calling onSave with data...`, completeFormData);
       await onSave(completeFormData);
-      console.log("Save completed successfully");
+      console.log(`[${saveId}] Save completed successfully`);
     } catch (error: any) {
-      console.error("Save failed:", error);
+      console.error(`[${saveId}] Save failed:`, error);
       setFormError(error.message || "Failed to save. Please try again.");
     } finally {
       setIsSaving(false);
-      console.log("Save operation finished");
+      console.log(`[${saveId}] Save operation finished`);
     }
   };
 
