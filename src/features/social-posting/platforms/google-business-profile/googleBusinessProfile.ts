@@ -225,6 +225,7 @@ export interface LocationInsights {
 // API Response Types
 export interface GoogleBusinessProfileApiResponse<T = any> {
   data?: T;
+  status?: number;
   error?: {
     code: number;
     message: string;
@@ -256,6 +257,14 @@ export interface GoogleBusinessProfileConfig {
   auth?: GoogleBusinessProfileAuth;
   accountId?: string;
   locationIds?: string[];
+}
+
+export interface GoogleBusinessProfileClientConfig {
+  baseUrl?: string;
+  apiVersion?: string;
+  timeout?: number;
+  retryAttempts?: number;
+  retryDelay?: number;
 }
 
 export interface PostSchedule {
