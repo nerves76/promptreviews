@@ -342,23 +342,42 @@ export default function ProductPromptPageForm({
 
   const handleStep1Continue = async () => {
     setFormError(null);
-    if (!formData.first_name.trim()) {
-      setFormError("First name is required.");
-      return;
-    }
-    if (!formData.email.trim() && !formData.phone.trim()) {
-      setFormError("Please enter at least an email or phone number.");
-      return;
-    }
+    setSaveError(null);
+    setIsSaving(true);
     
-    // Call onSave to create the prompt page with slug in step 1
-    const step1Data = {
-      ...formData,
-      product_name: productName,
-      product_photo: productPhotoUrl,
-      review_type: "product",
-    };
-    await onSave(step1Data);
+    try {
+              if (!formData.first_name.trim()) {
+          setFormError("First name is required.");
+          setIsSaving(false);
+          return;
+        }
+        if (!formData.email.trim() && !formData.phone.trim()) {
+          setFormError("Please enter at least an email or phone number.");
+          setIsSaving(false);
+          return;
+        }
+      
+      // Call onSave to create the prompt page with slug in step 1
+      const step1Data = {
+        ...formData,
+        product_name: productName,
+        product_photo: productPhotoUrl,
+        review_type: "product",
+      };
+      
+      console.log("[DEBUG] handleStep1Continue calling onSave with:", step1Data);
+      await onSave(step1Data);
+      console.log("[DEBUG] handleStep1Continue onSave completed successfully");
+    } catch (error) {
+      console.error("[DEBUG] handleStep1Continue error:", error);
+      setSaveError(
+        error instanceof Error 
+          ? error.message 
+          : "Failed to save. Please try again."
+      );
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleToggleFalling = () => {
@@ -568,6 +587,11 @@ export default function ProductPromptPageForm({
             {formError && (
               <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded">
                 {formError}
+              </div>
+            )}
+            {saveError && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded">
+                {saveError}
               </div>
             )}
             <div className="mb-6 flex items-center gap-3">
