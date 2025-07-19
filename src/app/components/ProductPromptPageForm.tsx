@@ -341,6 +341,8 @@ export default function ProductPromptPageForm({
   };
 
   const handleStep1Continue = async () => {
+    console.log("[DEBUG] handleStep1Continue function called!");
+    console.log("[DEBUG] About to start form validation");
     setFormError(null);
     setSaveError(null);
     setIsSaving(true);
@@ -560,7 +562,12 @@ export default function ProductPromptPageForm({
           <button
             type="button"
             className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-            onClick={handleStep1Continue}
+            onClick={() => {
+              console.log("[DEBUG] Save & Continue button clicked!");
+              console.log("[DEBUG] formData:", formData);
+              console.log("[DEBUG] isSaving:", isSaving);
+              handleStep1Continue();
+            }}
             disabled={isSaving}
           >
             Save & Continue
