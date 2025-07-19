@@ -181,10 +181,26 @@ export default function ProductPromptPageForm({
 
   // Handle AI review generation
   const handleGenerateAIReview = async (platform: string) => {
-    const prompt = `Generate a positive product review for ${productName}. Product description: ${formData.product_description}. Features: ${(formData.features_or_benefits || []).join(", ")}. Customer: ${formData.first_name} ${formData.last_name}, Role: ${formData.role}`;
+    if (!businessProfile) {
+      throw new Error("Business profile not loaded");
+    }
+    
+    const promptPageData = {
+      first_name: formData.first_name,
+      last_name: formData.last_name,
+      project_type: (formData.features_or_benefits || []).join(", "),
+      product_description: formData.product_description,
+    };
     
     try {
-      const review = await generateAIReview(prompt, businessProfile, supabase);
+      const review = await generateAIReview(
+        businessProfile,
+        promptPageData,
+        platform,
+        200, // word count limit
+        "", // custom instructions
+        "customer" // reviewer type
+      );
       return review;
     } catch (error) {
       console.error("Failed to generate AI review:", error);
