@@ -774,6 +774,7 @@ export default function CreatePromptPageClient() {
     }
     
     if (formData.review_type === "product") {
+      console.log("[DEBUG] Product page render - createdSlug:", createdSlug, "step:", step);
       return (
         <ProductPromptPageForm
           mode="create"
@@ -793,6 +794,7 @@ export default function CreatePromptPageClient() {
     }
     
     if (formData.review_type === "photo") {
+      console.log("[DEBUG] Photo page render - createdSlug:", createdSlug, "step:", step);
       return (
         <PromptPageForm
           mode="create"
@@ -809,6 +811,7 @@ export default function CreatePromptPageClient() {
     }
     
     // Fallback for when no type is selected
+    console.log("[DEBUG] Fallback page render - createdSlug:", createdSlug, "step:", step);
     return (
       <PromptPageForm
         mode="create"
