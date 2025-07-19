@@ -5,9 +5,10 @@ import Image from "next/image";
 import SectionHeader from "./SectionHeader";
 import {
   DEFAULT_FALLING_ICONS,
-  EXTENDED_FALLING_ICONS,
+  FALLING_STARS_ICONS,
   getFallingIcon,
   getFallingIconColor,
+  FALLING_ICON_COLORS,
 } from "@/app/components/prompt-modules/fallingStarsConfig";
 import { FaStar } from "react-icons/fa";
 
@@ -16,6 +17,8 @@ interface FallingStarsSectionProps {
   onToggle: () => void;
   icon: string;
   onIconChange: (icon: string) => void;
+  color?: string;
+  onColorChange?: (color: string) => void;
   description?: string;
 }
 
@@ -24,6 +27,8 @@ const FallingStarsSection: React.FC<FallingStarsSectionProps> = ({
   onToggle,
   icon,
   onIconChange,
+  color,
+  onColorChange,
   description,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -42,11 +47,11 @@ const FallingStarsSection: React.FC<FallingStarsSectionProps> = ({
     );
   };
 
-  const categories = Array.from(new Set(EXTENDED_FALLING_ICONS.map(icon => icon.category)));
+  const categories = Array.from(new Set(FALLING_STARS_ICONS.map(icon => icon.category)));
 
   const selectedIconObj = getFallingIcon(icon);
   const SelectedIcon = selectedIconObj?.icon || DEFAULT_FALLING_ICONS[0].icon;
-  const selectedIconColor = selectedIconObj?.color || DEFAULT_FALLING_ICONS[0].color;
+  const selectedIconColor = getFallingIconColor(icon, color);
 
   return (
     <div className="relative flex rounded-lg border border-gray-200 bg-white shadow-sm h-[200px] overflow-hidden">
@@ -84,22 +89,48 @@ const FallingStarsSection: React.FC<FallingStarsSectionProps> = ({
             {description}
           </p>
         )}
-        {/* Selected Icon Preview and More Icons Button */}
+        {/* Selected Icon Preview, Color Picker, and More Icons Button */}
         {enabled && icon && (
-          <div className="mb-6 flex items-center gap-4">
-            <div className="flex items-center justify-center w-16 h-16 rounded-full border-2 border-blue-500 bg-blue-50">
-              <SelectedIcon className={`w-8 h-8 ${selectedIconColor}`} />
+          <div className="mb-6 space-y-4">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center justify-center w-16 h-16 rounded-full border-2 border-blue-500 bg-blue-50">
+                <SelectedIcon className={`w-8 h-8 ${selectedIconColor}`} />
+              </div>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setIsModalOpen(true);
+                }}
+                className="px-4 py-2 text-sm font-medium text-slate-blue bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2"
+              >
+                More Icons
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                setIsModalOpen(true);
-              }}
-              className="px-4 py-2 text-sm font-medium text-slate-blue bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2"
-            >
-              More Icons
-            </button>
+            
+            {/* Color Picker */}
+            {onColorChange && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-700 mr-2">Color:</span>
+                <div className="flex gap-2 flex-wrap">
+                  {FALLING_ICON_COLORS.map((colorOption) => (
+                    <button
+                      key={colorOption.key}
+                      type="button"
+                      onClick={() => onColorChange(colorOption.key)}
+                      className={`w-6 h-6 rounded-full border-2 transition-all ${
+                        color === colorOption.key 
+                          ? 'border-slate-blue ring-2 ring-slate-blue ring-offset-1' 
+                          : 'border-gray-300 hover:border-gray-400'
+                      }`}
+                      title={colorOption.label}
+                    >
+                      <SelectedIcon className={`w-4 h-4 ${colorOption.class}`} />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -138,7 +169,7 @@ const FallingStarsSection: React.FC<FallingStarsSectionProps> = ({
               {/* Accordion Navigation */}
               <div className="space-y-2">
                 {categories.map(category => {
-                  const categoryIcons = EXTENDED_FALLING_ICONS.filter(icon => icon.category === category);
+                  const categoryIcons = FALLING_STARS_ICONS.filter(icon => icon.category === category);
                   const isExpanded = expandedCategories.includes(category);
                   
                   return (
@@ -173,7 +204,7 @@ const FallingStarsSection: React.FC<FallingStarsSectionProps> = ({
                                     setIsModalOpen(false);
                                   }}
                                 >
-                                  <Icon className={`w-6 h-6 ${iconItem.color}`} />
+                                  <Icon className={`w-6 h-6 ${getFallingIconColor(iconItem.key, color)}`} />
                                   <span className="text-xs text-gray-600 mt-1 text-center">{iconItem.label}</span>
                                 </button>
                               );
