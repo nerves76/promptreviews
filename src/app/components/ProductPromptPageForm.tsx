@@ -185,14 +185,22 @@ export default function ProductPromptPageForm({
     setFallingEnabled((prev: boolean) => !prev);
   };
 
-  // Handle edit mode save
+  // Handle edit mode save with proper click prevention
   const handleEditSave = async () => {
+    // Prevent multiple simultaneous saves
+    if (isSaving) {
+      console.log("Save already in progress, ignoring click");
+      return;
+    }
+    
+    console.log("Starting save operation...");
     setIsSaving(true);
     setFormError("");
     
     try {
       let uploadedPhotoUrl = productPhotoUrl;
       if (productPhotoFile && (!formData.product_photo || productPhotoUrl !== formData.product_photo)) {
+        console.log("Uploading photo...");
         uploadedPhotoUrl = await handleProductPhotoUpload();
       }
       
@@ -207,22 +215,26 @@ export default function ProductPromptPageForm({
         offer_body: offerBody,
         offer_url: offerUrl,
         emoji_sentiment_enabled: emojiSentimentEnabled,
-        emoji_sentiment_question: emojiSentimentQuestion,
-        emoji_feedback_message: emojiFeedbackMessage,
-        emoji_thank_you_message: emojiThankYouMessage,
+        emoji_sentiment_question: formData.emojiSentimentQuestion,
+        emoji_feedback_message: formData.emojiFeedbackMessage,
+        emoji_thank_you_message: formData.emojiThankYouMessage,
+        emoji_labels: formData.emojiLabels,
         falling_enabled: fallingEnabled,
         falling_icon: fallingIcon,
         falling_icon_color: fallingIconColor,
-        ai_button_enabled: aiReviewEnabled,
-        show_friendly_note: notePopupEnabled,
-        fix_grammar_enabled: fixGrammarEnabled,
+        no_platform_review_template: formData.no_platform_review_template,
+        ai_button_enabled: formData.aiButtonEnabled,
       };
       
+      console.log("Calling onSave with data...", completeFormData);
       await onSave(completeFormData);
+      console.log("Save completed successfully");
     } catch (error: any) {
+      console.error("Save failed:", error);
       setFormError(error.message || "Failed to save. Please try again.");
     } finally {
       setIsSaving(false);
+      console.log("Save operation finished");
     }
   };
 

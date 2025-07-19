@@ -21,12 +21,21 @@ export function TopNavigation({
   isSaving, 
   onSave
 }: StepNavigationProps) {
+  const handleClick = () => {
+    if (isSaving) return; // Prevent clicks while saving
+    onSave?.();
+  };
+
   return (
     <div className="absolute top-4 right-4">
       <button
         type="button"
-        className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-        onClick={onSave}
+        className={`inline-flex justify-center rounded-md border border-transparent py-2 px-4 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 ${
+          isSaving 
+            ? 'bg-gray-400 cursor-not-allowed' 
+            : 'bg-slate-blue hover:bg-slate-blue/90'
+        }`}
+        onClick={handleClick}
         disabled={isSaving}
       >
         {isSaving ? "Saving..." : "Save & Publish"}
@@ -41,12 +50,21 @@ export function BottomNavigation({
   isSaving, 
   onSave
 }: StepNavigationProps) {
+  const handleClick = () => {
+    if (isSaving) return; // Prevent clicks while saving
+    onSave?.();
+  };
+
   return (
     <div className="flex justify-end mt-8 pt-6 border-t border-gray-200">
       <button
         type="button"
-        className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-        onClick={onSave}
+        className={`inline-flex justify-center rounded-md border border-transparent py-2 px-4 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 ${
+          isSaving 
+            ? 'bg-gray-400 cursor-not-allowed' 
+            : 'bg-slate-blue hover:bg-slate-blue/90'
+        }`}
+        onClick={handleClick}
         disabled={isSaving}
       >
         {isSaving ? "Saving..." : "Save & Publish"}
