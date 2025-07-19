@@ -373,17 +373,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const customEvent = event as CustomEvent;
       console.log('🔄 AuthContext: Business created event received, refreshing state...');
       console.log('🔄 AuthContext: Event detail:', customEvent?.detail);
-      console.log('🔄 AuthContext: Current hasBusiness state before refresh:', hasBusiness);
       // Force refresh business state by calling the functions directly
-      if (user) {
-        // Use setTimeout to ensure the functions are available
-        setTimeout(() => {
-          if (typeof window !== 'undefined') {
-            // Dispatch a custom event to trigger a refresh
-            window.dispatchEvent(new CustomEvent('forceRefreshBusiness'));
-          }
-        }, 100);
-      }
+      const currentUser = supabase.auth.getUser().then(({ data: { user } }) => {
+        if (user) {
+          // Use setTimeout to ensure the functions are available
+          setTimeout(() => {
+            if (typeof window !== 'undefined') {
+              // Dispatch a custom event to trigger a refresh
+              window.dispatchEvent(new CustomEvent('forceRefreshBusiness'));
+            }
+          }, 100);
+        }
+      });
       console.log('🔄 AuthContext: Business refresh trigger dispatched');
     };
 
@@ -395,7 +396,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         window.removeEventListener('businessCreated', handleBusinessCreated);
       };
     }
-  }, [user, hasBusiness]);
+  }, []); // Empty dependency array - only register once
 
   // Core authentication functions
   const checkAuthState = useCallback(async (forceRefresh = false) => {
@@ -646,15 +647,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const handleForceRefresh = () => {
       console.log('🔄 AuthContext: Force refresh event received');
-      if (user) {
-        // Call the functions directly without dependencies to avoid initialization issues
-        setTimeout(() => {
-          if (user) {
-            checkBusinessProfile(user, true);
-            checkAccountDetails(user, true);
-          }
-        }, 100);
-      }
+      // Get current user state from supabase instead of relying on hook dependency
+      supabase.auth.getUser().then(({ data: { user: currentUser } }) => {
+        if (currentUser) {
+          // Call the functions directly without dependencies to avoid initialization issues
+          setTimeout(() => {
+            checkBusinessProfile(currentUser, true);
+            checkAccountDetails(currentUser, true);
+          }, 100);
+        }
+      });
     };
 
     if (typeof window !== 'undefined') {
@@ -665,7 +667,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         window.removeEventListener('forceRefreshBusiness', handleForceRefresh);
       };
     }
-  }, [user]);
+  }, []); // Empty dependency array - only register once
 
   // Navigation guards
   const requireAuth = useCallback((redirectTo = '/auth/sign-in') => {

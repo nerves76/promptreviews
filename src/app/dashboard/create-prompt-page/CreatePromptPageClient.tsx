@@ -897,10 +897,13 @@ export default function CreatePromptPageClient() {
           <ProductPromptPageForm
             mode="create"
             initialData={{ ...formData, review_type: "product" }}
-            onSave={handleProductPageSubmit}
+            onSave={handleStep1Submit}
+            onPublish={handleStep2Submit}
             pageTitle="Create product prompt page"
             supabase={supabase}
             businessProfile={businessProfile}
+            step={step}
+            onStepChange={setStep}
             accountId={currentUser?.id || ""}
             onGenerateReview={handleGenerateAIReview}
             isLoading={isSaving}

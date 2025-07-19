@@ -243,6 +243,7 @@ export default function CreatePromptPageClient() {
   const [formData, setFormData] = useState(initialFormData);
   const [businessProfile, setBusinessProfile] =
     useState<BusinessProfile | null>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [generatingReview, setGeneratingReview] = useState<number | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -285,6 +286,7 @@ export default function CreatePromptPageClient() {
           console.log("No user found");
           return;
         }
+        setCurrentUser(user);
         const { data: businessData } = await supabase
           .from("businesses")
           .select("*")
@@ -781,6 +783,11 @@ export default function CreatePromptPageClient() {
           pageTitle="Create product prompt page"
           supabase={supabase}
           businessProfile={businessProfile}
+          step={step}
+          onStepChange={setStep}
+          accountId={currentUser?.id || ""}
+          onGenerateReview={handleGenerateAIReview}
+          isLoading={isSaving}
         />
       );
     }
