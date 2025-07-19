@@ -54,6 +54,20 @@ export function TopNavigation({
           </button>
         </div>
       )}
+
+      {/* Top right button for edit mode */}
+      {mode === "edit" && (
+        <div className="fixed top-4 right-4 z-50">
+          <button
+            type="button"
+            className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+            onClick={onSave}
+            disabled={isSaving}
+          >
+            {isSaving ? "Saving..." : "Save & Continue"}
+          </button>
+        </div>
+      )}
     </>
   );
 }
