@@ -217,7 +217,7 @@ export default function ProductPromptPageForm({
         reviewText: review
       };
       
-      setFormData(prev => ({
+      setFormData((prev: any) => ({
         ...prev,
         review_platforms: updatedPlatforms
       }));
