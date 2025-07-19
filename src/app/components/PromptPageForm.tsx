@@ -46,8 +46,7 @@ import DisableAIGenerationSection from "./DisableAIGenerationSection";
 import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
 import FallingStarsSection from "@/app/components/FallingStarsSection";
-import { useFallingStars } from "@/hooks/useFallingStars";
-import { getFallingIcon } from "@/app/components/prompt-modules/fallingStarsConfig";
+import { useFallingStars, getFallingIcon } from "@/hooks/useFallingStars";
 import RobotTooltip from "./RobotTooltip";
 import SectionHeader from "./SectionHeader";
 
@@ -437,7 +436,7 @@ export default function PromptPageForm({
               const delay = Math.random() * 0.5;
               const size = 32 + Math.random() * 8;
               const top = -40 - Math.random() * 360;
-              const iconObj = getFallingIcon(fallingIcon);
+                              const iconObj = getFallingIcon(fallingIcon);
               
               // Guard clause to ensure iconObj is defined
               if (!iconObj) {

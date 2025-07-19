@@ -436,6 +436,14 @@ export const getFallingIcon = (key: string) => {
 };
 
 /**
+ * Helper function to get the falling icon color by key
+ */
+export const getFallingIconColor = (key: string) => {
+  const icon = FALLING_STARS_ICONS.find((icon) => icon.key === key);
+  return icon?.color || "text-slate-blue";
+};
+
+/**
  * Default color options for the color picker
  */
 export const FALLING_ICON_COLORS = [
