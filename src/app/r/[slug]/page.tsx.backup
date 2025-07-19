@@ -1032,7 +1032,7 @@ export default function PromptPage() {
   const mergedOfferBody =
     promptPage?.offer_body || businessProfile?.default_offer_body || "";
   const mergedOfferUrl =
-    promptPage?.default_offer_url || businessProfile?.default_offer_url || "";
+    promptPage?.offer_url || businessProfile?.default_offer_url || "";
   const mergedReviewPlatforms =
     promptPage?.review_platforms && promptPage.review_platforms.length
       ? promptPage.review_platforms

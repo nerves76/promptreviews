@@ -122,6 +122,50 @@ function getPlatformIcon(
   return { icon: FaRegStar, label: "Other" };
 }
 
+// Utility function to map camelCase form data to snake_case DB columns
+function mapToDbColumns(formData: any): any {
+  const insertData: any = { ...formData };
+  
+  // Map camelCase to snake_case
+  insertData["emoji_sentiment_enabled"] = formData.emojiSentimentEnabled;
+  insertData["emoji_sentiment_question"] = formData.emojiSentimentQuestion;
+  insertData["emoji_feedback_message"] = formData.emojiFeedbackMessage;
+  insertData["emoji_thank_you_message"] = formData.emojiThankYouMessage || "";
+  insertData["ai_button_enabled"] = formData.aiButtonEnabled ?? true;
+  insertData["offer_enabled"] = formData.offerEnabled;
+  insertData["offer_title"] = formData.offerTitle;
+  insertData["offer_body"] = formData.offerBody;
+  insertData["offer_url"] = formData.offerUrl;
+  
+  // Handle falling stars properly
+  if (formData.fallingEnabled && formData.fallingIcon) {
+    insertData["falling_icon"] = formData.fallingIcon;
+  } else if (formData.fallingIcon) {
+    insertData["falling_icon"] = formData.fallingIcon;
+  }
+  
+  // Handle reviewPlatforms -> review_platforms mapping
+  if (formData.reviewPlatforms) {
+    insertData["review_platforms"] = formData.reviewPlatforms;
+    delete insertData.reviewPlatforms;
+  }
+  
+  // Remove camelCase keys
+  delete insertData.emojiSentimentEnabled;
+  delete insertData.emojiSentimentQuestion;
+  delete insertData.emojiFeedbackMessage;
+  delete insertData.emojiThankYouMessage;
+  delete insertData.aiButtonEnabled;
+  delete insertData.fallingEnabled;
+  delete insertData.fallingIcon;
+  delete insertData.offerEnabled;
+  delete insertData.offerTitle;
+  delete insertData.offerBody;
+  delete insertData.offerUrl;
+  
+  return insertData;
+}
+
 export default function EditPromptPage() {
   const supabase = createClient();
 
@@ -731,7 +775,133 @@ export default function EditPromptPage() {
     }
   };
 
+  // Simple single-step save for product pages (like universal prompt page)
+  const handleProductSave = async (formState: any) => {
+    console.log("[DEBUG] handleProductSave called with formState:", formState);
+    setIsLoading(true);
+    setError(null);
+    setSuccessMessage(null);
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error("You must be signed in to edit a prompt page");
+      }
+      
+      // Get the prompt page ID
+      const { data: promptPage, error: fetchError } = await supabase
+        .from("prompt_pages")
+        .select("id, slug")
+        .eq("slug", params.slug)
+        .single();
+      if (fetchError) throw fetchError;
+      if (!promptPage) throw new Error("Prompt page not found");
+      
+      // Apply the mapping to convert camelCase to snake_case for database
+      const rawData = { ...formData, ...formState };
+      console.log("[DEBUG] Product Save - Raw data before mapping:", rawData);
+      const updateData = mapToDbColumns(rawData);
+      console.log("[DEBUG] Product Save - Data after mapping:", updateData);
+      
+      // Only include valid columns in the payload
+      const validColumns = [
+        "first_name",
+        "last_name",
+        "email", 
+        "phone",
+        "role",
+        "friendly_note",
+        "offer_enabled",
+        "offer_title",
+        "offer_body",
+        "offer_url",
+        "emoji_sentiment_enabled",
+        "emoji_sentiment_question",
+        "emoji_feedback_message",
+        "emoji_thank_you_message",
+        "review_platforms",
+        "falling_icon",
+        "ai_button_enabled",
+        "show_friendly_note",
+        "product_name",
+        "product_description",
+        "product_photo",
+        "features_or_benefits",
+        "status"
+      ];
+      const payload = Object.fromEntries(
+        Object.entries(updateData).filter(([key]) =>
+          validColumns.includes(key),
+        ),
+      );
+      
+      console.log("[DEBUG] Product Save payload:", payload);
+      
+      // Ensure features_or_benefits is properly formatted as JSON
+      if (payload.features_or_benefits && typeof payload.features_or_benefits === 'string') {
+        try {
+          payload.features_or_benefits = JSON.parse(payload.features_or_benefits);
+        } catch (e) {
+          // If it's not valid JSON, treat it as a single string in an array
+          payload.features_or_benefits = [payload.features_or_benefits];
+        }
+      }
+      
+      console.log("[DEBUG] Product Save payload after JSON fix:", payload);
+      
+      // Update the prompt page
+      const { error: updateError } = await supabase
+        .from("prompt_pages")
+        .update(payload)
+        .eq("id", promptPage.id);
+      
+      console.log("[DEBUG] Supabase update error:", updateError);
+      if (updateError) {
+        console.error("❌ PRODUCT SAVE FAILED:", updateError);
+        console.error("❌ Full error details:", JSON.stringify(updateError, null, 2));
+        console.error("❌ Payload that failed:", JSON.stringify(payload, null, 2));
+        setError(`Database error: ${updateError.message}`);
+        return;
+      }
+      
+      console.log('✅ PRODUCT SAVE COMPLETED: Data saved successfully to database');
+      
+      // Set localStorage flag for post-save modal and redirect to prompt-pages
+      if (promptPage?.slug) {
+        const modalData = { 
+          url: `/r/${promptPage.slug}`,
+          first_name: formData.first_name,
+          phone: formData.phone,
+          email: formData.email
+        };
+        console.log('🔍 Setting localStorage showPostSaveModal:', modalData);
+        localStorage.setItem(
+          "showPostSaveModal",
+          JSON.stringify(modalData),
+        );
+      }
+      
+      // Add a brief delay to ensure user sees the "Saving..." state before navigation
+      console.log('⏱️ DELAY START: Waiting 1 second for user to see "Saving..." state...');
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Give user 1s to see "Saving..."
+      console.log('⏱️ DELAY END: 1 second elapsed, proceeding with navigation'); 
+      
+      // Navigate to prompt-pages to show the modal
+      console.log('🔍 Navigating to prompt-pages to show success modal');
+      router.push("/prompt-pages");
+      
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to update prompt page",
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleStep2Save = async (formState: any) => {
+    // This is now only for service pages
     console.log("[DEBUG] handleStep2Save called with formState:", formState);
     console.log('🔄 SAVE HANDLER: Setting loading state and starting save operation');
     setIsLoading(true);
@@ -753,29 +923,24 @@ export default function EditPromptPage() {
       if (fetchError) throw fetchError;
       if (!promptPage) throw new Error("Prompt page not found");
       
-      let updateData: any;
-      if (formData.type === "product") {
-        // For product pages, formState is a flat object with all fields
-        updateData = { ...formData, ...formState };
-      } else {
-        // For service pages, formState contains the form data directly
-        // Extract the step 2 fields from the form data
-        updateData = {
-          // Step 2 fields - these come from the form state
-          offer_enabled: formState.offer_enabled || false,
-          offer_title: formState.offer_title || "",
-          offer_body: formState.offer_body || "",
-          offer_url: formState.offer_url || "",
-          emoji_sentiment_enabled: formState.emoji_sentiment_enabled || false,
-          emoji_sentiment_question: formState.emoji_sentiment_question || "How was your experience?",
-          emoji_feedback_message: formState.emoji_feedback_message || "We value your feedback! Let us know how we can do better.",
-          emoji_thank_you_message: formState.emoji_thank_you_message || "",
-          review_platforms: formState.review_platforms || [],
-          falling_icon: formState.falling_icon || null,
-          ai_button_enabled: formState.ai_button_enabled !== false, // Default to true
-          show_friendly_note: formState.show_friendly_note || false,
-        };
-      }
+      // For service pages, formState contains the form data directly
+      // Extract the step 2 fields from the form data
+      const updateData = {
+        // Step 2 fields - these come from the form state
+        offer_enabled: formState.offer_enabled || false,
+        offer_title: formState.offer_title || "",
+        offer_body: formState.offer_body || "",
+        offer_url: formState.offer_url || "",
+        emoji_sentiment_enabled: formState.emoji_sentiment_enabled || false,
+        emoji_sentiment_question: formState.emoji_sentiment_question || "How was your experience?",
+        emoji_feedback_message: formState.emoji_feedback_message || "We value your feedback! Let us know how we can do better.",
+        emoji_thank_you_message: formState.emoji_thank_you_message || "",
+        review_platforms: formState.review_platforms || [],
+        falling_icon: formState.falling_icon || null,
+        ai_button_enabled: formState.ai_button_enabled !== false, // Default to true
+        show_friendly_note: formState.show_friendly_note || false,
+      };
+      
       // Only include valid columns in the payload
       const validColumns = [
         "offer_enabled",
@@ -977,15 +1142,7 @@ export default function EditPromptPage() {
 
   if (isLoading) {
     return (
-      <div
-        style={{
-          position: "fixed",
-          top: -190,
-          left: 0,
-          width: "100%",
-          zIndex: 9999,
-        }}
-      >
+      <div className="min-h-screen">
         <AppLoader />
       </div>
     );
@@ -1020,12 +1177,15 @@ export default function EditPromptPage() {
         <ProductPromptPageForm
           mode="edit"
           initialData={formData}
-          onSave={handleStep2Save}
+          onSave={handleProductSave}
           pageTitle="Edit Product Prompt Page"
           supabase={supabase}
           businessProfile={businessProfile}
           accountId={accountId}
           slug={params.slug as string}
+          successMessage={successMessage}
+          error={error}
+          isLoading={isLoading}
         />
       </PageCard>
     );
