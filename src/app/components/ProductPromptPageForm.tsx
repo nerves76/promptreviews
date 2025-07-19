@@ -64,6 +64,8 @@ export default function ProductPromptPageForm({
   businessProfile,
   isUniversal = false,
   onPublishSuccess,
+  step = 1,
+  onStepChange,
   ...rest
 }: {
   mode: "create" | "edit";
@@ -75,6 +77,8 @@ export default function ProductPromptPageForm({
   businessProfile: any;
   isUniversal?: boolean;
   onPublishSuccess?: (slug: string) => void;
+  step?: number;
+  onStepChange?: (step: number) => void;
   [key: string]: any;
 }) {
   const router = useRouter();
@@ -132,7 +136,6 @@ export default function ProductPromptPageForm({
     }
   }, [formData.slug, initialData.slug]);
 
-  const [step, setStep] = useState(1);
   const [formError, setFormError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
@@ -325,7 +328,7 @@ export default function ProductPromptPageForm({
     }
   };
 
-  const handleStep1Continue = () => {
+  const handleStep1Continue = async () => {
     setFormError(null);
     if (!formData.first_name.trim()) {
       setFormError("First name is required.");
@@ -335,7 +338,15 @@ export default function ProductPromptPageForm({
       setFormError("Please enter at least an email or phone number.");
       return;
     }
-    setStep(2);
+    
+    // Call onSave to create the prompt page with slug in step 1
+    const step1Data = {
+      ...formData,
+      product_name: productName,
+      product_photo: productPhotoUrl,
+      review_type: "product",
+    };
+    await onSave(step1Data);
   };
 
   const handleToggleFalling = () => {
@@ -1079,7 +1090,7 @@ export default function ProductPromptPageForm({
                 <button
                   type="button"
                   className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-slate-blue shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-                  onClick={() => setStep(1)}
+                  onClick={() => onStepChange?.(1)}
                   disabled={isSaving}
                 >
                   Back
