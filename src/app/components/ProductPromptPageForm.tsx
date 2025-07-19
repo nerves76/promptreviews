@@ -186,69 +186,48 @@ export default function ProductPromptPageForm({
   };
 
   // Handle edit mode save
-  const handleEditSave = () => {
-    const completeFormData = {
-      ...formData,
-      product_name: productName,
-      product_photo: productPhotoUrl,
-      review_type: "product",
-      review_platforms: formData.review_platforms,
-      offer_enabled: offerEnabled,
-      offer_title: offerTitle,
-      offer_body: offerBody,
-      offer_url: offerUrl,
-      emoji_sentiment_enabled: emojiSentimentEnabled,
-      emoji_sentiment_question: emojiSentimentQuestion,
-      emoji_feedback_message: emojiFeedbackMessage,
-      emoji_thank_you_message: emojiThankYouMessage,
-      falling_enabled: fallingEnabled,
-      falling_icon: fallingIcon,
-      falling_icon_color: fallingIconColor,
-      ai_button_enabled: aiReviewEnabled,
-      show_friendly_note: notePopupEnabled,
-      fix_grammar_enabled: fixGrammarEnabled,
-    };
-    onSave(completeFormData);
+  const handleEditSave = async () => {
+    setIsSaving(true);
+    setFormError("");
+    
+    try {
+      let uploadedPhotoUrl = productPhotoUrl;
+      if (productPhotoFile && (!formData.product_photo || productPhotoUrl !== formData.product_photo)) {
+        uploadedPhotoUrl = await handleProductPhotoUpload();
+      }
+      
+      const completeFormData = {
+        ...formData,
+        product_name: productName,
+        product_photo: uploadedPhotoUrl,
+        review_type: "product",
+        review_platforms: formData.review_platforms,
+        offer_enabled: offerEnabled,
+        offer_title: offerTitle,
+        offer_body: offerBody,
+        offer_url: offerUrl,
+        emoji_sentiment_enabled: emojiSentimentEnabled,
+        emoji_sentiment_question: emojiSentimentQuestion,
+        emoji_feedback_message: emojiFeedbackMessage,
+        emoji_thank_you_message: emojiThankYouMessage,
+        falling_enabled: fallingEnabled,
+        falling_icon: fallingIcon,
+        falling_icon_color: fallingIconColor,
+        ai_button_enabled: aiReviewEnabled,
+        show_friendly_note: notePopupEnabled,
+        fix_grammar_enabled: fixGrammarEnabled,
+      };
+      
+      await onSave(completeFormData);
+    } catch (error: any) {
+      setFormError(error.message || "Failed to save. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
     <form 
-      onSubmit={async (e) => {
-        e.preventDefault();
-        setIsSaving(true);
-        
-        try {
-          let uploadedPhotoUrl = productPhotoUrl;
-          if (productPhotoFile && (!formData.product_photo || productPhotoUrl !== formData.product_photo)) {
-            uploadedPhotoUrl = await handleProductPhotoUpload();
-          }
-          
-          const formDataToSubmit = {
-            ...formData,
-            product_name: productName,
-            product_photo: uploadedPhotoUrl,
-            ai_button_enabled: aiReviewEnabled,
-            fix_grammar_enabled: fixGrammarEnabled,
-            falling_icon: fallingIcon,
-            falling_icon_color: fallingIconColor,
-            review_type: "product",
-          };
-          
-          if (mode === "create" && step === 2 && onPublish) {
-            await onPublish(formDataToSubmit);
-          } else {
-            await onSave(formDataToSubmit);
-          }
-          
-          if (mode === "create" && step === 2 && typeof onPublishSuccess === "function" && formData.slug) {
-            onPublishSuccess(formData.slug);
-          }
-        } catch (error: any) {
-          setFormError(error.message || "Failed to save. Please try again.");
-        } finally {
-          setIsSaving(false);
-        }
-      }}
       className="relative space-y-8"
     >
       {/* Page Title */}
