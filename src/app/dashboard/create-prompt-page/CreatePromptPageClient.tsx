@@ -103,7 +103,7 @@ const initialFormData = {
     "Unsatisfied",
     "Frustrated",
   ],
-  fallingEnabled: false,
+  fallingEnabled: true,
   aiButtonEnabled: true,
   business_name: "",
   contact_id: "",
