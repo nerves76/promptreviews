@@ -1009,11 +1009,11 @@ export default function EditPromptPage() {
   // In the main render, for product pages, render only the unified ProductPromptPageForm and return immediately
   if (formData.type === "product") {
     return (
-      <PageCard icon={<FaBoxOpen className="w-16 h-16 text-slate-blue" />}>
+      <PageCard icon={<FaBoxOpen className="w-9 h-9 text-slate-blue" />}>
         <ProductPromptPageForm
           mode="edit"
           initialData={formData}
-          onSave={handleFormSave}
+          onSave={handleStep2Save}
           pageTitle="Edit Product Prompt Page"
           supabase={supabase}
           businessProfile={businessProfile}

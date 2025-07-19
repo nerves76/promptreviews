@@ -38,6 +38,7 @@ export default function ProductPromptPageForm({
   onPublishSuccess,
   step = 1,
   onStepChange,
+  slug,
   ...rest
 }: {
   mode: "create" | "edit";
@@ -51,6 +52,7 @@ export default function ProductPromptPageForm({
   onPublishSuccess?: (slug: string) => void;
   step?: number;
   onStepChange?: (step: number) => void;
+  slug?: string;
   [key: string]: any;
 }) {
   const router = useRouter();
@@ -61,8 +63,6 @@ export default function ProductPromptPageForm({
   const [isSaving, setIsSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const saveInProgressRef = useRef(false);
-  const lastSaveTimeRef = useRef(0);
 
   // Product photo state
   const [productPhotoFile, setProductPhotoFile] = useState<File | null>(null);
@@ -187,34 +187,17 @@ export default function ProductPromptPageForm({
     setFallingEnabled((prev: boolean) => !prev);
   };
 
-  // Handle edit mode save with proper click prevention
+  // Handle edit mode save with simple duplicate prevention
   const handleEditSave = useCallback(async () => {
     const saveId = Date.now() + Math.random(); // Unique identifier for this save operation
-    const now = Date.now();
     
-    // Global save prevention using ref (immediate check)
-    if (saveInProgressRef.current) {
-      console.log(`[${saveId}] Global save prevention: Another save already in progress`);
-      return;
-    }
-    
-    // Time-based prevention (prevent saves within 3 seconds)
-    if (now - lastSaveTimeRef.current < 3000) {
-      console.log(`[${saveId}] Time-based save prevention: Last save was too recent`);
-      return;
-    }
-    
-    // State-based prevention
+    // Prevent multiple simultaneous saves
     if (isSaving) {
-      console.log(`[${saveId}] State-based save prevention: isSaving is true`);
+      console.log(`🚫 BLOCKED: Save already in progress`);
       return;
     }
     
-    console.log(`[${saveId}] Starting save operation...`);
-    
-    // Set all prevention mechanisms
-    saveInProgressRef.current = true;
-    lastSaveTimeRef.current = now;
+    console.log(`✅ SAVE STARTING: Starting save operation at ${saveId}`);
     setIsSaving(true);
     setFormError("");
     
@@ -227,24 +210,10 @@ export default function ProductPromptPageForm({
       
       const completeFormData = {
         ...formData,
-        product_name: productName,
         product_photo: uploadedPhotoUrl,
-        review_type: "product",
-        review_platforms: formData.review_platforms,
-        offer_enabled: offerEnabled,
-        offer_title: offerTitle,
-        offer_body: offerBody,
-        offer_url: offerUrl,
-        emoji_sentiment_enabled: emojiSentimentEnabled,
-        emoji_sentiment_question: formData.emojiSentimentQuestion,
-        emoji_feedback_message: formData.emojiFeedbackMessage,
-        emoji_thank_you_message: formData.emojiThankYouMessage,
-        emoji_labels: formData.emojiLabels,
-        falling_enabled: fallingEnabled,
-        falling_icon: fallingIcon,
-        falling_icon_color: fallingIconColor,
-        no_platform_review_template: formData.no_platform_review_template,
-        ai_button_enabled: formData.aiButtonEnabled,
+        status: "published",
+        business_name: businessProfile?.business_name || "",
+        contact_id: businessProfile?.contact_id || null
       };
       
       console.log(`[${saveId}] Calling onSave with data...`, completeFormData);
@@ -252,29 +221,12 @@ export default function ProductPromptPageForm({
       console.log(`[${saveId}] Save completed successfully`);
     } catch (error: any) {
       console.error(`[${saveId}] Save failed:`, error);
-      setFormError(error.message || "Failed to save. Please try again.");
+      setFormError(error.message || "Failed to save page");
     } finally {
-      // Clear all prevention mechanisms
-      saveInProgressRef.current = false;
       setIsSaving(false);
       console.log(`[${saveId}] Save operation finished`);
     }
-  }, [
-    formData,
-    productName,
-    productPhotoUrl,
-    productPhotoFile,
-    offerEnabled,
-    offerTitle,
-    offerBody,
-    offerUrl,
-    emojiSentimentEnabled,
-    fallingEnabled,
-    fallingIcon,
-    fallingIconColor,
-    onSave,
-    handleProductPhotoUpload
-  ]);
+  }, [isSaving, formData, productPhotoFile, productPhotoUrl, onSave, businessProfile]);
 
   return (
     <form 
