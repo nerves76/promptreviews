@@ -233,8 +233,8 @@ export default function PromptPageForm({
     initialData.falling_icon || "star"
   ); // default icon key
   const [fallingIconColor, setFallingIconColor] = useState(
-    initialData.falling_icon_color || "yellow"
-  ); // default color key
+    initialData.falling_icon_color || "#fbbf24"
+  ); // default hex color
 
   // Special Offer state
   const [offerEnabled, setOfferEnabled] = useState(
@@ -273,9 +273,9 @@ export default function PromptPageForm({
     setFormData((prev: any) => ({ ...prev, falling_icon: key }));
   };
 
-  const handleColorChange = (colorKey: string) => {
-    setFallingIconColor(colorKey);
-    setFormData((prev: any) => ({ ...prev, falling_icon_color: colorKey }));
+  const handleColorChange = (hexColor: string) => {
+    setFallingIconColor(hexColor);
+    setFormData((prev: any) => ({ ...prev, falling_icon_color: hexColor }));
   };
 
   // Handlers for review platforms

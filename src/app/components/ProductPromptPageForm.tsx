@@ -171,7 +171,7 @@ export default function ProductPromptPageForm({
   const [fallingEnabled, setFallingEnabled] = useState(true);
   const [iconUpdating, setIconUpdating] = useState(false);
   const [fallingIcon, setFallingIcon] = useState("star");
-  const [fallingIconColor, setFallingIconColor] = useState("yellow");
+  const [fallingIconColor, setFallingIconColor] = useState("#fbbf24");
 
   const [offerEnabled, setOfferEnabled] = useState(
     initialData.offer_enabled ?? initialData.offerEnabled ?? false,
@@ -360,9 +360,9 @@ export default function ProductPromptPageForm({
     setFallingEnabled((prev) => !prev);
   };
 
-  const handleColorChange = (colorKey: string) => {
-    setFallingIconColor(colorKey);
-    setFormData((prev: any) => ({ ...prev, falling_icon_color: colorKey }));
+  const handleColorChange = (hexColor: string) => {
+    setFallingIconColor(hexColor);
+    setFormData((prev: any) => ({ ...prev, falling_icon_color: hexColor }));
   };
 
   useEffect(() => {

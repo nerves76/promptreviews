@@ -7,8 +7,6 @@ import {
   DEFAULT_FALLING_ICONS,
   FALLING_STARS_ICONS,
   getFallingIcon,
-  getFallingIconColor,
-  FALLING_ICON_COLORS,
 } from "@/app/components/prompt-modules/fallingStarsConfig";
 import { FaStar } from "react-icons/fa";
 
@@ -51,7 +49,6 @@ const FallingStarsSection: React.FC<FallingStarsSectionProps> = ({
 
   const selectedIconObj = getFallingIcon(icon);
   const SelectedIcon = selectedIconObj?.icon || DEFAULT_FALLING_ICONS[0].icon;
-  const selectedIconColor = getFallingIconColor(icon, color);
 
   return (
     <div className="relative flex rounded-lg border border-gray-200 bg-white shadow-sm h-[240px] overflow-hidden">
@@ -94,7 +91,7 @@ const FallingStarsSection: React.FC<FallingStarsSectionProps> = ({
           <div className="mb-6 space-y-4">
             <div className="flex items-center gap-4">
               <div className="flex items-center justify-center w-16 h-16 rounded-full border-2 border-blue-500 bg-blue-50">
-                <SelectedIcon className={`w-8 h-8 ${selectedIconColor}`} />
+                <SelectedIcon className="w-8 h-8" style={{ color: color || "#fbbf24" }} />
               </div>
               <button
                 type="button"
@@ -110,25 +107,15 @@ const FallingStarsSection: React.FC<FallingStarsSectionProps> = ({
             
             {/* Color Picker */}
             {onColorChange && (
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-gray-700 mr-2">Color:</span>
-                <div className="flex gap-2 flex-wrap">
-                  {FALLING_ICON_COLORS.map((colorOption) => (
-                    <button
-                      key={colorOption.key}
-                      type="button"
-                      onClick={() => onColorChange(colorOption.key)}
-                      className={`w-6 h-6 rounded-full transition-all ${
-                        color === colorOption.key 
-                          ? 'border-2 border-slate-blue ring-2 ring-slate-blue ring-offset-1' 
-                          : 'border-0 hover:ring-1 hover:ring-gray-300'
-                      }`}
-                      title={colorOption.label}
-                    >
-                      <SelectedIcon className={`w-4 h-4 ${colorOption.class}`} />
-                    </button>
-                  ))}
-                </div>
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-medium text-gray-700">Color:</span>
+                <input
+                  type="color"
+                  value={color || "#fbbf24"}
+                  onChange={(e) => onColorChange(e.target.value)}
+                  className="w-8 h-8 rounded border border-gray-300 cursor-pointer"
+                  title="Choose icon color"
+                />
               </div>
             )}
           </div>
