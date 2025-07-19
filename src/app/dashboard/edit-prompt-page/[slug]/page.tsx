@@ -733,6 +733,7 @@ export default function EditPromptPage() {
 
   const handleStep2Save = async (formState: any) => {
     console.log("[DEBUG] handleStep2Save called with formState:", formState);
+    console.log('🔄 SAVE HANDLER: Setting loading state and starting save operation');
     setIsLoading(true);
     setError(null);
     setSuccessMessage(null);
@@ -825,9 +826,11 @@ export default function EditPromptPage() {
           JSON.stringify(modalData),
         );
       }
-      // Add a small delay to ensure user sees the "Saving..." state before navigation
-      console.log('🔍 Saving completed - showing user feedback before navigation');
-      await new Promise(resolve => setTimeout(resolve, 800)); // Give user 800ms to see "Saving..." 
+      // Add a longer delay to ensure user sees the "Saving..." state before navigation
+      console.log('✅ SAVE COMPLETED: Data saved successfully to database');
+      console.log('⏱️ DELAY START: Waiting 1.5 seconds for user to see "Saving..." state...');
+      await new Promise(resolve => setTimeout(resolve, 1500)); // Give user 1.5s to see "Saving..."
+      console.log('⏱️ DELAY END: 1.5 seconds elapsed, proceeding with navigation'); 
       
       // Smooth navigation to prompt-pages to show the modal
       console.log('🔍 Navigating smoothly to prompt-pages');
