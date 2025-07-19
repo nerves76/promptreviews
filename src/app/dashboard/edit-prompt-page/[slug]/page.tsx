@@ -825,9 +825,9 @@ export default function EditPromptPage() {
           JSON.stringify(modalData),
         );
       }
-      // Redirect to prompt-pages to show the modal
-      console.log('🔍 Redirecting to prompt-pages');
-      window.location.href = "/prompt-pages";
+      // Smooth navigation to prompt-pages to show the modal
+      console.log('🔍 Navigating smoothly to prompt-pages');
+      router.push("/prompt-pages");
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to update prompt page",
