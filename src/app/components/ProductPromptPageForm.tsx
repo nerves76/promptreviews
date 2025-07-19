@@ -556,8 +556,8 @@ export default function ProductPromptPageForm({
           Let's get a review from a customer who loves your product.
         </p>
       </div>
-      {/* Top right button for step 1 (both create and edit) */}
-      {step === 1 && (
+      {/* Top right button for step 1 in create mode, or single save button in edit mode */}
+      {(mode === "create" && step === 1) && (
         <div className="absolute top-4 right-4 z-20 flex gap-2">
           <button
             type="button"
@@ -574,8 +574,33 @@ export default function ProductPromptPageForm({
           </button>
         </div>
       )}
-      {/* Top right button group for step 2 (both create and edit) */}
-      {step === 2 && (
+      {/* Single save button for edit mode */}
+      {mode === "edit" && (
+        <div className="absolute top-4 right-4 z-20 flex gap-2">
+          <button
+            type="button"
+            className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+            onClick={() => {
+              console.log("[DEBUG] Edit mode Save button clicked!");
+              console.log("[DEBUG] formData:", formData);
+              console.log("[DEBUG] isSaving:", isSaving);
+              // In edit mode, save everything at once
+              const completeFormData = {
+                ...formData,
+                product_name: productName,
+                product_photo: productPhotoUrl,
+                review_type: "product",
+              };
+              onSave(completeFormData);
+            }}
+            disabled={isSaving}
+          >
+            {isSaving ? "Saving..." : "Save"}
+          </button>
+        </div>
+      )}
+      {/* Top right button group for step 2 in create mode only */}
+      {(mode === "create" && step === 2) && (
         <div className="absolute top-4 right-4 z-20 flex flex-row-reverse gap-2">
           <button
             type="submit"
@@ -589,7 +614,7 @@ export default function ProductPromptPageForm({
         </div>
       )}
       <div>
-        {step === 1 ? (
+        {(mode === "create" && step === 1) ? (
           <div className="custom-space-y">
             {formError && (
               <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded">
@@ -928,6 +953,7 @@ export default function ProductPromptPageForm({
             </div>
           </div>
         ) : (
+          // Show step 2 content for create mode step 2, or all content for edit mode
           <div className="space-y-12">
             <ReviewWriteSection
               value={formData.review_platforms}
@@ -1037,10 +1063,10 @@ export default function ProductPromptPageForm({
           </div>
         )}
       </div>
-      {(mode !== "create" || step === 2) && (
+      {(mode === "edit" || (mode === "create" && step === 2)) && (
         <>
           {/* Bottom action row: left (Back) and right (Save/View or Save & publish/View) for step 2 */}
-          {step === 2 && (
+          {(mode === "create" && step === 2) && (
             <div className="w-full flex justify-between items-center pr-2 pb-4 md:pr-6 md:pb-6 mt-8">
               {/* Bottom left Back button */}
               <div>
