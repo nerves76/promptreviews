@@ -26,6 +26,7 @@ export interface UniversalPromptFormState {
   reviewPlatforms: ReviewPlatformLink[];
   fallingEnabled: boolean;
   fallingIcon: string;
+  fallingIconColor: string;
   aiButtonEnabled: boolean;
   notePopupEnabled: boolean;
   friendlyNote: string;
@@ -88,6 +89,9 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
     const [fallingIcon, setFallingIcon] = useState(
       initialData?.fallingIcon ?? "star",
     );
+    const [fallingIconColor, setFallingIconColor] = useState(
+      initialData?.fallingIconColor ?? "#fbbf24",
+    );
     const [aiButtonEnabled, setAiButtonEnabled] = useState(
       initialData?.aiButtonEnabled ?? true,
     );
@@ -143,6 +147,7 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
             reviewPlatforms,
             fallingEnabled,
             fallingIcon,
+            fallingIconColor,
             aiButtonEnabled,
             notePopupEnabled: notePopupEnabled,
             friendlyNote,
@@ -162,6 +167,7 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
           reviewPlatforms,
           fallingEnabled,
           fallingIcon,
+          fallingIconColor,
           aiButtonEnabled,
           notePopupEnabled: notePopupEnabled,
           friendlyNote,
@@ -181,6 +187,7 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
         reviewPlatforms,
         fallingEnabled,
         fallingIcon,
+        fallingIconColor,
         aiButtonEnabled,
         notePopupEnabled,
         friendlyNote,
@@ -220,6 +227,7 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
             reviewPlatforms,
             fallingEnabled,
             fallingIcon,
+            fallingIconColor,
             aiButtonEnabled,
             notePopupEnabled,
             friendlyNote,
@@ -325,6 +333,8 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
           onToggle={() => setFallingEnabled((v) => !v)}
           icon={fallingIcon}
           onIconChange={setFallingIcon}
+          color={fallingIconColor}
+          onColorChange={setFallingIconColor}
         />
         {/* No Save button here; Save is handled by parent */}
       </form>
