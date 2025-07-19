@@ -97,7 +97,12 @@ export default function ProductPromptPageForm({
 
   // Helper function to update form data
   const updateFormData = (data: any) => {
-    setFormData((prev: any) => ({ ...prev, ...data }));
+    console.log('🔄 FORM UPDATE: Updating form data with:', data);
+    setFormData((prev: any) => {
+      const newData = { ...prev, ...data };
+      console.log('🔄 FORM UPDATE: New form data state:', newData);
+      return newData;
+    });
   };
 
   // Initialize values from useFallingStars hook
@@ -198,6 +203,7 @@ export default function ProductPromptPageForm({
     }
     
     console.log(`✅ SAVE STARTING: Starting save operation at ${saveId}`);
+    console.log(`🔍 SAVE DEBUG: Current formData at save time:`, formData);
     setIsSaving(true);
     setFormError("");
     
@@ -217,6 +223,7 @@ export default function ProductPromptPageForm({
       };
       
       console.log(`[${saveId}] Calling onSave with data...`, completeFormData);
+      console.log(`🔍 SAVE DEBUG: Key fields in save data - first_name: "${completeFormData.first_name}", last_name: "${completeFormData.last_name}"`);
       await onSave(completeFormData);
       console.log(`[${saveId}] Save completed successfully`);
     } catch (error: any) {
