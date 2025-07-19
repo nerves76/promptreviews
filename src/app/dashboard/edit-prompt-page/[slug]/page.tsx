@@ -825,6 +825,10 @@ export default function EditPromptPage() {
           JSON.stringify(modalData),
         );
       }
+      // Add a small delay to ensure user sees the "Saving..." state before navigation
+      console.log('🔍 Saving completed - showing user feedback before navigation');
+      await new Promise(resolve => setTimeout(resolve, 800)); // Give user 800ms to see "Saving..." 
+      
       // Smooth navigation to prompt-pages to show the modal
       console.log('🔍 Navigating smoothly to prompt-pages');
       router.push("/prompt-pages");
