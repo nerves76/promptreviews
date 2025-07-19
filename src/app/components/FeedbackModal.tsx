@@ -83,6 +83,9 @@ export default function FeedbackModal({
       });
 
       if (response.ok) {
+        const result = await response.json();
+        console.log('Feedback submitted successfully:', result);
+        
         setSubmitStatus('success');
         setMessage('');
         setEmail('');
@@ -92,6 +95,7 @@ export default function FeedbackModal({
           category,
           has_email: !!email.trim(),
           message_length: message.length,
+          feedback_id: result.feedback_id,
         });
 
         // Close modal after a short delay
@@ -100,6 +104,8 @@ export default function FeedbackModal({
           setSubmitStatus('idle');
         }, 2000);
       } else {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('Feedback submission failed:', errorData);
         setSubmitStatus('error');
       }
     } catch (error) {
@@ -236,7 +242,12 @@ export default function FeedbackModal({
 
           {submitStatus === 'error' && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-              <p className="text-red-800 text-sm">Something went wrong. Please try again.</p>
+              <p className="text-red-800 text-sm">
+                Unable to submit feedback. Please try again or contact support if the issue persists.
+              </p>
+              <p className="text-red-600 text-xs mt-1">
+                If this keeps happening, please email your feedback directly to support.
+              </p>
             </div>
           )}
 
