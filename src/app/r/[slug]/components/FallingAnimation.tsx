@@ -4,12 +4,14 @@ import { IconType } from 'react-icons';
 interface FallingAnimationProps {
   fallingIcon: string;
   showStarRain: boolean;
+  falling_icon_color?: string;
   getFallingIcon: (icon: string) => { key: string; label: string; icon: IconType; color: string; category: string } | undefined;
 }
 
 export default function FallingAnimation({ 
   fallingIcon, 
   showStarRain, 
+  falling_icon_color,
   getFallingIcon 
 }: FallingAnimationProps) {
   if (!fallingIcon || !showStarRain) {
@@ -77,7 +79,8 @@ export default function FallingAnimation({
         }
         
         const IconComponent = iconConfig.icon;
-        const iconColor = getColorFromClass(iconConfig.color);
+        // Use custom color if provided, otherwise fall back to icon's default color
+        const iconColor = falling_icon_color || getColorFromClass(iconConfig.color);
 
         return (
           <IconComponent
