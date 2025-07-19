@@ -118,10 +118,10 @@ const FallingStarsSection: React.FC<FallingStarsSectionProps> = ({
                       key={colorOption.key}
                       type="button"
                       onClick={() => onColorChange(colorOption.key)}
-                      className={`w-6 h-6 rounded-full border-2 transition-all ${
+                      className={`w-6 h-6 rounded-full transition-all ${
                         color === colorOption.key 
-                          ? 'border-slate-blue ring-2 ring-slate-blue ring-offset-1' 
-                          : 'border-gray-300 hover:border-gray-400'
+                          ? 'border-2 border-slate-blue ring-2 ring-slate-blue ring-offset-1' 
+                          : 'border-0 hover:ring-1 hover:ring-gray-300'
                       }`}
                       title={colorOption.label}
                     >
