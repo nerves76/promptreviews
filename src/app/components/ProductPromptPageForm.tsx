@@ -162,6 +162,11 @@ export default function ProductPromptPageForm({
       ? initialData.aiReviewEnabled
       : true,
   );
+  const [fixGrammarEnabled, setFixGrammarEnabled] = useState(
+    initialData.fixGrammarEnabled !== undefined
+      ? initialData.fixGrammarEnabled
+      : true,
+  );
   const [fallingEnabled, setFallingEnabled] = useState(true);
   const [iconUpdating, setIconUpdating] = useState(false);
   const [fallingIcon, setFallingIcon] = useState("star");
@@ -491,6 +496,7 @@ export default function ProductPromptPageForm({
           product_name: productName,
           product_photo: uploadedPhotoUrl,
           ai_button_enabled: aiReviewEnabled,
+          fix_grammar_enabled: fixGrammarEnabled,
           review_type: "product",
         };
         
@@ -974,9 +980,9 @@ export default function ProductPromptPageForm({
             />
             <DisableAIGenerationSection
               aiGenerationEnabled={aiReviewEnabled}
-              fixGrammarEnabled={false}
+              fixGrammarEnabled={fixGrammarEnabled}
               onToggleAI={() => setAiReviewEnabled((v: boolean) => !v)}
-              onToggleGrammar={() => {}}
+              onToggleGrammar={() => setFixGrammarEnabled((v: boolean) => !v)}
             />
             <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-2 shadow relative mb-8">
               <div className="flex items-center justify-between mb-2 px-2 py-2">

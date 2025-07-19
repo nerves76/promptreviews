@@ -103,6 +103,9 @@ const ProductPromptPageForm = forwardRef<any, ProductPromptPageFormProps>(
     const [aiButtonEnabled, setAiButtonEnabled] = useState(
       initialData?.aiButtonEnabled ?? true,
     );
+    const [fixGrammarEnabled, setFixGrammarEnabled] = useState(
+      initialData?.fixGrammarEnabled ?? true,
+    );
     const [product_name, setProductName] = useState(
       initialData?.product_name ?? "",
     );
@@ -266,6 +269,7 @@ const ProductPromptPageForm = forwardRef<any, ProductPromptPageFormProps>(
             fallingEnabled,
             fallingIcon,
             aiButtonEnabled,
+            fixGrammarEnabled,
             product_name,
             product_description,
             features_or_benefits,
@@ -286,6 +290,7 @@ const ProductPromptPageForm = forwardRef<any, ProductPromptPageFormProps>(
         fallingEnabled,
         fallingIcon,
         aiButtonEnabled,
+        fixGrammarEnabled,
         product_name,
         product_description,
         features_or_benefits,
@@ -450,12 +455,12 @@ const ProductPromptPageForm = forwardRef<any, ProductPromptPageFormProps>(
             slug={slug}
           />
           {/* AI Review Generation Toggle (shared design) */}
-          <DisableAIGenerationSection
-            aiGenerationEnabled={aiButtonEnabled}
-            fixGrammarEnabled={false}
-            onToggleAI={() => setAiButtonEnabled((v) => !v)}
-            onToggleGrammar={() => {}}
-          />
+                                  <DisableAIGenerationSection
+              aiGenerationEnabled={aiButtonEnabled}
+              fixGrammarEnabled={fixGrammarEnabled}
+              onToggleAI={() => setAiButtonEnabled((v) => !v)}
+              onToggleGrammar={() => setFixGrammarEnabled((v) => !v)}
+            />
           {/* Falling Stars Section (shared design) */}
           <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-2 shadow relative mb-8">
             <div className="flex items-center justify-between mb-2 px-2 py-2">

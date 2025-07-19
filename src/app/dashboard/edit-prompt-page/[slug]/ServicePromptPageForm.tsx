@@ -287,12 +287,12 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
             disabled={!!notePopupEnabled}
           />
           {/* AI Review Generation Toggle */}
-          <DisableAIGenerationSection
-            aiGenerationEnabled={aiButtonEnabled}
-            fixGrammarEnabled={false}
-            onToggleAI={() => setAiButtonEnabled((v) => !v)}
-            onToggleGrammar={() => {}}
-          />
+                      <DisableAIGenerationSection
+              aiGenerationEnabled={aiButtonEnabled}
+              fixGrammarEnabled={true}
+              onToggleAI={() => setAiButtonEnabled((v) => !v)}
+              onToggleGrammar={() => {}}
+            />
           {/* Falling Stars Section (full module) */}
           <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-2 shadow relative mb-8">
             <div className="flex items-center justify-between mb-2 px-2 py-2">
