@@ -46,7 +46,8 @@ import DisableAIGenerationSection from "./DisableAIGenerationSection";
 import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
 import FallingStarsSection from "@/app/components/FallingStarsSection";
-import { useFallingStars, getFallingIcon } from "@/hooks/useFallingStars";
+import { useFallingStars } from "@/hooks/useFallingStars";
+import { getFallingIcon } from "@/app/components/prompt-modules/fallingStarsConfig";
 import RobotTooltip from "./RobotTooltip";
 import SectionHeader from "./SectionHeader";
 

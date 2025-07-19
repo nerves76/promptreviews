@@ -102,6 +102,3 @@ export const useFallingStars = ({
     initializeValues
   };
 }; 
-
-// Re-export getFallingIcon for components that need it
-export { getFallingIcon } from '@/app/components/prompt-modules/fallingStarsConfig'; 
