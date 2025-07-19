@@ -232,6 +232,9 @@ export default function PromptPageForm({
   const [fallingIcon, setFallingIcon] = useState(
     initialData.falling_icon || "star"
   ); // default icon key
+  const [fallingIconColor, setFallingIconColor] = useState(
+    initialData.falling_icon_color || "yellow"
+  ); // default color key
 
   // Special Offer state
   const [offerEnabled, setOfferEnabled] = useState(
@@ -268,6 +271,11 @@ export default function PromptPageForm({
   const handleIconChange = (key: string) => {
     setFallingIcon(key);
     setFormData((prev: any) => ({ ...prev, falling_icon: key }));
+  };
+
+  const handleColorChange = (colorKey: string) => {
+    setFallingIconColor(colorKey);
+    setFormData((prev: any) => ({ ...prev, falling_icon_color: colorKey }));
   };
 
   // Handlers for review platforms
@@ -687,7 +695,9 @@ export default function PromptPageForm({
             enabled={fallingEnabled}
             onToggle={handleToggleFalling}
             icon={fallingIcon}
-            onIconChange={setFallingIcon}
+            onIconChange={handleIconChange}
+            color={fallingIconColor}
+            onColorChange={handleColorChange}
           />
           <div className="w-full flex justify-end gap-2 mt-8">
             <button
@@ -1183,7 +1193,9 @@ export default function PromptPageForm({
                 enabled={fallingEnabled}
                 onToggle={handleToggleFalling}
                 icon={fallingIcon}
-                onIconChange={setFallingIcon}
+                onIconChange={handleIconChange}
+                color={fallingIconColor}
+                onColorChange={handleColorChange}
               />
             </div>
           )}
@@ -1694,7 +1706,9 @@ export default function PromptPageForm({
               enabled={fallingEnabled}
               onToggle={handleToggleFalling}
               icon={fallingIcon}
-              onIconChange={setFallingIcon}
+              onIconChange={handleIconChange}
+              color={fallingIconColor}
+              onColorChange={handleColorChange}
             />
           </div>
         )}

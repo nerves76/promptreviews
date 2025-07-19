@@ -18,6 +18,7 @@ import {
   FaCar,
   FaCat,
   FaDog,
+  FaBone,
   FaBicycle,
   FaSeedling,
   FaDumbbell,
@@ -230,6 +231,7 @@ export const FALLING_STARS_ICONS: {
   // Plants & animals
   { key: "cat", label: "Cat", icon: FaCat, color: "text-orange-400", category: "Plants & animals" },
   { key: "dog", label: "Dog", icon: FaDog, color: "text-amber-500", category: "Plants & animals" },
+  { key: "bone", label: "Dog Bone", icon: FaBone, color: "text-amber-200", category: "Plants & animals" },
   { key: "feather", label: "Feather", icon: FaFeather, color: "text-blue-300", category: "Plants & animals" },
   { key: "cannabis", label: "Cannabis", icon: FaCannabis, color: "text-green-600", category: "Plants & animals" },
   { key: "seedling", label: "Seedling", icon: FaSeedling, color: "text-green-500", category: "Plants & animals" },
@@ -431,6 +433,40 @@ export const EXTENDED_FALLING_ICONS = FALLING_STARS_ICONS;
  */
 export const getFallingIcon = (key: string) => {
   return FALLING_STARS_ICONS.find((icon) => icon.key === key);
+};
+
+/**
+ * Default color options for the color picker
+ */
+export const FALLING_ICON_COLORS = [
+  { key: "yellow", label: "Yellow", class: "text-yellow-500" },
+  { key: "red", label: "Red", class: "text-red-500" },
+  { key: "blue", label: "Blue", class: "text-blue-500" },
+  { key: "green", label: "Green", class: "text-green-500" },
+  { key: "purple", label: "Purple", class: "text-purple-500" },
+  { key: "pink", label: "Pink", class: "text-pink-500" },
+  { key: "orange", label: "Orange", class: "text-orange-500" },
+  { key: "amber", label: "Amber", class: "text-amber-500" },
+  { key: "emerald", label: "Emerald", class: "text-emerald-500" },
+  { key: "cyan", label: "Cyan", class: "text-cyan-500" },
+  { key: "indigo", label: "Indigo", class: "text-indigo-500" },
+  { key: "rose", label: "Rose", class: "text-rose-500" },
+  { key: "lime", label: "Lime", class: "text-lime-500" },
+  { key: "violet", label: "Violet", class: "text-violet-500" },
+  { key: "teal", label: "Teal", class: "text-teal-500" },
+  { key: "slate", label: "Slate", class: "text-slate-500" },
+];
+
+/**
+ * Get the color class for an icon (custom or default)
+ */
+export const getFallingIconColor = (iconKey: string, customColor?: string) => {
+  if (customColor) {
+    const colorOption = FALLING_ICON_COLORS.find(c => c.key === customColor);
+    return colorOption?.class || customColor;
+  }
+  const icon = getFallingIcon(iconKey);
+  return icon?.color || "text-yellow-500";
 };
 
 /**
