@@ -93,7 +93,12 @@ export default function ProductPromptPageForm({
   const [showPopupConflictModal, setShowPopupConflictModal] = useState<string | null>(null);
   const [fallingEnabled, setFallingEnabled] = useState(initialData?.falling_enabled ?? false);
 
-  // Use shared falling stars hook
+  // Helper function to update form data
+  const updateFormData = (data: any) => {
+    setFormData((prev: any) => ({ ...prev, ...data }));
+  };
+
+  // Initialize values from useFallingStars hook
   const { fallingIcon, fallingIconColor, handleIconChange, handleColorChange, initializeValues } = useFallingStars({
     initialIcon: initialData?.falling_icon ?? "star",
     initialColor: initialData?.falling_icon_color ?? "#fbbf24",
