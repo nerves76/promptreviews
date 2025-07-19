@@ -16,7 +16,7 @@ import CustomerDetailsSection from "./sections/CustomerDetailsSection";
 import ProductDetailsSection from "./sections/ProductDetailsSection";
 import ProductImageUpload from "./sections/ProductImageUpload";
 import FeaturesBenefitsSection from "./sections/FeaturesBenefitsSection";
-import StepNavigation from "./sections/StepNavigation";
+import { TopNavigation, BottomNavigation } from "./sections/StepNavigation";
 
 // Import step 2 components (already existing)
 import ReviewWriteSection from "../dashboard/edit-prompt-page/components/ReviewWriteSection";
@@ -256,7 +256,7 @@ export default function ProductPromptPageForm({
       </div>
 
       {/* Step Navigation */}
-      <StepNavigation 
+      <TopNavigation 
         mode={mode}
         step={step}
         isSaving={isSaving}
@@ -556,6 +556,17 @@ export default function ProductPromptPageForm({
           </div>
         </div>
       )}
+
+      {/* Bottom Navigation - placed at the very end */}
+      <BottomNavigation 
+        mode={mode}
+        step={step}
+        isSaving={isSaving}
+        formData={formData}
+        onSave={handleEditSave}
+        onStepChange={onStepChange}
+        onStep1Continue={handleStep1Continue}
+      />
     </form>
   );
 }

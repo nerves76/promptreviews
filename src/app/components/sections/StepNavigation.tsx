@@ -18,16 +18,14 @@ interface StepNavigationProps {
   onStep1Continue?: () => void;
 }
 
-export default function StepNavigation({ 
+// Top Navigation - Fixed positioned buttons
+export function TopNavigation({ 
   mode, 
   step, 
   isSaving, 
-  formData,
   onSave,
-  onStepChange,
   onStep1Continue
 }: StepNavigationProps) {
-
   return (
     <>
       {/* Top right button for create mode step 1 */}
@@ -56,7 +54,21 @@ export default function StepNavigation({
           </button>
         </div>
       )}
+    </>
+  );
+}
 
+// Bottom Navigation - Content flow buttons  
+export function BottomNavigation({ 
+  mode, 
+  step, 
+  isSaving, 
+  onSave,
+  onStepChange,
+  onStep1Continue
+}: StepNavigationProps) {
+  return (
+    <>
       {/* Bottom navigation for create mode step 1 */}
       {mode === "create" && step === 1 && (
         <div className="w-full flex justify-end mt-8 pt-4">
@@ -107,6 +119,16 @@ export default function StepNavigation({
           </button>
         </div>
       )}
+    </>
+  );
+}
+
+// Original combined component for backward compatibility
+export default function StepNavigation(props: StepNavigationProps) {
+  return (
+    <>
+      <TopNavigation {...props} />
+      <BottomNavigation {...props} />
     </>
   );
 } 
