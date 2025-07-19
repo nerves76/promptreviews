@@ -446,14 +446,10 @@ export const FALLING_ICON_COLORS = [
   { key: "purple", label: "Purple", class: "text-purple-500" },
   { key: "pink", label: "Pink", class: "text-pink-500" },
   { key: "orange", label: "Orange", class: "text-orange-500" },
-  { key: "amber", label: "Amber", class: "text-amber-500" },
   { key: "emerald", label: "Emerald", class: "text-emerald-500" },
-  { key: "cyan", label: "Cyan", class: "text-cyan-500" },
-  { key: "indigo", label: "Indigo", class: "text-indigo-500" },
   { key: "rose", label: "Rose", class: "text-rose-500" },
   { key: "lime", label: "Lime", class: "text-lime-500" },
   { key: "violet", label: "Violet", class: "text-violet-500" },
-  { key: "teal", label: "Teal", class: "text-teal-500" },
   { key: "slate", label: "Slate", class: "text-slate-500" },
 ];
 
