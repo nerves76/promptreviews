@@ -46,7 +46,7 @@ import DisableAIGenerationSection from "./DisableAIGenerationSection";
 import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
 import FallingStarsSection from "@/app/components/FallingStarsSection";
-import { getFallingIcon } from "./prompt-modules/fallingStarsConfig";
+import { useFallingStars } from "@/hooks/useFallingStars";
 import RobotTooltip from "./RobotTooltip";
 import SectionHeader from "./SectionHeader";
 import { getFallingIcon } from "@/app/components/prompt-modules/fallingStarsConfig";
@@ -230,12 +230,16 @@ export default function PromptPageForm({
     !!initialData.falling_icon
   );
   const [iconUpdating, setIconUpdating] = useState(false);
-  const [fallingIcon, setFallingIcon] = useState(
-    initialData.falling_icon || "star"
-  ); // default icon key
-  const [fallingIconColor, setFallingIconColor] = useState(
-    initialData.falling_icon_color || "#fbbf24"
-  ); // default hex color
+  // Use shared falling stars hook
+  const { fallingIcon, fallingIconColor, handleIconChange, handleColorChange, initializeValues } = useFallingStars({
+    initialIcon: initialData?.falling_icon ?? "star",
+    initialColor: initialData?.falling_icon_color ?? "#fbbf24",
+    onFormDataChange: (data) => {
+      setFormData((prev: any) => ({ ...prev, ...data }));
+    }
+  });
+
+
 
   // Special Offer state
   const [offerEnabled, setOfferEnabled] = useState(
@@ -269,65 +273,9 @@ export default function PromptPageForm({
     null | "emoji" | "note"
   >(null);
 
-  const handleIconChange = (key: string) => {
-    const iconObj = getFallingIcon(key);
-    const defaultColor = iconObj?.color || "#fbbf24";
-    
-    // Convert Tailwind class to hex color if needed
-    const getHexFromTailwind = (colorClass: string) => {
-      const colorMap: { [key: string]: string } = {
-        "text-yellow-400": "#facc15",
-        "text-yellow-500": "#eab308", 
-        "text-red-500": "#ef4444",
-        "text-blue-500": "#3b82f6",
-        "text-green-500": "#22c55e",
-        "text-purple-500": "#a855f7",
-        "text-pink-500": "#ec4899",
-        "text-orange-500": "#f97316",
-        "text-amber-500": "#f59e0b",
-        "text-amber-600": "#d97706",
-        "text-emerald-500": "#10b981",
-        "text-cyan-500": "#06b6d4",
-        "text-indigo-500": "#6366f1",
-        "text-rose-500": "#f43f5e",
-        "text-lime-500": "#84cc16",
-        "text-violet-500": "#8b5cf6",
-        "text-teal-500": "#14b8a6",
-        "text-slate-500": "#64748b",
-        "text-gray-600": "#4b5563",
-        "text-gray-700": "#374151",
-        "text-blue-400": "#60a5fa",
-        "text-blue-600": "#2563eb",
-        "text-blue-700": "#1d4ed8",
-        "text-green-600": "#16a34a",
-        "text-green-700": "#15803d",
-        "text-purple-600": "#9333ea",
-        "text-red-600": "#dc2626",
-        "text-orange-400": "#fb923c",
-        "text-orange-600": "#ea580c",
-        "text-amber-200": "#fde68a",
-        "text-amber-400": "#fbbf24",
-        "text-amber-700": "#b45309",
-        "text-amber-800": "#92400e"
-      };
-      return colorMap[colorClass] || "#fbbf24";
-    };
-    
-    const hexColor = defaultColor.startsWith("#") ? defaultColor : getHexFromTailwind(defaultColor);
-    
-    setFallingIcon(key);
-    setFallingIconColor(hexColor);
-    setFormData((prev: any) => ({ 
-      ...prev, 
-      falling_icon: key,
-      falling_icon_color: hexColor
-    }));
-  };
 
-  const handleColorChange = (hexColor: string) => {
-    setFallingIconColor(hexColor);
-    setFormData((prev: any) => ({ ...prev, falling_icon_color: hexColor }));
-  };
+
+
 
   // Handlers for review platforms
   const handleAddPlatform = () => {
