@@ -337,7 +337,7 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
           icon={fallingIcon}
           onIconChange={handleIconChange}
           color={fallingIconColor}
-          onColorChange={setFallingIconColor}
+          onColorChange={handleColorChange}
         />
         {/* No Save button here; Save is handled by parent */}
       </form>
