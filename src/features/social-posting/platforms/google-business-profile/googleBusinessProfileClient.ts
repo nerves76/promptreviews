@@ -9,7 +9,7 @@ import { GOOGLE_BUSINESS_PROFILE, LEGACY_GOOGLE_BUSINESS_PROFILE } from './api';
 import type {
   GoogleBusinessProfileAuth,
   GoogleBusinessProfileCredentials,
-  GoogleBusinessProfileConfig,
+  GoogleBusinessProfileClientConfig,
   GoogleBusinessProfileApiResponse,
   BusinessAccount,
   BusinessLocation,
@@ -25,11 +25,11 @@ export class GoogleBusinessProfileClient {
   private accessToken: string;
   private refreshToken: string;
   private expiresAt: number;
-  private config: GoogleBusinessProfileConfig;
+  private config: GoogleBusinessProfileClientConfig;
 
   constructor(
     credentials: { accessToken: string; refreshToken: string; expiresAt?: number }, 
-    config?: Partial<GoogleBusinessProfileConfig>
+    config?: Partial<GoogleBusinessProfileClientConfig>
   ) {
     this.accessToken = credentials.accessToken;
     this.refreshToken = credentials.refreshToken;
@@ -73,7 +73,7 @@ export class GoogleBusinessProfileClient {
       const response = await fetch(url, {
         ...options,
         headers,
-        signal: AbortSignal.timeout(this.config.timeout)
+        signal: AbortSignal.timeout(this.config.timeout || 30000)
       });
 
       const responseText = await response.text();

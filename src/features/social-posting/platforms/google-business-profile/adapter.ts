@@ -6,6 +6,7 @@
 
 import { GoogleBusinessProfileClient } from './googleBusinessProfileClient';
 import { GOOGLE_BUSINESS_PROFILE } from './api';
+import type { PostType } from './googleBusinessProfile';
 import type { 
   PlatformAdapter, 
   SocialPlatform, 
@@ -257,7 +258,7 @@ export class GoogleBusinessProfileAdapter implements PlatformAdapter {
   private convertToGBPPost(post: UniversalPost) {
     // Convert universal post format to Google Business Profile API format
     return {
-      topicType: 'WHATS_NEW', // Default type - TODO: Define POST_TYPES constant
+      topicType: 'WHATS_NEW' as PostType, // Default type - TODO: Define POST_TYPES constant
       summary: post.content,
       media: post.mediaUrls?.map(url => ({
         mediaFormat: 'PHOTO' as const, // Determine from URL or metadata
