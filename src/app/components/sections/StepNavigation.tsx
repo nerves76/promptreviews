@@ -29,7 +29,7 @@ export function TopNavigation({
         onClick={onSave}
         disabled={isSaving}
       >
-        {isSaving ? "Saving..." : mode === "create" ? "Save & Continue" : "Save & Continue"}
+        {isSaving ? "Saving..." : "Save & Publish"}
       </button>
     </div>
   );
@@ -49,7 +49,7 @@ export function BottomNavigation({
         onClick={onSave}
         disabled={isSaving}
       >
-        {isSaving ? "Saving..." : mode === "create" ? "Save & Continue" : "Save & Continue"}
+        {isSaving ? "Saving..." : "Save & Publish"}
       </button>
     </div>
   );
