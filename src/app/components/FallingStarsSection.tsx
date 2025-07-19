@@ -54,7 +54,7 @@ const FallingStarsSection: React.FC<FallingStarsSectionProps> = ({
   const selectedIconColor = getFallingIconColor(icon, color);
 
   return (
-    <div className="relative flex rounded-lg border border-gray-200 bg-white shadow-sm h-[200px] overflow-hidden">
+    <div className="relative flex rounded-lg border border-gray-200 bg-white shadow-sm h-[240px] overflow-hidden">
       {/* Content Area */}
       <div className="flex-1 z-10 p-6 flex flex-col justify-between">
         {/* Header with SectionHeader and Toggle */}
