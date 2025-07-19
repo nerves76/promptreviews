@@ -6,24 +6,33 @@
  */
 
 "use client";
-import React from "react";
+import React, { useRef } from "react";
 
 interface StepNavigationProps {
   mode: "create" | "edit";
-  isSaving: boolean;
-  formData: any;
+  isSaving?: boolean;
   onSave?: () => void;
 }
 
 // Top Navigation - Normal positioned button in top right of form area
-export function TopNavigation({ 
+export const TopNavigation = React.memo(({ 
   mode, 
   isSaving, 
   onSave
-}: StepNavigationProps) {
+}: StepNavigationProps) => {
+  const lastClickRef = useRef<number>(0);
+  
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     event.stopPropagation();
+    
+    // Throttle clicks - prevent clicks within 2 seconds of each other
+    const now = Date.now();
+    if (now - lastClickRef.current < 2000) {
+      console.log("TopNavigation: Click throttled - too soon after last click");
+      return;
+    }
+    lastClickRef.current = now;
     
     if (isSaving) {
       console.log("TopNavigation: Save already in progress, ignoring click");
@@ -50,17 +59,29 @@ export function TopNavigation({
       </button>
     </div>
   );
-}
+});
+
+TopNavigation.displayName = 'TopNavigation';
 
 // Bottom Navigation - Simple save button at bottom right
-export function BottomNavigation({ 
+export const BottomNavigation = React.memo(({ 
   mode, 
   isSaving, 
   onSave
-}: StepNavigationProps) {
+}: StepNavigationProps) => {
+  const lastClickRef = useRef<number>(0);
+  
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     event.stopPropagation();
+    
+    // Throttle clicks - prevent clicks within 2 seconds of each other
+    const now = Date.now();
+    if (now - lastClickRef.current < 2000) {
+      console.log("BottomNavigation: Click throttled - too soon after last click");
+      return;
+    }
+    lastClickRef.current = now;
     
     if (isSaving) {
       console.log("BottomNavigation: Save already in progress, ignoring click");
@@ -87,7 +108,9 @@ export function BottomNavigation({
       </button>
     </div>
   );
-}
+});
+
+BottomNavigation.displayName = 'BottomNavigation';
 
 // Default export for backwards compatibility
 export default function StepNavigation(props: StepNavigationProps) {

@@ -810,8 +810,6 @@ export default function EditPromptPage() {
         setError(updateError.message);
         return;
       }
-      // Reload latest data from Supabase
-      await loadData();
       
       // Set localStorage flag for post-save modal and redirect to dashboard
       if (promptPage?.slug) {

@@ -6,7 +6,7 @@
  */
 
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useFallingStars } from "@/hooks/useFallingStars";
 import { generateAIReview } from "@/utils/ai";
@@ -61,6 +61,8 @@ export default function ProductPromptPageForm({
   const [isSaving, setIsSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const saveInProgressRef = useRef(false);
+  const lastSaveTimeRef = useRef(0);
 
   // Product photo state
   const [productPhotoFile, setProductPhotoFile] = useState<File | null>(null);
@@ -186,16 +188,33 @@ export default function ProductPromptPageForm({
   };
 
   // Handle edit mode save with proper click prevention
-  const handleEditSave = async () => {
+  const handleEditSave = useCallback(async () => {
     const saveId = Date.now() + Math.random(); // Unique identifier for this save operation
+    const now = Date.now();
     
-    // Prevent multiple simultaneous saves
+    // Global save prevention using ref (immediate check)
+    if (saveInProgressRef.current) {
+      console.log(`[${saveId}] Global save prevention: Another save already in progress`);
+      return;
+    }
+    
+    // Time-based prevention (prevent saves within 3 seconds)
+    if (now - lastSaveTimeRef.current < 3000) {
+      console.log(`[${saveId}] Time-based save prevention: Last save was too recent`);
+      return;
+    }
+    
+    // State-based prevention
     if (isSaving) {
-      console.log(`[${saveId}] Save already in progress, ignoring click`);
+      console.log(`[${saveId}] State-based save prevention: isSaving is true`);
       return;
     }
     
     console.log(`[${saveId}] Starting save operation...`);
+    
+    // Set all prevention mechanisms
+    saveInProgressRef.current = true;
+    lastSaveTimeRef.current = now;
     setIsSaving(true);
     setFormError("");
     
@@ -235,10 +254,27 @@ export default function ProductPromptPageForm({
       console.error(`[${saveId}] Save failed:`, error);
       setFormError(error.message || "Failed to save. Please try again.");
     } finally {
+      // Clear all prevention mechanisms
+      saveInProgressRef.current = false;
       setIsSaving(false);
       console.log(`[${saveId}] Save operation finished`);
     }
-  };
+  }, [
+    formData,
+    productName,
+    productPhotoUrl,
+    productPhotoFile,
+    offerEnabled,
+    offerTitle,
+    offerBody,
+    offerUrl,
+    emojiSentimentEnabled,
+    fallingEnabled,
+    fallingIcon,
+    fallingIconColor,
+    onSave,
+    handleProductPhotoUpload
+  ]);
 
   return (
     <form 
