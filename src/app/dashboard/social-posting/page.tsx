@@ -9,6 +9,7 @@ import { useState, useEffect } from 'react';
 import { FaGoogle, FaMapMarkerAlt, FaImage, FaClock, FaExclamationTriangle, FaCheck, FaTimes, FaPlus, FaSpinner, FaRedo } from 'react-icons/fa';
 import PageCard from '@/app/components/PageCard';
 import FiveStarSpinner from '@/app/components/FiveStarSpinner';
+import { createClient } from '@/utils/supabaseClient';
 // Using built-in alert for notifications instead of react-toastify
 
 interface GoogleBusinessLocation {
@@ -42,7 +43,9 @@ export default function SocialPostingDashboard() {
   const [isConnecting, setIsConnecting] = useState<string | null>(null);
   const [fetchingLocations, setFetchingLocations] = useState<string | null>(null);
   const [rateLimitedUntil, setRateLimitedUntil] = useState<number | null>(null);
-
+  
+  // Tab state
+  const [activeTab, setActiveTab] = useState<'connect' | 'post'>('connect');
 
   // Handle post-OAuth redirects
   useEffect(() => {
@@ -76,6 +79,15 @@ export default function SocialPostingDashboard() {
     }
   }, []);
 
+  // Auto-switch to post tab when connected and has locations
+  useEffect(() => {
+    if (isConnected && locations.length > 0 && activeTab === 'connect') {
+      // Wait a moment for UI updates, then switch tabs
+      setTimeout(() => {
+        setActiveTab('post');
+      }, 1000);
+    }
+  }, [isConnected, locations.length, activeTab]);
 
 
   const postTemplates: PostTemplate[] = [
@@ -138,65 +150,43 @@ export default function SocialPostingDashboard() {
   const loadPlatforms = async () => {
     console.log('Loading platforms...');
     
-    // Add a timeout to prevent getting stuck
-    const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error('Request timeout')), 10000); // 10 second timeout
-    });
-    
-    const fetchWithRetry = async (url: string, retries = 2): Promise<Response> => {
-      for (let i = 0; i <= retries; i++) {
-        try {
-          const response = await Promise.race([
-            fetch(url),
-            timeoutPromise
-          ]) as Response;
-          return response;
-        } catch (error) {
-          console.log(`Attempt ${i + 1} failed for ${url}:`, error);
-          if (i === retries) throw error;
-          await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1))); // Exponential backoff
-        }
-      }
-      throw new Error('All retry attempts failed');
-    };
-    
     try {
+      // Get the current session token for authentication
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.access_token) {
+        console.log('No session token available');
+        setIsConnected(false);
+        setLocations([]);
+        setSelectedLocation('');
+        setPostResult({ 
+          success: false, 
+          message: 'Please refresh the page to sign in again.' 
+        });
+        return;
+      }
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`
+      };
+      
       // Check for existing Google Business Profile connection
-      const response = await fetchWithRetry('/api/social-posting/platforms');
+      console.log('🔍 Fetching platforms with auth header...');
+      const response = await fetch('/api/social-posting/platforms', { headers });
       console.log('Platforms API response status:', response.status);
       
-      // Handle authentication errors gracefully with better retry logic
       if (response.status === 401) {
-        console.log('Authentication error - checking if retry is suggested');
-        
-        try {
-          const errorData = await response.json();
-          const retryAfter = errorData.retryAfter || 3;
-          
-          console.log(`Authentication failed, retrying in ${retryAfter} seconds...`);
-          setPostResult({ 
-            success: false, 
-            message: `Session is being refreshed, retrying in ${retryAfter} seconds...` 
-          });
-          
-          // Retry after the suggested delay
-          setTimeout(() => {
-            console.log('Retrying platform load after authentication delay...');
-            setHasLoadedPlatforms(false); // Reset to allow retry
-            setIsLoading(false); // Reset loading state
-          }, retryAfter * 1000);
-          
-        } catch (parseError) {
-          console.log('Could not parse 401 response, using default handling');
-          setIsConnected(false);
-          setLocations([]);
-          setSelectedLocation('');
-          setPostResult({ 
-            success: false, 
-            message: 'Please refresh the page or sign in again to access Google Business Profile features.' 
-          });
-        }
-        return; // Exit early on auth error
+        console.log('Authentication error - session may have expired');
+        setIsConnected(false);
+        setLocations([]);
+        setSelectedLocation('');
+        setPostResult({ 
+          success: false, 
+          message: 'Please refresh the page or sign in again to access Google Business Profile features.' 
+        });
+        return;
       }
       
       if (response.ok) {
@@ -212,73 +202,30 @@ export default function SocialPostingDashboard() {
           setIsConnected(true);
           console.log('Google Business Profile is connected');
           
-          // Load business locations from Google Business Profile API
-          try {
-            const locationsResponse = await fetchWithRetry('/api/social-posting/platforms/google-business-profile/locations');
-            console.log('Locations API response status:', locationsResponse.status);
-            
-            // Handle authentication errors for locations API too
-            if (locationsResponse.status === 401) {
-              console.log('Authentication error while loading locations');
-              setPostResult({ 
-                success: false, 
-                message: 'Authentication expired. Please refresh the page to reconnect.' 
-              });
-              return;
-            }
-            
-            if (locationsResponse.ok) {
-              const locationsData = await locationsResponse.json();
-              console.log('Locations API response data:', locationsData);
-              
-              setLocations(locationsData.data?.locations || []);
-              setSelectedLocation(locationsData.data?.locations?.[0]?.id || '');
-            } else {
-              // Handle API errors gracefully
-              const errorData = await locationsResponse.json();
-              console.log('Locations API error:', errorData);
-              
-              if (errorData.error?.code === 429) {
-                console.log('Rate limit hit while loading locations - this is normal for new connections');
-                setPostResult({ 
-                  success: false, 
-                  message: 'Google Business Profile is connected! Business locations are still loading due to API rate limits. Please try again in a few minutes.' 
-                });
-              }
-            }
-          } catch (locationError) {
-            console.error('Failed to load business locations:', locationError);
-            
-            // Check if it's a rate limiting error
-            if (locationError instanceof Error && 
-                (locationError.message.includes('rate limit') || 
-                 locationError.message.includes('429'))) {
-              console.log('Rate limit hit while loading locations - this is normal for new connections');
-              setPostResult({ 
-                success: false, 
-                message: 'Google Business Profile is connected! Business locations are still loading due to API rate limits. Please try again in a few minutes.' 
-              });
-            }
-            
-            // No fallback to mock data - show error instead
-            setLocations([]);
-            setSelectedLocation('');
-          }
+          // Load business locations from the platforms response
+          const locations = googlePlatform.locations || [];
+          console.log('Locations from platforms API:', locations);
+          
+          // Transform locations to match expected format
+          const transformedLocations = locations.map((loc: any) => ({
+            id: loc.location_id || loc.id,
+            name: loc.location_name || loc.name,
+            address: loc.address || '',
+            status: 'active' // Default status since we don't have this info
+          }));
+          
+          setLocations(transformedLocations);
+          setSelectedLocation(transformedLocations[0]?.id || '');
         } else {
-          // Check if we have tokens in localStorage as a fallback
-          const hasStoredConnection = localStorage.getItem('google-business-connected') === 'true';
-          if (hasStoredConnection) {
-            setIsConnected(true);
-            console.log('Google Business Profile connection detected from localStorage');
-          } else {
-            setIsConnected(false);
-            setLocations([]);
-            setSelectedLocation('');
-            console.log('Google Business Profile is not connected');
-          }
+          setIsConnected(false);
+          setLocations([]);
+          setSelectedLocation('');
+          console.log('Google Business Profile is not connected');
         }
       } else {
         console.error('Failed to check platform connections, status:', response.status);
+        const errorData = await response.text();
+        console.error('Error response:', errorData);
         setIsConnected(false);
         setPostResult({ 
           success: false, 
@@ -483,342 +430,427 @@ export default function SocialPostingDashboard() {
               Social Media Posting
             </h1>
             <p className="text-gray-600">
-              Create and publish posts to your Google Business Profile
+              Connect and publish posts to your Google Business Profile
             </p>
           </div>
 
-
-
-          {/* Google Business Profile Connection Status */}
-          <div className="bg-gray-50 rounded-lg p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <FaGoogle className="w-6 h-6 text-blue-600" />
+          {/* Tab Navigation */}
+          <div className="border-b border-gray-200">
+            <nav className="-mb-px flex space-x-8">
+              <button
+                onClick={() => setActiveTab('connect')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'connect'
+                    ? 'border-slate-blue text-slate-blue'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <div className="flex items-center space-x-2">
+                  <FaGoogle className="w-4 h-4" />
+                  <span>Connect Platforms</span>
                 </div>
-                <div>
-                  <h3 className="text-lg font-semibold">Google Business Profile</h3>
-                  <p className="text-sm text-gray-600">
-                    Connect to post updates to your business locations
-                  </p>
+              </button>
+              <button
+                onClick={() => setActiveTab('post')}
+                disabled={!isConnected}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'post' && isConnected
+                    ? 'border-slate-blue text-slate-blue'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                } ${!isConnected ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                <div className="flex items-center space-x-2">
+                  <FaPlus className="w-4 h-4" />
+                  <span>Create Posts</span>
                 </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                {isConnected ? (
-                  <>
-                    <div className="flex items-center space-x-2 text-green-600">
-                      <FaCheck className="w-4 h-4" />
-                      <span className="text-sm font-medium">Connected</span>
-                    </div>
-                    <button
-                      onClick={handleDisconnect}
-                      className="px-4 py-2 text-red-600 border border-red-200 rounded-md hover:bg-red-50 transition-colors text-sm"
-                    >
-                      Disconnect
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    onClick={handleConnect}
-                    disabled={isLoading}
-                    className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
-                  >
-                    {isLoading ? (
-                      <FaSpinner className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <FaGoogle className="w-4 h-4" />
-                    )}
-                    <span>Connect Google Business</span>
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {!isConnected && (
-              <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-                <div className="flex items-start space-x-3">
-                  <FaExclamationTriangle className="w-5 h-5 text-blue-600 mt-0.5" />
-                  <div>
-                    <h4 className="text-sm font-medium text-blue-800 mb-1">
-                      Connect Your Google Business Profile
-                    </h4>
-                    <p className="text-sm text-blue-700">
-                      To post updates to your business locations, you need to connect your Google Business Profile. 
-                      This allows you to reach customers directly on Google Search and Maps.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {isConnected && locations.length === 0 && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
-                <div className="flex items-start space-x-3">
-                  <FaExclamationTriangle className="w-5 h-5 text-yellow-600 mt-0.5" />
-                  <div>
-                    <h4 className="text-sm font-medium text-yellow-800 mb-1">
-                      Fetch Your Business Locations
-                    </h4>
-                    <p className="text-sm text-yellow-700 mb-3">
-                      Your Google Business Profile is connected! Now you need to fetch your business locations to start posting.
-                    </p>
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => handleFetchLocations('google-business-profile')}
-                        disabled={fetchingLocations === 'google-business-profile' || Boolean(rateLimitedUntil && Date.now() < rateLimitedUntil)}
-                                                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                            fetchingLocations === 'google-business-profile' || Boolean(rateLimitedUntil && Date.now() < rateLimitedUntil)
-                              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                              : 'bg-slate-600 text-white hover:bg-slate-700'
-                          }`}
-                      >
-                        {fetchingLocations === 'google-business-profile' ? (
-                          <div className="flex items-center space-x-2">
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                            <span>Fetching...</span>
-                          </div>
-                        ) : Boolean(rateLimitedUntil && Date.now() < rateLimitedUntil) ? (
-                          `Rate limited (${rateLimitedUntil ? Math.ceil((rateLimitedUntil - Date.now()) / 1000) : 0}s)`
-                        ) : (
-                          'Fetch Business Locations'
-                        )}
-                      </button>
-                                              {postResult && !postResult.success && (
-                          <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-md">
-                            <div className="flex items-center space-x-2 text-red-800 mb-2">
-                              <FaExclamationTriangle className="w-4 h-4" />
-                              <span className="text-sm font-medium">Error</span>
-                            </div>
-                            <p className="text-sm text-red-700">{postResult.message}</p>
-                            {rateLimitCountdown > 0 && (
-                              <div className="mt-2 flex items-center space-x-2 text-sm text-red-600">
-                                <FaClock className="w-3 h-3" />
-                                <span>You can retry in {rateLimitCountdown} seconds</span>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+              </button>
+            </nav>
           </div>
 
-          {/* Location Selection */}
-          {isConnected && locations.length > 0 && (
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold flex items-center space-x-2">
-                <FaMapMarkerAlt className="w-4 h-4 text-slate-600" />
-                <span>Select Business Location</span>
-              </h3>
-              <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-                {locations.map((location) => (
-                  <div
-                    key={location.id}
-                    className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                      selectedLocation === location.id
-                        ? 'border-slate-blue bg-slate-blue/5'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                    onClick={() => setSelectedLocation(location.id)}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h4 className="font-medium text-gray-900">{location.name}</h4>
-                        <p className="text-sm text-gray-600 mt-1">{location.address}</p>
-                        <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-2 ${
-                          location.status === 'active'
-                            ? 'bg-green-100 text-green-800'
-                            : location.status === 'pending'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-red-100 text-red-800'
-                        }`}>
-                          {location.status}
-                        </div>
-                      </div>
-                      {selectedLocation === location.id && (
-                        <FaCheck className="w-4 h-4 text-slate-blue" />
-                      )}
+          {/* Tab Content */}
+          {activeTab === 'connect' && (
+            <div className="space-y-6">
+              {/* Google Business Profile Connection Status */}
+              <div className="bg-gray-50 rounded-lg p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <FaGoogle className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold">Google Business Profile</h3>
+                      <p className="text-sm text-gray-600">
+                        Connect to post updates to your business locations
+                      </p>
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Post Creator */}
-          {isConnected && selectedLocation && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Create Post</h3>
-                <button
-                  onClick={() => setShowTemplates(!showTemplates)}
-                  className="flex items-center space-x-2 px-4 py-2 text-slate-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-                >
-                  <FaPlus className="w-4 h-4" />
-                  <span>Use Template</span>
-                </button>
-              </div>
-
-              {/* Templates */}
-              {showTemplates && (
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h4 className="text-sm font-medium text-gray-900 mb-3">Post Templates</h4>
-                  <div className="grid gap-3 md:grid-cols-2">
-                    {postTemplates.map((template) => (
-                      <div
-                        key={template.id}
-                        className="p-3 bg-white border rounded-md cursor-pointer hover:border-slate-blue transition-colors"
-                        onClick={() => handleUseTemplate(template)}
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <h5 className="font-medium text-sm">{template.title}</h5>
-                          <span className="text-xs px-2 py-1 bg-gray-100 rounded">{template.type}</span>
+                  <div className="flex items-center space-x-3">
+                    {isConnected ? (
+                      <>
+                        <div className="flex items-center space-x-2 text-green-600">
+                          <FaCheck className="w-4 h-4" />
+                          <span className="text-sm font-medium">Connected</span>
                         </div>
-                        <p className="text-sm text-gray-600 line-clamp-2">
-                          {template.content}
+                        <button
+                          onClick={handleDisconnect}
+                          className="px-4 py-2 text-red-600 border border-red-200 rounded-md hover:bg-red-50 transition-colors text-sm"
+                        >
+                          Disconnect
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={handleConnect}
+                        disabled={isLoading}
+                        className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                      >
+                        {isLoading ? (
+                          <FaSpinner className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <FaGoogle className="w-4 h-4" />
+                        )}
+                        <span>Connect Google Business</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {!isConnected && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+                    <div className="flex items-start space-x-3">
+                      <FaExclamationTriangle className="w-5 h-5 text-blue-600 mt-0.5" />
+                      <div>
+                        <h4 className="text-sm font-medium text-blue-800 mb-1">
+                          Connect Your Google Business Profile
+                        </h4>
+                        <p className="text-sm text-blue-700">
+                          To post updates to your business locations, you need to connect your Google Business Profile. 
+                          This allows you to reach customers directly on Google Search and Maps.
                         </p>
                       </div>
-                    ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Post Type */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Post Type
-                </label>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {[
-                    { value: 'WHATS_NEW', label: "What's New", icon: '📢' },
-                    { value: 'EVENT', label: 'Event', icon: '📅' },
-                    { value: 'OFFER', label: 'Offer', icon: '🏷️' },
-                    { value: 'PRODUCT', label: 'Product', icon: '📦' }
-                  ].map((type) => (
-                    <label
-                      key={type.value}
-                      className={`flex items-center space-x-2 p-3 border rounded-lg cursor-pointer transition-colors ${
-                        postType === type.value
-                          ? 'border-slate-blue bg-slate-blue/5'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="postType"
-                        value={type.value}
-                        checked={postType === type.value}
-                        onChange={(e) => setPostType(e.target.value as any)}
-                        className="sr-only"
-                      />
-                      <span className="text-lg">{type.icon}</span>
-                      <span className="text-sm font-medium">{type.label}</span>
-                    </label>
-                  ))}
-                </div>
+                {isConnected && locations.length === 0 && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
+                    <div className="flex items-start space-x-3">
+                      <FaExclamationTriangle className="w-5 h-5 text-yellow-600 mt-0.5" />
+                      <div>
+                        <h4 className="text-sm font-medium text-yellow-800 mb-1">
+                          Fetch Your Business Locations
+                        </h4>
+                        <p className="text-sm text-yellow-700 mb-3">
+                          Your Google Business Profile is connected! Now you need to fetch your business locations to start posting.
+                        </p>
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleFetchLocations('google-business-profile')}
+                            disabled={fetchingLocations === 'google-business-profile' || Boolean(rateLimitedUntil && Date.now() < rateLimitedUntil)}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                              fetchingLocations === 'google-business-profile' || Boolean(rateLimitedUntil && Date.now() < rateLimitedUntil)
+                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                : 'bg-slate-600 text-white hover:bg-slate-700'
+                            }`}
+                          >
+                            {fetchingLocations === 'google-business-profile' ? (
+                              <div className="flex items-center space-x-2">
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                <span>Fetching...</span>
+                              </div>
+                            ) : Boolean(rateLimitedUntil && Date.now() < rateLimitedUntil) ? (
+                              `Rate limited (${rateLimitedUntil ? Math.ceil((rateLimitedUntil - Date.now()) / 1000) : 0}s)`
+                            ) : (
+                              'Fetch Business Locations'
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Connection Success & Locations */}
+                {isConnected && locations.length > 0 && (
+                  <div className="bg-green-50 border border-green-200 rounded-md p-4">
+                    <div className="flex items-start space-x-3">
+                      <FaCheck className="w-5 h-5 text-green-600 mt-0.5" />
+                      <div>
+                        <h4 className="text-sm font-medium text-green-800 mb-1">
+                          Successfully Connected!
+                        </h4>
+                        <p className="text-sm text-green-700 mb-3">
+                          Found {locations.length} business location{locations.length !== 1 ? 's' : ''}. You can now create and publish posts.
+                        </p>
+                        <button
+                          onClick={() => setActiveTab('post')}
+                          className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm font-medium"
+                        >
+                          Start Creating Posts →
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* Post Content */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Post Content
-                </label>
-                <textarea
-                  value={postContent}
-                  onChange={(e) => setPostContent(e.target.value)}
-                  rows={6}
-                  className={`w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent resize-none ${
-                    isOverLimit() ? 'border-red-300' : 'border-gray-300'
-                  }`}
-                  placeholder="What would you like to share with your customers?"
-                />
-                <div className="flex justify-between items-center mt-2">
-                  <div className={`text-sm ${
-                    isOverLimit() ? 'text-red-600' : 'text-gray-600'
-                  }`}>
-                    {getCharacterCount()}/{getCharacterLimit()} characters
+              {/* Error Messages */}
+              {postResult && !postResult.success && (
+                <div className="bg-red-50 border border-red-200 rounded-md p-4">
+                  <div className="flex items-center space-x-2 text-red-800 mb-2">
+                    <FaExclamationTriangle className="w-4 h-4" />
+                    <span className="text-sm font-medium">Error</span>
                   </div>
-                  {isOverLimit() && (
-                    <div className="flex items-center space-x-1 text-red-600 text-sm">
-                      <FaExclamationTriangle className="w-3 h-3" />
-                      <span>Content exceeds character limit</span>
+                  <p className="text-sm text-red-700">{postResult.message}</p>
+                  {rateLimitCountdown > 0 && (
+                    <div className="mt-2 flex items-center space-x-2 text-sm text-red-600">
+                      <FaClock className="w-3 h-3" />
+                      <span>You can retry in {rateLimitCountdown} seconds</span>
                     </div>
                   )}
                 </div>
-              </div>
-
-              {/* Post Result */}
-              {postResult && (
-                <div className={`p-4 rounded-lg ${
-                  postResult.success
-                    ? 'bg-green-50 border border-green-200'
-                    : 'bg-red-50 border border-red-200'
-                }`}>
-                  <div className="flex items-center space-x-2">
-                    {postResult.success ? (
-                      <FaCheck className="w-4 h-4 text-green-600" />
-                    ) : (
-                      <FaTimes className="w-4 h-4 text-red-600" />
-                    )}
-                    <span className={`text-sm font-medium ${
-                      postResult.success ? 'text-green-800' : 'text-red-800'
-                    }`}>
-                      {postResult.message}
-                    </span>
-                  </div>
-                </div>
               )}
-
-              {/* Post Actions */}
-              <div className="flex justify-end space-x-3">
-                <button
-                  onClick={() => {
-                    setPostContent('');
-                    setPostResult(null);
-                  }}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
-                >
-                  Clear
-                </button>
-                <button
-                  onClick={handlePost}
-                  disabled={isPosting || !postContent.trim() || isOverLimit()}
-                  className="px-6 py-2 bg-slate-blue text-white rounded-md hover:bg-slate-blue/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
-                >
-                  {isPosting ? (
-                    <>
-                      <FaSpinner className="w-4 h-4 animate-spin" />
-                      <span>Publishing...</span>
-                    </>
-                  ) : (
-                    <>
-                      <FaGoogle className="w-4 h-4" />
-                      <span>Publish to Google</span>
-                    </>
-                  )}
-                </button>
-              </div>
             </div>
           )}
 
-          {/* Empty State */}
-          {isConnected && locations.length === 0 && (
-            <div className="text-center py-12">
-              <FaMapMarkerAlt className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                No Business Locations Found
-              </h3>
-              <p className="text-gray-600 mb-4">
-                Make sure your Google Business Profile has active locations to post updates.
-              </p>
-              <button
-                onClick={() => window.open('https://business.google.com', '_blank')}
-                className="px-4 py-2 bg-slate-blue text-white rounded-md hover:bg-slate-blue/90 transition-colors"
-              >
-                Manage Business Profile
-              </button>
+          {activeTab === 'post' && (
+            <div className="space-y-6">
+              {!isConnected ? (
+                <div className="text-center py-12">
+                  <FaGoogle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    Connect Google Business Profile First
+                  </h3>
+                  <p className="text-gray-600 mb-4">
+                    You need to connect your Google Business Profile before you can create posts.
+                  </p>
+                  <button
+                    onClick={() => setActiveTab('connect')}
+                    className="px-4 py-2 bg-slate-blue text-white rounded-md hover:bg-slate-blue/90 transition-colors"
+                  >
+                    Go to Connect Tab
+                  </button>
+                </div>
+              ) : (
+                <>
+                  {/* Location Selection */}
+                  {locations.length > 0 && (
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold flex items-center space-x-2">
+                        <FaMapMarkerAlt className="w-4 h-4 text-slate-600" />
+                        <span>Select Business Location</span>
+                      </h3>
+                      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+                        {locations.map((location) => (
+                          <div
+                            key={location.id}
+                            className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                              selectedLocation === location.id
+                                ? 'border-slate-blue bg-slate-blue/5'
+                                : 'border-gray-200 hover:border-gray-300'
+                            }`}
+                            onClick={() => setSelectedLocation(location.id)}
+                          >
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <h4 className="font-medium text-gray-900">{location.name}</h4>
+                                <p className="text-sm text-gray-600 mt-1">{location.address}</p>
+                                <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-2 ${
+                                  location.status === 'active'
+                                    ? 'bg-green-100 text-green-800'
+                                    : location.status === 'pending'
+                                    ? 'bg-yellow-100 text-yellow-800'
+                                    : 'bg-red-100 text-red-800'
+                                }`}>
+                                  {location.status}
+                                </div>
+                              </div>
+                              {selectedLocation === location.id && (
+                                <FaCheck className="w-4 h-4 text-slate-blue" />
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Post Creator */}
+                  {selectedLocation && (
+                    <div className="space-y-6">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-semibold">Create Post</h3>
+                        <button
+                          onClick={() => setShowTemplates(!showTemplates)}
+                          className="flex items-center space-x-2 px-4 py-2 text-slate-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                        >
+                          <FaPlus className="w-4 h-4" />
+                          <span>Use Template</span>
+                        </button>
+                      </div>
+
+                      {/* Templates */}
+                      {showTemplates && (
+                        <div className="bg-gray-50 rounded-lg p-4">
+                          <h4 className="text-sm font-medium text-gray-900 mb-3">Post Templates</h4>
+                          <div className="grid gap-3 md:grid-cols-2">
+                            {postTemplates.map((template) => (
+                              <div
+                                key={template.id}
+                                className="p-3 bg-white border rounded-md cursor-pointer hover:border-slate-blue transition-colors"
+                                onClick={() => handleUseTemplate(template)}
+                              >
+                                <div className="flex items-center justify-between mb-2">
+                                  <h5 className="font-medium text-sm">{template.title}</h5>
+                                  <span className="text-xs px-2 py-1 bg-gray-100 rounded">{template.type}</span>
+                                </div>
+                                <p className="text-sm text-gray-600 line-clamp-2">
+                                  {template.content}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Post Type */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-3">
+                          Post Type
+                        </label>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                          {[
+                            { value: 'WHATS_NEW', label: "What's New", icon: '📢' },
+                            { value: 'EVENT', label: 'Event', icon: '📅' },
+                            { value: 'OFFER', label: 'Offer', icon: '🏷️' },
+                            { value: 'PRODUCT', label: 'Product', icon: '📦' }
+                          ].map((type) => (
+                            <label
+                              key={type.value}
+                              className={`flex items-center space-x-2 p-3 border rounded-lg cursor-pointer transition-colors ${
+                                postType === type.value
+                                  ? 'border-slate-blue bg-slate-blue/5'
+                                  : 'border-gray-200 hover:border-gray-300'
+                              }`}
+                            >
+                              <input
+                                type="radio"
+                                name="postType"
+                                value={type.value}
+                                checked={postType === type.value}
+                                onChange={(e) => setPostType(e.target.value as any)}
+                                className="sr-only"
+                              />
+                              <span className="text-lg">{type.icon}</span>
+                              <span className="text-sm font-medium">{type.label}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Post Content */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Post Content
+                        </label>
+                        <textarea
+                          value={postContent}
+                          onChange={(e) => setPostContent(e.target.value)}
+                          rows={6}
+                          className={`w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent resize-none ${
+                            isOverLimit() ? 'border-red-300' : 'border-gray-300'
+                          }`}
+                          placeholder="What would you like to share with your customers?"
+                        />
+                        <div className="flex justify-between items-center mt-2">
+                          <div className={`text-sm ${
+                            isOverLimit() ? 'text-red-600' : 'text-gray-600'
+                          }`}>
+                            {getCharacterCount()}/{getCharacterLimit()} characters
+                          </div>
+                          {isOverLimit() && (
+                            <div className="flex items-center space-x-1 text-red-600 text-sm">
+                              <FaExclamationTriangle className="w-3 h-3" />
+                              <span>Content exceeds character limit</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Post Result */}
+                      {postResult && (
+                        <div className={`p-4 rounded-lg ${
+                          postResult.success
+                            ? 'bg-green-50 border border-green-200'
+                            : 'bg-red-50 border border-red-200'
+                        }`}>
+                          <div className="flex items-center space-x-2">
+                            {postResult.success ? (
+                              <FaCheck className="w-4 h-4 text-green-600" />
+                            ) : (
+                              <FaTimes className="w-4 h-4 text-red-600" />
+                            )}
+                            <span className={`text-sm font-medium ${
+                              postResult.success ? 'text-green-800' : 'text-red-800'
+                            }`}>
+                              {postResult.message}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Post Actions */}
+                      <div className="flex justify-end space-x-3">
+                        <button
+                          onClick={() => {
+                            setPostContent('');
+                            setPostResult(null);
+                          }}
+                          className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+                        >
+                          Clear
+                        </button>
+                        <button
+                          onClick={handlePost}
+                          disabled={isPosting || !postContent.trim() || isOverLimit()}
+                          className="px-6 py-2 bg-slate-blue text-white rounded-md hover:bg-slate-blue/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                        >
+                          {isPosting ? (
+                            <>
+                              <FaSpinner className="w-4 h-4 animate-spin" />
+                              <span>Publishing...</span>
+                            </>
+                          ) : (
+                            <>
+                              <FaGoogle className="w-4 h-4" />
+                              <span>Publish to Google</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Empty State */}
+                  {locations.length === 0 && isConnected && (
+                    <div className="text-center py-12">
+                      <FaMapMarkerAlt className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">
+                        No Business Locations Found
+                      </h3>
+                      <p className="text-gray-600 mb-4">
+                        Make sure your Google Business Profile has active locations to post updates.
+                      </p>
+                      <button
+                        onClick={() => window.open('https://business.google.com', '_blank')}
+                        className="px-4 py-2 bg-slate-blue text-white rounded-md hover:bg-slate-blue/90 transition-colors"
+                      >
+                        Manage Business Profile
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           )}
         </div>

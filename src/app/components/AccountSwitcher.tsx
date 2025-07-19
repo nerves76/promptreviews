@@ -36,7 +36,12 @@ export function AccountSwitcher() {
   }, []);
 
   // Don't render if loading or error
-  if (loading || error || !hasMultipleAccounts || !selectedAccount) {
+  if (loading || error || !selectedAccount) {
+    return null;
+  }
+
+  // Only show if user has multiple accounts
+  if (!hasMultipleAccounts) {
     return null;
   }
 
@@ -107,7 +112,7 @@ export function AccountSwitcher() {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute top-full left-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
+        <div className="absolute top-full left-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-[9999] overflow-hidden">
           {/* Header */}
           <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
             <h3 className="text-sm font-medium text-gray-900">Switch Account</h3>
