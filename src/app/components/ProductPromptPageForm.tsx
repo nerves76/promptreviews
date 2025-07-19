@@ -148,18 +148,18 @@ export default function ProductPromptPageForm({
     setSaveError(null);
 
     try {
-      let uploadedPhotoUrl = productPhotoUrl;
+        let uploadedPhotoUrl = productPhotoUrl;
       if (productPhotoFile && (!formData.product_photo || productPhotoUrl !== formData.product_photo)) {
-        uploadedPhotoUrl = await handleProductPhotoUpload();
-      }
+          uploadedPhotoUrl = await handleProductPhotoUpload();
+        }
 
       const step1Data = {
-        ...formData,
-        product_name: productName,
-        product_photo: uploadedPhotoUrl,
-        review_type: "product",
-      };
-      
+          ...formData,
+          product_name: productName,
+          product_photo: uploadedPhotoUrl,
+          review_type: "product",
+        };
+        
       await onSave(step1Data);
       onStepChange?.(2);
     } catch (error: any) {
@@ -252,15 +252,15 @@ export default function ProductPromptPageForm({
 
       <div className="space-y-8">
         {/* Error Messages */}
-        {formError && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded">
-            {formError}
-          </div>
-        )}
+            {formError && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded">
+                {formError}
+              </div>
+            )}
         {saveError && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded">
             {saveError}
-          </div>
+            </div>
         )}
 
         {/* Customer Details Section */}
@@ -294,108 +294,108 @@ export default function ProductPromptPageForm({
         />
 
         {/* Review Writing Section */}
-        <ReviewWriteSection
-          value={formData.review_platforms}
-          onChange={(platforms) =>
-            setFormData((prev: any) => ({
-              ...prev,
-              review_platforms: platforms,
-            }))
-          }
-          onGenerateReview={handleGenerateAIReview}
-          hideReviewTemplateFields={isUniversal}
-        />
-
-        {/* Offer Section */}
-        <OfferSection
-          enabled={offerEnabled}
-          onToggle={() => setOfferEnabled((v: boolean) => !v)}
-          title={offerTitle}
-          onTitleChange={setOfferTitle}
-          description={offerBody}
-          onDescriptionChange={setOfferBody}
-          url={offerUrl}
-          onUrlChange={setOfferUrl}
-        />
-
-        {/* Personalized Note Pop-up Section */}
-        <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-2 shadow relative">
-          <div className="flex items-center justify-between mb-2 px-2 py-2">
-            <div className="flex items-center gap-3">
-              <FaCommentDots className="w-7 h-7 text-slate-blue" />
-              <span className="text-2xl font-bold text-[#1A237E]">
-                Personalized note pop-up
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                if (emojiSentimentEnabled) {
-                  setShowPopupConflictModal("note");
-                  return;
-                }
-                setNotePopupEnabled((v: boolean) => !v);
-              }}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${notePopupEnabled ? "bg-slate-blue" : "bg-gray-200"}`}
-              aria-pressed={!!notePopupEnabled}
-              disabled={emojiSentimentEnabled}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${notePopupEnabled ? "translate-x-5" : "translate-x-1"}`}
-              />
-            </button>
-          </div>
-          <div className="text-sm text-gray-700 mb-3 max-w-[85ch] px-2">
-            This note appears as a pop-up at the top of the review page. Use
-            it to set the context and tone for your customer.
-          </div>
-          {notePopupEnabled && (
-            <textarea
-              id="friendly_note"
-              value={formData.friendly_note}
-              onChange={(e) =>
+            <ReviewWriteSection
+              value={formData.review_platforms}
+              onChange={(platforms) =>
                 setFormData((prev: any) => ({
                   ...prev,
-                  friendly_note: e.target.value,
+                  review_platforms: platforms,
                 }))
               }
-              rows={4}
-              className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring shadow-inner"
-              placeholder="Jonas, it was so good to catch up yesterday. I'm excited about the project. Would you mind dropping us a review? I have a review template you can use or you can write your own. Thanks!"
+              onGenerateReview={handleGenerateAIReview}
+              hideReviewTemplateFields={isUniversal}
             />
-          )}
-        </div>
+
+        {/* Offer Section */}
+            <OfferSection
+              enabled={offerEnabled}
+              onToggle={() => setOfferEnabled((v: boolean) => !v)}
+              title={offerTitle}
+              onTitleChange={setOfferTitle}
+              description={offerBody}
+              onDescriptionChange={setOfferBody}
+              url={offerUrl}
+              onUrlChange={setOfferUrl}
+            />
+
+            {/* Personalized Note Pop-up Section */}
+        <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-2 shadow relative">
+              <div className="flex items-center justify-between mb-2 px-2 py-2">
+                <div className="flex items-center gap-3">
+                  <FaCommentDots className="w-7 h-7 text-slate-blue" />
+                  <span className="text-2xl font-bold text-[#1A237E]">
+                    Personalized note pop-up
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (emojiSentimentEnabled) {
+                      setShowPopupConflictModal("note");
+                      return;
+                    }
+                    setNotePopupEnabled((v: boolean) => !v);
+                  }}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${notePopupEnabled ? "bg-slate-blue" : "bg-gray-200"}`}
+                  aria-pressed={!!notePopupEnabled}
+                  disabled={emojiSentimentEnabled}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${notePopupEnabled ? "translate-x-5" : "translate-x-1"}`}
+                  />
+                </button>
+              </div>
+              <div className="text-sm text-gray-700 mb-3 max-w-[85ch] px-2">
+                This note appears as a pop-up at the top of the review page. Use
+                it to set the context and tone for your customer.
+              </div>
+              {notePopupEnabled && (
+                <textarea
+                  id="friendly_note"
+                  value={formData.friendly_note}
+                  onChange={(e) =>
+                    setFormData((prev: any) => ({
+                      ...prev,
+                      friendly_note: e.target.value,
+                    }))
+                  }
+                  rows={4}
+                  className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring shadow-inner"
+                  placeholder="Jonas, it was so good to catch up yesterday. I'm excited about the project. Would you mind dropping us a review? I have a review template you can use or you can write your own. Thanks!"
+                />
+              )}
+            </div>
 
         {/* Emoji Sentiment Section */}
-        <EmojiSentimentSection
-          enabled={emojiSentimentEnabled}
-          onToggle={() => {
-            if (notePopupEnabled) {
-              setShowPopupConflictModal("emoji");
-              return;
-            }
-            setEmojiSentimentEnabled((v: boolean) => !v);
-          }}
-          question={emojiSentimentQuestion}
-          onQuestionChange={setEmojiSentimentQuestion}
-          feedbackMessage={emojiFeedbackMessage}
-          onFeedbackMessageChange={setEmojiFeedbackMessage}
-          thankYouMessage={formData.emojiThankYouMessage}
-          onThankYouMessageChange={(val: string) =>
-            setFormData((prev: any) => ({
-              ...prev,
-              emojiThankYouMessage: val,
-            }))
-          }
-          slug={formData.slug}
-          disabled={!!notePopupEnabled}
-        />
+            <EmojiSentimentSection
+              enabled={emojiSentimentEnabled}
+              onToggle={() => {
+                if (notePopupEnabled) {
+                  setShowPopupConflictModal("emoji");
+                  return;
+                }
+                setEmojiSentimentEnabled((v: boolean) => !v);
+              }}
+              question={emojiSentimentQuestion}
+              onQuestionChange={setEmojiSentimentQuestion}
+              feedbackMessage={emojiFeedbackMessage}
+              onFeedbackMessageChange={setEmojiFeedbackMessage}
+              thankYouMessage={formData.emojiThankYouMessage}
+              onThankYouMessageChange={(val: string) =>
+                setFormData((prev: any) => ({
+                  ...prev,
+                  emojiThankYouMessage: val,
+                }))
+              }
+              slug={formData.slug}
+              disabled={!!notePopupEnabled}
+            />
 
         {/* AI Generation Settings Section */}
-        <DisableAIGenerationSection
-          aiGenerationEnabled={aiReviewEnabled}
+            <DisableAIGenerationSection
+              aiGenerationEnabled={aiReviewEnabled}
           fixGrammarEnabled={fixGrammarEnabled}
-          onToggleAI={() => setAiReviewEnabled((v: boolean) => !v)}
+              onToggleAI={() => setAiReviewEnabled((v: boolean) => !v)}
           onToggleGrammar={() => setFixGrammarEnabled((v: boolean) => !v)}
         />
 
