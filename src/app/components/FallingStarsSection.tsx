@@ -204,7 +204,7 @@ const FallingStarsSection: React.FC<FallingStarsSectionProps> = ({
                                     setIsModalOpen(false);
                                   }}
                                 >
-                                  <Icon className={`w-6 h-6 ${getFallingIconColor(iconItem.key, color)}`} />
+                                  <Icon className={`w-6 h-6 ${iconItem.color}`} />
                                   <span className="text-xs text-gray-600 mt-1 text-center">{iconItem.label}</span>
                                 </button>
                               );
