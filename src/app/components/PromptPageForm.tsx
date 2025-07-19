@@ -170,7 +170,7 @@ export default function PromptPageForm({
     );
     setNotePopupEnabled(initialData.show_friendly_note ?? true);
     setFallingEnabled(!!initialData.falling_icon);
-    setFallingIcon(initialData.falling_icon || "star");
+    handleIconChange(initialData.falling_icon || "star");
     setNoPlatformReviewTemplate(initialData.no_platform_review_template || "");
     setServices(initialData.features_or_benefits || []);
   }, [initialData]);

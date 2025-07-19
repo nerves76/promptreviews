@@ -34,6 +34,10 @@ export default function ProductPromptPageForm({
   pageTitle,
   supabase,
   businessProfile,
+  accountId,
+  successMessage,
+  error,
+  isLoading = false,
   isUniversal = false,
   onPublishSuccess,
   step = 1,
@@ -45,9 +49,13 @@ export default function ProductPromptPageForm({
   initialData: any;
   onSave: (data: any) => void;
   onPublish?: (data: any) => void;
+  isLoading?: boolean;
   pageTitle: string;
   supabase: any;
   businessProfile: any;
+  accountId: string;
+  successMessage?: string | null;
+  error?: string | null;
   isUniversal?: boolean;
   onPublishSuccess?: (slug: string) => void;
   step?: number;
@@ -55,14 +63,14 @@ export default function ProductPromptPageForm({
   slug?: string;
   [key: string]: any;
 }) {
+  console.log('🔥 FIXED VERSION - ProductPromptPageForm loaded at', new Date().toISOString());
   const router = useRouter();
   
   // Form state
   const [formData, setFormData] = useState(initialData || {});
   const [productName, setProductName] = useState(initialData?.product_name || "");
-  const [isSaving, setIsSaving] = useState(false);
+
   const [formError, setFormError] = useState<string | null>(null);
-  const [saveError, setSaveError] = useState<string | null>(null);
 
   // Product photo state
   const [productPhotoFile, setProductPhotoFile] = useState<File | null>(null);
@@ -124,7 +132,7 @@ export default function ProductPromptPageForm({
   // Handle product photo upload
   const handleProductPhotoUpload = async () => {
     if (!productPhotoFile) return null;
-    const userId = businessProfile?.account_id || businessProfile?.id || "unknown";
+    const userId = accountId || businessProfile?.account_id || businessProfile?.id || "unknown";
     const fileExt = productPhotoFile.name.split(".").pop();
     const filePath = `product-photos/${userId}-${Date.now()}.${fileExt}`;
     
@@ -148,9 +156,8 @@ export default function ProductPromptPageForm({
 
   // Handle step 1 continue
   const handleStep1Continue = async () => {
-    setIsSaving(true);
     setFormError(null);
-    setSaveError(null);
+
 
     try {
         let uploadedPhotoUrl = productPhotoUrl;
@@ -168,9 +175,7 @@ export default function ProductPromptPageForm({
       await onSave(step1Data);
       onStepChange?.(2);
     } catch (error: any) {
-      setSaveError(error.message || "Failed to save. Please try again.");
-    } finally {
-      setIsSaving(false);
+              setFormError(error.message || "Failed to save. Please try again.");
     }
   };
 
@@ -192,52 +197,66 @@ export default function ProductPromptPageForm({
     setFallingEnabled((prev: boolean) => !prev);
   };
 
-  // Handle edit mode save with simple duplicate prevention
-  const handleEditSave = useCallback(async () => {
-    const saveId = Date.now() + Math.random(); // Unique identifier for this save operation
+  // Product save handler - completely rewritten to force cache refresh
+  const handleEditSave = React.useCallback(async () => {
+    const operationId = Date.now() + Math.random();
     
-    // Prevent multiple simultaneous saves
-    if (isSaving) {
-      console.log(`🚫 BLOCKED: Save already in progress`);
+    console.log(`🔥 NEW SAVE HANDLER: Starting save ${operationId}`);
+    
+    if (isLoading) {
+      console.log(`🚫 Save blocked - already loading`);
       return;
     }
     
-    console.log(`✅ SAVE STARTING: Starting save operation at ${saveId}`);
-    console.log(`🔍 SAVE DEBUG: Current formData at save time:`, formData);
-    setIsSaving(true);
     setFormError("");
     
     try {
-      let uploadedPhotoUrl = productPhotoUrl;
+      let photoUrl = productPhotoUrl;
       if (productPhotoFile && (!formData.product_photo || productPhotoUrl !== formData.product_photo)) {
-        console.log(`[${saveId}] Uploading photo...`);
-        uploadedPhotoUrl = await handleProductPhotoUpload();
+        photoUrl = await handleProductPhotoUpload();
       }
       
-      const completeFormData = {
+      const saveData = {
         ...formData,
-        product_photo: uploadedPhotoUrl,
-        status: "published",
+        product_photo: photoUrl,
         business_name: businessProfile?.business_name || "",
-        contact_id: businessProfile?.contact_id || null
+        contact_id: businessProfile?.contact_id || null,
+        offerEnabled,
+        offerTitle,
+        offerBody,
+        offerUrl,
+        emojiSentimentEnabled,
+        emojiSentimentQuestion,
+        emojiFeedbackMessage,
+        emojiThankYouMessage,
+        reviewPlatforms: formData.review_platforms || [],
+        fallingEnabled,
+        fallingIcon,
+        aiButtonEnabled: aiReviewEnabled,
+        fixGrammarEnabled,
+        notePopupEnabled,
+        friendlyNote: formData.friendly_note || ""
       };
       
-      console.log(`[${saveId}] Calling onSave with data...`, completeFormData);
-      console.log(`🔍 SAVE DEBUG: Key fields in save data - first_name: "${completeFormData.first_name}", last_name: "${completeFormData.last_name}"`);
-      await onSave(completeFormData);
-      console.log(`[${saveId}] Save completed successfully`);
+      console.log(`🔥 Calling onSave...`);
+      await onSave(saveData);
+      console.log(`🔥 Save completed successfully`);
     } catch (error: any) {
-      console.error(`[${saveId}] Save failed:`, error);
+      console.error(`🔥 Save failed:`, error);
       setFormError(error.message || "Failed to save page");
-    } finally {
-      setIsSaving(false);
-      console.log(`[${saveId}] Save operation finished`);
     }
-  }, [isSaving, formData, productPhotoFile, productPhotoUrl, onSave, businessProfile]);
+  }, [isLoading, formData, productPhotoFile, productPhotoUrl, onSave, businessProfile]);
+
+  // Handle form submission to prevent page reload
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("🚫 Form submission prevented - using custom save handler");
+  };
 
   return (
     <form 
       className="relative space-y-8"
+      onSubmit={handleFormSubmit}
     >
       {/* Page Title */}
       <div className="flex flex-col mt-0 md:mt-[3px] mb-4">
@@ -252,23 +271,18 @@ export default function ProductPromptPageForm({
       {/* Top Navigation */}
       <TopNavigation 
         mode={mode}
-        isSaving={isSaving}
+        isSaving={isLoading}
         formData={formData}
         onSave={handleEditSave}
       />
 
       <div className="space-y-8">
-        {/* Error Messages */}
+                {/* Error Messages */}
             {formError && (
               <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded">
                 {formError}
               </div>
             )}
-        {saveError && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded">
-            {saveError}
-            </div>
-        )}
 
         {/* Customer Details Section */}
         <CustomerDetailsSection 
@@ -417,10 +431,27 @@ export default function ProductPromptPageForm({
         />
       </div>
 
+      {/* Success/Error Messages */}
+      {successMessage && (
+        <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-md">
+          <div className="flex">
+            <div className="text-sm text-green-800">{successMessage}</div>
+          </div>
+        </div>
+      )}
+      
+      {(error || formError) && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
+          <div className="flex">
+            <div className="text-sm text-red-800">{error || formError}</div>
+          </div>
+        </div>
+      )}
+
       {/* Bottom Navigation - placed at the very end */}
       <BottomNavigation 
         mode={mode}
-        isSaving={isSaving}
+        isSaving={isLoading}
         formData={formData}
         onSave={handleEditSave}
       />
