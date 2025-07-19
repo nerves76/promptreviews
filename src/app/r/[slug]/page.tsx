@@ -1339,6 +1339,7 @@ export default function PromptPage() {
         <FallingAnimation
           fallingIcon={promptPage?.falling_icon || ''}
           showStarRain={showStarRain && (!promptPage.emoji_sentiment_enabled || (sentimentComplete && (sentiment === "excellent" || sentiment === "satisfied")))}
+          falling_icon_color={promptPage?.falling_icon_color}
           getFallingIcon={getFallingIcon}
         />
         
