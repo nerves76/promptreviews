@@ -752,8 +752,9 @@ export default function CreatePromptPageClient() {
           "Frustrated",
         ],
         review_platforms: formData.review_platforms ?? [],
-        fallingEnabled: formData.fallingEnabled ?? false,
+        fallingEnabled: formData.fallingEnabled ?? initialFormData.fallingEnabled,
         fallingIcon: formData.falling_icon ?? "star",
+        falling_icon_color: formData.falling_icon_color ?? "#fbbf24",
         aiButtonEnabled: formData.aiButtonEnabled ?? true,
       };
       return (
