@@ -758,7 +758,7 @@ export default function CreatePromptPageClient() {
         review_platforms: formData.review_platforms ?? [],
         fallingEnabled: formData.fallingEnabled ?? initialFormData.fallingEnabled,
         fallingIcon: formData.falling_icon ?? "star",
-        falling_icon_color: formData.falling_icon_color ?? "#fbbf24",
+        falling_icon_color: "#fbbf24", // Default color
         aiButtonEnabled: formData.aiButtonEnabled ?? true,
       };
       return (
