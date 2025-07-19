@@ -15,7 +15,7 @@ import FiveStarSpinner from '@/app/components/FiveStarSpinner';
 
 interface TeamMember {
   user_id: string;
-  role: 'owner' | 'member';
+  role: 'owner' | 'member' | 'support';
   email: string;
   first_name: string;
   last_name: string;
@@ -27,7 +27,7 @@ interface TeamMember {
 interface Invitation {
   id: string;
   email: string;
-  role: 'owner' | 'member';
+  role: 'owner' | 'member' | 'support';
   created_at: string;
   expires_at: string;
   invited_by: string;
@@ -63,6 +63,7 @@ export default function TeamPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [showRoleTooltip, setShowRoleTooltip] = useState(false);
+  const [addingChris, setAddingChris] = useState(false);
   
   // Prevent multiple simultaneous calls
   const fetchingRef = useRef(false);
@@ -201,6 +202,41 @@ export default function TeamPage() {
       setError(errorMessage);
       // Clear error message after 5 seconds
       setTimeout(() => setError(null), 5000);
+    }
+  };
+
+  // Add Chris for support
+  const addChris = async () => {
+    try {
+      setAddingChris(true);
+      setError(null);
+      setSuccess(null);
+
+      const response = await fetch('/api/team/add-chris', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to add Chris for support');
+      }
+
+      setSuccess('Chris has been added for development and support assistance! 🎉');
+      await fetchTeamData(); // Refresh data
+      
+      // Clear success message after 8 seconds
+      setTimeout(() => setSuccess(null), 8000);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to add Chris';
+      setError(errorMessage);
+      // Clear error message after 5 seconds
+      setTimeout(() => setError(null), 5000);
+    } finally {
+      setAddingChris(false);
     }
   };
 
@@ -394,6 +430,42 @@ export default function TeamPage() {
         </div>
       )}
 
+      {/* Add Chris for Support (Owners Only) */}
+      {isOwner && !members.some(member => member.email === 'nerves76@gmail.com') && (
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6 mb-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-blue-900 mb-2">
+                🛠️ Need Development Support?
+              </h3>
+              <p className="text-blue-800 mb-2">
+                Add Chris for development assistance, bug fixes, and technical support.
+              </p>
+              <p className="text-sm text-blue-600">
+                <strong>Note:</strong> Support members don't count against your team member limits.
+              </p>
+            </div>
+            <button
+              onClick={addChris}
+              disabled={addingChris}
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-medium"
+            >
+              {addingChris ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Adding Chris...
+                </>
+              ) : (
+                <>
+                  <PlusIcon className="w-5 h-5" />
+                  Add Chris
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Team Members */}
       <div className="bg-white border border-gray-200 rounded-lg p-6 mb-8">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">
@@ -431,9 +503,11 @@ export default function TeamPage() {
                   <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                     member.role === 'owner' 
                       ? 'bg-purple-100 text-purple-800' 
+                      : member.role === 'support'
+                      ? 'bg-blue-100 text-blue-800'
                       : 'bg-gray-100 text-gray-800'
                   }`}>
-                    {member.role}
+                    {member.role === 'support' ? '🛠️ Support' : member.role}
                   </span>
                   
                   {isOwner && !member.is_current_user && (
@@ -483,9 +557,11 @@ export default function TeamPage() {
                   <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                     invitation.role === 'owner' 
                       ? 'bg-purple-100 text-purple-800' 
+                      : invitation.role === 'support'
+                      ? 'bg-blue-100 text-blue-800'
                       : 'bg-gray-100 text-gray-800'
                   }`}>
-                    {invitation.role}
+                    {invitation.role === 'support' ? '🛠️ Support' : invitation.role}
                   </span>
                   
                   {invitation.is_expired && (
