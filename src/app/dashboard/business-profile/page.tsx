@@ -6,6 +6,7 @@ import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 import Cropper from "react-easy-crop";
 import type { Area } from "react-easy-crop";
 import { useAuthGuard } from "@/utils/authGuard";
+import { useAccountSelection } from "@/utils/accountSelectionHooks";
 import {
   FaRegStar,
   FaPhone,
@@ -86,6 +87,7 @@ interface Platform {
 
 export default function BusinessProfilePage() {
   const supabase = createClient();
+  const { selectedAccount, loading: accountLoading } = useAccountSelection();
 
   useAuthGuard();
   const [form, setForm] = useState({
@@ -150,6 +152,12 @@ export default function BusinessProfilePage() {
   useEffect(() => {
     const loadBusinessProfile = async () => {
       try {
+        // Wait for account selection to complete
+        if (accountLoading || !selectedAccount) {
+          console.log('Waiting for account selection to complete...');
+          return;
+        }
+
         const { data: { user }, error: userError } = await getUserOrMock(supabase);
         
         if (userError || !user) {
@@ -157,13 +165,15 @@ export default function BusinessProfilePage() {
           return;
         }
 
-        setAccountId(user.id);
+        // Use selected account ID instead of user ID
+        const currentAccountId = selectedAccount.account_id;
+        setAccountId(currentAccountId);
 
-        // Load business profile
+        // Load business profile for the selected account
         const { data: businessData, error: businessError } = await supabase
           .from("businesses")
           .select("*")
-          .eq("account_id", user.id)
+          .eq("account_id", currentAccountId)
           .single();
 
         if (businessError && businessError.code !== 'PGRST116') {
@@ -224,7 +234,7 @@ export default function BusinessProfilePage() {
     };
 
     loadBusinessProfile();
-  }, [router]);
+  }, [router, supabase, selectedAccount, accountLoading]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -450,10 +460,10 @@ export default function BusinessProfilePage() {
       if (logoFile) {
         console.log("Logo file detected, starting upload process...");
         try {
-          // Always use the 'logos' bucket and store in 'business-logos/{user.id}.webp' for consistency
+          // Always use the 'logos' bucket and store in 'business-logos/{account_id}.webp' for consistency
           const bucketName = 'logos';
-          const webFilePath = `business-logos/${user.id}.webp`;
-          const printFilePath = `business-logos/${user.id}_print.webp`;
+          const webFilePath = `business-logos/${selectedAccount.account_id}.webp`;
+          const printFilePath = `business-logos/${selectedAccount.account_id}_print.webp`;
           
           console.log("Uploading web logo to:", bucketName, webFilePath, "with file:", logoFile);
           
@@ -592,7 +602,7 @@ export default function BusinessProfilePage() {
           ai_donts: form.ai_donts,
           services_offered: services,
         })
-        .eq("account_id", user.id);
+        .eq("account_id", selectedAccount.account_id);
         
       if (updateError) {
         console.error("Database update error:", updateError);
@@ -633,7 +643,7 @@ export default function BusinessProfilePage() {
     }
   };
 
-  if (loading) {
+  if (loading || accountLoading) {
     return (
       <div className="w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-12 mt-12 md:mt-16 lg:mt-20 mb-16 flex justify-center items-start">
         <div className="page relative w-full max-w-[1000px] rounded-2xl bg-white shadow-lg pt-4 px-8 md:px-12 pb-8">
