@@ -240,7 +240,13 @@ export default function CreatePromptPageClient() {
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState(1);
   const [createdSlug, setCreatedSlug] = useState<string | null>(null);
-  const [formData, setFormData] = useState(initialFormData);
+  
+  // Initialize formData with the review_type from URL params if available
+  const initialReviewType = searchParams.get("type") || "service";
+  const [formData, setFormData] = useState({
+    ...initialFormData,
+    review_type: initialReviewType
+  });
   const [businessProfile, setBusinessProfile] =
     useState<BusinessProfile | null>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -272,7 +278,6 @@ export default function CreatePromptPageClient() {
   const [emojiThankYouMessage, setEmojiThankYouMessage] = useState(
     initialFormData.emojiThankYouMessage,
   );
-  const didSetType = useRef(false);
   const [showTypeModal, setShowTypeModal] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -368,16 +373,6 @@ export default function CreatePromptPageClient() {
     };
     loadBusinessProfile();
   }, []);
-
-  // Set review_type from ?type=... query param on mount
-  useEffect(() => {
-    if (didSetType.current) return;
-    const type = searchParams.get("type");
-    if (type) {
-      setFormData((prev) => ({ ...prev, review_type: type }));
-      didSetType.current = true;
-    }
-  }, [searchParams]);
 
   // Prefill contact info from query params
   useEffect(() => {
@@ -726,6 +721,9 @@ export default function CreatePromptPageClient() {
 
   // Get the appropriate form component based on review type
   const getFormComponent = () => {
+    console.log("[DEBUG] getFormComponent called with review_type:", formData.review_type);
+    console.log("[DEBUG] Full formData:", formData);
+    
     if (formData.review_type === "service") {
       console.log("[DEBUG] Service page render - createdSlug:", createdSlug, "step:", step);
       // Ensure all required fields for service are present
