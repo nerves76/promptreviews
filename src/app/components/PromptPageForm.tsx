@@ -47,7 +47,6 @@ import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
 import FallingStarsSection from "@/app/components/FallingStarsSection";
 import { useFallingStars } from "@/hooks/useFallingStars";
-import { getFallingIcon } from "./prompt-modules/fallingStarsConfig";
 import RobotTooltip from "./RobotTooltip";
 import SectionHeader from "./SectionHeader";
 
@@ -232,7 +231,7 @@ export default function PromptPageForm({
   );
   const [iconUpdating, setIconUpdating] = useState(false);
   // Use shared falling stars hook
-  const { fallingIcon, fallingIconColor, handleIconChange, handleColorChange, initializeValues } = useFallingStars({
+  const { fallingIcon, fallingIconColor, handleIconChange, handleColorChange, initializeValues, getFallingIcon } = useFallingStars({
     initialIcon: initialData?.falling_icon ?? "star",
     initialColor: initialData?.falling_icon_color ?? "#fbbf24",
     onFormDataChange: (data) => {
