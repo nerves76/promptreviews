@@ -883,6 +883,15 @@ export default function ProductPromptPageForm({
               </button>
             </div>
 
+            <FallingStarsSection
+              enabled={fallingEnabled}
+              onToggle={handleToggleFalling}
+              icon={fallingIcon}
+              onIconChange={handleIconChange}
+              color={fallingIconColor}
+              onColorChange={handleColorChange}
+            />
+
             <div className="w-full flex justify-end gap-2 mt-8">
               <button
                 type="button"
@@ -992,14 +1001,6 @@ export default function ProductPromptPageForm({
               fixGrammarEnabled={fixGrammarEnabled}
               onToggleAI={() => setAiReviewEnabled((v: boolean) => !v)}
               onToggleGrammar={() => setFixGrammarEnabled((v: boolean) => !v)}
-            />
-            <FallingStarsSection
-              enabled={fallingEnabled}
-              onToggle={handleToggleFalling}
-              icon={fallingIcon}
-              onIconChange={handleIconChange}
-              color={fallingIconColor}
-              onColorChange={handleColorChange}
             />
           </div>
         )}
