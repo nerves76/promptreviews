@@ -99,7 +99,6 @@ export const useFallingStars = ({
     fallingIconColor,
     handleIconChange,
     handleColorChange,
-    initializeValues,
-    getFallingIcon // Export the function for animation rendering
+    initializeValues
   };
 }; 
