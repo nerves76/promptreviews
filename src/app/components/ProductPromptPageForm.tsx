@@ -486,7 +486,6 @@ export default function ProductPromptPageForm({
       <BottomNavigation 
         mode={mode}
         isSaving={isLoading}
-        formData={formData}
         onSave={handleEditSave}
       />
 
