@@ -116,8 +116,8 @@ const EmojiSentimentEmbed: React.FC<EmojiSentimentEmbedProps> = ({
               <img 
                 src="/emojis/prompt-reviews-get-more-reviews.png" 
                 alt="Prompt Reviews - Get More Reviews" 
-                width="64" 
-                height="30"
+                width="25" 
+                height="25"
                 className="block"
               />
             </button>
@@ -165,8 +165,8 @@ const EmojiSentimentEmbed: React.FC<EmojiSentimentEmbedProps> = ({
               <img 
                 src="/emojis/prompt-reviews-get-more-reviews.png" 
                 alt="Prompt Reviews - Get More Reviews" 
-                width="64" 
-                height="30"
+                width="25" 
+                height="25"
                 className="block"
               />
             </button>
