@@ -793,13 +793,18 @@ export default function QRCodeGenerator({
       const widthInches = frameSize.width / dpi;
       const heightInches = frameSize.height / dpi;
       
-      // Create PDF with proper dimensions
-      const orientation = widthInches > heightInches ? 'landscape' : 'portrait';
+      // Create PDF with standard letter size (8.5" x 11") for proper printing
       const pdf = new jsPDF({
-        orientation,
+        orientation: 'portrait',
         unit: 'in',
-        format: [widthInches, heightInches]
+        format: 'letter'
       });
+      
+      // Calculate centering position on letter-size page
+      const letterWidth = 8.5;
+      const letterHeight = 11;
+      const centerX = (letterWidth - widthInches) / 2;
+      const centerY = (letterHeight - heightInches) / 2;
       
       // Generate high-quality canvas for PDF
       const pdfCanvas = document.createElement('canvas');
@@ -880,9 +885,35 @@ export default function QRCodeGenerator({
         pdfCtx.restore();
       }
       
-      // Convert canvas to image and add to PDF
+      // Convert canvas to image and add to PDF at centered position
       const imgData = pdfCanvas.toDataURL('image/jpeg', 0.95);
-      pdf.addImage(imgData, 'JPEG', 0, 0, widthInches, heightInches);
+      pdf.addImage(imgData, 'JPEG', centerX, centerY, widthInches, heightInches);
+      
+      // Add cut-out guide lines directly to PDF for small sizes
+      if (needsCutLines) {
+        pdf.setDrawColor(200, 200, 200); // Light gray
+        pdf.setLineWidth(0.01); // Thin line
+        pdf.setLineDashPattern([0.1, 0.1], 0); // Dashed line pattern
+        
+        // Draw rectangle around the QR code with small margin
+        const cutMargin = 0.125; // 1/8 inch margin
+        pdf.rect(
+          centerX - cutMargin, 
+          centerY - cutMargin, 
+          widthInches + (cutMargin * 2), 
+          heightInches + (cutMargin * 2)
+        );
+        
+        // Reset line style for text
+        pdf.setLineDashPattern([], 0);
+      }
+      
+      // Add size indicator text at bottom of page
+      pdf.setFontSize(8);
+      pdf.setTextColor(128, 128, 128); // Gray color
+      const sizeText = `Actual size: ${frameSize.label} | Cut along dotted lines if shown | Print at 100% scale`;
+      const textWidth = pdf.getTextWidth(sizeText);
+      pdf.text(sizeText, (letterWidth - textWidth / 72) / 2, letterHeight - 0.3); // 0.3" from bottom
       
       // Generate PDF blob
       const pdfBlob = pdf.output('blob');
@@ -891,7 +922,7 @@ export default function QRCodeGenerator({
       if (onDownload) onDownload(pdfBlob);
       
       const link = document.createElement("a");
-      link.download = `review-qr-${clientName.toLowerCase().replace(/\s+/g, "-")}-${frameSize.label.replace(/[^a-z0-9]/gi, "-")}.pdf`;
+      link.download = `review-qr-${clientName.toLowerCase().replace(/\s+/g, "-")}-${frameSize.label.replace(/[^a-z0-9]/gi, "-")}-print-ready.pdf`;
       link.href = URL.createObjectURL(pdfBlob);
       link.click();
       setTimeout(() => URL.revokeObjectURL(link.href), 1000);
