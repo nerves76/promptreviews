@@ -27,9 +27,10 @@ interface QRCodeModalProps {
   url: string;
   clientName: string;
   logoUrl?: string;
+  showNfcText?: boolean;
 }
 
-export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl }: QRCodeModalProps) {
+export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl, showNfcText = false }: QRCodeModalProps) {
   const [selectedFrameSize, setSelectedFrameSize] = useState(QR_FRAME_SIZES[0]);
   const [showPreview, setShowPreview] = useState(false);
   const [headline, setHeadline] = useState('Leave us a review!');
@@ -817,6 +818,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
             decorativeIconCount={decorativeIconCount}
             decorativeIconSize={decorativeIconSize}
             decorativeIconColor={decorativeIconColor}
+            showNfcText={showNfcText}
           />
         )}
 

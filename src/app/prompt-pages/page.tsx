@@ -43,6 +43,7 @@ export default function PromptPages() {
     url: string;
     clientName: string;
     logoUrl?: string;
+    showNfcText?: boolean;
   } | null>(null);
   const [selectedFrameSize, setSelectedFrameSize] = useState(QR_FRAME_SIZES[0]);
   const [selectedPages, setSelectedPages] = useState<string[]>([]);
@@ -489,6 +490,7 @@ export default function PromptPages() {
                             url: `${window.location.origin}/r/${universalPromptPage.slug}`,
                             clientName: business?.name || "PromptReviews",
                             logoUrl: business?.logo_print_url || business?.logo_url,
+                            showNfcText: universalPromptPage?.nfc_text_enabled ?? false,
                           });
                         }}
                         className="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-100 text-amber-800 rounded hover:bg-amber-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
@@ -700,6 +702,7 @@ export default function PromptPages() {
                                         url: url,
                                         clientName: getLocationDisplayName(location),
                                         logoUrl: location.logo_url,
+                                        showNfcText: locationPage?.nfc_text_enabled ?? false,
                                       });
                                     }}
                                     className="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-100 text-amber-800 rounded hover:bg-amber-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
@@ -726,6 +729,7 @@ export default function PromptPages() {
               url={qrModal?.url || ""}
               clientName={qrModal?.clientName || ""}
               logoUrl={qrModal?.logoUrl}
+              showNfcText={qrModal?.showNfcText}
             />
             
             {/* Custom Prompt Pages Section - Show for non-Maven users OR when custom tab is active */}

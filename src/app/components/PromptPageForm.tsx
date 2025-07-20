@@ -35,6 +35,7 @@ import {
   FaTrophy,
   FaCommentDots,
   FaMagic,
+  FaMobile,
 } from "react-icons/fa";
 import dynamic from "next/dynamic";
 import { slugify } from "@/utils/slugify";
@@ -179,6 +180,7 @@ export default function PromptPageForm({
         "Your feedback helps us grow",
     );
     setNotePopupEnabled(initialData.show_friendly_note ?? true);
+    setNfcTextEnabled(initialData.nfc_text_enabled ?? false);
     setFallingEnabled(!!initialData.falling_icon);
     handleIconChange(initialData.falling_icon || "star");
     setNoPlatformReviewTemplate(initialData.no_platform_review_template || "");
@@ -274,6 +276,11 @@ export default function PromptPageForm({
 
   const [notePopupEnabled, setNotePopupEnabled] = useState(
     initialData.show_friendly_note ?? true,
+  );
+  
+  // NFC text toggle state
+  const [nfcTextEnabled, setNfcTextEnabled] = useState(
+    initialData.nfc_text_enabled ?? false,
   );
   
   // Sync notePopupEnabled with initialData when it changes
@@ -1222,6 +1229,35 @@ export default function PromptPageForm({
                 color={fallingIconColor}
                 onColorChange={handleColorChange}
               />
+              
+              {/* NFC QR Code Text Section */}
+              <div className="rounded-lg p-4 bg-green-50 border border-green-200 flex flex-col gap-2 shadow relative mb-8">
+                <div className="flex flex-row justify-between items-start px-2 py-2">
+                  <SectionHeader
+                    icon={<FaMobile className="w-7 h-7 text-green-600" />}
+                    title="NFC scanning text"
+                    subCopy={
+                      nfcTextEnabled
+                        ? 'QR codes will show "Tap phone or scan with camera" text underneath.'
+                        : "QR codes will not show NFC instructions."
+                    }
+                    className="!mb-0"
+                    subCopyLeftOffset="ml-9"
+                  />
+                  <div className="flex flex-col justify-start pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setNfcTextEnabled((v: boolean) => !v)}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${nfcTextEnabled ? "bg-green-600" : "bg-gray-200"}`}
+                      aria-pressed={!!nfcTextEnabled}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${nfcTextEnabled ? "translate-x-5" : "translate-x-1"}`}
+                      />
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -1292,6 +1328,7 @@ export default function PromptPageForm({
           ...formData,
           ai_button_enabled: aiReviewEnabled,
           show_friendly_note: notePopupEnabled,
+          nfc_text_enabled: nfcTextEnabled,
           emoji_sentiment_enabled: emojiSentimentEnabled,
           emoji_sentiment_question: emojiSentimentQuestion,
           emoji_feedback_message: emojiFeedbackMessage,
