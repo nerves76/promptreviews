@@ -70,7 +70,7 @@ const EmojiSentimentEmbed: React.FC<EmojiSentimentEmbedProps> = ({
       >
         {header}
       </div>
-      <div className="flex justify-center items-center gap-1 px-2 max-w-sm mx-auto pb-8">
+      <div className="flex justify-center items-center gap-1 px-2 max-w-sm mx-auto pb-12">
         {emojiLinks.map((link, index) => {
           const iconConfig = getIconForLabel(link.label);
           const IconComponent = iconConfig.icon;
@@ -102,7 +102,7 @@ const EmojiSentimentEmbed: React.FC<EmojiSentimentEmbedProps> = ({
         <div className="max-w-md mx-auto rounded-lg border border-gray-200 bg-white p-4 shadow-sm relative" style={{ margin: '0.5rem auto' }}>
           {content}
           {/* Prompt Reviews branding */}
-          <div className="absolute bottom-4 right-2">
+          <div className="absolute bottom-2 right-2">
             <button
               type="button"
               onClick={(e) => {
@@ -110,22 +110,16 @@ const EmojiSentimentEmbed: React.FC<EmojiSentimentEmbedProps> = ({
                 e.stopPropagation();
                 setShowPopup(!showPopup);
               }}
-              className="w-6 h-5 text-xs font-mono rounded flex items-center justify-center transition-colors border border-gray-300 hover:border-slate-400"
-              style={{ 
-                fontSize: '10px', 
-                backgroundColor: '#f8fafc', 
-                color: '#2E4A7D'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#2E4A7D';
-                e.currentTarget.style.color = '#f8fafc';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#f8fafc';
-                e.currentTarget.style.color = '#2E4A7D';
-              }}
+              className="transition-opacity hover:opacity-75"
+              style={{ opacity: '0.8' }}
             >
-              [P]
+              <img 
+                src="/emojis/prompt-reviews-get-more-reviews.png" 
+                alt="Prompt Reviews - Get More Reviews" 
+                width="64" 
+                height="30"
+                className="block"
+              />
             </button>
             {showPopup && (
               <div className="absolute bottom-8 right-0 w-64 bg-white border border-gray-300 rounded-lg shadow-lg p-3 text-sm z-10">
@@ -157,7 +151,7 @@ const EmojiSentimentEmbed: React.FC<EmojiSentimentEmbedProps> = ({
         <div className="max-w-md mx-auto relative" style={{ margin: '0.5rem auto' }}>
           {content}
           {/* Prompt Reviews branding for no-card version */}
-          <div className="absolute bottom-4 right-2">
+          <div className="absolute bottom-2 right-2">
             <button
               type="button"
               onClick={(e) => {
@@ -165,22 +159,16 @@ const EmojiSentimentEmbed: React.FC<EmojiSentimentEmbedProps> = ({
                 e.stopPropagation();
                 setShowPopup(!showPopup);
               }}
-              className="w-6 h-5 text-xs font-mono rounded flex items-center justify-center transition-colors border border-gray-300 hover:border-slate-400"
-              style={{ 
-                fontSize: '10px', 
-                backgroundColor: '#f8fafc', 
-                color: '#2E4A7D'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#2E4A7D';
-                e.currentTarget.style.color = '#f8fafc';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#f8fafc';
-                e.currentTarget.style.color = '#2E4A7D';
-              }}
+              className="transition-opacity hover:opacity-75"
+              style={{ opacity: '0.8' }}
             >
-              [P]
+              <img 
+                src="/emojis/prompt-reviews-get-more-reviews.png" 
+                alt="Prompt Reviews - Get More Reviews" 
+                width="64" 
+                height="30"
+                className="block"
+              />
             </button>
             {showPopup && (
               <div className="absolute bottom-8 right-0 w-64 bg-white border border-gray-300 rounded-lg shadow-lg p-3 text-sm z-10">
