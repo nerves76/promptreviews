@@ -87,7 +87,16 @@ interface Platform {
 
 export default function BusinessProfilePage() {
   const supabase = createClient();
-  const { selectedAccount, loading: accountLoading } = useAccountSelection();
+  const { selectedAccount, loading: accountLoading, availableAccounts } = useAccountSelection();
+  
+  // Debug logging for account selection
+  console.log('🏢 Business Profile Page - Account Selection State:', {
+    selectedAccount,
+    accountLoading,
+    availableAccounts,
+    selectedAccountId: selectedAccount?.account_id,
+    selectedAccountName: selectedAccount?.account_name
+  });
 
   useAuthGuard();
   const [form, setForm] = useState({
@@ -158,6 +167,11 @@ export default function BusinessProfilePage() {
           return;
         }
 
+        console.log('🔄 Loading business profile for account:', selectedAccount.account_id);
+        setLoading(true);
+        setError("");
+        setSuccess("");
+
         const { data: { user }, error: userError } = await getUserOrMock(supabase);
         
         if (userError || !user) {
@@ -176,13 +190,57 @@ export default function BusinessProfilePage() {
           .eq("account_id", currentAccountId)
           .single();
 
-        if (businessError && businessError.code !== 'PGRST116') {
-          console.error("Error loading business profile:", businessError);
-          setError("Failed to load business profile");
-          setNoProfile(true);
-          await supabase.auth.signOut();
-          router.push("/auth/sign-in");
-        } else {
+        if (businessError) {
+          if (businessError.code === 'PGRST116') {
+            // No business profile found for this account
+            console.log('📝 No business profile found for account:', currentAccountId);
+            // Reset form to empty state
+            setForm({
+              name: "",
+              company_values: "",
+              differentiators: "",
+              years_in_business: "",
+              industries_served: "",
+              taglines: "",
+              keywords: "",
+              team_info: "",
+              review_platforms: [],
+              platform_word_counts: "",
+              facebook_url: "",
+              instagram_url: "",
+              bluesky_url: "",
+              tiktok_url: "",
+              youtube_url: "",
+              linkedin_url: "",
+              pinterest_url: "",
+              default_offer_enabled: false,
+              default_offer_title: "Special offer",
+              default_offer_body: "",
+              default_offer_url: "",
+              address_street: "",
+              address_city: "",
+              address_state: "",
+              address_zip: "",
+              address_country: "",
+              phone: "",
+              business_website: "",
+              offer_learn_more_url: "",
+              business_email: "",
+              ai_dos: "",
+              ai_donts: "",
+            });
+            setServices([""]);
+            setPlatforms([{ name: "", url: "", wordCount: 200 }]);
+            setPlatformErrors([""]);
+            setLogoUrl(null);
+            setNoProfile(true);
+          } else {
+            console.error("Error loading business profile:", businessError);
+            setError("Failed to load business profile");
+            setNoProfile(true);
+          }
+        } else if (businessData) {
+          console.log('✅ Business profile loaded for account:', currentAccountId, 'Business name:', businessData.name);
           setForm({
             ...businessData,
             business_website: businessData.business_website || "",
