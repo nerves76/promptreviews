@@ -520,8 +520,8 @@ export default function BusinessProfilePage() {
         try {
           // Always use the 'logos' bucket and store in 'business-logos/{account_id}.webp' for consistency
           const bucketName = 'logos';
-          const webFilePath = `business-logos/${selectedAccount.account_id}.webp`;
-          const printFilePath = `business-logos/${selectedAccount.account_id}_print.webp`;
+          const webFilePath = `business-logos/${selectedAccount?.account_id}.webp`;
+          const printFilePath = `business-logos/${selectedAccount?.account_id}_print.webp`;
           
           console.log("Uploading web logo to:", bucketName, webFilePath, "with file:", logoFile);
           
@@ -660,7 +660,7 @@ export default function BusinessProfilePage() {
           ai_donts: form.ai_donts,
           services_offered: services,
         })
-        .eq("account_id", selectedAccount.account_id);
+        .eq("account_id", selectedAccount?.account_id);
         
       if (updateError) {
         console.error("Database update error:", updateError);
