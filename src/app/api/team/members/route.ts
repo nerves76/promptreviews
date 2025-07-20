@@ -65,16 +65,89 @@ export async function GET(request: NextRequest) {
 
     console.log('🔍 accountUser result:', accountUser);
     console.log('🔍 accountError:', accountError);
-    console.log('🔍 accounts array:', accountUser?.accounts);
 
-    if (accountError || !accountUser) {
-      console.error('Error fetching account user:', accountError);
+    // If account_user doesn't exist, check if the user has their own account
+    // This handles users created before the account_users system was fully implemented
+    if (accountError && accountError.code === 'PGRST116') {
+      console.log('🔧 No account_users entry found, checking for user account...');
+      
+      // Check if user has an account with their user_id as account_id
+      const { data: userAccount, error: userAccountError } = await supabase
+        .from('accounts')
+        .select(`
+          id,
+          first_name,
+          last_name,
+          business_name,
+          plan,
+          max_users
+        `)
+        .eq('id', user.id)
+        .single();
+
+      if (userAccount && !userAccountError) {
+        console.log('🔧 Found user account, creating missing account_users entry...');
+        
+        // Create the missing account_users entry
+        const { error: insertError } = await supabase
+          .from('account_users')
+          .insert({
+            user_id: user.id,
+            account_id: user.id,
+            role: 'owner'
+          });
+
+        if (insertError) {
+          console.error('🚨 Failed to create account_users entry:', insertError);
+          return NextResponse.json(
+            { error: 'Failed to initialize account relationship' },
+            { status: 500 }
+          );
+        }
+
+        console.log('✅ Successfully created account_users entry');
+        
+        // Now we can proceed with the account_user data
+        const reconstructedAccountUser = {
+          account_id: user.id,
+          role: 'owner' as const,
+          accounts: userAccount
+        };
+
+        // Continue with the rest of the logic using reconstructedAccountUser
+        return await processTeamMembers(supabase, supabaseAdmin, user, reconstructedAccountUser);
+      } else {
+        console.error('🚨 No account found for user:', userAccountError);
+        return NextResponse.json(
+          { error: 'Account not found' },
+          { status: 404 }
+        );
+      }
+    } else if (accountError || !accountUser) {
+      console.error('🚨 Error fetching account user:', accountError);
       return NextResponse.json(
         { error: 'Account not found' },
         { status: 404 }
       );
     }
 
+    console.log('🔍 accounts array:', accountUser?.accounts);
+
+    // Continue with normal processing
+    return await processTeamMembers(supabase, supabaseAdmin, user, accountUser);
+
+  } catch (error) {
+    console.error('Team members API error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+// Extract the team processing logic into a separate function
+async function processTeamMembers(supabase: any, supabaseAdmin: any, user: any, accountUser: any) {
+  try {
     // Get all team members for this account (without auth_users join)
     const { data: accountUsers, error: accountUsersError } = await supabase
       .from('account_users')
@@ -139,8 +212,8 @@ export async function GET(request: NextRequest) {
       console.error('Error getting user count:', countError);
     }
 
-    // Since accounts is an object, not an array, access it directly
-    const account = accountUser.accounts as any;
+    // Since accounts can be an object or array, handle both cases
+    const account = Array.isArray(accountUser.accounts) ? accountUser.accounts[0] : accountUser.accounts;
     
     const accountData = {
       id: account?.id,
@@ -164,7 +237,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Team members API error:', error);
+    console.error('processTeamMembers error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
