@@ -569,8 +569,11 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
                           onChange={(e) => setCircularLogo(e.target.checked)}
                           className="w-4 h-4 text-slate-blue border-gray-300 rounded focus:ring-slate-blue"
                         />
-                        <span className="text-sm font-medium text-gray-700">Display logo in circle</span>
+                        <span className="text-sm font-medium text-gray-700">Display logo in circle (matches prompt page)</span>
                       </label>
+                      <div className="text-xs text-gray-500 mt-1 ml-6">
+                        ✨ Logo will be centered and properly fitted, just like on your prompt page
+                      </div>
                     </div>
                     
                     {/* Logo Size Control */}
