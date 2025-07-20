@@ -127,17 +127,17 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
       
       if (embedFormat === 'png') {
         const pngFilename = getEmojiPngFilename(label);
-        return `<td style="text-align:center;vertical-align:top;"><a href="${url}" target="_blank" style="text-decoration:none;display:inline-block;text-align:center;"><img src="https://app.promptreviews.app/emojis/${pngFilename}.png" width="${emojiSizePx}" height="${emojiSizePx}" alt="${label}" style="display:block;margin:0 auto;border:none;"><span style="font-size:.75rem;color:#666;margin-top:.25rem;display:block;">${label}</span></a></td>`;
+        return `<td style="text-align:center;vertical-align:top;"><a href="${url}" target="_blank" style="text-decoration:none;display:inline-block;text-align:center;"><img src="https://app.promptreviews.app/emojis/${pngFilename}.png" width="${emojiSizePx}" height="${emojiSizePx}" alt="${label}" style="display:block;margin:0 auto;border:none;"><span style="font-size:.75rem;color:#666;margin-top:.5rem;display:block;">${label}</span></a></td>`;
       } else {
         const svgFilename = getEmojiPngFilename(label);
-        return `<td style="text-align:center;vertical-align:top;"><a href="${url}" target="_blank" style="text-decoration:none;display:inline-block;text-align:center;transition:transform 0.2s ease;cursor:pointer;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'"><img src="https://app.promptreviews.app/emojis/${svgFilename}.svg" width="${emojiSizePx}" height="${emojiSizePx}" alt="${label}" style="display:block;margin:0 auto;border:none;"><span style="font-size:.75rem;color:#666;margin-top:.25rem;display:block;">${label}</span></a></td>`;
+        return `<td style="text-align:center;vertical-align:top;"><a href="${url}" target="_blank" style="text-decoration:none;display:inline-block;text-align:center;transition:transform 0.2s ease;cursor:pointer;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'"><img src="https://app.promptreviews.app/emojis/${svgFilename}.svg" width="${emojiSizePx}" height="${emojiSizePx}" alt="${label}" style="display:block;margin:0 auto;border:none;"><span style="font-size:.75rem;color:#666;margin-top:.5rem;display:block;">${label}</span></a></td>`;
       }
     };
     
     if (showCard) {
       return `<!-- emoji review widget by Prompt Reviews promptreviews.app -->
 <div style="max-width:450px;margin:0.5rem auto;border-radius:0.5rem;border:1px solid #e5e7eb;background:#fff;padding:1rem;box-shadow:0 1px 3px rgba(0,0,0,0.1);position:relative;">
-  <div style="font-weight:bold;text-align:center;margin-bottom:1rem;font-size:${fontSize};color:${headerColor || '#374151'};">${question}</div>
+  <div style="font-weight:bold;text-align:center;margin-bottom:0.5rem;font-size:${fontSize};color:${headerColor || '#374151'};">${question}</div>
   <div style="text-align:center;padding:0.5rem 0.5rem 2rem 0.5rem;">
     <table style="margin:0 auto;border-collapse:separate;border-spacing:12px;">
       <tr>
@@ -150,7 +150,7 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
     } else {
       return `<!-- emoji review widget by Prompt Reviews promptreviews.app -->
 <div style="max-width:450px;margin:0.5rem auto;position:relative;">
-  <div style="font-weight:bold;text-align:center;margin-bottom:1rem;font-size:${fontSize};color:${headerColor || '#374151'};">${question}</div>
+  <div style="font-weight:bold;text-align:center;margin-bottom:0.5rem;font-size:${fontSize};color:${headerColor || '#374151'};">${question}</div>
   <div style="text-align:center;padding:0.5rem 0.5rem 2rem 0.5rem;">
     <table style="margin:0 auto;border-collapse:separate;border-spacing:12px;">
       <tr>

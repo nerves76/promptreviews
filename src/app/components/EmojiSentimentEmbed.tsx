@@ -88,7 +88,7 @@ const EmojiSentimentEmbed: React.FC<EmojiSentimentEmbedProps> = ({
                 className={iconConfig.color}
                 size={emojiSize}
               />
-              <span className="text-xs text-gray-600 mt-1">{link.label}</span>
+              <span className="text-xs text-gray-600 mt-2">{link.label}</span>
             </a>
           );
         })}
