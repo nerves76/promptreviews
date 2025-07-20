@@ -97,6 +97,12 @@ export default function ProductPromptPageForm({
   const [emojiFeedbackMessage, setEmojiFeedbackMessage] = useState(
     initialData?.emoji_feedback_message || "We value your feedback! Let us know how we can do better."
   );
+  const [emojiFeedbackPopupHeader, setEmojiFeedbackPopupHeader] = useState(
+    initialData?.emoji_feedback_popup_header || "How can we improve?"
+  );
+  const [emojiFeedbackPageHeader, setEmojiFeedbackPageHeader] = useState(
+    initialData?.emoji_feedback_page_header || "Your feedback helps us grow"
+  );
   const [emojiThankYouMessage, setEmojiThankYouMessage] = useState(
     initialData?.emoji_thank_you_message || "Thank you for your feedback. It's important to us."
   );
@@ -263,6 +269,8 @@ export default function ProductPromptPageForm({
         emojiSentimentEnabled,
         emojiSentimentQuestion,
         emojiFeedbackMessage,
+        emojiFeedbackPopupHeader,
+        emojiFeedbackPageHeader,
         emojiThankYouMessage,
         reviewPlatforms: formData.review_platforms || [],
         fallingEnabled,
@@ -442,6 +450,10 @@ export default function ProductPromptPageForm({
                   emojiThankYouMessage: val,
                 }))
               }
+              feedbackPopupHeader={emojiFeedbackPopupHeader}
+              onFeedbackPopupHeaderChange={setEmojiFeedbackPopupHeader}
+              feedbackPageHeader={emojiFeedbackPageHeader}
+              onFeedbackPageHeaderChange={setEmojiFeedbackPageHeader}
               slug={formData.slug}
               disabled={!!notePopupEnabled}
             />
