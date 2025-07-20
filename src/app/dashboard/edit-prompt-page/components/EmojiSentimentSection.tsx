@@ -127,8 +127,8 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
   };
 
   const generateEmbedHTML = () => {
-    const emojiSizePx = emojiSize === 'xs' ? '24px' : emojiSize === 'sm' ? '32px' : '48px';
-    const emojiSizeNum = emojiSize === 'xs' ? 24 : emojiSize === 'sm' ? 32 : 48;
+    const emojiSizePx = emojiSize === 'xs' ? '28px' : emojiSize === 'sm' ? '36px' : '48px';
+    const emojiSizeNum = emojiSize === 'xs' ? 28 : emojiSize === 'sm' ? 36 : 48;
     const fontSize = headerSize === 'sm' ? '1rem' : headerSize === 'md' ? '1.25rem' : '1.5rem';
     
     const brandingButton = embedFormat === 'png' 
@@ -433,7 +433,7 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
                   url,
                 };
               })}
-              emojiSize={emojiSize === 'xs' ? 24 : emojiSize === 'sm' ? 32 : 48}
+              emojiSize={emojiSize === 'xs' ? 28 : emojiSize === 'sm' ? 36 : 48}
               headerSize={headerSize}
               showCard={showCard}
               embedFormat={embedFormat}
