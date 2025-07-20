@@ -10,6 +10,7 @@
  * - Multiple frame sizes with dotted cutout lines for small sizes
  * - High DPI canvas generation for print quality
  * - Decorative falling stars/icons scattered around the QR code
+ * - PDF generation with proper print dimensions and cut-out lines
  * 
  * Usage:
  * - Parent components pass headline, colors, and showStars props
@@ -23,6 +24,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import QRCode from "qrcode";
 import React from "react";
 import { FALLING_STARS_ICONS, getFallingIcon } from "../../components/prompt-modules/fallingStarsConfig";
+import jsPDF from 'jspdf';
 
 export const QR_FRAME_SIZES = [
   { label: '4x6" (postcard)', width: 1200, height: 1800 },
@@ -735,42 +737,138 @@ export default function QRCodeGenerator({
   const downloadQRCode = useCallback(async () => {
     if (!canvasRef.current) return;
     
-    // Generate a new canvas with dotted lines for download
-    const downloadCanvas = document.createElement('canvas');
-    const downloadCtx = downloadCanvas.getContext('2d');
-    if (!downloadCtx) return;
-    
-    // Copy the current canvas
-    downloadCanvas.width = canvasRef.current.width;
-    downloadCanvas.height = canvasRef.current.height;
-    downloadCtx.drawImage(canvasRef.current, 0, 0);
-    
-    // Add dotted cutout line for small sizes on the download version
-    const scale = 2; // Match the scale used in generateQRCode
-    downloadCtx.scale(1/scale, 1/scale); // Adjust for the scale
-    downloadCtx.scale(scale, scale); // Re-apply scale for drawing
-    
-    const smallSizes = ['4x6"', '5x7"', '5x8"'];
-    if (smallSizes.includes(frameSize.label)) {
-      downloadCtx.strokeStyle = '#CCCCCC';
-      downloadCtx.lineWidth = 1;
-      downloadCtx.setLineDash([5, 5]);
-      downloadCtx.strokeRect(10, 10, frameSize.width - 20, frameSize.height - 20);
-      downloadCtx.setLineDash([]);
-    }
-    
-    // Create blob from the download canvas with dotted lines
-    downloadCanvas.toBlob((blob) => {
-      if (blob) {
-        if (onDownload) onDownload(blob);
-        const link = document.createElement("a");
-        link.download = `review-qr-${clientName.toLowerCase().replace(/\s+/g, "-")}-${frameSize.label.replace(/[^a-z0-9]/gi, "-")}.png`;
-        link.href = URL.createObjectURL(blob);
-        link.click();
-        setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+    try {
+      // Convert frame size from pixels at 300 DPI to inches
+      const dpi = 300;
+      const widthInches = frameSize.width / dpi;
+      const heightInches = frameSize.height / dpi;
+      
+      // Create PDF with proper dimensions
+      const orientation = widthInches > heightInches ? 'landscape' : 'portrait';
+      const pdf = new jsPDF({
+        orientation,
+        unit: 'in',
+        format: [widthInches, heightInches]
+      });
+      
+      // Generate high-quality canvas for PDF
+      const pdfCanvas = document.createElement('canvas');
+      const pdfCtx = pdfCanvas.getContext('2d');
+      if (!pdfCtx) return;
+      
+      // Use higher resolution for PDF (600 DPI for crisp printing)
+      const pdfDpi = 600;
+      const pdfScale = pdfDpi / 300; // Scale factor from our 300 DPI canvas
+      pdfCanvas.width = frameSize.width * pdfScale;
+      pdfCanvas.height = frameSize.height * pdfScale;
+      pdfCtx.scale(pdfScale, pdfScale);
+      
+      // Copy the original canvas content
+      pdfCtx.drawImage(canvasRef.current, 0, 0, frameSize.width, frameSize.height);
+      
+      // Determine if this size needs cut-out lines
+      const sizesNeedingCutLines = [
+        '4x6"', '5x7"', '5x8"', '3.5x2"', '2x3"', '3x3"', 
+        '4x4"', '2.5x1.5"', '6x2"', 'business card', 'sticker', 
+        'badge', 'tent', 'cling'
+      ];
+      
+      const needsCutLines = sizesNeedingCutLines.some(size => 
+        frameSize.label.toLowerCase().includes(size.toLowerCase()) ||
+        frameSize.width <= 1800 || // 6 inches at 300 DPI
+        frameSize.height <= 1800
+      );
+      
+      // Add cut-out lines if needed
+      if (needsCutLines) {
+        pdfCtx.save();
+        pdfCtx.strokeStyle = '#CCCCCC';
+        pdfCtx.lineWidth = 2; // Slightly thicker for PDF
+        pdfCtx.setLineDash([8, 8]); // Longer dashes for better visibility in PDF
+        
+        // Add cut lines with proper margin (1/8 inch = 37.5 pixels at 300 DPI)
+        const margin = 37.5;
+        pdfCtx.strokeRect(margin, margin, frameSize.width - (margin * 2), frameSize.height - (margin * 2));
+        
+        // Add corner marks for precise cutting
+        const cornerLength = 20;
+        pdfCtx.setLineDash([]); // Solid lines for corner marks
+        pdfCtx.lineWidth = 1;
+        
+        // Top-left corner
+        pdfCtx.beginPath();
+        pdfCtx.moveTo(margin - cornerLength, margin);
+        pdfCtx.lineTo(margin + cornerLength, margin);
+        pdfCtx.moveTo(margin, margin - cornerLength);
+        pdfCtx.lineTo(margin, margin + cornerLength);
+        pdfCtx.stroke();
+        
+        // Top-right corner
+        pdfCtx.beginPath();
+        pdfCtx.moveTo(frameSize.width - margin - cornerLength, margin);
+        pdfCtx.lineTo(frameSize.width - margin + cornerLength, margin);
+        pdfCtx.moveTo(frameSize.width - margin, margin - cornerLength);
+        pdfCtx.lineTo(frameSize.width - margin, margin + cornerLength);
+        pdfCtx.stroke();
+        
+        // Bottom-left corner
+        pdfCtx.beginPath();
+        pdfCtx.moveTo(margin - cornerLength, frameSize.height - margin);
+        pdfCtx.lineTo(margin + cornerLength, frameSize.height - margin);
+        pdfCtx.moveTo(margin, frameSize.height - margin - cornerLength);
+        pdfCtx.lineTo(margin, frameSize.height - margin + cornerLength);
+        pdfCtx.stroke();
+        
+        // Bottom-right corner
+        pdfCtx.beginPath();
+        pdfCtx.moveTo(frameSize.width - margin - cornerLength, frameSize.height - margin);
+        pdfCtx.lineTo(frameSize.width - margin + cornerLength, frameSize.height - margin);
+        pdfCtx.moveTo(frameSize.width - margin, frameSize.height - margin - cornerLength);
+        pdfCtx.lineTo(frameSize.width - margin, frameSize.height - margin + cornerLength);
+        pdfCtx.stroke();
+        
+        pdfCtx.restore();
       }
-    }, "image/png");
-  }, [canvasRef, onDownload, clientName, frameSize.label]);
+      
+      // Convert canvas to image and add to PDF
+      const imgData = pdfCanvas.toDataURL('image/jpeg', 0.95);
+      pdf.addImage(imgData, 'JPEG', 0, 0, widthInches, heightInches);
+      
+      // Generate PDF blob
+      const pdfBlob = pdf.output('blob');
+      
+      // Trigger download
+      if (onDownload) onDownload(pdfBlob);
+      
+      const link = document.createElement("a");
+      link.download = `review-qr-${clientName.toLowerCase().replace(/\s+/g, "-")}-${frameSize.label.replace(/[^a-z0-9]/gi, "-")}.pdf`;
+      link.href = URL.createObjectURL(pdfBlob);
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+      
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      // Fallback to PNG if PDF generation fails
+      const downloadCanvas = document.createElement('canvas');
+      const downloadCtx = downloadCanvas.getContext('2d');
+      if (!downloadCtx) return;
+      
+      downloadCanvas.width = canvasRef.current.width;
+      downloadCanvas.height = canvasRef.current.height;
+      downloadCtx.drawImage(canvasRef.current, 0, 0);
+      
+      downloadCanvas.toBlob((blob) => {
+        if (blob) {
+          if (onDownload) onDownload(blob);
+          const link = document.createElement("a");
+          link.download = `review-qr-${clientName.toLowerCase().replace(/\s+/g, "-")}-${frameSize.label.replace(/[^a-z0-9]/gi, "-")}.png`;
+          link.href = URL.createObjectURL(blob);
+          link.click();
+          setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+        }
+      }, "image/png");
+    }
+  }, [canvasRef, onDownload, clientName, frameSize.label, frameSize.width, frameSize.height]);
 
   // Generate QR code when component mounts or props change
   useEffect(() => {

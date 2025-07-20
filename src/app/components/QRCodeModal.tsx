@@ -599,12 +599,17 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
                 {/* Print Note */}
                 <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded-md">
                   <p className="font-medium mb-1">Printing Tips:</p>
-                  <p>• Select your desired frame size above</p>
-                  <p>• Print at 300 DPI for best quality</p>
-                  {['4x6"', '5x7"', '5x8"'].includes(selectedFrameSize.label) && (
-                    <p>• Cut along the dotted line for perfect fit</p>
+                  <p>• PDFs are generated at 600 DPI for crisp, professional printing</p>
+                  <p>• Each size is formatted to exact print dimensions</p>
+                  {(selectedFrameSize.label.includes('business card') || 
+                    selectedFrameSize.label.includes('sticker') ||
+                    selectedFrameSize.label.includes('badge') ||
+                    selectedFrameSize.width <= 1800 || 
+                    selectedFrameSize.height <= 1800) && (
+                    <p>• <strong>Cut along the dotted lines and corner marks for perfect fit</strong></p>
                   )}
-                  <p>• Trim to size as needed for your display</p>
+                  <p>• Print on quality paper or cardstock for best results</p>
+                  <p>• No scaling needed - print at 100% size</p>
                 </div>
               </>
             )}
