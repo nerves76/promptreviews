@@ -15,6 +15,7 @@ export interface PromptPage {
   last_name?: string;
   is_universal: boolean;
   review_type?: string;
+  nfc_text_enabled?: boolean;
 }
 
 interface PromptPagesTableProps {
