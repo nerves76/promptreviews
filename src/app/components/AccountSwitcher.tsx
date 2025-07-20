@@ -7,6 +7,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useAccountSelection } from '@/utils/accountSelectionHooks';
 import { type UserAccount } from '@/utils/accountSelection';
 
@@ -22,6 +23,7 @@ export function AccountSwitcher() {
 
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -79,6 +81,7 @@ export function AccountSwitcher() {
     <div className="relative" ref={dropdownRef}>
       {/* Current Account Button */}
       <button
+        ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 transition-colors"
         aria-label="Switch account"
@@ -110,9 +113,17 @@ export function AccountSwitcher() {
         </svg>
       </button>
 
-      {/* Dropdown Menu */}
-      {isOpen && (
-        <div className="absolute top-full left-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden" style={{ zIndex: 2147483647 }}>
+      {/* Dropdown Menu - Rendered in Portal */}
+      {isOpen && typeof window !== 'undefined' && createPortal(
+        <div
+          ref={dropdownRef}
+          className="fixed w-80 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden"
+          style={{
+            zIndex: 2147483648, // One higher than other header elements
+            top: buttonRef.current ? buttonRef.current.getBoundingClientRect().bottom + 8 : 0,
+            left: buttonRef.current ? buttonRef.current.getBoundingClientRect().left : 0,
+          }}
+        >
           {/* Header */}
           <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
             <h3 className="text-sm font-medium text-gray-900">Switch Account</h3>
@@ -193,7 +204,8 @@ export function AccountSwitcher() {
               you'll be able to switch to their account here to help them debug issues.
             </p>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
