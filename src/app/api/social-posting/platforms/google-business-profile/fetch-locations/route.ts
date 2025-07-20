@@ -38,6 +38,15 @@ export async function POST(request: NextRequest) {
 
     console.log('🔍 Fetch-locations API called');
 
+    // Create service role client for accessing OAuth tokens (bypasses RLS)
+    const serviceSupabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        cookies: {},
+      }
+    );
+
     // Demo mode to bypass Google's extreme rate limits during development
     const isDemoMode = process.env.NODE_ENV === 'development';
     
@@ -89,25 +98,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Production mode: Use real Google API calls
-
-    // Create service role client for accessing OAuth tokens (bypasses RLS)
-    const serviceSupabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      {
-        cookies: {
-          get: (name) => {
-            return cookieStore.get(name)?.value;
-          },
-          set: (name, value, options) => {
-            cookieStore.set({ name, value, ...options });
-          },
-          remove: (name, options) => {
-            cookieStore.set({ name, value: '', ...options });
-          },
-        },
-      }
-    );
 
     // Check global rate limit status before making any API calls
     // Google Business Profile API allows only 1 request per minute per project
