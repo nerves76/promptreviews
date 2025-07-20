@@ -11,6 +11,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { PlusIcon, XMarkIcon, UserIcon, EnvelopeIcon, ClockIcon, QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAccountSelection } from '@/utils/accountSelectionHooks';
 import FiveStarSpinner from '@/app/components/FiveStarSpinner';
 import { createClient } from '@/utils/supabaseClient';
 
@@ -56,6 +57,7 @@ interface TeamData {
 export default function TeamPage() {
   const router = useRouter();
   const { user, isAdminUser, isLoading: authLoading } = useAuth();
+  const { selectedAccount, loading: accountLoading } = useAccountSelection();
   const [teamData, setTeamData] = useState<TeamData | null>(null);
   const [loading, setLoading] = useState(true);
   const [inviteEmail, setInviteEmail] = useState('');
@@ -73,12 +75,22 @@ export default function TeamPage() {
   const getAuthHeaders = async () => {
     const supabase = createClient();
     const { data: { session } } = await supabase.auth.getSession();
+    
+    console.log('🔐 Team Page - Getting auth headers:', {
+      hasSession: !!session,
+      userId: session?.user?.id,
+      hasAccessToken: !!session?.access_token,
+      tokenLength: session?.access_token?.length
+    });
+    
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
     
     if (session?.access_token) {
       headers['Authorization'] = `Bearer ${session.access_token}`;
+    } else {
+      console.error('❌ Team Page - No access token available for API calls');
     }
     
     return headers;
@@ -100,8 +112,15 @@ export default function TeamPage() {
 
   // Fetch team data - wrapped in useCallback to prevent infinite re-renders
   const fetchTeamData = useCallback(async () => {
+    console.log('🔄 Team Page - fetchTeamData called:', {
+      userAuthenticated: !!user?.id,
+      authLoading,
+      alreadyFetching: fetchingRef.current
+    });
+    
     // Prevent multiple simultaneous calls
     if (fetchingRef.current) {
+      console.log('⏸️ Team Page - Already fetching, skipping');
       return;
     }
     
@@ -146,15 +165,24 @@ export default function TeamPage() {
   useEffect(() => {
     let isMounted = true;
     
-    // Only fetch team data if user is authenticated and not already loading
-    if (user?.id && !authLoading && !fetchingRef.current) {
+    console.log('🔄 Team Page - useEffect triggered:', {
+      userAuthenticated: !!user?.id,
+      authLoading,
+      accountLoading,
+      selectedAccountId: selectedAccount?.account_id,
+      alreadyFetching: fetchingRef.current
+    });
+    
+    // Only fetch team data if user is authenticated, account is selected, and not already loading
+    if (user?.id && !authLoading && !accountLoading && selectedAccount?.account_id && !fetchingRef.current) {
+      console.log('✅ Team Page - Conditions met, fetching team data for account:', selectedAccount.account_id);
       fetchTeamData().catch(console.error);
     }
     
     return () => {
       isMounted = false;
     };
-  }, [user?.id, authLoading]); // Removed fetchTeamData from dependencies to prevent re-renders
+  }, [user?.id, authLoading, accountLoading, selectedAccount?.account_id]); // Added account selection dependencies
 
   // Send invitation
   const sendInvitation = async (e: React.FormEvent) => {
