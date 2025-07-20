@@ -342,7 +342,7 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
       {showEmbed && (
         <div className="border border-blue-200 rounded-xl p-6 bg-blue-50 mb-6">
           <div className="mb-4">
-            <h3 className="text-lg font-semibold text-slate-blue mb-2">
+            <h3 className="text-xl font-semibold text-slate-blue mb-2">
               Add Emoji Sentiment Flow to your website or newsletter
             </h3>
             <p className="text-sm text-gray-600">
