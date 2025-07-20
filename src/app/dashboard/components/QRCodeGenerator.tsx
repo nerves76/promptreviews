@@ -893,7 +893,6 @@ export default function QRCodeGenerator({
       if (needsCutLines) {
         pdf.setDrawColor(200, 200, 200); // Light gray
         pdf.setLineWidth(0.01); // Thin line
-        pdf.setLineDashPattern([0.1, 0.1], 0); // Dashed line pattern
         
         // Draw rectangle around the QR code with small margin
         const cutMargin = 0.125; // 1/8 inch margin
@@ -904,8 +903,20 @@ export default function QRCodeGenerator({
           heightInches + (cutMargin * 2)
         );
         
-        // Reset line style for text
-        pdf.setLineDashPattern([], 0);
+        // Add corner marks for precise cutting
+        const markLength = 0.1; // Small corner marks
+        const corners = [
+          [centerX - cutMargin, centerY - cutMargin], // Top left
+          [centerX + widthInches + cutMargin, centerY - cutMargin], // Top right
+          [centerX - cutMargin, centerY + heightInches + cutMargin], // Bottom left
+          [centerX + widthInches + cutMargin, centerY + heightInches + cutMargin] // Bottom right
+        ];
+        
+        corners.forEach(([x, y]) => {
+          // Draw small L-shaped corner marks
+          pdf.line(x - markLength, y, x + markLength, y); // Horizontal line
+          pdf.line(x, y - markLength, x, y + markLength); // Vertical line
+        });
       }
       
       // Add size indicator text at bottom of page
