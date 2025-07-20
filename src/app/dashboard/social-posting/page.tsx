@@ -147,6 +147,19 @@ export default function SocialPostingDashboard() {
     }
   }, [rateLimitCountdown, hasRateLimitError]);
 
+  // Handle rate limit for fetch locations button
+  useEffect(() => {
+    if (rateLimitedUntil && Date.now() < rateLimitedUntil) {
+      const checkInterval = setInterval(() => {
+        if (Date.now() >= rateLimitedUntil) {
+          setRateLimitedUntil(null);
+        }
+      }, 1000); // Check every second
+      
+      return () => clearInterval(checkInterval);
+    }
+  }, [rateLimitedUntil]);
+
   const loadPlatforms = async () => {
     console.log('Loading platforms...');
     
@@ -288,18 +301,37 @@ export default function SocialPostingDashboard() {
       return;
     }
 
+    // Warn user about the wait time
+    const confirmed = confirm(
+      'Fetching business locations requires multiple API calls to Google Business Profile. ' +
+      'Due to Google\'s strict rate limits (1 request per minute per Google Cloud project), this process will take at least 1-2 minutes. ' +
+      'The system will automatically wait between API calls to avoid rate limit errors. ' +
+      'Please keep this tab open and wait for completion. Continue?'
+    );
+    
+    if (!confirmed) return;
+
     setFetchingLocations(platformId);
     
     try {
+      // Increase timeout to 5 minutes to account for rate limiting delays
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5 * 60 * 1000); // 5 minutes
+      
       const response = await fetch(`/api/social-posting/platforms/${platformId}/fetch-locations`, {
         method: 'POST',
+        signal: controller.signal,
       });
+      
+      clearTimeout(timeoutId);
 
       if (response.status === 429) {
-        // Rate limited - set a 5 minute cooldown
-        const cooldownTime = Date.now() + (5 * 60 * 1000); // 5 minutes
+        const result = await response.json();
+        const retryAfter = result.retryAfter || 60; // Default to 60 seconds
+        const cooldownTime = Date.now() + (retryAfter * 1000);
         setRateLimitedUntil(cooldownTime);
-        alert('Google Business Profile API rate limit exceeded. The API allows only 1 request per minute. Please wait 5 minutes before trying again, or consider creating a new Google Cloud project for fresh quota.');
+        
+        alert(`Google Business Profile API rate limit exceeded. ${result.message || 'Please wait before trying again.'}`);
         return;
       }
 
@@ -309,17 +341,23 @@ export default function SocialPostingDashboard() {
       }
 
       const result = await response.json();
-      console.log(`✅ Fetched ${result.count || 0} business locations`);
+      console.log(`✅ Fetched ${result.locations?.length || 0} business locations`);
+      
+      // Show success message with demo mode indicator
+      const demoNote = result.isDemoMode ? ' (Demo Mode - Using test data due to Google rate limits)' : '';
+      alert(`Successfully fetched ${result.locations?.length || 0} business locations!${demoNote}`);
       
       // Refresh platforms to show new locations
       await loadPlatforms();
     } catch (error) {
       console.error('Error fetching locations:', error);
-      if (error instanceof Error && error.message.includes('rate limit')) {
-        // Rate limited - set a 5 minute cooldown
-        const cooldownTime = Date.now() + (5 * 60 * 1000);
+      if (error instanceof Error && error.name === 'AbortError') {
+        alert('Request timed out. The process may still be running in the background. Please wait a few minutes and refresh the page to check if locations were fetched.');
+             } else if (error instanceof Error && error.message.includes('rate limit')) {
+        // Rate limited - set a 2 minute cooldown
+        const cooldownTime = Date.now() + (120 * 1000); // 2 minutes
         setRateLimitedUntil(cooldownTime);
-        alert('Google Business Profile API rate limit exceeded. Please wait 5 minutes before trying again.');
+        alert('Google Business Profile API quota exhausted. Please wait 2 minutes before trying again, or request higher quota limits in Google Cloud Console.');
       } else {
         alert('Failed to fetch business locations. Please try again.');
       }
@@ -363,9 +401,11 @@ export default function SocialPostingDashboard() {
       console.log('📊 Post response:', result);
 
       if (result.success) {
+        const gbpResult = result.data?.publishResults?.['google-business-profile'];
+        const demoNote = result.data?.isDemoMode ? ' (Demo Mode)' : '';
         setPostResult({ 
           success: true, 
-          message: result.data?.publishResults?.['google-business-profile']?.message || 'Post published successfully to Google Business Profile!' 
+          message: (gbpResult?.message || 'Post published successfully to Google Business Profile!') + demoNote
         });
         setPostContent(''); // Clear content on success
       } else {
@@ -556,7 +596,7 @@ export default function SocialPostingDashboard() {
                             {fetchingLocations === 'google-business-profile' ? (
                               <div className="flex items-center space-x-2">
                                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                <span>Fetching...</span>
+                                <span>Fetching (1-2 min)...</span>
                               </div>
                             ) : Boolean(rateLimitedUntil && Date.now() < rateLimitedUntil) ? (
                               `Rate limited (${rateLimitedUntil ? Math.ceil((rateLimitedUntil - Date.now()) / 1000) : 0}s)`
