@@ -72,6 +72,50 @@ function SignUpContent() {
     "Unexpected error": "Something went wrong. Please try again.",
   };
 
+  // Test function to help debug duplicate email behavior
+  const testDuplicateEmailBehavior = async (testEmail: string) => {
+    console.log('🧪 Testing duplicate email behavior for:', testEmail);
+    
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: testEmail,
+        password: 'test123456',
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          data: {
+            first_name: 'Test',
+            last_name: 'User',
+          },
+        },
+      });
+
+      console.log('🧪 Test result:', {
+        hasError: !!error,
+        errorMessage: error?.message,
+        errorStatus: error?.status,
+        hasUser: !!data?.user,
+        userEmail: data?.user?.email,
+        userIdentities: data?.user?.identities?.length || 0,
+        hasSession: !!data?.session,
+        fullData: data,
+        fullError: error
+      });
+
+      return { data, error };
+    } catch (err) {
+      console.log('🧪 Test caught exception:', err);
+      return { error: err };
+    }
+  };
+
+  // Expose test function to window for manual testing in browser console
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      (window as any).testDuplicateEmail = testDuplicateEmailBehavior;
+      console.log('🧪 Test function exposed: window.testDuplicateEmail("test@example.com")');
+    }
+  }, []);
+
   // Account creation is now handled automatically by Phase 1 database triggers
   // No manual createAccount function needed anymore
 
@@ -186,12 +230,20 @@ function SignUpContent() {
 
       if (error) {
         console.error('❌ Sign-up error:', error);
+        console.error('❌ Error details:', {
+          message: error.message,
+          status: error.status,
+          name: error.name
+        });
         
-        // Enhanced error handling for Chrome
+        // Enhanced error handling with better duplicate email detection
         let errorMessage = error.message;
         
-        // Map specific error messages
-        if (error.message.includes('User already registered')) {
+        // Map specific error messages - check multiple variations
+        if (error.message.includes('User already registered') || 
+            error.message.includes('already registered') ||
+            error.message.includes('email address is already taken') ||
+            error.message.includes('already exists')) {
           errorMessage = errorMessages["User already registered"];
         } else if (error.message.includes('Password should be at least 6 characters')) {
           errorMessage = errorMessages["Password should be at least 6 characters"];
@@ -205,7 +257,25 @@ function SignUpContent() {
         setLoading(false);
         return;
       } else if (data.user) {
-        console.log('✅ User created successfully:', data.user.id);
+        console.log('✅ User data received:', {
+          userId: data.user.id,
+          email: data.user.email,
+          emailConfirmed: data.user.email_confirmed_at,
+          identities: data.user.identities?.length || 0,
+          metadata: data.user.user_metadata
+        });
+        
+        // Enhanced duplicate email detection for when email confirmations are enabled
+        // Supabase might return a user object but with obfuscated data for existing users
+        if (data.user.identities?.length === 0 || 
+            !data.user.identities ||
+            (data.user.email !== email.toLowerCase())) {
+          console.log('⚠️ Possible duplicate email detected - user object looks obfuscated');
+          setError(errorMessages["User already registered"]);
+          setLoading(false);
+          return;
+        }
+        
         console.log('📧 User email confirmed:', data.user.email_confirmed_at);
         console.log('📧 User metadata:', data.user.user_metadata);
         console.log('🔧 Phase 1 triggers will handle account creation automatically when email is confirmed');
@@ -225,7 +295,16 @@ function SignUpContent() {
         }
       } else {
         console.log('⚠️ No user data returned from sign-up');
-        setError('Sign-up completed but no user data returned. Please check your email for confirmation.');
+        console.log('🔍 Full response data:', data);
+        
+        // This could indicate a duplicate email with email confirmations enabled
+        // When confirmations are enabled and email exists, Supabase might return success with no user
+        if (!data.user && !error) {
+          console.log('⚠️ No user or error returned - possible duplicate email');
+          setError(errorMessages["User already registered"]);
+        } else {
+          setError('Sign-up completed but no user data returned. Please check your email for confirmation.');
+        }
       }
     } catch (err) {
       console.error("❌ Unexpected error:", err);
