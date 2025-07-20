@@ -146,7 +146,7 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
       
       if (embedFormat === 'png') {
         const pngFilename = getEmojiPngFilename(label);
-        return `<td style="text-align:center;vertical-align:top;"><a href="${url}" target="_blank" style="text-decoration:none;display:inline-block;text-align:center;"><img src="https://app.promptreviews.app/emojis/${pngFilename}-${emojiSizeNum}.png" width="${emojiSizePx}" height="${emojiSizePx}" alt="${label}" style="display:block;margin:0 auto;border:none;"><span style="font-size:.75rem;color:#666;margin-top:.25rem;display:block;">${label}</span></a></td>`;
+        return `<td style="text-align:center;vertical-align:top;"><a href="${url}" target="_blank" style="text-decoration:none;display:inline-block;text-align:center;"><img src="https://app.promptreviews.app/emojis/${pngFilename}.png" width="${emojiSizePx}" height="${emojiSizePx}" alt="${label}" style="display:block;margin:0 auto;border:none;"><span style="font-size:.75rem;color:#666;margin-top:.25rem;display:block;">${label}</span></a></td>`;
       } else {
         const iconColors = ['#f472b6', '#22c55e', '#9ca3af', '#f97316', '#ef4444'];
         const svgPath = getFontAwesomeSVGPath(label);
