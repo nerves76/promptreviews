@@ -190,7 +190,7 @@ async function processTeamMembers(supabase: any, supabaseAdmin: any, user: any, 
     });
 
     // Merge account_users with auth user details
-    const members = accountUsers.map(accountUserEntry => {
+    const members = accountUsers.map((accountUserEntry: any) => {
       const authUser = authUserMap.get(accountUserEntry.user_id);
       return {
         user_id: accountUserEntry.user_id,
