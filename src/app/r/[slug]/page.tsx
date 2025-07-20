@@ -2278,12 +2278,10 @@ export default function PromptPage() {
       
       {/* Style Modal */}
       {showStyleModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <StyleModalPage 
-            onClose={() => setShowStyleModal(false)} 
-            onStyleUpdate={handleStyleUpdate}
-          />
-        </div>
+        <StyleModalPage 
+          onClose={() => setShowStyleModal(false)} 
+          onStyleUpdate={handleStyleUpdate}
+        />
       )}
     </div>
   );
