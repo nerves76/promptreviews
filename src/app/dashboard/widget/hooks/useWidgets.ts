@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/utils/supabaseClient";
+import { useAccountSelection } from "@/utils/accountSelectionHooks";
 
 const supabase = createClient();
 import { trackWidgetCreated } from "../../../../utils/analytics";
@@ -16,37 +17,48 @@ export interface Widget {
 }
 
 export function useWidgets() {
+  const { selectedAccount, loading: accountLoading } = useAccountSelection();
   const [widgets, setWidgets] = useState<Widget[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Debug logging for account selection
+  console.log('🎨 useWidgets - Account Selection State:', {
+    selectedAccount,
+    accountLoading,
+    selectedAccountId: selectedAccount?.account_id,
+    selectedAccountName: selectedAccount?.account_name
+  });
 
   const fetchWidgets = useCallback(async () => {
-    console.log('🔄 useWidgets: Starting fetchWidgets');
+    console.log('🔄 useWidgets: Starting fetchWidgets', {
+      accountLoading,
+      selectedAccountId: selectedAccount?.account_id
+    });
+    
+    // Wait for account selection to complete
+    if (accountLoading || !selectedAccount?.account_id) {
+      console.log('⏸️ useWidgets: Waiting for account selection to complete');
+      return;
+    }
+    
     setLoading(true);
     
     try {
-      // Get the current session token for authentication
-      const { data: { session } } = await supabase.auth.getSession();
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
+      console.log('✅ useWidgets: Fetching widgets for account:', selectedAccount.account_id);
       
-      // Add authorization header if we have a session
-      if (session?.access_token) {
-        headers['Authorization'] = `Bearer ${session.access_token}`;
+      // Fetch widgets directly from database using selected account ID
+      const { data: widgetsData, error: fetchError } = await supabase
+        .from('widgets')
+        .select('*')
+        .eq('account_id', selectedAccount.account_id)
+        .order('created_at', { ascending: false });
+      
+      if (fetchError) {
+        throw new Error(`Failed to fetch widgets: ${fetchError.message}`);
       }
       
-      const response = await fetch('/api/widgets', {
-        headers
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch widgets: ${response.status}`);
-      }
-      
-      const widgetsData = await response.json();
-      console.log('✅ useWidgets: Widgets fetched successfully:', widgetsData);
-      
+      console.log('🎨 useWidgets: Widgets fetched successfully:', widgetsData?.length || 0);
       setWidgets(widgetsData || []);
       setError(null);
     } catch (err) {
@@ -56,36 +68,39 @@ export function useWidgets() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [accountLoading, selectedAccount?.account_id]);
 
   useEffect(() => {
     fetchWidgets();
   }, [fetchWidgets]);
   
   const createWidget = async (name: string, widgetType: string, theme: any) => {
+    if (!selectedAccount?.account_id) {
+      throw new Error('No account selected');
+    }
+    
     try {
-      // Get the current session token for authentication
-      const { data: { session } } = await supabase.auth.getSession();
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
+      console.log('🎨 useWidgets: Creating widget for account:', selectedAccount.account_id);
+      
+      // Create widget directly in database using selected account ID
+      const widgetData = {
+        account_id: selectedAccount.account_id,
+        name: name.trim(),
+        type: widgetType,
+        theme: theme || {},
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       };
-      
-      // Add authorization header if we have a session
-      if (session?.access_token) {
-        headers['Authorization'] = `Bearer ${session.access_token}`;
+
+      const { data, error: createError } = await supabase
+        .from('widgets')
+        .insert(widgetData)
+        .select()
+        .single();
+
+      if (createError) {
+        throw new Error(`Failed to create widget: ${createError.message}`);
       }
-      
-      const response = await fetch('/api/widgets', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ name, type: widgetType, theme })
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Failed to create widget: ${response.status}`);
-      }
-      
-      const data = await response.json();
       
       // Track widget creation
       const { data: { user } } = await supabase.auth.getUser();
@@ -103,28 +118,23 @@ export function useWidgets() {
 
   const updateWidget = async (widgetId: string, updates: Partial<Widget>) => {
     try {
-      // Get the current session token for authentication
-      const { data: { session } } = await supabase.auth.getSession();
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
+      console.log('🎨 useWidgets: Updating widget:', widgetId, updates);
       
-      // Add authorization header if we have a session
-      if (session?.access_token) {
-        headers['Authorization'] = `Bearer ${session.access_token}`;
+      // Update widget directly in database
+      const { data, error: updateError } = await supabase
+        .from('widgets')
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', widgetId)
+        .select()
+        .single();
+      
+      if (updateError) {
+        throw new Error(`Failed to update widget: ${updateError.message}`);
       }
       
-      const response = await fetch(`/api/widgets/${widgetId}`, {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify(updates)
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Failed to update widget: ${response.status}`);
-      }
-      
-      const data = await response.json();
       fetchWidgets(); // Refresh after updating
       return data;
     } catch (err) {
@@ -135,24 +145,16 @@ export function useWidgets() {
 
   const deleteWidget = async (widgetId: string) => {
     try {
-      // Get the current session token for authentication
-      const { data: { session } } = await supabase.auth.getSession();
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
+      console.log('🎨 useWidgets: Deleting widget:', widgetId);
       
-      // Add authorization header if we have a session
-      if (session?.access_token) {
-        headers['Authorization'] = `Bearer ${session.access_token}`;
-      }
+      // Delete widget directly from database
+      const { error: deleteError } = await supabase
+        .from('widgets')
+        .delete()
+        .eq('id', widgetId);
       
-      const response = await fetch(`/api/widgets/${widgetId}`, {
-        method: 'DELETE',
-        headers
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Failed to delete widget: ${response.status}`);
+      if (deleteError) {
+        throw new Error(`Failed to delete widget: ${deleteError.message}`);
       }
       
       fetchWidgets(); // Refresh after deleting
