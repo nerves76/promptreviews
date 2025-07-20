@@ -16,6 +16,7 @@ import {
 import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
 import EmojiSentimentEmbed from "@/app/components/EmojiSentimentEmbed";
+import { FaEnvelope, FaGlobe } from "react-icons/fa";
 
 interface EmojiSentimentSectionProps {
   enabled: boolean;
@@ -130,10 +131,15 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
     const emojiSizeNum = emojiSize === 'xs' ? 24 : emojiSize === 'sm' ? 32 : 48;
     const fontSize = headerSize === 'sm' ? '1rem' : headerSize === 'md' ? '1.25rem' : '1.5rem';
     
-    const brandingButton = `
-    <div style="position:absolute;bottom:16px;right:8px;">
-      <a href="https://promptreviews.app" target="_blank" style="width:24px;height:20px;font-size:10px;font-family:monospace;border-radius:4px;display:flex;align-items:center;justify-content:center;border:1px solid #d1d5db;background-color:#f8fafc;color:#2E4A7D;line-height:1;text-decoration:none;" title="Powered by Prompt Reviews - Make writing reviews quick and easy with AI">[P]</a>
-    </div>`;
+    const brandingButton = embedFormat === 'png' 
+      ? `<div style="position:absolute;bottom:16px;right:8px;">
+           <a href="https://promptreviews.app" target="_blank" title="Powered by Prompt Reviews - Make writing reviews quick and easy with AI">
+             <img src="https://promptreviews.app/emojis/promptreviews-logo.png" width="24" height="20" alt="Prompt Reviews" style="display:block;border:none;">
+           </a>
+         </div>`
+      : `<div style="position:absolute;bottom:16px;right:8px;">
+           <a href="https://promptreviews.app" target="_blank" style="width:24px;height:20px;font-size:10px;font-family:monospace;border-radius:4px;display:flex;align-items:center;justify-content:center;border:1px solid #d1d5db;background-color:#f8fafc;color:#2E4A7D;line-height:1;text-decoration:none;" title="Powered by Prompt Reviews - Make writing reviews quick and easy with AI">[P]</a>
+         </div>`;
 
     const generateEmojiElement = (label: string, idx: number) => {
       const url = window.location.origin + `/r/${slug || 'demo'}?emoji_sentiment=${label.toLowerCase()}&source=embed`;
@@ -144,7 +150,7 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
       } else {
         const iconColors = ['#f472b6', '#22c55e', '#9ca3af', '#f97316', '#ef4444'];
         const svgPath = getFontAwesomeSVGPath(label);
-        return `<td style="text-align:center;vertical-align:top;"><a href="${url}" target="_blank" style="text-decoration:none;display:inline-block;text-align:center;"><svg width="${emojiSizePx}" height="${emojiSizePx}" viewBox="0 0 496 512" fill="currentColor" style="color: ${iconColors[idx]};display:block;margin:0 auto;"><path d="${svgPath}"></path></svg><span style="font-size:.75rem;color:#666;margin-top:.25rem;display:block;">${label}</span></a></td>`;
+        return `<td style="text-align:center;vertical-align:top;"><a href="${url}" target="_blank" style="text-decoration:none;display:inline-block;text-align:center;transition:transform 0.2s ease;cursor:pointer;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'"><svg width="${emojiSizePx}" height="${emojiSizePx}" viewBox="0 0 496 512" fill="currentColor" style="color: ${iconColors[idx]};display:block;margin:0 auto;"><path d="${svgPath}"></path></svg><span style="font-size:.75rem;color:#666;margin-top:.25rem;display:block;">${label}</span></a></td>`;
       }
     };
     
@@ -180,7 +186,7 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
       <div className="flex flex-row justify-between items-start px-2 py-2">
         <div className="flex flex-col">
           <div className="flex items-center gap-3">
-            <div className="w-7 h-7 text-green-500">
+            <div className="w-7 h-7 text-slate-600">
               {(() => {
                 const IconComponent = EMOJI_SENTIMENT_ICONS[1].icon;
                 return IconComponent ? <IconComponent className="w-7 h-7" /> : null;
@@ -364,12 +370,6 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
               className="w-8 h-8 border rounded cursor-pointer"
             />
 
-            <label className="font-medium">Format:</label>
-            <select value={embedFormat} onChange={e => setEmbedFormat(e.target.value as any)} className="border rounded px-2 py-1">
-              <option value="png">PNG (Recommended for email)</option>
-              <option value="svg">SVG (Better for web)</option>
-            </select>
-            
             <label className="flex items-center gap-2 font-medium">
               <input 
                 type="checkbox" 
@@ -379,6 +379,44 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
               />
               Show background card
             </label>
+          </div>
+
+          <div className="mb-4 flex gap-4 items-center flex-wrap">
+            <div className="flex flex-col gap-2">
+              <label className="font-medium">Format:</label>
+              <div className="flex bg-gray-100 rounded-lg p-1">
+                <button
+                  type="button"
+                  onClick={() => setEmbedFormat('png')}
+                  className={`flex-1 px-3 py-2 text-sm font-medium rounded-md transition-colors flex items-center justify-center gap-2 ${
+                    embedFormat === 'png'
+                      ? 'bg-white text-slate-700 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-800'
+                  }`}
+                >
+                  <FaEnvelope className="text-slate-600" size={14} />
+                  Email (PNG)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEmbedFormat('svg')}
+                  className={`flex-1 px-3 py-2 text-sm font-medium rounded-md transition-colors flex items-center justify-center gap-2 ${
+                    embedFormat === 'svg'
+                      ? 'bg-white text-slate-700 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-800'
+                  }`}
+                >
+                  <FaGlobe className="text-slate-600" size={14} />
+                  Website (SVG)
+                </button>
+              </div>
+              <p className="text-xs text-gray-600 mt-1">
+                {embedFormat === 'png' 
+                  ? 'PNG images work in all email clients and newsletters'
+                  : 'SVG graphics are smaller and scale better on websites'
+                }
+              </p>
+            </div>
           </div>
           {/* Live Preview */}
           <div className="mb-4">
@@ -396,6 +434,7 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
               emojiSize={emojiSize === 'xs' ? 24 : emojiSize === 'sm' ? 32 : 48}
               headerSize={headerSize}
               showCard={showCard}
+              embedFormat={embedFormat}
             />
           </div>
 

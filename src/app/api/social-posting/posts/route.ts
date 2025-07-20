@@ -22,6 +22,41 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Demo mode to bypass Google's extreme rate limits during development
+    const isDemoMode = process.env.NODE_ENV === 'development';
+    
+    if (isDemoMode) {
+      console.log('🎭 Demo mode: Simulating Google Business Profile post creation');
+      
+      // Simulate successful post creation
+      const demoResults = {
+        'google-business-profile': {
+          success: true,
+          platformPostId: `demo_post_${Date.now()}`,
+          message: 'Demo post created successfully! (Demo mode - Google rate limits bypassed)',
+          isDemoMode: true
+        }
+      };
+      
+      return NextResponse.json({
+        success: true,
+        data: {
+          validationResults: {
+            'google-business-profile': {
+              isValid: true,
+              errors: [],
+              warnings: ['Demo mode active - no real post created']
+            }
+          },
+          publishResults: demoResults,
+          optimizedContent: {
+            'google-business-profile': postData.content
+          },
+          isDemoMode: true
+        }
+      });
+    }
     
     // Initialize adapters if not already registered
     if (!postManager.getAdapter('google-business-profile')) {

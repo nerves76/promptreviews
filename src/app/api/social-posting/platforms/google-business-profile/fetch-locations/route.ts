@@ -36,12 +36,59 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Parse request body 
-    const body = await request.json();
-    
-    console.log('🔍 Fetch-locations API called - Real API mode only');
+    console.log('🔍 Fetch-locations API called');
 
-    // Always use real Google API calls - no demo mode
+    // Demo mode to bypass Google's extreme rate limits during development
+    const isDemoMode = process.env.NODE_ENV === 'development';
+    
+    if (isDemoMode) {
+      console.log('🎭 Demo mode: Simulating Google Business Profile locations');
+      
+      // Simulate demo locations
+      const demoLocations = [
+        {
+          user_id: user.id,
+          location_id: 'accounts/demo-account/locations/demo-location-1',
+          location_name: 'Demo Business Location #1',
+          address: '123 Main St, Anytown, USA',
+          status: 'VERIFIED',
+          primary_phone: '+1 (555) 123-4567',
+          website_uri: 'https://demo-business.com',
+          created_at: new Date().toISOString()
+        },
+        {
+          user_id: user.id,
+          location_id: 'accounts/demo-account/locations/demo-location-2', 
+          location_name: 'Demo Business Location #2',
+          address: '456 Oak Ave, Another City, USA',
+          status: 'VERIFIED',
+          primary_phone: '+1 (555) 987-6543',
+          website_uri: 'https://demo-business-2.com',
+          created_at: new Date().toISOString()
+        }
+      ];
+      
+      // Store demo locations in database
+      for (const locationData of demoLocations) {
+        await serviceSupabase
+          .from('google_business_locations')
+          .upsert(locationData, { 
+            onConflict: 'user_id,location_id',
+            ignoreDuplicates: false
+          });
+      }
+      
+      console.log(`✅ Demo mode: Created ${demoLocations.length} demo locations`);
+      
+      return NextResponse.json({
+        success: true,
+        message: `Demo mode: Created ${demoLocations.length} business locations for testing`,
+        locations: demoLocations,
+        isDemoMode: true
+      });
+    }
+
+    // Production mode: Use real Google API calls
 
     // Create service role client for accessing OAuth tokens (bypasses RLS)
     const serviceSupabase = createServerClient(
@@ -61,6 +108,40 @@ export async function POST(request: NextRequest) {
         },
       }
     );
+
+    // Check global rate limit status before making any API calls
+    // Google Business Profile API allows only 1 request per minute per project
+    const { data: rateLimitData, error: rateLimitError } = await serviceSupabase
+      .from('google_api_rate_limits')
+      .select('last_api_call_at')
+      .eq('project_id', 'google-business-profile')
+      .maybeSingle();
+
+    if (rateLimitError && rateLimitError.code !== 'PGRST116') { // PGRST116 = no rows found
+      console.log('⚠️ Error checking rate limit status:', rateLimitError);
+    }
+
+    const now = Date.now();
+    const lastApiCall = rateLimitData?.last_api_call_at ? new Date(rateLimitData.last_api_call_at).getTime() : 0;
+    const timeSinceLastCall = now - lastApiCall;
+    const requiredWait = 120000; // 2 minutes to be conservative with quota exhaustion
+
+    console.log(`🕐 Rate limit check: Last API call was ${Math.ceil(timeSinceLastCall / 1000)}s ago (required: ${Math.ceil(requiredWait / 1000)}s)`);
+
+    if (timeSinceLastCall < requiredWait) {
+      const remainingWait = Math.ceil((requiredWait - timeSinceLastCall) / 1000);
+      console.log(`⏳ Global rate limit active. Last API call was ${Math.ceil(timeSinceLastCall / 1000)}s ago. Need to wait ${remainingWait}s more.`);
+      
+      return NextResponse.json({
+        success: false,
+        error: 'Google Business Profile API rate limit active',
+        message: `Please wait ${remainingWait} more seconds before making another API request. Google has strict quota limits - consider requesting higher limits in Cloud Console.`,
+        retryAfter: remainingWait,
+        isRateLimit: true
+      }, { status: 429 });
+    }
+
+    console.log('✅ Rate limit check passed, proceeding with API calls');
 
     // Get user's Google Business Profile tokens using service role
     const { data: tokens, error: tokenError } = await serviceSupabase
@@ -89,15 +170,50 @@ export async function POST(request: NextRequest) {
     try {
       // Fetch accounts from Google Business Profile API
       console.log('🔍 Fetching Google Business Profile accounts...');
+      
+      // Update rate limit timestamp right before making the API call
+      await serviceSupabase
+        .from('google_api_rate_limits')
+        .upsert({
+          project_id: 'google-business-profile',
+          last_api_call_at: new Date().toISOString(),
+          user_id: user.id
+        });
+      
       const accounts = await client.listAccounts();
       console.log('✅ Found Google Business Profile accounts:', accounts.length);
       
       const allLocations = [];
       
-      // Fetch locations for each account
-      for (const account of accounts) {
+      // Wait 75 seconds after listAccounts call before making any listLocations calls
+      if (accounts.length > 0) {
+        console.log('⏳ Waiting 75 seconds for rate limit compliance after listing accounts...');
+        await new Promise(resolve => setTimeout(resolve, 75000)); // 75 seconds
+      }
+      
+      // Fetch locations for each account with rate limiting
+      // Google Business Profile API allows only 1 request per minute
+      for (let i = 0; i < accounts.length; i++) {
+        const account = accounts[i];
+        
+        // If this isn't the first location fetch, wait 75 seconds between calls
+        if (i > 0) {
+          console.log(`⏳ Waiting 75 seconds for rate limit compliance before fetching locations for account ${i + 1}/${accounts.length}...`);
+          await new Promise(resolve => setTimeout(resolve, 75000)); // 75 seconds
+        }
+        
         try {
-          console.log(`🔍 Fetching locations for account: ${account.name}`);
+          console.log(`🔍 Fetching locations for account: ${account.name} (${i + 1}/${accounts.length})`);
+          
+          // Update rate limit timestamp before this API call
+          await serviceSupabase
+            .from('google_api_rate_limits')
+            .upsert({
+              project_id: 'google-business-profile',
+              last_api_call_at: new Date().toISOString(),
+              user_id: user.id
+            });
+          
           const locations = await client.listLocations(account.name);
           console.log(`✅ Found ${locations.length} locations for account ${account.name}`);
           

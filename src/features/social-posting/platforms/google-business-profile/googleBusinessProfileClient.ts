@@ -90,18 +90,25 @@ export class GoogleBusinessProfileClient {
       console.log(`📋 Response headers:`, Object.fromEntries(response.headers.entries()));
       console.log(`📄 Response text (first 500 chars):`, responseText.substring(0, 500));
 
-      // Handle rate limiting - Google Business Profile API has strict 1 request/minute limits
+      // Handle rate limiting - Google Business Profile API has strict rate limits
       if (response.status === GOOGLE_BUSINESS_PROFILE.ERROR_CODES.RATE_LIMIT_EXCEEDED) {
         // Don't retry on rate limits - return immediately to avoid hanging the frontend
         console.log(`❌ Rate limit exceeded - returning immediately to avoid frontend timeout`);
-        console.log(`💡 Google Business Profile API allows only 1 request per minute. Please wait before trying again.`);
+        
+        // Extract retry-after header if available
+        const retryAfter = response.headers.get('retry-after');
+        const retryDelay = retryAfter ? parseInt(retryAfter) : 60; // Default 60 seconds
+        
+        console.log(`💡 Google Business Profile API quota exhausted. Wait ${retryDelay} seconds before trying again.`);
+        console.log(`💡 Consider requesting higher quota limits in Google Cloud Console if this persists.`);
         
         const error: GoogleBusinessProfileError = new Error(
-          'Rate limit exceeded. Google Business Profile API allows only 1 request per minute. Please wait and try again.'
+          `Rate limit exceeded. Please wait ${retryDelay} seconds before trying again. Consider requesting higher quota limits if this persists.`
         ) as GoogleBusinessProfileError;
         error.code = 429;
         error.status = 'RESOURCE_EXHAUSTED';
         error.details = data.error?.details || [];
+        error.retryAfter = retryDelay;
         throw error;
       }
 

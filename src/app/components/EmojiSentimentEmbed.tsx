@@ -25,6 +25,7 @@ interface EmojiSentimentEmbedProps {
   emojiSize?: number;
   headerSize?: "sm" | "md" | "lg" | "xl";
   showCard?: boolean;
+  embedFormat?: 'png' | 'svg';
 }
 
 const EmojiSentimentEmbed: React.FC<EmojiSentimentEmbedProps> = ({
@@ -34,6 +35,7 @@ const EmojiSentimentEmbed: React.FC<EmojiSentimentEmbedProps> = ({
   emojiSize = 32,
   headerSize = "md",
   showCard = true,
+  embedFormat = 'svg',
 }) => {
   const [showPopup, setShowPopup] = useState(false);
 
@@ -77,7 +79,9 @@ const EmojiSentimentEmbed: React.FC<EmojiSentimentEmbedProps> = ({
             <a
               key={index}
               href={link.url}
-              className="flex flex-col items-center focus:outline-none px-2 py-1"
+              className={`flex flex-col items-center focus:outline-none px-2 py-1 ${
+                embedFormat === 'svg' ? 'transition-transform duration-200 hover:-translate-y-0.5 cursor-pointer' : ''
+              }`}
               style={{ textDecoration: "none" }}
             >
               <IconComponent
