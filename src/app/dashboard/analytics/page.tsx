@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 import { useAuthGuard } from "@/utils/authGuard";
+import { useAccountSelection } from "@/utils/accountSelectionHooks";
 import {
   FaChartLine,
   FaList,
@@ -92,6 +93,15 @@ export default function AnalyticsPage() {
   const supabase = createClient();
 
   useAuthGuard();
+  const { selectedAccount, loading: accountLoading } = useAccountSelection();
+  
+  // Debug logging for account selection
+  console.log('📊 Analytics Page - Account Selection State:', {
+    selectedAccount,
+    accountLoading,
+    selectedAccountId: selectedAccount?.account_id,
+    selectedAccountName: selectedAccount?.account_name
+  });
   const [promptPages, setPromptPages] = useState<PromptPage[]>([]);
   const [timeRange, setTimeRange] = useState<
     | "all"
@@ -113,25 +123,37 @@ export default function AnalyticsPage() {
 
   useEffect(() => {
     const fetchPromptPages = async () => {
+      console.log('🔄 Analytics Page - fetchPromptPages called:', {
+        accountLoading,
+        selectedAccountId: selectedAccount?.account_id
+      });
+      
+      // Wait for account selection to complete
+      if (accountLoading || !selectedAccount?.account_id) {
+        console.log('⏸️ Analytics Page - Waiting for account selection to complete');
+        return;
+      }
+      
       try {
-        const {
-          data: { user },
-        } = await getUserOrMock(supabase);
-        if (!user) return;
+        console.log('✅ Analytics Page - Fetching prompt pages for account:', selectedAccount.account_id);
+        
         const { data, error } = await supabase
           .from("prompt_pages")
           .select("id, slug, first_name, is_universal")
-          .eq("account_id", user.id);
+          .eq("account_id", selectedAccount.account_id);
         if (error) throw error;
+        
+        console.log('📊 Analytics Page - Prompt pages loaded:', data?.length || 0);
         setPromptPages(data || []);
       } catch (err) {
+        console.error('❌ Analytics Page - Error loading prompt pages:', err);
         setError(
           err instanceof Error ? err.message : "Failed to load prompt pages",
         );
       }
     };
     fetchPromptPages();
-  }, [supabase]);
+  }, [supabase, accountLoading, selectedAccount?.account_id]);
 
   useEffect(() => {
     const fetchLocationNames = async () => {
@@ -156,19 +178,25 @@ export default function AnalyticsPage() {
 
   useEffect(() => {
     const loadAnalytics = async () => {
+      console.log('🔄 Analytics Page - loadAnalytics called:', {
+        accountLoading,
+        selectedAccountId: selectedAccount?.account_id
+      });
+      
+      // Wait for account selection to complete
+      if (accountLoading || !selectedAccount?.account_id) {
+        console.log('⏸️ Analytics Page - Waiting for account selection in loadAnalytics');
+        return;
+      }
+      
       try {
-        const { data: { user }, error: userError } = await getUserOrMock(supabase);
-        
-        if (userError || !user) {
-          router.push("/auth/sign-in");
-          return;
-        }
+        console.log('✅ Analytics Page - Loading analytics for account:', selectedAccount.account_id);
 
         // Get all prompt page IDs for this account
         const { data: pages } = await supabase
           .from("prompt_pages")
           .select("id, slug, first_name, is_universal")
-          .eq("account_id", user.id);
+          .eq("account_id", selectedAccount.account_id);
         const pageIds = (pages || []).map((p: any) => p.id);
         if (!pageIds.length) {
           setAnalytics(null);
@@ -397,9 +425,10 @@ export default function AnalyticsPage() {
 
         (analyticsData as any).timelineData = timelineData;
 
+        console.log('📊 Analytics Page - Analytics data loaded successfully');
         setAnalytics(analyticsData);
       } catch (err) {
-        console.error("Supabase analytics error:", err);
+        console.error("❌ Analytics Page - Supabase analytics error:", err);
         setError(
           err instanceof Error ? err.message : "Failed to load analytics",
         );
@@ -408,7 +437,7 @@ export default function AnalyticsPage() {
       }
     };
     loadAnalytics();
-  }, [promptPages, timeRange, router, filter]);
+  }, [promptPages, timeRange, router, filter, accountLoading, selectedAccount?.account_id]);
 
   if (isLoading) {
     return (
