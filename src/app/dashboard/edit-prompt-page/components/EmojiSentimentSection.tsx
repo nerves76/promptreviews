@@ -66,6 +66,7 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
   const [headerColor, setHeaderColor] = useState<string>('#000000');
   const [showCard, setShowCard] = useState<boolean>(true);
   const [copyStatus, setCopyStatus] = useState('');
+  const [embedFormat, setEmbedFormat] = useState<'png' | 'svg'>('png');
 
   const getFontAwesomeIconName = (label: string) => {
     switch (label) {
@@ -81,6 +82,23 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
         return "angry";
       default:
         return "smile";
+    }
+  };
+
+  const getEmojiPngFilename = (label: string) => {
+    switch (label) {
+      case "Excellent":
+        return "excellent";
+      case "Satisfied":
+        return "satisfied";
+      case "Neutral":
+        return "neutral";
+      case "Unsatisfied":
+        return "unsatisfied";
+      case "Frustrated":
+        return "frustrated";
+      default:
+        return "satisfied";
     }
   };
 
@@ -109,12 +127,26 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
 
   const generateEmbedHTML = () => {
     const emojiSizePx = emojiSize === 'xs' ? '24px' : emojiSize === 'sm' ? '32px' : '48px';
+    const emojiSizeNum = emojiSize === 'xs' ? 24 : emojiSize === 'sm' ? 32 : 48;
     const fontSize = headerSize === 'sm' ? '1rem' : headerSize === 'md' ? '1.25rem' : '1.5rem';
     
     const brandingButton = `
     <div style="position:absolute;bottom:16px;right:8px;">
       <a href="https://promptreviews.app" target="_blank" style="width:24px;height:20px;font-size:10px;font-family:monospace;border-radius:4px;display:flex;align-items:center;justify-content:center;border:1px solid #d1d5db;background-color:#f8fafc;color:#2E4A7D;line-height:1;text-decoration:none;" title="Powered by Prompt Reviews - Make writing reviews quick and easy with AI">[P]</a>
     </div>`;
+
+    const generateEmojiElement = (label: string, idx: number) => {
+      const url = window.location.origin + `/r/${slug || 'demo'}?emoji_sentiment=${label.toLowerCase()}&source=embed`;
+      
+      if (embedFormat === 'png') {
+        const pngFilename = getEmojiPngFilename(label);
+        return `<td style="text-align:center;vertical-align:top;"><a href="${url}" target="_blank" style="text-decoration:none;display:inline-block;text-align:center;"><img src="https://promptreviews.app/emojis/${pngFilename}-${emojiSizeNum}.png" width="${emojiSizePx}" height="${emojiSizePx}" alt="${label}" style="display:block;margin:0 auto;border:none;"><span style="font-size:.75rem;color:#666;margin-top:.25rem;display:block;">${label}</span></a></td>`;
+      } else {
+        const iconColors = ['#f472b6', '#22c55e', '#9ca3af', '#f97316', '#ef4444'];
+        const svgPath = getFontAwesomeSVGPath(label);
+        return `<td style="text-align:center;vertical-align:top;"><a href="${url}" target="_blank" style="text-decoration:none;display:inline-block;text-align:center;"><svg width="${emojiSizePx}" height="${emojiSizePx}" viewBox="0 0 496 512" fill="currentColor" style="color: ${iconColors[idx]};display:block;margin:0 auto;"><path d="${svgPath}"></path></svg><span style="font-size:.75rem;color:#666;margin-top:.25rem;display:block;">${label}</span></a></td>`;
+      }
+    };
     
     if (showCard) {
       return `<div style="max-width:450px;margin:0.5rem auto;border-radius:0.5rem;border:1px solid #e5e7eb;background:#fff;padding:1rem;box-shadow:0 1px 3px rgba(0,0,0,0.1);position:relative;">
@@ -122,12 +154,7 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
   <div style="text-align:center;padding:0.5rem 0.5rem 2rem 0.5rem;">
     <table style="margin:0 auto;border-collapse:separate;border-spacing:12px;">
       <tr>
-        ${EMOJI_SENTIMENT_LABELS.map((label, idx) => {
-          const url = window.location.origin + `/r/${slug || 'demo'}?emoji_sentiment=${label.toLowerCase()}&source=embed`;
-          const iconColors = ['#f472b6', '#22c55e', '#9ca3af', '#f97316', '#ef4444'];
-          const svgPath = getFontAwesomeSVGPath(label);
-          return `<td style="text-align:center;vertical-align:top;"><a href="${url}" target="_blank" style="text-decoration:none;display:inline-block;text-align:center;"><svg width="${emojiSizePx}" height="${emojiSizePx}" viewBox="0 0 496 512" fill="currentColor" style="color: ${iconColors[idx]};display:block;margin:0 auto;"><path d="${svgPath}"></path></svg><span style="font-size:.75rem;color:#666;margin-top:.25rem;display:block;">${label}</span></a></td>`;
-        }).join('')}
+        ${EMOJI_SENTIMENT_LABELS.map((label, idx) => generateEmojiElement(label, idx)).join('')}
       </tr>
     </table>
   </div>
@@ -139,12 +166,7 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
   <div style="text-align:center;padding:0.5rem 0.5rem 2rem 0.5rem;">
     <table style="margin:0 auto;border-collapse:separate;border-spacing:12px;">
       <tr>
-        ${EMOJI_SENTIMENT_LABELS.map((label, idx) => {
-          const url = window.location.origin + `/r/${slug || 'demo'}?emoji_sentiment=${label.toLowerCase()}&source=embed`;
-          const iconColors = ['#f472b6', '#22c55e', '#9ca3af', '#f97316', '#ef4444'];
-          const svgPath = getFontAwesomeSVGPath(label);
-          return `<td style="text-align:center;vertical-align:top;"><a href="${url}" target="_blank" style="text-decoration:none;display:inline-block;text-align:center;"><svg width="${emojiSizePx}" height="${emojiSizePx}" viewBox="0 0 496 512" fill="currentColor" style="color: ${iconColors[idx]};display:block;margin:0 auto;"><path d="${svgPath}"></path></svg><span style="font-size:.75rem;color:#666;margin-top:.25rem;display:block;">${label}</span></a></td>`;
-        }).join('')}
+        ${EMOJI_SENTIMENT_LABELS.map((label, idx) => generateEmojiElement(label, idx)).join('')}
       </tr>
     </table>
   </div>
@@ -341,6 +363,12 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
               onChange={(e) => setHeaderColor(e.target.value)}
               className="w-8 h-8 border rounded cursor-pointer"
             />
+
+            <label className="font-medium">Format:</label>
+            <select value={embedFormat} onChange={e => setEmbedFormat(e.target.value as any)} className="border rounded px-2 py-1">
+              <option value="png">PNG (Recommended for email)</option>
+              <option value="svg">SVG (Better for web)</option>
+            </select>
             
             <label className="flex items-center gap-2 font-medium">
               <input 
