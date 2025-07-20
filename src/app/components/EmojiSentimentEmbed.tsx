@@ -30,7 +30,7 @@ interface EmojiSentimentEmbedProps {
 
 const EmojiSentimentEmbed: React.FC<EmojiSentimentEmbedProps> = ({
   header,
-  headerColor = "#000000",
+  headerColor = "#374151",
   emojiLinks,
   emojiSize = 32,
   headerSize = "md",

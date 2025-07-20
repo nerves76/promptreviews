@@ -64,7 +64,7 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
   const [showEmbed, setShowEmbed] = useState(false);
   const [emojiSize, setEmojiSize] = useState<'xs' | 'sm' | 'md'>('sm');
   const [headerSize, setHeaderSize] = useState<'sm' | 'md' | 'lg'>('md');
-  const [headerColor, setHeaderColor] = useState<string>('#000000');
+  const [headerColor, setHeaderColor] = useState<string>('#374151');
   const [showCard, setShowCard] = useState<boolean>(true);
   const [copyStatus, setCopyStatus] = useState('');
   const [embedFormat, setEmbedFormat] = useState<'png' | 'svg'>('png');
@@ -156,7 +156,7 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
     
     if (showCard) {
       return `<div style="max-width:450px;margin:0.5rem auto;border-radius:0.5rem;border:1px solid #e5e7eb;background:#fff;padding:1rem;box-shadow:0 1px 3px rgba(0,0,0,0.1);position:relative;">
-  <div style="font-weight:bold;text-align:center;margin-bottom:1rem;font-size:${fontSize};color:${headerColor || '#000000'};">${question}</div>
+  <div style="font-weight:bold;text-align:center;margin-bottom:1rem;font-size:${fontSize};color:${headerColor || '#374151'};">${question}</div>
   <div style="text-align:center;padding:0.5rem 0.5rem 2rem 0.5rem;">
     <table style="margin:0 auto;border-collapse:separate;border-spacing:12px;">
       <tr>
@@ -168,7 +168,7 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
 </div>`;
     } else {
       return `<div style="max-width:450px;margin:0.5rem auto;position:relative;">
-  <div style="font-weight:bold;text-align:center;margin-bottom:1rem;font-size:${fontSize};color:${headerColor || '#000000'};">${question}</div>
+  <div style="font-weight:bold;text-align:center;margin-bottom:1rem;font-size:${fontSize};color:${headerColor || '#374151'};">${question}</div>
   <div style="text-align:center;padding:0.5rem 0.5rem 2rem 0.5rem;">
     <table style="margin:0 auto;border-collapse:separate;border-spacing:12px;">
       <tr>
