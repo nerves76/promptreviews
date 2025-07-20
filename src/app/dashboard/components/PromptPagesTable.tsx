@@ -52,7 +52,7 @@ export default function PromptPagesTable({
   const [batchStatus, setBatchStatus] = useState<PromptPage["status"]>("in_queue");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
-  const [qrModal, setQrModal] = useState<{ open: boolean; url: string; clientName: string; logoUrl?: string } | null>(null);
+  const [qrModal, setQrModal] = useState<{ open: boolean; url: string; clientName: string; logoUrl?: string; showNfcText?: boolean } | null>(null);
   const [copyLinkId, setCopyLinkId] = useState<string | null>(null);
 
   // Filtering and sorting
@@ -348,6 +348,7 @@ export default function PromptPagesTable({
                           url: `${window.location.origin}/r/${page.slug}`,
                           clientName: page.first_name || "Customer",
                           logoUrl: business?.logo_print_url || business?.logo_url,
+                          showNfcText: page?.nfc_text_enabled ?? false,
                         });
                       }}
                       className="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-100 text-amber-800 rounded hover:bg-amber-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
@@ -406,6 +407,7 @@ export default function PromptPagesTable({
         url={qrModal?.url || ""}
         clientName={qrModal?.clientName || ""}
         logoUrl={qrModal?.logoUrl}
+        showNfcText={qrModal?.showNfcText}
       />
     </div>
   );

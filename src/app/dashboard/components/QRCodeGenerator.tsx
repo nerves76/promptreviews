@@ -68,6 +68,8 @@ interface QRCodeGeneratorProps {
   decorativeIconCount?: number;
   decorativeIconSize?: number;
   decorativeIconColor?: string;
+  // NFC text support
+  showNfcText?: boolean;
 }
 
 // Helper function to draw a star
@@ -416,6 +418,8 @@ export default function QRCodeGenerator({
   decorativeIconCount = 8,
   decorativeIconSize = 24,
   decorativeIconColor = "#FFD700",
+  // NFC text support
+  showNfcText = false,
 }: QRCodeGeneratorProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -742,7 +746,19 @@ export default function QRCodeGenerator({
       ctx.fillStyle = mainColor;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
-      ctx.fillText('promptreviews.app', frameSize.width / 2, logoY + logoHeight + 10);
+      const websiteTextY = logoY + logoHeight + 10;
+      ctx.fillText('promptreviews.app', frameSize.width / 2, websiteTextY);
+
+      // Draw NFC text if enabled (below website text)
+      if (showNfcText) {
+        const nfcFontSize = Math.max(16, Math.floor(websiteFontSize * 0.7)); // Smaller than website text
+        ctx.font = `${nfcFontSize}px Arial, sans-serif`;
+        ctx.fillStyle = '#666666'; // Slightly lighter color
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        const nfcTextY = websiteTextY + websiteFontSize + 8; // 8px spacing below website text
+        ctx.fillText('Tap phone or scan with camera', frameSize.width / 2, nfcTextY);
+      }
 
       // Store canvas for download
       if (canvasRef.current) {
