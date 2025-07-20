@@ -113,12 +113,12 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
     const brandingButton = embedFormat === 'png' 
       ? `<div style="position:absolute;bottom:8px;right:8px;">
            <a href="https://app.promptreviews.app" target="_blank" title="Powered by Prompt Reviews - Make writing reviews quick and easy with AI">
-             <img src="https://app.promptreviews.app/emojis/prompt-reviews-get-more-reviews.png" width="64" height="30" alt="Prompt Reviews - Get More Reviews" style="display:block;border:none;opacity:0.8;">
+             <img src="https://app.promptreviews.app/emojis/prompt-reviews-get-more-reviews.png" width="25" height="25" alt="Prompt Reviews - Get More Reviews" style="display:block;border:none;opacity:0.8;">
            </a>
          </div>`
       : `<div style="position:absolute;bottom:8px;right:8px;">
            <a href="https://app.promptreviews.app" target="_blank" title="Powered by Prompt Reviews - Make writing reviews quick and easy with AI">
-             <img src="https://app.promptreviews.app/emojis/prompt-reviews-get-more-reviews.png" width="64" height="30" alt="Prompt Reviews - Get More Reviews" style="display:block;border:none;opacity:0.8;">
+             <img src="https://app.promptreviews.app/emojis/prompt-reviews-get-more-reviews.png" width="25" height="25" alt="Prompt Reviews - Get More Reviews" style="display:block;border:none;opacity:0.8;">
            </a>
          </div>`;
 
