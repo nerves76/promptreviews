@@ -496,31 +496,48 @@ export default function QRCodeGenerator({
                 )
               ]);
               
-              // Calculate client logo dimensions to maintain aspect ratio
-              const clientLogoAspectRatio = clientLogoImg.width / clientLogoImg.height;
-              const clientLogoWidth = clientLogoHeight * clientLogoAspectRatio;
-              const clientLogoX = (frameSize.width - clientLogoWidth) / 2;
-              
               if (circularLogo) {
                 // Save the current state
                 ctx.save();
                 
-                // Create circular clipping path
+                // Create circular clipping path - centered on the frame
                 const radius = clientLogoHeight / 2;
-                const centerX = clientLogoX + clientLogoWidth / 2;
+                const centerX = frameSize.width / 2;
                 const centerY = y + clientLogoHeight / 2;
                 
                 ctx.beginPath();
                 ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
                 ctx.clip();
                 
-                // Draw the image within the circular clip
-                ctx.drawImage(clientLogoImg, clientLogoX, y, clientLogoWidth, clientLogoHeight);
+                // Calculate dimensions for object-fit: contain behavior (like prompt page)
+                const containerSize = clientLogoHeight; // Circular container size
+                const imgAspectRatio = clientLogoImg.width / clientLogoImg.height;
+                
+                let drawWidth, drawHeight;
+                if (imgAspectRatio > 1) {
+                  // Wide image - fit to width
+                  drawWidth = containerSize;
+                  drawHeight = containerSize / imgAspectRatio;
+                } else {
+                  // Tall image - fit to height  
+                  drawHeight = containerSize;
+                  drawWidth = containerSize * imgAspectRatio;
+                }
+                
+                // Center the image within the circular container
+                const drawX = centerX - drawWidth / 2;
+                const drawY = centerY - drawHeight / 2;
+                
+                // Draw the image with proper centering and aspect ratio (like object-fit: contain)
+                ctx.drawImage(clientLogoImg, drawX, drawY, drawWidth, drawHeight);
                 
                 // Restore the state to remove the clipping path
                 ctx.restore();
               } else {
-                // Draw logo normally (rectangular)
+                // Draw logo normally (rectangular) with proper centering
+                const clientLogoAspectRatio = clientLogoImg.width / clientLogoImg.height;
+                const clientLogoWidth = clientLogoHeight * clientLogoAspectRatio;
+                const clientLogoX = (frameSize.width - clientLogoWidth) / 2;
                 ctx.drawImage(clientLogoImg, clientLogoX, y, clientLogoWidth, clientLogoHeight);
               }
               
@@ -550,31 +567,48 @@ export default function QRCodeGenerator({
               )
             ]);
             
-            // Calculate client logo dimensions to maintain aspect ratio
-            const clientLogoAspectRatio = clientLogoImg.width / clientLogoImg.height;
-            const clientLogoWidth = clientLogoHeight * clientLogoAspectRatio;
-            const clientLogoX = (frameSize.width - clientLogoWidth) / 2;
-            
             if (circularLogo) {
               // Save the current state
               ctx.save();
               
-              // Create circular clipping path
+              // Create circular clipping path - centered on the frame
               const radius = clientLogoHeight / 2;
-              const centerX = clientLogoX + clientLogoWidth / 2;
+              const centerX = frameSize.width / 2;
               const centerY = y + clientLogoHeight / 2;
               
               ctx.beginPath();
               ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
               ctx.clip();
               
-              // Draw the image within the circular clip
-              ctx.drawImage(clientLogoImg, clientLogoX, y, clientLogoWidth, clientLogoHeight);
+              // Calculate dimensions for object-fit: contain behavior (like prompt page)
+              const containerSize = clientLogoHeight; // Circular container size
+              const imgAspectRatio = clientLogoImg.width / clientLogoImg.height;
+              
+              let drawWidth, drawHeight;
+              if (imgAspectRatio > 1) {
+                // Wide image - fit to width
+                drawWidth = containerSize;
+                drawHeight = containerSize / imgAspectRatio;
+              } else {
+                // Tall image - fit to height  
+                drawHeight = containerSize;
+                drawWidth = containerSize * imgAspectRatio;
+              }
+              
+              // Center the image within the circular container
+              const drawX = centerX - drawWidth / 2;
+              const drawY = centerY - drawHeight / 2;
+              
+              // Draw the image with proper centering and aspect ratio (like object-fit: contain)
+              ctx.drawImage(clientLogoImg, drawX, drawY, drawWidth, drawHeight);
               
               // Restore the state to remove the clipping path
               ctx.restore();
             } else {
-              // Draw logo normally (rectangular)
+              // Draw logo normally (rectangular) with proper centering
+              const clientLogoAspectRatio = clientLogoImg.width / clientLogoImg.height;
+              const clientLogoWidth = clientLogoHeight * clientLogoAspectRatio;
+              const clientLogoX = (frameSize.width - clientLogoWidth) / 2;
               ctx.drawImage(clientLogoImg, clientLogoX, y, clientLogoWidth, clientLogoHeight);
             }
             
