@@ -12,6 +12,7 @@ import { useRouter } from 'next/navigation';
 import { PlusIcon, XMarkIcon, UserIcon, EnvelopeIcon, ClockIcon, QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '@/contexts/AuthContext';
 import FiveStarSpinner from '@/app/components/FiveStarSpinner';
+import { createClient } from '@/utils/supabaseClient';
 
 interface TeamMember {
   user_id: string;
@@ -67,6 +68,21 @@ export default function TeamPage() {
   
   // Prevent multiple simultaneous calls
   const fetchingRef = useRef(false);
+  
+  // Helper function to get authentication headers
+  const getAuthHeaders = async () => {
+    const supabase = createClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    
+    if (session?.access_token) {
+      headers['Authorization'] = `Bearer ${session.access_token}`;
+    }
+    
+    return headers;
+  };
 
   // Auth guard - redirect if not authenticated
   useEffect(() => {
@@ -95,8 +111,11 @@ export default function TeamPage() {
       setLoading(true);
       setError(null);
 
+      // Get authentication headers
+      const headers = await getAuthHeaders();
+
       // Fetch members
-      const membersResponse = await fetch('/api/team/members');
+      const membersResponse = await fetch('/api/team/members', { headers });
       if (!membersResponse.ok) {
         throw new Error('Failed to fetch team members');
       }
@@ -105,7 +124,7 @@ export default function TeamPage() {
       // Fetch invitations (only if user is owner)
       let invitationsData = { invitations: [] };
       if (membersData.current_user_role === 'owner') {
-        const invitationsResponse = await fetch('/api/team/invitations');
+        const invitationsResponse = await fetch('/api/team/invitations', { headers });
         if (invitationsResponse.ok) {
           invitationsData = await invitationsResponse.json();
         }
@@ -147,11 +166,12 @@ export default function TeamPage() {
       setError(null);
       setSuccess(null);
 
+      // Get authentication headers
+      const headers = await getAuthHeaders();
+
       const response = await fetch('/api/team/invite', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify({
           email: inviteEmail.trim(),
           role: inviteRole,
@@ -184,8 +204,12 @@ export default function TeamPage() {
   // Cancel invitation
   const cancelInvitation = async (invitationId: string) => {
     try {
+      // Get authentication headers
+      const headers = await getAuthHeaders();
+
       const response = await fetch(`/api/team/invitations?id=${invitationId}`, {
         method: 'DELETE',
+        headers,
       });
 
       if (!response.ok) {
@@ -212,11 +236,12 @@ export default function TeamPage() {
       setError(null);
       setSuccess(null);
 
+      // Get authentication headers
+      const headers = await getAuthHeaders();
+
       const response = await fetch('/api/team/add-chris', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
       });
 
       const data = await response.json();
