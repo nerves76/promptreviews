@@ -185,7 +185,7 @@ async function processTeamMembers(supabase: any, supabaseAdmin: any, user: any, 
 
     // Create a map for quick lookup of auth users by ID
     const authUserMap = new Map();
-    authUsers.users.forEach(authUser => {
+    authUsers.users.forEach((authUser: any) => {
       authUserMap.set(authUser.id, authUser);
     });
 
