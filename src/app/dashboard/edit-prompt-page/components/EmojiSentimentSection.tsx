@@ -111,13 +111,15 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
     const fontSize = headerSize === 'sm' ? '1rem' : headerSize === 'md' ? '1.25rem' : '1.5rem';
     
     const brandingButton = embedFormat === 'png' 
-      ? `<div style="position:absolute;bottom:16px;right:8px;">
+      ? `<div style="position:absolute;bottom:8px;right:8px;">
            <a href="https://app.promptreviews.app" target="_blank" title="Powered by Prompt Reviews - Make writing reviews quick and easy with AI">
-             <img src="https://app.promptreviews.app/emojis/promptreviews-logo.png" width="24" height="20" alt="Prompt Reviews" style="display:block;border:none;">
+             <img src="https://app.promptreviews.app/emojis/prompt-reviews-get-more-reviews.png" width="64" height="30" alt="Prompt Reviews - Get More Reviews" style="display:block;border:none;opacity:0.8;">
            </a>
          </div>`
-      : `<div style="position:absolute;bottom:16px;right:8px;">
-           <a href="https://app.promptreviews.app" target="_blank" style="width:24px;height:20px;font-size:10px;font-family:monospace;border-radius:4px;display:flex;align-items:center;justify-content:center;border:1px solid #d1d5db;background-color:#f8fafc;color:#2E4A7D;line-height:1;text-decoration:none;" title="Powered by Prompt Reviews - Make writing reviews quick and easy with AI">[P]</a>
+      : `<div style="position:absolute;bottom:8px;right:8px;">
+           <a href="https://app.promptreviews.app" target="_blank" title="Powered by Prompt Reviews - Make writing reviews quick and easy with AI">
+             <img src="https://app.promptreviews.app/emojis/prompt-reviews-get-more-reviews.png" width="64" height="30" alt="Prompt Reviews - Get More Reviews" style="display:block;border:none;opacity:0.8;">
+           </a>
          </div>`;
 
     const generateEmojiElement = (label: string, idx: number) => {
