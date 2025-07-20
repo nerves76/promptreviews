@@ -156,21 +156,22 @@ const EmojiEmbedModal: React.FC<EmojiEmbedModalProps> = ({
           <div className="mb-8">
             <h3 className="text-lg font-medium text-gray-800 mb-4">Live preview</h3>
             <div className="border border-gray-200 rounded-lg p-8 bg-gray-50 flex justify-center">
-              <EmojiSentimentEmbed
-                header={question}
-                headerColor={headerColor}
-                emojiLinks={EMOJI_SENTIMENT_LABELS.map((label, idx) => {
-                  const url = window.location.origin + `/r/${slug}?emoji_sentiment=${label.toLowerCase()}&source=embed`;
-                  return {
-                    label,
-                    emoji: "😊",
-                    url,
-                  };
-                })}
-                emojiSize={emojiSize === 'xs' ? 28 : emojiSize === 'sm' ? 36 : 48}
-                headerSize={headerSize}
-                showCard={showCard}
-              />
+                          <EmojiSentimentEmbed
+              header={question}
+              headerColor={headerColor}
+              emojiLinks={EMOJI_SENTIMENT_LABELS.map((label, idx) => {
+                const url = window.location.origin + `/r/${slug}?emoji_sentiment=${label.toLowerCase()}&source=embed`;
+                return {
+                  label,
+                  emoji: "😊",
+                  url,
+                };
+              })}
+              emojiSize={emojiSize === 'xs' ? 28 : emojiSize === 'sm' ? 36 : 48}
+              headerSize={headerSize}
+              showCard={showCard}
+              embedFormat={embedFormat}
+            />
             </div>
           </div>
 
