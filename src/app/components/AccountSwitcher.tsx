@@ -112,7 +112,7 @@ export function AccountSwitcher() {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute top-full left-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-[9999] overflow-hidden">
+        <div className="absolute top-full left-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden" style={{ zIndex: 2147483647 }}>
           {/* Header */}
           <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
             <h3 className="text-sm font-medium text-gray-900">Switch Account</h3>
