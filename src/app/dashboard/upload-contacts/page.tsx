@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useAuthGuard } from "@/utils/authGuard";
 // 🔧 CONSOLIDATED: Single import from supabaseClient module
 import { createClient, getUserOrMock, getSessionOrMock } from "@/utils/supabaseClient";
+import { useAccountSelection } from "@/utils/accountSelectionHooks";
 import {
   FaDownload,
   FaUpload,
@@ -21,6 +22,15 @@ export default function UploadContactsPage() {
   const supabase = createClient();
 
   useAuthGuard();
+  const { selectedAccount, loading: accountLoading } = useAccountSelection();
+  
+  // Debug logging for account selection
+  console.log('📥 Upload Contacts Page - Account Selection State:', {
+    selectedAccount,
+    accountLoading,
+    selectedAccountId: selectedAccount?.account_id,
+    selectedAccountName: selectedAccount?.account_name
+  });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
@@ -51,19 +61,34 @@ export default function UploadContactsPage() {
 
   useEffect(() => {
     const fetchAccount = async () => {
-      const {
-        data: { user },
-      } = await getUserOrMock(supabase);
-      if (!user) return;
+      console.log('🔄 Upload Contacts Page - fetchAccount called:', {
+        accountLoading,
+        selectedAccountId: selectedAccount?.account_id
+      });
+      
+      // Wait for account selection to complete
+      if (accountLoading || !selectedAccount?.account_id) {
+        console.log('⏸️ Upload Contacts Page - Waiting for account selection to complete');
+        return;
+      }
+      
+      console.log('✅ Upload Contacts Page - Fetching account data for:', selectedAccount.account_id);
+      
       const { data, error } = await supabase
         .from("accounts")
         .select("*")
-        .eq("id", user.id)
+        .eq("id", selectedAccount.account_id)
         .single();
-      if (!error && data) setAccount(data);
+      
+      if (error) {
+        console.error('❌ Upload Contacts Page - Error loading account:', error);
+      } else {
+        console.log('📥 Upload Contacts Page - Account data loaded successfully');
+        setAccount(data);
+      }
     };
     fetchAccount();
-  }, [supabase]);
+  }, [supabase, accountLoading, selectedAccount?.account_id]);
 
   useEffect(() => {
     console.log("State updated:", { selectedFile, preview, error, success });
