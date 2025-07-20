@@ -7,6 +7,7 @@
 
 import { createServerClient } from '@supabase/ssr';
 import { createClient } from '@supabase/supabase-js';
+import { createServiceRoleClient } from '@/utils/supabaseClient';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -125,6 +126,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Add user to account
+    console.log('🔧 Adding user to account via accept-after-signup:', {
+      account_id: invitation.account_id,
+      user_id: user.id,
+      role: invitation.role
+    });
+
     const { error: addUserError } = await supabase
       .from('account_users')
       .insert({
@@ -134,11 +141,54 @@ export async function POST(request: NextRequest) {
       });
 
     if (addUserError) {
-      console.error('Error adding user to account:', addUserError);
-      return NextResponse.json(
-        { error: 'Failed to add user to account' },
-        { status: 500 }
-      );
+      console.error('❌ Error adding user to account in accept-after-signup:', {
+        error: addUserError,
+        code: addUserError.code,
+        message: addUserError.message,
+        details: addUserError.details,
+        hint: addUserError.hint,
+        account_id: invitation.account_id,
+        user_id: user.id,
+        role: invitation.role
+      });
+
+      // Try with service role client as fallback
+      console.log('🔄 Attempting fallback with service role client in accept-after-signup...');
+      const supabaseAdmin = createServiceRoleClient();
+      const { error: fallbackError } = await supabaseAdmin
+        .from('account_users')
+        .insert({
+          account_id: invitation.account_id,
+          user_id: user.id,
+          role: invitation.role
+        });
+
+      if (fallbackError) {
+        console.error('❌ Fallback also failed in accept-after-signup:', {
+          error: fallbackError,
+          code: fallbackError.code,
+          message: fallbackError.message,
+          details: fallbackError.details,
+          hint: fallbackError.hint
+        });
+        
+        return NextResponse.json(
+          { 
+            error: 'Failed to add user to account',
+            details: {
+              primary_error: addUserError.message,
+              fallback_error: fallbackError.message,
+              account_id: invitation.account_id,
+              user_id: user.id
+            }
+          },
+          { status: 500 }
+        );
+      } else {
+        console.log('✅ Fallback succeeded with service role client in accept-after-signup');
+      }
+    } else {
+      console.log('✅ Successfully added user to account with regular client in accept-after-signup');
     }
 
     // Mark invitation as accepted
