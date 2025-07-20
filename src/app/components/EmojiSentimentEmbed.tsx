@@ -140,12 +140,12 @@ const EmojiSentimentEmbed: React.FC<EmojiSentimentEmbedProps> = ({
                   <p className="text-gray-700 pr-3">
                     Prompt Reviews makes writing reviews quick and easy with the help of AI. -{" "}
                     <a 
-                      href="https://promptreviews.app" 
+                      href="https://app.promptreviews.app" 
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="text-blue-600 hover:underline"
                     >
-                      promptreviews.app
+                      app.promptreviews.app
                     </a>
                   </p>
                 </div>
@@ -195,12 +195,12 @@ const EmojiSentimentEmbed: React.FC<EmojiSentimentEmbedProps> = ({
                   <p className="text-gray-700 pr-3">
                     Prompt Reviews makes writing reviews quick and easy with the help of AI. -{" "}
                     <a 
-                      href="https://promptreviews.app" 
+                      href="https://app.promptreviews.app" 
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="text-blue-600 hover:underline"
                     >
-                      promptreviews.app
+                      app.promptreviews.app
                     </a>
                   </p>
                 </div>

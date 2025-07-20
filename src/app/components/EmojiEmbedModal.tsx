@@ -72,12 +72,12 @@ const EmojiEmbedModal: React.FC<EmojiEmbedModalProps> = ({
     
     const brandingButton = embedFormat === 'png' 
       ? `<div style="position:absolute;bottom:16px;right:8px;">
-           <a href="https://promptreviews.app" target="_blank" title="Powered by Prompt Reviews - Make writing reviews quick and easy with AI">
-             <img src="https://promptreviews.app/emojis/promptreviews-logo.png" width="24" height="20" alt="Prompt Reviews" style="display:block;border:none;">
+           <a href="https://app.promptreviews.app" target="_blank" title="Powered by Prompt Reviews - Make writing reviews quick and easy with AI">
+             <img src="https://app.promptreviews.app/emojis/promptreviews-logo.png" width="24" height="20" alt="Prompt Reviews" style="display:block;border:none;">
            </a>
          </div>`
       : `<div style="position:absolute;bottom:16px;right:8px;">
-           <a href="https://promptreviews.app" target="_blank" style="width:24px;height:20px;font-size:10px;font-family:monospace;border-radius:4px;display:flex;align-items:center;justify-content:center;border:1px solid #d1d5db;background-color:#f8fafc;color:#2E4A7D;line-height:1;text-decoration:none;" title="Powered by Prompt Reviews - Make writing reviews quick and easy with AI">[P]</a>
+           <a href="https://app.promptreviews.app" target="_blank" style="width:24px;height:20px;font-size:10px;font-family:monospace;border-radius:4px;display:flex;align-items:center;justify-content:center;border:1px solid #d1d5db;background-color:#f8fafc;color:#2E4A7D;line-height:1;text-decoration:none;" title="Powered by Prompt Reviews - Make writing reviews quick and easy with AI">[P]</a>
          </div>`;
 
     const generateEmojiElement = (label: string, idx: number) => {
@@ -85,7 +85,7 @@ const EmojiEmbedModal: React.FC<EmojiEmbedModalProps> = ({
       
       if (embedFormat === 'png') {
         const pngFilename = getEmojiPngFilename(label);
-        return `<td style="text-align:center;vertical-align:top;"><a href="${url}" target="_blank" style="text-decoration:none;display:inline-block;text-align:center;"><img src="https://promptreviews.app/emojis/${pngFilename}-${emojiSizeNum}.png" width="${emojiSizePx}" height="${emojiSizePx}" alt="${label}" style="display:block;margin:0 auto;border:none;"><span style="font-size:.75rem;color:#666;margin-top:.25rem;display:block;">${label}</span></a></td>`;
+        return `<td style="text-align:center;vertical-align:top;"><a href="${url}" target="_blank" style="text-decoration:none;display:inline-block;text-align:center;"><img src="https://app.promptreviews.app/emojis/${pngFilename}-${emojiSizeNum}.png" width="${emojiSizePx}" height="${emojiSizePx}" alt="${label}" style="display:block;margin:0 auto;border:none;"><span style="font-size:.75rem;color:#666;margin-top:.25rem;display:block;">${label}</span></a></td>`;
       } else {
         const iconColors = ['#f472b6', '#22c55e', '#9ca3af', '#f97316', '#ef4444'];
         const svgPath = getFontAwesomeSVGPath(label);
