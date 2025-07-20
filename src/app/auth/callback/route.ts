@@ -3,6 +3,7 @@ import { createServerClient } from '@supabase/ssr';
 import { sendWelcomeEmail } from "@/utils/resend-welcome";
 import { sendAdminNewUserNotification } from "@/utils/emailTemplates";
 import { ensureAdminForEmail } from '@/utils/admin';
+import { createServiceRoleClient } from '@/utils/supabaseClient';
 
 export const dynamic = "force-dynamic";
 
@@ -129,6 +130,12 @@ export async function GET(request: NextRequest) {
 
         if (!canAddError && canAdd) {
           // Add user to account (NO separate account creation for team members)
+          console.log('🔧 Adding user to team account via callback:', {
+            account_id: invitation.account_id,
+            user_id: userId,
+            role: invitation.role
+          });
+
           const { error: addUserError } = await supabase
             .from('account_users')
             .insert({
@@ -152,10 +159,55 @@ export async function GET(request: NextRequest) {
             console.log("✅ Redirecting team member to dashboard");
             return NextResponse.redirect(`${requestUrl.origin}/dashboard`);
           } else {
-            console.error('❌ Error accepting invitation:', addUserError);
-            // CRITICAL: For team invitations, don't fall back to individual account creation
-            // Return error instead of continuing to individual account logic
-            return NextResponse.redirect(`${requestUrl.origin}/auth/sign-in?error=team_invitation_failed&email=${encodeURIComponent(email || '')}`);
+            console.error('❌ Error accepting invitation:', {
+              error: addUserError,
+              code: addUserError.code,
+              message: addUserError.message,
+              details: addUserError.details,
+              hint: addUserError.hint,
+              account_id: invitation.account_id,
+              user_id: userId,
+              role: invitation.role
+            });
+
+            // Try with service role client as fallback
+            console.log('🔄 Attempting fallback with service role client in callback...');
+            const supabaseAdmin = createServiceRoleClient();
+            const { error: fallbackError } = await supabaseAdmin
+              .from('account_users')
+              .insert({
+                account_id: invitation.account_id,
+                user_id: userId,
+                role: invitation.role
+              });
+
+            if (!fallbackError) {
+              console.log('✅ Fallback succeeded - marking invitation as accepted');
+              // Mark invitation as accepted
+              await supabase
+                .from('account_invitations')
+                .update({ accepted_at: new Date().toISOString() })
+                .eq('token', invitation.token);
+
+              console.log('✅ Team invitation accepted via fallback - user added to team account');
+              hasAcceptedInvitation = true;
+              
+              // Redirect to dashboard
+              console.log("✅ Redirecting team member to dashboard after fallback");
+              return NextResponse.redirect(`${requestUrl.origin}/dashboard`);
+            } else {
+              console.error('❌ Fallback also failed in callback:', {
+                error: fallbackError,
+                code: fallbackError.code,
+                message: fallbackError.message,
+                details: fallbackError.details,
+                hint: fallbackError.hint
+              });
+              
+              // CRITICAL: For team invitations, don't fall back to individual account creation
+              // Return error instead of continuing to individual account logic
+              return NextResponse.redirect(`${requestUrl.origin}/auth/sign-in?error=team_invitation_failed&email=${encodeURIComponent(email || '')}`);
+            }
           }
         } else {
           console.error('❌ Cannot add user to account:', canAddError || 'Account is full');
