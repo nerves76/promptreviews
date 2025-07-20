@@ -275,6 +275,9 @@ export default function PromptPage() {
   const [showStyleModal, setShowStyleModal] = useState(false);
   const [userLoading, setUserLoading] = useState(true);
   const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
+  // Add state for tracking font loading status
+  const [fontsLoaded, setFontsLoaded] = useState(false);
+  const [styleInitialized, setStyleInitialized] = useState(false);
 
   useEffect(() => {
     const savedCounts = sessionStorage.getItem('aiRewriteCounts');
@@ -336,7 +339,7 @@ export default function PromptPage() {
         
         // Set business profile data
         if (businessProfile) {
-          setBusinessProfile({
+          const profileData = {
             ...businessProfile,
             business_name: businessProfile.name,
             review_platforms: [],
@@ -347,7 +350,20 @@ export default function PromptPage() {
             card_inner_shadow: businessProfile.card_inner_shadow,
             card_shadow_color: businessProfile.card_shadow_color,
             card_shadow_intensity: businessProfile.card_shadow_intensity,
-          });
+          };
+          
+          setBusinessProfile(profileData);
+          
+          // Immediately apply critical styles to prevent flash
+          if (typeof window !== 'undefined') {
+            document.documentElement.style.setProperty('--primary-font', profileData.primary_font || 'Inter');
+            document.documentElement.style.setProperty('--secondary-font', profileData.secondary_font || 'Inter');
+            document.documentElement.style.setProperty('--primary-color', profileData.primary_color || '#4F46E5');
+            document.documentElement.style.setProperty('--background-color', profileData.background_color || '#FFFFFF');
+            document.documentElement.style.setProperty('--text-color', profileData.text_color || '#1F2937');
+            document.documentElement.style.setProperty('--card-bg', profileData.card_bg || '#FFFFFF');
+            document.documentElement.style.setProperty('--card-text', profileData.card_text || '#1A1A1A');
+          }
         } else {
           setError("Business profile not found");
           setLoading(false);
@@ -924,6 +940,24 @@ export default function PromptPage() {
       address_city: prev.address_city,
       address_state: prev.address_state,
     }));
+
+    // Force style re-application when styles are updated via modal
+    setTimeout(() => {
+      if (newStyles.primary_color) {
+        document.documentElement.style.setProperty('--primary-color', newStyles.primary_color);
+      }
+      if (newStyles.background_color) {
+        document.documentElement.style.setProperty('--background-color', newStyles.background_color);
+      }
+      if (newStyles.primary_font) {
+        document.documentElement.style.setProperty('--primary-font', newStyles.primary_font);
+        loadGoogleFont(newStyles.primary_font).catch(console.warn);
+      }
+      if (newStyles.secondary_font) {
+        document.documentElement.style.setProperty('--secondary-font', newStyles.secondary_font);
+        loadGoogleFont(newStyles.secondary_font).catch(console.warn);
+      }
+    }, 0);
   }, []);
 
   const handlePhotoSubmit = async (e: React.FormEvent) => {
@@ -1261,10 +1295,74 @@ export default function PromptPage() {
     }
   }, [promptPage, businessProfile]);
 
-  if (loading) {
+  // Enhanced font loading effect that ensures styles are properly applied
+  useEffect(() => {
+    if (!businessProfile?.primary_font && !businessProfile?.secondary_font) return;
+
+    const ensureFontsAndStyles = async () => {
+      try {
+        // Load fonts with timeout
+        const fontPromises = [];
+        if (businessProfile.primary_font) {
+          fontPromises.push(loadGoogleFont(businessProfile.primary_font));
+        }
+        if (businessProfile.secondary_font) {
+          fontPromises.push(loadGoogleFont(businessProfile.secondary_font));
+        }
+
+        // Wait for fonts with timeout
+        await Promise.race([
+          Promise.all(fontPromises),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Font loading timeout')), 3000))
+        ]);
+
+        // Force a style refresh to ensure everything is applied
+        setFontsLoaded(true);
+        
+        // Apply critical styles directly to ensure they stick
+        document.documentElement.style.setProperty('--primary-font', businessProfile.primary_font || 'Inter');
+        document.documentElement.style.setProperty('--secondary-font', businessProfile.secondary_font || 'Inter');
+        document.documentElement.style.setProperty('--primary-color', businessProfile.primary_color || '#4F46E5');
+        document.documentElement.style.setProperty('--background-color', businessProfile.background_color || '#FFFFFF');
+        
+        setStyleInitialized(true);
+      } catch (error) {
+        console.warn('Font loading failed, using fallbacks:', error);
+        setFontsLoaded(true);
+        setStyleInitialized(true);
+      }
+    };
+
+    ensureFontsAndStyles();
+  }, [businessProfile?.primary_font, businessProfile?.secondary_font, businessProfile?.primary_color, businessProfile?.background_color]);
+
+  // Import the font loading function
+  const loadGoogleFont = async (fontName: string): Promise<void> => {
+    if (!fontName || fontName === 'Inter') return;
+    
+    const fontId = `google-font-${fontName.replace(/\s+/g, '-')}`;
+    if (document.getElementById(fontId)) return;
+
+    return new Promise((resolve, reject) => {
+      const link = document.createElement('link');
+      link.id = fontId;
+      link.rel = 'stylesheet';
+      link.href = `https://fonts.googleapis.com/css2?family=${fontName.replace(/\s+/g, '+')}:wght@400;500;600;700&display=swap`;
+      
+      link.onload = () => resolve();
+      link.onerror = () => reject(new Error(`Failed to load font: ${fontName}`));
+      
+      document.head.appendChild(link);
+    });
+  };
+
+  if (loading || !styleInitialized) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">
         <AppLoader variant="centered" />
+        <p className="mt-4 text-gray-600 text-sm">
+          {loading ? 'Loading page...' : 'Loading styles...'}
+        </p>
       </div>
     );
   }
