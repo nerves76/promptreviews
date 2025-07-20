@@ -168,6 +168,16 @@ export default function PromptPageForm({
         initialData.emojiFeedbackMessage ??
         "We value your feedback! Let us know how we can do better.",
     );
+    setEmojiFeedbackPopupHeader(
+      initialData.emoji_feedback_popup_header ??
+        initialData.emojiFeedbackPopupHeader ??
+        "How can we improve?",
+    );
+    setEmojiFeedbackPageHeader(
+      initialData.emoji_feedback_page_header ??
+        initialData.emojiFeedbackPageHeader ??
+        "Your feedback helps us grow",
+    );
     setNotePopupEnabled(initialData.show_friendly_note ?? true);
     setFallingEnabled(!!initialData.falling_icon);
     handleIconChange(initialData.falling_icon || "star");
@@ -209,6 +219,12 @@ export default function PromptPageForm({
   );
   const [emojiFeedbackMessage, setEmojiFeedbackMessage] = useState(
     initialData.emoji_feedback_message ?? initialData.emojiFeedbackMessage ?? "We value your feedback! Let us know how we can do better.",
+  );
+  const [emojiFeedbackPopupHeader, setEmojiFeedbackPopupHeader] = useState(
+    initialData.emoji_feedback_popup_header ?? initialData.emojiFeedbackPopupHeader ?? "How can we improve?",
+  );
+  const [emojiFeedbackPageHeader, setEmojiFeedbackPageHeader] = useState(
+    initialData.emoji_feedback_page_header ?? initialData.emojiFeedbackPageHeader ?? "Your feedback helps us grow",
   );
   const [generatingReview, setGeneratingReview] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -726,7 +742,12 @@ export default function PromptPageForm({
           const formDataToSubmit = { 
             ...formData, 
             ai_button_enabled: aiReviewEnabled,
-            fix_grammar_enabled: fixGrammarEnabled
+            fix_grammar_enabled: fixGrammarEnabled,
+            emoji_sentiment_enabled: emojiSentimentEnabled,
+            emoji_sentiment_question: emojiSentimentQuestion,
+            emoji_feedback_message: emojiFeedbackMessage,
+            emoji_feedback_popup_header: emojiFeedbackPopupHeader,
+            emoji_feedback_page_header: emojiFeedbackPageHeader,
           };
           
           if (step === 2 && onPublish) {
@@ -1178,6 +1199,10 @@ export default function PromptPageForm({
                     emojiThankYouMessage: val,
                   }))
                 }
+                feedbackPopupHeader={emojiFeedbackPopupHeader}
+                onFeedbackPopupHeaderChange={setEmojiFeedbackPopupHeader}
+                feedbackPageHeader={emojiFeedbackPageHeader}
+                onFeedbackPageHeaderChange={setEmojiFeedbackPageHeader}
                 slug={formData.slug}
                 disabled={!!notePopupEnabled}
               />
@@ -1267,6 +1292,11 @@ export default function PromptPageForm({
           ...formData,
           ai_button_enabled: aiReviewEnabled,
           show_friendly_note: notePopupEnabled,
+          emoji_sentiment_enabled: emojiSentimentEnabled,
+          emoji_sentiment_question: emojiSentimentQuestion,
+          emoji_feedback_message: emojiFeedbackMessage,
+          emoji_feedback_popup_header: emojiFeedbackPopupHeader,
+          emoji_feedback_page_header: emojiFeedbackPageHeader,
         });
       }}
     >
