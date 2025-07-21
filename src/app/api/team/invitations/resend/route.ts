@@ -206,15 +206,6 @@ export async function POST(request: NextRequest) {
     });
 
     // Send the email
-    console.log('🔧 About to call sendTeamInvitationEmail with:', {
-      email: invitation.email,
-      inviterName,
-      businessName,
-      role: invitation.role,
-      token: newToken ? 'present' : 'missing',
-      expirationDate: formattedExpirationDate
-    });
-
     const emailResult = await sendTeamInvitationEmail(
       invitation.email,
       inviterName,
@@ -223,12 +214,6 @@ export async function POST(request: NextRequest) {
       newToken,
       formattedExpirationDate
     );
-
-    console.log('📧 Email send result:', {
-      success: emailResult.success,
-      error: emailResult.error,
-      invitation_id: invitation.id
-    });
 
     if (!emailResult.success) {
       console.error('Failed to resend invitation email:', emailResult.error);
