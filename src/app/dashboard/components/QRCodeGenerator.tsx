@@ -741,6 +741,17 @@ export default function QRCodeGenerator({
       // Use pre-calculated logo dimensions
       ctx.drawImage(logoImg, logoX, logoY, logoWidth, logoHeight);
 
+      // Draw NFC text if enabled (below QR code)
+      if (showNfcText) {
+        const nfcFontSize = Math.max(18, Math.floor(headlineFontSize * 0.6)); // Proportional to headline size
+        ctx.font = `${nfcFontSize}px Arial, sans-serif`;
+        ctx.fillStyle = '#666666'; // Gray color
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        const nfcTextY = qrCenterY + qrSize + 20; // 20px spacing below QR code
+        ctx.fillText('Tap phone or scan with camera', frameSize.width / 2, nfcTextY);
+      }
+
       // Draw website text (below logo, at bottom)
       ctx.font = `bold ${websiteFontSize}px Arial, sans-serif`;
       ctx.fillStyle = mainColor;
@@ -748,17 +759,6 @@ export default function QRCodeGenerator({
       ctx.textBaseline = 'top';
       const websiteTextY = logoY + logoHeight + 10;
       ctx.fillText('promptreviews.app', frameSize.width / 2, websiteTextY);
-
-      // Draw NFC text if enabled (below website text)
-      if (showNfcText) {
-        const nfcFontSize = Math.max(16, Math.floor(websiteFontSize * 0.7)); // Smaller than website text
-        ctx.font = `${nfcFontSize}px Arial, sans-serif`;
-        ctx.fillStyle = '#666666'; // Slightly lighter color
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'top';
-        const nfcTextY = websiteTextY + websiteFontSize + 8; // 8px spacing below website text
-        ctx.fillText('Tap phone or scan with camera', frameSize.width / 2, nfcTextY);
-      }
 
       // Store canvas for download
       if (canvasRef.current) {
