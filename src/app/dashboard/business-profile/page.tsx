@@ -40,6 +40,7 @@ import imageCompression from 'browser-image-compression';
 import FiveStarSpinner from "@/app/components/FiveStarSpinner";
 import { trackEvent, GA_EVENTS } from "../../../utils/analytics";
 import { markTaskAsCompleted } from "@/utils/onboardingTasks";
+import WelcomePopup from "@/app/components/WelcomePopup";
 
 function Tooltip({ text }: { text: string }) {
   const [show, setShow] = useState(false);
@@ -157,6 +158,15 @@ export default function BusinessProfilePage() {
   const [rawLogoPrintFile, setRawLogoPrintFile] = useState<File | null>(null);
   const [copySuccess, setCopySuccess] = useState("");
   const [accountId, setAccountId] = useState<string | null>(null);
+  const [showWelcomePopup, setShowWelcomePopup] = useState(false);
+
+  // Handler for closing the welcome popup
+  const handleWelcomeClose = () => {
+    setShowWelcomePopup(false);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('hasSeenBusinessWelcome', 'true');
+    }
+  };
 
   useEffect(() => {
     const loadBusinessProfile = async () => {
@@ -281,6 +291,14 @@ export default function BusinessProfilePage() {
           setPlatformErrors(loadedPlatforms.map(() => ""));
           setLogoUrl(businessData.logo_url || null);
           setNoProfile(false);
+        }
+
+        // Check if this is the first time visiting the business profile page
+        if (typeof window !== 'undefined') {
+          const hasSeenBusinessWelcome = localStorage.getItem('hasSeenBusinessWelcome');
+          if (!hasSeenBusinessWelcome) {
+            setShowWelcomePopup(true);
+          }
         }
 
         setLoading(false);
@@ -822,6 +840,34 @@ export default function BusinessProfilePage() {
           {isSubmitting ? "Saving..." : "Save"}
         </button>
       </div>
+
+      {/* Welcome Popup for first-time visitors */}
+      <WelcomePopup
+        isOpen={showWelcomePopup}
+        onClose={handleWelcomeClose}
+        title={`Hello again${form.name ? `, ${form.name}` : ''}!`}
+        message={`Welcome to "Your Business!" This section is all about highlighting what makes your business stand out. Use your natural voice—I'll pick up what you're putting down.
+
+The details you share here help me create review templates that reflect your unique value. No need to get everything perfect right away—you can update this page anytime.
+
+Here are two key sections to pay attention to:
+
+⸻
+
+1. Keywords
+Keywords help boost your web presence. For example, if you sell widgets in Seattle, you might want to include phrases like "best widget shop in Seattle." When those keywords show up in reviews, it can improve your visibility in search engines and AI tools like ChatGPT.
+
+⸻
+
+2. AI Dos and Don'ts
+	•	AI Dos are preferences: e.g., "Always use ALL CAPS for our brand name."
+	•	AI Don'ts are things to avoid: e.g., "Don't say we offer free consults—we don't."
+
+You can update your don'ts over time by testing outputs and reviewing what gets generated.`}
+        imageUrl="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompty-catching-stars.png"
+        imageAlt="Prompty catching stars"
+        buttonText="Got it, let's go!"
+      />
     </PageCard>
   );
 }
