@@ -46,6 +46,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate promotion code if provided
+    const VALID_PROMOTION_CODES = ["grower49-offer2025"];
+    if (businessData.promotion_code && businessData.promotion_code.trim() !== "") {
+      if (!VALID_PROMOTION_CODES.includes(businessData.promotion_code.trim())) {
+        return NextResponse.json(
+          { error: "Invalid promotion code. Please check your code and try again." },
+          { status: 400 }
+        );
+      }
+    }
+
     console.log(`[BUSINESSES] Creating business: ${name} for account: ${account_id}`);
 
     const supabase = createServiceRoleClient();
