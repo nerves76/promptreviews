@@ -40,12 +40,18 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
   const [showClientLogo, setShowClientLogo] = useState(Boolean(logoUrl && logoUrl.trim() !== ''));
   const [starSize, setStarSize] = useState(48);
   const [logoError, setLogoError] = useState(false);
+  const [showNfcTextLocal, setShowNfcTextLocal] = useState(showNfcText); // Add local state for NFC text toggle
 
   // Update showClientLogo when logoUrl changes
   useEffect(() => {
     setShowClientLogo(Boolean(logoUrl && logoUrl.trim() !== ''));
     setLogoError(false); // Reset error when logoUrl changes
   }, [logoUrl]);
+
+  // Update showNfcTextLocal when showNfcText prop changes
+  useEffect(() => {
+    setShowNfcTextLocal(showNfcText);
+  }, [showNfcText]);
 
   // Check if blob URL is valid
   useEffect(() => {
@@ -111,6 +117,13 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
       }
     }
   };
+
+  // Regenerate preview when NFC text setting changes
+  useEffect(() => {
+    if (showPreview) {
+      setIsGenerating(true);
+    }
+  }, [showNfcTextLocal]);
 
   const handleGenerateQRCode = () => {
     setShowPreview(true);
@@ -378,6 +391,22 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
                         </div>
                       </div>
                     )}
+                  </div>
+
+                  {/* Show NFC Text Toggle */}
+                  <div>
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={showNfcTextLocal}
+                        onChange={(e) => setShowNfcTextLocal(e.target.checked)}
+                        className="mr-2"
+                      />
+                      <span className="text-sm font-medium text-gray-700">NFC instructions</span>
+                    </label>
+                    <div className="text-xs text-gray-500 mt-1 ml-6">
+                      Shows "Tap phone or scan with camera" below QR code
+                    </div>
                   </div>
 
                   {/* Show Decorative Icons Toggle */}
@@ -819,7 +848,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
             decorativeIconCount={decorativeIconCount}
             decorativeIconSize={decorativeIconSize}
             decorativeIconColor={decorativeIconColor}
-            showNfcText={showNfcText}
+            showNfcText={showNfcTextLocal} // Use local state for NFC text
           />
         )}
 
