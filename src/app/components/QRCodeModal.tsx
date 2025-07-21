@@ -808,18 +808,9 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
                         >
                           <Icon className={`w-8 h-8 ${iconItem.color} mb-2`} />
                           <span className="text-sm text-gray-700 text-center font-medium">{iconItem.label}</span>
-                          <span className="text-xs text-gray-500 mt-1 text-center">
-                            Actual icon as shown on QR code
-                          </span>
                         </button>
                       );
                     })}
-                  </div>
-                  <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-sm text-blue-800">
-                      <strong>Note:</strong> These are the actual icon shapes that will appear on your QR code. 
-                      All icons are custom-drawn to ensure they display consistently across all devices.
-                    </p>
                   </div>
                 </div>
               </div>
