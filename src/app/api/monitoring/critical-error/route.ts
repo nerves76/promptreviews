@@ -21,7 +21,7 @@ const ALERT_CONFIG = {
   ERROR_RATE_THRESHOLD: 0.1, // 10% error rate
   TIME_WINDOW_MINUTES: 5,
   // Email settings
-  ALERT_EMAIL: process.env.ALERT_EMAIL || 'alerts@promptreviews.app',
+  ALERT_EMAIL: process.env.ALERT_EMAIL || 'alerts@updates.promptreviews.app',
   // Slack webhook (if configured)
   SLACK_WEBHOOK_URL: process.env.SLACK_ALERT_WEBHOOK_URL,
 };
