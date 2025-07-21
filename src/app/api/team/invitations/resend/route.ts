@@ -34,15 +34,47 @@ export async function POST(request: NextRequest) {
   const supabaseAdmin = createServiceRoleClient();
 
   try {
-    // Get the current user
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    // Get the current user - try both cookie and header auth
+    let user = null;
+    let userError = null;
+
+    // First try cookie-based auth
+    const cookieResult = await supabase.auth.getUser();
+    if (!cookieResult.error && cookieResult.data.user) {
+      user = cookieResult.data.user;
+    } else {
+      // If cookie auth fails, try Authorization header
+      const authHeader = request.headers.get('authorization');
+      if (authHeader?.startsWith('Bearer ')) {
+        const token = authHeader.substring(7);
+        const headerResult = await supabaseAdmin.auth.getUser(token);
+        if (!headerResult.error && headerResult.data.user) {
+          user = headerResult.data.user;
+        } else {
+          userError = headerResult.error;
+        }
+      } else {
+        userError = cookieResult.error;
+      }
+    }
     
-    if (userError || !user) {
+    if (!user) {
+      console.error('🔒 Resend API - Authentication failed:', {
+        cookieError: cookieResult.error?.message,
+        headerError: userError?.message,
+        hasAuthHeader: !!request.headers.get('authorization')
+      });
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
       );
     }
+
+    console.log('✅ Resend API - User authenticated:', {
+      userId: user.id,
+      email: user.email,
+      authMethod: cookieResult.data.user ? 'cookie' : 'header'
+    });
 
     // Get request body
     const { invitation_id } = await request.json();
