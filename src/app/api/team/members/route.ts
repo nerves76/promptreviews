@@ -244,3 +244,256 @@ async function processTeamMembers(supabase: any, supabaseAdmin: any, user: any, 
     );
   }
 } 
+
+/**
+ * DELETE - Remove a team member (owners only)
+ */
+export async function DELETE(request: NextRequest) {
+  const supabase = await createAuthenticatedSupabaseClient();
+  const supabaseAdmin = createServiceRoleClient();
+
+  try {
+    // Get the current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    
+    if (userError || !user) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    // Get member ID from URL
+    const url = new URL(request.url);
+    const memberUserId = url.searchParams.get('user_id');
+
+    if (!memberUserId) {
+      return NextResponse.json(
+        { error: 'Member user ID is required' },
+        { status: 400 }
+      );
+    }
+
+    // Get the current user's account
+    const { data: accountUser, error: accountError } = await supabase
+      .from('account_users')
+      .select('account_id, role')
+      .eq('user_id', user.id)
+      .single();
+
+    if (accountError || !accountUser) {
+      return NextResponse.json(
+        { error: 'Account not found' },
+        { status: 404 }
+      );
+    }
+
+    // Check if user is an owner
+    if (accountUser.role !== 'owner') {
+      return NextResponse.json(
+        { error: 'Only account owners can remove team members' },
+        { status: 403 }
+      );
+    }
+
+    // Prevent self-removal
+    if (memberUserId === user.id) {
+      return NextResponse.json(
+        { error: 'Account owners cannot remove themselves' },
+        { status: 400 }
+      );
+    }
+
+    // Get member details for cleanup
+    const { data: memberToRemove, error: memberError } = await supabaseAdmin.auth.admin.getUserById(memberUserId);
+    
+    if (memberError || !memberToRemove.user) {
+      return NextResponse.json(
+        { error: 'Member not found' },
+        { status: 404 }
+      );
+    }
+
+    // Verify member is actually in this account
+    const { data: memberAccount, error: memberAccountError } = await supabase
+      .from('account_users')
+      .select('user_id, role')
+      .eq('account_id', accountUser.account_id)
+      .eq('user_id', memberUserId)
+      .single();
+
+    if (memberAccountError || !memberAccount) {
+      return NextResponse.json(
+        { error: 'Member is not part of this account' },
+        { status: 404 }
+      );
+    }
+
+    // Prevent removing other owners (for safety)
+    if (memberAccount.role === 'owner') {
+      return NextResponse.json(
+        { error: 'Cannot remove other account owners' },
+        { status: 400 }
+      );
+    }
+
+    // Remove user from account with cleanup
+    const { error: removeError } = await supabaseAdmin
+      .from('account_users')
+      .delete()
+      .eq('account_id', accountUser.account_id)
+      .eq('user_id', memberUserId);
+
+    if (removeError) {
+      console.error('Error removing user from account:', removeError);
+      return NextResponse.json(
+        { error: 'Failed to remove team member' },
+        { status: 500 }
+      );
+    }
+
+    // Clean up any invitation records for this user
+    const { error: invitationCleanupError } = await supabaseAdmin
+      .from('account_invitations')
+      .delete()
+      .eq('account_id', accountUser.account_id)
+      .eq('email', memberToRemove.user.email);
+
+    if (invitationCleanupError) {
+      console.warn('Failed to clean up invitation records:', invitationCleanupError);
+      // Don't fail the request - member removal was successful
+    }
+
+    console.log(`✅ Successfully removed team member: ${memberToRemove.user.email}`);
+
+    return NextResponse.json({
+      message: 'Team member removed successfully',
+      removed_user: {
+        user_id: memberUserId,
+        email: memberToRemove.user.email
+      }
+    });
+
+  } catch (error) {
+    console.error('Team member removal API error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * PATCH - Update team member role (owners only)
+ */
+export async function PATCH(request: NextRequest) {
+  const supabase = await createAuthenticatedSupabaseClient();
+
+  try {
+    // Get the current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    
+    if (userError || !user) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    // Get request body
+    const { user_id: memberUserId, role: newRole } = await request.json();
+
+    if (!memberUserId || !newRole) {
+      return NextResponse.json(
+        { error: 'Member user ID and role are required' },
+        { status: 400 }
+      );
+    }
+
+    // Validate role
+    if (!['owner', 'member', 'support'].includes(newRole)) {
+      return NextResponse.json(
+        { error: 'Invalid role. Must be "owner", "member", or "support"' },
+        { status: 400 }
+      );
+    }
+
+    // Get the current user's account
+    const { data: accountUser, error: accountError } = await supabase
+      .from('account_users')
+      .select('account_id, role')
+      .eq('user_id', user.id)
+      .single();
+
+    if (accountError || !accountUser) {
+      return NextResponse.json(
+        { error: 'Account not found' },
+        { status: 404 }
+      );
+    }
+
+    // Check if user is an owner
+    if (accountUser.role !== 'owner') {
+      return NextResponse.json(
+        { error: 'Only account owners can change member roles' },
+        { status: 403 }
+      );
+    }
+
+    // Prevent changing own role (for safety)
+    if (memberUserId === user.id) {
+      return NextResponse.json(
+        { error: 'Account owners cannot change their own role' },
+        { status: 400 }
+      );
+    }
+
+    // Verify member is actually in this account
+    const { data: memberAccount, error: memberAccountError } = await supabase
+      .from('account_users')
+      .select('user_id, role')
+      .eq('account_id', accountUser.account_id)
+      .eq('user_id', memberUserId)
+      .single();
+
+    if (memberAccountError || !memberAccount) {
+      return NextResponse.json(
+        { error: 'Member is not part of this account' },
+        { status: 404 }
+      );
+    }
+
+    // Update member role
+    const { error: updateError } = await supabase
+      .from('account_users')
+      .update({ role: newRole })
+      .eq('account_id', accountUser.account_id)
+      .eq('user_id', memberUserId);
+
+    if (updateError) {
+      console.error('Error updating member role:', updateError);
+      return NextResponse.json(
+        { error: 'Failed to update member role' },
+        { status: 500 }
+      );
+    }
+
+    console.log(`✅ Successfully updated member role: ${memberUserId} -> ${newRole}`);
+
+    return NextResponse.json({
+      message: 'Member role updated successfully',
+      updated_member: {
+        user_id: memberUserId,
+        new_role: newRole,
+        previous_role: memberAccount.role
+      }
+    });
+
+  } catch (error) {
+    console.error('Team member role update API error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+} 

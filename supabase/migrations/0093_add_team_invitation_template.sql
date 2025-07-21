@@ -22,7 +22,10 @@ INSERT INTO email_templates (name, subject, html_content, text_content, is_activ
 
 <p>Questions? Just reply to this email - we''re here to help!</p>
 
-<p>– The Prompt Reviews Team</p>',
+<p>– The Prompt Reviews Team</p>
+
+<!-- Tracking pixel for email opens -->
+<img src="{{trackingPixel}}" width="1" height="1" style="display:none;" alt="" />',
     'Hi there!
 
 {{inviterName}} has invited you to join {{businessName}} on Prompt Reviews as a {{role}}.
