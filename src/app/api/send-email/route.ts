@@ -15,7 +15,7 @@ export async function POST(req: Request) {
     }
 
     const result = await resend.emails.send({
-      from: from || 'Prompt Reviews <onboarding@resend.dev>',
+      from: from || 'Prompt Reviews <noreply@updates.promptreviews.app>',
       to: [to],
       subject,
       html,
