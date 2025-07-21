@@ -299,11 +299,11 @@ export function validateInvitationEmail(email: string, context: {
     allowRoleEmails = false
   } = context;
 
-  // Base validation
+  // Base validation - Remove business email requirement as it's too restrictive
   const result = validateEmail(email, {
     allowDisposable: false,
-    requireBusinessEmail: isOwnerInvite, // Require business email for owner invites
-    maxRiskScore: isOwnerInvite ? 50 : 70, // Stricter for owner invites
+    requireBusinessEmail: false, // Allow all valid emails (Gmail, Yahoo, etc.)
+    maxRiskScore: isOwnerInvite ? 60 : 80, // Slightly stricter for owner invites but still reasonable
     suggestCorrections: true
   });
 
@@ -321,12 +321,10 @@ export function validateInvitationEmail(email: string, context: {
       // This might be normal for large organizations, so just warn
     }
 
-    // Extra security for owner invites
-    if (isOwnerInvite) {
-      if (!result.isBusinessEmail) {
-        result.warnings.push('Consider using a business email for owner role');
-        result.riskScore += 20;
-      }
+    // Extra security for owner invites - Just warn, don't block
+    if (isOwnerInvite && !result.isBusinessEmail) {
+      result.warnings.push('Tip: Business emails are often preferred for owner roles, but personal emails work too');
+      result.riskScore += 10; // Reduced penalty
     }
   }
 
