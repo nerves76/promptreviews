@@ -99,18 +99,26 @@ export async function POST(request: NextRequest) {
 
     console.log('[BUSINESSES] Business created successfully:', business.id);
 
-    // 🔧 CRITICAL FIX: Update accounts.business_name for metadata templates
-    console.log('[BUSINESSES] Updating accounts.business_name for metadata templates...');
+    // 🔧 CRITICAL FIX: Update accounts.business_name and promotion_code for metadata templates
+    console.log('[BUSINESSES] Updating accounts.business_name and promotion_code...');
+    const accountUpdates: any = { business_name: name };
+    
+    // Add promotion code if provided
+    if (businessData.promotion_code) {
+      accountUpdates.promotion_code = businessData.promotion_code;
+      console.log('[BUSINESSES] Adding promotion code to account:', businessData.promotion_code);
+    }
+    
     const { error: accountUpdateError } = await supabase
       .from('accounts')
-      .update({ business_name: name })
+      .update(accountUpdates)
       .eq('id', account_id);
 
     if (accountUpdateError) {
-      console.error('[BUSINESSES] Warning: Failed to update accounts.business_name:', accountUpdateError);
+      console.error('[BUSINESSES] Warning: Failed to update account data:', accountUpdateError);
       // Don't fail the entire operation, just log the warning
     } else {
-      console.log('[BUSINESSES] Successfully updated accounts.business_name to:', name);
+      console.log('[BUSINESSES] Successfully updated account data:', accountUpdates);
     }
 
     // Create universal prompt page (same logic as SimpleBusinessForm)
