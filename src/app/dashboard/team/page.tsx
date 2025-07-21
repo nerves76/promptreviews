@@ -646,6 +646,23 @@ export default function TeamPage() {
         </div>
       )}
 
+      {/* No pending invitations message with expiration note */}
+      {isOwner && invitations.length === 0 && (
+        <div className="bg-white border border-gray-200 rounded-lg p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            Pending Invitations
+          </h2>
+          <div className="text-center py-8">
+            <EnvelopeIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-500 mb-4">No pending invitations</p>
+            <div className="inline-flex items-center px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg">
+              <ClockIcon className="w-4 h-4 text-blue-600 mr-2" />
+              <span className="text-sm text-blue-800">Invitations expire after 7 days</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Non-owner message */}
       {!isOwner && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
