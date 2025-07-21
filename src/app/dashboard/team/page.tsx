@@ -97,7 +97,13 @@ export default function TeamPage() {
     if (session?.access_token) {
       headers['Authorization'] = `Bearer ${session.access_token}`;
     } else {
-      console.error('❌ Team Page - No access token available for API calls');
+      console.error('❌ Team Page - No access token available for API calls', {
+        hasSession: !!session,
+        hasUser: !!session?.user,
+        userId: session?.user?.id,
+        sessionKeys: session ? Object.keys(session) : [],
+        userEmail: session?.user?.email
+      });
     }
     
     return headers;
@@ -413,6 +419,15 @@ export default function TeamPage() {
         if (!response.ok) {
           if (response.status === 429) {
             throw new Error('Rate limit exceeded. Please wait before resending.');
+          }
+          if (response.status === 401) {
+            console.error('🔒 Resend failed - Authentication error:', {
+              status: response.status,
+              error: data.error,
+              debug: data.debug,
+              headers: headers
+            });
+            throw new Error(`Authentication failed: ${data.error}. Please refresh the page and try again.`);
           }
           throw new Error(data.error || 'Failed to resend invitation');
         }
