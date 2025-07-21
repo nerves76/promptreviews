@@ -41,6 +41,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
   const [starSize, setStarSize] = useState(48);
   const [logoError, setLogoError] = useState(false);
   const [showNfcTextLocal, setShowNfcTextLocal] = useState(showNfcText); // Add local state for NFC text toggle
+  const [nfcTextSize, setNfcTextSize] = useState(18); // NFC text size control
 
   // Update showClientLogo when logoUrl changes
   useEffect(() => {
@@ -118,12 +119,12 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
     }
   };
 
-  // Regenerate preview when NFC text setting changes
+  // Regenerate preview when NFC text setting or size changes
   useEffect(() => {
     if (showPreview) {
       setIsGenerating(true);
     }
-  }, [showNfcTextLocal]);
+  }, [showNfcTextLocal, nfcTextSize]);
 
   const handleGenerateQRCode = () => {
     setShowPreview(true);
@@ -407,6 +408,32 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
                     <div className="text-xs text-gray-500 mt-1 ml-6">
                       Shows "Tap phone or scan with camera" below QR code
                     </div>
+                    
+                    {/* NFC Text Controls - Only show when NFC text is enabled */}
+                    {showNfcTextLocal && (
+                      <div className="mt-3 ml-6 space-y-4">
+                        {/* NFC Text Size */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Text Size: {nfcTextSize}px
+                          </label>
+                          <input
+                            type="range"
+                            min="12"
+                            max="32"
+                            step="2"
+                            value={nfcTextSize}
+                            onChange={(e) => setNfcTextSize(Number(e.target.value))}
+                            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                          />
+                          <div className="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>12px</span>
+                            <span>22px</span>
+                            <span>32px</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Show Decorative Icons Toggle */}
@@ -849,6 +876,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
             decorativeIconSize={decorativeIconSize}
             decorativeIconColor={decorativeIconColor}
             showNfcText={showNfcTextLocal} // Use local state for NFC text
+            nfcTextSize={nfcTextSize} // Pass NFC text size
           />
         )}
 

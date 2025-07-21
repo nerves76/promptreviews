@@ -70,6 +70,7 @@ interface QRCodeGeneratorProps {
   decorativeIconColor?: string;
   // NFC text support
   showNfcText?: boolean;
+  nfcTextSize?: number;
 }
 
 // Helper function to draw a star
@@ -420,6 +421,7 @@ export default function QRCodeGenerator({
   decorativeIconColor = "#FFD700",
   // NFC text support
   showNfcText = false,
+  nfcTextSize = 18,
 }: QRCodeGeneratorProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -743,8 +745,7 @@ export default function QRCodeGenerator({
 
       // Draw NFC text if enabled (below QR code)
       if (showNfcText) {
-        const nfcFontSize = Math.max(18, Math.floor(headlineFontSize * 0.6)); // Proportional to headline size
-        ctx.font = `${nfcFontSize}px Arial, sans-serif`;
+        ctx.font = `${nfcTextSize}px Arial, sans-serif`;
         ctx.fillStyle = '#666666'; // Gray color
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
@@ -965,7 +966,7 @@ export default function QRCodeGenerator({
   // Generate QR code when component mounts or props change
   useEffect(() => {
     generateQRCode();
-  }, [frameSize, headline, starColor, mainColor, showStars, url, clientLogoUrl, showClientLogo, starSize, circularLogo, logoSize, fontSize, showDecorativeIcons, decorativeIconType, decorativeIconCount, decorativeIconSize, decorativeIconColor, showNfcText]);
+  }, [frameSize, headline, starColor, mainColor, showStars, url, clientLogoUrl, showClientLogo, starSize, circularLogo, logoSize, fontSize, showDecorativeIcons, decorativeIconType, decorativeIconCount, decorativeIconSize, decorativeIconColor, showNfcText, nfcTextSize]);
 
   // Expose download function via ref
   useEffect(() => {
