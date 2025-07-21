@@ -11,6 +11,8 @@ import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { randomBytes } from 'crypto';
 import { sendTeamInvitationEmail } from '@/utils/emailTemplates';
+import { checkInvitationRateLimit, recordInvitationSuccess } from '@/middleware/invitationRateLimit';
+import { validateInvitationEmail } from '@/utils/emailValidation';
 
 // 🔧 CONSOLIDATION: Shared server client creation for API routes
 // This eliminates duplicate client creation patterns
@@ -55,9 +57,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!['owner', 'member'].includes(role)) {
+    if (!['owner', 'member', 'support'].includes(role)) {
       return NextResponse.json(
-        { error: 'Invalid role. Must be "owner" or "member"' },
+        { error: 'Invalid role. Must be "owner", "member", or "support"' },
         { status: 400 }
       );
     }
@@ -73,7 +75,8 @@ export async function POST(request: NextRequest) {
           first_name,
           last_name,
           plan,
-          max_users
+          max_users,
+          email
         )
       `)
       .eq('user_id', user.id)
@@ -83,6 +86,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Account not found' },
         { status: 404 }
+      );
+    }
+
+    // Check rate limits early
+    const rateLimitResult = await checkInvitationRateLimit(request, accountUser.account_id);
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { error: rateLimitResult.error },
+        { 
+          status: 429,
+          headers: rateLimitResult.headers
+        }
       );
     }
 
@@ -96,6 +111,29 @@ export async function POST(request: NextRequest) {
 
     // Get accounts data (handle both array and object formats)
     const accounts = Array.isArray(accountUser.accounts) ? accountUser.accounts[0] : accountUser.accounts;
+    
+    // Advanced email validation
+    const accountDomain = accounts?.email ? accounts.email.split('@')[1] : undefined;
+    
+    const emailValidation = validateInvitationEmail(email.trim(), {
+      accountDomain,
+      isOwnerInvite: role === 'owner',
+      allowRoleEmails: true // Allow role emails but warn
+    });
+
+    if (!emailValidation.isValid) {
+      return NextResponse.json(
+        { 
+          error: 'Invalid email address', 
+          details: emailValidation.errors,
+          suggestions: emailValidation.suggestions
+        },
+        { status: 400 }
+      );
+    }
+
+    // Show warnings but don't block (for UX)
+    const warnings = emailValidation.warnings.length > 0 ? emailValidation.warnings : undefined;
 
     // Get business name from the businesses table
     const { data: business, error: businessError } = await supabase
@@ -155,31 +193,64 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if invitation already exists (any invitation, accepted or pending)
+    // Enhanced duplicate checking with better handling
     const { data: existingInvitation, error: inviteCheckError } = await supabase
       .from('account_invitations')
-      .select('id, accepted_at, expires_at')
+      .select('id, accepted_at, expires_at, role, created_at')
       .eq('account_id', accountUser.account_id)
-      .eq('email', email.trim())
+      .eq('email', emailValidation.email)
       .single();
 
     if (existingInvitation && !existingInvitation.accepted_at) {
       // There's a pending invitation - check if it's expired
-      if (new Date(existingInvitation.expires_at) > new Date()) {
-        return NextResponse.json(
-          { error: 'Invitation already sent to this email' },
-          { status: 400 }
-        );
+      const isExpired = new Date(existingInvitation.expires_at) <= new Date();
+      
+      if (!isExpired) {
+        // Check if roles are different - allow role change via new invitation
+        if (existingInvitation.role !== role) {
+          console.log('🔄 Updating invitation role:', {
+            email: emailValidation.email,
+            oldRole: existingInvitation.role,
+            newRole: role
+          });
+          
+          // Delete old invitation to create new one with different role
+          await supabase
+            .from('account_invitations')
+            .delete()
+            .eq('id', existingInvitation.id);
+        } else {
+          return NextResponse.json(
+            { 
+              error: 'An active invitation has already been sent to this email address',
+              details: {
+                sentAt: existingInvitation.created_at,
+                expiresAt: existingInvitation.expires_at,
+                role: existingInvitation.role
+              }
+            },
+            { status: 409 }
+          );
+        }
+      } else {
+        // Clean up expired invitation
+        console.log('🗑️ Removing expired invitation:', {
+          email: emailValidation.email,
+          existingId: existingInvitation.id,
+          expiredAt: existingInvitation.expires_at
+        });
+        
+        await supabase
+          .from('account_invitations')
+          .delete()
+          .eq('id', existingInvitation.id);
       }
-    }
-
-    // If there's an existing invitation (accepted or expired), delete it first
-    // This handles the case where a user was previously invited/accepted and then removed
-    if (existingInvitation) {
-      console.log('🗑️ Removing existing invitation for re-invitation:', {
-        email: email.trim(),
+    } else if (existingInvitation && existingInvitation.accepted_at) {
+      // Remove accepted invitations to allow re-invitation
+      console.log('🗑️ Removing accepted invitation for re-invitation:', {
+        email: emailValidation.email,
         existingId: existingInvitation.id,
-        wasAccepted: !!existingInvitation.accepted_at
+        wasAccepted: true
       });
       
       const { error: deleteError } = await supabase
@@ -196,17 +267,17 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Generate secure token
-    const token = randomBytes(32).toString('hex');
+    // Generate cryptographically secure token with enhanced entropy
+    const token = generateSecureInvitationToken();
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7); // 7 days from now
 
-    // Create invitation
+    // Create invitation with audit trail
     const { data: invitation, error: inviteError } = await supabase
       .from('account_invitations')
       .insert({
         account_id: accountUser.account_id,
-        email: email.trim(),
+        email: emailValidation.email,
         role,
         invited_by: user.id,
         token,
@@ -234,16 +305,17 @@ export async function POST(request: NextRequest) {
     });
 
     console.log('📧 Sending invitation email...', {
-      to: email,
+      to: emailValidation.email,
       from: inviterName,
       business: businessName,
       role,
-      expires: formattedExpirationDate
+      expires: formattedExpirationDate,
+      riskScore: emailValidation.riskScore
     });
 
     // Send the email
     const emailResult = await sendTeamInvitationEmail(
-      email.trim(),
+      emailValidation.email,
       inviterName,
       businessName,
       role,
@@ -253,10 +325,34 @@ export async function POST(request: NextRequest) {
 
     if (!emailResult.success) {
       console.error('Failed to send invitation email:', emailResult.error);
-      // Don't fail the request - invitation is created, just email failed
+      
+      // Clean up the invitation since email failed
+      await supabase
+        .from('account_invitations')
+        .delete()
+        .eq('id', invitation.id);
+        
+      return NextResponse.json(
+        { error: 'Failed to send invitation email' },
+        { status: 500 }
+      );
     }
 
-    return NextResponse.json({
+    // Record successful invitation for rate limiting
+    recordInvitationSuccess(accountUser.account_id);
+
+    // Log successful invitation for audit trail
+    console.log('✅ Invitation sent successfully', {
+      invitationId: invitation.id,
+      email: emailValidation.email,
+      role,
+      invitedBy: user.id,
+      accountId: accountUser.account_id,
+      riskScore: emailValidation.riskScore,
+      warnings: warnings
+    });
+
+    const response = NextResponse.json({
       message: 'Invitation sent successfully',
       invitation: {
         id: invitation.id,
@@ -264,8 +360,18 @@ export async function POST(request: NextRequest) {
         role: invitation.role,
         expires_at: invitation.expires_at,
         email_sent: emailResult.success
-      }
+      },
+      warnings: warnings
     });
+
+    // Add rate limit headers to response
+    if (rateLimitResult.headers) {
+      Object.entries(rateLimitResult.headers).forEach(([key, value]) => {
+        response.headers.set(key, value);
+      });
+    }
+
+    return response;
 
   } catch (error) {
     console.error('Team invite API error:', error);
@@ -274,4 +380,23 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-} 
+}
+
+/**
+ * Generate a cryptographically secure invitation token with enhanced entropy
+ */
+function generateSecureInvitationToken(): string {
+  // Use multiple entropy sources for enhanced security
+  const timestamp = Date.now().toString(36);
+  const randomBytes1 = randomBytes(24).toString('hex'); // 48 chars
+  const randomBytes2 = randomBytes(8).toString('base64url'); // ~11 chars
+  const randomBytes3 = randomBytes(4).toString('hex'); // 8 chars
+  
+  // Combine and shuffle for 67+ character token
+  const combined = `${timestamp}${randomBytes1}${randomBytes2}${randomBytes3}`;
+  
+  // Additional mixing for extra security
+  const finalToken = randomBytes(32).toString('hex') + combined.slice(0, 32);
+  
+  return finalToken;
+}

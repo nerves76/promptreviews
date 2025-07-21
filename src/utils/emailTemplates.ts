@@ -249,17 +249,42 @@ export async function sendTeamInvitationEmail(
   token: string,
   expirationDate: string
 ): Promise<{ success: boolean; error?: string }> {
-  const acceptUrl = process.env.NEXT_PUBLIC_APP_URL 
-    ? `${process.env.NEXT_PUBLIC_APP_URL}/team/accept?token=${token}`
-    : `https://app.promptreviews.app/team/accept?token=${token}`;
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.promptreviews.app';
+  const acceptUrl = `${baseUrl}/team/accept?token=${token}`;
+  const trackingPixelUrl = `${baseUrl}/api/team/invitations/track?token=${token}&event=opened`;
+  const trackingClickUrl = `${baseUrl}/api/team/invitations/track?token=${token}&event=clicked&redirect=${encodeURIComponent(acceptUrl)}`;
     
-  return sendTemplatedEmail('team_invitation', email, {
+  const result = await sendTemplatedEmail('team_invitation', email, {
     inviterName,
     businessName,
     role,
-    acceptUrl,
-    expirationDate
+    acceptUrl: trackingClickUrl, // Use tracking URL for clicks
+    expirationDate,
+    trackingPixel: trackingPixelUrl
   });
+
+  // Log the 'sent' event if email was sent successfully
+  if (result.success) {
+    try {
+      await fetch(`${baseUrl}/api/team/invitations/track`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          invitation_token: token,
+          event_type: 'sent',
+          event_data: {
+            recipient: email,
+            sent_at: new Date().toISOString()
+          }
+        })
+      });
+    } catch (trackingError) {
+      console.warn('Failed to log invitation sent event:', trackingError);
+      // Don't fail the email send for tracking errors
+    }
+  }
+
+  return result;
 }
 
 /**
