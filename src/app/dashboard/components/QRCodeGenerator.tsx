@@ -447,15 +447,22 @@ export default function QRCodeGenerator({
       const isBusinessCard = frameSize.label.includes('business card');
       const isSmallSize = frameSize.width <= 1050 || frameSize.height <= 600; // Business card and smaller
 
-      // Layout constants with size-specific adjustments
-      const padding = isSmallSize ? 40 : 60; // Smaller padding for small sizes
-      const logoHeight = Math.floor(frameSize.height * 0.06); // Reduced from 0.10 to make smaller
-      const websiteFontSize = isSmallSize ? 16 : 20; // Smaller website text for small sizes
-      const headlineFontSize = isSmallSize ? Math.min(fontSize, 36) : fontSize; // Cap font size for small formats
+      // Calculate proportional sizing based on frame dimensions
+      const baseSize = Math.min(frameSize.width, frameSize.height);
+      
+      // Layout constants with proportional sizing
+      const padding = Math.floor(baseSize * 0.08); // 8% of base size
+      const logoHeight = Math.floor(frameSize.height * 0.06); // 6% of height
+      const websiteFontSize = Math.floor(baseSize * 0.022); // 2.2% of base size (was fixed 16-20px)
+      const headlineFontSize = Math.floor((fontSize / 48) * baseSize * 0.08); // Scale user's font size proportionally (8% of base size when fontSize is 48)
       const starSpacing = Math.floor(starSize * 0.7);
-      const clientLogoHeight = isSmallSize ? Math.min(logoSize, 40) : logoSize; // Cap logo size for small formats
-      const qrSize = Math.min(frameSize.width, frameSize.height) * (isSmallSize ? 0.35 : 0.38); // Slightly smaller QR for small sizes
+      const clientLogoHeight = Math.floor((logoSize / 60) * baseSize * 0.08); // Scale user's logo size proportionally 
+      const qrSize = baseSize * (isSmallSize ? 0.35 : 0.38); // QR size as percentage of base size
       const qrX = (frameSize.width - qrSize) / 2;
+      
+      // Pre-calculate proportional star size for use in exclusion areas
+      const proportionalStarSize = Math.floor((starSize / 48) * baseSize * 0.06); // Scale user's star size proportionally (6% of base size when starSize is 48)
+      const proportionalStarSpacing = Math.floor(proportionalStarSize * 0.7);
       
       // Start layout from top
       let y = padding;
@@ -547,8 +554,8 @@ export default function QRCodeGenerator({
                 ctx.drawImage(clientLogoImg, clientLogoX, y, clientLogoWidth, clientLogoHeight);
               }
               
-              // Adjusted spacing after client logo - smaller for small sizes
-              y += clientLogoHeight + (isSmallSize ? 20 : 40);
+              // Proportional spacing after client logo
+              y += clientLogoHeight + Math.floor(baseSize * 0.05);
             }
           } else {
             // Non-blob URL processing
@@ -618,8 +625,8 @@ export default function QRCodeGenerator({
               ctx.drawImage(clientLogoImg, clientLogoX, y, clientLogoWidth, clientLogoHeight);
             }
             
-            // Adjusted spacing after client logo - smaller for small sizes
-            y += clientLogoHeight + (isSmallSize ? 20 : 40);
+            // Proportional spacing after client logo
+            y += clientLogoHeight + Math.floor(baseSize * 0.05);
           }
         } catch (error) {
           console.error('Error loading client logo:', {
@@ -636,26 +643,16 @@ export default function QRCodeGenerator({
 
       // Draw stars if enabled (after logo)
       if (showStars) {
-        // Business cards need larger stars to be visible, other small sizes can be smaller
-        let adjustedStarSize;
-        if (isBusinessCard) {
-          adjustedStarSize = Math.max(Math.min(starSize, 28), 20); // Business cards: min 20px, max 28px
-        } else if (isSmallSize) {
-          adjustedStarSize = Math.min(starSize, 16); // Other small formats: max 16px
-        } else {
-          adjustedStarSize = starSize; // Normal sizes: use full star size
-        }
-        
-        const totalStarWidth = 5 * adjustedStarSize + 4 * starSpacing;
-        const starStartX = (frameSize.width - totalStarWidth) / 2 + adjustedStarSize / 2;
+        const totalStarWidth = 5 * proportionalStarSize + 4 * proportionalStarSpacing;
+        const starStartX = (frameSize.width - totalStarWidth) / 2 + proportionalStarSize / 2;
         for (let i = 0; i < 5; i++) {
-          drawStar(ctx, starStartX + i * (adjustedStarSize + starSpacing), y + adjustedStarSize / 2, adjustedStarSize, starColor);
+          drawStar(ctx, starStartX + i * (proportionalStarSize + proportionalStarSpacing), y + proportionalStarSize / 2, proportionalStarSize, starColor);
         }
-        y += adjustedStarSize + (isSmallSize ? 15 : 20); // Less spacing for small sizes
+        y += proportionalStarSize + Math.floor(baseSize * 0.025); // Proportional spacing after stars
       }
 
-      // Calculate center area for QR and headline with size-specific spacing
-      const centerY = y + (isSmallSize ? 15 : 20);
+      // Calculate center area for QR and headline with proportional spacing
+      const centerY = y + Math.floor(baseSize * 0.025);
       
       // Draw headline text
       ctx.fillStyle = mainColor;
@@ -663,13 +660,14 @@ export default function QRCodeGenerator({
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
       const lines = headline.split('\n');
+      const lineSpacing = Math.floor(headlineFontSize * 0.2); // 20% of font size for line spacing
       lines.forEach((line, index) => {
-        ctx.fillText(line, frameSize.width / 2, centerY + index * (headlineFontSize + 8));
+        ctx.fillText(line, frameSize.width / 2, centerY + index * (headlineFontSize + lineSpacing));
       });
       
-      // Increased spacing between headline and QR code for business cards and small sizes
-      const headlineToQRSpacing = isBusinessCard ? 40 : isSmallSize ? 32 : 24;
-      let qrY = centerY + lines.length * (headlineFontSize + 8) + headlineToQRSpacing;
+      // Proportional spacing between headline and QR code
+      const headlineToQRSpacing = Math.floor(baseSize * 0.04);
+      let qrY = centerY + lines.length * (headlineFontSize + lineSpacing) + headlineToQRSpacing;
 
       // Generate QR code
       const qrDataUrl = await QRCode.toDataURL(url, {
@@ -695,7 +693,7 @@ export default function QRCodeGenerator({
       const logoAspectRatio = 2.5; // Approximate aspect ratio of the Prompt Reviews logo
       const logoWidth = logoHeight * logoAspectRatio;
       const logoX = (frameSize.width - logoWidth) / 2;
-      const logoY = frameSize.height - logoHeight - websiteFontSize - padding - 20;
+      const logoY = frameSize.height - logoHeight - websiteFontSize - padding - Math.floor(baseSize * 0.025);
 
       // Draw decorative icons if enabled
       if (showDecorativeIcons && decorativeIconCount > 0) {
@@ -703,17 +701,17 @@ export default function QRCodeGenerator({
         // Made more targeted to allow icons above text and below logo
         const excludeAreas = [
           // QR code area (keep generous margin around QR code)
-          { x: qrX - 30, y: qrCenterY - 30, width: qrSize + 60, height: qrSize + 60 },
+          { x: qrX - Math.floor(baseSize * 0.04), y: qrCenterY - Math.floor(baseSize * 0.04), width: qrSize + Math.floor(baseSize * 0.08), height: qrSize + Math.floor(baseSize * 0.08) },
           // Headline area (more targeted - only the actual text area)
-          { x: frameSize.width * 0.1, y: centerY - 10, width: frameSize.width * 0.8, height: headlineFontSize * lines.length + 20 },
+          { x: frameSize.width * 0.1, y: centerY - Math.floor(baseSize * 0.015), width: frameSize.width * 0.8, height: headlineFontSize * lines.length + Math.floor(baseSize * 0.03) },
           // Star area (if stars are shown) - more targeted
-          ...(showStars ? [{ x: frameSize.width * 0.2, y: y - 10, width: frameSize.width * 0.6, height: starSize + 20 }] : []),
+          ...(showStars ? [{ x: frameSize.width * 0.2, y: y - Math.floor(baseSize * 0.015), width: frameSize.width * 0.6, height: proportionalStarSize + Math.floor(baseSize * 0.03) }] : []),
           // Client logo area (if shown) - more targeted around actual logo
-          ...(showClientLogo && clientLogoUrl ? [{ x: frameSize.width * 0.3, y: padding - 10, width: frameSize.width * 0.4, height: clientLogoHeight + 20 }] : []),
+          ...(showClientLogo && clientLogoUrl ? [{ x: frameSize.width * 0.3, y: padding - Math.floor(baseSize * 0.015), width: frameSize.width * 0.4, height: clientLogoHeight + Math.floor(baseSize * 0.03) }] : []),
           // Bottom logo area - more targeted around actual logo
-          { x: logoX - 20, y: logoY - 10, width: logoWidth + 40, height: logoHeight + 20 },
+          { x: logoX - Math.floor(baseSize * 0.025), y: logoY - Math.floor(baseSize * 0.015), width: logoWidth + Math.floor(baseSize * 0.05), height: logoHeight + Math.floor(baseSize * 0.03) },
           // Bottom text area - more targeted around actual text
-          { x: frameSize.width * 0.2, y: logoY + logoHeight + 5, width: frameSize.width * 0.6, height: websiteFontSize + 10 }
+          { x: frameSize.width * 0.2, y: logoY + logoHeight + Math.floor(baseSize * 0.008), width: frameSize.width * 0.6, height: websiteFontSize + Math.floor(baseSize * 0.015) }
         ];
 
         // Generate random positions for decorative icons
@@ -745,11 +743,12 @@ export default function QRCodeGenerator({
 
       // Draw NFC text if enabled (below QR code)
       if (showNfcText) {
-        ctx.font = `${nfcTextSize}px Arial, sans-serif`;
+        const proportionalNfcTextSize = Math.floor((nfcTextSize / 18) * baseSize * 0.03); // Scale user's NFC text size proportionally (3% of base size when nfcTextSize is 18)
+        ctx.font = `${proportionalNfcTextSize}px Arial, sans-serif`;
         ctx.fillStyle = mainColor; // Use main color to match other text
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
-        const nfcTextY = qrCenterY + qrSize + 20; // 20px spacing below QR code
+        const nfcTextY = qrCenterY + qrSize + Math.floor(baseSize * 0.03); // Proportional spacing below QR code
         ctx.fillText('Tap with phone or scan with camera', frameSize.width / 2, nfcTextY);
       }
 
@@ -758,7 +757,7 @@ export default function QRCodeGenerator({
       ctx.fillStyle = mainColor;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
-      const websiteTextY = logoY + logoHeight + 10;
+      const websiteTextY = logoY + logoHeight + Math.floor(baseSize * 0.015);
       ctx.fillText('promptreviews.app', frameSize.width / 2, websiteTextY);
 
       // Store canvas for download
