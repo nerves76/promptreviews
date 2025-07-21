@@ -42,7 +42,7 @@ Chris`;
 
   try {
     const result = await resend.emails.send({
-      from: "Prompt Reviews <hello@promptreviews.app>",
+      from: "Prompt Reviews <onboarding@resend.dev>",
       to: email,
       subject,
       text,

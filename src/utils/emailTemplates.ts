@@ -166,7 +166,7 @@ export async function sendAdminNewUserNotification(
         console.log(`Template not found, falling back to direct email for ${adminEmail}`);
         
         const result = await resend.emails.send({
-          from: "Prompt Reviews <alerts@promptreviews.app>",
+          from: "Prompt Reviews <onboarding@resend.dev>",
           to: adminEmail,
           subject: `New user joined: ${userFirstName} ${userLastName}`,
           html: `
