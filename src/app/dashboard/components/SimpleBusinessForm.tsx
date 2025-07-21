@@ -158,6 +158,7 @@ export default function SimpleBusinessForm({
     differentiators: "",
     years_in_business: "",
     industries_served: "",
+    promotion_code: "",
   });
   const [loading, setLoading] = useState(false);
   const [loadingState, setLoadingState] = useState<'creating' | 'redirecting' | null>(null);
@@ -227,6 +228,7 @@ export default function SimpleBusinessForm({
         differentiators: form.differentiators || null,
         years_in_business: form.years_in_business || null,
         industries_served: form.industries_served || null,
+        promotion_code: form.promotion_code || null,
       };
 
       console.log("Making API call to /api/businesses");
@@ -317,6 +319,23 @@ export default function SimpleBusinessForm({
             onChange={handleChange}
             required
           />
+        </div>
+        
+        <div className="mb-4">
+          <label className="block font-semibold text-sm text-gray-500 mb-1">
+            Promotion code (optional)
+          </label>
+          <input
+            type="text"
+            name="promotion_code"
+            className="w-full border px-3 py-2 rounded"
+            value={form.promotion_code || ""}
+            onChange={handleChange}
+            placeholder="Enter promotion code if you have one"
+          />
+          <p className="text-xs text-gray-400 mt-1">
+            Have a special offer code? Enter it here to unlock benefits.
+          </p>
         </div>
         
         <div className="mb-4">
