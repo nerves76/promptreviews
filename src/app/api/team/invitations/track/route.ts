@@ -94,11 +94,12 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// GET endpoint for tracking pixel (email opens)
+// GET endpoint for tracking pixel (email opens) and click redirects
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
   const token = url.searchParams.get('token');
   const event = url.searchParams.get('event') || 'opened';
+  const redirectUrl = url.searchParams.get('redirect');
 
   if (!token) {
     // Return 1x1 transparent pixel even for invalid requests
@@ -136,7 +137,22 @@ export async function GET(request: NextRequest) {
     console.error('Background tracking failed:', err);
   });
 
-  // Return tracking pixel immediately
+  // If there's a redirect URL (click tracking), redirect to it
+  if (redirectUrl && event === 'clicked') {
+    try {
+      const decodedRedirectUrl = decodeURIComponent(redirectUrl);
+      console.log(`🔄 Redirecting after tracking click: ${decodedRedirectUrl}`);
+      
+      return NextResponse.redirect(decodedRedirectUrl, { status: 302 });
+    } catch (error) {
+      console.error('Invalid redirect URL:', redirectUrl, error);
+      // Fall back to direct invitation accept page
+      const fallbackUrl = `${url.origin}/team/accept?token=${token}`;
+      return NextResponse.redirect(fallbackUrl, { status: 302 });
+    }
+  }
+
+  // Return tracking pixel for opens or other events
   return new Response(
     Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64'),
     {
