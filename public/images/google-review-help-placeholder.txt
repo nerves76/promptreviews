@@ -1,0 +1,9 @@
+Please save your Google Business Profile screenshot as:
+public/images/google-review-help.png
+
+This image should show the Google Business Profile interface with:
+- The "Read reviews" section highlighted
+- The "Get more reviews" button visible
+- The share options displayed
+
+Once you save the image, update the ReviewPlatformsSection.tsx file to uncomment the img tag and remove this placeholder note. 
