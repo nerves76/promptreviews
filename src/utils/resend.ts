@@ -8,7 +8,7 @@ export async function sendResendEmail({
   to,
   subject,
   text,
-  from = "onboarding@resend.dev", // Use Resend's verified domain
+  from = "noreply@promptreviews.app", // Use your verified domain
 }: {
   to: string;
   subject: string;
