@@ -102,7 +102,7 @@ export async function sendTemplatedEmail(
 
     // Send the email
     const result = await resend.emails.send({
-      from: "Prompt Reviews <team@promptreviews.app>",
+      from: "Prompt Reviews <onboarding@resend.dev>",
       to,
       subject,
       html: htmlContent,
