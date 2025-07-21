@@ -588,6 +588,14 @@ export default function TeamPage() {
             Pending Invitations ({invitations.length})
           </h2>
           
+          {/* Expiration notice */}
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-sm text-blue-800 flex items-center">
+              <ClockIcon className="w-4 h-4 mr-2 flex-shrink-0" />
+              Invitations expire after 7 days. Expired invitations can be resent with a new link.
+            </p>
+          </div>
+          
           <div className="space-y-3">
             {invitations.map((invitation) => (
               <div
