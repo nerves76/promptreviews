@@ -62,10 +62,19 @@ export async function POST(request: NextRequest) {
       console.error('🔒 Resend API - Authentication failed:', {
         cookieError: cookieResult.error?.message,
         headerError: userError?.message,
-        hasAuthHeader: !!request.headers.get('authorization')
+        hasAuthHeader: !!request.headers.get('authorization'),
+        authHeaderValue: request.headers.get('authorization')?.substring(0, 20) + '...',
+        allHeaders: Object.fromEntries(request.headers.entries())
       });
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { 
+          error: 'Authentication required',
+          debug: {
+            cookieAuth: cookieResult.error?.message || 'No cookie session',
+            headerAuth: userError?.message || 'No valid token',
+            hasAuthHeader: !!request.headers.get('authorization')
+          }
+        },
         { status: 401 }
       );
     }
