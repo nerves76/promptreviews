@@ -280,7 +280,7 @@ export default function TeamPage() {
     }
   };
 
-  // Send bulk invitations
+  // Send multiple invitations
   const sendBulkInvitations = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!bulkEmails.trim()) return;
@@ -301,7 +301,7 @@ export default function TeamPage() {
       }
 
       if (emailList.length > 10) {
-        throw new Error('Maximum 10 invitations at once');
+        throw new Error('Maximum 10 team member invitations at once');
       }
 
       // Get authentication headers
@@ -361,7 +361,7 @@ export default function TeamPage() {
         setError(null);
       }, 7000);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to send bulk invitations';
+      const errorMessage = err instanceof Error ? err.message : 'Failed to send team member invitations';
       setError(errorMessage);
       setTimeout(() => setError(null), 7000);
     } finally {
@@ -752,12 +752,15 @@ export default function TeamPage() {
         </div>
       )}
 
-      {/* Bulk Invite Form (Owners Only) */}
-      {isOwner && account.can_add_more && (
+      {/* Multiple Invitations Form (Maven Accounts Only) */}
+      {isOwner && account.can_add_more && account.plan === 'maven' && (
         <div className="bg-white border border-gray-200 rounded-lg p-6 mb-8">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Bulk Invite Team Members
+            Invite Multiple Team Members
           </h2>
+          <p className="text-sm text-gray-600 mb-4">
+            Invite several colleagues at once by entering their email addresses below.
+          </p>
           
           {!account.can_add_more && (
             <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
@@ -775,26 +778,30 @@ export default function TeamPage() {
           )}
 
           <form onSubmit={sendBulkInvitations} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div className="lg:col-span-2">
                 <label htmlFor="bulkEmails" className="block text-sm font-medium text-gray-700 mb-1">
-                  Email Addresses (comma, semicolon, or newline separated)
+                  Team Member Email Addresses
+                  <span className="text-xs text-gray-500 ml-1">(separate with commas or new lines)</span>
                 </label>
                 <textarea
                   id="bulkEmails"
                   value={bulkEmails}
                   onChange={(e) => setBulkEmails(e.target.value)}
-                  placeholder="colleague1@company.com, colleague2@company.com"
+                  placeholder="john@company.com&#10;sarah@company.com&#10;mike@company.com"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  rows={4}
+                  rows={5}
                   disabled={!account.can_add_more || bulkInviting}
                 ></textarea>
+                <p className="text-xs text-gray-500 mt-2">
+                  💡 Tip: You can paste multiple emails from a spreadsheet or document
+                </p>
               </div>
               
               <div>
                 <div className="flex items-center mb-1">
                   <label htmlFor="bulkRole" className="block text-sm font-medium text-gray-700">
-                    Role
+                    Role for All Members
                   </label>
                   <select
                     id="bulkRole"
@@ -813,14 +820,17 @@ export default function TeamPage() {
                 <button
                   type="submit"
                   disabled={!account.can_add_more || bulkInviting || !bulkEmails.trim()}
-                  className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                  className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-h-[40px]"
                 >
                   {bulkInviting ? (
-                    'Sending...'
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                      Sending Invitations...
+                    </>
                   ) : (
                     <>
                       <PlusIcon className="w-4 h-4 mr-2" />
-                      Send Bulk Invitations
+                      Send All Invitations
                     </>
                   )}
                 </button>
