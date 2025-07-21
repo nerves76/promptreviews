@@ -331,6 +331,29 @@ async function cleanupBusinesses(accountId: string): Promise<{ deleted: number; 
 }
 
 /**
+ * Clean up account invitations for a user
+ * @param accountId - The account ID to clean up
+ * @returns Promise resolving to cleanup result
+ */
+async function cleanupAccountInvitations(accountId: string): Promise<{ deleted: number; error?: string }> {
+  try {
+    const { data: deletedInvitations, error } = await supabaseAdmin
+      .from('account_invitations')
+      .delete()
+      .eq('account_id', accountId)
+      .select('id');
+
+    if (error) {
+      return { deleted: 0, error: `Failed to delete account invitations: ${error.message}` };
+    }
+
+    return { deleted: deletedInvitations?.length || 0 };
+  } catch (error) {
+    return { deleted: 0, error: `Exception in account_invitations cleanup: ${error}` };
+  }
+}
+
+/**
  * Clean up admin privileges for a user
  * @param userId - The user ID to clean up
  * @returns Promise resolving to cleanup result
@@ -493,6 +516,10 @@ export async function deleteUserCompletely(email: string): Promise<CleanupResult
     // Clean up businesses
     console.log('Cleaning up businesses...');
     cleanupResults.businesses = await cleanupBusinesses(accountId);
+
+    // Clean up account invitations
+    console.log('Cleaning up account invitations...');
+    cleanupResults.account_invitations = await cleanupAccountInvitations(accountId);
 
     // Clean up admin privileges
     console.log('Cleaning up admin privileges...');

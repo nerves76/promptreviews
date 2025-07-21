@@ -122,7 +122,7 @@ export async function addUserToAccount(
 }
 
 /**
- * Remove a user from an account
+ * Remove a user from an account (legacy function - use removeUserFromAccountWithCleanup for new code)
  * @param supabase - Supabase client instance
  * @param accountId - Account ID to remove user from
  * @param userId - User ID to remove
@@ -145,6 +145,55 @@ export async function removeUserFromAccount(
   }
 
   return true;
+}
+
+/**
+ * Remove a user from an account and clean up their invitation records
+ * @param supabase - Supabase client instance (preferably service role)
+ * @param accountId - Account ID to remove user from
+ * @param userEmail - User email to remove (used to clean up invitations)
+ * @param userId - User ID to remove
+ * @returns Success status
+ */
+export async function removeUserFromAccountWithCleanup(
+  supabase: SupabaseClient,
+  accountId: string,
+  userEmail: string,
+  userId: string
+): Promise<boolean> {
+  try {
+    // Remove user from account_users
+    const { error: userError } = await supabase
+      .from('account_users')
+      .delete()
+      .eq('account_id', accountId)
+      .eq('user_id', userId);
+
+    if (userError) {
+      console.error('Error removing user from account:', userError);
+      throw userError;
+    }
+
+    // Clean up any invitation records for this user in this account
+    const { error: invitationError } = await supabase
+      .from('account_invitations')
+      .delete()
+      .eq('account_id', accountId)
+      .eq('email', userEmail);
+
+    if (invitationError) {
+      console.error('Error cleaning up invitation records:', invitationError);
+      // Don't throw here - user removal was successful, invitation cleanup is secondary
+      console.warn('User removed but invitation cleanup failed:', invitationError);
+    } else {
+      console.log('✅ Successfully cleaned up invitation records for removed user');
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error in removeUserFromAccountWithCleanup:', error);
+    throw error;
+  }
 }
 
 /**

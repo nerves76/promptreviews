@@ -155,20 +155,45 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if invitation already exists
+    // Check if invitation already exists (any invitation, accepted or pending)
     const { data: existingInvitation, error: inviteCheckError } = await supabase
       .from('account_invitations')
-      .select('id')
+      .select('id, accepted_at, expires_at')
       .eq('account_id', accountUser.account_id)
       .eq('email', email.trim())
-      .is('accepted_at', null)
       .single();
 
+    if (existingInvitation && !existingInvitation.accepted_at) {
+      // There's a pending invitation - check if it's expired
+      if (new Date(existingInvitation.expires_at) > new Date()) {
+        return NextResponse.json(
+          { error: 'Invitation already sent to this email' },
+          { status: 400 }
+        );
+      }
+    }
+
+    // If there's an existing invitation (accepted or expired), delete it first
+    // This handles the case where a user was previously invited/accepted and then removed
     if (existingInvitation) {
-      return NextResponse.json(
-        { error: 'Invitation already sent to this email' },
-        { status: 400 }
-      );
+      console.log('🗑️ Removing existing invitation for re-invitation:', {
+        email: email.trim(),
+        existingId: existingInvitation.id,
+        wasAccepted: !!existingInvitation.accepted_at
+      });
+      
+      const { error: deleteError } = await supabase
+        .from('account_invitations')
+        .delete()
+        .eq('id', existingInvitation.id);
+        
+      if (deleteError) {
+        console.error('Error deleting existing invitation:', deleteError);
+        return NextResponse.json(
+          { error: 'Failed to clean up existing invitation' },
+          { status: 500 }
+        );
+      }
     }
 
     // Generate secure token
