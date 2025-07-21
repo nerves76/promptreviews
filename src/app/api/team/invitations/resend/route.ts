@@ -162,8 +162,7 @@ export async function POST(request: NextRequest) {
       .from('account_invitations')
       .update({
         token: newToken,
-        expires_at: newExpiresAt.toISOString(),
-        updated_at: new Date().toISOString()
+        expires_at: newExpiresAt.toISOString()
       })
       .eq('id', invitation_id);
 
