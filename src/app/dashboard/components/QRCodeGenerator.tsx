@@ -965,7 +965,7 @@ export default function QRCodeGenerator({
   // Generate QR code when component mounts or props change
   useEffect(() => {
     generateQRCode();
-  }, [frameSize, headline, starColor, mainColor, showStars, url, clientLogoUrl, showClientLogo, starSize, circularLogo, logoSize, fontSize, showDecorativeIcons, decorativeIconType, decorativeIconCount, decorativeIconSize]);
+  }, [frameSize, headline, starColor, mainColor, showStars, url, clientLogoUrl, showClientLogo, starSize, circularLogo, logoSize, fontSize, showDecorativeIcons, decorativeIconType, decorativeIconCount, decorativeIconSize, decorativeIconColor, showNfcText]);
 
   // Expose download function via ref
   useEffect(() => {
