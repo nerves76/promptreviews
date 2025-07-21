@@ -165,10 +165,38 @@ export default function SimpleBusinessForm({
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [industryType, setIndustryType] = useState<"B2B" | "B2C" | "Both">("Both");
+  const [promotionCodeError, setPromotionCodeError] = useState("");
+  const [promotionCodeSuccess, setPromotionCodeSuccess] = useState("");
+
+  // Valid promotion codes
+  const VALID_PROMOTION_CODES = ["grower49-offer2025"];
+  
+  const validatePromotionCode = (code: string): boolean => {
+    if (!code || code.trim() === "") {
+      setPromotionCodeError("");
+      setPromotionCodeSuccess("");
+      return true; // Empty is valid (optional field)
+    }
+    
+    if (VALID_PROMOTION_CODES.includes(code.trim())) {
+      setPromotionCodeError("");
+      setPromotionCodeSuccess("✓ Valid promotion code applied!");
+      return true;
+    } else {
+      setPromotionCodeError("Invalid promotion code. Please check your code and try again.");
+      setPromotionCodeSuccess("");
+      return false;
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
+    
+    // Validate promotion code as user types
+    if (name === "promotion_code") {
+      validatePromotionCode(value);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -177,10 +205,19 @@ export default function SimpleBusinessForm({
     console.log("Form data:", form);
     console.log("Account ID:", accountId);
     
+    // Validate promotion code before submission
+    if (!validatePromotionCode(form.promotion_code)) {
+      setLoading(false);
+      setLoadingState(null);
+      return;
+    }
+
     setLoading(true);
     setLoadingState('creating');
     setError("");
     setSuccess("");
+    setPromotionCodeError("");
+    setPromotionCodeSuccess("");
 
     if (!accountId) {
       setError("Account not found. Please try again.");
@@ -328,14 +365,30 @@ export default function SimpleBusinessForm({
           <input
             type="text"
             name="promotion_code"
-            className="w-full border px-3 py-2 rounded"
+            className={`w-full border px-3 py-2 rounded ${
+              promotionCodeError 
+                ? 'border-red-500 focus:border-red-500' 
+                : promotionCodeSuccess 
+                  ? 'border-green-500 focus:border-green-500' 
+                  : 'border-gray-300 focus:border-slate-blue'
+            }`}
             value={form.promotion_code || ""}
             onChange={handleChange}
             placeholder="Enter promotion code if you have one"
           />
-          <p className="text-xs text-gray-400 mt-1">
-            Have a special offer code? Enter it here to unlock benefits.
-          </p>
+          {promotionCodeError ? (
+            <p className="text-xs text-red-600 mt-1">
+              {promotionCodeError}
+            </p>
+          ) : promotionCodeSuccess ? (
+            <p className="text-xs text-green-600 mt-1">
+              {promotionCodeSuccess}
+            </p>
+          ) : (
+            <p className="text-xs text-gray-400 mt-1">
+              Have a special offer code? Enter it here to unlock benefits.
+            </p>
+          )}
         </div>
         
         <div className="mb-4">
