@@ -18,7 +18,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import QRCodeGenerator, { QR_FRAME_SIZES } from '../dashboard/components/QRCodeGenerator';
 import { FALLING_STARS_ICONS, getFallingIcon } from './prompt-modules/fallingStarsConfig';
 import { Dialog } from "@headlessui/react";
-import { XMarkIcon, ChevronDownIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
+import { XMarkIcon } from "@heroicons/react/24/outline";
 import { FaStar } from "react-icons/fa";
 
 interface QRCodeModalProps {
@@ -80,7 +80,6 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
   const [decorativeIconSize, setDecorativeIconSize] = useState(150);
   const [decorativeIconColor, setDecorativeIconColor] = useState('#FFD700');
   const [showIconSelector, setShowIconSelector] = useState(false);
-  const [expandedCategories, setExpandedCategories] = useState<string[]>(['General']);
   const [randomizeKey, setRandomizeKey] = useState(0);
   const qrGeneratorRef = useRef<HTMLCanvasElement>(null);
 
@@ -783,7 +782,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
             <Dialog.Panel className="mx-auto max-w-5xl w-full bg-white rounded-lg shadow-xl max-h-[80vh] overflow-hidden">
               <div className="flex items-center justify-between p-6 border-b border-gray-200">
                 <Dialog.Title className="text-lg font-semibold text-gray-900">
-                  Select decorative icon
+                  Choose your decorative icon
                 </Dialog.Title>
                 <button
                   onClick={() => setShowIconSelector(false)}
@@ -794,57 +793,34 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
               </div>
               <div className="overflow-y-auto max-h-[calc(80vh-120px)]">
                 <div className="p-6">
-                  {Array.from(new Set(FALLING_STARS_ICONS.map(icon => icon.category))).map(category => {
-                    const categoryIcons = FALLING_STARS_ICONS.filter(icon => icon.category === category);
-                    const isExpanded = expandedCategories.includes(category);
-                    
-                    return (
-                      <div key={category} className="mb-4 border border-gray-200 rounded-lg overflow-hidden">
+                  <div className="grid grid-cols-5 gap-4">
+                    {FALLING_STARS_ICONS.map(iconItem => {
+                      const Icon = iconItem.icon;
+                      return (
                         <button
+                          key={iconItem.key}
                           type="button"
-                          className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors"
+                          className={`flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-colors ${decorativeIconType === iconItem.key ? 'border-slate-blue bg-slate-50' : 'border-transparent bg-white hover:bg-gray-50'} min-h-[100px]`}
                           onClick={() => {
-                            setExpandedCategories(prev => 
-                              prev.includes(category) 
-                                ? prev.filter(c => c !== category)
-                                : [...prev, category]
-                            );
+                            setDecorativeIconType(iconItem.key);
+                            setShowIconSelector(false);
                           }}
                         >
-                          <span className="font-medium text-gray-900">{category} ({categoryIcons.length} icons)</span>
-                          {isExpanded ? (
-                            <ChevronDownIcon className="h-5 w-5 text-gray-500" />
-                          ) : (
-                            <ChevronRightIcon className="h-5 w-5 text-gray-500" />
-                          )}
+                          <Icon className={`w-8 h-8 ${iconItem.color} mb-2`} />
+                          <span className="text-sm text-gray-700 text-center font-medium">{iconItem.label}</span>
+                          <span className="text-xs text-gray-500 mt-1 text-center">
+                            Actual icon as shown on QR code
+                          </span>
                         </button>
-                        
-                        {isExpanded && (
-                          <div className="p-4 border-t border-gray-200">
-                            <div className="grid grid-cols-6 gap-3">
-                              {categoryIcons.map(iconItem => {
-                                const Icon = iconItem.icon;
-                                return (
-                                  <button
-                                    key={iconItem.key}
-                                    type="button"
-                                    className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-colors ${decorativeIconType === iconItem.key ? 'border-slate-blue bg-slate-50' : 'border-transparent bg-white hover:bg-gray-50'}`}
-                                    onClick={() => {
-                                      setDecorativeIconType(iconItem.key);
-                                      setShowIconSelector(false);
-                                    }}
-                                  >
-                                    <Icon className={`w-6 h-6 ${iconItem.color}`} />
-                                    <span className="text-xs text-gray-600 mt-1 text-center">{iconItem.label}</span>
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
+                  <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-sm text-blue-800">
+                      <strong>Note:</strong> These are the actual icon shapes that will appear on your QR code. 
+                      All icons are custom-drawn to ensure they display consistently across all devices.
+                    </p>
+                  </div>
                 </div>
               </div>
             </Dialog.Panel>
