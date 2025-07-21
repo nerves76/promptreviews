@@ -855,42 +855,6 @@ export default function TeamPage() {
         </div>
       )}
 
-      {/* Add Chris for Support (Owners Only) */}
-      {isOwner && !members.some(member => member.email === 'nerves76@gmail.com') && (
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6 mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold text-blue-900 mb-2">
-                🛠️ Need Development Support?
-              </h3>
-              <p className="text-blue-800 mb-2">
-                Add Chris for development assistance, bug fixes, and technical support.
-              </p>
-              <p className="text-sm text-blue-600">
-                <strong>Note:</strong> Support members don't count against your team member limits.
-              </p>
-            </div>
-            <button
-              onClick={addChris}
-              disabled={addingChris}
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-medium"
-            >
-              {addingChris ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  Adding Chris...
-                </>
-              ) : (
-                <>
-                  <PlusIcon className="w-5 h-5" />
-                  Add Chris
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Team Members */}
       <div className="bg-white border border-gray-200 rounded-lg p-6 mb-8">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">
@@ -1105,11 +1069,47 @@ export default function TeamPage() {
 
       {/* Non-owner message */}
       {!isOwner && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
           <p className="text-blue-800">
             Only account owners can manage team members and invitations. 
             Contact your account owner to add or remove team members.
           </p>
+        </div>
+      )}
+
+      {/* Add Chris for Support (Owners Only) - Moved to bottom */}
+      {isOwner && !members.some(member => member.email === 'nerves76@gmail.com') && (
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-blue-900 mb-2">
+                🛠️ Need Development Support?
+              </h3>
+              <p className="text-blue-800 mb-2">
+                Add Chris for development assistance, bug fixes, and technical support. (Also, tell him about your problem first.)
+              </p>
+              <p className="text-sm text-blue-600">
+                <strong>Note:</strong> Support members don't count against your team member limits.
+              </p>
+            </div>
+            <button
+              onClick={addChris}
+              disabled={addingChris}
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-medium"
+            >
+              {addingChris ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Adding Chris...
+                </>
+              ) : (
+                <>
+                  <PlusIcon className="w-5 h-5" />
+                  Add Chris
+                </>
+              )}
+            </button>
+          </div>
         </div>
       )}
     </div>
