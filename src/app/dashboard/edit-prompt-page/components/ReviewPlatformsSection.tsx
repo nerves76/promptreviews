@@ -7,6 +7,8 @@ import {
   FaYelp,
   FaTripadvisor,
   FaRegStar,
+  FaQuestionCircle,
+  FaTimes,
 } from "react-icons/fa";
 import { IconType } from "react-icons";
 
@@ -65,6 +67,7 @@ const ReviewPlatformsSection: React.FC<ReviewPlatformsSectionProps> = ({
   onResetToDefaults,
 }) => {
   const [showInfo, setShowInfo] = React.useState(false);
+  const [showGoogleHelpModal, setShowGoogleHelpModal] = React.useState(false);
 
   const handlePlatformChange = (
     idx: number,
@@ -145,16 +148,28 @@ const ReviewPlatformsSection: React.FC<ReviewPlatformsSectionProps> = ({
                   />
                 )}
               </div>
-              <input
-                type="url"
-                className="flex-1 border px-3 py-2 rounded-lg bg-white"
-                placeholder="https://example.com/review-page"
-                value={platform.url || ""}
-                onChange={(e) =>
-                  handlePlatformChange(idx, "url", e.target.value)
-                }
-                required
-              />
+              <div className="flex-1">
+                <input
+                  type="url"
+                  className="w-full border px-3 py-2 rounded-lg bg-white"
+                  placeholder="https://example.com/review-page"
+                  value={platform.url || ""}
+                  onChange={(e) =>
+                    handlePlatformChange(idx, "url", e.target.value)
+                  }
+                  required
+                />
+                {platform.name === "Google Business Profile" && (
+                  <button
+                    type="button"
+                    onClick={() => setShowGoogleHelpModal(true)}
+                    className="mt-2 text-blue-600 hover:text-blue-800 text-xs flex items-center gap-1 underline"
+                  >
+                    <FaQuestionCircle className="w-3 h-3" />
+                    How to find your review link
+                  </button>
+                )}
+              </div>
               <input
                 type="number"
                 className="w-32 border px-3 py-2 rounded-lg bg-white"
@@ -213,6 +228,81 @@ const ReviewPlatformsSection: React.FC<ReviewPlatformsSectionProps> = ({
           + Add Platform
         </button>
       </div>
+
+      {/* Google Help Modal */}
+      {showGoogleHelpModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              {/* Modal Header */}
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                  <FaGoogle className="w-5 h-5 text-blue-600" />
+                  How to Find Your Google Review Link
+                </h3>
+                <button
+                  onClick={() => setShowGoogleHelpModal(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <FaTimes className="w-6 h-6" />
+                </button>
+              </div>
+
+              {/* Instructions */}
+              <div className="space-y-4 mb-6">
+                <ol className="list-decimal list-inside space-y-3 text-gray-700">
+                  <li>
+                    Go to your Business Profile at{" "}
+                    <a 
+                      href="https://business.google.com/" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 underline"
+                    >
+                      https://business.google.com/
+                    </a>
+                  </li>
+                  <li>To find your review link, select <strong>"Read Reviews"</strong> and then <strong>"Get more reviews"</strong> Share icon.</li>
+                  <li>Share the link or QR code directly or use the share options.</li>
+                  <li>To copy the review link, select <strong>Copy</strong> Copy icon.</li>
+                </ol>
+              </div>
+
+              {/* Illustration Image */}
+              <div className="mb-6">
+                <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                  <p className="text-sm text-gray-600 mb-3 font-medium">Visual Guide:</p>
+                  <div className="bg-white border border-gray-300 rounded-lg p-4 text-center">
+                    <p className="text-gray-500 text-sm mb-2">
+                      📋 <strong>Note:</strong> Save the screenshot you provided as 
+                      <code className="bg-gray-100 px-1 rounded">public/images/google-review-help.png</code>
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      The image will show the Google Business Profile interface with the "Read reviews" section highlighted
+                    </p>
+                    {/* Future image will go here: */}
+                    {/* <img 
+                      src="/images/google-review-help.png" 
+                      alt="Google Business Profile interface showing how to find review link"
+                      className="w-full h-auto rounded border"
+                    /> */}
+                  </div>
+                </div>
+              </div>
+
+              {/* Close Button */}
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setShowGoogleHelpModal(false)}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Got it!
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
