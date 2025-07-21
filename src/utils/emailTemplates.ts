@@ -73,11 +73,25 @@ export async function sendTemplatedEmail(
   variables: TemplateVariables
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    console.log('🎯 sendTemplatedEmail called:', {
+      templateName,
+      to,
+      variableKeys: Object.keys(variables)
+    });
+
     // Get the template
     const template = await getEmailTemplate(templateName);
     if (!template) {
+      console.error('❌ Template not found:', templateName);
       return { success: false, error: `Template '${templateName}' not found` };
     }
+
+    console.log('✅ Template found:', {
+      templateName: template.name,
+      isActive: template.is_active,
+      subjectLength: template.subject.length,
+      htmlContentLength: template.html_content.length
+    });
 
     // Set default URLs if not provided
     const defaultVariables: TemplateVariables = {
@@ -100,6 +114,14 @@ export async function sendTemplatedEmail(
       ? renderTemplate(template.text_content, defaultVariables)
       : undefined;
 
+    console.log('📧 About to send email with Resend:', {
+      from: "Prompt Reviews <team@updates.promptreviews.app>",
+      to,
+      subjectLength: subject.length,
+      hasHtml: !!htmlContent,
+      hasText: !!textContent
+    });
+
     // Send the email
     const result = await resend.emails.send({
       from: "Prompt Reviews <team@updates.promptreviews.app>",
@@ -109,9 +131,14 @@ export async function sendTemplatedEmail(
       ...(textContent && { text: textContent })
     });
 
+    console.log('✅ Resend API success:', {
+      id: result.data?.id,
+      from: "team@updates.promptreviews.app"
+    });
+
     return { success: true };
   } catch (error) {
-    console.error(`Error sending templated email '${templateName}':`, error);
+    console.error(`❌ Error sending templated email '${templateName}':`, error);
     return { 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error' 
@@ -249,11 +276,27 @@ export async function sendTeamInvitationEmail(
   token: string,
   expirationDate: string
 ): Promise<{ success: boolean; error?: string }> {
+  console.log('🎯 sendTeamInvitationEmail called with:', {
+    email,
+    inviterName,
+    businessName,
+    role,
+    tokenPresent: !!token,
+    expirationDate
+  });
+
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.promptreviews.app';
   const acceptUrl = `${baseUrl}/team/accept?token=${token}`;
   const trackingPixelUrl = `${baseUrl}/api/team/invitations/track?token=${token}&event=opened`;
   const trackingClickUrl = `${baseUrl}/api/team/invitations/track?token=${token}&event=clicked&redirect=${encodeURIComponent(acceptUrl)}`;
     
+  console.log('🔗 Generated URLs:', {
+    baseUrl,
+    acceptUrl: acceptUrl.substring(0, 50) + '...',
+    trackingPixelUrl: trackingPixelUrl.substring(0, 50) + '...',
+    trackingClickUrl: trackingClickUrl.substring(0, 50) + '...'
+  });
+
   const result = await sendTemplatedEmail('team_invitation', email, {
     inviterName,
     businessName,
@@ -261,6 +304,12 @@ export async function sendTeamInvitationEmail(
     acceptUrl: trackingClickUrl, // Use tracking URL for clicks
     expirationDate,
     trackingPixel: trackingPixelUrl
+  });
+
+  console.log('📧 sendTemplatedEmail result:', {
+    success: result.success,
+    error: result.error,
+    templateName: 'team_invitation'
   });
 
   // Log the 'sent' event if email was sent successfully
