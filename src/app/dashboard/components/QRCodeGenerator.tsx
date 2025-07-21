@@ -746,11 +746,11 @@ export default function QRCodeGenerator({
       // Draw NFC text if enabled (below QR code)
       if (showNfcText) {
         ctx.font = `${nfcTextSize}px Arial, sans-serif`;
-        ctx.fillStyle = '#666666'; // Gray color
+        ctx.fillStyle = mainColor; // Use main color to match other text
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
         const nfcTextY = qrCenterY + qrSize + 20; // 20px spacing below QR code
-        ctx.fillText('Tap phone or scan with camera', frameSize.width / 2, nfcTextY);
+        ctx.fillText('Tap with phone or scan with camera', frameSize.width / 2, nfcTextY);
       }
 
       // Draw website text (below logo, at bottom)

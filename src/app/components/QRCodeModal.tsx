@@ -406,7 +406,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
                       <span className="text-sm font-medium text-gray-700">NFC instructions</span>
                     </label>
                     <div className="text-xs text-gray-500 mt-1 ml-6">
-                      Shows "Tap phone or scan with camera" below QR code
+                      Shows "Tap with phone or scan with camera" below QR code
                     </div>
                     
                     {/* NFC Text Controls - Only show when NFC text is enabled */}
