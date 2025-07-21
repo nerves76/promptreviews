@@ -102,7 +102,7 @@ export async function sendTemplatedEmail(
 
     // Send the email
     const result = await resend.emails.send({
-      from: "Prompt Reviews <onboarding@resend.dev>",
+      from: "Prompt Reviews <team@updates.promptreviews.app>",
       to,
       subject,
       html: htmlContent,
@@ -166,7 +166,7 @@ export async function sendAdminNewUserNotification(
         console.log(`Template not found, falling back to direct email for ${adminEmail}`);
         
         const result = await resend.emails.send({
-          from: "Prompt Reviews <onboarding@resend.dev>",
+          from: "Prompt Reviews <alerts@updates.promptreviews.app>",
           to: adminEmail,
           subject: `New user joined: ${userFirstName} ${userLastName}`,
           html: `
