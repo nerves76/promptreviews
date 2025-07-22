@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabaseClient';
+import { createClient, createServiceRoleClient } from '@/utils/supabaseClient';
 import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
 
 export async function POST(request: NextRequest) {
@@ -141,9 +141,10 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ Photo uploaded successfully to Google Business Profile');
 
-    // Optionally store upload record in database for tracking
+    // Store upload record in database for tracking (use service role to bypass RLS)
     try {
-      const { error: insertError } = await supabase
+      const serviceSupabase = createServiceRoleClient();
+      const { error: insertError } = await serviceSupabase
         .from('google_business_media_uploads')
         .insert({
           user_id: user.id,
@@ -161,6 +162,8 @@ export async function POST(request: NextRequest) {
       if (insertError) {
         console.warn('Failed to store upload record:', insertError);
         // Don't fail the request if we can't store the record
+      } else {
+        console.log('✅ Upload record stored successfully');
       }
     } catch (dbError) {
       console.warn('Database logging error:', dbError);
