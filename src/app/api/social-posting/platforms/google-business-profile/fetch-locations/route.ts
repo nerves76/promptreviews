@@ -156,7 +156,7 @@ export async function POST(request: NextRequest) {
             const locationData = {
               user_id: user.id,
               location_id: location.name,
-              location_name: location.title || location.name, // Use title for display name, fallback to ID
+              location_name: location.locationName || location.name, // Use locationName for display name, fallback to ID
               account_name: account.name, // Store the full account name (accounts/{id})
               address: location.address?.addressLines?.join(', ') || '',
               status: 'UNKNOWN',
