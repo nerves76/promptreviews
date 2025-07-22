@@ -293,31 +293,36 @@ export class AIPostGenerator {
         'STANDARD': ['We\'re excited to announce', 'Introducing', 'We\'re pleased to share'],
         'OFFER': ['Limited time offer', 'Special promotion', 'Exclusive deal'],
         'EVENT': ['Join us for', 'We invite you to', 'Don\'t miss'],
-        'ALERT': ['Important notice', 'Please be aware', 'Attention']
+        'ALERT': ['Important notice', 'Please be aware', 'Attention'],
+        'LOCAL_POST_TOPIC_TYPE_UNSPECIFIED': ['We\'re pleased to share', 'Here\'s an update', 'Important information']
       },
       friendly: {
         'STANDARD': ['Hey everyone!', 'Guess what?', 'We\'ve got news!'],
         'OFFER': ['Amazing deal alert!', 'You don\'t want to miss this!', 'Special just for you!'],
         'EVENT': ['Come hang out with us!', 'Party time!', 'Join the fun!'],
-        'ALERT': ['Heads up!', 'Important news!', 'Listen up!']
+        'ALERT': ['Heads up!', 'Important news!', 'Listen up!'],
+        'LOCAL_POST_TOPIC_TYPE_UNSPECIFIED': ['Hey everyone!', 'Guess what?', 'Quick update!']
       },
       casual: {
         'STANDARD': ['What\'s up?', 'Hey there!', 'Quick update!'],
         'OFFER': ['Deal time!', 'Save some cash!', 'Why not treat yourself?'],
         'EVENT': ['Let\'s party!', 'Come through!', 'See you there!'],
-        'ALERT': ['FYI!', 'Quick note!', 'Just saying!']
+        'ALERT': ['FYI!', 'Quick note!', 'Just saying!'],
+        'LOCAL_POST_TOPIC_TYPE_UNSPECIFIED': ['What\'s up?', 'Hey there!', 'Just thought you\'d like to know!']
       },
       promotional: {
         'STANDARD': ['BIG NEWS!', 'ANNOUNCEMENT!', 'BREAKING:'],
         'OFFER': ['SALE ALERT!', 'HUGE SAVINGS!', 'DON\'T MISS OUT!'],
         'EVENT': ['EXCLUSIVE EVENT!', 'LIMITED SPOTS!', 'REGISTER NOW!'],
-        'ALERT': ['URGENT NOTICE!', 'IMPORTANT ALERT!', 'ATTENTION REQUIRED!']
+        'ALERT': ['URGENT NOTICE!', 'IMPORTANT ALERT!', 'ATTENTION REQUIRED!'],
+        'LOCAL_POST_TOPIC_TYPE_UNSPECIFIED': ['BIG NEWS!', 'ANNOUNCEMENT!', 'CHECK THIS OUT!']
       },
       informative: {
         'STANDARD': ['Important update:', 'Here\'s what\'s new:', 'Latest news:'],
         'OFFER': ['Current promotion:', 'Available now:', 'This week only:'],
         'EVENT': ['Upcoming event:', 'Mark your calendar:', 'Event details:'],
-        'ALERT': ['Notice:', 'Please note:', 'Important information:']
+        'ALERT': ['Notice:', 'Please note:', 'Important information:'],
+        'LOCAL_POST_TOPIC_TYPE_UNSPECIFIED': ['General update:', 'Information:', 'Please note:']
       }
     };
     
