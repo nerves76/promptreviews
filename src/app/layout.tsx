@@ -56,11 +56,11 @@ export default function RootLayout({
         />
         
         {/* Prefetch widget assets for faster embedding */}
-        <link rel="prefetch" href="/emojis/delighted.svg" />
+        <link rel="prefetch" href="/emojis/excellent.svg" />
         <link rel="prefetch" href="/emojis/satisfied.svg" />
         <link rel="prefetch" href="/emojis/neutral.svg" />
         <link rel="prefetch" href="/emojis/unsatisfied.svg" />
-        <link rel="prefetch" href="/emojis/angry.svg" />
+        <link rel="prefetch" href="/emojis/frustrated.svg" />
         
         {/* Resource hints for performance */}
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />

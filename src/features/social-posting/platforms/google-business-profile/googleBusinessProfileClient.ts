@@ -242,12 +242,19 @@ export class GoogleBusinessProfileClient {
       console.log(`📍 Fetching locations for account: ${accountId}`);
       
       // Extract just the numeric account ID from various formats
-      let cleanAccountId: string;
-      if (accountId.startsWith('accounts/')) {
-        cleanAccountId = accountId.replace('accounts/', '');
-      } else {
-        cleanAccountId = accountId;
+      // Handle multiple formats: "accounts/123", "accounts/accounts/123", or just "123"
+      let cleanAccountId: string = accountId;
+      
+      // Remove any "accounts/" prefixes (handle multiple instances)
+      while (cleanAccountId.startsWith('accounts/')) {
+        cleanAccountId = cleanAccountId.replace('accounts/', '');
       }
+      
+      // Ensure we only have the numeric ID
+      if (!cleanAccountId || cleanAccountId.includes('/')) {
+        throw new Error(`Invalid account ID format: ${accountId}. Expected numeric ID.`);
+      }
+      
       console.log(`📍 Using clean account ID: ${cleanAccountId}`);
       
       // Debug: Log the endpoint template before replacement
@@ -256,6 +263,11 @@ export class GoogleBusinessProfileClient {
       // The template is /v1/accounts/{parent}/locations, so {parent} should just be the account ID
       const endpoint = GOOGLE_BUSINESS_PROFILE.ENDPOINTS.LOCATIONS.replace('{parent}', cleanAccountId);
       console.log(`📍 Constructed endpoint: ${endpoint}`);
+      
+      // Additional validation to catch any remaining issues
+      if (endpoint.includes('/accounts/accounts/')) {
+        throw new Error(`Double accounts prefix detected in endpoint: ${endpoint}. Original accountId: ${accountId}, cleaned: ${cleanAccountId}`);
+      }
       
       // Add required readMask parameter for Business Information API
       const readMask = 'name,title,storefrontAddress,phoneNumbers,categories,websiteUri,latlng,metadata';
