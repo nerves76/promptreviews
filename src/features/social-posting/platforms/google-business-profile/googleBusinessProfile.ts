@@ -289,6 +289,7 @@ export interface GoogleBusinessProfileError extends Error {
   status: string;
   details?: any[];
   retryAfter?: number;
+  isTemporary?: boolean;
 }
 
 // Multi-Platform Support Types (for future expansion)

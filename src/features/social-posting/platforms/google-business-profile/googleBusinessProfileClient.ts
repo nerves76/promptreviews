@@ -64,6 +64,22 @@ export class GoogleBusinessProfileClient {
       // Use custom base URL or default to the main Business Information API
       const apiBaseUrl = baseUrl || this.config.baseUrl;
       const url = `${apiBaseUrl}${endpoint}`;
+      
+      // Debug URL construction to catch double accounts/ issues
+      console.log(`🔧 URL Construction Debug:`);
+      console.log(`   Base URL: ${apiBaseUrl}`);
+      console.log(`   Endpoint: ${endpoint}`);
+      console.log(`   Final URL: ${url}`);
+      
+      // Safety check for double accounts prefix
+      if (url.includes('/accounts/accounts/')) {
+        console.error(`❌ DOUBLE ACCOUNTS PREFIX DETECTED!`);
+        console.error(`   Base URL: ${apiBaseUrl}`);
+        console.error(`   Endpoint: ${endpoint}`);
+        console.error(`   Final URL: ${url}`);
+        throw new Error(`Double accounts prefix detected in URL: ${url}`);
+      }
+      
       const headers = {
         'Authorization': `Bearer ${this.accessToken}`,
         'Content-Type': 'application/json',
@@ -117,6 +133,19 @@ export class GoogleBusinessProfileClient {
 
       // Handle other errors
       if (!response.ok) {
+        // Special handling for Google API internal errors
+        if (response.status === 500 && data.error?.status === 'INTERNAL') {
+          console.warn('⚠️ Google Business Profile API experiencing internal issues. This is temporary.');
+          const error: GoogleBusinessProfileError = new Error(
+            'Google Business Profile API is temporarily unavailable. Please try again later.'
+          ) as GoogleBusinessProfileError;
+          error.code = 500;
+          error.status = 'INTERNAL';
+          error.details = data.error?.details;
+          error.isTemporary = true;
+          throw error;
+        }
+
         const error: GoogleBusinessProfileError = new Error(
           data.error?.message || `API request failed: ${response.statusText}`
         ) as GoogleBusinessProfileError;
