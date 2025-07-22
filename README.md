@@ -48,6 +48,18 @@ A modern, customizable review widget system built with Next.js, TypeScript, and 
 ### Database & Schema
 - **Migration Enforcement**: Automatic migration checking and application on startup
 - **Test Data Management**: Comprehensive cleanup scripts for development environment
+
+### Navigation & User Experience (January 2025)
+- **Navigation Restructure**: Updated main navigation order for better user flow
+  - Moved "Reviews" (renamed from "Your reviews") to appear after "Your business"
+  - New order: Dashboard → Prompt pages → Your business → Reviews → Widgets
+- **Google Business Profile (GBP) Integration**: Added conditional "GBP" navigation
+  - Only visible for Builder and Maven plan users
+  - Direct access to Google Business Management features
+  - Links to comprehensive photo management and social posting tools
+- **Plan-Based Feature Access**: Implemented plan-aware navigation visibility
+  - Uses AuthContext to check current user plan
+  - Conditional rendering based on subscription tier
 - **Schema Consistency**: All 73 migrations applied and up to date
 
 ## Latest Improvements (January 2025)

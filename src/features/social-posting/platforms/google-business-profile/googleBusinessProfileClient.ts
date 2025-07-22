@@ -52,7 +52,8 @@ export class GoogleBusinessProfileClient {
   private async makeRequest(
     endpoint: string,
     options: RequestInit = {},
-    retryCount = 0
+    retryCount = 0,
+    baseUrl?: string
   ): Promise<GoogleBusinessProfileApiResponse> {
     try {
       // Check if token is expired
@@ -60,7 +61,9 @@ export class GoogleBusinessProfileClient {
         await this.refreshAccessToken();
       }
 
-      const url = `${this.config.baseUrl}${endpoint}`;
+      // Use custom base URL or default to the main Business Information API
+      const apiBaseUrl = baseUrl || this.config.baseUrl;
+      const url = `${apiBaseUrl}${endpoint}`;
       const headers = {
         'Authorization': `Bearer ${this.accessToken}`,
         'Content-Type': 'application/json',
@@ -162,11 +165,43 @@ export class GoogleBusinessProfileClient {
       this.accessToken = data.access_token;
       this.expiresAt = Date.now() + (data.expires_in * 1000);
       
-      console.log('✅ Access token refreshed successfully');
+      // 🔧 Save refreshed tokens back to database for persistence
+      await this.saveTokensToDatabase();
+      
+      console.log('✅ Access token refreshed and saved to database');
 
     } catch (error) {
       console.error('❌ Failed to refresh access token:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Saves current tokens to the database
+   */
+  private async saveTokensToDatabase(): Promise<void> {
+    try {
+      // Use fetch to call our API endpoint that updates tokens
+      const response = await fetch('/api/auth/google/update-tokens', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          access_token: this.accessToken,
+          refresh_token: this.refreshToken,
+          expires_at: new Date(this.expiresAt).toISOString()
+        }),
+      });
+
+      if (!response.ok) {
+        console.warn('⚠️ Failed to save tokens to database:', response.statusText);
+      } else {
+        console.log('💾 Tokens saved to database successfully');
+      }
+    } catch (error) {
+      console.warn('⚠️ Error saving tokens to database:', error);
+      // Don't throw - this is not critical for the API call to succeed
     }
   }
 
@@ -177,7 +212,13 @@ export class GoogleBusinessProfileClient {
     try {
       console.log('📋 Fetching Google Business Profile accounts...');
       
-      const response = await this.makeRequest(GOOGLE_BUSINESS_PROFILE.ENDPOINTS.ACCOUNTS);
+      // Use Account Management API for listing accounts
+      const response = await this.makeRequest(
+        GOOGLE_BUSINESS_PROFILE.ENDPOINTS.ACCOUNTS,
+        {},
+        0,
+        GOOGLE_BUSINESS_PROFILE.ACCOUNT_MANAGEMENT_URL
+      );
       
       if (!response.data.accounts) {
         console.log('⚠️ No accounts found in response');
@@ -194,16 +235,35 @@ export class GoogleBusinessProfileClient {
   }
 
   /**
-   * Lists all locations for a specific business account
+   * Lists locations for a specific business account
    */
   async listLocations(accountId: string): Promise<BusinessLocation[]> {
     try {
       console.log(`📍 Fetching locations for account: ${accountId}`);
       
-      const endpoint = GOOGLE_BUSINESS_PROFILE.ENDPOINTS.LOCATIONS.replace('{accountId}', accountId);
-      console.log(`📍 Using endpoint: ${endpoint}`);
+      // Extract just the numeric account ID from various formats
+      let cleanAccountId: string;
+      if (accountId.startsWith('accounts/')) {
+        cleanAccountId = accountId.replace('accounts/', '');
+      } else {
+        cleanAccountId = accountId;
+      }
+      console.log(`📍 Using clean account ID: ${cleanAccountId}`);
       
-      const response = await this.makeRequest(endpoint);
+      // Debug: Log the endpoint template before replacement
+      console.log(`📍 Endpoint template: ${GOOGLE_BUSINESS_PROFILE.ENDPOINTS.LOCATIONS}`);
+      
+      // The template is /v1/accounts/{parent}/locations, so {parent} should just be the account ID
+      const endpoint = GOOGLE_BUSINESS_PROFILE.ENDPOINTS.LOCATIONS.replace('{parent}', cleanAccountId);
+      console.log(`📍 Constructed endpoint: ${endpoint}`);
+      
+      // Add required readMask parameter for Business Information API
+      const readMask = 'name,title,storefrontAddress,phoneNumbers,categories,websiteUri,latlng,metadata';
+      const endpointWithParams = `${endpoint}?readMask=${encodeURIComponent(readMask)}`;
+      console.log(`📍 Final URL to call: ${this.config.baseUrl}${endpointWithParams}`);
+      
+      // Use Business Information API for listing locations
+      const response = await this.makeRequest(endpointWithParams);
       console.log(`📍 Response data:`, response.data);
       console.log(`📍 Response data.locations:`, response.data.locations);
       
@@ -217,6 +277,24 @@ export class GoogleBusinessProfileClient {
 
     } catch (error) {
       console.error('❌ Failed to list locations:', error);
+      
+      // Provide more helpful error messages for common issues
+      if (error instanceof Error) {
+        const errorMessage = error.message.toLowerCase();
+        
+        if (errorMessage.includes('internal error encountered')) {
+          throw new Error('Google Business Profile API returned an internal error. This usually means your account needs to be set up as a verified business account with locations. Personal accounts cannot access business locations.');
+        }
+        
+        if (errorMessage.includes('permission denied') || errorMessage.includes('unauthorized')) {
+          throw new Error('Permission denied. Please ensure your account has a verified Google Business Profile with business locations set up.');
+        }
+        
+        if (errorMessage.includes('not found')) {
+          throw new Error('Account not found or has no business locations. Please verify your Google Business Profile is properly set up.');
+        }
+      }
+      
       throw error;
     }
   }
@@ -232,7 +310,7 @@ export class GoogleBusinessProfileClient {
         .replace('{accountId}', accountId)
         .replace('{locationId}', locationId);
       
-      const response = await this.makeRequest(endpoint);
+      const response = await this.makeRequest(endpoint, {}, 0, GOOGLE_BUSINESS_PROFILE.V4_BASE_URL);
       
       if (!response.data.localPosts) {
         console.log('⚠️ No local posts found in response');
@@ -266,7 +344,7 @@ export class GoogleBusinessProfileClient {
       const response = await this.makeRequest(endpoint, {
         method: 'POST',
         body: JSON.stringify(postData)
-      });
+      }, 0, GOOGLE_BUSINESS_PROFILE.V4_BASE_URL);
 
       console.log('✅ Local post created successfully');
       return response.data;
@@ -296,5 +374,66 @@ export class GoogleBusinessProfileClient {
    */
   getRefreshToken(): string {
     return this.refreshToken;
+  }
+
+  /**
+   * Uploads media (photos) to a Google Business Profile location
+   */
+  async uploadMedia(
+    accountId: string,
+    locationId: string,
+    imageFile: File,
+    mediaFormat: 'PHOTO' | 'VIDEO' = 'PHOTO'
+  ): Promise<{ success: boolean; mediaItem?: any; error?: string }> {
+    try {
+      console.log(`📷 Uploading media to location: ${locationId}`);
+
+      // Clean the account ID to remove "accounts/" prefix if present
+      const cleanAccountId = accountId.replace('accounts/', '');
+      const cleanLocationId = locationId.replace('locations/', '');
+
+      // Construct the media upload endpoint
+      const endpoint = GOOGLE_BUSINESS_PROFILE.ENDPOINTS.MEDIA
+        .replace('{accountId}', cleanAccountId)
+        .replace('{locationId}', cleanLocationId);
+
+      const url = `${GOOGLE_BUSINESS_PROFILE.V4_BASE_URL}${endpoint}`;
+
+      console.log(`🌐 Media upload URL: ${url}`);
+
+      // Create FormData for file upload
+      const formData = new FormData();
+      formData.append('media', imageFile);
+      
+      // Create media metadata
+      const mediaMetadata = {
+        mediaFormat: mediaFormat,
+        sourceUrl: '', // Will be filled by Google after upload
+      };
+
+      formData.append('metadata', JSON.stringify(mediaMetadata));
+
+      const response = await this.makeRequest<any>(url, {
+        method: 'POST',
+        body: formData,
+        // Don't set Content-Type header - let the browser set it for FormData
+        headers: {
+          'Authorization': `Bearer ${this.accessToken}`,
+        },
+      });
+
+      console.log('✅ Media uploaded successfully');
+      return {
+        success: true,
+        mediaItem: response.data
+      };
+
+    } catch (error) {
+      console.error('❌ Failed to upload media:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Upload failed'
+      };
+    }
   }
 } 

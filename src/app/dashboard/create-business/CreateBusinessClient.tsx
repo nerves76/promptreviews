@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { FaStore } from "react-icons/fa";
+import { FaStore, FaPlus } from "react-icons/fa";
 import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 
 const supabase = createClient();
@@ -124,17 +124,33 @@ export default function CreateBusinessClient() {
 
   return (
     <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
-      <PageCard icon={<FaStore className="w-9 h-9 text-slate-blue" />}>
+      <PageCard 
+        icon={<FaStore className="w-9 h-9 text-slate-blue" />}
+        topRightAction={
+          <button
+            onClick={() => router.push("/dashboard")}
+            className="px-4 py-2 text-sm font-medium text-white bg-slate-blue rounded-md hover:bg-slate-blue/90 flex items-center"
+          >
+            <FaPlus className="mr-2" />
+            Go to Dashboard
+          </button>
+        }
+      >
         <div className="max-w-4xl mx-auto">
-          <div className="flex items-start justify-between mt-2 mb-4">
-            <div className="flex flex-col mt-0 md:mt-[3px]">
-              <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
-                Create your business profile
-              </h1>
-              <p className="text-gray-600 text-base max-w-md mt-0 mb-10">
-                Tell us about your business so we can create the perfect review prompts for you.
-              </p>
-            </div>
+          {/* Welcome Message */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 w-full gap-2 relative">
+            <h1 className="text-4xl font-bold flex items-center gap-3 text-slate-blue pt-2">
+              Create your business profile
+            </h1>
+          </div>
+          
+          <div className="mb-8">
+            <h2 className="text-xl font-bold text-slate-blue">
+              Welcome! Let's get started
+            </h2>
+            <p className="mt-2 text-sm text-gray-600 max-w-[650px]">
+              Tell us about your business so we can create the perfect review prompts for you. This will help us personalize your experience and generate better AI-powered content.
+            </p>
           </div>
           
           <SimpleBusinessForm

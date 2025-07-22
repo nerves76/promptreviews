@@ -6,6 +6,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { postManager } from '@/features/social-posting';
 import { GoogleBusinessProfileAdapter } from '@/features/social-posting/platforms/google-business-profile/adapter';
+import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
+import { createServerSupabaseClient } from '@/utils/supabaseClient';
 import type { UniversalPost } from '@/features/social-posting';
 
 export async function POST(request: NextRequest) {
@@ -23,48 +25,68 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Demo mode to bypass Google's extreme rate limits during development
-    const isDemoMode = process.env.NODE_ENV === 'development';
-    
-    if (isDemoMode) {
-      console.log('🎭 Demo mode: Simulating Google Business Profile post creation');
-      
-      // Simulate successful post creation
-      const demoResults = {
-        'google-business-profile': {
-          success: true,
-          platformPostId: `demo_post_${Date.now()}`,
-          message: 'Demo post created successfully! (Demo mode - Google rate limits bypassed)',
-          isDemoMode: true
-        }
-      };
-      
-      return NextResponse.json({
-        success: true,
-        data: {
-          validationResults: {
-            'google-business-profile': {
-              isValid: true,
-              errors: [],
-              warnings: ['Demo mode active - no real post created']
-            }
-          },
-          publishResults: demoResults,
-          optimizedContent: {
-            'google-business-profile': postData.content
-          },
-          isDemoMode: true
-        }
-      });
+    // Get authenticated user
+    const supabase = await createServerSupabaseClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    
-    // Initialize adapters if not already registered
-    if (!postManager.getAdapter('google-business-profile')) {
+
+    // Get user's Google Business Profile tokens
+    const { data: tokens, error: tokenError } = await supabase
+      .from('google_business_profiles')
+      .select('*')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (tokenError || !tokens) {
+      return NextResponse.json({
+        success: false,
+        error: 'Platform google-business-profile is not authenticated'
+      }, { status: 401 });
+    }
+
+    // Initialize adapters if not already registered or if tokens have changed
+    const adapterKey = `google-business-profile-${user.id}`;
+    if (!postManager.getAdapter(adapterKey)) {
+      // Create Google Business Profile client with actual user tokens
+      const client = new GoogleBusinessProfileClient({
+        accessToken: tokens.access_token,
+        refreshToken: tokens.refresh_token,
+        expiresAt: new Date(tokens.expires_at).getTime()
+      });
+
+      // Get the account ID from the tokens or stored data
+      // We need to get this to avoid extra API calls in the adapter
+      const { data: locationData } = await supabase
+        .from('google_business_locations')
+        .select('account_name')
+        .eq('user_id', user.id)
+        .limit(1);
+
+      let accountId = null;
+      if (locationData && locationData.length > 0 && locationData[0].account_name) {
+        // Extract account ID from the stored account name (accounts/{id})
+        accountId = locationData[0].account_name.replace('accounts/', '');
+        console.log(`📋 Got account ID from stored location data: ${accountId}`);
+      }
+
+      // If we don't have the account ID from stored data, we'll let the adapter handle it
+      if (!accountId) {
+        console.log('⚠️ Account ID not found in stored location data, adapter will fetch it');
+      }
+
+      // Create adapter with the authenticated client
       const gbpAdapter = new GoogleBusinessProfileAdapter({
         clientId: process.env.GOOGLE_CLIENT_ID!,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
         redirectUri: process.env.GOOGLE_REDIRECT_URI!
       });
+
+      // Set the client, account ID, and mark as authenticated
+      (gbpAdapter as any).client = client;
+      (gbpAdapter as any).accountId = accountId; // Pass account ID to avoid API calls
+      (gbpAdapter as any).isAuth = true;
       
       postManager.registerAdapter('google-business-profile', gbpAdapter);
     }

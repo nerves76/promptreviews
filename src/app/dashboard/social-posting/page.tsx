@@ -5,10 +5,11 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
-import { FaGoogle, FaMapMarkerAlt, FaImage, FaClock, FaExclamationTriangle, FaCheck, FaTimes, FaPlus, FaSpinner, FaRedo } from 'react-icons/fa';
+import { useState, useEffect, useRef } from 'react';
+import { FaGoogle, FaMapMarkerAlt, FaImage, FaClock, FaExclamationTriangle, FaCheck, FaTimes, FaPlus, FaSpinner, FaRedo, FaChevronDown, FaChevronUp, FaTrash, FaUpload } from 'react-icons/fa';
 import PageCard from '@/app/components/PageCard';
 import FiveStarSpinner from '@/app/components/FiveStarSpinner';
+import PhotoManagement from '@/app/components/PhotoManagement';
 import { createClient } from '@/utils/supabaseClient';
 // Using built-in alert for notifications instead of react-toastify
 
@@ -30,11 +31,19 @@ export default function SocialPostingDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [isConnected, setIsConnected] = useState(false);
   const [locations, setLocations] = useState<GoogleBusinessLocation[]>([]);
-  const [selectedLocation, setSelectedLocation] = useState<string>('');
+  const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
+  const [isLocationDropdownOpen, setIsLocationDropdownOpen] = useState(false);
   const [postContent, setPostContent] = useState('');
   const [postType, setPostType] = useState<'WHATS_NEW' | 'EVENT' | 'OFFER' | 'PRODUCT'>('WHATS_NEW');
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [uploadingImages, setUploadingImages] = useState(false);
+  const [showCTA, setShowCTA] = useState(false);
+  const [ctaType, setCTAType] = useState<'LEARN_MORE' | 'CALL' | 'ORDER_ONLINE' | 'BOOK' | 'SIGN_UP' | 'BUY'>('LEARN_MORE');
+  const [ctaUrl, setCTAUrl] = useState('');
   const [isPosting, setIsPosting] = useState(false);
   const [postResult, setPostResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [improvingWithAI, setImprovingWithAI] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
   const [hasHandledOAuth, setHasHandledOAuth] = useState(false);
   const [hasLoadedPlatforms, setHasLoadedPlatforms] = useState(false);
@@ -44,8 +53,16 @@ export default function SocialPostingDashboard() {
   const [fetchingLocations, setFetchingLocations] = useState<string | null>(null);
   const [rateLimitedUntil, setRateLimitedUntil] = useState<number | null>(null);
   
+  // Ref to track image URLs for cleanup
+  const imageUrlsRef = useRef<string[]>([]);
+
+  // Update ref whenever imageUrls changes
+  useEffect(() => {
+    imageUrlsRef.current = imageUrls;
+  }, [imageUrls]);
+
   // Tab state
-  const [activeTab, setActiveTab] = useState<'connect' | 'post'>('connect');
+  const [activeTab, setActiveTab] = useState<'connect' | 'post' | 'photos'>('connect');
 
   // Handle post-OAuth redirects
   useEffect(() => {
@@ -79,16 +96,25 @@ export default function SocialPostingDashboard() {
     }
   }, []);
 
-  // Auto-switch to post tab when connected and has locations
+  // Add effect to close dropdown when clicking outside
   useEffect(() => {
-    if (isConnected && locations.length > 0 && activeTab === 'connect') {
-      // Wait a moment for UI updates, then switch tabs
-      setTimeout(() => {
-        setActiveTab('post');
-      }, 1000);
-    }
-  }, [isConnected, locations.length, activeTab]);
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (isLocationDropdownOpen && !target.closest('.location-dropdown')) {
+        setIsLocationDropdownOpen(false);
+      }
+    };
 
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isLocationDropdownOpen]);
+
+  // Cleanup image URLs on unmount
+  useEffect(() => {
+    return () => {
+      imageUrlsRef.current.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, []); // Empty dependency array means this runs only on unmount
 
   const postTemplates: PostTemplate[] = [
     {
@@ -117,6 +143,7 @@ export default function SocialPostingDashboard() {
     }
   ];
 
+  // Load platforms when component mounts
   useEffect(() => {
     // Don't load platforms if we have rate limit errors or are handling OAuth
     if (hasRateLimitError || rateLimitCountdown > 0 || hasHandledOAuth) {
@@ -172,7 +199,7 @@ export default function SocialPostingDashboard() {
         console.log('No session token available');
         setIsConnected(false);
         setLocations([]);
-        setSelectedLocation('');
+        setSelectedLocations([]);
         setPostResult({ 
           success: false, 
           message: 'Please refresh the page to sign in again.' 
@@ -194,7 +221,7 @@ export default function SocialPostingDashboard() {
         console.log('Authentication error - session may have expired');
         setIsConnected(false);
         setLocations([]);
-        setSelectedLocation('');
+        setSelectedLocations([]);
         setPostResult({ 
           success: false, 
           message: 'Please refresh the page or sign in again to access Google Business Profile features.' 
@@ -222,17 +249,17 @@ export default function SocialPostingDashboard() {
           // Transform locations to match expected format
           const transformedLocations = locations.map((loc: any) => ({
             id: loc.location_id || loc.id,
-            name: loc.location_name || loc.name,
+            name: loc.location_name || loc.name || (loc.location_id || loc.id)?.replace('locations/', '') || 'Unknown Location',
             address: loc.address || '',
             status: 'active' // Default status since we don't have this info
           }));
           
           setLocations(transformedLocations);
-          setSelectedLocation(transformedLocations[0]?.id || '');
+          setSelectedLocations([transformedLocations[0]?.id].filter(Boolean)); // Select first location by default
         } else {
           setIsConnected(false);
           setLocations([]);
-          setSelectedLocation('');
+          setSelectedLocations([]);
           console.log('Google Business Profile is not connected');
         }
       } else {
@@ -291,7 +318,7 @@ export default function SocialPostingDashboard() {
     localStorage.removeItem('google-business-connected');
     setIsConnected(false);
     setLocations([]);
-    setSelectedLocation('');
+    setSelectedLocations([]);
   };
 
   const handleFetchLocations = async (platformId: string) => {
@@ -367,8 +394,19 @@ export default function SocialPostingDashboard() {
   };
 
   const handlePost = async () => {
-    if (!postContent.trim() || !selectedLocation) {
-      setPostResult({ success: false, message: 'Please enter post content and select a location' });
+    if (!postContent.trim() || selectedLocations.length === 0) {
+      setPostResult({ success: false, message: 'Please enter post content and select at least one location' });
+      return;
+    }
+
+    // Validate CTA if enabled
+    if (showCTA && !ctaUrl.trim()) {
+      setPostResult({ success: false, message: 'Please provide a URL for your Call-to-Action button' });
+      return;
+    }
+
+    if (showCTA && ctaUrl && !isValidUrl(ctaUrl)) {
+      setPostResult({ success: false, message: 'Please provide a valid URL for your Call-to-Action button' });
       return;
     }
 
@@ -376,56 +414,84 @@ export default function SocialPostingDashboard() {
       setIsPosting(true);
       setPostResult(null);
       
-      // Create the post data with proper structure
-      const postData = {
-        content: postContent,
-        platforms: ['google-business-profile'],
-        type: postType,
-        metadata: {
-          locationId: selectedLocation // This is crucial for posting to work!
-        }
-      };
+      console.log(`📝 Posting to ${selectedLocations.length} Google Business Profile location(s)...`);
       
-      console.log('📝 Posting to Google Business Profile:', postData);
-      
-      // Make actual API call to post
-      const response = await fetch('/api/social-posting/posts', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(postData),
+      // Upload images to Supabase storage
+      const uploadedImageUrls = await uploadImagesToStorage(selectedImages);
+
+      // Post to each selected location individually
+      const postPromises = selectedLocations.map(async (locationId) => {
+        const postData = {
+          content: postContent,
+          platforms: ['google-business-profile'],
+          type: postType,
+          mediaUrls: uploadedImageUrls, // Include uploaded image URLs for the adapter
+          callToAction: showCTA && ctaUrl ? {
+            actionType: ctaType,
+            url: ctaUrl
+          } : undefined,
+          metadata: {
+            locationId: locationId
+          }
+        };
+        
+        console.log(`📝 Posting to location: ${locationId}`);
+        
+        const response = await fetch('/api/social-posting/posts', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(postData),
+        });
+
+        const result = await response.json();
+        const location = locations.find(loc => loc.id === locationId);
+        
+        return {
+          locationId,
+          locationName: location?.name || locationId,
+          success: result.success,
+          result: result
+        };
       });
 
-      const result = await response.json();
-      console.log('📊 Post response:', result);
+      const postResults = await Promise.all(postPromises);
+      console.log('📊 All post responses:', postResults);
 
-      if (result.success) {
-        const gbpResult = result.data?.publishResults?.['google-business-profile'];
-        const demoNote = result.data?.isDemoMode ? ' (Demo Mode)' : '';
+      const successfulPosts = postResults.filter(r => r.success);
+      const failedPosts = postResults.filter(r => !r.success);
+
+      if (successfulPosts.length === selectedLocations.length) {
+        // All posts succeeded
         setPostResult({ 
           success: true, 
-          message: (gbpResult?.message || 'Post published successfully to Google Business Profile!') + demoNote
+          message: `Successfully published to all ${selectedLocations.length} location${selectedLocations.length !== 1 ? 's' : ''}!`
         });
         setPostContent(''); // Clear content on success
+        clearAllImages(); // Clear uploaded images on success
+        setShowCTA(false); // Clear CTA on success
+        setCTAType('LEARN_MORE');
+        setCTAUrl('');
+      } else if (successfulPosts.length > 0) {
+        // Some posts succeeded, some failed
+        setPostResult({ 
+          success: true, 
+          message: `Published to ${successfulPosts.length} of ${selectedLocations.length} locations. ${failedPosts.length} location${failedPosts.length !== 1 ? 's' : ''} failed: ${failedPosts.map(f => f.locationName).join(', ')}`
+        });
       } else {
-        // Handle specific error types
-        const gbpResult = result.data?.publishResults?.['google-business-profile'];
-        if (gbpResult?.isRateLimit) {
-          setPostResult({ 
-            success: false, 
-            message: 'Google Business Profile rate limit exceeded. Please try again in a few minutes.' 
-          });
-        } else {
-          setPostResult({ 
-            success: false, 
-            message: gbpResult?.error || result.error || 'Failed to publish post. Please try again.' 
-          });
-        }
+        // All posts failed
+        const firstError = failedPosts[0]?.result?.data?.publishResults?.['google-business-profile']?.error || 
+                          failedPosts[0]?.result?.error || 
+                          'All posts failed';
+        setPostResult({ 
+          success: false, 
+          message: `Failed to publish to any locations. Error: ${firstError}`
+        });
       }
     } catch (error) {
       console.error('Post failed:', error);
-      setPostResult({ success: false, message: 'Failed to publish post. Please check your connection and try again.' });
+      setPostResult({ success: false, message: 'Failed to publish posts. Please check your connection and try again.' });
     } finally {
       setIsPosting(false);
     }
@@ -440,6 +506,186 @@ export default function SocialPostingDashboard() {
   const getCharacterCount = () => postContent.length;
   const getCharacterLimit = () => 1500;
   const isOverLimit = () => getCharacterCount() > getCharacterLimit();
+
+  // URL validation helper
+  const isValidUrl = (url: string): boolean => {
+    try {
+      // Allow tel: links for CALL CTA
+      if (ctaType === 'CALL' && url.startsWith('tel:')) {
+        return url.length > 4; // Must have something after 'tel:'
+      }
+      // Standard URL validation for other CTA types
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  // Clear all form data
+  const clearAllFormData = () => {
+    setPostContent('');
+    setPostResult(null);
+    clearAllImages();
+    setShowCTA(false);
+    setCTAType('LEARN_MORE');
+    setCTAUrl('');
+  };
+
+  // Improve post with AI
+  const handleImproveWithAI = async () => {
+    if (!postContent.trim()) {
+      setPostResult({ success: false, message: 'Please enter some post content to improve' });
+      return;
+    }
+
+    if (selectedLocations.length === 0) {
+      setPostResult({ success: false, message: 'Please select at least one location to get business context' });
+      return;
+    }
+
+    setImprovingWithAI(true);
+    setPostResult(null);
+
+    try {
+      // Get selected location names for context
+      const selectedLocationNames = selectedLocations.map(locationId => {
+        const location = locations.find(l => l.id === locationId);
+        return location?.name || 'Unknown Location';
+      });
+
+      const requestData = {
+        currentContent: postContent,
+        businessLocations: selectedLocationNames,
+        ctaType: showCTA ? ctaType : null,
+        ctaUrl: showCTA ? ctaUrl : null,
+        imageCount: selectedImages.length
+      };
+
+      const response = await fetch('/api/social-posting/improve-with-ai', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to improve post: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      
+      if (result.success) {
+        setPostContent(result.improvedContent);
+        setPostResult({ 
+          success: true, 
+          message: 'Post improved with AI! Check the enhanced content above.' 
+        });
+      } else {
+        setPostResult({ success: false, message: result.message || 'Failed to improve post' });
+      }
+    } catch (error) {
+      console.error('Error improving post with AI:', error);
+      setPostResult({ 
+        success: false, 
+        message: 'Failed to improve post. Please try again.' 
+      });
+    } finally {
+      setImprovingWithAI(false);
+    }
+  };
+
+  // Image upload functions
+  const handleImageUpload = async (files: FileList) => {
+    if (!files || files.length === 0) return;
+
+    const imageFiles = Array.from(files).filter(file => {
+      const isImage = file.type.startsWith('image/');
+      const isValidSize = file.size <= 10 * 1024 * 1024; // 10MB limit
+      if (!isImage) {
+        setPostResult({ success: false, message: 'Please select only image files.' });
+        return false;
+      }
+      if (!isValidSize) {
+        setPostResult({ success: false, message: 'Images must be smaller than 10MB.' });
+        return false;
+      }
+      return true;
+    });
+
+    if (selectedImages.length + imageFiles.length > 10) {
+      setPostResult({ success: false, message: 'Maximum 10 images allowed per post.' });
+      return;
+    }
+
+    setUploadingImages(true);
+    setPostResult(null);
+
+    try {
+      // Create a copy of existing images and add new ones
+      const newImages = [...selectedImages, ...imageFiles];
+      setSelectedImages(newImages);
+
+      // Create preview URLs for new images
+      const newImageUrls = imageFiles.map(file => URL.createObjectURL(file));
+      setImageUrls(prev => [...prev, ...newImageUrls]);
+
+      console.log(`📷 Added ${imageFiles.length} image(s). Total: ${newImages.length}`);
+    } catch (error) {
+      console.error('Image upload error:', error);
+      setPostResult({ success: false, message: 'Failed to process images. Please try again.' });
+    } finally {
+      setUploadingImages(false);
+    }
+  };
+
+  const removeImage = (index: number) => {
+    // Revoke the object URL to free memory
+    URL.revokeObjectURL(imageUrls[index]);
+    
+    setSelectedImages(prev => prev.filter((_, i) => i !== index));
+    setImageUrls(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const clearAllImages = () => {
+    // Revoke all object URLs
+    imageUrlsRef.current.forEach(url => URL.revokeObjectURL(url));
+    setSelectedImages([]);
+    setImageUrls([]);
+  };
+
+  // Upload images to Supabase storage
+  const uploadImagesToStorage = async (images: File[]): Promise<string[]> => {
+    if (images.length === 0) return [];
+
+    try {
+      const uploadPromises = images.map(async (image, index) => {
+        const formData = new FormData();
+        formData.append('file', image);
+        formData.append('folder', 'social-posts');
+
+        const response = await fetch('/api/social-posting/upload-image', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to upload image ${index + 1}`);
+        }
+
+        const result = await response.json();
+        return result.url;
+      });
+
+      const uploadedUrls = await Promise.all(uploadPromises);
+      console.log(`📷 Successfully uploaded ${uploadedUrls.length} images`);
+      return uploadedUrls;
+    } catch (error) {
+      console.error('Failed to upload images:', error);
+      throw error;
+    }
+  };
 
   if (isLoading) {
     return (
@@ -502,6 +748,20 @@ export default function SocialPostingDashboard() {
                 <div className="flex items-center space-x-2">
                   <FaPlus className="w-4 h-4" />
                   <span>Create Posts</span>
+                </div>
+              </button>
+              <button
+                onClick={() => setActiveTab('photos')}
+                disabled={!isConnected}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'photos' && isConnected
+                    ? 'border-slate-blue text-slate-blue'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                } ${!isConnected ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                <div className="flex items-center space-x-2">
+                  <FaImage className="w-4 h-4" />
+                  <span>Photo Management</span>
                 </div>
               </button>
             </nav>
@@ -678,45 +938,164 @@ export default function SocialPostingDashboard() {
                     <div className="space-y-4">
                       <h3 className="text-lg font-semibold flex items-center space-x-2">
                         <FaMapMarkerAlt className="w-4 h-4 text-slate-600" />
-                        <span>Select Business Location</span>
+                        <span>Select Business Locations</span>
                       </h3>
-                      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-                        {locations.map((location) => (
-                          <div
-                            key={location.id}
-                            className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                              selectedLocation === location.id
-                                ? 'border-slate-blue bg-slate-blue/5'
-                                : 'border-gray-200 hover:border-gray-300'
-                            }`}
-                            onClick={() => setSelectedLocation(location.id)}
-                          >
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1">
-                                <h4 className="font-medium text-gray-900">{location.name}</h4>
-                                <p className="text-sm text-gray-600 mt-1">{location.address}</p>
-                                <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-2 ${
-                                  location.status === 'active'
-                                    ? 'bg-green-100 text-green-800'
-                                    : location.status === 'pending'
-                                    ? 'bg-yellow-100 text-yellow-800'
-                                    : 'bg-red-100 text-red-800'
-                                }`}>
-                                  {location.status}
+                      
+                      {/* Multi-Select Dropdown */}
+                      <div className="relative location-dropdown">
+                        <button
+                          onClick={() => setIsLocationDropdownOpen(!isLocationDropdownOpen)}
+                          className="w-full flex items-center justify-between p-3 border border-gray-300 rounded-lg bg-white hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <FaMapMarkerAlt className="w-4 h-4 text-gray-500" />
+                            <span className="text-gray-700">
+                              {selectedLocations.length === 0 
+                                ? 'Select locations to post to...'
+                                : selectedLocations.length === locations.length
+                                ? `All locations selected (${locations.length})`
+                                : `${selectedLocations.length} location${selectedLocations.length !== 1 ? 's' : ''} selected`
+                              }
+                            </span>
+                          </div>
+                          {isLocationDropdownOpen ? (
+                            <FaChevronUp className="w-4 h-4 text-gray-500" />
+                          ) : (
+                            <FaChevronDown className="w-4 h-4 text-gray-500" />
+                          )}
+                        </button>
+
+                        {isLocationDropdownOpen && (
+                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-80 overflow-hidden">
+                            {/* Select All / Deselect All */}
+                            <div className="sticky top-0 bg-gray-50 border-b border-gray-200 p-3">
+                              <button
+                                onClick={() => {
+                                  if (selectedLocations.length === locations.length) {
+                                    setSelectedLocations([]);
+                                  } else {
+                                    setSelectedLocations(locations.map(loc => loc.id));
+                                  }
+                                }}
+                                className="flex items-center space-x-2 text-sm font-medium text-slate-600 hover:text-slate-800"
+                              >
+                                <div className={`w-4 h-4 border border-gray-300 rounded ${
+                                  selectedLocations.length === locations.length 
+                                    ? 'bg-slate-blue border-slate-blue' 
+                                    : selectedLocations.length > 0 
+                                    ? 'bg-gray-300 border-gray-300' 
+                                    : 'bg-white'
+                                } flex items-center justify-center`}>
+                                  {selectedLocations.length === locations.length && (
+                                    <FaCheck className="w-2.5 h-2.5 text-white" />
+                                  )}
+                                  {selectedLocations.length > 0 && selectedLocations.length < locations.length && (
+                                    <div className="w-2 h-0.5 bg-gray-600"></div>
+                                  )}
                                 </div>
-                              </div>
-                              {selectedLocation === location.id && (
-                                <FaCheck className="w-4 h-4 text-slate-blue" />
-                              )}
+                                <span>
+                                  {selectedLocations.length === locations.length 
+                                    ? 'Deselect All' 
+                                    : 'Select All'}
+                                </span>
+                              </button>
+                            </div>
+
+                            {/* Location List */}
+                            <div className="max-h-64 overflow-y-auto">
+                              {locations.map((location) => (
+                                <div
+                                  key={location.id}
+                                  className="flex items-center space-x-3 p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                                  onClick={() => {
+                                    setSelectedLocations(prev => {
+                                      if (prev.includes(location.id)) {
+                                        return prev.filter(id => id !== location.id);
+                                      } else {
+                                        return [...prev, location.id];
+                                      }
+                                    });
+                                  }}
+                                >
+                                  <div className={`w-4 h-4 border border-gray-300 rounded ${
+                                    selectedLocations.includes(location.id) 
+                                      ? 'bg-slate-blue border-slate-blue' 
+                                      : 'bg-white'
+                                  } flex items-center justify-center flex-shrink-0`}>
+                                    {selectedLocations.includes(location.id) && (
+                                      <FaCheck className="w-2.5 h-2.5 text-white" />
+                                    )}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <h4 className="font-medium text-gray-900 truncate">{location.name}</h4>
+                                    {location.address && (
+                                      <p className="text-sm text-gray-600 truncate">{location.address}</p>
+                                    )}
+                                  </div>
+                                  <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ${
+                                    location.status === 'active'
+                                      ? 'bg-green-100 text-green-800'
+                                      : location.status === 'pending'
+                                      ? 'bg-yellow-100 text-yellow-800'
+                                      : 'bg-red-100 text-red-800'
+                                  }`}>
+                                    {location.status}
+                                  </div>
+                                </div>
+                              ))}
                             </div>
                           </div>
-                        ))}
+                        )}
                       </div>
+
+                      {/* Selected Locations Summary */}
+                      {selectedLocations.length > 0 && (
+                        <div className="bg-slate-50 rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="text-sm font-medium text-slate-800">
+                              Selected Locations ({selectedLocations.length})
+                            </h4>
+                            <button
+                              onClick={() => setSelectedLocations([])}
+                              className="text-xs text-slate-600 hover:text-slate-800"
+                            >
+                              Clear All
+                            </button>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {selectedLocations.slice(0, 5).map(locationId => {
+                              const location = locations.find(loc => loc.id === locationId);
+                              return location ? (
+                                <span
+                                  key={locationId}
+                                  className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-slate-200 text-slate-800"
+                                >
+                                  {location.name}
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedLocations(prev => prev.filter(id => id !== locationId));
+                                    }}
+                                    className="ml-1 hover:text-slate-600"
+                                  >
+                                    <FaTimes className="w-2 h-2" />
+                                  </button>
+                                </span>
+                              ) : null;
+                            })}
+                            {selectedLocations.length > 5 && (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-200 text-gray-600">
+                                +{selectedLocations.length - 5} more
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
 
                   {/* Post Creator */}
-                  {selectedLocation && (
+                  {selectedLocations.length > 0 && (
                     <div className="space-y-6">
                       <div className="flex items-center justify-between">
                         <h3 className="text-lg font-semibold">Create Post</h3>
@@ -802,20 +1181,221 @@ export default function SocialPostingDashboard() {
                           }`}
                           placeholder="What would you like to share with your customers?"
                         />
-                        <div className="flex justify-between items-center mt-2">
-                          <div className={`text-sm ${
-                            isOverLimit() ? 'text-red-600' : 'text-gray-600'
-                          }`}>
-                            {getCharacterCount()}/{getCharacterLimit()} characters
-                          </div>
+
+                        {/* Improve with AI Button */}
+                        <div className="flex justify-end mt-2">
+                          <button
+                            onClick={handleImproveWithAI}
+                            disabled={improvingWithAI || !postContent.trim() || selectedLocations.length === 0}
+                            className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center space-x-2 text-sm"
+                            title={
+                              !postContent.trim() ? 'Enter post content first' :
+                              selectedLocations.length === 0 ? 'Select business locations first' :
+                              'Improve your post with AI using business profile and location data'
+                            }
+                          >
+                            {improvingWithAI ? (
+                              <>
+                                <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                  <path className="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span>Improving...</span>
+                              </>
+                            ) : (
+                              <>
+                                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                                </svg>
+                                <span>Improve with AI</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+
+                        {/* Character Count */}
+                        <div className="flex justify-between items-center text-sm mt-2">
+                          <span className={`${isOverLimit() ? 'text-red-600 font-medium' : 'text-gray-500'}`}>
+                            {getCharacterCount()} / {getCharacterLimit()} characters
+                          </span>
                           {isOverLimit() && (
-                            <div className="flex items-center space-x-1 text-red-600 text-sm">
-                              <FaExclamationTriangle className="w-3 h-3" />
-                              <span>Content exceeds character limit</span>
-                            </div>
+                            <span className="text-red-600 text-xs">Over limit! Please shorten your post.</span>
                           )}
                         </div>
+
+                        {/* AI Improvement Info */}
+                        <div className="bg-purple-50 rounded-lg p-3 border border-purple-200">
+                          <div className="flex items-start space-x-2">
+                            <svg className="h-5 w-5 text-purple-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                            </svg>
+                            <div>
+                              <h4 className="text-sm font-medium text-purple-900">AI Post Optimization</h4>
+                              <p className="text-xs text-purple-700 mt-1">
+                                Click "Improve with AI" to automatically enhance your post with local SEO keywords, 
+                                better engagement tactics, and optimized formatting using your business profile information.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
                       </div>
+
+                      {/* Image Upload */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Add Images (Max 10, 10MB each)
+                          {process.env.NODE_ENV === 'development' && (
+                            <span className="block text-xs text-orange-600 font-normal mt-1">
+                              Note: Images are not included in Google Business Profile posts during local development.
+                            </span>
+                          )}
+                        </label>
+                        <div className="flex flex-wrap items-center gap-2 p-2 border border-gray-300 rounded-md bg-gray-50">
+                          {selectedImages.map((image, index) => (
+                            <div key={index} className="relative group">
+                              <img
+                                src={imageUrls[index]}
+                                alt={`Preview ${index + 1}`}
+                                className="w-16 h-16 object-cover rounded-md"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => removeImage(index)}
+                                className="absolute top-0 right-0 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                title="Remove image"
+                              >
+                                <FaTrash className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ))}
+                          <label htmlFor="image-upload" className="flex flex-col items-center justify-center w-16 h-16 border border-dashed border-gray-300 rounded-md cursor-pointer hover:border-gray-400 focus-within:ring-2 focus-within:ring-slate-blue focus-within:border-transparent">
+                            <input
+                              type="file"
+                              id="image-upload"
+                              accept="image/*"
+                              multiple
+                              onChange={(e) => {
+                                if (e.target.files) {
+                                  handleImageUpload(e.target.files);
+                                }
+                              }}
+                              className="hidden"
+                            />
+                            <FaUpload className="w-4 h-4 text-gray-500" />
+                            <p className="text-xs text-gray-600 text-center">Add</p>
+                          </label>
+                        </div>
+                        <div className="flex justify-between items-center mt-2">
+                          <div className="text-sm text-gray-600">
+                            {selectedImages.length}/10 images
+                          </div>
+                          {selectedImages.length > 0 && (
+                            <button
+                              type="button"
+                              onClick={clearAllImages}
+                              className="text-sm text-red-600 hover:text-red-800"
+                            >
+                              Clear All
+                            </button>
+                          )}
+                        </div>
+                        {uploadingImages && (
+                          <div className="flex items-center justify-center text-sm text-gray-600 mt-2">
+                            <FaSpinner className="w-4 h-4 animate-spin mr-2" />
+                            Uploading images...
+                          </div>
+                        )}
+                      </div>
+
+                        {/* CTA Section */}
+                        <div className="bg-gray-50 rounded-lg p-4">
+                          <h4 className="text-sm font-medium text-gray-900 mb-3">Add Call-to-Action (CTA)</h4>
+                          <p className="text-xs text-gray-600 mb-3">
+                            CTA buttons help drive engagement by giving customers a clear next step, like visiting your website or making a call.
+                          </p>
+                          <div className="flex items-center space-x-2 mb-3">
+                            <input
+                              type="checkbox"
+                              id="showCTA"
+                              checked={showCTA}
+                              onChange={(e) => setShowCTA(e.target.checked)}
+                              className="h-4 w-4 text-slate-600 focus:ring-slate-500 border-gray-300 rounded"
+                            />
+                            <label htmlFor="showCTA" className="text-sm text-gray-700">
+                              Add a call-to-action button to your post
+                            </label>
+                          </div>
+                          {showCTA && (
+                            <>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    CTA Type
+                                  </label>
+                                  <select
+                                    value={ctaType}
+                                    onChange={(e) => setCTAType(e.target.value as any)}
+                                    className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent"
+                                  >
+                                    <option value="LEARN_MORE">Learn More</option>
+                                    <option value="CALL">Call</option>
+                                    <option value="ORDER_ONLINE">Order Online</option>
+                                    <option value="BOOK">Book Now</option>
+                                    <option value="SIGN_UP">Sign Up</option>
+                                    <option value="BUY">Buy</option>
+                                  </select>
+                                  <p className="text-xs text-gray-500 mt-1">
+                                    {ctaType === 'LEARN_MORE' && 'Link to your website or landing page'}
+                                    {ctaType === 'CALL' && 'Use tel: link (e.g., tel:+15551234567)'}
+                                    {ctaType === 'ORDER_ONLINE' && 'Link to your online ordering system'}
+                                    {ctaType === 'BOOK' && 'Link to your booking/appointment page'}
+                                    {ctaType === 'SIGN_UP' && 'Link to registration or signup form'}
+                                    {ctaType === 'BUY' && 'Link to your online store or product page'}
+                                  </p>
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    CTA URL
+                                  </label>
+                                  <input
+                                    type="url"
+                                    value={ctaUrl}
+                                    onChange={(e) => setCTAUrl(e.target.value)}
+                                    placeholder={
+                                      ctaType === 'CALL' ? 'tel:+15551234567' :
+                                      ctaType === 'ORDER_ONLINE' ? 'https://order.example.com' :
+                                      ctaType === 'BOOK' ? 'https://book.example.com' :
+                                      ctaType === 'BUY' ? 'https://shop.example.com' :
+                                      'https://example.com'
+                                    }
+                                    className={`w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent ${
+                                      ctaUrl && !isValidUrl(ctaUrl) ? 'border-red-300' : ''
+                                    }`}
+                                  />
+                                  {ctaUrl && !isValidUrl(ctaUrl) && (
+                                    <p className="text-xs text-red-600 mt-1">Please enter a valid URL</p>
+                                  )}
+                                </div>
+                              </div>
+                              
+                              {/* CTA Preview */}
+                              {ctaUrl && isValidUrl(ctaUrl) && (
+                                <div className="bg-white rounded-md p-3 border border-gray-200">
+                                  <p className="text-xs text-gray-600 mb-2">Preview:</p>
+                                  <div className="flex items-center space-x-2">
+                                    <button 
+                                      type="button"
+                                      className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors cursor-default"
+                                    >
+                                      {ctaType.replace('_', ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}
+                                    </button>
+                                    <span className="text-xs text-gray-500">→ {ctaUrl}</span>
+                                  </div>
+                                </div>
+                              )}
+                            </>
+                          )}
+                        </div>
 
                       {/* Post Result */}
                       {postResult && (
@@ -839,32 +1419,29 @@ export default function SocialPostingDashboard() {
                         </div>
                       )}
 
-                      {/* Post Actions */}
-                      <div className="flex justify-end space-x-3">
+                      {/* Action Buttons */}
+                      <div className="flex justify-between items-center space-x-3">
                         <button
-                          onClick={() => {
-                            setPostContent('');
-                            setPostResult(null);
-                          }}
+                          onClick={clearAllFormData}
                           className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
                         >
-                          Clear
+                          Clear All
                         </button>
                         <button
                           onClick={handlePost}
-                          disabled={isPosting || !postContent.trim() || isOverLimit()}
-                          className="px-6 py-2 bg-slate-blue text-white rounded-md hover:bg-slate-blue/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                          disabled={isPosting || !postContent.trim() || selectedLocations.length === 0 || uploadingImages}
+                          className="px-6 py-2 bg-slate-600 text-white rounded-md hover:bg-slate-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
                         >
                           {isPosting ? (
                             <>
-                              <FaSpinner className="w-4 h-4 animate-spin" />
+                              <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
                               <span>Publishing...</span>
                             </>
                           ) : (
-                            <>
-                              <FaGoogle className="w-4 h-4" />
-                              <span>Publish to Google</span>
-                            </>
+                            <span>Publish Post</span>
                           )}
                         </button>
                       </div>
@@ -890,6 +1467,33 @@ export default function SocialPostingDashboard() {
                     </div>
                   )}
                 </>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'photos' && (
+            <div className="space-y-6">
+              {!isConnected ? (
+                <div className="text-center py-12">
+                  <FaImage className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    Connect Google Business Profile First
+                  </h3>
+                  <p className="text-gray-600 mb-4">
+                    You need to connect your Google Business Profile before you can manage photos.
+                  </p>
+                  <button
+                    onClick={() => setActiveTab('connect')}
+                    className="px-4 py-2 bg-slate-blue text-white rounded-md hover:bg-slate-blue/90 transition-colors"
+                  >
+                    Go to Connect Tab
+                  </button>
+                </div>
+              ) : (
+                <PhotoManagement 
+                  locations={locations}
+                  isConnected={isConnected}
+                />
               )}
             </div>
           )}

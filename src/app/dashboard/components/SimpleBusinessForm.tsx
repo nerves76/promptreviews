@@ -8,7 +8,7 @@
  */
 
 import React, { useState } from "react";
-import { FaBuilding, FaRobot } from "react-icons/fa";
+import { FaBuilding, FaRobot, FaTags } from "react-icons/fa";
 import IndustrySelector from "@/app/components/IndustrySelector";
 import { createClient } from "@/utils/supabaseClient";
 import { useRouter } from "next/navigation";
@@ -360,39 +360,6 @@ export default function SimpleBusinessForm({
         
         <div className="mb-4">
           <label className="block font-semibold text-sm text-gray-500 mb-1">
-            Promotion code (optional)
-          </label>
-          <input
-            type="text"
-            name="promotion_code"
-            className={`w-full border px-3 py-2 rounded ${
-              promotionCodeError 
-                ? 'border-red-500 focus:border-red-500' 
-                : promotionCodeSuccess 
-                  ? 'border-green-500 focus:border-green-500' 
-                  : 'border-gray-300 focus:border-slate-blue'
-            }`}
-            value={form.promotion_code || ""}
-            onChange={handleChange}
-            placeholder="Enter promotion code if you have one"
-          />
-          {promotionCodeError ? (
-            <p className="text-xs text-red-600 mt-1">
-              {promotionCodeError}
-            </p>
-          ) : promotionCodeSuccess ? (
-            <p className="text-xs text-green-600 mt-1">
-              {promotionCodeSuccess}
-            </p>
-          ) : (
-            <p className="text-xs text-gray-400 mt-1">
-              Have a special offer code? Enter it here to unlock benefits.
-            </p>
-          )}
-        </div>
-        
-        <div className="mb-4">
-          <label className="block font-semibold text-sm text-gray-500 mb-1">
             Business website
           </label>
           <input
@@ -581,6 +548,46 @@ export default function SimpleBusinessForm({
             </span>
           }
         />
+      </div>
+
+      {/* Promotion Code Section */}
+      <div className="mb-16">
+        <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
+          <FaTags className="w-7 h-7 text-slate-blue" />
+          Promotion code
+        </h2>
+        <div className="mb-4">
+          <label className="block font-semibold text-sm text-gray-500 mb-1">
+            Promotion code (optional)
+          </label>
+          <input
+            type="text"
+            name="promotion_code"
+            className={`w-full border px-3 py-2 rounded ${
+              promotionCodeError 
+                ? 'border-red-500 focus:border-red-500' 
+                : promotionCodeSuccess 
+                  ? 'border-green-500 focus:border-green-500' 
+                  : 'border-gray-300 focus:border-slate-blue'
+            }`}
+            value={form.promotion_code || ""}
+            onChange={handleChange}
+            placeholder="Enter promotion code if you have one"
+          />
+          {promotionCodeError ? (
+            <p className="text-xs text-red-600 mt-1">
+              {promotionCodeError}
+            </p>
+          ) : promotionCodeSuccess ? (
+            <p className="text-xs text-green-600 mt-1">
+              {promotionCodeSuccess}
+            </p>
+          ) : (
+            <p className="text-xs text-gray-400 mt-1">
+              Have a special offer code? Enter it here to unlock benefits.
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Submit Button */}

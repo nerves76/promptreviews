@@ -19,6 +19,7 @@ import type {
 export class GoogleBusinessProfileAdapter implements PlatformAdapter {
   private client: GoogleBusinessProfileClient;
   private isAuth: boolean = false;
+  private accountId?: string; // Store account ID to avoid API calls
   
   platform: SocialPlatform = {
     id: 'google-business-profile',
@@ -44,8 +45,8 @@ export class GoogleBusinessProfileAdapter implements PlatformAdapter {
       }
     ],
     postTypes: [
-      {
-        id: 'WHATS_NEW',
+          {
+      id: 'STANDARD',
         name: 'What\'s New',
         description: 'General updates and announcements'
       },
@@ -60,9 +61,9 @@ export class GoogleBusinessProfileAdapter implements PlatformAdapter {
         description: 'Special deals and promotions'
       },
       {
-        id: 'PRODUCT',
-        name: 'Product',
-        description: 'Showcase products or services'
+        id: 'ALERT',
+        name: 'Alert',
+        description: 'Important announcements and notices'
       }
     ]
   };
@@ -96,10 +97,19 @@ export class GoogleBusinessProfileAdapter implements PlatformAdapter {
   
   async refreshAuth(): Promise<boolean> {
     try {
-      // Implement token refresh logic
+      if (!this.client) {
+        console.log('❌ No client available for token refresh');
+        return false;
+      }
+
+      // Force token refresh by making a test API call
+      // This will trigger the client's internal refresh logic if tokens are expired
+      await this.client.listAccounts();
+      
+      console.log('✅ Google Business Profile auth refreshed successfully');
       return true;
     } catch (error) {
-      console.error('Failed to refresh Google Business Profile auth:', error);
+      console.error('❌ Failed to refresh Google Business Profile auth:', error);
       return false;
     }
   }
@@ -135,16 +145,48 @@ export class GoogleBusinessProfileAdapter implements PlatformAdapter {
       }
       
       try {
-        // Extract account ID from location ID (format: accounts/{accountId}/locations/{locationId})
-        const accountId = locationId.split('/')[1];
-        const actualLocationId = locationId.split('/')[3];
+        // Handle different location ID formats
+        let actualLocationId: string;
         
-        if (!accountId || !actualLocationId) {
+        if (locationId.startsWith('accounts/')) {
+          // Full format: accounts/{accountId}/locations/{locationId}
+          const parts = locationId.split('/');
+          this.accountId = parts[1];
+          actualLocationId = parts[3];
+        } else if (locationId.startsWith('locations/')) {
+          // Short format: locations/{locationId} - need account ID
+          actualLocationId = locationId.split('/')[1];
+          
+          // Use stored account ID if available, otherwise fetch it
+          if (!this.accountId) {
+            console.log('🔍 Account ID not stored, fetching from API...');
+            try {
+              const accounts = await this.client.listAccounts();
+              if (accounts.length === 0) {
+                throw new Error('No Google Business Profile accounts found');
+              }
+              // Use the first account (most users have only one)
+              this.accountId = accounts[0].name.replace('accounts/', '');
+              console.log(`📋 Fetched account ID from API: ${this.accountId}`);
+            } catch (error) {
+              console.error('Error getting account ID:', error);
+              throw new Error('Unable to get Google Business Profile account ID');
+            }
+          } else {
+            console.log(`📋 Using stored account ID: ${this.accountId}`);
+          }
+        } else {
+          throw new Error('Invalid location ID format. Expected "locations/{id}" or "accounts/{accountId}/locations/{id}"');
+        }
+        
+        if (!this.accountId || !actualLocationId) {
           throw new Error('Invalid location ID format');
         }
         
+        console.log(`📍 Using account ID: ${this.accountId}, location ID: ${actualLocationId}`);
+        
         // Create the actual post
-        const result = await this.client.createLocalPost(accountId, actualLocationId, gbpPost);
+        const result = await this.client.createLocalPost(this.accountId, actualLocationId, gbpPost);
         
         return {
           success: true,
@@ -256,14 +298,28 @@ export class GoogleBusinessProfileAdapter implements PlatformAdapter {
   }
   
   private convertToGBPPost(post: UniversalPost) {
+    // Filter out localhost URLs that Google API can't access
+    const validMediaUrls = post.mediaUrls?.filter(url => {
+      const isLocalhost = url.includes('localhost') || url.includes('127.0.0.1');
+      if (isLocalhost) {
+        console.warn(`⚠️ Skipping localhost image URL for Google Business Profile: ${url}`);
+        return false;
+      }
+      return true;
+    }) || [];
+
     // Convert universal post format to Google Business Profile API format
     return {
-      topicType: 'WHATS_NEW' as PostType, // Default type - TODO: Define POST_TYPES constant
+      topicType: 'STANDARD' as PostType, // Use STANDARD for general business posts
       summary: post.content,
-      media: post.mediaUrls?.map(url => ({
+      media: validMediaUrls.map(url => ({
         mediaFormat: 'PHOTO' as const, // Determine from URL or metadata
         sourceUrl: url
-      })) || [],
+      })),
+      callToAction: post.callToAction ? {
+        actionType: post.callToAction.actionType,
+        url: post.callToAction.url
+      } : undefined,
       languageCode: 'en-US' // Default language code
     };
   }

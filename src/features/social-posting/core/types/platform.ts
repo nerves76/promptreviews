@@ -40,6 +40,10 @@ export interface UniversalPost {
   content: string;
   platforms: string[]; // Platform IDs to post to
   mediaUrls?: string[];
+  callToAction?: {
+    actionType: string;
+    url: string;
+  };
   scheduledFor?: Date;
   status: 'draft' | 'scheduled' | 'published' | 'failed';
   createdAt?: Date;
