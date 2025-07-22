@@ -454,7 +454,7 @@ export class GoogleBusinessProfileClient {
 
       formData.append('metadata', JSON.stringify(mediaMetadata));
 
-      const response = await this.makeRequest<any>(url, {
+      const response = await this.makeRequest(url, {
         method: 'POST',
         body: formData,
         // Don't set Content-Type header - let the browser set it for FormData
