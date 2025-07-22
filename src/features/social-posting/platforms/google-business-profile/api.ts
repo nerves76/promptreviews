@@ -6,16 +6,19 @@
 
 // Google Business Profile API Configuration
 export const GOOGLE_BUSINESS_PROFILE = {
-  // API Base URLs - Updated to use the correct Google Business Profile API
-  BASE_URL: 'https://mybusinessaccountmanagement.googleapis.com',
+  // API Base URLs - Using the My Business APIs that the user has access to
+  BASE_URL: 'https://mybusinessbusinessinformation.googleapis.com', // For v1 Business Information API
+  V4_BASE_URL: 'https://mybusiness.googleapis.com', // For v4 Google My Business API (local posts)
+  ACCOUNT_MANAGEMENT_URL: 'https://mybusinessaccountmanagement.googleapis.com',
   API_VERSION: 'v1',
   ENDPOINTS: {
     ACCOUNTS: '/v1/accounts',
-    LOCATIONS: '/v1/accounts/{accountId}/locations',
-    LOCAL_POSTS: '/v1/accounts/{accountId}/locations/{locationId}/localPosts',
-    MEDIA: '/v1/accounts/{accountId}/locations/{locationId}/media',
-    REVIEWS: '/v1/accounts/{accountId}/locations/{locationId}/reviews',
-    INSIGHTS: '/v1/accounts/{accountId}/locations/{locationId}/reportInsights'
+    LOCATIONS: '/v1/accounts/{parent}/locations',  // Correct Business Information API v1 format
+    LOCATION_GET: '/v1/locations/{locationId}',
+    LOCAL_POSTS: '/v4/accounts/{accountId}/locations/{locationId}/localPosts', // Still uses v4 API
+    MEDIA: '/v4/accounts/{accountId}/locations/{locationId}/media',
+    REVIEWS: '/v4/accounts/{accountId}/locations/{locationId}/reviews',
+    INSIGHTS: '/v4/accounts/{accountId}/locations/{locationId}/reportInsights'
   },
 
   // OAuth Configuration
@@ -23,8 +26,8 @@ export const GOOGLE_BUSINESS_PROFILE = {
     AUTH_URL: 'https://accounts.google.com/o/oauth2/v2/auth',
     TOKEN_URL: 'https://oauth2.googleapis.com/token',
     SCOPES: [
-      'https://www.googleapis.com/auth/plus.business.manage',
       'https://www.googleapis.com/auth/business.manage',
+      'https://www.googleapis.com/auth/businessprofileperformance',
       'openid',
       'email',
       'profile'

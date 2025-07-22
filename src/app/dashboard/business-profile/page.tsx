@@ -848,8 +848,6 @@ export default function BusinessProfilePage() {
         title={`Hello again${form.name ? `, ${form.name}` : ''}!`}
         message={`Welcome to "Your Business!" This section is all about highlighting what makes your business stand out. Use your natural voice—I'll pick up what you're putting down.
 
-The details you share here help me create review templates that reflect your unique value. No need to get everything perfect right away—you can update this page anytime.
-
 Here are two key sections to pay attention to:
 
 ⸻
@@ -864,8 +862,8 @@ Keywords help boost your web presence. For example, if you sell widgets in Seatt
 	•	AI Don'ts are things to avoid: e.g., "Don't say we offer free consults—we don't."
 
 You can update your don'ts over time by testing outputs and reviewing what gets generated.`}
-        imageUrl="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompty-catching-stars.png"
-        imageAlt="Prompty catching stars"
+        imageUrl="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompty-teaching-about-your-business.png"
+        imageAlt="Prompty teaching about your business"
         buttonText="Got it, let's go!"
       />
     </PageCard>

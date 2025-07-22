@@ -115,8 +115,8 @@ export interface BusinessLocation {
   };
 }
 
-// Post Types
-export type PostType = 'WHATS_NEW' | 'EVENT' | 'OFFER' | 'PRODUCT';
+// Post Types - Valid LocalPostTopicType values from Google Business Profile API
+export type PostType = 'LOCAL_POST_TOPIC_TYPE_UNSPECIFIED' | 'STANDARD' | 'EVENT' | 'OFFER' | 'ALERT';
 
 export type CallToActionType = 
   | 'BOOK' 

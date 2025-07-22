@@ -70,7 +70,7 @@ export class AIPostGenerator {
         id: 'rest-special',
         name: 'Daily Special',
         content: "🍽️ Today's Special: {special}! Made with fresh, local ingredients. {description} Available until {time} or while supplies last!",
-        postType: 'WHATS_NEW',
+        postType: 'STANDARD',
         callToAction: { actionType: 'ORDER_ONLINE' },
         industry: 'restaurant',
         variables: ['special', 'description', 'time']
@@ -101,7 +101,7 @@ export class AIPostGenerator {
         id: 'retail-new-arrival',
         name: 'New Arrivals',
         content: "✨ NEW ARRIVALS! Just in: {products}. Perfect for {season/occasion}. Come see what's new! 👀",
-        postType: 'PRODUCT',
+        postType: 'STANDARD',
         callToAction: { actionType: 'LEARN_MORE' },
         industry: 'retail',
         variables: ['products', 'season/occasion']
@@ -114,7 +114,7 @@ export class AIPostGenerator {
         id: 'service-tip',
         name: 'Expert Tip',
         content: "💡 Pro Tip: {tip} This simple trick can {benefit}. Need professional help? We're here for you!",
-        postType: 'WHATS_NEW',
+        postType: 'STANDARD',
         callToAction: { actionType: 'CALL' },
         industry: 'service',
         variables: ['tip', 'benefit']
@@ -269,14 +269,14 @@ export class AIPostGenerator {
     let content = `${opener} `;
     
     // Add business-specific content
-    if (options.postType === 'WHATS_NEW') {
+    if (options.postType === 'STANDARD') {
       content += `${businessContext}! Perfect for ${seasonal}. `;
     } else if (options.postType === 'OFFER') {
       content += `Special offer on ${businessContext}! Don't miss out on this ${seasonal} deal. `;
     } else if (options.postType === 'EVENT') {
       content += `Join us for our ${seasonal} event! ${businessContext}. `;
-    } else if (options.postType === 'PRODUCT') {
-      content += `Check out our ${businessContext}! Great for ${seasonal}. `;
+    } else if (options.postType === 'ALERT') {
+      content += `Important: ${businessContext}! Please note ${seasonal} details. `;
     }
     
     content += callToActionText;
@@ -290,34 +290,34 @@ export class AIPostGenerator {
   private getOpeners(postType: PostType, tone: string): string[] {
     const openerMap: Record<string, Record<PostType, string[]>> = {
       professional: {
-        'WHATS_NEW': ['We\'re excited to announce', 'Introducing', 'We\'re pleased to share'],
+        'STANDARD': ['We\'re excited to announce', 'Introducing', 'We\'re pleased to share'],
         'OFFER': ['Limited time offer', 'Special promotion', 'Exclusive deal'],
         'EVENT': ['Join us for', 'We invite you to', 'Don\'t miss'],
-        'PRODUCT': ['Discover our', 'Explore our latest', 'New arrival']
+        'ALERT': ['Important notice', 'Please be aware', 'Attention']
       },
       friendly: {
-        'WHATS_NEW': ['Hey everyone!', 'Guess what?', 'We\'ve got news!'],
+        'STANDARD': ['Hey everyone!', 'Guess what?', 'We\'ve got news!'],
         'OFFER': ['Amazing deal alert!', 'You don\'t want to miss this!', 'Special just for you!'],
         'EVENT': ['Come hang out with us!', 'Party time!', 'Join the fun!'],
-        'PRODUCT': ['Check this out!', 'You\'re going to love this!', 'Something special!']
+        'ALERT': ['Heads up!', 'Important news!', 'Listen up!']
       },
       casual: {
-        'WHATS_NEW': ['What\'s up?', 'Hey there!', 'Quick update!'],
+        'STANDARD': ['What\'s up?', 'Hey there!', 'Quick update!'],
         'OFFER': ['Deal time!', 'Save some cash!', 'Why not treat yourself?'],
         'EVENT': ['Let\'s party!', 'Come through!', 'See you there!'],
-        'PRODUCT': ['New stuff!', 'Fresh arrival!', 'Just dropped!']
+        'ALERT': ['FYI!', 'Quick note!', 'Just saying!']
       },
       promotional: {
-        'WHATS_NEW': ['BIG NEWS!', 'ANNOUNCEMENT!', 'BREAKING:'],
+        'STANDARD': ['BIG NEWS!', 'ANNOUNCEMENT!', 'BREAKING:'],
         'OFFER': ['SALE ALERT!', 'HUGE SAVINGS!', 'DON\'T MISS OUT!'],
         'EVENT': ['EXCLUSIVE EVENT!', 'LIMITED SPOTS!', 'REGISTER NOW!'],
-        'PRODUCT': ['NEW ARRIVAL!', 'JUST IN!', 'FRESH STOCK!']
+        'ALERT': ['URGENT NOTICE!', 'IMPORTANT ALERT!', 'ATTENTION REQUIRED!']
       },
       informative: {
-        'WHATS_NEW': ['Important update:', 'Here\'s what\'s new:', 'Latest news:'],
+        'STANDARD': ['Important update:', 'Here\'s what\'s new:', 'Latest news:'],
         'OFFER': ['Current promotion:', 'Available now:', 'This week only:'],
         'EVENT': ['Upcoming event:', 'Mark your calendar:', 'Event details:'],
-        'PRODUCT': ['Product spotlight:', 'Featured item:', 'Now available:']
+        'ALERT': ['Notice:', 'Please note:', 'Important information:']
       }
     };
     
@@ -344,10 +344,11 @@ export class AIPostGenerator {
    */
   private getCallToActionText(postType: PostType): string {
     const ctaMap: Record<PostType, string[]> = {
-      'WHATS_NEW': ['Learn more!', 'Get details!', 'Find out more!'],
+      'STANDARD': ['Learn more!', 'Get details!', 'Find out more!'],
       'OFFER': ['Shop now!', 'Claim your discount!', 'Don\'t wait!'],
       'EVENT': ['Reserve your spot!', 'RSVP today!', 'See you there!'],
-      'PRODUCT': ['Shop now!', 'Check it out!', 'Get yours today!']
+      'ALERT': ['Get updates!', 'Stay informed!', 'Learn more!'],
+      'LOCAL_POST_TOPIC_TYPE_UNSPECIFIED': ['Learn more!']
     };
     
     const options = ctaMap[postType];
@@ -380,7 +381,7 @@ export class AIPostGenerator {
    */
   private addLengthContent(postType: PostType): string {
     const additions: Record<PostType, string[]> = {
-      'WHATS_NEW': [
+      'STANDARD': [
         ' We\'re committed to providing the best experience for our customers.',
         ' Thank you for your continued support of our business.',
         ' We can\'t wait to share this with our amazing community!'
@@ -395,10 +396,13 @@ export class AIPostGenerator {
         ' Light refreshments will be provided.',
         ' We look forward to seeing you there!'
       ],
-      'PRODUCT': [
-        ' Quality you can trust, service you can count on.',
-        ' Available while supplies last.',
-        ' Ask our staff about additional options!'
+      'ALERT': [
+        ' Please take note of these important details.',
+        ' We appreciate your understanding.',
+        ' Contact us if you have any questions.'
+      ],
+      'LOCAL_POST_TOPIC_TYPE_UNSPECIFIED': [
+        ' Thank you for your interest in our business.'
       ]
     };
     
@@ -411,10 +415,11 @@ export class AIPostGenerator {
    */
   private generateCallToAction(business: BusinessContext, postType: PostType): { actionType: CallToActionType; url?: string } {
     const ctaMap: Record<PostType, CallToActionType[]> = {
-      'WHATS_NEW': ['LEARN_MORE', 'CALL'],
+      'STANDARD': ['LEARN_MORE', 'CALL'],
       'OFFER': ['BUY', 'ORDER_ONLINE', 'GET_OFFER'],
       'EVENT': ['BOOK', 'RESERVE', 'SIGN_UP'],
-      'PRODUCT': ['BUY', 'VIEW_MENU', 'LEARN_MORE']
+      'ALERT': ['LEARN_MORE', 'CALL'],
+      'LOCAL_POST_TOPIC_TYPE_UNSPECIFIED': ['LEARN_MORE']
     };
     
     const options = ctaMap[postType];
@@ -444,10 +449,11 @@ export class AIPostGenerator {
     
     // Post type hashtags
     const postTypeHashtags: Record<PostType, string[]> = {
-      'WHATS_NEW': ['#News', '#Update', '#Announcement'],
+      'STANDARD': ['#News', '#Update', '#Announcement'],
       'OFFER': ['#Sale', '#Deal', '#Discount', '#SpecialOffer'],
       'EVENT': ['#Event', '#JoinUs', '#Community'],
-      'PRODUCT': ['#NewProduct', '#Shopping', '#Quality']
+      'ALERT': ['#Alert', '#Important', '#Notice'],
+      'LOCAL_POST_TOPIC_TYPE_UNSPECIFIED': ['#Update']
     };
     
     hashtags.push(...postTypeHashtags[options.postType].slice(0, 2));
@@ -465,7 +471,7 @@ export class AIPostGenerator {
    */
   private generateMediaRecommendations(business: BusinessContext, postType: PostType): Array<{ type: 'image' | 'video'; description: string }> {
     const recommendations: Record<PostType, Array<{ type: 'image' | 'video'; description: string }>> = {
-      'WHATS_NEW': [
+      'STANDARD': [
         { type: 'image', description: 'High-quality photo showcasing your business or team' },
         { type: 'image', description: 'Behind-the-scenes shot of your process or workspace' }
       ],
@@ -477,9 +483,12 @@ export class AIPostGenerator {
         { type: 'image', description: 'Event promotional graphic with date and details' },
         { type: 'video', description: 'Short teaser video building excitement for the event' }
       ],
-      'PRODUCT': [
-        { type: 'image', description: 'Professional product photography showing key features' },
-        { type: 'video', description: 'Product demonstration or unboxing video' }
+      'ALERT': [
+        { type: 'image', description: 'Clear informational graphic with important details' },
+        { type: 'image', description: 'Professional photo emphasizing the message' }
+      ],
+      'LOCAL_POST_TOPIC_TYPE_UNSPECIFIED': [
+        { type: 'image', description: 'General business photo or graphic' }
       ]
     };
     

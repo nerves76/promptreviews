@@ -62,6 +62,20 @@ export default function WelcomePopup({
     };
   }, [showTooltip]);
 
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   // Use provided title/message or create default welcome content
@@ -125,8 +139,8 @@ Here's your first tip: [icon]. <- click here`;
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-      <div className="bg-white shadow-lg p-0 max-w-4xl w-full relative flex flex-col md:flex-row gap-8 text-left rounded-xl mx-4 md:mx-8 lg:mx-0">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4 overflow-hidden">
+      <div className="bg-white shadow-lg max-w-4xl w-full max-h-[90vh] relative flex flex-col md:flex-row gap-8 text-left rounded-xl overflow-hidden">
         {/* Standardized circular close button */}
         <button
           className="absolute top-2 right-2 md:-top-4 md:-right-4 bg-white border border-gray-200 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 focus:outline-none z-20 transition-colors"
@@ -140,7 +154,7 @@ Here's your first tip: [icon]. <- click here`;
         </button>
         
         {/* Left side: Content */}
-        <div className="flex-1 space-y-6 py-8 px-8">
+        <div className="flex-1 space-y-6 py-8 px-8 overflow-y-auto">
           <div>
             <h2 className="text-2xl font-bold text-slate-blue mb-4">
               {welcomeTitle}
@@ -160,7 +174,7 @@ Here's your first tip: [icon]. <- click here`;
         </div>
 
         {/* Right side: Image */}
-        <div className="flex-1 bg-gray-50 p-8 rounded-r-xl flex items-center justify-center">
+        <div className="flex-1 bg-gray-50 p-8 rounded-r-xl flex items-center justify-center overflow-hidden">
           {imageUrl || !userName ? (
             <div className="w-full h-full flex items-center justify-center">
               <img 

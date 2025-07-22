@@ -45,56 +45,6 @@ export async function POST(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // Demo mode to bypass Google's extreme rate limits during development
-    const isDemoMode = process.env.NODE_ENV === 'development';
-    
-    if (isDemoMode) {
-      console.log('🎭 Demo mode: Simulating Google Business Profile locations');
-      
-      // Simulate demo locations
-      const demoLocations = [
-        {
-          user_id: user.id,
-          location_id: 'accounts/demo-account/locations/demo-location-1',
-          location_name: 'Demo Business Location #1',
-          address: '123 Main St, Anytown, USA',
-          status: 'VERIFIED',
-          primary_phone: '+1 (555) 123-4567',
-          website_uri: 'https://demo-business.com',
-          created_at: new Date().toISOString()
-        },
-        {
-          user_id: user.id,
-          location_id: 'accounts/demo-account/locations/demo-location-2', 
-          location_name: 'Demo Business Location #2',
-          address: '456 Oak Ave, Another City, USA',
-          status: 'VERIFIED',
-          primary_phone: '+1 (555) 987-6543',
-          website_uri: 'https://demo-business-2.com',
-          created_at: new Date().toISOString()
-        }
-      ];
-      
-      // Store demo locations in database
-      for (const locationData of demoLocations) {
-        await serviceSupabase
-          .from('google_business_locations')
-          .upsert(locationData, { 
-            onConflict: 'user_id,location_id',
-            ignoreDuplicates: false
-          });
-      }
-      
-      console.log(`✅ Demo mode: Created ${demoLocations.length} demo locations`);
-      
-      return NextResponse.json({
-        success: true,
-        message: `Demo mode: Created ${demoLocations.length} business locations for testing`,
-        locations: demoLocations,
-        isDemoMode: true
-      });
-    }
-
     // Production mode: Use real Google API calls
 
     // Check global rate limit status before making any API calls
@@ -171,31 +121,27 @@ export async function POST(request: NextRequest) {
       const accounts = await client.listAccounts();
       console.log('✅ Found Google Business Profile accounts:', accounts.length);
       
-      const allLocations = [];
+      let allLocations: any[] = [];
+      let hasErrors = false;
+      let errorMessages: string[] = [];
       
-      // Wait 75 seconds after listAccounts call before making any listLocations calls
-      if (accounts.length > 0) {
-        console.log('⏳ Waiting 75 seconds for rate limit compliance after listing accounts...');
-        await new Promise(resolve => setTimeout(resolve, 75000)); // 75 seconds
-      }
-      
-      // Fetch locations for each account with rate limiting
-      // Google Business Profile API allows only 1 request per minute
-      for (let i = 0; i < accounts.length; i++) {
-        const account = accounts[i];
-        
-        // If this isn't the first location fetch, wait 75 seconds between calls
-        if (i > 0) {
-          console.log(`⏳ Waiting 75 seconds for rate limit compliance before fetching locations for account ${i + 1}/${accounts.length}...`);
-          await new Promise(resolve => setTimeout(resolve, 75000)); // 75 seconds
-        }
-        
+      // Store rate limit tracking in database using service role
+      await serviceSupabase
+        .from('google_business_api_rate_limits')
+        .upsert({
+          project_id: 'google-business-profile',
+          last_api_call_at: new Date().toISOString(),
+          user_id: user.id
+        });
+
+      // Process each account to fetch locations
+      for (const account of accounts) {
         try {
-          console.log(`🔍 Fetching locations for account: ${account.name} (${i + 1}/${accounts.length})`);
+          console.log(`🔍 Fetching locations for account: ${account.name} (${accounts.indexOf(account) + 1}/${accounts.length})`);
           
-          // Update rate limit timestamp before this API call
+          // Store rate limit tracking in database using service role
           await serviceSupabase
-            .from('google_api_rate_limits')
+            .from('google_business_api_rate_limits')
             .upsert({
               project_id: 'google-business-profile',
               last_api_call_at: new Date().toISOString(),
@@ -210,7 +156,8 @@ export async function POST(request: NextRequest) {
             const locationData = {
               user_id: user.id,
               location_id: location.name,
-              location_name: location.name,
+              location_name: location.title || location.name, // Use title for display name, fallback to ID
+              account_name: account.name, // Store the full account name (accounts/{id})
               address: location.address?.addressLines?.join(', ') || '',
               status: 'UNKNOWN',
               primary_phone: location.primaryPhone || '',
@@ -228,23 +175,48 @@ export async function POST(request: NextRequest) {
             
             if (insertError) {
               console.error('Error storing location:', insertError);
+              hasErrors = true;
+              errorMessages.push(`Failed to store location ${location.name}`);
             } else {
               allLocations.push(locationData);
             }
           }
         } catch (accountError) {
           console.error(`Error fetching locations for account ${account.name}:`, accountError);
+          hasErrors = true;
+          const errorMsg = accountError instanceof Error ? accountError.message : 'Unknown error';
+          errorMessages.push(`Failed to fetch locations for account ${account.name}: ${errorMsg}`);
           // Continue with other accounts even if one fails
         }
       }
       
-      console.log(`✅ Successfully fetched and stored ${allLocations.length} locations`);
-      
-      return NextResponse.json({
-        success: true,
-        message: `Successfully fetched ${allLocations.length} business locations`,
-        locations: allLocations
-      });
+      // Provide accurate status reporting
+      if (hasErrors && allLocations.length === 0) {
+        console.log(`❌ Failed to fetch locations due to errors: ${errorMessages.join(', ')}`);
+        return NextResponse.json({
+          success: false,
+          message: `Failed to fetch business locations: ${errorMessages.join(', ')}`,
+          locations: [],
+          errors: errorMessages
+        });
+      } else if (hasErrors && allLocations.length > 0) {
+        console.log(`⚠️ Partially successful: fetched ${allLocations.length} locations with some errors`);
+        return NextResponse.json({
+          success: true,
+          message: `Fetched ${allLocations.length} business locations with some errors`,
+          locations: allLocations,
+          warnings: errorMessages
+        });
+      } else {
+        console.log(`✅ Successfully fetched and stored ${allLocations.length} locations`);
+        return NextResponse.json({
+          success: true,
+          message: allLocations.length > 0 
+            ? `Successfully fetched ${allLocations.length} business locations`
+            : 'No business locations found in your Google Business Profile account',
+          locations: allLocations
+        });
+      }
       
          } catch (apiError) {
        console.error('Error fetching locations from Google API:', apiError);
