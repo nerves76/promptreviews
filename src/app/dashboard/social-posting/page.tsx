@@ -815,22 +815,7 @@ export default function SocialPostingDashboard() {
                   </div>
                 </div>
 
-                {!isConnected && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-                    <div className="flex items-start space-x-3">
-                      <FaExclamationTriangle className="w-5 h-5 text-blue-600 mt-0.5" />
-                      <div>
-                        <h4 className="text-sm font-medium text-blue-800 mb-1">
-                          Connect Your Google Business Profile
-                        </h4>
-                        <p className="text-sm text-blue-700">
-                          To post updates to your business locations, you need to connect your Google Business Profile. 
-                          This allows you to reach customers directly on Google Search and Maps.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
+
 
                 {isConnected && locations.length === 0 && (
                   <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
