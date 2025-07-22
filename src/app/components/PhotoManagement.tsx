@@ -1,5 +1,5 @@
 /**
- * Google Business Page Component
+ * Google Business Profiles Component
  * Handles bulk photo uploads and management across multiple Google Business Profile locations
  */
 
@@ -317,7 +317,7 @@ export default function PhotoManagement({ locations, isConnected }: PhotoManagem
       {/* Header */}
       <div>
         <h2 className="text-2xl font-bold text-slate-blue mb-2">
-          Google Business Page
+          Google Business Profiles
         </h2>
         <p className="text-gray-600">
           Upload and manage photos across multiple Google Business Profile locations

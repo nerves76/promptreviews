@@ -711,12 +711,12 @@ export default function SocialPostingDashboard() {
       >
         <div className="space-y-8">
           {/* Header */}
-          <div className="text-center">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Social Media Posting
+          <div className="text-left">
+            <h1 className="text-3xl font-bold text-slate-blue mb-2">
+              Google Business Profiles
             </h1>
             <p className="text-gray-600">
-              Connect and publish posts to your Google Business Profile
+              Connect and manage your Google Business Profile locations
             </p>
           </div>
 
