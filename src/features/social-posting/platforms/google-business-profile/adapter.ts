@@ -6,7 +6,7 @@
 
 import { GoogleBusinessProfileClient } from './googleBusinessProfileClient';
 import { GOOGLE_BUSINESS_PROFILE } from './api';
-import type { PostType } from './googleBusinessProfile';
+import type { PostType, CallToActionType } from './googleBusinessProfile';
 import type { 
   PlatformAdapter, 
   SocialPlatform, 
@@ -317,7 +317,7 @@ export class GoogleBusinessProfileAdapter implements PlatformAdapter {
         sourceUrl: url
       })),
       callToAction: post.callToAction ? {
-        actionType: post.callToAction.actionType,
+        actionType: post.callToAction.actionType as CallToActionType,
         url: post.callToAction.url
       } : undefined,
       languageCode: 'en-US' // Default language code
