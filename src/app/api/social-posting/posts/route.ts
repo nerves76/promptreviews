@@ -8,7 +8,7 @@ import { postManager } from '@/features/social-posting';
 import { GoogleBusinessProfileAdapter } from '@/features/social-posting/platforms/google-business-profile/adapter';
 import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
 import { createServerSupabaseClient } from '@/utils/supabaseClient';
-import type { UniversalPost } from '@/features/social-posting';
+import type { UniversalPost, PlatformId } from '@/features/social-posting';
 
 export async function POST(request: NextRequest) {
   try {
@@ -47,8 +47,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Initialize adapters if not already registered or if tokens have changed
-    const adapterKey = `google-business-profile-${user.id}`;
-    if (!postManager.getAdapter(adapterKey)) {
+    const platformId: PlatformId = 'google-business-profile';
+    if (!postManager.getAdapter(platformId)) {
       // Create Google Business Profile client with actual user tokens
       const client = new GoogleBusinessProfileClient({
         accessToken: tokens.access_token,
