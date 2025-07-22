@@ -716,7 +716,7 @@ export default function SocialPostingDashboard() {
               Google Business Profiles
             </h1>
             <p className="text-gray-600">
-              Connect and manage your Google Business Profile locations
+              Keep your Google Business Profiles fresh with new content to improve your rankings.
             </p>
           </div>
 

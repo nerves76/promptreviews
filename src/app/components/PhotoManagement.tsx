@@ -320,7 +320,7 @@ export default function PhotoManagement({ locations, isConnected }: PhotoManagem
           Google Business Profiles
         </h2>
         <p className="text-gray-600">
-          Upload and manage photos across multiple Google Business Profile locations
+          Keep your Google Business Profiles fresh with new content to improve your rankings.
         </p>
       </div>
 
