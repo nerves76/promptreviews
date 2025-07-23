@@ -213,16 +213,17 @@ export default function BusinessProfileForm({
                 />
               </div>
               <div className="flex items-center gap-4 mt-4">
-                <label className="text-sm">Zoom</label>
+                <label className="text-sm">Zoom & Shrink</label>
                 <input
                   type="range"
-                  min={1}
+                  min={0.5}
                   max={3}
                   step={0.01}
                   value={zoom || 1}
                   onChange={(e) => setZoom(Number(e.target.value))}
                   className="w-full"
                 />
+                <span className="text-xs text-gray-500 ml-2">{((zoom || 1) * 100).toFixed(0)}%</span>
               </div>
               <div className="flex justify-end gap-2 mt-6">
                 <button
