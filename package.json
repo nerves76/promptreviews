@@ -8,7 +8,7 @@
     "dev": "DISABLE_SENTRY=true next dev -p 3002",
     "dev:fast": "DISABLE_SENTRY=true NODE_ENV=development next dev -p 3002 --turbo",
     "dev:clean": "npm run safety:full-audit && npm run dev",
-    "cleanup": "node scripts/cleanup-dev.js",
+    "cleanup": "./scripts/cleanup.sh",
     "safety:full-audit": "npm run auth:full-check && npm run migrations:check && npm run lint",
     "build": "next build",
     "lint": "next lint",
