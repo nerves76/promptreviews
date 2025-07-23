@@ -477,4 +477,59 @@ export class GoogleBusinessProfileClient {
       };
     }
   }
+
+  /**
+   * Fetches reviews for a specific location
+   */
+  async getReviews(locationId: string): Promise<any[]> {
+    console.log('🔄 Fetching reviews for location:', locationId);
+    
+    try {
+      const url = `${this.config.baseUrl}/${locationId}/reviews`;
+      
+      const response = await this.makeRequest(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${this.accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      console.log('✅ Successfully fetched reviews');
+      return response.data?.reviews || [];
+
+    } catch (error) {
+      console.error('❌ Failed to fetch reviews:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Replies to a specific review
+   */
+  async replyToReview(locationId: string, reviewId: string, replyText: string): Promise<any> {
+    console.log('🔄 Replying to review:', reviewId);
+    
+    try {
+      const url = `${this.config.baseUrl}/${locationId}/reviews/${reviewId}/reply`;
+      
+      const response = await this.makeRequest(url, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${this.accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          comment: replyText
+        }),
+      });
+
+      console.log('✅ Successfully replied to review');
+      return response.data;
+
+    } catch (error) {
+      console.error('❌ Failed to reply to review:', error);
+      throw error;
+    }
+  }
 } 
