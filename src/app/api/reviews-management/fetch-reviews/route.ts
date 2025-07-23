@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create server-side Supabase client that handles session cookies
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -51,8 +51,8 @@ export async function POST(request: NextRequest) {
 
     // Get Google Business Profile tokens for the user
     const { data: tokenData, error: tokenError } = await supabase
-      .from('google_business_tokens')
-      .select('access_token, refresh_token')
+      .from('google_business_profiles')
+      .select('access_token, refresh_token, expires_at')
       .eq('user_id', user.id)
       .single();
 
@@ -69,7 +69,8 @@ export async function POST(request: NextRequest) {
     // Create Google Business Profile client
     const gbpClient = new GoogleBusinessProfileClient({
       accessToken: tokenData.access_token,
-      refreshToken: tokenData.refresh_token
+      refreshToken: tokenData.refresh_token,
+      expiresAt: tokenData.expires_at ? new Date(tokenData.expires_at).getTime() : Date.now() + 3600000
     });
 
     // Fetch reviews for the location
