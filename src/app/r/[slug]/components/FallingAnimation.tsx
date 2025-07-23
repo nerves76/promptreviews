@@ -64,7 +64,7 @@ export default function FallingAnimation({
 
   return (
     <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden">
-      {[...Array(60)].map((_, i) => {
+      {[...Array(300)].map((_, i) => {
         const left = Math.random() * 98 + Math.random() * 2;
         const duration = 3 + Math.random() * 1.5;
         const delay = Math.random() * 0.5;

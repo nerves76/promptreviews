@@ -1437,7 +1437,7 @@ export default function PromptPage() {
         {/* DEPLOYMENT FORCE: 2025-01-27 - Ensure falling star icons are restored */}
         <FallingAnimation
           fallingIcon={promptPage?.falling_icon || 'star'}
-          showStarRain={showStarRain && (!promptPage.emoji_sentiment_enabled || (sentimentComplete && (sentiment === "excellent" || sentiment === "satisfied")))}
+          showStarRain={showStarRain && (promptPage?.falling_icon || promptPage?.falling_enabled)}
           falling_icon_color={promptPage?.falling_icon_color}
           getFallingIcon={getFallingIcon}
         />
