@@ -299,7 +299,7 @@ export class GoogleBusinessProfileClient {
       }
       
       // Add required readMask parameter for Business Information API
-      const readMask = 'name,title,storefrontAddress,phoneNumbers,categories,websiteUri,latlng,metadata';
+      const readMask = 'name,title,storefrontAddress,phoneNumbers,categories,websiteUri,regularHours,serviceItems,profile,latlng,metadata';
       const endpointWithParams = `${endpoint}?readMask=${encodeURIComponent(readMask)}`;
       console.log(`📍 Final URL to call: ${this.config.baseUrl}${endpointWithParams}`);
       
@@ -418,6 +418,87 @@ export class GoogleBusinessProfileClient {
   }
 
   /**
+   * Gets detailed information for a specific location
+   */
+  async getLocationDetails(locationId: string): Promise<any> {
+    try {
+      console.log(`📍 Getting location details for: ${locationId}`);
+
+      // Clean the location ID to remove "locations/" prefix if present
+      const cleanLocationId = locationId.replace('locations/', '');
+
+      // Get the account ID first
+      const accounts = await this.listAccounts();
+      if (accounts.length === 0) {
+        throw new Error('No Google Business Profile accounts found');
+      }
+
+      const accountId = accounts[0].name.replace('accounts/', '');
+      console.log(`📋 Using account ID: ${accountId}`);
+
+      // Construct the location details endpoint using Business Information API v1
+      const endpoint = `/v1/accounts/${accountId}/locations/${cleanLocationId}`;
+      
+      // Add required readMask parameter for detailed information
+      const readMask = 'name,title,storefrontAddress,phoneNumbers,categories,websiteUri,regularHours,profile,latlng,metadata';
+      const endpointWithParams = `${endpoint}?readMask=${encodeURIComponent(readMask)}`;
+
+      console.log(`🔧 Location details endpoint: ${endpointWithParams}`);
+
+      const response = await this.makeRequest(endpointWithParams, {
+        method: 'GET'
+      });
+
+      console.log('✅ Location details fetched successfully');
+      return response.data;
+
+    } catch (error) {
+      console.error('❌ Failed to get location details:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Updates business location information
+   */
+  async updateLocation(accountId: string, locationId: string, updates: any): Promise<any> {
+    try {
+      console.log(`🔄 Updating location: ${locationId}`);
+      console.log(`📝 Updates:`, updates);
+
+      // Clean IDs to remove prefixes if present
+      const cleanAccountId = accountId.replace('accounts/', '');
+      const cleanLocationId = locationId.replace('locations/', '');
+
+      // Construct the location update endpoint using Business Information API v1
+      const endpoint = `/v1/accounts/${cleanAccountId}/locations/${cleanLocationId}`;
+      
+      // Create update mask for the fields we're updating
+      const updateMask = [];
+      if (updates.title) updateMask.push('title');
+      if (updates.profile) updateMask.push('profile.description');
+      if (updates.regularHours) updateMask.push('regularHours');
+      if (updates.serviceItems) updateMask.push('serviceItems');
+
+      const endpointWithParams = `${endpoint}?updateMask=${encodeURIComponent(updateMask.join(','))}`;
+
+      console.log(`🔧 Update endpoint: ${endpointWithParams}`);
+
+      const response = await this.makeRequest(endpointWithParams, {
+        method: 'PATCH',
+        body: JSON.stringify(updates)
+      });
+
+      console.log('✅ Location updated successfully');
+      return response.data;
+
+    } catch (error) {
+      console.error('❌ Failed to update location:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Uploads media (photos) to a Google Business Profile location
    */
   async uploadMedia(
@@ -485,15 +566,22 @@ export class GoogleBusinessProfileClient {
     console.log('🔄 Fetching reviews for location:', locationId);
     
     try {
-      const url = `${this.config.baseUrl}/${locationId}/reviews`;
+      // First get the account ID if we don't have it
+      const accounts = await this.listAccounts();
+      if (accounts.length === 0) {
+        throw new Error('No Google Business Profile accounts found');
+      }
       
-      const response = await this.makeRequest(url, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${this.accessToken}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      // Use the first account ID
+      const accountId = accounts[0].name.replace('accounts/', '');
+      const cleanLocationId = locationId.replace('locations/', '');
+      
+      // Use the v4 API for reviews
+      const endpoint = `/v4/accounts/${accountId}/locations/${cleanLocationId}/reviews`;
+      
+      const response = await this.makeRequest(endpoint, {
+        method: 'GET'
+      }, 0, GOOGLE_BUSINESS_PROFILE.V4_BASE_URL);
 
       console.log('✅ Successfully fetched reviews');
       return response.data?.reviews || [];
@@ -511,24 +599,60 @@ export class GoogleBusinessProfileClient {
     console.log('🔄 Replying to review:', reviewId);
     
     try {
-      const url = `${this.config.baseUrl}/${locationId}/reviews/${reviewId}/reply`;
+      // First get the account ID if we don't have it
+      const accounts = await this.listAccounts();
+      if (accounts.length === 0) {
+        throw new Error('No Google Business Profile accounts found');
+      }
       
-      const response = await this.makeRequest(url, {
+      // Use the first account ID
+      const accountId = accounts[0].name.replace('accounts/', '');
+      const cleanLocationId = locationId.replace('locations/', '');
+      
+      // Use the v4 API for review replies
+      const endpoint = `/v4/accounts/${accountId}/locations/${cleanLocationId}/reviews/${reviewId}/reply`;
+      
+      const response = await this.makeRequest(endpoint, {
         method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${this.accessToken}`,
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({
           comment: replyText
         }),
-      });
+      }, 0, GOOGLE_BUSINESS_PROFILE.V4_BASE_URL);
 
       console.log('✅ Successfully replied to review');
       return response.data;
 
     } catch (error) {
       console.error('❌ Failed to reply to review:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Lists all available Google Business Categories
+   */
+  async listCategories(): Promise<Array<{ categoryId: string; displayName: string }>> {
+    try {
+      console.log('📋 Fetching Google Business categories...');
+      
+      // Google Business Categories API endpoint
+      const endpoint = 'https://mybusinessbusinessinformation.googleapis.com/v1/categories';
+      
+      const response = await this.makeRequest(endpoint, {
+        method: 'GET'
+      });
+      
+      console.log(`✅ Fetched ${response.data.categories?.length || 0} business categories`);
+      
+      // Transform categories to consistent format
+      const categories = (response.data.categories || []).map((cat: any) => ({
+        categoryId: cat.categoryId || cat.name || '',
+        displayName: cat.displayName || cat.categoryId || ''
+      }));
+      
+      return categories;
+    } catch (error) {
+      console.error('❌ Failed to list categories:', error);
       throw error;
     }
   }

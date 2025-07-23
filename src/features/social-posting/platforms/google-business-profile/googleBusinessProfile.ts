@@ -36,6 +36,7 @@ export interface BusinessLocation {
   languageCode: string;
   storeCode?: string;
   locationName: string;
+  title?: string;
   primaryPhone?: string;
   additionalPhones?: string[];
   address: {
@@ -103,6 +104,20 @@ export interface BusinessLocation {
   profile?: {
     description?: string;
   };
+  serviceItems?: Array<{
+    structuredServiceItem?: {
+      serviceTypeId: string;
+      description?: string;
+    };
+    freeFormServiceItem?: {
+      categoryId: string;
+      label: {
+        displayName: string;
+        description?: string;
+        languageCode: string;
+      };
+    };
+  }>;
   relationshipData?: {
     parentLocation?: string;
   };
