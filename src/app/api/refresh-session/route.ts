@@ -3,61 +3,76 @@
  * This helps resolve issues where the client cache doesn't reflect the updated email confirmation status
  */
 
-import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+import { createClient } from '@/utils/supabaseClient';
+import { getAccountIdForUser } from '@/utils/accountUtils';
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
-    
-    // Get the current user
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    
-    if (userError) {
-      console.error('Error getting user:', userError);
-      return NextResponse.json({ error: 'Failed to get user' }, { status: 500 });
+    const supabase = createClient();
+
+    // Check authentication
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
-    
-    if (!user) {
-      return NextResponse.json({ error: 'No authenticated user' }, { status: 401 });
-    }
-    
-    // Force refresh the session to get updated user data
-    const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession();
+
+    const userId = session.user.id;
+    console.log('🔄 Force refresh session and account data for user:', userId);
+
+    // Force refresh the auth session
+    const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
     
     if (refreshError) {
-      console.error('Error refreshing session:', refreshError);
-      return NextResponse.json({ error: 'Failed to refresh session' }, { status: 500 });
+      console.error('Session refresh failed:', refreshError);
+      return NextResponse.json({ 
+        error: 'Session refresh failed',
+        details: refreshError.message 
+      }, { status: 500 });
     }
+
+    // Get account ID for the user
+    const accountId = await getAccountIdForUser(userId, supabase);
     
-    // Get the updated user data
-    const { data: { user: updatedUser }, error: updatedUserError } = await supabase.auth.getUser();
-    
-    if (updatedUserError) {
-      console.error('Error getting user:', updatedUserError);
-      return NextResponse.json({ error: 'Failed to get user data' }, { status: 500 });
+    if (!accountId) {
+      return NextResponse.json({ 
+        error: 'No account found for user' 
+      }, { status: 404 });
     }
-    
-    return NextResponse.json({
+
+    // Get fresh account data directly from database (bypass any caching)
+    const { data: accountData, error: accountError } = await supabase
+      .from('accounts')
+      .select('*')
+      .eq('id', accountId)
+      .single();
+
+    if (accountError) {
+      console.error('Account data refresh failed:', accountError);
+      return NextResponse.json({ 
+        error: 'Account data refresh failed',
+        details: accountError.message 
+      }, { status: 500 });
+    }
+
+    console.log('✅ Session and account data refreshed successfully');
+    console.log('✅ Current plan:', accountData?.plan);
+
+    return NextResponse.json({ 
       success: true,
-      user: {
-        id: updatedUser?.id,
-        email: updatedUser?.email,
-        email_confirmed_at: updatedUser?.email_confirmed_at,
-        created_at: updatedUser?.created_at
-      },
-      session: refreshedSession ? {
-        access_token: refreshedSession.access_token ? 'present' : 'missing',
-        refresh_token: refreshedSession.refresh_token ? 'present' : 'missing',
-        expires_at: refreshedSession.expires_at
-      } : null
+      message: 'Session and account data refreshed successfully',
+      accountData: {
+        plan: accountData?.plan,
+        trial_end: accountData?.trial_end,
+        is_free_account: accountData?.is_free_account
+      }
     });
-    
+
   } catch (error) {
-    console.error('Unexpected error in refresh-session:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('Force refresh error:', error);
+    return NextResponse.json({ 
+      error: 'Internal server error',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 } 
