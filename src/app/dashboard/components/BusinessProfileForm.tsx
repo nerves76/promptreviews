@@ -602,6 +602,42 @@ export default function BusinessProfileForm({
         </div>
       </div>
 
+      {/* About Your Business/Team Section */}
+      <div className="mb-8">
+        <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
+          <FaBuilding className="w-7 h-7 text-slate-blue" />
+          About your business
+        </h2>
+        <div className="mb-4">
+          <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
+            About your business and team
+            <RobotTooltip text="Share information about your business, team, history, or anything that helps customers understand who you are. Made available for AI prompt generation." />
+          </label>
+          <textarea
+            name="team_info"
+            className="w-full border px-3 py-2 rounded min-h-[120px]"
+            value={form.team_info || ""}
+            onChange={handleChange}
+            placeholder="Tell us about your business, team, history, mission, or anything that helps customers understand who you are and what you stand for..."
+            rows={6}
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
+            Additional about information (optional)
+            <RobotTooltip text="Additional space for any other information about your business that doesn't fit elsewhere. Made available for AI prompt generation." />
+          </label>
+          <textarea
+            name="about_us"
+            className="w-full border px-3 py-2 rounded min-h-[100px]"
+            value={form.about_us || ""}
+            onChange={handleChange}
+            placeholder="Any additional information about your business..."
+            rows={4}
+          />
+        </div>
+      </div>
+
       {/* Review Platforms Section */}
       <div className="mb-16">
         <h2 className="mt-4 mb-2 text-2xl font-bold text-slate-blue flex items-center gap-3">
