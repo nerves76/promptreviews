@@ -195,9 +195,22 @@ export default function BusinessProfileForm({
         {/* Cropping Modal */}
         {showCropper && logoUrl && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-            <div className="bg-white rounded-lg shadow-lg p-6 max-w-lg w-full">
+            <div className="bg-white rounded-lg shadow-lg p-6 max-w-2xl w-full">
               <h2 className="text-lg font-bold mb-4">Crop Your Logo</h2>
-              <div className="relative w-full h-64 bg-white">
+              
+              {/* Preview guidance */}
+              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-800 font-medium mb-1">
+                  🎯 Cropping Preview
+                </p>
+                <p className="text-xs text-blue-700">
+                  This circle matches exactly how your logo will appear on prompt pages and QR codes. 
+                  Position and size your logo to look perfect within this circular boundary.
+                </p>
+              </div>
+
+              {/* Adjusted container to match prompt page sizing (192px = h-48) */}
+              <div className="relative w-full h-48 bg-white border-2 border-gray-200 rounded-lg">
                 <Cropper
                   image={logoUrl}
                   crop={crop}
@@ -210,10 +223,19 @@ export default function BusinessProfileForm({
                   onCropComplete={(_, croppedAreaPixels) =>
                     setCroppedAreaPixels(croppedAreaPixels)
                   }
+                  style={{
+                    containerStyle: {
+                      width: '100%',
+                      height: '100%',
+                      borderRadius: '0.5rem'
+                    }
+                  }}
                 />
               </div>
+              
+              {/* Zoom controls with better labeling */}
               <div className="flex items-center gap-4 mt-4">
-                <label className="text-sm">Zoom & Shrink</label>
+                <label className="text-sm font-medium">Zoom & Shrink</label>
                 <input
                   type="range"
                   min={0.5}
@@ -223,8 +245,14 @@ export default function BusinessProfileForm({
                   onChange={(e) => setZoom(Number(e.target.value))}
                   className="w-full"
                 />
-                <span className="text-xs text-gray-500 ml-2">{((zoom || 1) * 100).toFixed(0)}%</span>
+                <span className="text-xs text-gray-500 ml-2 min-w-[45px]">{((zoom || 1) * 100).toFixed(0)}%</span>
               </div>
+              
+              {/* Size reference guide */}
+              <div className="mt-2 text-xs text-gray-500 text-center">
+                50% = Smaller • 100% = Normal • 300% = Larger
+              </div>
+
               <div className="flex justify-end gap-2 mt-6">
                 <button
                   onClick={handleCropCancel}
