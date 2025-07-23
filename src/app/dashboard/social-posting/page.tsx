@@ -11,6 +11,7 @@ import PageCard from '@/app/components/PageCard';
 import FiveStarSpinner from '@/app/components/FiveStarSpinner';
 import PhotoManagement from '@/app/components/PhotoManagement';
 import ReviewManagement from '@/app/components/ReviewManagement';
+import BusinessInfoEditor from '@/app/components/BusinessInfoEditor';
 import { createClient } from '@/utils/supabaseClient';
 // Using built-in alert for notifications instead of react-toastify
 
@@ -776,7 +777,7 @@ export default function SocialPostingDashboard() {
               >
                 <div className="flex items-center space-x-2">
                   <FaStore className="w-4 h-4" />
-                  <span>Business Information</span>
+                  <span>Business Info</span>
                 </div>
               </button>
               <button
@@ -1515,67 +1516,10 @@ export default function SocialPostingDashboard() {
           {/* Business Information Tab */}
           {activeTab === 'business-info' && (
             <div className="space-y-6">
-              {!isConnected ? (
-                <div className="text-center py-12">
-                  <FaStore className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    Connect Google Business Profile First
-                  </h3>
-                  <p className="text-gray-600 mb-4">
-                    You need to connect your Google Business Profile before you can manage business information.
-                  </p>
-                  <button
-                    onClick={() => setActiveTab('connect')}
-                    className="px-4 py-2 bg-slate-blue text-white rounded-md hover:bg-slate-blue/90 transition-colors"
-                  >
-                    Go to Connect Tab
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  <div className="bg-white rounded-lg border border-gray-200 p-6">
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">Business Information Management</h3>
-                    <p className="text-gray-600 mb-4">
-                      View and manage your Google Business Profile information for each location.
-                    </p>
-                    
-                    {locations.length > 0 ? (
-                      <div className="space-y-4">
-                        {locations.map((location) => (
-                          <div key={location.id} className="border border-gray-200 rounded-lg p-4">
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1">
-                                <h4 className="font-medium text-gray-900">{location.name}</h4>
-                                <p className="text-sm text-gray-600 mt-1">{location.address}</p>
-                                <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full mt-2 ${
-                                  location.status === 'active' 
-                                    ? 'bg-green-100 text-green-800'
-                                    : location.status === 'pending'
-                                    ? 'bg-yellow-100 text-yellow-800'
-                                    : 'bg-red-100 text-red-800'
-                                }`}>
-                                  {location.status}
-                                </span>
-                              </div>
-                              <button
-                                className="px-3 py-1 text-sm bg-slate-blue text-white rounded hover:bg-slate-blue/90 transition-colors"
-                                onClick={() => window.open('https://business.google.com', '_blank')}
-                              >
-                                Edit in GBP
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-8">
-                        <FaMapMarkerAlt className="w-8 h-8 text-gray-400 mx-auto mb-3" />
-                        <p className="text-gray-600">No business locations found</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
+              <BusinessInfoEditor 
+                locations={locations}
+                isConnected={isConnected}
+              />
             </div>
           )}
 

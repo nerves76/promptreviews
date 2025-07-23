@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     console.log('🔍 Social posting platforms API called');
     
     // Create server-side Supabase client that handles session cookies
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -86,29 +86,29 @@ export async function GET(request: NextRequest) {
       accountsData = [{
         account_id: directAccount.id,
         role: 'owner',
-        accounts: {
+        accounts: [{
           plan: directAccount.plan,
           first_name: directAccount.first_name,
           last_name: directAccount.last_name
-        }
+        }]
       }];
 
       console.log('✅ Using fallback account for user:', user.id);
     }
 
-    console.log('🔍 Found accounts:', accountsData.map(acc => ({
+    console.log('🔍 Found accounts:', accountsData?.map(acc => ({
       account_id: acc.account_id,
       role: acc.role,
-      plan: acc.accounts?.plan,
-      first_name: acc.accounts?.first_name,
-      last_name: acc.accounts?.last_name
+      plan: acc.accounts?.[0]?.plan,
+      first_name: acc.accounts?.[0]?.first_name,
+      last_name: acc.accounts?.[0]?.last_name
     })));
 
     // Use the first owned account or fallback to the first account
-    const ownedAccount = accountsData.find(acc => acc.role === 'owner');
-    const selectedAccount = ownedAccount || accountsData[0];
-    const accountId = selectedAccount.account_id;
-    const accountPlan = selectedAccount.accounts?.plan;
+    const ownedAccount = accountsData?.find(acc => acc.role === 'owner');
+    const selectedAccount = ownedAccount || accountsData?.[0];
+    const accountId = selectedAccount?.account_id;
+    const accountPlan = selectedAccount?.accounts?.[0]?.plan;
 
     console.log(`🎯 Using ${ownedAccount ? 'owned' : 'first available'} account with plan: ${accountPlan}`);
 

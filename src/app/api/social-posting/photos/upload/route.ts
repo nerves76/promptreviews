@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
 
     // Get Google Business Profile tokens from database
     const { data: tokenData, error: tokenError } = await supabase
-      .from('google_business_profile_tokens')
+      .from('google_business_profiles')
       .select('access_token, refresh_token, expires_at')
       .eq('user_id', user.id)
       .single();
