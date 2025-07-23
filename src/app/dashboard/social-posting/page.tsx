@@ -6,10 +6,11 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { FaGoogle, FaMapMarkerAlt, FaImage, FaClock, FaExclamationTriangle, FaCheck, FaTimes, FaPlus, FaSpinner, FaRedo, FaChevronDown, FaChevronUp, FaTrash, FaUpload } from 'react-icons/fa';
+import { FaGoogle, FaMapMarkerAlt, FaImage, FaClock, FaExclamationTriangle, FaCheck, FaTimes, FaPlus, FaSpinner, FaRedo, FaChevronDown, FaChevronUp, FaTrash, FaUpload, FaStore, FaStar } from 'react-icons/fa';
 import PageCard from '@/app/components/PageCard';
 import FiveStarSpinner from '@/app/components/FiveStarSpinner';
 import PhotoManagement from '@/app/components/PhotoManagement';
+import ReviewManagement from '@/app/components/ReviewManagement';
 import { createClient } from '@/utils/supabaseClient';
 // Using built-in alert for notifications instead of react-toastify
 
@@ -50,6 +51,7 @@ export default function SocialPostingDashboard() {
   const [hasRateLimitError, setHasRateLimitError] = useState(false);
   const [rateLimitCountdown, setRateLimitCountdown] = useState(0);
   const [isConnecting, setIsConnecting] = useState<string | null>(null);
+  const [isPostOAuthConnecting, setIsPostOAuthConnecting] = useState(false);
   const [fetchingLocations, setFetchingLocations] = useState<string | null>(null);
   const [rateLimitedUntil, setRateLimitedUntil] = useState<number | null>(null);
   
@@ -62,7 +64,7 @@ export default function SocialPostingDashboard() {
   }, [imageUrls]);
 
   // Tab state
-  const [activeTab, setActiveTab] = useState<'connect' | 'post' | 'photos'>('connect');
+  const [activeTab, setActiveTab] = useState<'connect' | 'post' | 'photos' | 'business-info' | 'reviews'>('connect');
 
   // Handle post-OAuth redirects
   useEffect(() => {
@@ -71,8 +73,9 @@ export default function SocialPostingDashboard() {
     const isPostOAuth = urlParams.get('connected') === 'true';
     
     if (isPostOAuth) {
-      console.log('🔄 Post-OAuth redirect detected - adding extended delay for session stability');
+      console.log('🔄 Post-OAuth redirect detected - starting connection process');
       setIsLoading(false);
+      setIsPostOAuthConnecting(true); // Start post-OAuth connecting state
       setHasHandledOAuth(true); // Mark that we've handled OAuth
       
       // Show success message from OAuth
@@ -207,14 +210,9 @@ export default function SocialPostingDashboard() {
         return;
       }
 
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${session.access_token}`
-      };
-      
       // Check for existing Google Business Profile connection
-      console.log('🔍 Fetching platforms with auth header...');
-      const response = await fetch('/api/social-posting/platforms', { headers });
+      console.log('🔍 Fetching platforms...');
+      const response = await fetch('/api/social-posting/platforms');
       console.log('Platforms API response status:', response.status);
       
       if (response.status === 401) {
@@ -282,7 +280,8 @@ export default function SocialPostingDashboard() {
     } finally {
       console.log('Setting isLoading to false');
       setIsLoading(false);
-      setHasLoadedPlatforms(true); // Mark as loaded to prevent retry loops
+      setIsPostOAuthConnecting(false); // Clear post-OAuth connecting state
+      setHasLoadedPlatforms(true);
     }
   };
 
@@ -687,7 +686,7 @@ export default function SocialPostingDashboard() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || isPostOAuthConnecting) {
     return (
       <div className="w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-12 mt-12 md:mt-16 lg:mt-20 mb-16 flex justify-center items-start">
         <PageCard
@@ -696,7 +695,9 @@ export default function SocialPostingDashboard() {
         >
           <div className="min-h-[400px] flex flex-col items-center justify-center">
             <FiveStarSpinner />
-            <p className="mt-4 text-gray-600">Loading Social Posting...</p>
+            <p className="mt-4 text-gray-600">
+              {isPostOAuthConnecting ? 'Connecting to Google Business Profile...' : 'Loading Social Posting...'}
+            </p>
           </div>
         </PageCard>
       </div>
@@ -762,6 +763,34 @@ export default function SocialPostingDashboard() {
                 <div className="flex items-center space-x-2">
                   <FaImage className="w-4 h-4" />
                   <span>Photo Management</span>
+                </div>
+              </button>
+              <button
+                onClick={() => setActiveTab('business-info')}
+                disabled={!isConnected}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'business-info' && isConnected
+                    ? 'border-slate-blue text-slate-blue'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                } ${!isConnected ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                <div className="flex items-center space-x-2">
+                  <FaStore className="w-4 h-4" />
+                  <span>Business Information</span>
+                </div>
+              </button>
+              <button
+                onClick={() => setActiveTab('reviews')}
+                disabled={!isConnected}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'reviews' && isConnected
+                    ? 'border-slate-blue text-slate-blue'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                } ${!isConnected ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                <div className="flex items-center space-x-2">
+                  <FaStar className="w-4 h-4" />
+                  <span>Reviews Management</span>
                 </div>
               </button>
             </nav>
@@ -1476,6 +1505,101 @@ export default function SocialPostingDashboard() {
                 </div>
               ) : (
                 <PhotoManagement 
+                  locations={locations}
+                  isConnected={isConnected}
+                />
+              )}
+            </div>
+          )}
+
+          {/* Business Information Tab */}
+          {activeTab === 'business-info' && (
+            <div className="space-y-6">
+              {!isConnected ? (
+                <div className="text-center py-12">
+                  <FaStore className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    Connect Google Business Profile First
+                  </h3>
+                  <p className="text-gray-600 mb-4">
+                    You need to connect your Google Business Profile before you can manage business information.
+                  </p>
+                  <button
+                    onClick={() => setActiveTab('connect')}
+                    className="px-4 py-2 bg-slate-blue text-white rounded-md hover:bg-slate-blue/90 transition-colors"
+                  >
+                    Go to Connect Tab
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  <div className="bg-white rounded-lg border border-gray-200 p-6">
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">Business Information Management</h3>
+                    <p className="text-gray-600 mb-4">
+                      View and manage your Google Business Profile information for each location.
+                    </p>
+                    
+                    {locations.length > 0 ? (
+                      <div className="space-y-4">
+                        {locations.map((location) => (
+                          <div key={location.id} className="border border-gray-200 rounded-lg p-4">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <h4 className="font-medium text-gray-900">{location.name}</h4>
+                                <p className="text-sm text-gray-600 mt-1">{location.address}</p>
+                                <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full mt-2 ${
+                                  location.status === 'active' 
+                                    ? 'bg-green-100 text-green-800'
+                                    : location.status === 'pending'
+                                    ? 'bg-yellow-100 text-yellow-800'
+                                    : 'bg-red-100 text-red-800'
+                                }`}>
+                                  {location.status}
+                                </span>
+                              </div>
+                              <button
+                                className="px-3 py-1 text-sm bg-slate-blue text-white rounded hover:bg-slate-blue/90 transition-colors"
+                                onClick={() => window.open('https://business.google.com', '_blank')}
+                              >
+                                Edit in GBP
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <FaMapMarkerAlt className="w-8 h-8 text-gray-400 mx-auto mb-3" />
+                        <p className="text-gray-600">No business locations found</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Reviews Management Tab */}
+          {activeTab === 'reviews' && (
+            <div className="space-y-6">
+              {!isConnected ? (
+                <div className="text-center py-12">
+                  <FaStar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    Connect Google Business Profile First
+                  </h3>
+                  <p className="text-gray-600 mb-4">
+                    You need to connect your Google Business Profile before you can manage reviews.
+                  </p>
+                  <button
+                    onClick={() => setActiveTab('connect')}
+                    className="px-4 py-2 bg-slate-blue text-white rounded-md hover:bg-slate-blue/90 transition-colors"
+                  >
+                    Go to Connect Tab
+                  </button>
+                </div>
+              ) : (
+                <ReviewManagement 
                   locations={locations}
                   isConnected={isConnected}
                 />
