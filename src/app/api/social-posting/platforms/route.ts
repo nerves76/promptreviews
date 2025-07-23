@@ -1,18 +1,12 @@
 /**
  * API Route: GET /api/social-posting/platforms
  * Returns the status of connected social media platforms
- * Simplified authentication to match widgets API pattern
+ * Uses browser session authentication with cookies
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-import { getAccountIdForUser } from '@/utils/accountUtils';
-
-// Initialize Supabase client with service key for privileged operations
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 
 /**
  * API Route: GET /api/social-posting/platforms
@@ -22,39 +16,103 @@ export async function GET(request: NextRequest) {
   try {
     console.log('🔍 Social posting platforms API called');
     
-    // Get user from request headers (same pattern as widgets API)
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ 
-        error: 'Authentication required',
-        details: 'No authorization header provided'
-      }, { status: 401 });
-    }
-
-    const token = authHeader.substring(7);
+    // Create server-side Supabase client that handles session cookies
+    const cookieStore = cookies();
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value;
+          },
+        },
+      }
+    );
     
-    // Verify user token using service client
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
     if (authError || !user) {
       console.log('❌ Authentication error:', authError?.message || 'No user found');
       return NextResponse.json({ 
         error: 'Authentication required',
-        details: authError?.message || 'Invalid token'
+        details: authError?.message || 'User not authenticated'
       }, { status: 401 });
     }
 
     console.log('✅ User authenticated:', user.id);
 
-    // Get account ID for user
-    const accountId = await getAccountIdForUser(user.id, supabase);
-    if (!accountId) {
+    // Get account selection for user using correct table name
+    console.log('🔍 Account selection debug for user:', user.id);
+    let { data: accountsData, error: accountsError } = await supabase
+      .from('account_users')
+      .select(`
+        account_id,
+        role,
+        accounts (
+          plan,
+          first_name,
+          last_name
+        )
+      `)
+      .eq('user_id', user.id);
+
+    if (accountsError) {
+      console.error('❌ Error fetching accounts:', accountsError);
       return NextResponse.json({ 
-        error: 'Account not found',
-        details: 'No account found for user'
-      }, { status: 404 });
+        error: 'Account lookup failed',
+        details: accountsError.message
+      }, { status: 500 });
     }
 
-    // Check for Google Business Profile connection using service role
+    if (!accountsData || accountsData.length === 0) {
+      console.log('❌ No account_users records found for user:', user.id);
+      // Try fallback: check if user has direct account record
+      const { data: directAccount, error: directError } = await supabase
+        .from('accounts')
+        .select('id, plan, first_name, last_name')
+        .eq('id', user.id)
+        .single();
+
+      if (directError || !directAccount) {
+        console.log('❌ No direct account found either for user:', user.id);
+        return NextResponse.json({ 
+          error: 'Account setup incomplete',
+          details: 'Please complete your account setup in the dashboard'
+        }, { status: 404 });
+      }
+
+      // Use direct account as fallback
+      accountsData = [{
+        account_id: directAccount.id,
+        role: 'owner',
+        accounts: {
+          plan: directAccount.plan,
+          first_name: directAccount.first_name,
+          last_name: directAccount.last_name
+        }
+      }];
+
+      console.log('✅ Using fallback account for user:', user.id);
+    }
+
+    console.log('🔍 Found accounts:', accountsData.map(acc => ({
+      account_id: acc.account_id,
+      role: acc.role,
+      plan: acc.accounts?.plan,
+      first_name: acc.accounts?.first_name,
+      last_name: acc.accounts?.last_name
+    })));
+
+    // Use the first owned account or fallback to the first account
+    const ownedAccount = accountsData.find(acc => acc.role === 'owner');
+    const selectedAccount = ownedAccount || accountsData[0];
+    const accountId = selectedAccount.account_id;
+    const accountPlan = selectedAccount.accounts?.plan;
+
+    console.log(`🎯 Using ${ownedAccount ? 'owned' : 'first available'} account with plan: ${accountPlan}`);
+
+    // Check for Google Business Profile connection
     const { data: googleTokens, error: googleError } = await supabase
       .from('google_business_profiles')
       .select('*')
@@ -69,7 +127,7 @@ export async function GET(request: NextRequest) {
       console.log('ℹ️ No Google Business Profile tokens found for user:', user.id);
     }
 
-    // Check for Google Business Profile locations using service role
+    // Check for Google Business Profile locations
     const { data: locations, error: locationsError } = await supabase
       .from('google_business_locations')
       .select('*')
