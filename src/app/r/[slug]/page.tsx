@@ -1434,6 +1434,7 @@ export default function PromptPage() {
       )}
       <div className="min-h-screen" style={backgroundStyle}>
         {/* Falling Animation */}
+        {/* DEPLOYMENT FORCE: 2025-01-27 - Ensure falling star icons are restored */}
         <FallingAnimation
           fallingIcon={promptPage?.falling_icon || 'star'}
           showStarRain={showStarRain && (!promptPage.emoji_sentiment_enabled || (sentimentComplete && (sentiment === "excellent" || sentiment === "satisfied")))}
