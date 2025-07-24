@@ -272,12 +272,24 @@ export default function SocialPostingDashboard() {
         });
       }
     } catch (error) {
-      console.error('Failed to load platform information:', error);
+      console.error('Failed to load platforms:', error);
       setIsConnected(false);
-      setPostResult({ 
-        success: false, 
-        message: 'Failed to load social posting features. Please check your internet connection and try again.' 
-      });
+      setLocations([]);
+      setSelectedLocations([]);
+      
+      // Check if this is a Google re-authentication error
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('GOOGLE_REAUTH_REQUIRED') || errorMessage.includes('Please reconnect')) {
+        setPostResult({ 
+          success: false, 
+          message: 'Your Google Business Profile connection has expired. Please reconnect your account using the "Connect Google Business Profile" button below.' 
+        });
+      } else {
+        setPostResult({ 
+          success: false, 
+          message: 'Failed to load Google Business Profile connection. Please refresh the page or reconnect your account.' 
+        });
+      }
     } finally {
       console.log('Setting isLoading to false');
       setIsLoading(false);
