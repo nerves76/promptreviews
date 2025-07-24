@@ -310,15 +310,31 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
             }
           </p>
         </div>
-        <a
-          href="https://business.google.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center space-x-1 text-sm text-slate-blue hover:text-slate-blue/80"
-        >
-          <span>Full Editor</span>
-          <FaExternalLinkAlt className="w-3 h-3" />
-        </a>
+        <div className="flex items-center space-x-4">
+          {/* Load Business Info Button */}
+          {selectedLocationIds.length > 0 && (
+            <LoadBusinessInfoButton
+              selectedLocationIds={selectedLocationIds}
+              locations={locations}
+              detailsLoaded={detailsLoaded}
+              onBusinessInfoLoaded={handleBusinessInfoLoaded}
+              onLoadingStateChange={setIsLoadingDetails}
+              onDetailsLoadedChange={setDetailsLoaded}
+              onErrorChange={setDetailsError}
+            />
+          )}
+          
+          {/* Full Editor Link */}
+          <a
+            href="https://business.google.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center space-x-1 text-sm text-slate-blue hover:text-slate-blue/80"
+          >
+            <span>Full Editor</span>
+            <FaExternalLinkAlt className="w-3 h-3" />
+          </a>
+        </div>
       </div>
 
       {/* Location Selector */}
@@ -409,19 +425,6 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
           </div>
         )}
       </div>
-
-      {/* Load Business Info Section */}
-      {selectedLocationIds.length > 0 && (
-        <LoadBusinessInfoButton
-          selectedLocationIds={selectedLocationIds}
-          locations={locations}
-          detailsLoaded={detailsLoaded}
-          onBusinessInfoLoaded={handleBusinessInfoLoaded}
-          onLoadingStateChange={setIsLoadingDetails}
-          onDetailsLoadedChange={setDetailsLoaded}
-          onErrorChange={setDetailsError}
-        />
-      )}
 
       {/* Top Save/Reset Actions */}
       <div className="flex items-center justify-end space-x-4 mb-6">
