@@ -635,7 +635,7 @@ export class GoogleBusinessProfileClient {
     try {
       console.log('📋 Fetching Google Business categories...');
       
-      // Google Business Categories API endpoint (just the path, not full URL)
+      // Google Business Categories API endpoint (just the path, not full URL) - Fixed URL construction
       const endpoint = '/v1/categories';
       
       const response = await this.makeRequest(endpoint, {

@@ -99,6 +99,31 @@ export async function POST(request: NextRequest) {
 
       // Clean the location ID
       const cleanLocationId = locationId.replace('locations/', '');
+      
+      // First, verify the location exists by listing all locations
+      console.log('🔍 Verifying location exists before update...');
+      const locations = await gbpClient.listLocations(accounts[0].name);
+      const targetLocation = locations.find(loc => 
+        loc.name === locationId || 
+        loc.name === `locations/${cleanLocationId}` || 
+        loc.name.endsWith(`/${cleanLocationId}`)
+      );
+      
+      if (!targetLocation) {
+        console.error('❌ Location not found in account. Available locations:', 
+          locations.map(loc => ({ name: loc.name, title: loc.title })));
+        return NextResponse.json({
+          error: 'Location not found',
+          message: `The location "${locationId}" was not found in your Google Business Profile account.`,
+          availableLocations: locations.map(loc => ({ id: loc.name, name: loc.title }))
+        }, { status: 404 });
+      }
+      
+      console.log('✅ Location found:', { name: targetLocation.name, title: targetLocation.title });
+      
+      // Use the exact location name from Google API for the update
+      const exactLocationId = targetLocation.name.replace('accounts/' + accountId + '/locations/', '');
+      console.log('📍 Using exact location ID for update:', exactLocationId);
 
       // Convert our update format to Google Business Profile API format
       // Only include fields that have meaningful values (not empty or whitespace-only)
@@ -180,7 +205,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Update the location via Google Business Profile API
-      const result = await gbpClient.updateLocation(accountId, cleanLocationId, locationUpdate);
+      const result = await gbpClient.updateLocation(accountId, exactLocationId, locationUpdate);
 
       console.log('✅ Location updated successfully');
 
