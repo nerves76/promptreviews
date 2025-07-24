@@ -100,17 +100,26 @@ export async function POST(request: NextRequest) {
       const cleanLocationId = locationId.replace('locations/', '');
 
       // Convert our update format to Google Business Profile API format
+      // Only include fields that have meaningful values (not empty or whitespace-only)
       const locationUpdate: any = {};
 
-      // Business name update
-      if (updates.locationName) {
-        locationUpdate.title = updates.locationName;
+      // Helper function to check if a value is meaningful (not empty/whitespace)
+      const hasValue = (value: any): boolean => {
+        if (value === null || value === undefined) return false;
+        if (typeof value === 'string') return value.trim().length > 0;
+        if (typeof value === 'object' && value !== null) return Object.keys(value).length > 0;
+        return true;
+      };
+
+      // Business name update - only if not empty
+      if (hasValue(updates.locationName)) {
+        locationUpdate.title = updates.locationName.trim();
       }
 
-      // Business description update
-      if (updates.description !== undefined) {
+      // Business description update - only if not empty
+      if (hasValue(updates.description)) {
         locationUpdate.profile = {
-          description: updates.description
+          description: updates.description.trim()
         };
       }
 
@@ -136,23 +145,46 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // Service items update
-      if (updates.serviceItems) {
-        locationUpdate.serviceItems = updates.serviceItems
-          .filter((item: any) => item.name && item.name.trim())
+      // Service items update - only if we have meaningful service items
+      if (updates.serviceItems && Array.isArray(updates.serviceItems)) {
+        const meaningfulServices = updates.serviceItems
+          .filter((item: any) => item.name && hasValue(item.name))
           .map((item: any) => ({
             freeFormServiceItem: {
               categoryId: 'other', // Default category for free-form services
               label: {
                 displayName: item.name.trim(),
-                description: item.description?.trim() || '',
+                description: hasValue(item.description) ? item.description.trim() : '',
                 languageCode: 'en-US'
               }
             }
           }));
+
+        // Only include service items if we have at least one meaningful service
+        if (meaningfulServices.length > 0) {
+          locationUpdate.serviceItems = meaningfulServices;
+        }
       }
 
-      console.log('🔄 Updating location with data:', locationUpdate);
+      // Log what fields are being updated vs skipped
+      console.log('📝 Processing updates:', {
+        locationName: updates.locationName ? 'UPDATING' : 'SKIPPING (empty)',
+        description: hasValue(updates.description) ? 'UPDATING' : 'SKIPPING (empty)',
+        regularHours: updates.regularHours ? 'PROCESSING' : 'SKIPPING',
+        serviceItems: updates.serviceItems ? `PROCESSING (${updates.serviceItems.length} items)` : 'SKIPPING'
+      });
+
+      console.log('🔄 Final update payload being sent to Google:', locationUpdate);
+
+      // Only proceed if we have something meaningful to update
+      if (Object.keys(locationUpdate).length === 0) {
+        console.log('⚠️ No meaningful updates to send - all fields were empty');
+        return NextResponse.json({
+          success: true,
+          message: 'No updates needed - all provided fields were empty',
+          skipped: true
+        });
+      }
 
       // Update the location via Google Business Profile API
       const result = await gbpClient.updateLocation(accountId, cleanLocationId, locationUpdate);
