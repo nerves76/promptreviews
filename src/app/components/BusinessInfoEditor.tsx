@@ -289,8 +289,8 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+      {/* Header with Save & Publish button */}
+      <div className="flex items-center justify-between mb-6">
         <div>
           <h3 className="text-lg font-medium text-gray-900">
             {selectedLocationIds.length === 1 ? 'Business Info Editor' : 'Multi-Location Business Info Editor'}
@@ -305,10 +305,8 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
             }
           </p>
         </div>
-      </div>
-
-      {/* Save & Publish button - Top right */}
-      <div className="flex items-center justify-end mb-6">
+        
+        {/* Save & Publish button - Parallel with title */}
         <button
           onClick={handleSave}
           disabled={selectedLocationIds.length === 0 || isSaving}
