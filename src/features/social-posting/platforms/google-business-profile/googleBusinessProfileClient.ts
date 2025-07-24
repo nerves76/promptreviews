@@ -635,8 +635,8 @@ export class GoogleBusinessProfileClient {
     try {
       console.log('📋 Fetching Google Business categories...');
       
-      // Google Business Categories API endpoint
-      const endpoint = 'https://mybusinessbusinessinformation.googleapis.com/v1/categories';
+      // Google Business Categories API endpoint (just the path, not full URL)
+      const endpoint = '/v1/categories';
       
       const response = await this.makeRequest(endpoint, {
         method: 'GET'
