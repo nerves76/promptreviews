@@ -95,6 +95,11 @@ export default function LoadBusinessInfoButton({
 
       if (response.ok && data.success && data.location) {
         console.log('✅ Loaded current business information:', data.location);
+        console.log('🏷️ Categories found:', {
+          primaryCategory: data.location.primaryCategory,
+          additionalCategories: data.location.additionalCategories,
+          additionalCategoriesCount: data.location.additionalCategories?.length || 0
+        });
         
         // Parse business hours from API response
         let loadedHours: any = {
@@ -134,8 +139,8 @@ export default function LoadBusinessInfoButton({
         const loadedBusinessInfo = {
           description: data.location.profile?.description || '',
           regularHours: loadedHours,
-          primaryCategory: data.location.categories?.primaryCategory,
-          additionalCategories: data.location.categories?.additionalCategories || [],
+          primaryCategory: data.location.primaryCategory,
+          additionalCategories: data.location.additionalCategories || [],
           serviceItems: data.location.serviceItems?.map((item: any) => ({
             name: item.freeFormServiceItem?.label?.displayName || 
                   item.structuredServiceItem?.description || 
