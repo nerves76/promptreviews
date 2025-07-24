@@ -1118,7 +1118,7 @@ const mergedReviewPlatforms = universalPage.reviewPlatforms?.length
   - On the public prompt page, if `falling_icon` is set, the animation will run.
   - If **Emoji Sentiment** is also enabled, the animation will only run after a user selects a positive sentiment ("Excellent" or "Satisfied").
   - If Emoji Sentiment is **not** enabled, the animation runs immediately when the page loads.
-  - The animation creates 60 falling icons with random positions, sizes, and timing for a natural effect.
+  - The animation creates 20 falling icons with random positions, sizes, and timing for a natural effect.
 
 ### **UI Improvements (Latest Update)**
 - **Simplified Interface:** Shows only the selected icon with blue border (no grid of default icons)
