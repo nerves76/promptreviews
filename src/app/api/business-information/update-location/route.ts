@@ -17,7 +17,54 @@ import { hasValue } from '@/utils/dataFiltering';
 export async function POST(request: NextRequest) {
   try {
     console.log('🔄 Business information update API called');
+    console.log('🚨 CACHE-BUSTING-V6: ENHANCED REQUEST DEBUG! TIMESTAMP: ' + Date.now() + ' 🚨');
 
+    // Parse request body with detailed logging
+    let body;
+    try {
+      body = await request.json();
+      console.log('📥 Request body received successfully');
+      console.log('📥 Request body keys:', Object.keys(body));
+      console.log('📥 Request body content:', JSON.stringify(body, null, 2));
+    } catch (parseError) {
+      console.error('❌ Failed to parse request body:', parseError);
+      return NextResponse.json(
+        { error: 'Invalid JSON in request body' },
+        { status: 400 }
+      );
+    }
+
+    const { locationIds, updates } = body;
+
+    console.log('🔍 Extracted from body:', {
+      locationIds: locationIds,
+      locationIdsType: typeof locationIds,
+      locationIdsLength: Array.isArray(locationIds) ? locationIds.length : 'not array',
+      updates: updates,
+      updatesType: typeof updates,
+      updatesKeys: updates ? Object.keys(updates) : 'null/undefined'
+    });
+
+    if (!locationIds || !Array.isArray(locationIds) || locationIds.length === 0) {
+      console.log('❌ Invalid locationIds:', { locationIds, isArray: Array.isArray(locationIds) });
+      return NextResponse.json(
+        { error: 'Location IDs are required and must be a non-empty array' },
+        { status: 400 }
+      );
+    }
+
+    if (!updates || typeof updates !== 'object') {
+      console.log('❌ Invalid updates:', { updates, type: typeof updates });
+      return NextResponse.json(
+        { error: 'Updates object is required' },
+        { status: 400 }
+      );
+    }
+
+    console.log('💾 Saving business info for locations:', locationIds);
+    console.log('📝 Updates to apply:', updates);
+
+    // Create Supabase client and authenticate user
     const cookieStore = await cookies();
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -44,29 +91,9 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ User authenticated:', user.id);
 
-    // Parse request body
-    const { locationIds, updates } = await request.json();
-
-    if (!locationIds || !Array.isArray(locationIds) || locationIds.length === 0) {
-      return NextResponse.json(
-        { error: 'Location IDs are required' },
-        { status: 400 }
-      );
-    }
-
-    if (!updates || typeof updates !== 'object') {
-      return NextResponse.json(
-        { error: 'Updates object is required' },
-        { status: 400 }
-      );
-    }
-
-    console.log('💾 Saving business info for locations:', locationIds);
-    console.log('📝 Updates to apply:', updates);
-
     // Get Google Business Profile tokens
     const { data: tokens } = await supabase
-      .from('google_business_profile_tokens')
+      .from('google_business_profiles')
       .select('access_token, refresh_token, expires_at')
       .eq('user_id', user.id)
       .single();
@@ -84,6 +111,23 @@ export async function POST(request: NextRequest) {
       refreshToken: tokens.refresh_token,
       expiresAt: new Date(tokens.expires_at).getTime(),
     });
+
+    // Fetch location names from Google for better success messages
+    const locationDetails = new Map();
+    try {
+      const accounts = await client.listAccounts();
+      if (accounts.length > 0) {
+        const accountId = accounts[0].name.replace('accounts/', '');
+        const locations = await client.listLocations(accountId);
+        for (const location of locations) {
+          // Store using the full location ID as key to match what we use for retrieval
+          locationDetails.set(location.name, location.title || location.name);
+        }
+        console.log('📍 Fetched location names for success messages:', Array.from(locationDetails.entries()));
+      }
+    } catch (error) {
+      console.log('⚠️ Could not fetch location names for success messages:', error);
+    }
 
     // Process each location
     const results = [];
@@ -111,24 +155,37 @@ export async function POST(request: NextRequest) {
         }
 
         // Business hours update - only if provided and has meaningful data
-        if (hasValue(updates.regularHours) && Array.isArray(updates.regularHours)) {
-          const validHours = updates.regularHours.filter(hour => 
-            hasValue(hour) && 
-            hasValue(hour.day) && 
-            hasValue(hour.openTime) && 
-            hasValue(hour.closeTime)
-          );
+        if (hasValue(updates.regularHours) && typeof updates.regularHours === 'object') {
+          console.log('🕒 Raw business hours from frontend:', JSON.stringify(updates.regularHours, null, 2));
           
-          if (validHours.length > 0) {
-            locationUpdate.regularHours = {
-              periods: validHours.map(hour => ({
-                openDay: hour.day,
-                openTime: hour.openTime,
-                closeDay: hour.day,
-                closeTime: hour.closeTime
-              }))
-            };
-            console.log('📝 Including hours update:', validHours.length, 'periods');
+          // Convert our frontend format {MONDAY: {open: '09:00', close: '17:00', closed: false}} 
+          // to Google's format with periods array
+          const periods = [];
+          
+          for (const [day, hours] of Object.entries(updates.regularHours)) {
+            if (hours && typeof hours === 'object' && !hours.closed && hours.open && hours.close) {
+              // Convert HH:MM format to Google's time object format
+              const parseTime = (timeStr: string) => {
+                const [hoursPart, minutesPart] = timeStr.split(':').map(Number);
+                return {
+                  hours: hoursPart || 0,
+                  minutes: minutesPart || 0
+                };
+              };
+              
+              periods.push({
+                openDay: day,
+                openTime: parseTime(hours.open),
+                closeDay: day,
+                closeTime: parseTime(hours.close)
+              });
+            }
+          }
+          
+          if (periods.length > 0) {
+            locationUpdate.regularHours = { periods };
+            console.log('📝 Including hours update:', periods.length, 'periods');
+            console.log('📝 Converted hours format:', JSON.stringify(locationUpdate.regularHours, null, 2));
           }
         }
 
@@ -144,18 +201,51 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        // Categories update
-        if (hasValue(updates.primaryCategory)) {
-          locationUpdate.primaryCategory = updates.primaryCategory;
-          console.log('📝 Including primary category update');
-        }
+        // Categories update - Google expects them nested under "categories" and using "name" not "categoryId"
+        // Also uses snake_case field names: primary_category, additional_categories
+        // Only include if we have valid category data to avoid sending empty objects
+        const hasValidPrimaryCategory = hasValue(updates.primaryCategory) && 
+          hasValue(updates.primaryCategory.categoryId) && 
+          hasValue(updates.primaryCategory.displayName);
+        
+        const hasValidAdditionalCategories = hasValue(updates.additionalCategories) && 
+          Array.isArray(updates.additionalCategories) &&
+          updates.additionalCategories.some(cat => 
+            hasValue(cat) && hasValue(cat.categoryId) && hasValue(cat.displayName)
+          );
 
-        if (hasValue(updates.additionalCategories) && Array.isArray(updates.additionalCategories)) {
-          const validCategories = updates.additionalCategories.filter(cat => hasValue(cat));
-          if (validCategories.length > 0) {
-            locationUpdate.additionalCategories = validCategories;
-            console.log('📝 Including additional categories update:', validCategories.length, 'categories');
+        if (hasValidPrimaryCategory || hasValidAdditionalCategories) {
+          locationUpdate.categories = {};
+          
+          if (hasValidPrimaryCategory) {
+            // Convert our frontend format {categoryId, displayName} to Google's format {name, displayName}
+            locationUpdate.categories.primary_category = {
+              name: updates.primaryCategory.categoryId,
+              displayName: updates.primaryCategory.displayName
+            };
+            console.log('📝 Including primary category update:', locationUpdate.categories.primary_category);
+            console.log('📝 Primary category source data:', updates.primaryCategory);
           }
+
+          if (hasValidAdditionalCategories) {
+            // Filter to only valid categories with both categoryId and displayName
+            const validCategories = updates.additionalCategories.filter(cat => 
+              hasValue(cat) && hasValue(cat.categoryId) && hasValue(cat.displayName)
+            );
+            
+            if (validCategories.length > 0) {
+              // Convert our frontend format to Google's expected format
+              locationUpdate.categories.additional_categories = validCategories.map(cat => ({
+                name: cat.categoryId,
+                displayName: cat.displayName
+              }));
+              console.log('📝 Including additional categories update:', validCategories.length, 'categories');
+              console.log('📝 Additional categories source data:', updates.additionalCategories);
+              console.log('📝 Transformed additional categories:', locationUpdate.categories.additional_categories);
+            }
+          }
+        } else {
+          console.log('⏭️ Skipping categories update - no valid category data provided');
         }
 
         // Only proceed if we have something meaningful to update
@@ -171,16 +261,37 @@ export async function POST(request: NextRequest) {
         }
 
         console.log('📤 Final update payload:', JSON.stringify(locationUpdate, null, 2));
+        console.log('🔍 DEBUGGING CATEGORIES - Raw updates object:', {
+          hasPrimaryCategory: !!updates.primaryCategory,
+          primaryCategoryData: updates.primaryCategory,
+          hasAdditionalCategories: !!updates.additionalCategories,
+          additionalCategoriesData: updates.additionalCategories,
+          additionalCategoriesCount: updates.additionalCategories?.length || 0
+        });
+        console.log('🔍 DEBUGGING CATEGORIES - Transformed locationUpdate.categories:', 
+          locationUpdate.categories ? JSON.stringify(locationUpdate.categories, null, 2) : 'undefined'
+        );
 
         // Call the Google Business Profile API with the Business Information API v1
-        // Note: We don't need accountId for the new API structure
+        console.log(`🚀 Calling Google Business Profile API for location: ${locationId}`);
         const result = await client.updateLocation('', locationId, locationUpdate);
+        
+        // Create detailed success message
+        const updatedFields = [];
+        if (locationUpdate.profile?.description) updatedFields.push('description');
+        if (locationUpdate.regularHours) updatedFields.push('business hours');
+        if (locationUpdate.serviceItems) updatedFields.push(`${locationUpdate.serviceItems.length} service items`);
+        if (locationUpdate.categories?.primary_category) updatedFields.push('primary category');
+        if (locationUpdate.categories?.additional_categories) updatedFields.push(`${locationUpdate.categories.additional_categories.length} additional categories`);
+        
+        const locationName = locationDetails.get(locationId) || locationId;
 
-        console.log('✅ Location updated successfully:', locationId);
         results.push({
           locationId,
+          locationName,
           success: true,
-          data: result
+          updatedFields,
+          message: `Updated ${updatedFields.join(', ')} for ${locationName}`
         });
 
       } catch (locationError: any) {
@@ -193,7 +304,8 @@ export async function POST(request: NextRequest) {
           return NextResponse.json(
             { 
               error: 'Google Business Profile connection expired. Please reconnect your account.',
-              requiresReauth: true 
+              requiresReauth: true,
+              details: 'Your Google Business Profile tokens have expired. Please disconnect and reconnect your Google account.'
             },
             { status: 401 }
           );
@@ -240,10 +352,22 @@ export async function POST(request: NextRequest) {
     }
 
     // Return success with details
-    const message = 
-      successfulUpdates.length === results.length 
-        ? `Successfully updated ${successfulUpdates.length} location(s)`
-        : `Updated ${successfulUpdates.length} of ${results.length} location(s). ${failedUpdates.length} failed.`;
+    let message;
+    if (successfulUpdates.length === results.length) {
+      // All successful - create detailed message
+      if (successfulUpdates.length === 1) {
+        const update = successfulUpdates[0];
+        message = `Successfully updated ${update.updatedFields.join(', ')} for ${update.locationName}`;
+      } else {
+        // Multiple locations - show summary
+        const allUpdatedFields = [...new Set(successfulUpdates.flatMap(u => u.updatedFields))];
+        const locationNames = successfulUpdates.map(u => u.locationName).join(', ');
+        message = `Successfully updated ${allUpdatedFields.join(', ')} for ${successfulUpdates.length} locations: ${locationNames}`;
+      }
+    } else {
+      // Mixed results
+      message = `Updated ${successfulUpdates.length} of ${results.length} location(s). ${failedUpdates.length} failed.`;
+    }
 
     return NextResponse.json({
       success: true,
@@ -266,7 +390,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { 
           error: 'Google Business Profile connection expired. Please reconnect your account.',
-          requiresReauth: true 
+          requiresReauth: true,
+          details: 'Your Google Business Profile tokens have expired. Please disconnect and reconnect your Google account.'
         },
         { status: 401 }
       );

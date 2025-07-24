@@ -95,10 +95,68 @@ export default function LoadBusinessInfoButton({
 
       if (response.ok && data.success && data.location) {
         console.log('✅ Loaded current business information:', data.location);
-        console.log('🏷️ Categories found:', {
+        console.log('🏷️ Raw categories data from Google:', {
+          hasCategories: !!data.location.categories,
+          categoriesStructure: data.location.categories,
           primaryCategory: data.location.primaryCategory,
           additionalCategories: data.location.additionalCategories,
-          additionalCategoriesCount: data.location.additionalCategories?.length || 0
+          hasPrimaryCategory: !!data.location.primaryCategory,
+          hasAdditionalCategories: !!data.location.additionalCategories,
+          additionalCategoriesCount: data.location.additionalCategories?.length || 0,
+          fullLocationKeys: Object.keys(data.location || {}),
+          locationName: data.location.name,
+          locationTitle: data.location.title
+        });
+        
+        // Handle different possible category structures from Google
+        let primaryCategory = null;
+        let additionalCategories = [];
+        
+        // Check if categories are under a 'categories' object (common Google structure)
+        if (data.location.categories) {
+          console.log('📋 Processing categories from data.location.categories:', data.location.categories);
+          console.log('📋 Raw primary category:', data.location.categories.primaryCategory);
+          console.log('📋 Raw additional categories:', data.location.categories.additionalCategories);
+          
+          // Convert primary category to our format
+          if (data.location.categories.primaryCategory) {
+            primaryCategory = {
+              categoryId: data.location.categories.primaryCategory.name,
+              displayName: data.location.categories.primaryCategory.displayName
+            };
+          }
+          
+          // Convert additional categories to our format
+          if (data.location.categories.additionalCategories && Array.isArray(data.location.categories.additionalCategories)) {
+            additionalCategories = data.location.categories.additionalCategories.map((cat: any) => ({
+              categoryId: cat.name,
+              displayName: cat.displayName
+            }));
+            console.log('📋 Converted additional categories:', additionalCategories);
+          }
+        }
+        
+        // Check if categories are directly on the location object (fallback)
+        if (data.location.primaryCategory) {
+          console.log('📋 Processing primary category from data.location.primaryCategory:', data.location.primaryCategory);
+          primaryCategory = {
+            categoryId: data.location.primaryCategory.name,
+            displayName: data.location.primaryCategory.displayName
+          };
+        }
+        
+        if (data.location.additionalCategories) {
+          console.log('📋 Processing additional categories from data.location.additionalCategories:', data.location.additionalCategories);
+          additionalCategories = data.location.additionalCategories.map((cat: any) => ({
+            categoryId: cat.name,
+            displayName: cat.displayName
+          }));
+        }
+        
+        console.log('🏷️ Final processed categories:', {
+          primaryCategory,
+          additionalCategories,
+          additionalCategoriesCount: additionalCategories.length
         });
         
         // Parse business hours from API response
@@ -113,6 +171,8 @@ export default function LoadBusinessInfoButton({
         };
         
         if (data.location.regularHours?.periods) {
+          console.log('🕒 Raw business hours from Google:', JSON.stringify(data.location.regularHours, null, 2));
+          
           const parsedHours: any = {};
           
           // Initialize all days as closed
@@ -121,11 +181,22 @@ export default function LoadBusinessInfoButton({
           });
           
           // Parse the periods from Google's format
-          data.location.regularHours.periods.forEach((period: any) => {
+          data.location.regularHours.periods.forEach((period: any, index: number) => {
+            console.log(`🕒 Processing period ${index}:`, JSON.stringify(period, null, 2));
+            
             if (period.openDay && period.openTime && period.closeTime) {
+              // Convert Google's time format {hours: 9, minutes: 0} to HH:MM format
+              const formatTime = (timeObj: any): string => {
+                if (typeof timeObj === 'string') return timeObj; // Already in HH:MM format
+                
+                const hours = timeObj.hours || 0;
+                const minutes = timeObj.minutes || 0;
+                return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+              };
+              
               parsedHours[period.openDay] = {
-                open: period.openTime,
-                close: period.closeTime,
+                open: formatTime(period.openTime),
+                close: formatTime(period.closeTime),
                 closed: false
               };
             }
@@ -133,14 +204,16 @@ export default function LoadBusinessInfoButton({
           
           loadedHours = parsedHours;
           console.log('✅ Parsed business hours:', loadedHours);
+        } else {
+          console.log('⚠️ No regular hours found in location data');
         }
 
         // Update business info with all available data
         const loadedBusinessInfo = {
           description: data.location.profile?.description || '',
           regularHours: loadedHours,
-          primaryCategory: data.location.primaryCategory,
-          additionalCategories: data.location.additionalCategories || [],
+          primaryCategory: primaryCategory,
+          additionalCategories: additionalCategories,
           serviceItems: data.location.serviceItems?.map((item: any) => ({
             name: item.freeFormServiceItem?.label?.displayName || 
                   item.structuredServiceItem?.description || 
@@ -149,6 +222,15 @@ export default function LoadBusinessInfoButton({
                         item.structuredServiceItem?.description || ''
           })) || []
         };
+
+        console.log('📦 Final loadedBusinessInfo being passed to component:', {
+          hasDescription: !!loadedBusinessInfo.description,
+          hasPrimaryCategory: !!loadedBusinessInfo.primaryCategory,
+          primaryCategoryData: loadedBusinessInfo.primaryCategory,
+          hasAdditionalCategories: !!loadedBusinessInfo.additionalCategories,
+          additionalCategoriesCount: loadedBusinessInfo.additionalCategories.length,
+          additionalCategoriesData: loadedBusinessInfo.additionalCategories
+        });
 
         onBusinessInfoLoaded(loadedBusinessInfo);
         onDetailsLoadedChange(true);

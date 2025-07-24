@@ -104,16 +104,34 @@ export class GoogleBusinessProfileClient {
     try {
       console.log('🔄 Server-side token refresh initiated');
 
-      // Call the new server-side refresh endpoint
-      const response = await fetch('/api/auth/google/refresh-tokens', {
+      // Construct the correct URL based on environment
+      const baseUrl = typeof window !== 'undefined' 
+        ? window.location.origin 
+        : process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002';
+      
+      const refreshUrl = `${baseUrl}/api/auth/google/refresh-tokens`;
+      console.log('🔧 Token refresh URL:', refreshUrl);
+
+      // Call the server-side refresh endpoint
+      const response = await fetch(refreshUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ refreshToken: this.refreshToken }),
       });
+      
+      console.log('📊 Token refresh response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Token refresh response error:', errorText);
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      }
+      
       const data = await response.json();
+      console.log('📄 Token refresh response data keys:', Object.keys(data));
 
-      if (!response.ok || !data.success) {
-        if (data.error?.includes('REFRESH_TOKEN_EXPIRED')) {
+      if (!data.success) {
+        if (data.error?.includes('REFRESH_TOKEN_EXPIRED') || data.requiresReauth) {
           throw new Error('GOOGLE_REAUTH_REQUIRED: Please reconnect your Google Business Profile account');
         }
         throw new Error(`Server-side token refresh failed: ${data.error || 'Unknown error'}`);
@@ -128,6 +146,12 @@ export class GoogleBusinessProfileClient {
         throw refreshError; // Re-throw specific re-auth error
       }
       console.error('❌ Error during server-side token refresh:', refreshError);
+      
+      // Check if it's a network/URL error and provide helpful message
+      if (refreshError.code === 'ERR_INVALID_URL' || refreshError.message?.includes('Failed to parse URL')) {
+        throw new Error('GOOGLE_REAUTH_REQUIRED: Token refresh endpoint unavailable. Please reconnect your Google Business Profile account');
+      }
+      
       throw new Error(`Failed to refresh access token: ${refreshError.message}`);
     }
   }
@@ -316,10 +340,10 @@ export class GoogleBusinessProfileClient {
       console.log(`📍 Using clean account ID: ${cleanAccountId}`);
       
       // Debug: Log the endpoint template before replacement
-      console.log(`📍 Endpoint template: ${GOOGLE_BUSINESS_PROFILE.ENDPOINTS.LOCATIONS}`);
+      console.log(`📍 Endpoint template: ${GOOGLE_BUSINESS_PROFILE.ENDPOINTS.LOCATIONS_LIST}`);
       
-      // The template is /v1/accounts/{parent}/locations, so {parent} should just be the account ID
-      const endpoint = GOOGLE_BUSINESS_PROFILE.ENDPOINTS.LOCATIONS.replace('{parent}', cleanAccountId);
+      // The template is /v1/accounts/{accountId}/locations, so {accountId} should be the account ID
+      const endpoint = GOOGLE_BUSINESS_PROFILE.ENDPOINTS.LOCATIONS_LIST.replace('{accountId}', cleanAccountId);
       console.log(`📍 Constructed endpoint: ${endpoint}`);
       
       // Additional validation to catch any remaining issues
@@ -503,8 +527,8 @@ export class GoogleBusinessProfileClient {
   async updateLocation(accountId: string, locationId: string, updates: any): Promise<any> {
     try {
       console.log(`🔄 Updating location: ${locationId}`);
-      console.log('🚨 CACHE-BUSTING-V3: UPDATE LOCATION NEW CODE IS RUNNING! TIMESTAMP: ' + Date.now() + ' 🚨');
-      console.log(`📝 Updates:`, updates);
+      console.log('🚨 CACHE-BUSTING-V5: UPDATE LOCATION WITH ENHANCED DEBUGGING! TIMESTAMP: ' + Date.now() + ' 🚨');
+      console.log(`📝 Updates:`, JSON.stringify(updates, null, 2));
 
       // Extract just the location ID if it's in full format
       let cleanLocationId = locationId;
@@ -526,17 +550,22 @@ export class GoogleBusinessProfileClient {
       if (updates.profile?.description) updateMask.push('profile.description');
       if (updates.regularHours) updateMask.push('regularHours');
       if (updates.serviceItems) updateMask.push('serviceItems');
-      if (updates.categories) updateMask.push('categories');
-      if (updates.primaryCategory) updateMask.push('primaryCategory');
-      if (updates.additionalCategories) updateMask.push('additionalCategories');
+      if (updates.categories) {
+        // Google requires updating the entire categories object, not individual fields
+        updateMask.push('categories');
+      }
 
       const queryParams = updateMask.length > 0 ? `?updateMask=${updateMask.join(',')}` : '';
       const fullEndpoint = `${endpoint}${queryParams}`;
 
       console.log(`🔧 Full endpoint with update mask: ${fullEndpoint}`);
+      console.log(`🔧 Update mask fields: [${updateMask.join(', ')}]`);
+      console.log(`🔧 Request body size: ${JSON.stringify(updates).length} chars`);
 
       // Use Business Information API v1 - let automatic base URL selection handle it
       console.log('🚨 BEFORE UPDATE makeRequest - fullEndpoint:', fullEndpoint);
+      console.log('🚨 BEFORE UPDATE makeRequest - updates:', JSON.stringify(updates, null, 2));
+      
       const response = await this.makeRequest(
         fullEndpoint,
         {
@@ -544,12 +573,18 @@ export class GoogleBusinessProfileClient {
           body: JSON.stringify(updates)
         }
       );
-      console.log('🚨 AFTER UPDATE makeRequest - success!');
+      
+      console.log('🚨 AFTER UPDATE makeRequest - success! Response:', JSON.stringify(response, null, 2));
 
       console.log('✅ Successfully updated location');
       return response;
     } catch (error: any) {
       console.error('❌ Failed to update location:', error);
+      console.error('❌ Update location error details:', {
+        message: error.message,
+        stack: error.stack?.substring(0, 1000),
+        name: error.name
+      });
       throw error;
     }
   }
@@ -691,36 +726,44 @@ export class GoogleBusinessProfileClient {
   async listCategories(): Promise<Array<{ categoryId: string; displayName: string }>> {
     try {
       console.log('📋 Fetching Google Business categories...');
-      console.log('🚨 CACHE-BUSTING-V3: NEW CODE IS RUNNING! TIMESTAMP: ' + Date.now() + ' 🚨');
+      console.log('🚨 CACHE-BUSTING-V4: FIXED QUERY PARAMS! TIMESTAMP: ' + Date.now() + ' 🚨');
       
-      // CRITICAL FIX: Force endpoint to be just the path - NEVER use full URLs
-      const endpoint = '/v1/categories';
-      
-      console.log('🔧 Categories endpoint (fixed):', endpoint);
-      console.log('🔧 Endpoint validation:', {
-        isString: typeof endpoint === 'string',
-        startsWithSlash: endpoint.startsWith('/'),
-        containsProtocol: endpoint.includes('://'),
-        length: endpoint.length
+      // Add required parameters for Google Business Information API v1
+      const queryParams = new URLSearchParams({
+        'language_code': 'en-US',
+        'region_code': 'US', 
+        'view': 'FULL'
       });
       
-      // Use Business Information API v1 - let automatic base URL selection handle it
-      console.log('🚨 BEFORE makeRequest - endpoint:', endpoint);
+      const baseEndpoint = '/v1/categories';
+      const fullEndpoint = `${baseEndpoint}?${queryParams.toString()}`;
+      
+      console.log('🔧 Categories endpoint construction:', {
+        baseEndpoint,
+        queryParams: queryParams.toString(),
+        fullEndpoint,
+        queryParamsLength: queryParams.toString().length
+      });
+      
+      // CRITICAL: Pass the full endpoint with query parameters
+      console.log('🚨 CALLING makeRequest with endpoint:', fullEndpoint);
       const response = await this.makeRequest(
-        endpoint,
+        fullEndpoint,
         { method: 'GET' }
       );
-      console.log('🚨 AFTER makeRequest - success!');
+      console.log('🚨 makeRequest completed successfully');
 
       if (response.categories) {
         console.log('✅ Successfully fetched categories:', response.categories.length);
         return response.categories.map((cat: any) => ({
-          categoryId: cat.categoryId || cat.name,
+          categoryId: cat.name, // Use Google's 'name' field as our categoryId (e.g., "categories/gcid:marketing_consultant")
           displayName: cat.displayName
         }));
       }
 
-      console.log('⚠️ No categories in response');
+      console.log('⚠️ No categories in response, trying response structure analysis');
+      console.log('📊 Response keys:', Object.keys(response));
+      console.log('📊 Full response (first 200 chars):', JSON.stringify(response).substring(0, 200));
       return [];
     } catch (error: any) {
       console.error('❌ Failed to list categories:', error);

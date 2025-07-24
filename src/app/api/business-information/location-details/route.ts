@@ -24,6 +24,9 @@ export async function POST(request: NextRequest) {
     
     console.log('📥 Location details request:', { 
       locationId,
+      locationIdType: typeof locationId,
+      locationIdLength: locationId?.length,
+      locationIdCharCodes: locationId ? Array.from(locationId).map(c => c.charCodeAt(0)) : null,
       accountName: body.accountName || 'accounts/unknown',
       fullBody: body
     });
@@ -102,13 +105,35 @@ export async function POST(request: NextRequest) {
             locations.map(loc => ({ name: loc.name, title: loc.title })));
           
           // Find the matching location
-          foundLocation = locations.find(loc => loc.name === locationId);
+          console.log(`🔍 Searching for location ID: "${locationId}" (type: ${typeof locationId})`);
+          console.log(`🔍 Available location names in this account:`, locations.map(loc => `"${loc.name}" (type: ${typeof loc.name})`));
+          
+          foundLocation = locations.find(loc => {
+            const matches = loc.name === locationId;
+            console.log(`🔍 Comparing "${loc.name}" === "${locationId}" = ${matches}`);
+            return matches;
+          });
           
           if (foundLocation) {
             console.log('✅ Found location with detailed data:', foundLocation.name);
             break;
           } else {
             console.log(`⚠️ Location ${locationId} not found in account ${account.name}`);
+            
+            // Try alternative matching approaches
+            const cleanLocationId = locationId.replace('locations/', '');
+            const altFound = locations.find(loc => {
+              const cleanLocName = loc.name.replace('locations/', '');
+              const altMatches = cleanLocName === cleanLocationId;
+              console.log(`🔍 Alternative match: "${cleanLocName}" === "${cleanLocationId}" = ${altMatches}`);
+              return altMatches;
+            });
+            
+            if (altFound) {
+              console.log('✅ Found location with alternative matching:', altFound.name);
+              foundLocation = altFound;
+              break;
+            }
           }
         } catch (accountError) {
           console.log(`⚠️ Error checking account ${account.name}:`, accountError);
@@ -145,27 +170,25 @@ export async function POST(request: NextRequest) {
         }, { status: 404 });
       }
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Failed to get location details:', error);
       
-      // Check if it's a rate limit error
-      if (error instanceof Error && 
-          (error.message.includes('429') || 
-           error.message.includes('rate limit') ||
-           error.message.includes('Quota exceeded'))) {
+      // Handle specific Google re-authentication errors
+      if (error.message?.includes('GOOGLE_REAUTH_REQUIRED')) {
         return NextResponse.json({
-          success: false,
-          error: 'Rate limit exceeded',
-          message: 'Google Business Profile API rate limit reached. Please wait 1-2 minutes and try again.',
-          isRateLimit: true
-        }, { status: 429 });
+          error: 'Google Business Profile connection expired. Please reconnect your account.',
+          requiresReauth: true,
+          details: 'Your Google Business Profile tokens have expired. Please disconnect and reconnect your Google account.'
+        }, { status: 401 });
       }
       
-      return NextResponse.json({
-        success: false,
-        error: 'Failed to fetch location details',
-        message: error instanceof Error ? error.message : 'Unknown error occurred while fetching location details'
-      }, { status: 500 });
+      return NextResponse.json(
+        { 
+          error: 'Failed to get location details',
+          details: error.message 
+        },
+        { status: 500 }
+      );
     }
 
   } catch (error) {
