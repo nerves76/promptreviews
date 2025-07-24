@@ -121,11 +121,12 @@ export async function POST(request: NextRequest) {
       
       console.log('✅ Location found:', { name: targetLocation.name, title: targetLocation.title });
       
-      // Extract just the numeric location ID from the full name
-      // targetLocation.name could be 'locations/12345' or 'accounts/123/locations/12345'
-      const exactLocationId = targetLocation.name.split('/').pop() || targetLocation.name;
-      console.log('📍 Using exact location ID for update:', exactLocationId);
+      // Use the full location name format that Google returned
+      // This is safer than trying to extract just the numeric part
+      const exactLocationId = targetLocation.name;
+      console.log('📍 Using full location name for update:', exactLocationId);
       console.log('🔧 Full location name from Google:', targetLocation.name);
+      console.log('🔧 Account ID for update:', accountId);
 
       // Convert our update format to Google Business Profile API format
       // Only include fields that have meaningful values (not empty or whitespace-only)

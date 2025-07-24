@@ -491,12 +491,40 @@ export class GoogleBusinessProfileClient {
       console.log(`🔄 Updating location: ${locationId}`);
       console.log(`📝 Updates:`, updates);
 
-      // Clean IDs to remove prefixes if present
-      const cleanAccountId = accountId.replace('accounts/', '');
-      const cleanLocationId = locationId.replace('locations/', '');
+      // Handle different location ID formats
+      let cleanAccountId: string;
+      let cleanLocationId: string;
 
-      // Construct the location update endpoint using Business Information API v1
-      const endpoint = `/v1/accounts/${cleanAccountId}/locations/${cleanLocationId}`;
+      if (locationId.startsWith('locations/')) {
+        // Format: "locations/12345"
+        cleanAccountId = accountId.replace('accounts/', '');
+        cleanLocationId = locationId.replace('locations/', '');
+      } else if (locationId.includes('/locations/')) {
+        // Format: "accounts/123/locations/12345" - extract both IDs
+        const parts = locationId.split('/');
+        const accountIndex = parts.indexOf('accounts');
+        const locationIndex = parts.indexOf('locations');
+        
+        if (accountIndex >= 0 && locationIndex >= 0 && locationIndex > accountIndex) {
+          cleanAccountId = parts[accountIndex + 1];
+          cleanLocationId = parts[locationIndex + 1];
+        } else {
+          throw new Error(`Invalid location ID format: ${locationId}`);
+        }
+      } else {
+        // Assume it's just the numeric ID
+        cleanAccountId = accountId.replace('accounts/', '');
+        cleanLocationId = locationId;
+      }
+
+      console.log(`🔧 Parsed IDs - Account: ${cleanAccountId}, Location: ${cleanLocationId}`);
+
+      // Use the constant from API config and replace placeholders
+      const endpoint = GOOGLE_BUSINESS_PROFILE.ENDPOINTS.LOCATION_UPDATE
+        .replace('{accountId}', cleanAccountId)
+        .replace('{locationId}', cleanLocationId);
+      
+      console.log(`🔧 Update endpoint from config: ${endpoint}`);
       
       // Create update mask for the fields we're updating
       const updateMask = [];
@@ -666,19 +694,27 @@ export class GoogleBusinessProfileClient {
     try {
       console.log('📋 Fetching Google Business categories...');
       
-      // Force endpoint to be ONLY the path
-      const endpoint = '/v1/categories';
-      console.log('🔧 Categories endpoint before makeRequest:', typeof endpoint, JSON.stringify(endpoint));
+      // Use the constant from API config to avoid any URL issues
+      const endpoint = GOOGLE_BUSINESS_PROFILE.ENDPOINTS.CATEGORIES;
+      console.log('🔧 Categories endpoint from config:', typeof endpoint, JSON.stringify(endpoint));
       
-      // Verify the endpoint is correct
+      // Additional safety checks
+      if (!endpoint || typeof endpoint !== 'string') {
+        throw new Error(`Invalid endpoint from config: ${endpoint}`);
+      }
+      
       if (!endpoint.startsWith('/')) {
         console.error('❌ INVALID ENDPOINT FORMAT:', endpoint);
         throw new Error(`Invalid endpoint format: ${endpoint}`);
       }
+
+      // Clone the endpoint to prevent any reference issues
+      const safeEndpoint = String(endpoint);
+      console.log('🔧 Safe endpoint for makeRequest:', safeEndpoint);
       
       // Use the default base URL (Business Information API)
       const response = await this.makeRequest(
-        endpoint,
+        safeEndpoint,
         { method: 'GET' },
         0
       );
