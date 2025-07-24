@@ -503,7 +503,7 @@ export class GoogleBusinessProfileClient {
   async updateLocation(accountId: string, locationId: string, updates: any): Promise<any> {
     try {
       console.log(`🔄 Updating location: ${locationId}`);
-      console.log('🚨 CACHE-BUSTING-V2: UPDATE LOCATION NEW CODE IS RUNNING! 🚨');
+      console.log('🚨 CACHE-BUSTING-V3: UPDATE LOCATION NEW CODE IS RUNNING! TIMESTAMP: ' + Date.now() + ' 🚨');
       console.log(`📝 Updates:`, updates);
 
       // Extract just the location ID if it's in full format
@@ -535,16 +535,16 @@ export class GoogleBusinessProfileClient {
 
       console.log(`🔧 Full endpoint with update mask: ${fullEndpoint}`);
 
-      // Use Business Information API v1 explicitly with PATCH method
+      // Use Business Information API v1 - let automatic base URL selection handle it
+      console.log('🚨 BEFORE UPDATE makeRequest - fullEndpoint:', fullEndpoint);
       const response = await this.makeRequest(
         fullEndpoint,
         {
           method: 'PATCH',
           body: JSON.stringify(updates)
-        },
-        0,
-        GOOGLE_BUSINESS_PROFILE.BUSINESS_INFO_BASE_URL
+        }
       );
+      console.log('🚨 AFTER UPDATE makeRequest - success!');
 
       console.log('✅ Successfully updated location');
       return response;
@@ -691,9 +691,9 @@ export class GoogleBusinessProfileClient {
   async listCategories(): Promise<Array<{ categoryId: string; displayName: string }>> {
     try {
       console.log('📋 Fetching Google Business categories...');
-      console.log('🚨 CACHE-BUSTING-V2: NEW CODE IS RUNNING! 🚨');
+      console.log('🚨 CACHE-BUSTING-V3: NEW CODE IS RUNNING! TIMESTAMP: ' + Date.now() + ' 🚨');
       
-      // CRITICAL FIX: Force endpoint to be just the path
+      // CRITICAL FIX: Force endpoint to be just the path - NEVER use full URLs
       const endpoint = '/v1/categories';
       
       console.log('🔧 Categories endpoint (fixed):', endpoint);
@@ -704,13 +704,13 @@ export class GoogleBusinessProfileClient {
         length: endpoint.length
       });
       
-      // Use Business Information API v1 explicitly
+      // Use Business Information API v1 - let automatic base URL selection handle it
+      console.log('🚨 BEFORE makeRequest - endpoint:', endpoint);
       const response = await this.makeRequest(
         endpoint,
-        { method: 'GET' },
-        0,
-        GOOGLE_BUSINESS_PROFILE.BUSINESS_INFO_BASE_URL
+        { method: 'GET' }
       );
+      console.log('🚨 AFTER makeRequest - success!');
 
       if (response.categories) {
         console.log('✅ Successfully fetched categories:', response.categories.length);
