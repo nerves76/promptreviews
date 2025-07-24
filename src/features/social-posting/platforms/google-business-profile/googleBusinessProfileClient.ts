@@ -513,9 +513,9 @@ export class GoogleBusinessProfileClient {
       
       console.log(`🔧 Using location ID: ${cleanLocationId}`);
 
-      // Use the Business Information API v1 endpoint - PATCH /v1/locations/{locationId}
-      const endpoint = GOOGLE_BUSINESS_PROFILE.ENDPOINTS.LOCATION_UPDATE
-        .replace('{locationId}', cleanLocationId);
+      // CRITICAL FIX: Use correct Business Information API v1 endpoint format
+      // The correct format is /v1/locations/{locationId} NOT /v1/accounts/{accountId}/locations/{locationId}
+      const endpoint = `/v1/locations/${cleanLocationId}`;
       
       console.log(`🔧 Update endpoint: ${endpoint}`);
 
@@ -691,10 +691,10 @@ export class GoogleBusinessProfileClient {
     try {
       console.log('📋 Fetching Google Business categories...');
       
-      // Use ONLY the endpoint path from the config
-      const endpoint = GOOGLE_BUSINESS_PROFILE.ENDPOINTS.CATEGORIES;
+      // CRITICAL FIX: Force endpoint to be just the path
+      const endpoint = '/v1/categories';
       
-      console.log('🔧 Categories endpoint:', endpoint);
+      console.log('🔧 Categories endpoint (fixed):', endpoint);
       console.log('🔧 Endpoint validation:', {
         isString: typeof endpoint === 'string',
         startsWithSlash: endpoint.startsWith('/'),
