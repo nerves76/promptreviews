@@ -58,7 +58,15 @@ export class GoogleBusinessProfileClient {
     try {
       // Check if token is expired
       if (Date.now() >= this.expiresAt) {
-        await this.refreshAccessToken();
+        try {
+          await this.refreshAccessToken();
+        } catch (refreshError: any) {
+          // If refresh token expired, throw a specific error
+          if (refreshError.message?.includes('REFRESH_TOKEN_EXPIRED')) {
+            throw new Error('GOOGLE_REAUTH_REQUIRED: Please reconnect your Google Business Profile account');
+          }
+          throw refreshError;
+        }
       }
 
       // Use custom base URL or default to the main Business Information API
@@ -166,38 +174,34 @@ export class GoogleBusinessProfileClient {
 
 
   /**
-   * Refreshes the access token using the refresh token
+   * Refreshes the access token using the server-side refresh endpoint
+   * This ensures client secrets are kept secure on the server
    */
   private async refreshAccessToken(): Promise<void> {
     try {
-      console.log('🔄 Refreshing access token...');
+      console.log('🔄 Refreshing access token via server-side endpoint...');
       
-      const response = await fetch(GOOGLE_BUSINESS_PROFILE.OAUTH.TOKEN_URL, {
+      const response = await fetch('/api/auth/google/refresh-tokens', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
+          'Content-Type': 'application/json',
         },
-        body: new URLSearchParams({
-          client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '',
-          client_secret: process.env.GOOGLE_CLIENT_SECRET || '',
-          refresh_token: this.refreshToken,
-          grant_type: 'refresh_token',
-        }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(`Token refresh failed: ${data.error_description || data.error}`);
+        // If refresh token expired, user needs to re-authenticate
+        if (data.requiresReauth) {
+          throw new Error('REFRESH_TOKEN_EXPIRED: User needs to re-authenticate');
+        }
+        throw new Error(`Token refresh failed: ${data.error}`);
       }
 
       this.accessToken = data.access_token;
-      this.expiresAt = Date.now() + (data.expires_in * 1000);
+      this.expiresAt = new Date(data.expires_at).getTime();
       
-      // 🔧 Save refreshed tokens back to database for persistence
-      await this.saveTokensToDatabase();
-      
-      console.log('✅ Access token refreshed and saved to database');
+      console.log('✅ Access token refreshed successfully via server');
 
     } catch (error) {
       console.error('❌ Failed to refresh access token:', error);
@@ -205,34 +209,8 @@ export class GoogleBusinessProfileClient {
     }
   }
 
-  /**
-   * Saves current tokens to the database
-   */
-  private async saveTokensToDatabase(): Promise<void> {
-    try {
-      // Use fetch to call our API endpoint that updates tokens
-      const response = await fetch('/api/auth/google/update-tokens', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          access_token: this.accessToken,
-          refresh_token: this.refreshToken,
-          expires_at: new Date(this.expiresAt).toISOString()
-        }),
-      });
-
-      if (!response.ok) {
-        console.warn('⚠️ Failed to save tokens to database:', response.statusText);
-      } else {
-        console.log('💾 Tokens saved to database successfully');
-      }
-    } catch (error) {
-      console.warn('⚠️ Error saving tokens to database:', error);
-      // Don't throw - this is not critical for the API call to succeed
-    }
-  }
+  // Note: Token saving is now handled by the server-side refresh endpoint
+  // This ensures proper security and eliminates the need for client-side token management
 
   /**
    * Lists all business accounts for the authenticated user
