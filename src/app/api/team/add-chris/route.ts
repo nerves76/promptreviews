@@ -14,7 +14,7 @@ import { sendTeamInvitationEmail } from '@/utils/emailTemplates';
 import { randomBytes } from 'crypto';
 
 // Chris's email for support access
-const CHRIS_EMAIL = 'nerves76@gmail.com';
+const CHRIS_EMAIL = 'chris@diviner.agency';
 
 // 🔧 CONSOLIDATION: Shared server client creation for API routes
 async function createAuthenticatedSupabaseClient() {
