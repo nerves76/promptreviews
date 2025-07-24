@@ -1,66 +1,49 @@
 /**
  * Google Business Profile API Configuration
- * Contains all constants related to Google Business Profile API integration
- * Updated to use the correct Google Business Profile API v4 endpoints
+ * 
+ * Updated for 2024/2025 API structure using specialized APIs:
+ * - Business Information API v1 for location management
+ * - Account Management API v1.1 for account operations  
+ * - Google My Business API v4.9 for reviews, posts, media
  */
 
-// Google Business Profile API Configuration
 export const GOOGLE_BUSINESS_PROFILE = {
-  // API Base URLs - Using the My Business APIs that the user has access to
-  BASE_URL: 'https://mybusinessbusinessinformation.googleapis.com', // For v1 Business Information API
-  V4_BASE_URL: 'https://mybusiness.googleapis.com', // For v4 Google My Business API (local posts)
-  ACCOUNT_MANAGEMENT_URL: 'https://mybusinessaccountmanagement.googleapis.com',
-  API_VERSION: 'v1',
+  // Business Information API v1 - for location data, categories, attributes
+  BUSINESS_INFO_BASE_URL: 'https://mybusinessbusinessinformation.googleapis.com',
+  
+  // Account Management API v1.1 - for account operations
+  ACCOUNT_MGMT_BASE_URL: 'https://mybusinessaccountmanagement.googleapis.com',
+  
+  // Google My Business API v4.9 - for reviews, posts, media, insights
+  LEGACY_BASE_URL: 'https://mybusiness.googleapis.com',
+
   ENDPOINTS: {
+    // Account Management API v1.1 endpoints
     ACCOUNTS: '/v1/accounts',
-    LOCATIONS: '/v1/accounts/{parent}/locations',  // Correct Business Information API v1 format
+    
+    // Business Information API v1 endpoints
+    CATEGORIES: '/v1/categories',
+    LOCATIONS_LIST: '/v1/accounts/{accountId}/locations',
     LOCATION_GET: '/v1/locations/{locationId}',
-    CATEGORIES: '/v1/categories', // Business categories endpoint
-    LOCATION_UPDATE: '/v1/accounts/{accountId}/locations/{locationId}', // Location update endpoint
-    LOCAL_POSTS: '/v4/accounts/{accountId}/locations/{locationId}/localPosts', // Still uses v4 API
-    MEDIA: '/v4/accounts/{accountId}/locations/{locationId}/media',
+    LOCATION_UPDATE: '/v1/locations/{locationId}', // PATCH method
+    LOCATION_ATTRIBUTES: '/v1/locations/{locationId}/attributes',
+    
+    // Google My Business API v4.9 endpoints (legacy)
     REVIEWS: '/v4/accounts/{accountId}/locations/{locationId}/reviews',
+    LOCAL_POSTS: '/v4/accounts/{accountId}/locations/{locationId}/localPosts',
+    MEDIA: '/v4/accounts/{accountId}/locations/{locationId}/media',
     INSIGHTS: '/v4/accounts/{accountId}/locations/{locationId}/reportInsights'
   },
 
-  // OAuth Configuration
-  OAUTH: {
-    AUTH_URL: 'https://accounts.google.com/o/oauth2/v2/auth',
-    TOKEN_URL: 'https://oauth2.googleapis.com/token',
-    SCOPES: [
-      'https://www.googleapis.com/auth/business.manage',
-      'https://www.googleapis.com/auth/businessprofileperformance',
-      'openid',
-      'email',
-      'profile'
-    ]
-  },
+  SCOPES: [
+    'https://www.googleapis.com/auth/business.manage'
+  ],
 
-  // Rate Limiting Configuration
-  RATE_LIMITS: {
-    REQUESTS_PER_MINUTE: 1,
-    REQUESTS_PER_DAY: 1000,
-    RETRY_ATTEMPTS: 1, // Only 1 retry attempt due to strict 1 request/minute limit
-    RETRY_DELAY_MS: 120000, // 2 minutes minimum wait for Google Business Profile API
-    EXPONENTIAL_BACKOFF: true, // Enable exponential backoff for strict rate limits
-    MIN_WAIT_BETWEEN_REQUESTS: 60000 // Minimum 60 seconds between any requests
-  },
-
-  // Error Codes
-  ERROR_CODES: {
-    RATE_LIMIT_EXCEEDED: 429,
-    UNAUTHORIZED: 401,
-    FORBIDDEN: 403,
-    NOT_FOUND: 404,
-    INTERNAL_ERROR: 500
-  },
-
-  // API Response Status
-  STATUS: {
-    SUCCESS: 'SUCCESS',
-    ERROR: 'ERROR',
-    RATE_LIMITED: 'RATE_LIMITED',
-    AUTHENTICATION_FAILED: 'AUTHENTICATION_FAILED'
+  // Rate limiting and retry configuration
+  RATE_LIMIT: {
+    MAX_REQUESTS_PER_MINUTE: 100,
+    RETRY_DELAY_MS: 1000,
+    MAX_RETRIES: 3
   }
 };
 

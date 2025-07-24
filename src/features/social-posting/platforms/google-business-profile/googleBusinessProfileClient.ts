@@ -1,11 +1,13 @@
 /**
- * @fileoverview
  * Google Business Profile API Client
- * Handles authentication, API requests, and error handling for Google Business Profile integration
- * Updated to use the correct Google Business Profile API v4 endpoints and improved rate limiting
+ * 
+ * Updated for 2024/2025 API structure using specialized APIs:
+ * - Business Information API v1 for location management
+ * - Account Management API v1.1 for account operations  
+ * - Google My Business API v4.9 for reviews, posts, media
  */
 
-import { GOOGLE_BUSINESS_PROFILE, LEGACY_GOOGLE_BUSINESS_PROFILE } from './api';
+import { GOOGLE_BUSINESS_PROFILE } from './api';
 import type {
   GoogleBusinessProfileAuth,
   GoogleBusinessProfileCredentials,
@@ -25,7 +27,14 @@ export class GoogleBusinessProfileClient {
   private accessToken: string;
   private refreshToken: string;
   private expiresAt: number;
-  private config: GoogleBusinessProfileClientConfig;
+  /**
+   * Base configuration for the Google Business Profile client
+   */
+  private config = {
+    baseUrl: GOOGLE_BUSINESS_PROFILE.BUSINESS_INFO_BASE_URL, // Default to Business Information API
+    timeout: 30000,
+    retries: 3
+  };
 
   constructor(
     credentials: { accessToken: string; refreshToken: string; expiresAt?: number }, 
@@ -34,15 +43,15 @@ export class GoogleBusinessProfileClient {
     this.accessToken = credentials.accessToken;
     this.refreshToken = credentials.refreshToken;
     this.expiresAt = credentials.expiresAt || Date.now() + 3600000; // 1 hour default
-    this.config = {
-      baseUrl: GOOGLE_BUSINESS_PROFILE.BASE_URL,
-      apiVersion: GOOGLE_BUSINESS_PROFILE.API_VERSION,
-      timeout: 30000,
-      retryAttempts: GOOGLE_BUSINESS_PROFILE.RATE_LIMITS.RETRY_ATTEMPTS,
-      retryDelay: GOOGLE_BUSINESS_PROFILE.RATE_LIMITS.RETRY_DELAY_MS,
-      ...config
-    };
     
+    // Update config with any provided overrides
+    if (config) {
+      this.config = {
+        ...this.config,
+        ...config
+      };
+    }
+
     console.log('🔍 GoogleBusinessProfileClient created - Real API calls only');
     console.log('🔑 Token info at creation:', {
       hasAccessToken: !!this.accessToken,
@@ -54,90 +63,138 @@ export class GoogleBusinessProfileClient {
   }
 
   /**
-   * Makes an authenticated API request with rate limiting and retry logic
+   * Ensures the access token is valid and refreshes it if necessary
+   */
+  private async ensureAccessTokenValid(): Promise<void> {
+    const fiveMinutesFromNow = Date.now() + (5 * 60 * 1000);
+    const isExpired = Date.now() >= this.expiresAt;
+    const willExpireSoon = fiveMinutesFromNow >= this.expiresAt;
+    
+    console.log('🔍 Token expiry check:', {
+      currentTime: new Date(Date.now()).toISOString(),
+      expiresAt: new Date(this.expiresAt).toISOString(),
+      isExpired,
+      willExpireSoon,
+      timeUntilExpiry: Math.round((this.expiresAt - Date.now()) / 1000 / 60) + ' minutes'
+    });
+    
+    if (isExpired || willExpireSoon) {
+      console.log('🔄 Token refresh needed:', isExpired ? 'EXPIRED' : 'EXPIRES_SOON');
+      try {
+        await this.refreshAccessToken();
+      } catch (refreshError: any) {
+        console.error('❌ Token refresh failed:', refreshError);
+        // If refresh token expired, throw a specific error
+        if (refreshError.message?.includes('REFRESH_TOKEN_EXPIRED') || 
+            refreshError.message?.includes('invalid_grant') || 
+            refreshError.message?.includes('requiresReauth')) {
+          throw new Error('GOOGLE_REAUTH_REQUIRED: Please reconnect your Google Business Profile account');
+        }
+        throw refreshError;
+      }
+    } else {
+      console.log('✅ Token is still valid, no refresh needed');
+    }
+  }
+
+  /**
+   * Refreshes the access token using the refresh token
+   */
+  private async refreshAccessToken(): Promise<void> {
+    try {
+      console.log('🔄 Server-side token refresh initiated');
+
+      // Call the new server-side refresh endpoint
+      const response = await fetch('/api/auth/google/refresh-tokens', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken: this.refreshToken }),
+      });
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        if (data.error?.includes('REFRESH_TOKEN_EXPIRED')) {
+          throw new Error('GOOGLE_REAUTH_REQUIRED: Please reconnect your Google Business Profile account');
+        }
+        throw new Error(`Server-side token refresh failed: ${data.error || 'Unknown error'}`);
+      }
+
+      this.accessToken = data.accessToken;
+      this.expiresAt = Date.now() + data.expiresIn * 1000; // expiresIn is in seconds
+      this.refreshToken = data.refreshToken || this.refreshToken; // Refresh token might also be updated
+      console.log('✅ Access token refreshed successfully via server-side endpoint.');
+    } catch (refreshError: any) {
+      if (refreshError.message?.includes('GOOGLE_REAUTH_REQUIRED')) {
+        throw refreshError; // Re-throw specific re-auth error
+      }
+      console.error('❌ Error during server-side token refresh:', refreshError);
+      throw new Error(`Failed to refresh access token: ${refreshError.message}`);
+    }
+  }
+
+  // Note: Token saving is now handled by the server-side refresh endpoint
+  // This ensures proper security and eliminates the need for client-side token management
+
+  /**
+   * Makes a request to the appropriate Google Business Profile API
+   * Automatically selects the correct base URL based on the endpoint
    */
   private async makeRequest(
     endpoint: string,
     options: RequestInit = {},
     retryCount = 0,
-    baseUrl?: string
+    overrideBaseUrl?: string
   ): Promise<GoogleBusinessProfileApiResponse> {
     try {
-      // CRITICAL DEBUG: Check endpoint parameter at function entry
-      console.log('🚨 makeRequest called with:', {
-        endpointType: typeof endpoint,
-        endpointValue: endpoint,
-        endpointJSON: JSON.stringify(endpoint),
-        endpointLength: endpoint?.length,
-        startsWithSlash: endpoint?.startsWith('/'),
-        containsHttps: endpoint?.includes('https://'),
-        baseUrlProvided: !!baseUrl,
-        baseUrlValue: baseUrl
-      });
-      
-      // Check if token is expired or will expire in the next 5 minutes
-      const fiveMinutesFromNow = Date.now() + (5 * 60 * 1000);
-      const isExpired = Date.now() >= this.expiresAt;
-      const willExpireSoon = fiveMinutesFromNow >= this.expiresAt;
-      
-      console.log('🔍 Token expiry check:', {
-        currentTime: new Date(Date.now()).toISOString(),
-        expiresAt: new Date(this.expiresAt).toISOString(),
-        isExpired,
-        willExpireSoon,
-        timeUntilExpiry: Math.round((this.expiresAt - Date.now()) / 1000 / 60) + ' minutes'
-      });
-      
-      if (isExpired || willExpireSoon) {
-        console.log('🔄 Token refresh needed:', isExpired ? 'EXPIRED' : 'EXPIRES_SOON');
-        try {
-          await this.refreshAccessToken();
-        } catch (refreshError: any) {
-          console.error('❌ Token refresh failed:', refreshError);
-          // If refresh token expired, throw a specific error
-          if (refreshError.message?.includes('REFRESH_TOKEN_EXPIRED') || 
-              refreshError.message?.includes('invalid_grant') || 
-              refreshError.message?.includes('requiresReauth')) {
-            throw new Error('GOOGLE_REAUTH_REQUIRED: Please reconnect your Google Business Profile account');
-          }
-          throw refreshError;
-        }
-      } else {
-        console.log('✅ Token is still valid, no refresh needed');
+      // CRITICAL: Ensure endpoint is always just a path, never a full URL
+      if (endpoint.includes('://')) {
+        console.error('❌ CRITICAL ERROR: Endpoint contains full URL instead of path:', endpoint);
+        throw new Error(`Invalid endpoint format: ${endpoint}. Must be a path starting with '/'.`);
       }
 
-      // CRITICAL DEBUG: Check endpoint again before URL construction
-      console.log('🚨 About to construct URL:', {
-        endpointBeforeConstruction: endpoint,
-        endpointType: typeof endpoint,
-        containsHttps: endpoint?.includes('https://'),
-        baseUrlParam: baseUrl,
-        configBaseUrl: this.config.baseUrl
-      });
+      // Validate endpoint format
+      if (!endpoint.startsWith('/')) {
+        console.error('❌ CRITICAL ERROR: Endpoint must start with "/":', endpoint);
+        throw new Error(`Invalid endpoint format: ${endpoint}. Must start with '/'.`);
+      }
 
-      // Use custom base URL or default to the main Business Information API
-      const apiBaseUrl = baseUrl || this.config.baseUrl;
+      // Check if token is expired or will expire in the next 5 minutes
+      await this.ensureAccessTokenValid();
+
+      // Determine the correct base URL based on the endpoint
+      let apiBaseUrl: string;
+      
+      if (overrideBaseUrl) {
+        apiBaseUrl = overrideBaseUrl;
+      } else if (endpoint.startsWith('/v1/accounts')) {
+        // Account Management API v1.1
+        apiBaseUrl = GOOGLE_BUSINESS_PROFILE.ACCOUNT_MGMT_BASE_URL;
+      } else if (endpoint.startsWith('/v1/')) {
+        // Business Information API v1
+        apiBaseUrl = GOOGLE_BUSINESS_PROFILE.BUSINESS_INFO_BASE_URL;
+      } else if (endpoint.startsWith('/v4/')) {
+        // Google My Business API v4.9
+        apiBaseUrl = GOOGLE_BUSINESS_PROFILE.LEGACY_BASE_URL;
+      } else {
+        // Default to Business Information API
+        apiBaseUrl = GOOGLE_BUSINESS_PROFILE.BUSINESS_INFO_BASE_URL;
+      }
+
       const url = `${apiBaseUrl}${endpoint}`;
       
-      // Debug URL construction to catch double accounts/ issues
-      console.log(`🔧 URL Construction Debug:`);
-      console.log(`   Base URL: ${apiBaseUrl}`);
-      console.log(`   Endpoint: ${endpoint}`);
-      console.log(`   Final URL: ${url}`);
-      
-      // Safety check for double accounts prefix
-      if (url.includes('/accounts/accounts/')) {
-        console.error(`❌ DOUBLE ACCOUNTS PREFIX DETECTED!`);
-        console.error(`   Base URL: ${apiBaseUrl}`);
-        console.error(`   Endpoint: ${endpoint}`);
-        console.error(`   Final URL: ${url}`);
-        throw new Error(`Double accounts prefix detected in URL: ${url}`);
-      }
-      
+      console.log('🔧 API Request Debug:', {
+        endpoint,
+        baseUrl: apiBaseUrl,
+        finalUrl: url,
+        endpointType: typeof endpoint,
+        endpointLength: endpoint.length
+      });
+
       const headers = {
         'Authorization': `Bearer ${this.accessToken}`,
         'Content-Type': 'application/json',
-        ...options.headers
+        'X-GOOG-API-FORMAT-VERSION': '2', // Enable detailed error messages
+        ...options.headers,
       };
 
       console.log(`🌐 Making API request to: ${url}`);
@@ -149,127 +206,62 @@ export class GoogleBusinessProfileClient {
         signal: AbortSignal.timeout(this.config.timeout || 30000)
       });
 
+      console.log(`📊 Response status: ${response.status}`);
+      console.log(`📋 Response headers:`, Object.fromEntries(response.headers.entries()));
+
+      // Get response text first to handle both JSON and error responses
       const responseText = await response.text();
-      let data;
-      
+      console.log(`📄 Response text (first 500 chars):`, responseText.substring(0, 500));
+
+      // Try to parse as JSON
+      let responseData;
       try {
-        data = JSON.parse(responseText);
+        responseData = responseText ? JSON.parse(responseText) : {};
       } catch (parseError) {
         console.error('❌ Failed to parse response:', responseText);
         throw new Error(`Invalid JSON response: ${responseText}`);
       }
 
-      console.log(`📊 Response status: ${response.status}`);
-      console.log(`📋 Response headers:`, Object.fromEntries(response.headers.entries()));
-      console.log(`📄 Response text (first 500 chars):`, responseText.substring(0, 500));
-
-      // Handle rate limiting - Google Business Profile API has strict rate limits
-      if (response.status === GOOGLE_BUSINESS_PROFILE.ERROR_CODES.RATE_LIMIT_EXCEEDED) {
-        // Don't retry on rate limits - return immediately to avoid hanging the frontend
-        console.log(`❌ Rate limit exceeded - returning immediately to avoid frontend timeout`);
-        
-        // Extract retry-after header if available
-        const retryAfter = response.headers.get('retry-after');
-        const retryDelay = retryAfter ? parseInt(retryAfter) : 60; // Default 60 seconds
-        
-        console.log(`💡 Google Business Profile API quota exhausted. Wait ${retryDelay} seconds before trying again.`);
-        console.log(`💡 Consider requesting higher quota limits in Google Cloud Console if this persists.`);
-        
-        const error: GoogleBusinessProfileError = new Error(
-          `Rate limit exceeded. Please wait ${retryDelay} seconds before trying again. Consider requesting higher quota limits if this persists.`
-        ) as GoogleBusinessProfileError;
-        error.code = 429;
-        error.status = 'RESOURCE_EXHAUSTED';
-        error.details = data.error?.details || [];
-        error.retryAfter = retryDelay;
-        throw error;
-      }
-
-      // Handle other errors
       if (!response.ok) {
-        // Special handling for Google API internal errors
-        if (response.status === 500 && data.error?.status === 'INTERNAL') {
-          console.warn('⚠️ Google Business Profile API experiencing internal issues. This is temporary.');
-          const error: GoogleBusinessProfileError = new Error(
-            'Google Business Profile API is temporarily unavailable. Please try again later.'
-          ) as GoogleBusinessProfileError;
-          error.code = 500;
-          error.status = 'INTERNAL';
-          error.details = data.error?.details;
-          error.isTemporary = true;
-          throw error;
+        console.error('❌ API request failed:', responseData);
+        
+        // Handle specific error cases
+        if (response.status === 429) {
+          throw new Error('Rate limit exceeded');
+        } else if (response.status === 401) {
+          throw new Error('Authentication failed - token may be expired');
+        } else if (response.status === 403) {
+          throw new Error('Access forbidden - check permissions and API enablement');
+        } else if (response.status === 404) {
+          throw new Error(`Resource not found: ${endpoint}`);
         }
-
-        const error: GoogleBusinessProfileError = new Error(
-          data.error?.message || `API request failed: ${response.statusText}`
-        ) as GoogleBusinessProfileError;
-        error.code = data.error?.code || response.status;
-        error.status = data.error?.status;
-        error.details = data.error?.details;
-        throw error;
+        
+        throw new Error(`API request failed with status ${response.status}: ${JSON.stringify(responseData)}`);
       }
 
-      return { data, status: response.status };
-
-    } catch (error) {
+      return responseData;
+    } catch (error: any) {
       console.error('❌ API request failed:', error);
-      throw error;
-    }
-  }
 
-
-
-  /**
-   * Refreshes the access token using the server-side refresh endpoint
-   * This ensures client secrets are kept secure on the server
-   */
-  private async refreshAccessToken(): Promise<void> {
-    try {
-      console.log('🔄 Refreshing access token via server-side endpoint...');
-      console.log('🔑 Current token expires at:', new Date(this.expiresAt).toISOString());
-      
-      const response = await fetch('/api/auth/google/refresh-tokens', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      const data = await response.json();
-      console.log('📊 Server refresh response:', {
-        ok: response.ok,
-        status: response.status,
-        success: data.success,
-        hasAccessToken: !!data.access_token,
-        requiresReauth: data.requiresReauth
-      });
-
-      if (!response.ok) {
-        // If refresh token expired, user needs to re-authentication
-        if (data.requiresReauth) {
-          throw new Error('REFRESH_TOKEN_EXPIRED: User needs to re-authenticate');
-        }
-        throw new Error(`Token refresh failed: ${data.error}`);
+      // Handle specific errors that should trigger re-authentication
+      if (error.message?.includes('GOOGLE_REAUTH_REQUIRED') || 
+          error.message?.includes('token') || 
+          error.message?.includes('401')) {
+        throw error; // Re-throw auth errors as-is
       }
 
-      const oldExpiresAt = this.expiresAt;
-      this.accessToken = data.access_token;
-      this.expiresAt = new Date(data.expires_at).getTime();
-      
-      console.log('✅ Access token refreshed successfully via server');
-      console.log('🔄 Token expiry updated:', {
-        oldExpiresAt: new Date(oldExpiresAt).toISOString(),
-        newExpiresAt: new Date(this.expiresAt).toISOString()
-      });
+      // Handle retries for other errors
+      if (retryCount < this.config.retries && 
+          !error.message?.includes('Invalid endpoint format') &&
+          !error.message?.includes('CRITICAL ERROR')) {
+        console.log(`🔄 Retrying request (${retryCount + 1}/${this.config.retries})...`);
+        await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount)));
+        return this.makeRequest(endpoint, options, retryCount + 1, overrideBaseUrl);
+      }
 
-    } catch (error) {
-      console.error('❌ Failed to refresh access token:', error);
       throw error;
     }
   }
-
-  // Note: Token saving is now handled by the server-side refresh endpoint
-  // This ensures proper security and eliminates the need for client-side token management
 
   /**
    * Lists all business accounts for the authenticated user
@@ -283,16 +275,16 @@ export class GoogleBusinessProfileClient {
         GOOGLE_BUSINESS_PROFILE.ENDPOINTS.ACCOUNTS,
         {},
         0,
-        GOOGLE_BUSINESS_PROFILE.ACCOUNT_MANAGEMENT_URL
+        GOOGLE_BUSINESS_PROFILE.ACCOUNT_MGMT_BASE_URL
       );
       
-      if (!response.data.accounts) {
+      if (!response.accounts) {
         console.log('⚠️ No accounts found in response');
         return [];
       }
 
-      console.log(`✅ Found ${response.data.accounts.length} accounts`);
-      return response.data.accounts;
+      console.log(`✅ Found ${response.accounts.length} accounts`);
+      return response.accounts;
 
     } catch (error) {
       console.error('❌ Failed to list accounts:', error);
@@ -347,16 +339,16 @@ export class GoogleBusinessProfileClient {
         0,
         'https://mybusinessbusinessinformation.googleapis.com'
       );
-      console.log(`📍 Response data:`, response.data);
-      console.log(`📍 Response data.locations:`, response.data.locations);
+      console.log(`📍 Response data:`, response);
+      console.log(`📍 Response data.locations:`, response.locations);
       
-      if (!response.data.locations) {
+      if (!response.locations) {
         console.log('⚠️ No locations found in response');
         return [];
       }
 
-      console.log(`✅ Found ${response.data.locations.length} locations`);
-      return response.data.locations;
+      console.log(`✅ Found ${response.locations.length} locations`);
+      return response.locations;
 
     } catch (error) {
       console.error('❌ Failed to list locations:', error);
@@ -393,15 +385,15 @@ export class GoogleBusinessProfileClient {
         .replace('{accountId}', accountId)
         .replace('{locationId}', locationId);
       
-      const response = await this.makeRequest(endpoint, {}, 0, GOOGLE_BUSINESS_PROFILE.V4_BASE_URL);
+      const response = await this.makeRequest(endpoint, {}, 0, GOOGLE_BUSINESS_PROFILE.LEGACY_BASE_URL);
       
-      if (!response.data.localPosts) {
+      if (!response.localPosts) {
         console.log('⚠️ No local posts found in response');
         return [];
       }
 
-      console.log(`✅ Found ${response.data.localPosts.length} local posts`);
-      return response.data.localPosts;
+      console.log(`✅ Found ${response.localPosts.length} local posts`);
+      return response.localPosts;
 
     } catch (error) {
       console.error('❌ Failed to list local posts:', error);
@@ -427,10 +419,10 @@ export class GoogleBusinessProfileClient {
       const response = await this.makeRequest(endpoint, {
         method: 'POST',
         body: JSON.stringify(postData)
-      }, 0, GOOGLE_BUSINESS_PROFILE.V4_BASE_URL);
+      }, 0, GOOGLE_BUSINESS_PROFILE.LEGACY_BASE_URL);
 
       console.log('✅ Local post created successfully');
-      return response.data;
+      return response;
 
     } catch (error) {
       console.error('❌ Failed to create local post:', error);
@@ -496,7 +488,7 @@ export class GoogleBusinessProfileClient {
       );
 
       console.log('✅ Location details fetched successfully');
-      return response.data;
+      return response;
 
     } catch (error) {
       console.error('❌ Failed to get location details:', error);
@@ -506,73 +498,56 @@ export class GoogleBusinessProfileClient {
 
   /**
    * Updates business location information
+   * Uses Business Information API v1 with PATCH method
    */
   async updateLocation(accountId: string, locationId: string, updates: any): Promise<any> {
     try {
       console.log(`🔄 Updating location: ${locationId}`);
       console.log(`📝 Updates:`, updates);
 
-      // Handle different location ID formats
-      let cleanAccountId: string;
-      let cleanLocationId: string;
-
-      if (locationId.startsWith('locations/')) {
-        // Format: "locations/12345"
-        cleanAccountId = accountId.replace('accounts/', '');
-        cleanLocationId = locationId.replace('locations/', '');
-      } else if (locationId.includes('/locations/')) {
-        // Format: "accounts/123/locations/12345" - extract both IDs
-        const parts = locationId.split('/');
-        const accountIndex = parts.indexOf('accounts');
-        const locationIndex = parts.indexOf('locations');
-        
-        if (accountIndex >= 0 && locationIndex >= 0 && locationIndex > accountIndex) {
-          cleanAccountId = parts[accountIndex + 1];
-          cleanLocationId = parts[locationIndex + 1];
-        } else {
-          throw new Error(`Invalid location ID format: ${locationId}`);
-        }
-      } else {
-        // Assume it's just the numeric ID
-        cleanAccountId = accountId.replace('accounts/', '');
-        cleanLocationId = locationId;
+      // Extract just the location ID if it's in full format
+      let cleanLocationId = locationId;
+      if (locationId.includes('/')) {
+        cleanLocationId = locationId.split('/').pop() || locationId;
       }
+      
+      console.log(`🔧 Using location ID: ${cleanLocationId}`);
 
-      console.log(`🔧 Parsed IDs - Account: ${cleanAccountId}, Location: ${cleanLocationId}`);
-
-      // Use the constant from API config and replace placeholders
+      // Use the Business Information API v1 endpoint - PATCH /v1/locations/{locationId}
       const endpoint = GOOGLE_BUSINESS_PROFILE.ENDPOINTS.LOCATION_UPDATE
-        .replace('{accountId}', cleanAccountId)
         .replace('{locationId}', cleanLocationId);
       
-      console.log(`🔧 Update endpoint from config: ${endpoint}`);
-      
-      // Create update mask for the fields we're updating
+      console.log(`🔧 Update endpoint: ${endpoint}`);
+
+      // Create update mask for the fields being updated
       const updateMask = [];
       if (updates.title) updateMask.push('title');
-      if (updates.profile) updateMask.push('profile.description');
+      if (updates.profile?.description) updateMask.push('profile.description');
       if (updates.regularHours) updateMask.push('regularHours');
       if (updates.serviceItems) updateMask.push('serviceItems');
+      if (updates.categories) updateMask.push('categories');
+      if (updates.primaryCategory) updateMask.push('primaryCategory');
+      if (updates.additionalCategories) updateMask.push('additionalCategories');
 
-      const endpointWithParams = `${endpoint}?updateMask=${encodeURIComponent(updateMask.join(','))}`;
+      const queryParams = updateMask.length > 0 ? `?updateMask=${updateMask.join(',')}` : '';
+      const fullEndpoint = `${endpoint}${queryParams}`;
 
-      console.log(`🔧 Update endpoint: ${endpointWithParams}`);
+      console.log(`🔧 Full endpoint with update mask: ${fullEndpoint}`);
 
-      // Use Business Information API explicitly to avoid URL construction issues
+      // Use Business Information API v1 explicitly with PATCH method
       const response = await this.makeRequest(
-        endpointWithParams,
+        fullEndpoint,
         {
           method: 'PATCH',
           body: JSON.stringify(updates)
         },
         0,
-        'https://mybusinessbusinessinformation.googleapis.com'
+        GOOGLE_BUSINESS_PROFILE.BUSINESS_INFO_BASE_URL
       );
 
-      console.log('✅ Location updated successfully');
-      return response.data;
-
-    } catch (error) {
+      console.log('✅ Successfully updated location');
+      return response;
+    } catch (error: any) {
       console.error('❌ Failed to update location:', error);
       throw error;
     }
@@ -599,7 +574,7 @@ export class GoogleBusinessProfileClient {
         .replace('{accountId}', cleanAccountId)
         .replace('{locationId}', cleanLocationId);
 
-      const url = `${GOOGLE_BUSINESS_PROFILE.V4_BASE_URL}${endpoint}`;
+      const url = `${GOOGLE_BUSINESS_PROFILE.LEGACY_BASE_URL}${endpoint}`;
 
       console.log(`🌐 Media upload URL: ${url}`);
 
@@ -627,7 +602,7 @@ export class GoogleBusinessProfileClient {
       console.log('✅ Media uploaded successfully');
       return {
         success: true,
-        mediaItem: response.data
+        mediaItem: response
       };
 
     } catch (error) {
@@ -661,10 +636,10 @@ export class GoogleBusinessProfileClient {
       
       const response = await this.makeRequest(endpoint, {
         method: 'GET'
-      }, 0, GOOGLE_BUSINESS_PROFILE.V4_BASE_URL);
+      }, 0, GOOGLE_BUSINESS_PROFILE.LEGACY_BASE_URL);
 
       console.log('✅ Successfully fetched reviews');
-      return response.data?.reviews || [];
+      return response?.reviews || [];
 
     } catch (error) {
       console.error('❌ Failed to fetch reviews:', error);
@@ -697,10 +672,10 @@ export class GoogleBusinessProfileClient {
         body: JSON.stringify({
           comment: replyText
         }),
-      }, 0, GOOGLE_BUSINESS_PROFILE.V4_BASE_URL);
+      }, 0, GOOGLE_BUSINESS_PROFILE.LEGACY_BASE_URL);
 
       console.log('✅ Successfully replied to review');
-      return response.data;
+      return response;
 
     } catch (error) {
       console.error('❌ Failed to reply to review:', error);
@@ -710,46 +685,42 @@ export class GoogleBusinessProfileClient {
 
   /**
    * Lists all available Google Business Categories
+   * Uses Business Information API v1
    */
   async listCategories(): Promise<Array<{ categoryId: string; displayName: string }>> {
     try {
       console.log('📋 Fetching Google Business categories...');
       
-      // Use the constant from API config to avoid any URL issues
+      // Use ONLY the endpoint path from the config
       const endpoint = GOOGLE_BUSINESS_PROFILE.ENDPOINTS.CATEGORIES;
-      console.log('🔧 Categories endpoint from config:', typeof endpoint, JSON.stringify(endpoint));
       
-      // Additional safety checks
-      if (!endpoint || typeof endpoint !== 'string') {
-        throw new Error(`Invalid endpoint from config: ${endpoint}`);
-      }
+      console.log('🔧 Categories endpoint:', endpoint);
+      console.log('🔧 Endpoint validation:', {
+        isString: typeof endpoint === 'string',
+        startsWithSlash: endpoint.startsWith('/'),
+        containsProtocol: endpoint.includes('://'),
+        length: endpoint.length
+      });
       
-      if (!endpoint.startsWith('/')) {
-        console.error('❌ INVALID ENDPOINT FORMAT:', endpoint);
-        throw new Error(`Invalid endpoint format: ${endpoint}`);
+      // Use Business Information API v1 explicitly
+      const response = await this.makeRequest(
+        endpoint,
+        { method: 'GET' },
+        0,
+        GOOGLE_BUSINESS_PROFILE.BUSINESS_INFO_BASE_URL
+      );
+
+      if (response.categories) {
+        console.log('✅ Successfully fetched categories:', response.categories.length);
+        return response.categories.map((cat: any) => ({
+          categoryId: cat.categoryId || cat.name,
+          displayName: cat.displayName
+        }));
       }
 
-      // Clone the endpoint to prevent any reference issues
-      const safeEndpoint = String(endpoint);
-      console.log('🔧 Safe endpoint for makeRequest:', safeEndpoint);
-      
-      // Use the default base URL (Business Information API)
-      const response = await this.makeRequest(
-        safeEndpoint,
-        { method: 'GET' },
-        0
-      );
-      
-      console.log(`✅ Fetched ${response.data.categories?.length || 0} business categories`);
-      
-      // Transform categories to consistent format
-      const categories = (response.data.categories || []).map((cat: any) => ({
-        categoryId: cat.categoryId || cat.name || '',
-        displayName: cat.displayName || cat.categoryId || ''
-      }));
-      
-      return categories;
-    } catch (error) {
+      console.log('⚠️ No categories in response');
+      return [];
+    } catch (error: any) {
       console.error('❌ Failed to list categories:', error);
       throw error;
     }
