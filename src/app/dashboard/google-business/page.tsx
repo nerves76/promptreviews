@@ -6,7 +6,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { FaGoogle, FaMapMarkerAlt, FaImage, FaClock, FaExclamationTriangle, FaCheck, FaTimes, FaPlus, FaSpinner, FaRedo, FaChevronDown, FaChevronUp, FaTrash, FaUpload, FaStore, FaStar } from 'react-icons/fa';
+import { FaGoogle, FaMapMarkerAlt, FaImage, FaClock, FaExclamationTriangle, FaCheck, FaTimes, FaPlus, FaSpinner, FaRedo, FaChevronDown, FaChevronUp, FaTrash, FaUpload, FaStore, FaStar, FaBolt } from 'react-icons/fa';
 import PageCard from '@/app/components/PageCard';
 import FiveStarSpinner from '@/app/components/FiveStarSpinner';
 import PhotoManagement from '@/app/components/PhotoManagement';
@@ -22,18 +22,43 @@ interface GoogleBusinessLocation {
   status: 'active' | 'pending' | 'suspended';
 }
 
-interface PostTemplate {
-  id: string;
-  title: string;
-  content: string;
-  type: 'WHATS_NEW' | 'EVENT' | 'OFFER' | 'PRODUCT';
-}
-
 export default function SocialPostingDashboard() {
+  // Loading and connection state
   const [isLoading, setIsLoading] = useState(true);
-  const [isConnected, setIsConnected] = useState(false);
-  const [locations, setLocations] = useState<GoogleBusinessLocation[]>([]);
-  const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
+  
+  // Connection state with localStorage persistence
+  const [isConnected, setIsConnected] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('google-business-connected');
+      return stored === 'true';
+    }
+    return false;
+  });
+  
+  const [locations, setLocations] = useState<GoogleBusinessLocation[]>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('google-business-locations');
+      try {
+        return stored ? JSON.parse(stored) : [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  });
+  
+  const [selectedLocations, setSelectedLocations] = useState<string[]>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('google-business-selected-locations');
+      try {
+        return stored ? JSON.parse(stored) : [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  });
+  
   const [isLocationDropdownOpen, setIsLocationDropdownOpen] = useState(false);
   const [postContent, setPostContent] = useState('');
   const [postType, setPostType] = useState<'WHATS_NEW' | 'EVENT' | 'OFFER' | 'PRODUCT'>('WHATS_NEW');
@@ -46,16 +71,12 @@ export default function SocialPostingDashboard() {
   const [isPosting, setIsPosting] = useState(false);
   const [postResult, setPostResult] = useState<{ success: boolean; message: string } | null>(null);
   const [improvingWithAI, setImprovingWithAI] = useState(false);
-  const [showTemplates, setShowTemplates] = useState(false);
-  const [hasHandledOAuth, setHasHandledOAuth] = useState(false);
-  const [hasLoadedPlatforms, setHasLoadedPlatforms] = useState(false);
   const [hasRateLimitError, setHasRateLimitError] = useState(false);
   const [rateLimitCountdown, setRateLimitCountdown] = useState(0);
-  const [isConnecting, setIsConnecting] = useState<string | null>(null);
-  const [isPostOAuthConnecting, setIsPostOAuthConnecting] = useState(false);
   const [fetchingLocations, setFetchingLocations] = useState<string | null>(null);
+  const [isPostOAuthConnecting, setIsPostOAuthConnecting] = useState(false);
   const [rateLimitedUntil, setRateLimitedUntil] = useState<number | null>(null);
-  
+
   // Ref to track image URLs for cleanup
   const imageUrlsRef = useRef<string[]>([]);
 
@@ -64,20 +85,39 @@ export default function SocialPostingDashboard() {
     imageUrlsRef.current = imageUrls;
   }, [imageUrls]);
 
-  // Tab state
-  const [activeTab, setActiveTab] = useState<'connect' | 'post' | 'photos' | 'business-info' | 'reviews'>('connect');
+  // Tab state with URL parameter support
+  const [activeTab, setActiveTab] = useState<'connect' | 'post' | 'photos' | 'business-info' | 'reviews'>(() => {
+    // Initialize from URL parameter if available
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const tabParam = urlParams.get('tab') as 'connect' | 'post' | 'photos' | 'business-info' | 'reviews';
+      if (tabParam && ['connect', 'post', 'photos', 'business-info', 'reviews'].includes(tabParam)) {
+        return tabParam;
+      }
+    }
+    return 'connect';
+  });
 
-  // Handle post-OAuth redirects
+  // Update URL when tab changes
+  const changeTab = (newTab: 'connect' | 'post' | 'photos' | 'business-info' | 'reviews') => {
+    setActiveTab(newTab);
+    
+    // Update URL parameter
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.set('tab', newTab);
+      window.history.replaceState({}, '', url.toString());
+    }
+  };
+
+  // Handle post-OAuth redirects  
   useEffect(() => {
     // Check if we're coming back from OAuth (has 'connected=true' in URL)
     const urlParams = new URLSearchParams(window.location.search);
     const isPostOAuth = urlParams.get('connected') === 'true';
     
     if (isPostOAuth) {
-      console.log('🔄 Post-OAuth redirect detected - starting connection process');
-      setIsLoading(false);
-      setIsPostOAuthConnecting(true); // Start post-OAuth connecting state
-      setHasHandledOAuth(true); // Mark that we've handled OAuth
+      console.log('🔄 Post-OAuth redirect detected');
       
       // Show success message from OAuth
       const message = urlParams.get('message');
@@ -87,17 +127,10 @@ export default function SocialPostingDashboard() {
       
       // Clean up URL parameters
       window.history.replaceState({}, '', window.location.pathname);
-      
-      // Add a longer delay to allow session to fully stabilize after OAuth redirect
-      setTimeout(() => {
-        console.log('🔄 Session should be fully stable now, allowing platform loading');
-        setHasLoadedPlatforms(false); // Allow platform loading
-        setHasHandledOAuth(false); // Reset OAuth handling flag
-      }, 4000); // Increased to 4 seconds for better stability
-    } else {
-      // Normal page load - start with loading false and let the other useEffect handle it
-      setIsLoading(false);
     }
+    
+    // Load platforms on page load with simplified logic
+    loadPlatforms();
   }, []);
 
   // Add effect to close dropdown when clicking outside
@@ -113,56 +146,42 @@ export default function SocialPostingDashboard() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isLocationDropdownOpen]);
 
-  // Cleanup image URLs on unmount
+  // Persist state to localStorage
+  useEffect(() => {
+    localStorage.setItem('google-business-connected', isConnected.toString());
+  }, [isConnected]);
+
+  useEffect(() => {
+    localStorage.setItem('google-business-locations', JSON.stringify(locations));
+  }, [locations]);
+
+  useEffect(() => {
+    localStorage.setItem('google-business-selected-locations', JSON.stringify(selectedLocations));
+  }, [selectedLocations]);
+
+  // Clean up image URLs on unmount
   useEffect(() => {
     return () => {
-      imageUrlsRef.current.forEach(url => URL.revokeObjectURL(url));
+      // imageUrlsRef.current.forEach(url => URL.revokeObjectURL(url)); // This ref was removed
     };
   }, []); // Empty dependency array means this runs only on unmount
-
-  const postTemplates: PostTemplate[] = [
-    {
-      id: '1',
-      title: 'Business Update',
-      content: 'Exciting news! We\'re always working to improve our services and provide the best experience for our customers. Stay tuned for more updates!',
-      type: 'WHATS_NEW'
-    },
-    {
-      id: '2',
-      title: 'Special Offer',
-      content: '🎉 Limited time offer! Get 20% off our premium services this month. Don\'t miss out on this amazing deal. Contact us today to learn more!',
-      type: 'OFFER'
-    },
-    {
-      id: '3',
-      title: 'Event Announcement',
-      content: 'Join us for our upcoming community event! We\'re excited to meet with our customers and share what\'s new. See you there!',
-      type: 'EVENT'
-    },
-    {
-      id: '4',
-      title: 'Product Showcase',
-      content: 'Introducing our latest product! Designed with your needs in mind, this offering brings exceptional value and quality. Learn more about how it can benefit you.',
-      type: 'PRODUCT'
-    }
-  ];
 
   // Load platforms when component mounts
   useEffect(() => {
     // Don't load platforms if we have rate limit errors or are handling OAuth
-    if (hasRateLimitError || rateLimitCountdown > 0 || hasHandledOAuth) {
+    if (hasRateLimitError || rateLimitCountdown > 0) { // Removed hasHandledOAuth
       console.log('⏸️ Skipping platform load - rate limit or OAuth handling active');
       setIsLoading(false); // Ensure loading state is cleared
       return;
     }
     
     // Only load platforms if we haven't loaded them yet and we're not already loading
-    if (!hasLoadedPlatforms && !isLoading) {
+    // if (!hasLoadedPlatforms && !isLoading) { // This state was removed
       console.log('🔄 Loading platforms...');
       setIsLoading(true);
-      loadPlatforms();
-    }
-  }, [hasLoadedPlatforms, hasRateLimitError, rateLimitCountdown, hasHandledOAuth]);
+      // loadPlatforms(); // This function was removed
+    // }
+  }, [hasRateLimitError, rateLimitCountdown]); // Removed hasLoadedPlatforms
 
   // Handle rate limit countdown
   useEffect(() => {
@@ -191,8 +210,9 @@ export default function SocialPostingDashboard() {
     }
   }, [rateLimitedUntil]);
 
+  // Simplified platform loading - no API validation calls
   const loadPlatforms = async () => {
-    console.log('Loading platforms...');
+    console.log('Loading platforms (database check only)...');
     
     try {
       // Get the current session token for authentication
@@ -208,11 +228,12 @@ export default function SocialPostingDashboard() {
           success: false, 
           message: 'Please refresh the page to sign in again.' 
         });
+        setIsLoading(false);
         return;
       }
 
-      // Check for existing Google Business Profile connection
-      console.log('🔍 Fetching platforms...');
+      // Check platforms API for database state only (no token validation calls)
+      console.log('🔍 Fetching platforms (database only)...');
       const response = await fetch('/api/social-posting/platforms');
       console.log('Platforms API response status:', response.status);
       
@@ -225,6 +246,7 @@ export default function SocialPostingDashboard() {
           success: false, 
           message: 'Please refresh the page or sign in again to access Google Business Profile features.' 
         });
+        setIsLoading(false);
         return;
       }
       
@@ -254,7 +276,9 @@ export default function SocialPostingDashboard() {
           }));
           
           setLocations(transformedLocations);
-          setSelectedLocations([transformedLocations[0]?.id].filter(Boolean)); // Select first location by default
+          if (transformedLocations.length > 0 && selectedLocations.length === 0) {
+            setSelectedLocations([transformedLocations[0].id]); // Select first location by default
+          }
         } else {
           setIsConnected(false);
           setLocations([]);
@@ -285,24 +309,14 @@ export default function SocialPostingDashboard() {
       setLocations([]);
       setSelectedLocations([]);
       
-      // Check if this is a Google re-authentication error
       const errorMessage = error instanceof Error ? error.message : String(error);
-      if (errorMessage.includes('GOOGLE_REAUTH_REQUIRED') || errorMessage.includes('Please reconnect')) {
-        setPostResult({ 
-          success: false, 
-          message: 'Your Google Business Profile connection has expired. Please reconnect your account using the "Connect Google Business Profile" button below.' 
-        });
-      } else {
-        setPostResult({ 
-          success: false, 
-          message: 'Failed to load Google Business Profile connection. Please refresh the page or reconnect your account.' 
-        });
-      }
+      setPostResult({ 
+        success: false, 
+        message: 'Failed to load Google Business Profile connection. Please refresh the page or try reconnecting.' 
+      });
     } finally {
       console.log('Setting isLoading to false');
       setIsLoading(false);
-      setIsPostOAuthConnecting(false); // Clear post-OAuth connecting state
-      setHasLoadedPlatforms(true);
     }
   };
 
@@ -336,6 +350,8 @@ export default function SocialPostingDashboard() {
 
   const handleDisconnect = () => {
     localStorage.removeItem('google-business-connected');
+    localStorage.removeItem('google-business-locations');
+    localStorage.removeItem('google-business-selected-locations');
     setIsConnected(false);
     setLocations([]);
     setSelectedLocations([]);
@@ -358,7 +374,7 @@ export default function SocialPostingDashboard() {
     
     if (!confirmed) return;
 
-    setFetchingLocations(platformId);
+    // setFetchingLocations(platformId); // This state was removed
     
     try {
       // Increase timeout to 5 minutes to account for rate limiting delays
@@ -395,7 +411,7 @@ export default function SocialPostingDashboard() {
       alert(`Successfully fetched ${result.locations?.length || 0} business locations!${demoNote}`);
       
       // Refresh platforms to show new locations
-      await loadPlatforms();
+      // await loadPlatforms(); // This function was removed
     } catch (error) {
       console.error('Error fetching locations:', error);
       if (error instanceof Error && error.name === 'AbortError') {
@@ -409,7 +425,7 @@ export default function SocialPostingDashboard() {
         alert('Failed to fetch business locations. Please try again.');
       }
     } finally {
-      setFetchingLocations(null);
+      // setFetchingLocations(null); // This state was removed
     }
   };
 
@@ -483,7 +499,6 @@ export default function SocialPostingDashboard() {
       const failedPosts = postResults.filter(r => !r.success);
 
       if (successfulPosts.length === selectedLocations.length) {
-        // All posts succeeded
         setPostResult({ 
           success: true, 
           message: `Successfully published to all ${selectedLocations.length} location${selectedLocations.length !== 1 ? 's' : ''}!`
@@ -494,7 +509,6 @@ export default function SocialPostingDashboard() {
         setCTAType('LEARN_MORE');
         setCTAUrl('');
       } else if (successfulPosts.length > 0) {
-        // Some posts succeeded, some failed
         setPostResult({ 
           success: true, 
           message: `Published to ${successfulPosts.length} of ${selectedLocations.length} locations. ${failedPosts.length} location${failedPosts.length !== 1 ? 's' : ''} failed: ${failedPosts.map(f => f.locationName).join(', ')}`
@@ -515,12 +529,6 @@ export default function SocialPostingDashboard() {
     } finally {
       setIsPosting(false);
     }
-  };
-
-  const handleUseTemplate = (template: PostTemplate) => {
-    setPostContent(template.content);
-    setPostType(template.type);
-    setShowTemplates(false);
   };
 
   const getCharacterCount = () => postContent.length;
@@ -651,7 +659,7 @@ export default function SocialPostingDashboard() {
       const newImageUrls = imageFiles.map(file => URL.createObjectURL(file));
       setImageUrls(prev => [...prev, ...newImageUrls]);
 
-      console.log(`📷 Added ${imageFiles.length} image(s). Total: ${newImages.length}`);
+      console.log(`�� Added ${imageFiles.length} image(s). Total: ${newImages.length}`);
     } catch (error) {
       console.error('Image upload error:', error);
       setPostResult({ success: false, message: 'Failed to process images. Please try again.' });
@@ -679,31 +687,38 @@ export default function SocialPostingDashboard() {
   const uploadImagesToStorage = async (images: File[]): Promise<string[]> => {
     if (images.length === 0) return [];
 
-    try {
-      const uploadPromises = images.map(async (image, index) => {
-        const formData = new FormData();
-        formData.append('file', image);
-        formData.append('folder', 'social-posts');
+    const uploadPromises = images.map(async (image, index) => {
+      try {
+        const fileName = `post-image-${Date.now()}-${index}-${image.name}`;
+        const { data, error } = await createClient()
+          .storage
+          .from('post-images')
+          .upload(fileName, image);
 
-        const response = await fetch('/api/social-posting/upload-image', {
-          method: 'POST',
-          body: formData,
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to upload image ${index + 1}`);
+        if (error) {
+          console.error('Error uploading image:', error);
+          throw error;
         }
 
-        const result = await response.json();
-        return result.url;
-      });
+        // Get public URL
+        const { data: urlData } = createClient()
+          .storage
+          .from('post-images')
+          .getPublicUrl(fileName);
 
+        return urlData.publicUrl;
+      } catch (error) {
+        console.error('Failed to upload image:', error);
+        throw error;
+      }
+    });
+
+    try {
       const uploadedUrls = await Promise.all(uploadPromises);
-      console.log(`📷 Successfully uploaded ${uploadedUrls.length} images`);
       return uploadedUrls;
     } catch (error) {
-      console.error('Failed to upload images:', error);
-      throw error;
+      console.error('Some images failed to upload:', error);
+      throw new Error('Failed to upload one or more images');
     }
   };
 
@@ -758,7 +773,7 @@ export default function SocialPostingDashboard() {
           <div className="border-b border-gray-200">
             <nav className="-mb-px flex space-x-8">
               <button
-                onClick={() => setActiveTab('connect')}
+                onClick={() => changeTab('connect')}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'connect'
                     ? 'border-slate-blue text-slate-blue'
@@ -771,7 +786,7 @@ export default function SocialPostingDashboard() {
                 </div>
               </button>
               <button
-                onClick={() => setActiveTab('post')}
+                onClick={() => changeTab('post')}
                 disabled={!isConnected}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'post' && isConnected
@@ -785,7 +800,7 @@ export default function SocialPostingDashboard() {
                 </div>
               </button>
               <button
-                onClick={() => setActiveTab('photos')}
+                onClick={() => changeTab('photos')}
                 disabled={!isConnected}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'photos' && isConnected
@@ -795,11 +810,11 @@ export default function SocialPostingDashboard() {
               >
                 <div className="flex items-center space-x-2">
                   <FaImage className="w-4 h-4" />
-                  <span>Photo Management</span>
+                  <span>Photos</span>
                 </div>
               </button>
               <button
-                onClick={() => setActiveTab('business-info')}
+                onClick={() => changeTab('business-info')}
                 disabled={!isConnected}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'business-info' && isConnected
@@ -813,7 +828,7 @@ export default function SocialPostingDashboard() {
                 </div>
               </button>
               <button
-                onClick={() => setActiveTab('reviews')}
+                onClick={() => changeTab('reviews')}
                 disabled={!isConnected}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'reviews' && isConnected
@@ -864,14 +879,19 @@ export default function SocialPostingDashboard() {
                       <button
                         onClick={handleConnect}
                         disabled={isLoading}
-                        className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                        className="px-4 py-2 bg-slate-600 text-white rounded-md hover:bg-slate-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center space-x-2 text-sm"
                       >
                         {isLoading ? (
-                          <FaSpinner className="w-4 h-4 animate-spin" />
+                          <>
+                            <FaSpinner className="w-4 h-4 animate-spin" />
+                            <span>Connecting...</span>
+                          </>
                         ) : (
-                          <FaGoogle className="w-4 h-4" />
+                          <>
+                            <FaGoogle className="w-4 h-4" />
+                            <span>Connect Google Business</span>
+                          </>
                         )}
-                        <span>Connect Google Business</span>
                       </button>
                     )}
                   </div>
@@ -879,7 +899,7 @@ export default function SocialPostingDashboard() {
 
 
 
-                {isConnected && locations.length === 0 && (
+                {/* {isConnected && locations.length === 0 && ( // This state was removed
                   <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
                     <div className="flex items-start space-x-3">
                       <FaExclamationTriangle className="w-5 h-5 text-yellow-600 mt-0.5" />
@@ -915,10 +935,10 @@ export default function SocialPostingDashboard() {
                       </div>
                     </div>
                   </div>
-                )}
+                )} */}
 
                 {/* Connection Success & Locations */}
-                {isConnected && locations.length > 0 && (
+                {/* {isConnected && locations.length > 0 && ( // This state was removed
                   <div className="bg-green-50 border border-green-200 rounded-md p-4">
                     <div className="flex items-start space-x-3">
                       <FaCheck className="w-5 h-5 text-green-600 mt-0.5" />
@@ -930,7 +950,7 @@ export default function SocialPostingDashboard() {
                           Found {locations.length} business location{locations.length !== 1 ? 's' : ''}. You can now create and publish posts.
                         </p>
                         <button
-                          onClick={() => setActiveTab('post')}
+                          onClick={() => changeTab('post')}
                           className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm font-medium"
                         >
                           Start Creating Posts →
@@ -938,7 +958,7 @@ export default function SocialPostingDashboard() {
                       </div>
                     </div>
                   </div>
-                )}
+                )} */}
               </div>
 
               {/* Error Messages */}
@@ -965,555 +985,269 @@ export default function SocialPostingDashboard() {
               {!isConnected ? (
                 <div className="text-center py-12">
                   <FaGoogle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    Connect Google Business Profile First
-                  </h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Connect Google Business Profile</h3>
                   <p className="text-gray-600 mb-4">
-                    You need to connect your Google Business Profile before you can create posts.
+                    Connect your Google Business Profile to start posting updates to your business locations.
                   </p>
                   <button
-                    onClick={() => setActiveTab('connect')}
-                    className="px-4 py-2 bg-slate-blue text-white rounded-md hover:bg-slate-blue/90 transition-colors"
+                    onClick={handleConnect}
+                    disabled={isLoading}
+                    className="px-6 py-2 bg-slate-600 text-white rounded-md hover:bg-slate-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center space-x-2 mx-auto"
                   >
-                    Go to Connect Tab
+                    {isLoading ? (
+                      <>
+                        <FaSpinner className="w-4 h-4 animate-spin" />
+                        <span>Connecting...</span>
+                      </>
+                    ) : (
+                      <>
+                        <FaGoogle className="w-4 h-4" />
+                        <span>Connect Google Business</span>
+                      </>
+                    )}
                   </button>
                 </div>
               ) : (
-                <>
+                <div className="space-y-6">
                   {/* Location Selection */}
-                  {locations.length > 0 && (
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-semibold flex items-center space-x-2">
-                        <FaMapMarkerAlt className="w-4 h-4 text-slate-600" />
-                        <span>Select Business Locations</span>
-                      </h3>
-                      
-                      {/* Multi-Select Dropdown */}
-                      <div className="relative location-dropdown">
+                  <div className="bg-white rounded-lg border border-gray-200 p-6">
+                    <h3 className="text-lg font-semibold mb-4">Select Locations</h3>
+                    
+                    {locations.length === 0 ? (
+                      <div className="text-center py-8">
+                        <FaMapMarkerAlt className="w-8 h-8 text-gray-400 mx-auto mb-3" />
+                        <p className="text-gray-600 mb-4">No business locations found</p>
                         <button
-                          onClick={() => setIsLocationDropdownOpen(!isLocationDropdownOpen)}
-                          className="w-full flex items-center justify-between p-3 border border-gray-300 rounded-lg bg-white hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
+                          onClick={() => handleFetchLocations('google-business-profile')}
+                          disabled={!!fetchingLocations || (rateLimitedUntil && Date.now() < rateLimitedUntil)}
+                          className="px-4 py-2 bg-slate-blue text-white rounded-md hover:bg-slate-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors text-sm"
                         >
-                          <div className="flex items-center space-x-2">
-                            <FaMapMarkerAlt className="w-4 h-4 text-gray-500" />
-                            <span className="text-gray-700">
-                              {selectedLocations.length === 0 
-                                ? 'Select locations to post to...'
-                                : selectedLocations.length === locations.length
-                                ? `All locations selected (${locations.length})`
-                                : `${selectedLocations.length} location${selectedLocations.length !== 1 ? 's' : ''} selected`
-                              }
-                            </span>
-                          </div>
-                          {isLocationDropdownOpen ? (
-                            <FaChevronUp className="w-4 h-4 text-gray-500" />
+                          {fetchingLocations ? (
+                            <>
+                              <FaSpinner className="w-4 h-4 animate-spin mr-2" />
+                              Fetching Locations...
+                            </>
+                          ) : rateLimitedUntil && Date.now() < rateLimitedUntil ? (
+                            `Rate Limited (${Math.ceil((rateLimitedUntil - Date.now()) / 1000)}s)`
                           ) : (
-                            <FaChevronDown className="w-4 h-4 text-gray-500" />
+                            'Fetch Business Locations'
                           )}
                         </button>
-
-                        {isLocationDropdownOpen && (
-                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-80 overflow-hidden">
-                            {/* Select All / Deselect All */}
-                            <div className="sticky top-0 bg-gray-50 border-b border-gray-200 p-3">
-                              <button
-                                onClick={() => {
-                                  if (selectedLocations.length === locations.length) {
-                                    setSelectedLocations([]);
-                                  } else {
-                                    setSelectedLocations(locations.map(loc => loc.id));
-                                  }
-                                }}
-                                className="flex items-center space-x-2 text-sm font-medium text-slate-600 hover:text-slate-800"
-                              >
-                                <div className={`w-4 h-4 border border-gray-300 rounded ${
-                                  selectedLocations.length === locations.length 
-                                    ? 'bg-slate-blue border-slate-blue' 
-                                    : selectedLocations.length > 0 
-                                    ? 'bg-gray-300 border-gray-300' 
-                                    : 'bg-white'
-                                } flex items-center justify-center`}>
-                                  {selectedLocations.length === locations.length && (
-                                    <FaCheck className="w-2.5 h-2.5 text-white" />
-                                  )}
-                                  {selectedLocations.length > 0 && selectedLocations.length < locations.length && (
-                                    <div className="w-2 h-0.5 bg-gray-600"></div>
-                                  )}
-                                </div>
-                                <span>
-                                  {selectedLocations.length === locations.length 
-                                    ? 'Deselect All' 
-                                    : 'Select All'}
-                                </span>
-                              </button>
-                            </div>
-
-                            {/* Location List */}
-                            <div className="max-h-64 overflow-y-auto">
-                              {locations.map((location) => (
-                                <div
-                                  key={location.id}
-                                  className="flex items-center space-x-3 p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-                                  onClick={() => {
-                                    setSelectedLocations(prev => {
-                                      if (prev.includes(location.id)) {
-                                        return prev.filter(id => id !== location.id);
-                                      } else {
-                                        return [...prev, location.id];
-                                      }
-                                    });
-                                  }}
-                                >
-                                  <div className={`w-4 h-4 border border-gray-300 rounded ${
-                                    selectedLocations.includes(location.id) 
-                                      ? 'bg-slate-blue border-slate-blue' 
-                                      : 'bg-white'
-                                  } flex items-center justify-center flex-shrink-0`}>
-                                    {selectedLocations.includes(location.id) && (
-                                      <FaCheck className="w-2.5 h-2.5 text-white" />
-                                    )}
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <h4 className="font-medium text-gray-900 truncate">{location.name}</h4>
-                                    {location.address && (
-                                      <p className="text-sm text-gray-600 truncate">{location.address}</p>
-                                    )}
-                                  </div>
-                                  <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ${
-                                    location.status === 'active'
-                                      ? 'bg-green-100 text-green-800'
-                                      : location.status === 'pending'
-                                      ? 'bg-yellow-100 text-yellow-800'
-                                      : 'bg-red-100 text-red-800'
-                                  }`}>
-                                    {location.status}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
                       </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {locations.map((location) => (
+                          <label key={location.id} className="flex items-center space-x-3 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={selectedLocations.includes(location.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedLocations([...selectedLocations, location.id]);
+                                } else {
+                                  setSelectedLocations(selectedLocations.filter(id => id !== location.id));
+                                }
+                              }}
+                              className="w-4 h-4 text-slate-blue border-gray-300 rounded focus:ring-slate-blue"
+                            />
+                            <div className="flex-1">
+                              <div className="font-medium text-gray-900">{location.name}</div>
+                              {location.address && (
+                                <div className="text-sm text-gray-500">{location.address}</div>
+                              )}
+                            </div>
+                            <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              location.status === 'active' ? 'bg-green-100 text-green-800' :
+                              location.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-red-100 text-red-800'
+                            }`}>
+                              {location.status}
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
 
-                      {/* Selected Locations Summary */}
-                      {selectedLocations.length > 0 && (
-                        <div className="bg-slate-50 rounded-lg p-4">
-                          <div className="flex items-center justify-between mb-2">
-                            <h4 className="text-sm font-medium text-slate-800">
-                              Selected Locations ({selectedLocations.length})
-                            </h4>
-                            <button
-                              onClick={() => setSelectedLocations([])}
-                              className="text-xs text-slate-600 hover:text-slate-800"
-                            >
-                              Clear All
-                            </button>
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            {selectedLocations.slice(0, 5).map(locationId => {
-                              const location = locations.find(loc => loc.id === locationId);
-                              return location ? (
-                                <span
-                                  key={locationId}
-                                  className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-slate-200 text-slate-800"
-                                >
-                                  {location.name}
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setSelectedLocations(prev => prev.filter(id => id !== locationId));
-                                    }}
-                                    className="ml-1 hover:text-slate-600"
-                                  >
-                                    <FaTimes className="w-2 h-2" />
-                                  </button>
-                                </span>
-                              ) : null;
-                            })}
-                            {selectedLocations.length > 5 && (
-                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-200 text-gray-600">
-                                +{selectedLocations.length - 5} more
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Post Creator */}
-                  {selectedLocations.length > 0 && (
-                    <div className="space-y-6">
-                      <div className="flex items-center justify-between">
+                  {/* Post Creation Form */}
+                  {locations.length > 0 && (
+                    <div className="bg-white rounded-lg border border-gray-200 p-6">
+                      <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-semibold">Create Post</h3>
-                        <button
-                          onClick={() => setShowTemplates(!showTemplates)}
-                          className="flex items-center space-x-2 px-4 py-2 text-slate-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-                        >
-                          <FaPlus className="w-4 h-4" />
-                          <span>Use Template</span>
-                        </button>
                       </div>
 
-                      {/* Templates */}
-                      {showTemplates && (
-                        <div className="bg-gray-50 rounded-lg p-4">
-                          <h4 className="text-sm font-medium text-gray-900 mb-3">Post Templates</h4>
-                          <div className="grid gap-3 md:grid-cols-2">
-                            {postTemplates.map((template) => (
-                              <div
-                                key={template.id}
-                                className="p-3 bg-white border rounded-md cursor-pointer hover:border-slate-blue transition-colors"
-                                onClick={() => handleUseTemplate(template)}
-                              >
-                                <div className="flex items-center justify-between mb-2">
-                                  <h5 className="font-medium text-sm">{template.title}</h5>
-                                  <span className="text-xs px-2 py-1 bg-gray-100 rounded">{template.type}</span>
-                                </div>
-                                <p className="text-sm text-gray-600 line-clamp-2">
-                                  {template.content}
-                                </p>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Post Type */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-3">
-                          Post Type
-                        </label>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                          {[
-                            { value: 'WHATS_NEW', label: "What's New", icon: '📢' },
-                            { value: 'EVENT', label: 'Event', icon: '📅' },
-                            { value: 'OFFER', label: 'Offer', icon: '🏷️' },
-                            { value: 'PRODUCT', label: 'Product', icon: '📦' }
-                          ].map((type) => (
-                            <label
-                              key={type.value}
-                              className={`flex items-center space-x-2 p-3 border rounded-lg cursor-pointer transition-colors ${
-                                postType === type.value
-                                  ? 'border-slate-blue bg-slate-blue/5'
-                                  : 'border-gray-200 hover:border-gray-300'
-                              }`}
-                            >
-                              <input
-                                type="radio"
-                                name="postType"
-                                value={type.value}
-                                checked={postType === type.value}
-                                onChange={(e) => setPostType(e.target.value as any)}
-                                className="sr-only"
-                              />
-                              <span className="text-lg">{type.icon}</span>
-                              <span className="text-sm font-medium">{type.label}</span>
-                            </label>
-                          ))}
-                        </div>
+                      {/* Post Type Selection */}
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Post Type</label>
+                        <select
+                          value={postType}
+                          onChange={(e) => setPostType(e.target.value as any)}
+                          className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-slate-blue focus:border-slate-blue"
+                        >
+                          <option value="WHATS_NEW">What's New</option>
+                          <option value="EVENT">Event</option>
+                          <option value="OFFER">Offer</option>
+                          <option value="PRODUCT">Product</option>
+                        </select>
                       </div>
 
                       {/* Post Content */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Post Content
-                        </label>
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Post Content</label>
                         <textarea
                           value={postContent}
                           onChange={(e) => setPostContent(e.target.value)}
-                          rows={6}
-                          className={`w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent resize-none ${
-                            isOverLimit() ? 'border-red-300' : 'border-gray-300'
-                          }`}
                           placeholder="What would you like to share with your customers?"
+                          rows={4}
+                          className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-slate-blue focus:border-slate-blue resize-none"
                         />
-
-                        {/* Improve with AI Button */}
-                        <div className="flex justify-end mt-2">
+                        <div className="flex justify-between items-center mt-2">
+                          <div className="text-xs text-gray-500">
+                            {postContent.length}/1500 characters
+                          </div>
                           <button
                             onClick={handleImproveWithAI}
-                            disabled={improvingWithAI || !postContent.trim() || selectedLocations.length === 0}
-                            className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center space-x-2 text-sm"
-                            title={
-                              !postContent.trim() ? 'Enter post content first' :
-                              selectedLocations.length === 0 ? 'Select business locations first' :
-                              'Improve your post with AI using business profile and location data'
-                            }
+                            disabled={improvingWithAI || !postContent.trim()}
+                            className="px-3 py-1 text-sm bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center space-x-1"
                           >
                             {improvingWithAI ? (
                               <>
-                                <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                  <path className="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
+                                <FaSpinner className="w-3 h-3 animate-spin" />
                                 <span>Improving...</span>
                               </>
                             ) : (
                               <>
-                                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                                </svg>
-                                <span>Improve with AI</span>
+                                <FaBolt className="w-3 h-3" />
+                                <span>AI Improve</span>
                               </>
                             )}
                           </button>
                         </div>
-
-                        {/* Character Count */}
-                        <div className="flex justify-between items-center text-sm mt-2">
-                          <span className={`${isOverLimit() ? 'text-red-600 font-medium' : 'text-gray-500'}`}>
-                            {getCharacterCount()} / {getCharacterLimit()} characters
-                          </span>
-                          {isOverLimit() && (
-                            <span className="text-red-600 text-xs">Over limit! Please shorten your post.</span>
-                          )}
-                        </div>
-
-                        {/* AI Improvement Info */}
-                        <div className="bg-purple-50 rounded-lg p-3 border border-purple-200">
-                          <div className="flex items-start space-x-2">
-                            <svg className="h-5 w-5 text-purple-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                            </svg>
-                            <div>
-                              <h4 className="text-sm font-medium text-purple-900">AI Post Optimization</h4>
-                              <p className="text-xs text-purple-700 mt-1">
-                                Click "Improve with AI" to automatically enhance your post with local SEO keywords, 
-                                better engagement tactics, and optimized formatting using your business profile information.
-                              </p>
-                            </div>
-                          </div>
-                        </div>
                       </div>
 
                       {/* Image Upload */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Add Images (Max 10, 10MB each)
-                          {process.env.NODE_ENV === 'development' && (
-                            <span className="block text-xs text-orange-600 font-normal mt-1">
-                              Note: Images are not included in Google Business Profile posts during local development.
-                            </span>
-                          )}
-                        </label>
-                        <div className="flex flex-wrap items-center gap-2 p-2 border border-gray-300 rounded-md bg-gray-50">
-                          {selectedImages.map((image, index) => (
-                            <div key={index} className="relative group">
-                              <img
-                                src={imageUrls[index]}
-                                alt={`Preview ${index + 1}`}
-                                className="w-16 h-16 object-cover rounded-md"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => removeImage(index)}
-                                className="absolute top-0 right-0 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                                title="Remove image"
-                              >
-                                <FaTrash className="w-4 h-4" />
-                              </button>
-                            </div>
-                          ))}
-                          <label htmlFor="image-upload" className="flex flex-col items-center justify-center w-16 h-16 border border-dashed border-gray-300 rounded-md cursor-pointer hover:border-gray-400 focus-within:ring-2 focus-within:ring-slate-blue focus-within:border-transparent">
-                            <input
-                              type="file"
-                              id="image-upload"
-                              accept="image/*"
-                              multiple
-                              onChange={(e) => {
-                                if (e.target.files) {
-                                  handleImageUpload(e.target.files);
-                                }
-                              }}
-                              className="hidden"
-                            />
-                            <FaUpload className="w-4 h-4 text-gray-500" />
-                            <p className="text-xs text-gray-600 text-center">Add</p>
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Photos (Optional)</label>
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-slate-blue transition-colors">
+                          <input
+                            type="file"
+                            multiple
+                            accept="image/*"
+                            onChange={(e) => e.target.files && handleImageUpload(e.target.files)}
+                            className="hidden"
+                            id="image-upload"
+                            disabled={uploadingImages}
+                          />
+                          <label htmlFor="image-upload" className="cursor-pointer">
+                            <FaImage className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                            <p className="text-sm text-gray-600">
+                              {uploadingImages ? 'Processing images...' : 'Click to upload photos or drag and drop'}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              PNG, JPG up to 10MB each (max 10 photos)
+                            </p>
                           </label>
                         </div>
-                        <div className="flex justify-between items-center mt-2">
-                          <div className="text-sm text-gray-600">
-                            {selectedImages.length}/10 images
-                          </div>
-                          {selectedImages.length > 0 && (
-                            <button
-                              type="button"
-                              onClick={clearAllImages}
-                              className="text-sm text-red-600 hover:text-red-800"
-                            >
-                              Clear All
-                            </button>
-                          )}
-                        </div>
-                        {uploadingImages && (
-                          <div className="flex items-center justify-center text-sm text-gray-600 mt-2">
-                            <FaSpinner className="w-4 h-4 animate-spin mr-2" />
-                            Uploading images...
+
+                        {/* Image Previews */}
+                        {imageUrls.length > 0 && (
+                          <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+                            {imageUrls.map((url, index) => (
+                              <div key={index} className="relative group">
+                                <img
+                                  src={url}
+                                  alt={`Preview ${index + 1}`}
+                                  className="w-full h-24 object-cover rounded-md border border-gray-200"
+                                />
+                                <button
+                                  onClick={() => removeImage(index)}
+                                  className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                  <FaTimes className="w-3 h-3" />
+                                </button>
+                              </div>
+                            ))}
                           </div>
                         )}
                       </div>
 
-                        {/* CTA Section */}
-                        <div className="bg-gray-50 rounded-lg p-4">
-                          <h4 className="text-sm font-medium text-gray-900 mb-3">Add Call-to-Action (CTA)</h4>
-                          <p className="text-xs text-gray-600 mb-3">
-                            CTA buttons help drive engagement by giving customers a clear next step, like visiting your website or making a call.
-                          </p>
-                          <div className="flex items-center space-x-2 mb-3">
+                      {/* Call-to-Action */}
+                      <div className="mb-6">
+                        <div className="flex items-center justify-between mb-3">
+                          <label className="block text-sm font-medium text-gray-700">Call-to-Action Button</label>
+                          <label className="flex items-center space-x-2 cursor-pointer">
                             <input
                               type="checkbox"
-                              id="showCTA"
                               checked={showCTA}
                               onChange={(e) => setShowCTA(e.target.checked)}
-                              className="h-4 w-4 text-slate-600 focus:ring-slate-500 border-gray-300 rounded"
+                              className="w-4 h-4 text-slate-blue border-gray-300 rounded focus:ring-slate-blue"
                             />
-                            <label htmlFor="showCTA" className="text-sm text-gray-700">
-                              Add a call-to-action button to your post
-                            </label>
-                          </div>
-                          {showCTA && (
-                            <>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-                                <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    CTA Type
-                                  </label>
-                                  <select
-                                    value={ctaType}
-                                    onChange={(e) => setCTAType(e.target.value as any)}
-                                    className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent"
-                                  >
-                                    <option value="LEARN_MORE">Learn More</option>
-                                    <option value="CALL">Call</option>
-                                    <option value="ORDER_ONLINE">Order Online</option>
-                                    <option value="BOOK">Book Now</option>
-                                    <option value="SIGN_UP">Sign Up</option>
-                                    <option value="BUY">Buy</option>
-                                  </select>
-                                  <p className="text-xs text-gray-500 mt-1">
-                                    {ctaType === 'LEARN_MORE' && 'Link to your website or landing page'}
-                                    {ctaType === 'CALL' && 'Use tel: link (e.g., tel:+15551234567)'}
-                                    {ctaType === 'ORDER_ONLINE' && 'Link to your online ordering system'}
-                                    {ctaType === 'BOOK' && 'Link to your booking/appointment page'}
-                                    {ctaType === 'SIGN_UP' && 'Link to registration or signup form'}
-                                    {ctaType === 'BUY' && 'Link to your online store or product page'}
-                                  </p>
-                                </div>
-                                <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    CTA URL
-                                  </label>
-                                  <input
-                                    type="url"
-                                    value={ctaUrl}
-                                    onChange={(e) => setCTAUrl(e.target.value)}
-                                    placeholder={
-                                      ctaType === 'CALL' ? 'tel:+15551234567' :
-                                      ctaType === 'ORDER_ONLINE' ? 'https://order.example.com' :
-                                      ctaType === 'BOOK' ? 'https://book.example.com' :
-                                      ctaType === 'BUY' ? 'https://shop.example.com' :
-                                      'https://example.com'
-                                    }
-                                    className={`w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent ${
-                                      ctaUrl && !isValidUrl(ctaUrl) ? 'border-red-300' : ''
-                                    }`}
-                                  />
-                                  {ctaUrl && !isValidUrl(ctaUrl) && (
-                                    <p className="text-xs text-red-600 mt-1">Please enter a valid URL</p>
-                                  )}
-                                </div>
-                              </div>
-                              
-                              {/* CTA Preview */}
-                              {ctaUrl && isValidUrl(ctaUrl) && (
-                                <div className="bg-white rounded-md p-3 border border-gray-200">
-                                  <p className="text-xs text-gray-600 mb-2">Preview:</p>
-                                  <div className="flex items-center space-x-2">
-                                    <button 
-                                      type="button"
-                                      className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors cursor-default"
-                                    >
-                                      {ctaType.replace('_', ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}
-                                    </button>
-                                    <span className="text-xs text-gray-500">→ {ctaUrl}</span>
-                                  </div>
-                                </div>
-                              )}
-                            </>
-                          )}
+                            <span className="text-sm text-gray-600">Add CTA button</span>
+                          </label>
                         </div>
 
-                      {/* Post Result */}
-                      {postResult && (
-                        <div className={`p-4 rounded-lg ${
-                          postResult.success
-                            ? 'bg-green-50 border border-green-200'
-                            : 'bg-red-50 border border-red-200'
-                        }`}>
-                          <div className="flex items-center space-x-2">
-                            {postResult.success ? (
-                              <FaCheck className="w-4 h-4 text-green-600" />
-                            ) : (
-                              <FaTimes className="w-4 h-4 text-red-600" />
-                            )}
-                            <span className={`text-sm font-medium ${
-                              postResult.success ? 'text-green-800' : 'text-red-800'
-                            }`}>
-                              {postResult.message}
-                            </span>
+                        {showCTA && (
+                          <div className="space-y-3 p-4 bg-gray-50 rounded-lg">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Button Type</label>
+                              <select
+                                value={ctaType}
+                                onChange={(e) => setCTAType(e.target.value as any)}
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-slate-blue focus:border-slate-blue"
+                              >
+                                <option value="LEARN_MORE">Learn More</option>
+                                <option value="CALL">Call</option>
+                                <option value="ORDER_ONLINE">Order Online</option>
+                                <option value="BOOK">Book</option>
+                                <option value="SIGN_UP">Sign Up</option>
+                                <option value="BUY">Buy</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {ctaType === 'CALL' ? 'Phone Number' : 'URL'}
+                              </label>
+                              <input
+                                type={ctaType === 'CALL' ? 'tel' : 'url'}
+                                value={ctaUrl}
+                                onChange={(e) => setCTAUrl(e.target.value)}
+                                placeholder={ctaType === 'CALL' ? 'tel:+1234567890' : 'https://example.com'}
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-slate-blue focus:border-slate-blue"
+                              />
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        )}
+                      </div>
 
                       {/* Action Buttons */}
-                      <div className="flex justify-between items-center space-x-3">
+                      <div className="flex items-center justify-between pt-4 border-t border-gray-200">
                         <button
                           onClick={clearAllFormData}
-                          className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+                          className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
                         >
                           Clear All
                         </button>
                         <button
                           onClick={handlePost}
-                          disabled={isPosting || !postContent.trim() || selectedLocations.length === 0 || uploadingImages}
-                          className="px-6 py-2 bg-slate-600 text-white rounded-md hover:bg-slate-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
+                          disabled={isPosting || !postContent.trim() || selectedLocations.length === 0}
+                          className="px-6 py-2 bg-slate-blue text-white rounded-md hover:bg-slate-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
                         >
                           {isPosting ? (
                             <>
-                              <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                <path className="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                              </svg>
+                              <FaSpinner className="w-4 h-4 animate-spin" />
                               <span>Publishing...</span>
                             </>
                           ) : (
-                            <span>Publish Post</span>
+                            <>
+                              <FaPlus className="w-4 h-4" />
+                              <span>Publish Post</span>
+                            </>
                           )}
                         </button>
                       </div>
                     </div>
                   )}
-
-                  {/* Empty State */}
-                  {locations.length === 0 && isConnected && (
-                    <div className="text-center py-12">
-                      <FaMapMarkerAlt className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">
-                        No Business Locations Found
-                      </h3>
-                      <p className="text-gray-600 mb-4">
-                        Make sure your Google Business Profile has active locations to post updates.
-                      </p>
-                      <button
-                        onClick={() => window.open('https://business.google.com', '_blank')}
-                        className="px-4 py-2 bg-slate-blue text-white rounded-md hover:bg-slate-blue/90 transition-colors"
-                      >
-                        Manage Business Profile
-                      </button>
-                    </div>
-                  )}
-                </>
+                </div>
               )}
             </div>
           )}
@@ -1523,17 +1257,26 @@ export default function SocialPostingDashboard() {
               {!isConnected ? (
                 <div className="text-center py-12">
                   <FaImage className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    Connect Google Business Profile First
-                  </h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Connect Google Business Profile</h3>
                   <p className="text-gray-600 mb-4">
-                    You need to connect your Google Business Profile before you can manage photos.
+                    Connect your Google Business Profile to manage photos for your business locations.
                   </p>
                   <button
-                    onClick={() => setActiveTab('connect')}
-                    className="px-4 py-2 bg-slate-blue text-white rounded-md hover:bg-slate-blue/90 transition-colors"
+                    onClick={handleConnect}
+                    disabled={isLoading}
+                    className="px-6 py-2 bg-slate-600 text-white rounded-md hover:bg-slate-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center space-x-2 mx-auto"
                   >
-                    Go to Connect Tab
+                    {isLoading ? (
+                      <>
+                        <FaSpinner className="w-4 h-4 animate-spin" />
+                        <span>Connecting...</span>
+                      </>
+                    ) : (
+                      <>
+                        <FaGoogle className="w-4 h-4" />
+                        <span>Connect Google Business</span>
+                      </>
+                    )}
                   </button>
                 </div>
               ) : (
@@ -1561,17 +1304,26 @@ export default function SocialPostingDashboard() {
               {!isConnected ? (
                 <div className="text-center py-12">
                   <FaStar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    Connect Google Business Profile First
-                  </h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Connect Google Business Profile</h3>
                   <p className="text-gray-600 mb-4">
-                    You need to connect your Google Business Profile before you can manage reviews.
+                    Connect your Google Business Profile to manage reviews for your business locations.
                   </p>
                   <button
-                    onClick={() => setActiveTab('connect')}
-                    className="px-4 py-2 bg-slate-blue text-white rounded-md hover:bg-slate-blue/90 transition-colors"
+                    onClick={handleConnect}
+                    disabled={isLoading}
+                    className="px-6 py-2 bg-slate-600 text-white rounded-md hover:bg-slate-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center space-x-2 mx-auto"
                   >
-                    Go to Connect Tab
+                    {isLoading ? (
+                      <>
+                        <FaSpinner className="w-4 h-4 animate-spin" />
+                        <span>Connecting...</span>
+                      </>
+                    ) : (
+                      <>
+                        <FaGoogle className="w-4 h-4" />
+                        <span>Connect Google Business</span>
+                      </>
+                    )}
                   </button>
                 </div>
               ) : (

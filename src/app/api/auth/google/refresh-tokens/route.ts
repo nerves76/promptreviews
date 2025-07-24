@@ -12,48 +12,47 @@ export async function POST(request: NextRequest) {
   try {
     console.log('🔄 Server-side token refresh initiated');
     
-    const cookieStore = await cookies();
+    const { refreshToken } = await request.json();
+    
+    if (!refreshToken) {
+      console.log('❌ No refresh token provided in request');
+      return NextResponse.json({ 
+        error: 'Refresh token is required',
+        requiresReauth: true 
+      }, { status: 400 });
+    }
+    
+    // Create service client to bypass RLS and find user by refresh token
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!, // Use service role key
       {
         cookies: {
-          get: (name) => {
-            return cookieStore.get(name)?.value;
-          },
-          set: (name, value, options) => {
-            cookieStore.set({ name, value, ...options });
-          },
-          remove: (name, options) => {
-            cookieStore.set({ name, value: '', ...options });
-          },
+          get: () => undefined,
+          set: () => {},
+          remove: () => {},
         },
       }
     );
     
-    // Get current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      console.log('❌ Authentication error in refresh-tokens API:', authError);
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    console.log('🔍 Looking up user by refresh token...');
 
-    console.log('✅ User authenticated for token refresh:', user.id);
-
-    // Get current Google tokens from database
+    // Find the user by refresh token (using service role to bypass RLS)
     const { data: tokenData, error: tokenError } = await supabase
       .from('google_business_profiles')
-      .select('access_token, refresh_token, expires_at')
-      .eq('user_id', user.id)
+      .select('user_id, access_token, refresh_token, expires_at')
+      .eq('refresh_token', refreshToken)
       .single();
 
-    if (tokenError || !tokenData || !tokenData.refresh_token) {
-      console.log('❌ No refresh token found:', tokenError?.message);
+    if (tokenError || !tokenData) {
+      console.log('❌ No matching refresh token found:', tokenError?.message);
       return NextResponse.json({ 
-        error: 'No refresh token available',
+        error: 'Invalid refresh token',
         requiresReauth: true 
-      }, { status: 400 });
+      }, { status: 401 });
     }
+
+    console.log('✅ Found matching refresh token for user:', tokenData.user_id);
 
     // Check environment variables
     const clientId = process.env.GOOGLE_CLIENT_ID;
@@ -78,7 +77,7 @@ export async function POST(request: NextRequest) {
       body: new URLSearchParams({
         client_id: clientId,
         client_secret: clientSecret,
-        refresh_token: tokenData.refresh_token,
+        refresh_token: refreshToken,
         grant_type: 'refresh_token',
       }),
     });
@@ -120,7 +119,7 @@ export async function POST(request: NextRequest) {
         expires_at: newExpiresAt,
         updated_at: new Date().toISOString()
       })
-      .eq('user_id', user.id);
+      .eq('user_id', tokenData.user_id);
 
     if (updateError) {
       console.error('❌ Failed to update tokens in database:', updateError);
@@ -133,8 +132,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      access_token: refreshData.access_token,
-      expires_at: newExpiresAt,
+      accessToken: refreshData.access_token,
+      expiresIn: refreshData.expires_in,
+      refreshToken: refreshToken, // Return the same refresh token
       message: 'Tokens refreshed successfully'
     });
 

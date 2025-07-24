@@ -111,10 +111,30 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
   };
 
   const handleBusinessInfoLoaded = (loadedInfo: Partial<BusinessInfo>) => {
-    setBusinessInfo(prev => ({
-      ...prev,
-      ...loadedInfo
-    }));
+    console.log('📥 BusinessInfoEditor received loaded info:', {
+      hasDescription: !!loadedInfo.description,
+      hasPrimaryCategory: !!loadedInfo.primaryCategory,
+      primaryCategoryData: loadedInfo.primaryCategory,
+      hasAdditionalCategories: !!loadedInfo.additionalCategories,
+      additionalCategoriesCount: loadedInfo.additionalCategories?.length || 0,
+      additionalCategoriesData: loadedInfo.additionalCategories,
+      allKeys: Object.keys(loadedInfo)
+    });
+    
+    setBusinessInfo(prev => {
+      const updated = {
+        ...prev,
+        ...loadedInfo
+      };
+      console.log('📋 Updated businessInfo state:', {
+        hasPrimaryCategory: !!updated.primaryCategory,
+        primaryCategoryData: updated.primaryCategory,
+        hasAdditionalCategories: !!updated.additionalCategories,
+        additionalCategoriesCount: updated.additionalCategories?.length || 0,
+        additionalCategoriesData: updated.additionalCategories
+      });
+      return updated;
+    });
     setHasChanges(false); // Loaded data is not a "change"
   };
 
@@ -126,57 +146,38 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
     try {
       console.log('💾 Saving business info for locations:', selectedLocationIds);
       
-      // Save to each selected location
-      const savePromises = selectedLocationIds.map(async (locationId) => {
-        const response = await fetch('/api/business-information/update-location', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            locationId: locationId,
-            updates: {
-              description: businessInfo.description,
-              regularHours: businessInfo.regularHours,
-              serviceItems: businessInfo.serviceItems
-              // Note: We don't include locationName since it shouldn't be changed
-              // Note: Categories are read-only and managed through Google Business Profile
-            }
-          }),
-        });
-
-        const result = await response.json();
-        const location = locations.find(loc => loc.id === locationId);
-        
-        return {
-          locationId,
-          locationName: location?.name || locationId,
-          success: response.ok,
-          result: result
-        };
+      // Make a single API call with all selected locations
+      const response = await fetch('/api/business-information/update-location', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          locationIds: selectedLocationIds,  // Send as array
+          updates: {
+            description: businessInfo.description,
+            regularHours: businessInfo.regularHours,
+            serviceItems: businessInfo.serviceItems,
+            primaryCategory: businessInfo.primaryCategory,
+            additionalCategories: businessInfo.additionalCategories
+            // Note: We don't include locationName since it shouldn't be changed
+          }
+        }),
       });
 
-      const saveResults = await Promise.all(savePromises);
-      console.log('📊 All save responses:', saveResults);
+      const result = await response.json();
+      console.log('📊 Save response:', result);
 
-      const successfulSaves = saveResults.filter(r => r.success);
-      const failedSaves = saveResults.filter(r => !r.success);
-
-      if (successfulSaves.length === selectedLocationIds.length) {
+      if (response.ok && result.success) {
         setSaveResult({ 
           success: true, 
-          message: `Business information updated successfully for ${successfulSaves.length} location${successfulSaves.length !== 1 ? 's' : ''}!` 
+          message: result.message || `Business information updated successfully for ${selectedLocationIds.length} location${selectedLocationIds.length !== 1 ? 's' : ''}!` 
         });
         setHasChanges(false);
-      } else if (successfulSaves.length > 0) {
-        setSaveResult({ 
-          success: false, 
-          message: `Updated ${successfulSaves.length} of ${selectedLocationIds.length} locations. ${failedSaves.length} failed.` 
-        });
       } else {
         setSaveResult({ 
           success: false, 
-          message: 'Failed to update business information for any locations. Please try again.' 
+          message: result.error || result.message || 'Failed to update business information. Please try again.' 
         });
       }
     } catch (error) {
@@ -635,21 +636,65 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
                     </div>
 
                     {/* Additional Categories */}
-                    {businessInfo.additionalCategories.length > 0 && (
-                      <div className="space-y-2">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
                         <h5 className="text-sm font-medium text-gray-700">Additional categories</h5>
-                        <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = [...businessInfo.additionalCategories, { categoryId: '', displayName: '' }];
+                            handleInputChange('additionalCategories', updated);
+                          }}
+                          className="text-sm text-slate-blue hover:text-slate-blue-dark font-medium"
+                        >
+                          + Add category
+                        </button>
+                      </div>
+                      
+                      {businessInfo.additionalCategories.length > 0 ? (
+                        <div className="space-y-3">
                           {businessInfo.additionalCategories.map((category, index) => (
-                            <span 
-                              key={index}
-                              className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border"
-                            >
-                              {category.displayName}
-                            </span>
+                            <div key={index} className="flex items-center space-x-2">
+                              <div className="flex-1">
+                                <CategorySearch
+                                  selectedCategory={category.categoryId ? category : undefined}
+                                  onCategorySelect={(selectedCategory) => {
+                                    const updated = [...businessInfo.additionalCategories];
+                                    if (selectedCategory) {
+                                      updated[index] = selectedCategory;
+                                    } else {
+                                      updated[index] = { categoryId: '', displayName: '' };
+                                    }
+                                    handleInputChange('additionalCategories', updated);
+                                  }}
+                                  placeholder="Search for additional category..."
+                                  disabled={isLoadingDetails}
+                                />
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const updated = businessInfo.additionalCategories.filter((_, i) => i !== index);
+                                  handleInputChange('additionalCategories', updated);
+                                }}
+                                className="text-red-600 hover:text-red-800 p-1"
+                                title="Remove category"
+                              >
+                                <FaTimes className="w-4 h-4" />
+                              </button>
+                            </div>
                           ))}
                         </div>
-                      </div>
-                    )}
+                      ) : (
+                        <div className="text-sm text-gray-500 italic">
+                          No additional categories selected. Click "+ Add category" to add more business categories.
+                        </div>
+                      )}
+                      
+                      <p className="text-xs text-gray-500">
+                        Additional categories help customers find your business for different services you offer.
+                      </p>
+                    </div>
                   </div>
                 )}
               </div>
@@ -671,6 +716,22 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
 
           {/* Bottom Save/Reset Actions - Bottom Right */}
           <div className="flex items-center justify-end space-x-4 mt-8 pt-6 border-t border-gray-200">
+            {/* Success/Error Message - Bottom */}
+            {saveResult && (
+              <div className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium ${
+                saveResult.success 
+                  ? 'bg-green-50 text-green-800 border border-green-200' 
+                  : 'bg-red-50 text-red-800 border border-red-200'
+              }`}>
+                {saveResult.success ? (
+                  <FaCheck className="w-4 h-4 text-green-600" />
+                ) : (
+                  <FaTimes className="w-4 h-4 text-red-600" />
+                )}
+                <span>{saveResult.message}</span>
+              </div>
+            )}
+            
             <button
               onClick={handleSave}
               disabled={selectedLocationIds.length === 0 || isSaving}

@@ -127,28 +127,22 @@ export async function GET(request: NextRequest) {
     } else if (googleTokens) {
       console.log('✅ Found Google Business Profile tokens for user:', user.id);
       
-      // Test if tokens are working by creating a client and making a simple API call
+      // Check if tokens exist and are not expired (database-only check)
       try {
-        const { GoogleBusinessProfileClient } = await import('@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient');
+        const expiresAt = googleTokens.expires_at ? new Date(googleTokens.expires_at).getTime() : Date.now() + 3600000;
+        const now = Date.now();
         
-        const client = new GoogleBusinessProfileClient({
-          accessToken: googleTokens.access_token,
-          refreshToken: googleTokens.refresh_token,
-          expiresAt: googleTokens.expires_at ? new Date(googleTokens.expires_at).getTime() : Date.now() + 3600000
-        });
-
-        // Test the connection with a simple accounts call
-        console.log('🔍 Testing Google Business Profile connection...');
-        const accounts = await client.listAccounts();
-        console.log(`✅ Google connection verified - found ${accounts.length} accounts`);
-        isGoogleConnected = true;
-      } catch (error: any) {
-        console.error('❌ Google token validation failed:', error);
-        if (error.message?.includes('GOOGLE_REAUTH_REQUIRED')) {
-          googleConnectionError = 'Google Business Profile connection expired. Please reconnect your account.';
+        if (expiresAt > now) {
+          console.log('✅ Google tokens appear valid based on expiry time');
+          isGoogleConnected = true;
         } else {
-          googleConnectionError = 'Google Business Profile connection issue. Please try reconnecting.';
+          console.log('⚠️ Google tokens appear expired based on expiry time');
+          googleConnectionError = 'Google Business Profile tokens may be expired. Try reconnecting if posting fails.';
+          isGoogleConnected = true; // Still show as connected, but with warning
         }
+      } catch (error: any) {
+        console.error('❌ Error checking Google token expiry:', error);
+        googleConnectionError = 'Error checking Google Business Profile connection.';
         isGoogleConnected = false;
       }
     } else {

@@ -36,6 +36,15 @@ export default function CategorySearch({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Initialize search term with selected category
+  useEffect(() => {
+    if (selectedCategory) {
+      setSearchTerm(selectedCategory.displayName);
+    } else {
+      setSearchTerm('');
+    }
+  }, [selectedCategory]);
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -142,18 +151,21 @@ export default function CategorySearch({
         }`} />
         
         {/* Loading/Clear/Success Icon */}
-        <div className="absolute right-3 top-3">
+        <div className="absolute right-3 top-3 flex items-center space-x-1">
           {isLoading ? (
             <FaSpinner className="w-4 h-4 animate-spin text-slate-blue" />
           ) : selectedCategory ? (
-            <button
-              onClick={handleClearSelection}
-              disabled={disabled}
-              className="text-green-600 hover:text-green-800 disabled:cursor-not-allowed"
-              title="Clear selection"
-            >
-              <FaCheck className="w-4 h-4" />
-            </button>
+            <>
+              <FaCheck className="w-4 h-4 text-green-600" title="Selected" />
+              <button
+                onClick={handleClearSelection}
+                disabled={disabled}
+                className="text-gray-400 hover:text-red-600 disabled:cursor-not-allowed ml-1"
+                title="Clear selection"
+              >
+                <FaTimes className="w-3 h-3" />
+              </button>
+            </>
           ) : searchTerm ? (
             <button
               onClick={() => setSearchTerm('')}
