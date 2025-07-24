@@ -44,6 +44,13 @@ export class GoogleBusinessProfileClient {
     };
     
     console.log('🔍 GoogleBusinessProfileClient created - Real API calls only');
+    console.log('🔑 Token info at creation:', {
+      hasAccessToken: !!this.accessToken,
+      hasRefreshToken: !!this.refreshToken,
+      expiresAt: new Date(this.expiresAt).toISOString(),
+      timeUntilExpiry: Math.round((this.expiresAt - Date.now()) / 1000 / 60) + ' minutes',
+      isExpiredAtCreation: Date.now() >= this.expiresAt
+    });
   }
 
   /**
@@ -56,17 +63,35 @@ export class GoogleBusinessProfileClient {
     baseUrl?: string
   ): Promise<GoogleBusinessProfileApiResponse> {
     try {
-      // Check if token is expired
-      if (Date.now() >= this.expiresAt) {
+      // Check if token is expired or will expire in the next 5 minutes
+      const fiveMinutesFromNow = Date.now() + (5 * 60 * 1000);
+      const isExpired = Date.now() >= this.expiresAt;
+      const willExpireSoon = fiveMinutesFromNow >= this.expiresAt;
+      
+      console.log('🔍 Token expiry check:', {
+        currentTime: new Date(Date.now()).toISOString(),
+        expiresAt: new Date(this.expiresAt).toISOString(),
+        isExpired,
+        willExpireSoon,
+        timeUntilExpiry: Math.round((this.expiresAt - Date.now()) / 1000 / 60) + ' minutes'
+      });
+      
+      if (isExpired || willExpireSoon) {
+        console.log('🔄 Token refresh needed:', isExpired ? 'EXPIRED' : 'EXPIRES_SOON');
         try {
           await this.refreshAccessToken();
         } catch (refreshError: any) {
+          console.error('❌ Token refresh failed:', refreshError);
           // If refresh token expired, throw a specific error
-          if (refreshError.message?.includes('REFRESH_TOKEN_EXPIRED')) {
+          if (refreshError.message?.includes('REFRESH_TOKEN_EXPIRED') || 
+              refreshError.message?.includes('invalid_grant') || 
+              refreshError.message?.includes('requiresReauth')) {
             throw new Error('GOOGLE_REAUTH_REQUIRED: Please reconnect your Google Business Profile account');
           }
           throw refreshError;
         }
+      } else {
+        console.log('✅ Token is still valid, no refresh needed');
       }
 
       // Use custom base URL or default to the main Business Information API
@@ -180,6 +205,7 @@ export class GoogleBusinessProfileClient {
   private async refreshAccessToken(): Promise<void> {
     try {
       console.log('🔄 Refreshing access token via server-side endpoint...');
+      console.log('🔑 Current token expires at:', new Date(this.expiresAt).toISOString());
       
       const response = await fetch('/api/auth/google/refresh-tokens', {
         method: 'POST',
@@ -189,19 +215,31 @@ export class GoogleBusinessProfileClient {
       });
 
       const data = await response.json();
+      console.log('📊 Server refresh response:', {
+        ok: response.ok,
+        status: response.status,
+        success: data.success,
+        hasAccessToken: !!data.access_token,
+        requiresReauth: data.requiresReauth
+      });
 
       if (!response.ok) {
-        // If refresh token expired, user needs to re-authenticate
+        // If refresh token expired, user needs to re-authentication
         if (data.requiresReauth) {
           throw new Error('REFRESH_TOKEN_EXPIRED: User needs to re-authenticate');
         }
         throw new Error(`Token refresh failed: ${data.error}`);
       }
 
+      const oldExpiresAt = this.expiresAt;
       this.accessToken = data.access_token;
       this.expiresAt = new Date(data.expires_at).getTime();
       
       console.log('✅ Access token refreshed successfully via server');
+      console.log('🔄 Token expiry updated:', {
+        oldExpiresAt: new Date(oldExpiresAt).toISOString(),
+        newExpiresAt: new Date(this.expiresAt).toISOString()
+      });
 
     } catch (error) {
       console.error('❌ Failed to refresh access token:', error);
