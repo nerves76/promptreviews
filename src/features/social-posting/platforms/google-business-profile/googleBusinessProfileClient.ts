@@ -319,8 +319,13 @@ export class GoogleBusinessProfileClient {
       const endpointWithParams = `${endpoint}?readMask=${encodeURIComponent(readMask)}`;
       console.log(`📍 Final URL to call: ${this.config.baseUrl}${endpointWithParams}`);
       
-      // Use Business Information API for listing locations
-      const response = await this.makeRequest(endpointWithParams);
+      // Use Business Information API for listing locations - explicit baseUrl to avoid URL construction issues
+      const response = await this.makeRequest(
+        endpointWithParams,
+        {},
+        0,
+        'https://mybusinessbusinessinformation.googleapis.com'
+      );
       console.log(`📍 Response data:`, response.data);
       console.log(`📍 Response data.locations:`, response.data.locations);
       
@@ -461,9 +466,13 @@ export class GoogleBusinessProfileClient {
 
       console.log(`🔧 Location details endpoint: ${endpointWithParams}`);
 
-      const response = await this.makeRequest(endpointWithParams, {
-        method: 'GET'
-      });
+      // Use Business Information API explicitly to avoid URL construction issues
+      const response = await this.makeRequest(
+        endpointWithParams,
+        { method: 'GET' },
+        0,
+        'https://mybusinessbusinessinformation.googleapis.com'
+      );
 
       console.log('✅ Location details fetched successfully');
       return response.data;
@@ -500,10 +509,16 @@ export class GoogleBusinessProfileClient {
 
       console.log(`🔧 Update endpoint: ${endpointWithParams}`);
 
-      const response = await this.makeRequest(endpointWithParams, {
-        method: 'PATCH',
-        body: JSON.stringify(updates)
-      });
+      // Use Business Information API explicitly to avoid URL construction issues
+      const response = await this.makeRequest(
+        endpointWithParams,
+        {
+          method: 'PATCH',
+          body: JSON.stringify(updates)
+        },
+        0,
+        'https://mybusinessbusinessinformation.googleapis.com'
+      );
 
       console.log('✅ Location updated successfully');
       return response.data;
@@ -651,12 +666,16 @@ export class GoogleBusinessProfileClient {
     try {
       console.log('📋 Fetching Google Business categories...');
       
-      // Google Business Categories API endpoint (just the path, not full URL) - Fixed URL construction
+      // Google Business Categories API endpoint - force just the path to avoid URL doubling
       const endpoint = '/v1/categories';
       
-      const response = await this.makeRequest(endpoint, {
-        method: 'GET'
-      });
+      // Use the Business Information API explicitly to avoid any URL construction issues
+      const response = await this.makeRequest(
+        endpoint,
+        { method: 'GET' },
+        0,
+        'https://mybusinessbusinessinformation.googleapis.com'
+      );
       
       console.log(`✅ Fetched ${response.data.categories?.length || 0} business categories`);
       
