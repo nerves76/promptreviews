@@ -121,13 +121,13 @@ const FallingStarsSection: React.FC<FallingStarsSectionProps> = ({
           </div>
         )}
       </div>
-      {/* Prompty Image - edge-to-edge, no padding/margin */}
-      <div className="absolute top-0 right-0 bottom-0 w-[180px] min-w-[140px] flex-shrink-0 flex items-end justify-end">
+      {/* Prompty Image - full height, no padding/margin, bigger size */}
+      <div className="absolute top-0 right-0 bottom-0 w-[240px] flex-shrink-0 flex items-end justify-end">
         <Image
           src="/images/prompty-catching-stars.png"
           alt="Prompty catching stars"
-          width={180}
-          height={200}
+          width={240}
+          height={240}
           className="object-contain object-right h-full w-full"
           priority
         />
