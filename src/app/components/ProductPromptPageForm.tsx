@@ -28,17 +28,9 @@ import { FaCommentDots, FaMobile } from "react-icons/fa";
 import SectionHeader from "./SectionHeader";
 import { BusinessProfile } from "@/types/business";
 import {
-  createLocationBusinessObject,
-  parseLocationPromptPageData,
+  createLocationPromptPageData,
 } from "@/utils/locationUtils";
-import FormField from "./FormField";
-import SingleCheckboxField from "./SingleCheckboxField";
 import { ChevronRightIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
-import ReviewPlatformListField from "./ReviewPlatformListField";
-import PrimaryFontSelector from "./PrimaryFontSelector";
-import SecondaryFontSelector from "./SecondaryFontSelector";
-import FontColorSelector from "./FontColorSelector";
-import GradientBackgroundSelector from "./GradientBackgroundSelector";
 
 export default function ProductPromptPageForm({
   mode,

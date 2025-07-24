@@ -213,6 +213,7 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
               reviewPlatforms,
               fallingEnabled,
               fallingIcon,
+              fallingIconColor,
               aiButtonEnabled,
               notePopupEnabled,
               friendlyNote,
