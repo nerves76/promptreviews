@@ -124,11 +124,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
   };
 
   const handleSave = async () => {
-    if (selectedLocationIds.length === 0) {
-      setSaveResult({ success: false, message: 'Please select at least one location to update.' });
-      return;
-    }
-
+    // No longer show error - just let button be disabled when no locations selected
     setIsSaving(true);
     setSaveResult(null);
 
@@ -414,6 +410,44 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
         )}
       </div>
 
+      {/* Top Save/Reset Actions */}
+      <div className="flex items-center justify-end space-x-4 mb-6">
+        <button
+          onClick={handleSave}
+          disabled={selectedLocationIds.length === 0 || isSaving}
+          className={`flex items-center space-x-2 px-4 py-2 rounded-md font-medium ${
+            selectedLocationIds.length > 0 && !isSaving
+              ? 'bg-slate-blue text-white hover:bg-slate-blue/90'
+              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+          }`}
+        >
+          {isSaving ? (
+            <FaSpinner className="w-4 h-4 animate-spin" />
+          ) : (
+            <FaSave className="w-4 h-4" />
+          )}
+          <span>
+            {isSaving 
+              ? (selectedLocationIds.length === 1 ? 'Publishing...' : `Publishing ${selectedLocationIds.length} locations...`)
+              : 'Save & Publish'
+            }
+          </span>
+        </button>
+        
+        <button
+          onClick={handleReset}
+          disabled={selectedLocationIds.length === 0 || isSaving}
+          className={`flex items-center space-x-2 px-4 py-2 rounded-md font-medium border ${
+            selectedLocationIds.length > 0 && !isSaving
+              ? 'border-gray-300 text-gray-700 hover:bg-gray-50'
+              : 'border-gray-200 text-gray-400 cursor-not-allowed'
+          }`}
+        >
+          <FaRedo className="w-4 h-4" />
+          <span>Reset</span>
+        </button>
+      </div>
+
       {/* Load Business Info Section */}
       {selectedLocationIds.length > 0 && (
         <LoadBusinessInfoButton
@@ -500,15 +534,15 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
             </div>
           )}
 
-          {/* Save/Reset Actions */}
+          {/* Save/Reset Actions - Bottom */}
           {!isLoadingDetails && (
             <div className="flex items-center justify-between bg-gray-50 rounded-lg p-4">
               <div className="flex items-center space-x-4">
                 <button
                   onClick={handleSave}
-                  disabled={!hasChanges || isSaving}
+                  disabled={selectedLocationIds.length === 0 || isSaving}
                   className={`flex items-center space-x-2 px-4 py-2 rounded-md font-medium ${
-                    hasChanges && !isSaving
+                    selectedLocationIds.length > 0 && !isSaving
                       ? 'bg-slate-blue text-white hover:bg-slate-blue/90'
                       : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   }`}
@@ -520,17 +554,17 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
                   )}
                   <span>
                     {isSaving 
-                      ? (selectedLocationIds.length === 1 ? 'Saving...' : `Updating ${selectedLocationIds.length} locations...`)
-                      : (selectedLocationIds.length === 1 ? 'Save Changes' : `Update ${selectedLocationIds.length} Locations`)
+                      ? (selectedLocationIds.length === 1 ? 'Publishing...' : `Publishing ${selectedLocationIds.length} locations...`)
+                      : 'Save & Publish'
                     }
                   </span>
                 </button>
                 
                 <button
                   onClick={handleReset}
-                  disabled={!hasChanges || isSaving}
+                  disabled={selectedLocationIds.length === 0 || isSaving}
                   className={`flex items-center space-x-2 px-4 py-2 rounded-md font-medium border ${
-                    hasChanges && !isSaving
+                    selectedLocationIds.length > 0 && !isSaving
                       ? 'border-gray-300 text-gray-700 hover:bg-gray-50'
                       : 'border-gray-200 text-gray-400 cursor-not-allowed'
                   }`}
@@ -540,12 +574,18 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
                 </button>
               </div>
 
-              {hasChanges && (
+              {hasChanges && selectedLocationIds.length > 0 && (
                 <span className="text-sm text-amber-600 font-medium">
                   {selectedLocationIds.length === 1 
                     ? 'You have unsaved changes'
                     : `⚠️ Unsaved changes will affect ${selectedLocationIds.length} locations`
                   }
+                </span>
+              )}
+
+              {selectedLocationIds.length === 0 && (
+                <span className="text-sm text-gray-500 font-medium">
+                  Select at least one location to save changes
                 </span>
               )}
             </div>
