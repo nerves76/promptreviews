@@ -170,54 +170,31 @@ export default function LoadBusinessInfoButton({
   };
 
   return (
-    <div className="bg-gray-50 rounded-lg p-4">
-      <div className="flex items-center justify-between">
-        <div className="flex-1">
-          <h4 className="text-sm font-medium text-gray-900 mb-1">
-            Load Current Business Information
-          </h4>
-          {selectedLocationIds.length === 1 && !detailsLoaded ? (
-            <p className="text-xs text-gray-600">
-              Import your current description, hours, categories, and services from Google Business Profile.
-            </p>
-          ) : selectedLocationIds.length > 1 ? (
-            <p className="text-xs text-gray-500">
-              Cannot load info for more than one business at a time.
-            </p>
-          ) : (
-            <p className="text-xs text-green-600">
-              ✓ Business information has been loaded.
-            </p>
-          )}
-        </div>
-        
-        <button
-          onClick={loadCurrentBusinessInfo}
-          disabled={isLoading || selectedLocationIds.length > 1 || detailsLoaded}
-          className={`flex items-center space-x-2 px-4 py-2 text-sm rounded-md border ml-4 ${
-            isLoading || selectedLocationIds.length > 1 || detailsLoaded
-              ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-              : 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100'
-          }`}
-        >
-          {isLoading ? (
-            <>
-              <FaSpinner className="w-4 h-4 animate-spin" />
-              <span>Loading...</span>
-            </>
-          ) : detailsLoaded ? (
-            <>
-              <FaCheck className="w-4 h-4" />
-              <span>Loaded</span>
-            </>
-          ) : (
-            <>
-              <FaStore className="w-4 h-4" />
-              <span>Load Business Info</span>
-            </>
-          )}
-        </button>
-      </div>
-    </div>
+    <button
+      onClick={loadCurrentBusinessInfo}
+      disabled={isLoading || selectedLocationIds.length > 1 || detailsLoaded}
+      className={`flex items-center space-x-2 px-4 py-2 text-sm rounded-md border ${
+        isLoading || selectedLocationIds.length > 1 || detailsLoaded
+          ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+          : 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100'
+      }`}
+    >
+      {isLoading ? (
+        <>
+          <FaSpinner className="w-4 h-4 animate-spin" />
+          <span>Loading...</span>
+        </>
+      ) : detailsLoaded ? (
+        <>
+          <FaCheck className="w-4 h-4" />
+          <span>Loaded</span>
+        </>
+      ) : (
+        <>
+          <FaStore className="w-4 h-4" />
+          <span>Load Business Info</span>
+        </>
+      )}
+    </button>
   );
 } 
