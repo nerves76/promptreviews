@@ -292,9 +292,9 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
       {/* Header with Save & Publish button */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-lg font-medium text-gray-900">
-            {selectedLocationIds.length === 1 ? 'Business Info Editor' : 'Multi-Location Business Info Editor'}
-          </h3>
+                          <h3 className="text-lg font-medium text-gray-900">
+                  {selectedLocationIds.length === 1 ? 'Business info editor' : 'Multi-location business info editor'}
+                </h3>
           <p className="text-sm text-gray-600 mt-1">
             {selectedLocationIds.length === 1 
               ? (detailsLoaded 
@@ -324,7 +324,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
           <span>
             {isSaving 
               ? (selectedLocationIds.length === 1 ? 'Publishing...' : `Publishing ${selectedLocationIds.length} locations...`)
-              : 'Save & Publish'
+              : 'Save & publish'
             }
           </span>
         </button>
@@ -448,7 +448,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
                   </div>
                 </div>
                 <div className="flex-1">
-                  <h4 className="text-sm font-medium text-green-900 mb-1">Single Location Edit</h4>
+                  <h4 className="text-sm font-medium text-green-900 mb-1">Single location edit</h4>
                   <p className="text-sm text-green-700">
                     Editing {locations.find(loc => loc.id === selectedLocationIds[0])?.name}. 
                     {detailsLoaded 
@@ -469,7 +469,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center space-x-2 mb-1">
-                    <h4 className="text-sm font-bold text-orange-900">Bulk Update Mode</h4>
+                    <h4 className="text-sm font-bold text-orange-900">Bulk update mode</h4>
                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-orange-500 to-red-500 text-white animate-pulse">
                       PUSHING TO {selectedLocationIds.length} LOCATIONS
                     </span>
@@ -533,7 +533,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
               {/* Business Description */}
               <div className="bg-white border border-gray-200 rounded-lg p-6">
                 <h4 className="text-lg font-medium text-gray-900 mb-4">
-                  Business Description
+                  Business description
                 </h4>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -578,7 +578,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
               <div className="space-y-4">
                 <div className="flex items-center space-x-2">
                   <FaStore className="w-5 h-5 text-slate-blue" />
-                  <h4 className="text-md font-medium text-gray-900">Business Categories</h4>
+                  <h4 className="text-md font-medium text-gray-900">Business categories</h4>
                 </div>
 
                 {!isLoadingDetails && !detailsError && (
@@ -621,7 +621,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
                     {/* Category Search */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {businessInfo.primaryCategory ? 'Change Primary Category' : 'Set Primary Category'}
+                        {businessInfo.primaryCategory ? 'Change primary category' : 'Set primary category'}
                       </label>
                       <CategorySearch
                         selectedCategory={businessInfo.primaryCategory}
@@ -637,7 +637,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
                     {/* Additional Categories */}
                     {businessInfo.additionalCategories.length > 0 && (
                       <div className="space-y-2">
-                        <h5 className="text-sm font-medium text-gray-700">Additional Categories</h5>
+                        <h5 className="text-sm font-medium text-gray-700">Additional categories</h5>
                         <div className="flex flex-wrap gap-2">
                           {businessInfo.additionalCategories.map((category, index) => (
                             <span 
@@ -688,7 +688,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
               <span>
                 {isSaving 
                   ? (selectedLocationIds.length === 1 ? 'Publishing...' : `Publishing ${selectedLocationIds.length} locations...`)
-                  : 'Save & Publish'
+                  : 'Save & publish'
                 }
               </span>
             </button>
