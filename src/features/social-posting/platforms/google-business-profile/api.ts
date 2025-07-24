@@ -15,6 +15,8 @@ export const GOOGLE_BUSINESS_PROFILE = {
     ACCOUNTS: '/v1/accounts',
     LOCATIONS: '/v1/accounts/{parent}/locations',  // Correct Business Information API v1 format
     LOCATION_GET: '/v1/locations/{locationId}',
+    CATEGORIES: '/v1/categories', // Business categories endpoint
+    LOCATION_UPDATE: '/v1/accounts/{accountId}/locations/{locationId}', // Location update endpoint
     LOCAL_POSTS: '/v4/accounts/{accountId}/locations/{locationId}/localPosts', // Still uses v4 API
     MEDIA: '/v4/accounts/{accountId}/locations/{locationId}/media',
     REVIEWS: '/v4/accounts/{accountId}/locations/{locationId}/reviews',
