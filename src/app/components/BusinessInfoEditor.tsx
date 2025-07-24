@@ -410,6 +410,19 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
         )}
       </div>
 
+      {/* Load Business Info Section */}
+      {selectedLocationIds.length > 0 && (
+        <LoadBusinessInfoButton
+          selectedLocationIds={selectedLocationIds}
+          locations={locations}
+          detailsLoaded={detailsLoaded}
+          onBusinessInfoLoaded={handleBusinessInfoLoaded}
+          onLoadingStateChange={setIsLoadingDetails}
+          onDetailsLoadedChange={setDetailsLoaded}
+          onErrorChange={setDetailsError}
+        />
+      )}
+
       {/* Top Save/Reset Actions */}
       <div className="flex items-center justify-end space-x-4 mb-6">
         <button
@@ -447,19 +460,6 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
           <span>Reset</span>
         </button>
       </div>
-
-      {/* Load Business Info Section */}
-      {selectedLocationIds.length > 0 && (
-        <LoadBusinessInfoButton
-          selectedLocationIds={selectedLocationIds}
-          locations={locations}
-          detailsLoaded={detailsLoaded}
-          onBusinessInfoLoaded={handleBusinessInfoLoaded}
-          onLoadingStateChange={setIsLoadingDetails}
-          onDetailsLoadedChange={setDetailsLoaded}
-          onErrorChange={setDetailsError}
-        />
-      )}
 
       {selectedLocationIds.length > 0 && (
         <div className="space-y-6">
