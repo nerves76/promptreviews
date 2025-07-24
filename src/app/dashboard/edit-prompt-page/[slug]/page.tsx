@@ -1,7 +1,7 @@
 "use client";
 import { useRouter, useParams } from "next/navigation";
 import { useState, useEffect } from "react";
-import { generateAIReview } from "@/utils/ai";
+import { generateContextualReview } from "@/utils/aiReviewGeneration";
 import {
   FaGoogle,
   FaFacebook,
@@ -480,21 +480,46 @@ export default function EditPromptPage() {
         "customer or client";
       if (industryType === "B2B") reviewerType = "client";
       else if (industryType === "B2C") reviewerType = "customer";
-      // Call generateAIReview with reviewerType
-      const review = await generateAIReview(
+      
+      // Create comprehensive page context
+      const pageData = {
+        review_type: formData.review_type || 'general',
+        project_type: Array.isArray(formData.services_offered)
+          ? formData.services_offered.join(", ")
+          : formData.services_offered || formData.project_type || "",
+        product_description: formData.product_description,
+        outcomes: formData.outcomes,
+        client_name: formData.client_name,
+        location: formData.location,
+        friendly_note: formData.friendly_note,
+        date_completed: formData.date_completed,
+        team_member: formData.team_member,
+        assigned_team_members: formData.assigned_team_members,
+        // Service-specific fields
+        service_name: formData.service_name,
+        service_description: formData.service_description,
+        // Product-specific fields
+        product_name: formData.product_name,
+        product_subcopy: formData.product_subcopy,
+        features_or_benefits: formData.features_or_benefits,
+        // Universal page fields
+        is_universal: formData.is_universal,
+      };
+      
+      const reviewerData = {
+        firstName: formData.first_name || "",
+        lastName: formData.last_name || "",
+        role: formData.role || "",
+      };
+      
+      const review = await generateContextualReview(
         businessProfile,
-        {
-          first_name: formData.first_name,
-          last_name: formData.last_name,
-          project_type: Array.isArray(formData.services_offered)
-            ? formData.services_offered.join(", ")
-            : formData.services_offered,
-          product_description: formData.product_description,
-        },
+        pageData,
+        reviewerData,
         formData.review_platforms[index].name,
         formData.review_platforms[index].wordCount || 200,
         formData.review_platforms[index].customInstructions,
-        reviewerType,
+        reviewerType
       );
       setFormData((prev) => ({
         ...prev,

@@ -28,10 +28,40 @@ interface BusinessProfile {
 }
 
 interface PromptPageData {
+  // Common fields
   project_type?: string;
   review_type?: string;
   product_description?: string;
   outcomes?: string;
+  location?: string;
+  client_name?: string;
+  
+  // Universal page fields
+  is_universal?: boolean;
+  friendly_note?: string;
+  
+  // Product page fields
+  product_name?: string;
+  product_subcopy?: string;
+  features_or_benefits?: string[];
+  category?: string;
+  
+  // Photo page fields
+  photo_context?: string;
+  photo_description?: string;
+  
+  // Location page fields
+  location_name?: string;
+  business_location_id?: string;
+  
+  // Service page fields
+  service_name?: string;
+  service_description?: string;
+  
+  // Additional context fields
+  date_completed?: string;
+  team_member?: string;
+  assigned_team_members?: string;
 }
 
 interface ReviewerData {
@@ -65,23 +95,69 @@ function createBusinessProfileForAI(businessProfile: BusinessProfile) {
 }
 
 /**
- * Transform prompt page and reviewer data into AI generation format
+ * Transform prompt page and reviewer data into AI generation format with page-specific context
  */
 function createPromptPageDataForAI(
   promptPage: PromptPageData, 
   reviewer: ReviewerData
 ) {
+  let projectType = promptPage.project_type || promptPage.review_type || "service";
+  let productDescription = promptPage.product_description || promptPage.outcomes || "great experience";
+  
+  // Enhance context based on page type
+  if (promptPage.review_type === 'product' && promptPage.product_name) {
+    projectType = `${promptPage.product_name} - ${projectType}`;
+    if (promptPage.product_subcopy) {
+      productDescription = `${promptPage.product_subcopy}. ${productDescription}`;
+    }
+    if (promptPage.features_or_benefits && promptPage.features_or_benefits.length > 0) {
+      productDescription += ` Key features: ${promptPage.features_or_benefits.join(', ')}.`;
+    }
+  }
+  
+  if (promptPage.review_type === 'service' && promptPage.service_name) {
+    projectType = `${promptPage.service_name} - ${projectType}`;
+    if (promptPage.service_description) {
+      productDescription = `${promptPage.service_description}. ${productDescription}`;
+    }
+  }
+  
+  if (promptPage.location_name) {
+    productDescription += ` Location: ${promptPage.location_name}.`;
+  }
+  
+  if (promptPage.location) {
+    productDescription += ` Service area: ${promptPage.location}.`;
+  }
+  
+  if (promptPage.date_completed) {
+    productDescription += ` Completed: ${promptPage.date_completed}.`;
+  }
+  
+  if (promptPage.team_member || promptPage.assigned_team_members) {
+    const teamInfo = promptPage.team_member || promptPage.assigned_team_members;
+    productDescription += ` Team member(s): ${teamInfo}.`;
+  }
+  
+  if (promptPage.photo_context) {
+    productDescription += ` Photo context: ${promptPage.photo_context}.`;
+  }
+  
+  if (promptPage.friendly_note) {
+    productDescription += ` Additional context: ${promptPage.friendly_note}.`;
+  }
+  
   return {
     first_name: reviewer.firstName || "",
     last_name: reviewer.lastName || "",
     role: reviewer.role || "",
-    project_type: promptPage.project_type || promptPage.review_type || "service",
-    product_description: promptPage.product_description || promptPage.outcomes || "great experience",
+    project_type: projectType,
+    product_description: productDescription,
   };
 }
 
 /**
- * Generate AI review with proper business context
+ * Generate AI review with proper business context for any prompt page type
  */
 export async function generateContextualReview(
   businessProfile: BusinessProfile,

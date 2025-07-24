@@ -1,7 +1,7 @@
 "use client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, useRef, Suspense } from "react";
-import { generateAIReview } from "@/utils/ai";
+import { generateContextualReview, generateContextualTestimonial } from "@/utils/aiReviewGeneration";
 import {
   FaFileAlt,
   FaInfoCircle,
@@ -446,17 +446,38 @@ export default function CreatePromptPageClient() {
     }
     setGeneratingReview(index);
     try {
-      const review = await generateAIReview(
+      // Create comprehensive page context
+      const pageData = {
+        review_type: formData.review_type || 'general',
+        project_type: formData.services_offered?.join(", ") || formData.project_type || "",
+        product_description: formData.product_description,
+        outcomes: formData.outcomes,
+        client_name: formData.client_name,
+        location: formData.location,
+        friendly_note: formData.friendly_note,
+        date_completed: formData.date_completed,
+        team_member: formData.team_member,
+        assigned_team_members: formData.assigned_team_members,
+        // Service-specific fields
+        service_name: formData.service_name,
+        service_description: formData.service_description,
+        // Universal page fields
+        is_universal: formData.is_universal,
+      };
+      
+      const reviewerData = {
+        firstName: formData.first_name || "",
+        lastName: formData.last_name || "",
+        role: formData.role || "",
+      };
+      
+      const review = await generateContextualReview(
         businessProfile,
-        {
-          first_name: formData.first_name,
-          last_name: formData.last_name,
-          project_type: formData.services_offered.join(", "),
-          product_description: formData.product_description,
-        },
+        pageData,
+        reviewerData,
         formData.review_platforms[index].platform,
         formData.review_platforms[index].wordCount || 200,
-        formData.review_platforms[index].customInstructions,
+        formData.review_platforms[index].customInstructions
       );
       setFormData((prev) => ({
         ...prev,
@@ -492,17 +513,31 @@ export default function CreatePromptPageClient() {
     }
     setAiLoadingPhoto(true);
     try {
-      const review = await generateAIReview(
+      // Create photo-specific context
+      const pageData = {
+        review_type: 'photo',
+        project_type: formData.services_offered?.join(", ") || formData.project_type || "",
+        product_description: formData.product_description,
+        outcomes: formData.outcomes,
+        client_name: formData.client_name,
+        location: formData.location,
+        friendly_note: formData.friendly_note,
+        photo_context: "Photo testimonial submission",
+        date_completed: formData.date_completed,
+        team_member: formData.team_member,
+      };
+      
+      const reviewerData = {
+        firstName: formData.first_name || "",
+        lastName: formData.last_name || "",
+        role: formData.role || "",
+      };
+      
+      const review = await generateContextualTestimonial(
         businessProfile,
-        {
-          first_name: formData.first_name,
-          last_name: formData.last_name,
-          project_type: formData.services_offered.join(", "),
-          product_description: formData.product_description,
-        },
-        "Photo Testimonial",
-        120,
-        formData.friendly_note,
+        pageData,
+        reviewerData,
+        formData.friendly_note
       );
       setNoPlatformReviewTemplate(review);
       setFormData((prev) => ({ ...prev, no_platform_review_template: review }));
