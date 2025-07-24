@@ -80,12 +80,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
   const [detailsLoaded, setDetailsLoaded] = useState(false);
   const [detailsError, setDetailsError] = useState<string | null>(null);
 
-  // Auto-select first location
-  useEffect(() => {
-    if (locations.length > 0 && selectedLocationIds.length === 0) {
-      setSelectedLocationIds([locations[0].id]);
-    }
-  }, [locations, selectedLocationIds]);
+  // Note: Removed auto-selection to allow users to uncheck all locations
 
   // Reset details loaded state when selection changes
   useEffect(() => {
