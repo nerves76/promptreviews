@@ -725,13 +725,25 @@ export default function SocialPostingDashboard() {
       >
         <div className="space-y-8">
           {/* Header */}
-          <div className="text-left">
-            <h1 className="text-3xl font-bold text-slate-blue mb-2">
-              Google Business Profiles
-            </h1>
-            <p className="text-gray-600">
-              Keep your Google Business Profiles fresh with new content to improve your rankings.
-            </p>
+          <div className="flex items-start justify-between">
+            <div className="text-left">
+              <h1 className="text-3xl font-bold text-slate-blue mb-2">
+                Google Business Profiles
+              </h1>
+              <p className="text-gray-600">
+                Keep your Google Business Profiles fresh with new content to improve your rankings.
+              </p>
+            </div>
+            {/* Full Editor Button */}
+            <a
+              href="https://business.google.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center space-x-2 px-4 py-2 text-sm text-slate-blue border border-slate-blue rounded-md hover:bg-slate-blue hover:text-white transition-colors"
+            >
+              <FaGoogle className="w-4 h-4" />
+              <span>Full Editor</span>
+            </a>
           </div>
 
           {/* Tab Navigation */}
