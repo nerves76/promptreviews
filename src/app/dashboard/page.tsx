@@ -752,6 +752,37 @@ export default function Dashboard() {
     user?.email?.split("@")[0] ||
     "there";
 
+  // Add development refresh function
+  const handleForceRefresh = async () => {
+    try {
+      setShowTopLoader(true);
+      
+      // Call the refresh session API
+      const response = await fetch('/api/refresh-session', { method: 'POST' });
+      const result = await response.json();
+      
+      if (result.success) {
+        console.log('✅ Session refreshed:', result);
+        
+        // Refresh all auth context data
+        await Promise.all([
+          refreshAuth(),
+          refreshAccountDetails(),
+          loadDashboardSpecificData()
+        ]);
+        
+        // Force page reload to ensure all components pick up new data
+        window.location.reload();
+      } else {
+        console.error('❌ Session refresh failed:', result);
+      }
+    } catch (error) {
+      console.error('❌ Refresh error:', error);
+    } finally {
+      setShowTopLoader(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col justify-start px-4 sm:px-0">
       {/* Quotes Display - positioned between nav and PageCard */}
@@ -820,6 +851,25 @@ export default function Dashboard() {
         onComplete={() => setShowStarfallCelebration(false)}
         duration={3000}
       />
+        {/* Top Loader */}
+        {showTopLoader && (
+          <div className="fixed top-0 left-0 w-full h-1 bg-slate-blue z-50">
+            <div className="h-full bg-white animate-pulse"></div>
+          </div>
+        )}
+        
+        {/* Development Only: Force Refresh Button */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="fixed bottom-4 right-4 z-50">
+            <button
+              onClick={handleForceRefresh}
+              className="px-4 py-2 bg-red-600 text-white text-sm rounded-lg shadow-lg hover:bg-red-700 transition-colors"
+              title="Development: Force refresh session and account data"
+            >
+              🔄 Force Refresh
+            </button>
+          </div>
+        )}
     </div>
   );
 }
