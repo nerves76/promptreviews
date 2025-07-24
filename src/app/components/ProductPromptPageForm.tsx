@@ -9,7 +9,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useFallingStars } from "@/hooks/useFallingStars";
-import { generateAIReview } from "@/utils/ai";
+import { generateContextualReview } from "@/utils/aiReviewGeneration";
 
 // Import all the new modular components
 import CustomerDetailsSection from "./sections/CustomerDetailsSection";
@@ -26,6 +26,19 @@ import DisableAIGenerationSection from "./DisableAIGenerationSection";
 import FallingStarsSection from "./FallingStarsSection";
 import { FaCommentDots, FaMobile } from "react-icons/fa";
 import SectionHeader from "./SectionHeader";
+import { BusinessProfile } from "@/types/business";
+import {
+  createLocationBusinessObject,
+  parseLocationPromptPageData,
+} from "@/utils/locationUtils";
+import FormField from "./FormField";
+import SingleCheckboxField from "./SingleCheckboxField";
+import { ChevronRightIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
+import ReviewPlatformListField from "./ReviewPlatformListField";
+import PrimaryFontSelector from "./PrimaryFontSelector";
+import SecondaryFontSelector from "./SecondaryFontSelector";
+import FontColorSelector from "./FontColorSelector";
+import GradientBackgroundSelector from "./GradientBackgroundSelector";
 
 export default function ProductPromptPageForm({
   mode,
@@ -201,17 +214,36 @@ export default function ProductPromptPageForm({
     }
     
     const platform = platforms[idx];
-    const promptPageData = {
-      first_name: formData.first_name,
-      last_name: formData.last_name,
-      project_type: (formData.features_or_benefits || []).join(", "),
+    
+    // Create comprehensive product page context
+    const productPageData = {
+      review_type: 'product',
+      product_name: formData.product_name,
       product_description: formData.product_description,
+      product_subcopy: formData.product_subcopy,
+      features_or_benefits: formData.features_or_benefits || [],
+      category: formData.category,
+      project_type: formData.product_name || 'product',
+      outcomes: formData.product_description,
+      client_name: formData.client_name,
+      location: formData.location,
+      friendly_note: formData.friendly_note,
+      date_completed: formData.date_completed,
+      team_member: formData.team_member,
+      assigned_team_members: formData.assigned_team_members,
+    };
+    
+    const reviewerData = {
+      firstName: formData.first_name || "",
+      lastName: formData.last_name || "",
+      role: formData.role || "",
     };
     
     try {
-      const review = await generateAIReview(
+      const review = await generateContextualReview(
         businessProfile,
-        promptPageData,
+        productPageData,
+        reviewerData,
         platform.name || platform.platform || "Google Business Profile",
         platform.wordCount || 200,
         platform.customInstructions || "",
