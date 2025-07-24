@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
+import { hasValue } from '@/utils/dataFiltering';
 
 export async function POST(request: NextRequest) {
   try {
@@ -102,14 +103,6 @@ export async function POST(request: NextRequest) {
       // Convert our update format to Google Business Profile API format
       // Only include fields that have meaningful values (not empty or whitespace-only)
       const locationUpdate: any = {};
-
-      // Helper function to check if a value is meaningful (not empty/whitespace)
-      const hasValue = (value: any): boolean => {
-        if (value === null || value === undefined) return false;
-        if (typeof value === 'string') return value.trim().length > 0;
-        if (typeof value === 'object' && value !== null) return Object.keys(value).length > 0;
-        return true;
-      };
 
       // Business name update - only if not empty
       if (hasValue(updates.locationName)) {
