@@ -67,6 +67,7 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('🔄 Exchanging refresh token for new access token...');
+    console.log('🔑 Using client ID:', clientId?.substring(0, 10) + '...');
 
     // Exchange refresh token for new access token
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
@@ -85,7 +86,13 @@ export async function POST(request: NextRequest) {
     const refreshData = await tokenResponse.json();
 
     if (!tokenResponse.ok) {
-      console.error('❌ Token refresh failed:', refreshData);
+      console.error('❌ Token refresh failed:', {
+        status: tokenResponse.status,
+        statusText: tokenResponse.statusText,
+        error: refreshData.error,
+        errorDescription: refreshData.error_description,
+        refreshData
+      });
       
       // If refresh token is invalid, user needs to re-authenticate
       if (refreshData.error === 'invalid_grant') {
@@ -96,7 +103,8 @@ export async function POST(request: NextRequest) {
       }
       
       return NextResponse.json({ 
-        error: `Token refresh failed: ${refreshData.error_description || refreshData.error}` 
+        error: `Token refresh failed: ${refreshData.error_description || refreshData.error}`,
+        requiresReauth: refreshData.error === 'invalid_grant'
       }, { status: 400 });
     }
 
