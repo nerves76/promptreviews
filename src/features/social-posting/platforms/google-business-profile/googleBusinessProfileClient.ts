@@ -503,6 +503,7 @@ export class GoogleBusinessProfileClient {
   async updateLocation(accountId: string, locationId: string, updates: any): Promise<any> {
     try {
       console.log(`🔄 Updating location: ${locationId}`);
+      console.log('🚨 CACHE-BUSTING-V2: UPDATE LOCATION NEW CODE IS RUNNING! 🚨');
       console.log(`📝 Updates:`, updates);
 
       // Extract just the location ID if it's in full format
@@ -690,6 +691,7 @@ export class GoogleBusinessProfileClient {
   async listCategories(): Promise<Array<{ categoryId: string; displayName: string }>> {
     try {
       console.log('📋 Fetching Google Business categories...');
+      console.log('🚨 CACHE-BUSTING-V2: NEW CODE IS RUNNING! 🚨');
       
       // CRITICAL FIX: Force endpoint to be just the path
       const endpoint = '/v1/categories';
