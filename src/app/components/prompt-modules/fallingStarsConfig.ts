@@ -99,6 +99,13 @@ import {
   FaHandPaper,
   FaHandScissors,
   FaPray,
+  // Missing from original hardcoded list
+  FaGlassCheers,
+  FaPagelines,
+  // Potential alternatives for missing icons
+  FaBone,
+  FaSkull,
+  FaFistRaised,
 } from "react-icons/fa";
 import { IconType } from "react-icons";
 
@@ -133,20 +140,22 @@ export const FALLING_STARS_ICONS: {
   { key: "tree", label: "Tree", icon: FaTree, color: "text-green-600", category: "Nature & Weather" },
   { key: "leaf", label: "Leaf", icon: FaLeaf, color: "text-green-500", category: "Nature & Weather" },
   { key: "seedling", label: "Seedling", icon: FaSeedling, color: "text-green-400", category: "Nature & Weather" },
+  { key: "flower", label: "Flower", icon: FaPagelines, color: "text-green-500", category: "Nature & Weather" },
   
   // Food & Beverages
   { key: "coffee", label: "Coffee", icon: FaCoffee, color: "text-amber-600", category: "Food & Beverages" },
-  { key: "utensils", label: "Food", icon: FaUtensils, color: "text-orange-500", category: "Food & Beverages" },
-  { key: "gift", label: "Gift", icon: FaGift, color: "text-red-400", category: "Food & Beverages" },
   { key: "wine", label: "Wine", icon: FaWineGlass, color: "text-purple-600", category: "Food & Beverages" },
+  { key: "gift", label: "Gift", icon: FaGift, color: "text-red-500", category: "Food & Beverages" },
+  { key: "utensils", label: "Utensils", icon: FaUtensils, color: "text-gray-600", category: "Food & Beverages" },
   { key: "apple", label: "Apple", icon: FaAppleAlt, color: "text-red-500", category: "Food & Beverages" },
-  { key: "candy", label: "Candy Cane", icon: FaCandyCane, color: "text-red-400", category: "Food & Beverages" },
-  { key: "icecream", label: "Ice Cream", icon: FaIceCream, color: "text-pink-300", category: "Food & Beverages" },
-  { key: "pizza", label: "Pizza", icon: FaPizzaSlice, color: "text-orange-600", category: "Food & Beverages" },
-  { key: "hamburger", label: "Hamburger", icon: FaHamburger, color: "text-amber-700", category: "Food & Beverages" },
-  { key: "cheese", label: "Cheese", icon: FaCheese, color: "text-yellow-600", category: "Food & Beverages" },
-  { key: "carrot", label: "Carrot", icon: FaCarrot, color: "text-orange-500", category: "Food & Beverages" },
+  { key: "candy", label: "Candy Cane", icon: FaCandyCane, color: "text-red-500", category: "Food & Beverages" },
+  { key: "icecream", label: "Ice Cream", icon: FaIceCream, color: "text-pink-400", category: "Food & Beverages" },
+  { key: "pizza", label: "Pizza", icon: FaPizzaSlice, color: "text-orange-500", category: "Food & Beverages" },
+  { key: "burger", label: "Hamburger", icon: FaHamburger, color: "text-yellow-600", category: "Food & Beverages" },
+  { key: "cheese", label: "Cheese", icon: FaCheese, color: "text-yellow-500", category: "Food & Beverages" },
+  { key: "carrot", label: "Carrot", icon: FaCarrot, color: "text-orange-600", category: "Food & Beverages" },
   { key: "cake", label: "Birthday Cake", icon: FaBirthdayCake, color: "text-pink-500", category: "Food & Beverages" },
+  { key: "cheers", label: "Cheers", icon: FaGlassCheers, color: "text-amber-500", category: "Food & Beverages" },
   
   // Activities & Sports
   { key: "bicycle", label: "Bicycle", icon: FaBicycle, color: "text-blue-600", category: "Activities & Sports" },
@@ -198,16 +207,18 @@ export const FALLING_STARS_ICONS: {
   { key: "headphones", label: "Headphones", icon: FaHeadphones, color: "text-gray-700", category: "Entertainment & Media" },
   
   // Animals
-  { key: "cat", label: "Cat", icon: FaCat, color: "text-orange-400", category: "Animals" },
+  { key: "cat", label: "Cat", icon: FaCat, color: "text-orange-500", category: "Animals" },
   { key: "dog", label: "Dog", icon: FaDog, color: "text-amber-600", category: "Animals" },
   { key: "dove", label: "Bird", icon: FaDove, color: "text-blue-300", category: "Animals" },
   { key: "fish", label: "Fish", icon: FaFish, color: "text-blue-400", category: "Animals" },
   { key: "frog", label: "Frog", icon: FaFrog, color: "text-green-500", category: "Animals" },
+  { key: "bone", label: "Bone", icon: FaBone, color: "text-yellow-100", category: "Animals" },
   
   // Fantasy & Fun
   { key: "dragon", label: "Dragon", icon: FaDragon, color: "text-red-600", category: "Fantasy & Fun" },
   { key: "ghost", label: "Ghost", icon: FaGhost, color: "text-gray-300", category: "Fantasy & Fun" },
   { key: "robot", label: "Robot", icon: FaRobot, color: "text-gray-600", category: "Fantasy & Fun" },
+  { key: "skull", label: "Skull", icon: FaSkull, color: "text-gray-400", category: "Fantasy & Fun" },
   
   // Time & Communication
   { key: "clock", label: "Clock", icon: FaClock, color: "text-gray-600", category: "Time & Communication" },
@@ -234,14 +245,13 @@ export const FALLING_STARS_ICONS: {
   { key: "ring", label: "Ring", icon: FaRing, color: "text-yellow-500", category: "Fashion & Accessories" },
   
   // Hands & Gestures
-  { key: "heartbeat", label: "Heartbeat", icon: FaHeartbeat, color: "text-red-500", category: "Hands & Gestures" },
-  { key: "helping", label: "Helping Hands", icon: FaHandsHelping, color: "text-blue-500", category: "Hands & Gestures" },
-  { key: "handpeace", label: "Peace Sign", icon: FaHandPeace, color: "text-green-500", category: "Hands & Gestures" },
   { key: "thumbsdown", label: "Thumbs Down", icon: FaThumbsDown, color: "text-red-500", category: "Hands & Gestures" },
   { key: "rock", label: "Rock", icon: FaHandRock, color: "text-gray-600", category: "Hands & Gestures" },
-  { key: "paper", label: "Paper", icon: FaHandPaper, color: "text-blue-400", category: "Hands & Gestures" },
-  { key: "scissors", label: "Scissors", icon: FaHandScissors, color: "text-gray-600", category: "Hands & Gestures" },
+  { key: "paper", label: "Paper", icon: FaHandPaper, color: "text-blue-500", category: "Hands & Gestures" },
+  { key: "scissors", label: "Scissors", icon: FaHandScissors, color: "text-red-600", category: "Hands & Gestures" },
+  { key: "handpeace", label: "Peace Hand", icon: FaHandPeace, color: "text-green-500", category: "Hands & Gestures" },
   { key: "pray", label: "Pray", icon: FaPray, color: "text-purple-500", category: "Hands & Gestures" },
+  { key: "fist", label: "Fist", icon: FaFistRaised, color: "text-red-600", category: "Hands & Gestures" },
 ];
 
 // Export in the format expected by FallingStarsSection
