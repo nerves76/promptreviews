@@ -63,6 +63,18 @@ export class GoogleBusinessProfileClient {
     baseUrl?: string
   ): Promise<GoogleBusinessProfileApiResponse> {
     try {
+      // CRITICAL DEBUG: Check endpoint parameter at function entry
+      console.log('🚨 makeRequest called with:', {
+        endpointType: typeof endpoint,
+        endpointValue: endpoint,
+        endpointJSON: JSON.stringify(endpoint),
+        endpointLength: endpoint?.length,
+        startsWithSlash: endpoint?.startsWith('/'),
+        containsHttps: endpoint?.includes('https://'),
+        baseUrlProvided: !!baseUrl,
+        baseUrlValue: baseUrl
+      });
+      
       // Check if token is expired or will expire in the next 5 minutes
       const fiveMinutesFromNow = Date.now() + (5 * 60 * 1000);
       const isExpired = Date.now() >= this.expiresAt;
@@ -93,6 +105,15 @@ export class GoogleBusinessProfileClient {
       } else {
         console.log('✅ Token is still valid, no refresh needed');
       }
+
+      // CRITICAL DEBUG: Check endpoint again before URL construction
+      console.log('🚨 About to construct URL:', {
+        endpointBeforeConstruction: endpoint,
+        endpointType: typeof endpoint,
+        containsHttps: endpoint?.includes('https://'),
+        baseUrlParam: baseUrl,
+        configBaseUrl: this.config.baseUrl
+      });
 
       // Use custom base URL or default to the main Business Information API
       const apiBaseUrl = baseUrl || this.config.baseUrl;
