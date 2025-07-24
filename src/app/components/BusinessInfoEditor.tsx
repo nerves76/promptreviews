@@ -305,18 +305,61 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
             }
           </p>
         </div>
-        {/* Load Business Info Button */}
-        {selectedLocationIds.length > 0 && (
-          <LoadBusinessInfoButton
-            selectedLocationIds={selectedLocationIds}
-            locations={locations}
-            detailsLoaded={detailsLoaded}
-            onBusinessInfoLoaded={handleBusinessInfoLoaded}
-            onLoadingStateChange={setIsLoadingDetails}
-            onDetailsLoadedChange={setDetailsLoaded}
-            onErrorChange={setDetailsError}
-          />
-        )}
+      </div>
+
+      {/* Load Business Info Button - Moved to top with Save & Publish */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          {selectedLocationIds.length > 0 && (
+            <LoadBusinessInfoButton
+              selectedLocationIds={selectedLocationIds}
+              locations={locations}
+              detailsLoaded={detailsLoaded}
+              onBusinessInfoLoaded={handleBusinessInfoLoaded}
+              onLoadingStateChange={setIsLoadingDetails}
+              onDetailsLoadedChange={setDetailsLoaded}
+              onErrorChange={setDetailsError}
+            />
+          )}
+        </div>
+        
+        {/* Save & Publish and Reset buttons - Moved to left side */}
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={handleSave}
+            disabled={selectedLocationIds.length === 0 || isSaving}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-md font-medium ${
+              selectedLocationIds.length > 0 && !isSaving
+                ? 'bg-slate-blue text-white hover:bg-slate-blue/90'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`}
+          >
+            {isSaving ? (
+              <FaSpinner className="w-4 h-4 animate-spin" />
+            ) : (
+              <FaSave className="w-4 h-4" />
+            )}
+            <span>
+              {isSaving 
+                ? (selectedLocationIds.length === 1 ? 'Publishing...' : `Publishing ${selectedLocationIds.length} locations...`)
+                : 'Save & Publish'
+              }
+            </span>
+          </button>
+          
+          <button
+            onClick={handleReset}
+            disabled={selectedLocationIds.length === 0 || isSaving}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-md font-medium border ${
+              selectedLocationIds.length > 0 && !isSaving
+                ? 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                : 'border-gray-200 text-gray-400 cursor-not-allowed'
+            }`}
+          >
+            <FaRedo className="w-4 h-4" />
+            <span>Reset</span>
+          </button>
+        </div>
       </div>
 
       {/* Location Selector */}
@@ -408,43 +451,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
         )}
       </div>
 
-      {/* Top Save/Reset Actions */}
-      <div className="flex items-center justify-end space-x-4 mb-6">
-        <button
-          onClick={handleSave}
-          disabled={selectedLocationIds.length === 0 || isSaving}
-          className={`flex items-center space-x-2 px-4 py-2 rounded-md font-medium ${
-            selectedLocationIds.length > 0 && !isSaving
-              ? 'bg-slate-blue text-white hover:bg-slate-blue/90'
-              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-          }`}
-        >
-          {isSaving ? (
-            <FaSpinner className="w-4 h-4 animate-spin" />
-          ) : (
-            <FaSave className="w-4 h-4" />
-          )}
-          <span>
-            {isSaving 
-              ? (selectedLocationIds.length === 1 ? 'Publishing...' : `Publishing ${selectedLocationIds.length} locations...`)
-              : 'Save & Publish'
-            }
-          </span>
-        </button>
-        
-        <button
-          onClick={handleReset}
-          disabled={selectedLocationIds.length === 0 || isSaving}
-          className={`flex items-center space-x-2 px-4 py-2 rounded-md font-medium border ${
-            selectedLocationIds.length > 0 && !isSaving
-              ? 'border-gray-300 text-gray-700 hover:bg-gray-50'
-              : 'border-gray-200 text-gray-400 cursor-not-allowed'
-          }`}
-        >
-          <FaRedo className="w-4 h-4" />
-          <span>Reset</span>
-        </button>
-      </div>
+
 
       {selectedLocationIds.length > 0 && (
         <div className="space-y-6">
