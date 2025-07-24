@@ -263,7 +263,6 @@ const ReviewPlatformsSection: React.FC<ReviewPlatformsSectionProps> = ({
                     </a>
                   </li>
                   <li>To find your review link, select <strong>"Read Reviews"</strong> and then <strong>"Get more reviews"</strong> Share icon.</li>
-                  <li>Share the link or QR code directly or use the share options.</li>
                   <li>To copy the review link, select <strong>Copy</strong> Copy icon.</li>
                 </ol>
               </div>
