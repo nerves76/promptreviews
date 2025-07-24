@@ -355,7 +355,7 @@ export default function Header() {
                   </Link>
                   {hasGBPAccess && (
                     <Link
-                      href={hasBusiness ? "/dashboard/social-posting" : "#"}
+                      href={hasBusiness ? "/dashboard/google-business" : "#"}
                       onClick={(e) => {
                         if (!hasBusiness) {
                           e.preventDefault();
@@ -363,7 +363,7 @@ export default function Header() {
                         }
                       }}
                       className={`${
-                        isActive("/dashboard/social-posting")
+                        isActive("/dashboard/google-business")
                           ? "border-white text-white"
                           : hasBusiness 
                             ? "border-transparent text-white hover:border-white/30 hover:text-white/90"
@@ -405,7 +405,7 @@ export default function Header() {
                     </Link>
                     {/* Social Posting temporarily hidden until feature is ready
                     <Link
-                      href={hasBusiness ? "/dashboard/social-posting" : "#"}
+                      href={hasBusiness ? "/dashboard/google-business" : "#"}
                       onClick={(e) => {
                         if (!hasBusiness) {
                           e.preventDefault();
@@ -413,7 +413,7 @@ export default function Header() {
                         }
                       }}
                       className={`${
-                        isActive("/dashboard/social-posting")
+                        isActive("/dashboard/google-business")
                           ? "border-white text-white"
                           : hasBusiness 
                             ? "border-transparent text-white hover:border-white/30 hover:text-white/90"
@@ -692,7 +692,7 @@ export default function Header() {
                     </Link>
                     {hasGBPAccess && (
                       <Link
-                        href={hasBusiness ? "/dashboard/social-posting" : "#"}
+                        href={hasBusiness ? "/dashboard/google-business" : "#"}
                         onClick={(e) => {
                           if (!hasBusiness) {
                             e.preventDefault();
@@ -703,7 +703,7 @@ export default function Header() {
                           }
                         }}
                         className={`${
-                          isActive("/dashboard/social-posting")
+                          isActive("/dashboard/google-business")
                             ? "bg-slate-blue/10 text-slate-blue"
                             : hasBusiness 
                               ? "text-blue-900 hover:bg-slate-blue/10 hover:text-slate-blue"
@@ -742,7 +742,7 @@ export default function Header() {
                     </Link>
                     {/* Social Posting temporarily hidden until feature is ready
                     <Link
-                      href={hasBusiness ? "/dashboard/social-posting" : "#"}
+                      href={hasBusiness ? "/dashboard/google-business" : "#"}
                       onClick={(e) => {
                         if (!hasBusiness) {
                           e.preventDefault();
@@ -753,7 +753,7 @@ export default function Header() {
                         }
                       }}
                       className={`${
-                        isActive("/dashboard/social-posting")
+                        isActive("/dashboard/google-business")
                           ? "bg-slate-blue/10 text-slate-blue"
                           : hasBusiness 
                             ? "text-blue-900 hover:bg-slate-blue/10 hover:text-slate-blue"

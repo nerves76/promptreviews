@@ -317,7 +317,7 @@ export default function SocialPostingDashboard() {
       const responseType = 'code';
       const state = encodeURIComponent(JSON.stringify({ 
         platform: 'google-business-profile',
-        returnUrl: '/dashboard/social-posting'
+        returnUrl: '/dashboard/google-business'
       }));
 
       // Construct Google OAuth URL

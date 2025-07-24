@@ -53,23 +53,23 @@ export async function GET(request: NextRequest) {
     if (error) {
       console.log('❌ OAuth error received:', error);
       return NextResponse.redirect(
-        new URL('/dashboard/social-posting?error=oauth_denied&message=Access was denied', request.url)
+        new URL('/dashboard/google-business?error=oauth_denied&message=Access was denied', request.url)
       );
     }
     
     if (!code) {
       console.log('❌ No authorization code received');
       return NextResponse.redirect(
-        new URL('/dashboard/social-posting?error=callback_failed&message=No authorization code received', request.url)
+        new URL('/dashboard/google-business?error=callback_failed&message=No authorization code received', request.url)
       );
     }
 
     // Parse state to get return URL
-    let returnUrl = '/dashboard/social-posting';
+          let returnUrl = '/dashboard/google-business';
     if (state) {
       try {
         const stateData = JSON.parse(decodeURIComponent(state));
-        returnUrl = stateData.returnUrl || '/dashboard/social-posting';
+        returnUrl = stateData.returnUrl || '/dashboard/google-business';
         console.log('🔄 Return URL from state:', returnUrl);
       } catch (e) {
         console.log('⚠️ Failed to parse state:', e);
@@ -273,7 +273,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('❌ Error in OAuth callback:', error);
     return NextResponse.redirect(
-      new URL('/dashboard/social-posting?error=callback_failed&message=Unexpected error during OAuth callback', request.url)
+              new URL('/dashboard/google-business?error=callback_failed&message=Unexpected error during OAuth callback', request.url)
     );
   }
 } 
