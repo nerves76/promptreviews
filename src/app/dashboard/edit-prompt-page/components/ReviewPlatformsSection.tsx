@@ -232,20 +232,22 @@ const ReviewPlatformsSection: React.FC<ReviewPlatformsSectionProps> = ({
       {/* Google Help Modal */}
       {showGoogleHelpModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="relative bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Close Button - Breaching top right corner */}
+            <button
+              onClick={() => setShowGoogleHelpModal(false)}
+              className="absolute -top-3 -right-3 w-8 h-8 bg-slate-600 hover:bg-slate-700 text-white rounded-full flex items-center justify-center transition-colors z-10 shadow-lg"
+            >
+              <FaTimes className="w-4 h-4" />
+            </button>
+            
             <div className="p-6">
               {/* Modal Header */}
-              <div className="flex items-center justify-between mb-4">
+              <div className="mb-4">
                 <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                   <FaGoogle className="w-5 h-5 text-blue-600" />
                   How to Find Your Google Review Link
                 </h3>
-                <button
-                  onClick={() => setShowGoogleHelpModal(false)}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  <FaTimes className="w-6 h-6" />
-                </button>
               </div>
 
               {/* Instructions */}
