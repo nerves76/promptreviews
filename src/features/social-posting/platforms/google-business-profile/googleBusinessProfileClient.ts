@@ -666,10 +666,11 @@ export class GoogleBusinessProfileClient {
     try {
       console.log('📋 Fetching Google Business categories...');
       
-      // Google Business Categories API endpoint - force just the path to avoid URL doubling
+      // Use ONLY the path, no base URL included
       const endpoint = '/v1/categories';
+      console.log('🔧 Categories endpoint set to:', endpoint);
       
-      // Use the Business Information API explicitly to avoid any URL construction issues
+      // Use the Business Information API explicitly 
       const response = await this.makeRequest(
         endpoint,
         { method: 'GET' },
