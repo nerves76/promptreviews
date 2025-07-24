@@ -666,16 +666,21 @@ export class GoogleBusinessProfileClient {
     try {
       console.log('📋 Fetching Google Business categories...');
       
-      // Use ONLY the path, no base URL included
+      // Force endpoint to be ONLY the path
       const endpoint = '/v1/categories';
-      console.log('🔧 Categories endpoint set to:', endpoint);
+      console.log('🔧 Categories endpoint before makeRequest:', typeof endpoint, JSON.stringify(endpoint));
       
-      // Use the Business Information API explicitly 
+      // Verify the endpoint is correct
+      if (!endpoint.startsWith('/')) {
+        console.error('❌ INVALID ENDPOINT FORMAT:', endpoint);
+        throw new Error(`Invalid endpoint format: ${endpoint}`);
+      }
+      
+      // Use the default base URL (Business Information API)
       const response = await this.makeRequest(
         endpoint,
         { method: 'GET' },
-        0,
-        'https://mybusinessbusinessinformation.googleapis.com'
+        0
       );
       
       console.log(`✅ Fetched ${response.data.categories?.length || 0} business categories`);
