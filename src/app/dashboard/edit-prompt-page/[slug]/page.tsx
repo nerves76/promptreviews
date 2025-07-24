@@ -483,27 +483,27 @@ export default function EditPromptPage() {
       
       // Create comprehensive page context
       const pageData = {
-        review_type: formData.review_type || 'general',
+        review_type: 'general',
         project_type: Array.isArray(formData.services_offered)
           ? formData.services_offered.join(", ")
-          : formData.services_offered || formData.project_type || "",
+          : formData.services_offered || "",
         product_description: formData.product_description,
-        outcomes: formData.outcomes,
-        client_name: formData.client_name,
-        location: formData.location,
+        outcomes: "",
+        client_name: "",
+        location: "",
         friendly_note: formData.friendly_note,
-        date_completed: formData.date_completed,
-        team_member: formData.team_member,
-        assigned_team_members: formData.assigned_team_members,
+        date_completed: "",
+        team_member: "",
+        assigned_team_members: "",
         // Service-specific fields
-        service_name: formData.service_name,
-        service_description: formData.service_description,
+        service_name: "",
+        service_description: "",
         // Product-specific fields
         product_name: formData.product_name,
-        product_subcopy: formData.product_subcopy,
+        product_subcopy: "",
         features_or_benefits: formData.features_or_benefits,
         // Universal page fields
-        is_universal: formData.is_universal,
+        is_universal: false,
       };
       
       const reviewerData = {
@@ -512,8 +512,19 @@ export default function EditPromptPage() {
         role: formData.role || "",
       };
       
+      // Convert businessProfile to match AI function interface
+      const aiBusinessProfile = businessProfile ? {
+        ...businessProfile,
+        services_offered: Array.isArray(businessProfile.services_offered) 
+          ? businessProfile.services_offered.join(", ")
+          : businessProfile.services_offered || ""
+      } : {
+        business_name: "Business",
+        services_offered: ""
+      };
+      
       const review = await generateContextualReview(
-        businessProfile,
+        aiBusinessProfile,
         pageData,
         reviewerData,
         formData.review_platforms[index].name,

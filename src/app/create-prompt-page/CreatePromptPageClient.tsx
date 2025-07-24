@@ -449,20 +449,20 @@ export default function CreatePromptPageClient() {
       // Create comprehensive page context
       const pageData = {
         review_type: formData.review_type || 'general',
-        project_type: formData.services_offered?.join(", ") || formData.project_type || "",
+        project_type: formData.services_offered?.join(", ") || "",
         product_description: formData.product_description,
-        outcomes: formData.outcomes,
-        client_name: formData.client_name,
-        location: formData.location,
+        outcomes: "",
+        client_name: "",
+        location: "",
         friendly_note: formData.friendly_note,
-        date_completed: formData.date_completed,
-        team_member: formData.team_member,
-        assigned_team_members: formData.assigned_team_members,
+        date_completed: "",
+        team_member: "",
+        assigned_team_members: "",
         // Service-specific fields
-        service_name: formData.service_name,
-        service_description: formData.service_description,
+        service_name: "",
+        service_description: "",
         // Universal page fields
-        is_universal: formData.is_universal,
+        is_universal: false,
       };
       
       const reviewerData = {
@@ -471,8 +471,19 @@ export default function CreatePromptPageClient() {
         role: formData.role || "",
       };
       
+      // Convert businessProfile to match AI function interface
+      const aiBusinessProfile = businessProfile ? {
+        ...businessProfile,
+        services_offered: Array.isArray(businessProfile.services_offered) 
+          ? businessProfile.services_offered.join(", ")
+          : businessProfile.services_offered || ""
+      } : {
+        business_name: "Business",
+        services_offered: ""
+      };
+      
       const review = await generateContextualReview(
-        businessProfile,
+        aiBusinessProfile,
         pageData,
         reviewerData,
         formData.review_platforms[index].platform,
@@ -516,15 +527,15 @@ export default function CreatePromptPageClient() {
       // Create photo-specific context
       const pageData = {
         review_type: 'photo',
-        project_type: formData.services_offered?.join(", ") || formData.project_type || "",
+        project_type: formData.services_offered?.join(", ") || "",
         product_description: formData.product_description,
-        outcomes: formData.outcomes,
-        client_name: formData.client_name,
-        location: formData.location,
+        outcomes: "",
+        client_name: "",
+        location: "",
         friendly_note: formData.friendly_note,
         photo_context: "Photo testimonial submission",
-        date_completed: formData.date_completed,
-        team_member: formData.team_member,
+        date_completed: "",
+        team_member: "",
       };
       
       const reviewerData = {
@@ -533,8 +544,19 @@ export default function CreatePromptPageClient() {
         role: formData.role || "",
       };
       
+      // Convert businessProfile to match AI function interface
+      const aiBusinessProfile = businessProfile ? {
+        ...businessProfile,
+        services_offered: Array.isArray(businessProfile.services_offered) 
+          ? businessProfile.services_offered.join(", ")
+          : businessProfile.services_offered || ""
+      } : {
+        business_name: "Business",
+        services_offered: ""
+      };
+      
       const review = await generateContextualTestimonial(
-        businessProfile,
+        aiBusinessProfile,
         pageData,
         reviewerData,
         formData.friendly_note
