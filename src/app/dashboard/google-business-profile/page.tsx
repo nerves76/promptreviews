@@ -14,7 +14,7 @@ export default function GoogleBusinessProfileRedirect() {
 
   useEffect(() => {
     // Redirect to the new social posting route
-    router.replace('/dashboard/social-posting');
+    router.replace('/dashboard/google-business');
   }, [router]);
 
   return (
