@@ -112,40 +112,73 @@ export async function GET(request: NextRequest) {
 
     console.log(`🎯 Using ${ownedAccount ? 'owned' : 'first available'} account with plan: ${accountPlan}`);
 
-    // Check for Google Business Profile connection
+    // Check for Google Business Profile connection and validate tokens
     const { data: googleTokens, error: googleError } = await supabase
       .from('google_business_profiles')
       .select('*')
       .eq('user_id', user.id)
       .maybeSingle();
 
+    let isGoogleConnected = false;
+    let googleConnectionError = null;
+
     if (googleError) {
       console.log('❌ Error fetching Google tokens:', googleError);
     } else if (googleTokens) {
       console.log('✅ Found Google Business Profile tokens for user:', user.id);
+      
+      // Test if tokens are working by creating a client and making a simple API call
+      try {
+        const { GoogleBusinessProfileClient } = await import('@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient');
+        
+        const client = new GoogleBusinessProfileClient({
+          accessToken: googleTokens.access_token,
+          refreshToken: googleTokens.refresh_token,
+          expiresAt: googleTokens.expires_at ? new Date(googleTokens.expires_at).getTime() : Date.now() + 3600000
+        });
+
+        // Test the connection with a simple accounts call
+        console.log('🔍 Testing Google Business Profile connection...');
+        const accounts = await client.listAccounts();
+        console.log(`✅ Google connection verified - found ${accounts.length} accounts`);
+        isGoogleConnected = true;
+      } catch (error: any) {
+        console.error('❌ Google token validation failed:', error);
+        if (error.message?.includes('GOOGLE_REAUTH_REQUIRED')) {
+          googleConnectionError = 'Google Business Profile connection expired. Please reconnect your account.';
+        } else {
+          googleConnectionError = 'Google Business Profile connection issue. Please try reconnecting.';
+        }
+        isGoogleConnected = false;
+      }
     } else {
       console.log('ℹ️ No Google Business Profile tokens found for user:', user.id);
     }
 
-    // Check for Google Business Profile locations
-    const { data: locations, error: locationsError } = await supabase
-      .from('google_business_locations')
-      .select('*')
-      .eq('user_id', user.id);
+    // Check for Google Business Profile locations (only if connected)
+    let locations = [];
+    if (isGoogleConnected) {
+      const { data: locationData, error: locationsError } = await supabase
+        .from('google_business_locations')
+        .select('*')
+        .eq('user_id', user.id);
 
-    if (locationsError) {
-      console.log('❌ Error fetching locations:', locationsError);
-    } else {
-      console.log(`✅ Found ${locations?.length || 0} locations for user:`, user.id);
+      if (locationsError) {
+        console.log('❌ Error fetching locations:', locationsError);
+      } else {
+        console.log(`✅ Found ${locationData?.length || 0} locations for user:`, user.id);
+        locations = locationData || [];
+      }
     }
 
     const platforms = [
       {
         id: 'google-business-profile',
         name: 'Google Business Profile',
-        connected: !!googleTokens,
-        locations: locations || [],
-        status: googleTokens ? 'connected' : 'disconnected'
+        connected: isGoogleConnected,
+        locations: locations,
+        status: isGoogleConnected ? 'connected' : 'disconnected',
+        ...(googleConnectionError && { error: googleConnectionError })
       }
     ];
 

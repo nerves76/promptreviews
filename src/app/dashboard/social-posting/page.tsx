@@ -260,6 +260,14 @@ export default function SocialPostingDashboard() {
           setLocations([]);
           setSelectedLocations([]);
           console.log('Google Business Profile is not connected');
+          
+          // Show error message if available
+          if (googlePlatform?.error) {
+            setPostResult({ 
+              success: false, 
+              message: googlePlatform.error 
+            });
+          }
         }
       } else {
         console.error('Failed to check platform connections, status:', response.status);
