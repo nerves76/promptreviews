@@ -1019,7 +1019,7 @@ export default function SocialPostingDashboard() {
                         <p className="text-gray-600 mb-4">No business locations found</p>
                         <button
                           onClick={() => handleFetchLocations('google-business-profile')}
-                          disabled={!!fetchingLocations || (rateLimitedUntil && Date.now() < rateLimitedUntil)}
+                          disabled={!!fetchingLocations || (rateLimitedUntil ? Date.now() < rateLimitedUntil : false)}
                           className="px-4 py-2 bg-slate-blue text-white rounded-md hover:bg-slate-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors text-sm"
                         >
                           {fetchingLocations ? (

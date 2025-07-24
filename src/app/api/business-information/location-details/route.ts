@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
       locationId,
       locationIdType: typeof locationId,
       locationIdLength: locationId?.length,
-      locationIdCharCodes: locationId ? Array.from(locationId).map(c => c.charCodeAt(0)) : null,
+      locationIdCharCodes: locationId ? (Array.from(locationId) as string[]).map(c => c.charCodeAt(0)) : null,
       accountName: body.accountName || 'accounts/unknown',
       fullBody: body
     });

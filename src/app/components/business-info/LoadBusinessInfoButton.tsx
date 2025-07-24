@@ -212,15 +212,9 @@ export default function LoadBusinessInfoButton({
         const loadedBusinessInfo = {
           description: data.location.profile?.description || '',
           regularHours: loadedHours,
-          primaryCategory: primaryCategory,
-          additionalCategories: additionalCategories,
-          serviceItems: data.location.serviceItems?.map((item: any) => ({
-            name: item.freeFormServiceItem?.label?.displayName || 
-                  item.structuredServiceItem?.description || 
-                  'Unnamed Service',
-            description: item.freeFormServiceItem?.label?.description || 
-                        item.structuredServiceItem?.description || ''
-          })) || []
+          primaryCategory: primaryCategory || undefined,
+          additionalCategories,
+          serviceItems: data.location.serviceItems || []
         };
 
         console.log('📦 Final loadedBusinessInfo being passed to component:', {

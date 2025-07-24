@@ -292,15 +292,14 @@ export class GoogleBusinessProfileClient {
    */
   async listAccounts(): Promise<BusinessAccount[]> {
     try {
-      console.log('📋 Fetching Google Business Profile accounts...');
+      console.log('📋 Fetching business accounts...');
       
-      // Use Account Management API for listing accounts
       const response = await this.makeRequest(
         GOOGLE_BUSINESS_PROFILE.ENDPOINTS.ACCOUNTS,
         {},
         0,
         GOOGLE_BUSINESS_PROFILE.ACCOUNT_MGMT_BASE_URL
-      );
+      ) as ListAccountsResponse;
       
       if (!response.accounts) {
         console.log('⚠️ No accounts found in response');
@@ -362,7 +361,7 @@ export class GoogleBusinessProfileClient {
         {},
         0,
         'https://mybusinessbusinessinformation.googleapis.com'
-      );
+      ) as ListLocationsResponse;
       console.log(`📍 Response data:`, response);
       console.log(`📍 Response data.locations:`, response.locations);
       
@@ -409,7 +408,7 @@ export class GoogleBusinessProfileClient {
         .replace('{accountId}', accountId)
         .replace('{locationId}', locationId);
       
-      const response = await this.makeRequest(endpoint, {}, 0, GOOGLE_BUSINESS_PROFILE.LEGACY_BASE_URL);
+      const response = await this.makeRequest(endpoint, {}, 0, GOOGLE_BUSINESS_PROFILE.LEGACY_BASE_URL) as ListLocalPostsResponse;
       
       if (!response.localPosts) {
         console.log('⚠️ No local posts found in response');
@@ -446,7 +445,7 @@ export class GoogleBusinessProfileClient {
       }, 0, GOOGLE_BUSINESS_PROFILE.LEGACY_BASE_URL);
 
       console.log('✅ Local post created successfully');
-      return response;
+      return response as LocalPost;
 
     } catch (error) {
       console.error('❌ Failed to create local post:', error);
@@ -672,7 +671,7 @@ export class GoogleBusinessProfileClient {
       
       const response = await this.makeRequest(endpoint, {
         method: 'GET'
-      }, 0, GOOGLE_BUSINESS_PROFILE.LEGACY_BASE_URL);
+      }, 0, GOOGLE_BUSINESS_PROFILE.LEGACY_BASE_URL) as { reviews?: any[] };
 
       console.log('✅ Successfully fetched reviews');
       return response?.reviews || [];
@@ -750,7 +749,7 @@ export class GoogleBusinessProfileClient {
       const response = await this.makeRequest(
         fullEndpoint,
         { method: 'GET' }
-      );
+      ) as { categories?: any[] };
       console.log('🚨 makeRequest completed successfully');
 
       if (response.categories) {

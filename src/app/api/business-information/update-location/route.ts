@@ -71,9 +71,15 @@ export async function POST(request: NextRequest) {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         cookies: {
-          get: (name) => cookieStore.get(name)?.value,
-          set: (name, value, options) => cookieStore.set(name, value, options),
-          remove: (name, options) => cookieStore.delete(name, options),
+          get: (name) => {
+            return cookieStore.get(name)?.value;
+          },
+          set: (name, value, options) => {
+            cookieStore.set(name, value, options);
+          },
+          remove: (name, options) => {
+            cookieStore.set(name, '', { ...options, maxAge: 0 });
+          },
         },
       }
     );
@@ -158,26 +164,34 @@ export async function POST(request: NextRequest) {
         if (hasValue(updates.regularHours) && typeof updates.regularHours === 'object') {
           console.log('🕒 Raw business hours from frontend:', JSON.stringify(updates.regularHours, null, 2));
           
+          // Convert HH:MM format to Google's time object format
+          const parseTime = (timeStr: string) => {
+            const [hoursPart, minutesPart] = timeStr.split(':').map(Number);
+            return {
+              hours: hoursPart || 0,
+              minutes: minutesPart || 0
+            };
+          };
+          
           // Convert our frontend format {MONDAY: {open: '09:00', close: '17:00', closed: false}} 
-          // to Google's format with periods array
+          // to Google's periods array format
           const periods = [];
           
-          for (const [day, hours] of Object.entries(updates.regularHours)) {
-            if (hours && typeof hours === 'object' && !hours.closed && hours.open && hours.close) {
-              // Convert HH:MM format to Google's time object format
-              const parseTime = (timeStr: string) => {
-                const [hoursPart, minutesPart] = timeStr.split(':').map(Number);
-                return {
-                  hours: hoursPart || 0,
-                  minutes: minutesPart || 0
-                };
-              };
+          for (const [dayName, hours] of Object.entries(updates.regularHours)) {
+            // Type assertion for hours object to fix TypeScript errors
+            const typedHours = hours as { closed?: boolean; open?: string; close?: string };
+            
+            if (typedHours && typeof typedHours === 'object' && !typedHours.closed && typedHours.open && typedHours.close) {
+              console.log(`📅 Processing ${dayName}: ${typedHours.open} - ${typedHours.close}`);
+              
+              // Convert day name to Google's format
+              const googleDay = dayName.toUpperCase();
               
               periods.push({
-                openDay: day,
-                openTime: parseTime(hours.open),
-                closeDay: day,
-                closeTime: parseTime(hours.close)
+                openDay: googleDay,
+                openTime: parseTime(typedHours.open),
+                closeDay: googleDay, 
+                closeTime: parseTime(typedHours.close)
               });
             }
           }
@@ -191,7 +205,7 @@ export async function POST(request: NextRequest) {
 
         // Service items update - only if provided and has meaningful data
         if (hasValue(updates.serviceItems) && Array.isArray(updates.serviceItems)) {
-          const validServices = updates.serviceItems.filter(service => 
+          const validServices = updates.serviceItems.filter((service: any) => 
             hasValue(service) && hasValue(service.serviceTypeId)
           );
           
@@ -210,7 +224,7 @@ export async function POST(request: NextRequest) {
         
         const hasValidAdditionalCategories = hasValue(updates.additionalCategories) && 
           Array.isArray(updates.additionalCategories) &&
-          updates.additionalCategories.some(cat => 
+          updates.additionalCategories.some((cat: any) => 
             hasValue(cat) && hasValue(cat.categoryId) && hasValue(cat.displayName)
           );
 
@@ -220,28 +234,25 @@ export async function POST(request: NextRequest) {
           if (hasValidPrimaryCategory) {
             // Convert our frontend format {categoryId, displayName} to Google's format {name, displayName}
             locationUpdate.categories.primary_category = {
-              name: updates.primaryCategory.categoryId,
+              name: updates.primaryCategory.categoryId, // Google expects "name" field with categoryId value
               displayName: updates.primaryCategory.displayName
             };
-            console.log('📝 Including primary category update:', locationUpdate.categories.primary_category);
-            console.log('📝 Primary category source data:', updates.primaryCategory);
+            console.log('📝 Including primary category update');
           }
-
+          
           if (hasValidAdditionalCategories) {
-            // Filter to only valid categories with both categoryId and displayName
-            const validCategories = updates.additionalCategories.filter(cat => 
+            // Filter and convert valid additional categories
+            const validCategories = updates.additionalCategories.filter((cat: any) => 
               hasValue(cat) && hasValue(cat.categoryId) && hasValue(cat.displayName)
             );
             
             if (validCategories.length > 0) {
-              // Convert our frontend format to Google's expected format
-              locationUpdate.categories.additional_categories = validCategories.map(cat => ({
-                name: cat.categoryId,
+              // Convert our format to Google's format (categoryId -> name)
+              locationUpdate.categories.additional_categories = validCategories.map((cat: any) => ({
+                name: cat.categoryId, // Google expects "name" field with categoryId value
                 displayName: cat.displayName
               }));
               console.log('📝 Including additional categories update:', validCategories.length, 'categories');
-              console.log('📝 Additional categories source data:', updates.additionalCategories);
-              console.log('📝 Transformed additional categories:', locationUpdate.categories.additional_categories);
             }
           }
         } else {
@@ -357,7 +368,7 @@ export async function POST(request: NextRequest) {
       // All successful - create detailed message
       if (successfulUpdates.length === 1) {
         const update = successfulUpdates[0];
-        message = `Successfully updated ${update.updatedFields.join(', ')} for ${update.locationName}`;
+        message = `Successfully updated ${update.updatedFields?.join(', ') || 'business information'} for ${update.locationName}`;
       } else {
         // Multiple locations - show summary
         const allUpdatedFields = [...new Set(successfulUpdates.flatMap(u => u.updatedFields))];
