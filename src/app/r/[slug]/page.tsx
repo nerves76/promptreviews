@@ -693,46 +693,18 @@ export default function PromptPage() {
     try {
       const platform = promptPage.review_platforms[idx];
       
-      // Create comprehensive business profile for AI generation
-      const businessProfileForAI = {
-        business_name: businessProfile.business_name || businessProfile.name || "Business",
-        features_or_benefits: businessProfile.services_offered ? [businessProfile.services_offered] : [],
-        company_values: businessProfile.company_values || "",
-        differentiators: businessProfile.differentiators || "",
-        years_in_business: businessProfile.years_in_business || 0,
-        industries_served: businessProfile.industries_served || "",
-        taglines: businessProfile.tagline || "",
-        team_founder_info: businessProfile.team_founder_info || "",
-        keywords: businessProfile.keywords || "",
-        industry: businessProfile.industry || [],
-        industry_other: businessProfile.industry_other || "",
-        ai_dos: businessProfile.ai_dos || "",
-        ai_donts: businessProfile.ai_donts || "",
-        address_city: businessProfile.address_city || "",
-        address_state: businessProfile.address_state || "",
-        address_zip: businessProfile.address_zip || "",
-      };
-      
-      // Create prompt page data for AI generation
-      const promptPageDataForAI = {
-        first_name: reviewerFirstNames[idx] || "",
-        last_name: reviewerLastNames[idx] || "",
-        role: reviewerRoles[idx] || "",
-        project_type: promptPage.project_type || promptPage.review_type || "service",
-        product_description: promptPage.product_description || promptPage.outcomes || "great experience",
-      };
-      
-      // Use the proper AI generation function with full business context
-      const { generateAIReview } = await import('@/utils/ai');
-      const generatedReview = await generateAIReview(
-        businessProfileForAI,
-        promptPageDataForAI,
+      // Use the centralized AI generation utility
+      const { generateContextualReview } = await import('@/utils/aiReviewGeneration');
+      const generatedReview = await generateContextualReview(
+        businessProfile,
+        promptPage,
+        {
+          firstName: reviewerFirstNames[idx] || "",
+          lastName: reviewerLastNames[idx] || "",
+          role: reviewerRoles[idx] || "",
+        },
         platform.platform || platform.name || "review site",
-        150, // word count limit
-        "", // custom instructions
-        "customer", // reviewer type
-        "", // additional dos
-        "" // additional donts
+        150 // word count limit
       );
       
       setPlatformReviewTexts((prev) =>
@@ -1107,46 +1079,18 @@ export default function PromptPage() {
     
     setAiLoadingPhoto(true);
     try {
-      // Create comprehensive business profile for AI generation
-      const businessProfileForAI = {
-        business_name: businessProfile.business_name || businessProfile.name || "Business",
-        features_or_benefits: businessProfile.services_offered ? [businessProfile.services_offered] : [],
-        company_values: businessProfile.company_values || "",
-        differentiators: businessProfile.differentiators || "",
-        years_in_business: businessProfile.years_in_business || 0,
-        industries_served: businessProfile.industries_served || "",
-        taglines: businessProfile.tagline || "",
-        team_founder_info: businessProfile.team_founder_info || "",
-        keywords: businessProfile.keywords || "",
-        industry: businessProfile.industry || [],
-        industry_other: businessProfile.industry_other || "",
-        ai_dos: businessProfile.ai_dos || "",
-        ai_donts: businessProfile.ai_donts || "",
-        address_city: businessProfile.address_city || "",
-        address_state: businessProfile.address_state || "",
-        address_zip: businessProfile.address_zip || "",
-      };
+      // Use the centralized AI testimonial generation utility
+      const { generateContextualTestimonial, parseReviewerName } = await import('@/utils/aiReviewGeneration');
+      const { firstName, lastName } = parseReviewerName(photoReviewerName);
       
-      // Create prompt page data for AI generation
-      const promptPageDataForAI = {
-        first_name: photoReviewerName.split(' ')[0] || "",
-        last_name: photoReviewerName.split(' ')[1] || "",
-        role: photoReviewerRole || "",
-        project_type: promptPage.project_type || promptPage.review_type || "service",
-        product_description: promptPage.product_description || promptPage.outcomes || "great experience",
-      };
-      
-      // Use the proper AI generation function with full business context
-      const { generateAIReview } = await import('@/utils/ai');
-      const generatedTestimonial = await generateAIReview(
-        businessProfileForAI,
-        promptPageDataForAI,
-        "testimonial", // platform
-        100, // word count limit for testimonials
-        "", // custom instructions
-        "customer", // reviewer type
-        "", // additional dos
-        "" // additional donts
+      const generatedTestimonial = await generateContextualTestimonial(
+        businessProfile,
+        promptPage,
+        {
+          firstName,
+          lastName,
+          role: photoReviewerRole || "",
+        }
       );
       
       setTestimonial(generatedTestimonial);
