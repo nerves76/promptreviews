@@ -143,11 +143,25 @@ interface BusinessProfile {
   default_offer_url?: string;
   address_city?: string;
   address_state?: string;
+  address_zip?: string;
   card_bg: string;
   card_text: string;
   card_inner_shadow?: boolean;
   card_shadow_color?: string;
   card_shadow_intensity?: number;
+  // Additional fields for AI generation
+  services_offered?: string;
+  company_values?: string;
+  differentiators?: string;
+  years_in_business?: number;
+  industries_served?: string;
+  tagline?: string;
+  team_founder_info?: string;
+  keywords?: string;
+  industry?: string[];
+  industry_other?: string;
+  ai_dos?: string;
+  ai_donts?: string;
 }
 
 // Functions now imported from utils
@@ -678,31 +692,51 @@ export default function PromptPage() {
     setAiLoading(idx);
     try {
       const platform = promptPage.review_platforms[idx];
-      const prompt = `Generate a positive review for ${businessProfile.business_name} on ${platform.platform || platform.name}. The review should be authentic, specific, and highlight the business's strengths.`;
       
-      // Use monitoring wrapper for critical AI generation
-      const { monitorCriticalAPIRequest, CRITICAL_FUNCTIONS } = await import('@/utils/criticalFunctionMonitoring');
-      const data = await monitorCriticalAPIRequest<{ text: string }>(
-        CRITICAL_FUNCTIONS.AI_GENERATE_REVIEW,
-        "/api/generate-review",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt }),
-        },
-        {
-          userId: currentUser?.id,
-          promptPageId: promptPage.id,
-          platform: platform.platform || platform.name,
-          additionalContext: {
-            reviewIndex: idx,
-            businessName: businessProfile.business_name
-          }
-        }
+      // Create comprehensive business profile for AI generation
+      const businessProfileForAI = {
+        business_name: businessProfile.business_name || businessProfile.name || "Business",
+        features_or_benefits: businessProfile.services_offered ? [businessProfile.services_offered] : [],
+        company_values: businessProfile.company_values || "",
+        differentiators: businessProfile.differentiators || "",
+        years_in_business: businessProfile.years_in_business || 0,
+        industries_served: businessProfile.industries_served || "",
+        taglines: businessProfile.tagline || "",
+        team_founder_info: businessProfile.team_founder_info || "",
+        keywords: businessProfile.keywords || "",
+        industry: businessProfile.industry || [],
+        industry_other: businessProfile.industry_other || "",
+        ai_dos: businessProfile.ai_dos || "",
+        ai_donts: businessProfile.ai_donts || "",
+        address_city: businessProfile.address_city || "",
+        address_state: businessProfile.address_state || "",
+        address_zip: businessProfile.address_zip || "",
+      };
+      
+      // Create prompt page data for AI generation
+      const promptPageDataForAI = {
+        first_name: reviewerFirstNames[idx] || "",
+        last_name: reviewerLastNames[idx] || "",
+        role: reviewerRoles[idx] || "",
+        project_type: promptPage.project_type || promptPage.review_type || "service",
+        product_description: promptPage.product_description || promptPage.outcomes || "great experience",
+      };
+      
+      // Use the proper AI generation function with full business context
+      const { generateAIReview } = await import('@/utils/ai');
+      const generatedReview = await generateAIReview(
+        businessProfileForAI,
+        promptPageDataForAI,
+        platform.platform || platform.name || "review site",
+        150, // word count limit
+        "", // custom instructions
+        "customer", // reviewer type
+        "", // additional dos
+        "" // additional donts
       );
       
       setPlatformReviewTexts((prev) =>
-        prev.map((t, i) => (i === idx ? data.text : t)),
+        prev.map((t, i) => (i === idx ? generatedReview : t)),
       );
       setAiRewriteCounts((prev) => {
         const newCounts = prev.map((c, i) => (i === idx ? c + 1 : c));
@@ -1073,29 +1107,49 @@ export default function PromptPage() {
     
     setAiLoadingPhoto(true);
     try {
-      const prompt = `Generate a positive testimonial for ${businessProfile.business_name}. The testimonial should be authentic, specific, and highlight the business's strengths.`;
+      // Create comprehensive business profile for AI generation
+      const businessProfileForAI = {
+        business_name: businessProfile.business_name || businessProfile.name || "Business",
+        features_or_benefits: businessProfile.services_offered ? [businessProfile.services_offered] : [],
+        company_values: businessProfile.company_values || "",
+        differentiators: businessProfile.differentiators || "",
+        years_in_business: businessProfile.years_in_business || 0,
+        industries_served: businessProfile.industries_served || "",
+        taglines: businessProfile.tagline || "",
+        team_founder_info: businessProfile.team_founder_info || "",
+        keywords: businessProfile.keywords || "",
+        industry: businessProfile.industry || [],
+        industry_other: businessProfile.industry_other || "",
+        ai_dos: businessProfile.ai_dos || "",
+        ai_donts: businessProfile.ai_donts || "",
+        address_city: businessProfile.address_city || "",
+        address_state: businessProfile.address_state || "",
+        address_zip: businessProfile.address_zip || "",
+      };
       
-      // Use monitoring wrapper for critical photo testimonial generation
-      const { monitorCriticalAPIRequest, CRITICAL_FUNCTIONS } = await import('@/utils/criticalFunctionMonitoring');
-      const data = await monitorCriticalAPIRequest<{ text: string }>(
-        CRITICAL_FUNCTIONS.AI_GENERATE_PHOTO_TESTIMONIAL,
-        "/api/generate-review",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt }),
-        },
-        {
-          userId: currentUser?.id,
-          promptPageId: promptPage.id,
-          additionalContext: {
-            testimonialType: 'photo',
-            businessName: businessProfile.business_name
-          }
-        }
+      // Create prompt page data for AI generation
+      const promptPageDataForAI = {
+        first_name: photoReviewerName.split(' ')[0] || "",
+        last_name: photoReviewerName.split(' ')[1] || "",
+        role: photoReviewerRole || "",
+        project_type: promptPage.project_type || promptPage.review_type || "service",
+        product_description: promptPage.product_description || promptPage.outcomes || "great experience",
+      };
+      
+      // Use the proper AI generation function with full business context
+      const { generateAIReview } = await import('@/utils/ai');
+      const generatedTestimonial = await generateAIReview(
+        businessProfileForAI,
+        promptPageDataForAI,
+        "testimonial", // platform
+        100, // word count limit for testimonials
+        "", // custom instructions
+        "customer", // reviewer type
+        "", // additional dos
+        "" // additional donts
       );
       
-      setTestimonial(data.text);
+      setTestimonial(generatedTestimonial);
     } catch (err) {
       console.error("Photo testimonial AI generation error:", err);
       setPhotoError(
