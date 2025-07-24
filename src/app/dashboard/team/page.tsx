@@ -1078,7 +1078,7 @@ export default function TeamPage() {
       )}
 
       {/* Add Chris for Support (Owners Only) - Moved to bottom */}
-      {isOwner && !members.some(member => member.email === 'nerves76@gmail.com') && (
+      {isOwner && !members.some(member => member.email === 'chris@diviner.agency') && (
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6 mt-8">
           <div className="flex items-center justify-between">
             <div>
