@@ -54,7 +54,7 @@ export default function BusinessHoursEditor({
     <div className="bg-white border border-gray-200 rounded-lg p-6">
       <h4 className="text-lg font-medium text-gray-900 mb-4 flex items-center space-x-2">
         <FaClock className="w-5 h-5 text-slate-blue" />
-        <span>Business Hours</span>
+        <span>Business hours</span>
       </h4>
       
       <div className="space-y-3">

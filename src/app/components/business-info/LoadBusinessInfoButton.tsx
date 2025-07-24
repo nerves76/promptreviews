@@ -192,7 +192,7 @@ export default function LoadBusinessInfoButton({
       ) : (
         <>
           <FaStore className="w-4 h-4" />
-          <span>Load Business Info</span>
+          <span>Load business info</span>
         </>
       )}
     </button>

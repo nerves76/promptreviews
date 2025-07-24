@@ -54,7 +54,7 @@ export default function ServiceItemsEditor({
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <FaStore className="w-5 h-5 text-slate-blue" />
-          <h4 className="text-md font-medium text-gray-900">Services & Products</h4>
+          <h4 className="text-md font-medium text-gray-900">Services & products</h4>
         </div>
         {/* Only show add button when details are loaded or for multi-location */}
         {(detailsLoaded || selectedLocationCount > 1) && (
@@ -63,7 +63,7 @@ export default function ServiceItemsEditor({
             onClick={addServiceItem}
             className="text-sm text-slate-blue hover:text-slate-blue-dark font-medium"
           >
-            + Add Service
+            + Add service
           </button>
         )}
       </div>
