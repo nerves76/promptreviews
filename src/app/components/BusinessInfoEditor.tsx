@@ -537,62 +537,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
             </div>
           )}
 
-          {/* Save/Reset Actions - Bottom */}
-          {!isLoadingDetails && (
-            <div className="flex items-center justify-between bg-gray-50 rounded-lg p-4">
-              <div className="flex items-center space-x-4">
-                <button
-                  onClick={handleSave}
-                  disabled={selectedLocationIds.length === 0 || isSaving}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-md font-medium ${
-                    selectedLocationIds.length > 0 && !isSaving
-                      ? 'bg-slate-blue text-white hover:bg-slate-blue/90'
-                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  }`}
-                >
-                  {isSaving ? (
-                    <FaSpinner className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <FaSave className="w-4 h-4" />
-                  )}
-                  <span>
-                    {isSaving 
-                      ? (selectedLocationIds.length === 1 ? 'Publishing...' : `Publishing ${selectedLocationIds.length} locations...`)
-                      : 'Save & Publish'
-                    }
-                  </span>
-                </button>
-                
-                <button
-                  onClick={handleReset}
-                  disabled={selectedLocationIds.length === 0 || isSaving}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-md font-medium border ${
-                    selectedLocationIds.length > 0 && !isSaving
-                      ? 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                      : 'border-gray-200 text-gray-400 cursor-not-allowed'
-                  }`}
-                >
-                  <FaRedo className="w-4 h-4" />
-                  <span>Reset</span>
-                </button>
-              </div>
 
-              {hasChanges && selectedLocationIds.length > 0 && (
-                <span className="text-sm text-amber-600 font-medium">
-                  {selectedLocationIds.length === 1 
-                    ? 'You have unsaved changes'
-                    : `⚠️ Unsaved changes will affect ${selectedLocationIds.length} locations`
-                  }
-                </span>
-              )}
-
-              {selectedLocationIds.length === 0 && (
-                <span className="text-sm text-gray-500 font-medium">
-                  Select at least one location to save changes
-                </span>
-              )}
-            </div>
-          )}
 
           {/* Save Result */}
           {saveResult && (
