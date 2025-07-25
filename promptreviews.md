@@ -10,6 +10,27 @@ This project is currently focused on developing a standalone widget for collecti
 
 ## Recent Updates (Latest)
 
+### Google Business Profile Service Description Character Limit Fix (January 2025)
+- **Critical API Fix**: Fixed Google Business Profile API failures by implementing strict 300-character limit enforcement for AI-generated service descriptions
+- **AI Prompt Optimization**: Updated AI prompts to target character counts (80-150, 150-250, 250-300) instead of word counts for precise length control
+- **Smart Truncation**: Enhanced content validation with intelligent sentence-boundary truncation to preserve meaning while staying under limits
+- **Fallback Description Updates**: Rewrote all fallback service description templates to ensure they stay well under 300 characters
+- **Token Optimization**: Reduced OpenAI max_tokens (50, 80, 100) to align with character targets and prevent over-length responses
+- **Character Limit Enforcement**: Added explicit 300-character maximum instructions to all AI prompts with emphasis on concise, impactful content
+- **API Reliability**: Eliminated "Provided `description` for service items may not exceed 300 characters" errors that were blocking Google Business Profile updates
+
+#### **Technical Implementation**
+- **Updated AI Prompts**: Modified `createServiceDescriptionPrompt()` to use character specifications instead of word counts
+- **Enhanced Validation**: Improved `validateGeneratedContent()` with smart truncation at sentence boundaries
+- **Optimized Fallbacks**: Shortened fallback description templates from 400+ to under 260 characters
+- **Token Reduction**: Lowered OpenAI API token limits to prevent generation of overly long content
+- **Graceful Handling**: Smart truncation preserves sentence structure and meaning while respecting character limits
+
+#### **Files Modified**
+- `src/utils/ai/google-business/serviceDescriptionGenerator.ts` - Updated prompts, fallbacks, and token limits
+- `src/utils/ai/google-business/googleBusinessProfileHelpers.ts` - Enhanced validateGeneratedContent with smart truncation
+- Ensures all AI-generated service descriptions comply with Google Business Profile 300-character limit
+
 ### Complete AI Integration for Google Business Profile (January 2025)
 - **AI Review Response Generator**: Integrated directly into Reviews Management workflow - appears below review reply forms for seamless response generation
 - **AI Service Description Generator**: Integrated into Business Info tab within business description section for contextual content creation

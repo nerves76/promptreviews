@@ -13,7 +13,13 @@ import { extractBrandContext, AIBrandContext } from '@/utils/ai/google-business/
 
 interface ServiceDescriptionRequest {
   serviceName: string;
-  businessContext?: AIBrandContext;
+  businessContext?: {
+    businessName?: string;
+    address?: string;
+    city?: string;
+    primaryCategory?: string;
+    description?: string;
+  };
 }
 
 interface ServiceDescriptionResponse {
@@ -60,10 +66,22 @@ export async function POST(request: NextRequest): Promise<NextResponse<ServiceDe
 
     let brandContext: AIBrandContext;
 
-    // Use provided business context or fetch from database
-    if (businessContext) {
-      brandContext = businessContext;
+    // Use provided Google Business Profile context when available
+    if (businessContext && businessContext.businessName) {
+      // Convert Google Business Profile context to AIBrandContext format
+      brandContext = {
+        businessName: businessContext.businessName,
+        businessType: businessContext.primaryCategory || '',
+        city: businessContext.city || '',
+        state: '', // Not available from GBP data
+        services: [], // Can be derived from service name if needed
+        industry: businessContext.primaryCategory ? [businessContext.primaryCategory] : []
+      };
+      console.log('✅ Using Google Business Profile context:', brandContext);
     } else {
+      // Fall back to database business profile
+      console.log('⚠️ No Google Business Profile context provided, fetching from database...');
+      
       // Get user's account ID
       const userAccountId = await getAccountIdForUser(user.id, supabase);
       if (!userAccountId) {
@@ -88,6 +106,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ServiceDe
       }
 
       brandContext = extractBrandContext(business);
+      console.log('📋 Using database business context:', brandContext);
     }
 
     // Validate brand context has minimum required data
@@ -114,7 +133,11 @@ export async function POST(request: NextRequest): Promise<NextResponse<ServiceDe
       await supabase.from('ai_usage').insert({
         user_id: user.id,
         feature: 'service_description_generation',
-        input_data: { serviceName, businessName: brandContext.businessName },
+        input_data: { 
+          serviceName, 
+          businessName: brandContext.businessName,
+          contextSource: businessContext && businessContext.businessName ? 'google_business_profile' : 'database'
+        },
         created_at: new Date().toISOString(),
       });
     } catch (loggingError) {

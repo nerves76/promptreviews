@@ -208,13 +208,56 @@ export default function LoadBusinessInfoButton({
           console.log('⚠️ No regular hours found in location data');
         }
 
+        // Process service items to ensure proper structure
+        const rawServiceItems = data.location.serviceItems || [];
+        console.log('🔍 Raw service items from Google:', rawServiceItems);
+        
+        const processedServiceItems = Array.isArray(rawServiceItems) 
+          ? rawServiceItems.map((item: any, index: number) => {
+              console.log(`🔍 Processing service item ${index}:`, item);
+              
+              // Handle different Google Business Profile service item structures
+              let name = '';
+              let description = '';
+              
+              if (item?.structuredServiceItem) {
+                // Structured service item format (predefined Google services) - PRIORITY
+                name = item.structuredServiceItem.serviceTypeId || '';
+                description = item.structuredServiceItem.description || '';
+              } else if (item?.displayName) {
+                // Simple structure (direct displayName/description)
+                name = item.displayName || '';
+                description = item.description || '';
+              } else if (item?.freeFormServiceItem?.label) {
+                // Free-form service item format (user-defined services)
+                name = item.freeFormServiceItem.label.displayName || '';
+                description = item.freeFormServiceItem.label.description || '';
+              } else if (item?.serviceItem) {
+                // Legacy format (if it exists)
+                name = item.serviceItem.displayName || '';
+                description = item.serviceItem.description || '';
+              } else {
+                // Fallback to any available name/description properties
+                name = item?.name || '';
+                description = item?.description || '';
+              }
+              
+              return {
+                name: name.trim(),
+                description: description.trim()
+              };
+            })
+          : [];
+
+        console.log('✅ Processed service items:', processedServiceItems);
+
         // Update business info with all available data
         const loadedBusinessInfo = {
           description: data.location.profile?.description || '',
           regularHours: loadedHours,
           primaryCategory: primaryCategory || undefined,
           additionalCategories,
-          serviceItems: data.location.serviceItems || []
+          serviceItems: processedServiceItems
         };
 
         console.log('📦 Final loadedBusinessInfo being passed to component:', {
@@ -249,10 +292,10 @@ export default function LoadBusinessInfoButton({
     <button
       onClick={loadCurrentBusinessInfo}
       disabled={isLoading || selectedLocationIds.length > 1 || detailsLoaded}
-      className={`flex items-center space-x-2 px-4 py-2 text-sm rounded-md border ${
+      className={`flex items-center space-x-2 px-4 py-2 text-sm rounded-md border relative overflow-hidden transition-all duration-300 ${
         isLoading || selectedLocationIds.length > 1 || detailsLoaded
           ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-          : 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100'
+          : `bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 ${!detailsLoaded && !isLoading ? 'shine-button' : ''}`
       }`}
     >
       {isLoading ? (

@@ -139,9 +139,35 @@ export function validateGeneratedContent(content: string, maxLength?: number): s
     cleaned += '.';
   }
   
-  // Truncate if too long
+  // Smart truncation if too long
   if (maxLength && cleaned.length > maxLength) {
-    cleaned = cleaned.substring(0, maxLength - 3) + '...';
+    // Try to truncate at sentence boundary first
+    const sentences = cleaned.split(/[.!?]+/).filter(s => s.trim());
+    let truncated = '';
+    
+    for (const sentence of sentences) {
+      const withSentence = truncated + sentence + '.';
+      if (withSentence.length <= maxLength) {
+        truncated = withSentence;
+      } else {
+        break;
+      }
+    }
+    
+    // If we have at least one complete sentence, use it
+    if (truncated.length > 0) {
+      cleaned = truncated;
+    } else {
+      // Fallback to character truncation without ellipsis for cleaner endings
+      cleaned = cleaned.substring(0, maxLength);
+      // Try to end at a word boundary
+      const lastSpace = cleaned.lastIndexOf(' ');
+      if (lastSpace > maxLength * 0.8) { // Only if we don't lose too much content
+        cleaned = cleaned.substring(0, lastSpace) + '.';
+      } else if (!cleaned.endsWith('.') && !cleaned.endsWith('!') && !cleaned.endsWith('?')) {
+        cleaned = cleaned.substring(0, maxLength - 1) + '.';
+      }
+    }
   }
   
   return cleaned;

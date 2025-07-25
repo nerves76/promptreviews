@@ -5,6 +5,7 @@
  * Creates SEO-optimized descriptions in 3 lengths (short, medium, long).
  */
 
+import OpenAI from 'openai';
 import { AIBrandContext, ServiceDescriptionOptions, createBrandVoiceInstructions, generateLocalKeywords, validateGeneratedContent, countWords } from './googleBusinessProfileHelpers';
 
 /**
@@ -19,9 +20,9 @@ export function createServiceDescriptionPrompt(
   const localKeywords = generateLocalKeywords(brandContext, serviceName);
   
   const lengthSpecs = {
-    short: { words: '40-60', focus: 'core benefit and location' },
-    medium: { words: '80-120', focus: 'benefits, process, and unique value' },
-    long: { words: '120-180', focus: 'comprehensive overview, benefits, process, and call-to-action' }
+    short: { chars: '80-150', focus: 'core benefit and location' },
+    medium: { chars: '150-250', focus: 'benefits, process, and unique value' },
+    long: { chars: '250-300', focus: 'comprehensive overview, benefits, process, and call-to-action' }
   };
   
   const spec = lengthSpecs[length];
@@ -33,13 +34,14 @@ ${brandInstructions}
 TASK: Write a ${length} service description for "${serviceName}"
 
 REQUIREMENTS:
-- Target length: ${spec.words} words
+- Target length: ${spec.chars} characters (MAXIMUM 300 characters - Google Business Profile limit)
 - Focus on: ${spec.focus}
 - Write as if you're speaking directly to potential customers
 - Include natural local SEO keywords when relevant
 - Professional yet approachable tone
 - Highlight specific benefits, not just features
 - NO keyword stuffing - keep it natural and helpful
+- Be concise and impactful - every character counts!
 
 ${localKeywords.length > 0 ? `SUGGESTED LOCAL KEYWORDS (use naturally): ${localKeywords.slice(0, 3).join(', ')}` : ''}
 
@@ -67,27 +69,39 @@ export async function generateServiceDescriptions(
       const prompt = createServiceDescriptionPrompt(serviceName, brandContext, length);
       
       try {
-        const response = await fetch('/api/generate-review', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            prompt,
-            user_id: null // This will be handled by the API endpoint
-          }),
-        });
-        
-        if (!response.ok) {
-          throw new Error(`API request failed: ${response.status}`);
+        // Use OpenAI directly for better performance
+        if (!process.env.OPENAI_API_KEY) {
+          throw new Error('OPENAI_API_KEY is missing from environment variables');
         }
-        
-        const data = await response.json();
-        if (!data.text) {
+
+        const openai = new OpenAI({
+          apiKey: process.env.OPENAI_API_KEY,
+        });
+
+        const completion = await openai.chat.completions.create({
+          messages: [
+            {
+              role: "system",
+              content: "You are a professional business copywriter specializing in Google Business Profile optimization. Write compelling, SEO-friendly service descriptions that convert prospects into customers."
+            },
+            {
+              role: "user",
+              content: prompt
+            }
+          ],
+          model: "gpt-3.5-turbo",
+          max_tokens: length === 'short' ? 50 : length === 'medium' ? 80 : 100,
+          temperature: 0.7
+        });
+
+        const generatedText = completion.choices[0]?.message?.content;
+        if (!generatedText) {
           throw new Error('No description generated');
         }
         
         return {
           length,
-          description: validateGeneratedContent(data.text, length === 'short' ? 400 : length === 'medium' ? 800 : 1200)
+          description: validateGeneratedContent(generatedText, 300) // Google Business Profile limit
         };
       } catch (error) {
         console.error(`Error generating ${length} description:`, error);
@@ -118,13 +132,13 @@ function getFallbackDescription(
   
   switch (length) {
     case 'short':
-      return `Professional ${serviceName.toLowerCase()} services${location}. Quality work, reliable service, competitive pricing. Contact ${brandContext.businessName} today.`;
+      return `Professional ${serviceName.toLowerCase()} services${location}. Quality work, reliable service. Contact ${brandContext.businessName} today.`;
     
     case 'medium':
-      return `${brandContext.businessName} provides professional ${serviceName.toLowerCase()} services${location}. Our experienced team delivers quality results with attention to detail and customer satisfaction. We pride ourselves on reliable service and competitive pricing. Get in touch to discuss your ${serviceName.toLowerCase()} needs.`;
+      return `${brandContext.businessName} provides professional ${serviceName.toLowerCase()} services${location}. Experienced team delivers quality results with attention to detail. Contact us today.`;
     
     case 'long':
-      return `${brandContext.businessName} specializes in comprehensive ${serviceName.toLowerCase()} services${location}. Our experienced team combines technical expertise with personalized customer service to deliver exceptional results. We understand that every project is unique, which is why we take the time to understand your specific needs and provide tailored solutions. From initial consultation to project completion, we're committed to exceeding your expectations. Contact us today to learn more about our ${serviceName.toLowerCase()} services and discover how we can help you achieve your goals.`;
+      return `${brandContext.businessName} specializes in ${serviceName.toLowerCase()} services${location}. Our experienced team delivers exceptional results with personalized service. We understand every project is unique and provide tailored solutions. Contact us today to get started.`;
     
     default:
       return `Professional ${serviceName.toLowerCase()} services from ${brandContext.businessName}.`;

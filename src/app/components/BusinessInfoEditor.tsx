@@ -841,6 +841,19 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
                 detailsLoaded={detailsLoaded}
                 isLoadingDetails={isLoadingDetails}
                 detailsError={detailsError}
+                googleBusinessContext={{
+                  businessName: selectedLocationIds.length === 1 
+                    ? locations.find(loc => loc.id === selectedLocationIds[0])?.name
+                    : undefined,
+                  address: selectedLocationIds.length === 1 
+                    ? locations.find(loc => loc.id === selectedLocationIds[0])?.address
+                    : undefined,
+                  city: selectedLocationIds.length === 1 && locations.find(loc => loc.id === selectedLocationIds[0])?.address
+                    ? locations.find(loc => loc.id === selectedLocationIds[0])?.address?.split(',')[1]?.trim()
+                    : undefined,
+                  primaryCategory: businessInfo.primaryCategory?.displayName,
+                  description: businessInfo.description
+                }}
               />
             </div>
           )}

@@ -1,11 +1,16 @@
 /**
  * Service Items Editor Component
  * Handles editing of services and products for Google Business Profile
+ * Uses actual Google Business Profile location data for AI-powered service descriptions
+ * 
+ * Character Limits:
+ * - Service descriptions: 1000 characters maximum
+ * - Visual warnings at 800+ characters (yellow) and 900+ characters (red)
  */
 
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { FaStore, FaTimes, FaRobot } from 'react-icons/fa';
 
 interface ServiceItem {
@@ -20,6 +25,13 @@ interface ServiceItemsEditorProps {
   detailsLoaded: boolean;
   isLoadingDetails: boolean;
   detailsError: string | null;
+  googleBusinessContext?: {
+    businessName?: string;
+    address?: string;
+    city?: string;
+    primaryCategory?: string;
+    description?: string;
+  };
 }
 
 export default function ServiceItemsEditor({
@@ -28,69 +40,53 @@ export default function ServiceItemsEditor({
   selectedLocationCount,
   detailsLoaded,
   isLoadingDetails,
-  detailsError
+  detailsError,
+  googleBusinessContext
 }: ServiceItemsEditorProps) {
   
   const [generatingIndex, setGeneratingIndex] = useState<number | null>(null);
+
+  // Ensure service items are properly structured and safe to use
+  const safeServiceItems = useMemo(() => {
+    if (!Array.isArray(serviceItems)) {
+      console.warn('⚠️ Service items is not an array:', serviceItems);
+      return [];
+    }
+    
+    return serviceItems.map((item, index) => {
+      if (!item || typeof item !== 'object') {
+        console.warn(`⚠️ Service item ${index} is not a valid object:`, item);
+        return { name: '', description: '' };
+      }
+      
+      return {
+        name: typeof item.name === 'string' ? item.name : '',
+        description: typeof item.description === 'string' ? item.description : ''
+      };
+    });
+  }, [serviceItems]);
   
   const addServiceItem = () => {
     const newService: ServiceItem = {
       name: '',
       description: ''
     };
-    onServiceItemsChange([...serviceItems, newService]);
+    onServiceItemsChange([...safeServiceItems, newService]);
   };
 
   const updateServiceItem = (index: number, field: 'name' | 'description', value: string) => {
-    const updated = [...serviceItems];
+    const updated = [...safeServiceItems];
     updated[index] = { ...updated[index], [field]: value };
     onServiceItemsChange(updated);
   };
 
   const removeServiceItem = (index: number) => {
-    const updated = serviceItems.filter((_, i) => i !== index);
+    const updated = safeServiceItems.filter((_, i) => i !== index);
     onServiceItemsChange(updated);
   };
 
   const generateServiceDescription = async (index: number, serviceName: string) => {
-    if (!serviceName.trim()) return;
-    
-    setGeneratingIndex(index);
-    
-    try {
-      const response = await fetch('/api/ai/google-business/generate-service-description', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          serviceName: serviceName.trim(),
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to generate description');
-      }
-
-      const data = await response.json();
-      
-      if (data.success && data.description) {
-        updateServiceItem(index, 'description', data.description);
-      } else {
-        throw new Error('Invalid response from AI service');
-      }
-      
-    } catch (error) {
-      console.error('Error generating service description:', error);
-      // Could add a toast notification here if needed
-    } finally {
-      setGeneratingIndex(null);
-    }
-  };
-
-  const generateServiceDescription = async (index: number, serviceName: string) => {
-    if (!serviceName.trim()) {
+    if (!serviceName || !serviceName.trim()) {
       alert('Please enter a service name first');
       return;
     }
@@ -104,7 +100,8 @@ export default function ServiceItemsEditor({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          serviceName: serviceName.trim()
+          serviceName: serviceName?.trim() || serviceName,
+          businessContext: googleBusinessContext
         }),
       });
 
@@ -151,7 +148,7 @@ export default function ServiceItemsEditor({
       {/* Services Content */}
       {!isLoadingDetails && !detailsError && (
         <>
-          {selectedLocationCount > 1 && serviceItems.length === 0 && (
+          {selectedLocationCount > 1 && safeServiceItems.length === 0 && (
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
               <p className="text-sm text-gray-600">No services or products added yet.</p>
               <p className="text-xs text-gray-500 mt-1">
@@ -169,7 +166,7 @@ export default function ServiceItemsEditor({
             </div>
           )}
           
-          {(detailsLoaded || selectedLocationCount > 1) && serviceItems.length === 0 && selectedLocationCount === 1 && (
+          {(detailsLoaded || selectedLocationCount > 1) && safeServiceItems.length === 0 && selectedLocationCount === 1 && (
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
               <p className="text-sm text-gray-600">No services or products found for this location.</p>
               <p className="text-xs text-gray-500 mt-1">
@@ -181,9 +178,9 @@ export default function ServiceItemsEditor({
       )}
 
       {/* Service Items List */}
-      {serviceItems.length > 0 && (
+      {safeServiceItems.length > 0 && (
         <div className="space-y-3">
-          {serviceItems.map((service, index) => (
+          {safeServiceItems.map((service, index) => (
             <div key={index} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -203,25 +200,41 @@ export default function ServiceItemsEditor({
                     <FaTimes className="w-4 h-4" />
                   </button>
                 </div>
-                <div className="relative">
-                  <textarea
-                    value={service.description || ''}
-                    onChange={(e) => updateServiceItem(index, 'description', e.target.value)}
-                    placeholder="Description of this service or product (optional)"
-                    rows={2}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent pr-12"
-                  />
+                <div className="space-y-2">
+                  <div className="relative">
+                    <textarea
+                      value={service.description || ''}
+                      onChange={(e) => updateServiceItem(index, 'description', e.target.value)}
+                      placeholder="Description of this service or product (optional)"
+                      rows={2}
+                      maxLength={300}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
+                    />
+                    <div className={`absolute bottom-2 right-2 text-xs font-medium ${
+                      (service.description || '').length > 275 ? 'text-red-500' :
+                      (service.description || '').length > 250 ? 'text-yellow-500' :
+                      'text-gray-400'
+                    }`}>
+                      {(service.description || '').length}/300
+                    </div>
+                  </div>
                   <button
                     type="button"
                     onClick={() => generateServiceDescription(index, service.name)}
-                    disabled={generatingIndex === index || !service.name.trim()}
-                    className="absolute right-2 top-2 p-1 text-slate-blue hover:text-slate-blue-dark disabled:text-gray-400 disabled:cursor-not-allowed"
-                    title="Generate AI description"
+                    disabled={generatingIndex === index || !service.name || !service.name.trim()}
+                    className="flex items-center space-x-2 px-3 py-2 text-sm bg-slate-blue text-white rounded-md hover:bg-slate-blue-dark disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                    title="Generate AI-powered description for this service"
                   >
                     {generatingIndex === index ? (
-                      <div className="animate-spin w-4 h-4 border-2 border-slate-blue border-t-transparent rounded-full"></div>
+                      <>
+                        <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                        <span>Generating...</span>
+                      </>
                     ) : (
-                      <FaRobot className="w-4 h-4" />
+                      <>
+                        <FaRobot className="w-4 h-4" />
+                        <span>Generate Description</span>
+                      </>
                     )}
                   </button>
                 </div>

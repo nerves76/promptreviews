@@ -205,13 +205,28 @@ export async function POST(request: NextRequest) {
 
         // Service items update - only if provided and has meaningful data
         if (hasValue(updates.serviceItems) && Array.isArray(updates.serviceItems)) {
+          console.log('🔍 Raw service items from frontend:', JSON.stringify(updates.serviceItems, null, 2));
+          
           const validServices = updates.serviceItems.filter((service: any) => 
-            hasValue(service) && hasValue(service.serviceTypeId)
-          );
+            hasValue(service) && hasValue(service.name)
+          ).map((service: any) => ({
+            // Use freeFormServiceItem for custom services - Google now supports this
+            freeFormServiceItem: {
+              label: {
+                displayName: service.name.trim(),
+                description: service.description ? service.description.trim().substring(0, 300) : undefined,
+                languageCode: 'en'
+              }
+            }
+          }));
+          
+          console.log('🔍 Converted service items for API:', JSON.stringify(validServices, null, 2));
           
           if (validServices.length > 0) {
             locationUpdate.serviceItems = validServices;
             console.log('📝 Including service items update:', validServices.length, 'services');
+          } else {
+            console.log('⚠️ No valid service items to send (all services filtered out)');
           }
         }
 
