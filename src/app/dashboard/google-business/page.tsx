@@ -89,12 +89,12 @@ export default function SocialPostingDashboard() {
   }, [imageUrls]);
 
   // Tab state with URL parameter support
-  const [activeTab, setActiveTab] = useState<'connect' | 'post' | 'photos' | 'business-info' | 'reviews' | 'ai-content' | 'ai-reviews'>(() => {
+  const [activeTab, setActiveTab] = useState<'connect' | 'post' | 'photos' | 'business-info' | 'reviews'>(() => {
     // Initialize from URL parameter if available
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
-      const tabParam = urlParams.get('tab') as 'connect' | 'post' | 'photos' | 'business-info' | 'reviews' | 'ai-content' | 'ai-reviews';
-      if (tabParam && ['connect', 'post', 'photos', 'business-info', 'reviews', 'ai-content', 'ai-reviews'].includes(tabParam)) {
+      const tabParam = urlParams.get('tab') as 'connect' | 'post' | 'photos' | 'business-info' | 'reviews';
+      if (tabParam && ['connect', 'post', 'photos', 'business-info', 'reviews'].includes(tabParam)) {
         return tabParam;
       }
     }
@@ -102,7 +102,7 @@ export default function SocialPostingDashboard() {
   });
 
   // Update URL when tab changes
-  const changeTab = (newTab: 'connect' | 'post' | 'photos' | 'business-info' | 'reviews' | 'ai-content' | 'ai-reviews') => {
+  const changeTab = (newTab: 'connect' | 'post' | 'photos' | 'business-info' | 'reviews') => {
     setActiveTab(newTab);
     
     // Update URL parameter
@@ -844,32 +844,6 @@ export default function SocialPostingDashboard() {
                   <span>Reviews Management</span>
                 </div>
               </button>
-              <button
-                onClick={() => changeTab('ai-content')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'ai-content'
-                    ? 'border-slate-blue text-slate-blue'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <div className="flex items-center space-x-2">
-                  <FaBolt className="w-4 h-4" />
-                  <span>AI Content Tools</span>
-                </div>
-              </button>
-              <button
-                onClick={() => changeTab('ai-reviews')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'ai-reviews'
-                    ? 'border-slate-blue text-slate-blue'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <div className="flex items-center space-x-2">
-                  <FaRobot className="w-4 h-4" />
-                  <span>AI Review Tools</span>
-                </div>
-              </button>
             </nav>
           </div>
 
@@ -1064,36 +1038,65 @@ export default function SocialPostingDashboard() {
                         </button>
                       </div>
                     ) : (
-                      <div className="space-y-3">
-                        {locations.map((location) => (
-                          <label key={location.id} className="flex items-center space-x-3 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={selectedLocations.includes(location.id)}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setSelectedLocations([...selectedLocations, location.id]);
-                                } else {
-                                  setSelectedLocations(selectedLocations.filter(id => id !== location.id));
-                                }
-                              }}
-                              className="w-4 h-4 text-slate-blue border-gray-300 rounded focus:ring-slate-blue"
-                            />
-                            <div className="flex-1">
-                              <div className="font-medium text-gray-900">{location.name}</div>
-                              {location.address && (
-                                <div className="text-sm text-gray-500">{location.address}</div>
-                              )}
-                            </div>
-                            <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              location.status === 'active' ? 'bg-green-100 text-green-800' :
-                              location.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                              'bg-red-100 text-red-800'
-                            }`}>
-                              {location.status}
-                            </div>
-                          </label>
-                        ))}
+                      <div className="location-dropdown relative">
+                        <button
+                          onClick={() => setIsLocationDropdownOpen(!isLocationDropdownOpen)}
+                          className="w-full flex items-center justify-between px-4 py-3 border border-gray-300 rounded-md bg-white hover:bg-gray-50 focus:ring-2 focus:ring-slate-blue focus:border-slate-blue"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <FaMapMarkerAlt className="w-4 h-4 text-gray-500" />
+                            <span className="text-gray-700">
+                              {selectedLocations.length === 0 
+                                ? 'Select business locations' 
+                                : selectedLocations.length === 1 
+                                  ? locations.find(l => l.id === selectedLocations[0])?.name || 'Selected location'
+                                  : `${selectedLocations.length} locations selected`
+                              }
+                            </span>
+                          </div>
+                          {isLocationDropdownOpen ? (
+                            <FaChevronUp className="w-4 h-4 text-gray-500" />
+                          ) : (
+                            <FaChevronDown className="w-4 h-4 text-gray-500" />
+                          )}
+                        </button>
+                        
+                        {isLocationDropdownOpen && (
+                          <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
+                            {locations.map((location) => (
+                              <label
+                                key={location.id}
+                                className="flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={selectedLocations.includes(location.id)}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setSelectedLocations([...selectedLocations, location.id]);
+                                    } else {
+                                      setSelectedLocations(selectedLocations.filter(id => id !== location.id));
+                                    }
+                                  }}
+                                  className="w-4 h-4 text-slate-blue border-gray-300 rounded focus:ring-slate-blue"
+                                />
+                                <div className="flex-1 min-w-0">
+                                  <div className="font-medium text-gray-900 truncate">{location.name}</div>
+                                  {location.address && (
+                                    <div className="text-sm text-gray-500 truncate">{location.address}</div>
+                                  )}
+                                </div>
+                                <div className={`px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ${
+                                  location.status === 'active' ? 'bg-green-100 text-green-800' :
+                                  location.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                  'bg-red-100 text-red-800'
+                                }`}>
+                                  {location.status}
+                                </div>
+                              </label>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -1364,40 +1367,7 @@ export default function SocialPostingDashboard() {
             </div>
           )}
 
-          {/* AI Content Tools Tab */}
-          {activeTab === 'ai-content' && (
-            <div className="space-y-6">
-              <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-6 mb-6">
-                <div className="flex items-center space-x-3 mb-2">
-                  <FaBolt className="w-6 h-6 text-purple-600" />
-                  <h2 className="text-xl font-semibold text-gray-900">AI Content Tools</h2>
-                </div>
-                <p className="text-gray-600">
-                  Use AI to generate optimized content for your Google Business Profile
-                </p>
-              </div>
-              
-              <ServiceDescriptionGenerator />
-              <BusinessDescriptionAnalyzer />
-            </div>
-          )}
 
-          {/* AI Review Tools Tab */}
-          {activeTab === 'ai-reviews' && (
-            <div className="space-y-6">
-              <div className="bg-gradient-to-r from-orange-50 to-purple-50 rounded-lg p-6 mb-6">
-                <div className="flex items-center space-x-3 mb-2">
-                  <FaRobot className="w-6 h-6 text-orange-600" />
-                  <h2 className="text-xl font-semibold text-gray-900">AI Review Tools</h2>
-                </div>
-                <p className="text-gray-600">
-                  Generate professional responses to customer reviews using AI
-                </p>
-              </div>
-              
-              <ReviewResponseGenerator />
-            </div>
-          )}
         </div>
       </PageCard>
     </div>

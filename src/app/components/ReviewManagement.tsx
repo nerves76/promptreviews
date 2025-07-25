@@ -10,7 +10,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FaStar, FaReply, FaChevronDown, FaSpinner, FaCalendarAlt, FaUser, FaExclamationTriangle } from 'react-icons/fa';
+import { FaStar, FaReply, FaChevronDown, FaSpinner, FaCalendarAlt, FaUser, FaExclamationTriangle, FaRobot } from 'react-icons/fa';
+import ReviewResponseGenerator from './ReviewResponseGenerator';
 
 interface GoogleBusinessLocation {
   id: string;
@@ -57,6 +58,7 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
   const [replyText, setReplyText] = useState('');
   const [isSubmittingReply, setIsSubmittingReply] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showingAiFor, setShowingAiFor] = useState<string | null>(null);
 
   // Auto-select first location if available
   useEffect(() => {
@@ -137,6 +139,11 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
     } finally {
       setIsSubmittingReply(false);
     }
+  };
+
+  const handleAiResponseGenerated = (response: string) => {
+    setReplyText(response);
+    setShowingAiFor(null);
   };
 
   const formatDate = (dateString: string) => {
@@ -295,7 +302,7 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
 
                 {/* Reply Form */}
                 {replyingTo === review.reviewId ? (
-                  <div className="border-t border-gray-200 pt-4">
+                  <div className="border-t border-gray-200 pt-4 space-y-4">
                     <textarea
                       value={replyText}
                       onChange={(e) => setReplyText(e.target.value)}
@@ -303,11 +310,41 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
                       className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-slate-blue resize-none"
                       rows={3}
                     />
-                    <div className="flex justify-end space-x-2 mt-3">
+                    
+                    {/* AI Response Generator Option */}
+                    {showingAiFor === review.reviewId ? (
+                      <div className="border border-purple-200 rounded-lg p-4 bg-purple-50">
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="font-medium text-purple-900">AI Review Response Generator</h4>
+                          <button
+                            onClick={() => setShowingAiFor(null)}
+                            className="text-purple-600 hover:text-purple-800 text-sm"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                        <ReviewResponseGenerator 
+                          onResponseGenerated={handleAiResponseGenerated}
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex justify-start">
+                        <button
+                          onClick={() => setShowingAiFor(review.reviewId)}
+                          className="flex items-center space-x-2 text-sm text-purple-600 hover:text-purple-800 border border-purple-300 rounded px-3 py-1 hover:bg-purple-50"
+                        >
+                          <FaRobot className="w-3 h-3" />
+                          <span>Generate with AI</span>
+                        </button>
+                      </div>
+                    )}
+                    
+                    <div className="flex justify-end space-x-2">
                       <button
                         onClick={() => {
                           setReplyingTo(null);
                           setReplyText('');
+                          setShowingAiFor(null);
                         }}
                         className="px-3 py-1 text-sm border border-gray-300 rounded text-gray-700 hover:bg-gray-50"
                       >
@@ -331,13 +368,25 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
                   </div>
                 ) : !review.reviewReply && (
                   <div className="border-t border-gray-200 pt-4">
-                    <button
-                      onClick={() => setReplyingTo(review.reviewId)}
-                      className="flex items-center space-x-2 text-sm text-slate-blue hover:text-slate-blue/80"
-                    >
-                      <FaReply className="w-3 h-3" />
-                      <span>Reply to this review</span>
-                    </button>
+                    <div className="flex items-center space-x-4">
+                      <button
+                        onClick={() => setReplyingTo(review.reviewId)}
+                        className="flex items-center space-x-2 text-sm text-slate-blue hover:text-slate-blue/80"
+                      >
+                        <FaReply className="w-3 h-3" />
+                        <span>Reply to this review</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setReplyingTo(review.reviewId);
+                          setShowingAiFor(review.reviewId);
+                        }}
+                        className="flex items-center space-x-2 text-sm text-purple-600 hover:text-purple-800"
+                      >
+                        <FaRobot className="w-3 h-3" />
+                        <span>Generate AI Response</span>
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
