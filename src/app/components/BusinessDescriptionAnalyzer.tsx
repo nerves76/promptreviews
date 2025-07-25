@@ -173,96 +173,133 @@ export default function BusinessDescriptionAnalyzer({
   const generateImprovements = (text: string): string[] => {
     const improvements: string[] = [];
     
+    // AI Search Engine & Semantic Optimization Analysis
     if (text.length < 150) {
-      let suggestion = 'Add more detail about your services and unique value proposition';
+      let suggestion = 'Add semantic-rich content about your services and unique value proposition for better AI search visibility';
       if (businessContext?.businessType) {
-        suggestion = `Add more detail about your ${businessContext.businessType.toLowerCase()} services and what makes you unique`;
+        suggestion = `Add more contextual detail about your ${businessContext.businessType.toLowerCase()} services using natural language that AI engines understand`;
       }
       improvements.push(suggestion);
     }
     if (text.length > 500) {
-      improvements.push('Consider shortening the description for better readability');
+      improvements.push('Consider condensing for better semantic density and AI comprehension');
+    }
+    
+    // AI-focused semantic keyword analysis
+    const hasSemanticContext = /\b(specialize|expert|professional|experienced|certified|solutions|results|help|provide|deliver)\b/i.test(text);
+    if (!hasSemanticContext) {
+      improvements.push('Include contextual intent words (specialize, expert, solutions) that AI engines use for semantic understanding');
+    }
+    
+    // Entity recognition optimization
+    const hasEntityContext = /\b(years|since|award|certified|licensed|team|company|business)\b/i.test(text);
+    if (!hasEntityContext) {
+      improvements.push('Add entity context (years of experience, certifications, team size) for better AI entity recognition');
     }
     
     // Check for location mentions with context
     const hasLocationMention = /\b(location|local|area|city|near|serving)\b/i.test(text);
     if (!hasLocationMention && businessContext?.location) {
-      improvements.push(`Consider mentioning that you serve ${businessContext.location} for better local SEO`);
+      improvements.push(`Mention serving ${businessContext.location} for local AI search optimization and geographic embeddings`);
     } else if (!hasLocationMention) {
-      improvements.push('Include location-specific keywords for better local SEO');
+      improvements.push('Include location context for AI-powered local search optimization');
     }
     
-    // Check for business-specific services
+    // Check for business-specific services with semantic context
     if (businessContext?.services && businessContext.services.length > 0) {
       const mentionedServices = businessContext.services.filter(service => 
         text.toLowerCase().includes(service.toLowerCase())
       );
       if (mentionedServices.length === 0) {
-        improvements.push(`Consider mentioning specific services like ${businessContext.services.slice(0, 2).join(' or ')}`);
+        improvements.push(`Add specific services (${businessContext.services.slice(0, 2).join(', ')}) for semantic search relevance`);
       }
     }
     
-    // Check for local SEO keywords
+    // Problem-solution matching for AI understanding
+    const hasProblemSolution = /\b(help|solve|fix|improve|achieve|overcome|challenge|need|goal|result)\b/i.test(text);
+    if (!hasProblemSolution) {
+      improvements.push('Include problem-solution language that AI engines use to match user intent and queries');
+    }
+    
+    // Conversational query optimization
+    const hasConversationalTone = /\b(how|what|why|when|where|looking for|need help|can we|will we)\b/i.test(text);
+    if (!hasConversationalTone) {
+      improvements.push('Add conversational elements that match how users ask AI assistants about your services');
+    }
+    
+    // Check for local semantic keywords
     const suggestedKeywords = generateSEOKeywords();
     const missingKeywords = suggestedKeywords.filter(keyword => 
       !text.toLowerCase().includes(keyword.toLowerCase())
     );
     if (missingKeywords.length > 0) {
-      improvements.push(`Consider incorporating local SEO keywords like "${missingKeywords[0]}" or "${missingKeywords[1] || missingKeywords[0]}"`);
+      improvements.push(`Incorporate semantic keywords like "${missingKeywords[0]}" for AI search engine optimization`);
     }
     
     if (!text.includes('Call') && !text.includes('Contact') && !text.includes('Visit')) {
-      improvements.push('Add a clear call-to-action to encourage customer contact');
-    }
-    if (text.split(',').length < 3) {
-      improvements.push('List specific services or products you offer');
+      improvements.push('Add clear action language that AI engines can identify for conversion optimization');
     }
     
-    return improvements.length > 0 ? improvements : ['Your description looks good! Consider minor tweaks for optimization.'];
+    // Semantic richness check
+    if (text.split(',').length < 3) {
+      improvements.push('List specific offerings to create semantic richness for AI content understanding');
+    }
+    
+    return improvements.length > 0 ? improvements : ['Your description is well-optimized for AI search engines! Consider minor semantic enhancements.'];
   };
 
   const generateOptimizedDescription = (text: string): string => {
     let optimized = text.trim();
     
-    // If the text is very short, suggest a more detailed version with business context
+    // AI-Optimized expansion for short descriptions with semantic understanding
     if (optimized.length < 100) {
-      let expansion = " We provide professional services tailored to meet your specific needs.";
+      let expansion = " We specialize in providing expert solutions designed to help you achieve your goals.";
       
-      // Add business-specific context if available
+      // Add business-specific context with semantic richness
       if (businessContext?.businessType || businessContext?.services?.length) {
         const businessType = businessContext.businessType || (businessContext.services && businessContext.services[0]);
         if (businessType) {
-          expansion = ` We specialize in ${businessType.toLowerCase()} services and are committed to delivering exceptional results.`;
+          expansion = ` As experienced ${businessType.toLowerCase()} specialists, we deliver results-driven solutions to help businesses overcome challenges and achieve sustainable growth.`;
         }
       }
       
+      // Add geographic context for AI location understanding
       if (businessContext?.location) {
-        expansion += ` Proudly serving ${businessContext.location}.`;
+        const city = businessContext.location.split(',')[0].trim();
+        expansion += ` Proudly serving ${businessContext.location} and the surrounding ${city} area.`;
       }
       
-      expansion += " Contact us today to learn more!";
+      expansion += " Contact us today to discover how we can help transform your business!";
       return optimized + expansion;
     }
     
-    // If missing call-to-action and description is reasonable length, add one
-    const hasCallToAction = /\b(call|contact|visit|book|schedule|reach out|get started|learn more)\b/i.test(optimized);
+    // Enhanced call-to-action with intent-driven language for AI understanding
+    const hasCallToAction = /\b(call|contact|visit|book|schedule|reach out|get started|learn more|discover|transform|achieve)\b/i.test(optimized);
     if (!hasCallToAction && optimized.length < 600 && optimized.length > 150) {
-      // Add period if missing, then add call-to-action
+      // Add period if missing, then add AI-optimized call-to-action
       if (!optimized.match(/[.!?]$/)) {
         optimized += ".";
       }
       
-      // Add location-specific call-to-action if available
-      let cta = " Contact us today to get started!";
+      // Add semantic, location-aware call-to-action
+      let cta = " Ready to get started? Contact us today to discover how we can help!";
       if (businessContext?.location) {
-        cta = ` Contact us today to schedule your consultation in ${businessContext.location}!`;
+        const city = businessContext.location.split(',')[0].trim();
+        cta = ` Looking for expert solutions in ${city}? Contact us today to schedule your consultation and achieve the results you need!`;
       }
       
       optimized += cta;
     }
     
-    // Only suggest optimization if the original is quite different from what we'd suggest
-    // Don't make changes for the sake of changes
+    // AI semantic enhancement - add context words if missing
+    const hasSemanticRichness = /\b(expert|professional|experienced|specialist|solution|result|help|achieve)\b/i.test(optimized);
+    if (!hasSemanticRichness && optimized.length > 100 && optimized.length < 400) {
+      // Enhance with semantic context while preserving original meaning
+      optimized = optimized.replace(/\b(we|our|the company|this business)\b/gi, 'our experienced team');
+      optimized = optimized.replace(/\b(services|work|offerings)\b/gi, 'professional solutions');
+    }
+    
+    // Only suggest optimization if meaningful changes were made
     if (optimized === text.trim()) {
       // If no meaningful changes, return original
       return text;
@@ -380,11 +417,11 @@ export default function BusinessDescriptionAnalyzer({
               <p className="text-xs text-gray-500">Words in description</p>
             </div>
             <div className="bg-gray-50 rounded-lg p-4">
-              <h5 className="font-medium text-gray-900 mb-1">SEO Keywords</h5>
+              <h5 className="font-medium text-gray-900 mb-1">AI Keywords</h5>
               <p className="text-lg font-semibold text-purple-600">
                 {analysis.keywordSuggestions.length}
               </p>
-              <p className="text-xs text-gray-500">Local SEO suggestions</p>
+              <p className="text-xs text-gray-500">AI search optimized</p>
             </div>
           </div>
 
@@ -428,9 +465,9 @@ export default function BusinessDescriptionAnalyzer({
           {/* Keywords */}
           {analysis.keywordSuggestions.length > 0 && (
             <div className="border border-blue-200 rounded-lg p-4">
-              <h4 className="font-medium text-gray-900 mb-3">Suggested SEO Keywords</h4>
+              <h4 className="font-medium text-gray-900 mb-3">AI Search Engine Keywords</h4>
               <p className="text-sm text-gray-600 mb-3">
-                Consider incorporating these local SEO keywords into your description:
+                Strategic keywords optimized for AI search engines and semantic understanding:
               </p>
               <div className="flex flex-wrap gap-2">
                 {analysis.keywordSuggestions.map((keyword, index) => (
@@ -453,4 +490,4 @@ export default function BusinessDescriptionAnalyzer({
       )}
     </div>
   );
-} 
+}
