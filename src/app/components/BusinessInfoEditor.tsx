@@ -83,8 +83,50 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
   const [detailsError, setDetailsError] = useState<string | null>(null);
   const [showServiceGenerator, setShowServiceGenerator] = useState(false);
   const [showDescriptionAnalyzer, setShowDescriptionAnalyzer] = useState(false);
+  const [businessContext, setBusinessContext] = useState<any>(null);
 
   // Note: Removed auto-selection to allow users to uncheck all locations
+
+  // Fetch business context for AI analysis
+  useEffect(() => {
+    const fetchBusinessContext = async () => {
+      try {
+        const { data: { user } } = await createClient().auth.getUser();
+        if (!user) return;
+
+        // Get account ID
+        const { data: accountUser } = await createClient()
+          .from('account_users')
+          .select('account_id')
+          .eq('user_id', user.id)
+          .single();
+
+        if (!accountUser?.account_id) return;
+
+        // Fetch business profile
+        const { data: business } = await createClient()
+          .from('businesses')
+          .select('business_name, business_type, city, state, services, industry')
+          .eq('account_id', accountUser.account_id)
+          .single();
+
+        if (business) {
+          setBusinessContext({
+            businessName: business.business_name,
+            businessType: business.business_type,
+            location: business.city && business.state ? `${business.city}, ${business.state}` : undefined,
+            services: business.services ? business.services.split(',').map((s: string) => s.trim()) : [],
+            industry: business.industry
+          });
+        }
+      } catch (error) {
+        console.log('Could not fetch business context:', error);
+        // Non-critical, continue without context
+      }
+    };
+
+    fetchBusinessContext();
+  }, []);
 
   // Reset details loaded state when selection changes
   useEffect(() => {
@@ -648,6 +690,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
                           onAnalysisComplete={handleDescriptionAnalyzed}
                           onApplyOptimized={handleApplyOptimizedDescription}
                           autoAnalyze={true}
+                          businessContext={businessContext}
                         />
                       </div>
                     )}
