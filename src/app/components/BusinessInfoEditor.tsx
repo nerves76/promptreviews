@@ -266,16 +266,14 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
 
   const handleDescriptionAnalyzed = (analysis: any) => {
     console.log('📈 Analysis received in BusinessInfoEditor:', analysis);
-    
-    if (analysis.optimizedDescription && analysis.optimizedDescription !== businessInfo.description) {
-      console.log('✅ Applying optimized description to business info');
-      handleInputChange('description', analysis.optimizedDescription);
-    } else {
-      console.log('ℹ️ No optimized description to apply or same as current');
-    }
-    
-    // Don't close the analyzer automatically - let user see results and choose
-    // setShowDescriptionAnalyzer(false);
+    // Don't auto-apply the optimized description - let user choose to apply it
+    // The BusinessDescriptionAnalyzer component will handle showing the preview and apply button
+  };
+
+  const handleApplyOptimizedDescription = (optimizedDescription: string) => {
+    console.log('✅ User chose to apply optimized description');
+    handleInputChange('description', optimizedDescription);
+    setShowDescriptionAnalyzer(false); // Close analyzer after applying
   };
 
   const handleServiceDescriptionsGenerated = (descriptions: any) => {
@@ -648,6 +646,8 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
                         <BusinessDescriptionAnalyzer 
                           currentDescription={businessInfo.description}
                           onAnalysisComplete={handleDescriptionAnalyzed}
+                          onApplyOptimized={handleApplyOptimizedDescription}
+                          autoAnalyze={true}
                         />
                       </div>
                     )}

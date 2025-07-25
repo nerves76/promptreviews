@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaRobot, FaSpinner, FaCopy, FaCheck, FaChartLine, FaLightbulb, FaExclamationTriangle } from 'react-icons/fa';
 
 interface AnalysisResult {
@@ -21,13 +21,27 @@ interface AnalysisResult {
 interface BusinessDescriptionAnalyzerProps {
   currentDescription: string;
   onAnalysisComplete?: (analysis: AnalysisResult) => void;
+  onApplyOptimized?: (optimizedDescription: string) => void;
+  autoAnalyze?: boolean; // If true, start analyzing immediately
 }
 
-export default function BusinessDescriptionAnalyzer({ currentDescription, onAnalysisComplete }: BusinessDescriptionAnalyzerProps) {
+export default function BusinessDescriptionAnalyzer({ 
+  currentDescription, 
+  onAnalysisComplete, 
+  onApplyOptimized,
+  autoAnalyze = false 
+}: BusinessDescriptionAnalyzerProps) {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
+
+  // Auto-analyze when component mounts if autoAnalyze is true
+  useEffect(() => {
+    if (autoAnalyze && currentDescription.trim()) {
+      handleAnalyzeDescription();
+    }
+  }, [autoAnalyze]);
 
   const handleAnalyzeDescription = async () => {
     console.log('🔍 Starting business description analysis...');
@@ -197,35 +211,45 @@ export default function BusinessDescriptionAnalyzer({ currentDescription, onAnal
         </div>
       )}
 
-      {/* Action Buttons */}
-      <div className="flex items-center space-x-3">
-        <button
-          onClick={handleAnalyzeDescription}
-          disabled={isAnalyzing || !currentDescription.trim()}
-          className="px-4 py-2 bg-slate-blue text-white rounded-md hover:bg-slate-blue/90 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
-        >
-          {isAnalyzing ? (
-            <>
-              <FaSpinner className="w-4 h-4 animate-spin" />
-              <span>Analyzing...</span>
-            </>
-          ) : (
-            <>
-              <FaChartLine className="w-4 h-4" />
-              <span>Analyze Description</span>
-            </>
-          )}
-        </button>
-
-        {analysis && (
+      {/* Action Buttons - only show if not auto-analyzing */}
+      {!autoAnalyze && (
+        <div className="flex items-center space-x-3">
           <button
-            onClick={clearForm}
-            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+            onClick={handleAnalyzeDescription}
+            disabled={isAnalyzing || !currentDescription.trim()}
+            className="px-4 py-2 bg-slate-blue text-white rounded-md hover:bg-slate-blue/90 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
           >
-            Clear Results
+            {isAnalyzing ? (
+              <>
+                <FaSpinner className="w-4 h-4 animate-spin" />
+                <span>Analyzing...</span>
+              </>
+            ) : (
+              <>
+                <FaChartLine className="w-4 h-4" />
+                <span>Analyze Description</span>
+              </>
+            )}
           </button>
-        )}
-      </div>
+
+          {analysis && (
+            <button
+              onClick={clearForm}
+              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+            >
+              Clear Results
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Auto-analyze status */}
+      {autoAnalyze && isAnalyzing && (
+        <div className="flex items-center space-x-2 text-blue-600">
+          <FaSpinner className="w-4 h-4 animate-spin" />
+          <span className="text-sm">Analyzing your description...</span>
+        </div>
+      )}
 
       {/* Analysis Results */}
       {analysis && (
@@ -284,12 +308,12 @@ export default function BusinessDescriptionAnalyzer({ currentDescription, onAnal
             <div className="border border-green-200 rounded-lg p-4 bg-green-50">
               <div className="flex items-center justify-between mb-3">
                 <h4 className="font-medium text-green-900">Optimized Description</h4>
-                <button
-                  onClick={() => onAnalysisComplete?.(analysis)}
-                  className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors"
-                >
-                  Apply to Description
-                </button>
+                                  <button
+                    onClick={() => onApplyOptimized?.(analysis.optimizedDescription)}
+                    className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors"
+                  >
+                    Apply to Description
+                  </button>
               </div>
               <div className="text-sm text-green-800 bg-white rounded p-3 border border-green-200">
                 {analysis.optimizedDescription}
