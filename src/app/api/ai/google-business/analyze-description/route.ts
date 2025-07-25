@@ -146,16 +146,29 @@ IMPORTANT: Aim for 400-700 characters for optimal impact and readability. This l
             // Remove markdown code blocks if present
             let cleanResponse = aiResponse.trim();
             
-            // Handle ```json ... ``` format
-            if (cleanResponse.startsWith('```json')) {
-              cleanResponse = cleanResponse.replace(/^```json\s*/, '').replace(/\s*```\s*$/, '');
-            }
-            // Handle ``` ... ``` format  
-            else if (cleanResponse.startsWith('```')) {
-              cleanResponse = cleanResponse.replace(/^```\s*/, '').replace(/\s*```\s*$/, '');
+            // More robust markdown removal
+            if (cleanResponse.includes('```json')) {
+              // Extract content between ```json and ```
+              const match = cleanResponse.match(/```json\s*([\s\S]*?)\s*```/);
+              if (match) {
+                cleanResponse = match[1].trim();
+              } else {
+                // Fallback: remove ```json from start and ``` from end
+                cleanResponse = cleanResponse.replace(/^```json\s*/m, '').replace(/\s*```\s*$/m, '');
+              }
+            } else if (cleanResponse.includes('```')) {
+              // Extract content between ``` and ```
+              const match = cleanResponse.match(/```\s*([\s\S]*?)\s*```/);
+              if (match) {
+                cleanResponse = match[1].trim();
+              } else {
+                // Fallback: remove ``` from start and end
+                cleanResponse = cleanResponse.replace(/^```\s*/m, '').replace(/\s*```\s*$/m, '');
+              }
             }
             
             cleanResponse = cleanResponse.trim();
+            console.log('🧹 Cleaned AI response:', cleanResponse.substring(0, 200) + '...');
             analysis = JSON.parse(cleanResponse);
           } catch (parseError) {
             console.error('Failed to parse AI response:', aiResponse);
