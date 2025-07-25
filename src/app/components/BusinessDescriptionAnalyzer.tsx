@@ -227,101 +227,100 @@ export default function BusinessDescriptionAnalyzer({ currentDescription, onAnal
         )}
       </div>
 
-        {/* Analysis Results */}
-        {analysis && (
-          <div className="border-t pt-6 space-y-6">
-            {/* SEO Score */}
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-              <div>
-                <h4 className="font-medium text-gray-900">SEO Score</h4>
-                <p className="text-sm text-gray-600">Overall optimization rating</p>
-              </div>
-              <div className={`text-3xl font-bold ${getScoreColor(analysis.seoScore)}`}>
-                {analysis.seoScore}/10
-              </div>
+      {/* Analysis Results */}
+      {analysis && (
+        <div className="border-t pt-6 space-y-6">
+          {/* SEO Score */}
+          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+            <div>
+              <h4 className="font-medium text-gray-900">SEO Score</h4>
+              <p className="text-sm text-gray-600">Overall optimization rating</p>
             </div>
-
-            {/* Quick Stats */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h5 className="font-medium text-gray-900 mb-1">Character Count</h5>
-                <p className={`text-lg font-semibold ${
-                  analysis.characterCount >= 150 && analysis.characterCount <= 500 
-                    ? 'text-green-600' 
-                    : 'text-orange-600'
-                }`}>
-                  {analysis.characterCount}
-                </p>
-                <p className="text-xs text-gray-500">Optimal: 150-500</p>
-              </div>
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h5 className="font-medium text-gray-900 mb-1">Keywords Found</h5>
-                <p className="text-lg font-semibold text-blue-600">
-                  {analysis.keywordSuggestions.length}
-                </p>
-                <p className="text-xs text-gray-500">Key terms identified</p>
-              </div>
+            <div className={`text-3xl font-bold ${getScoreColor(analysis.seoScore)}`}>
+              {analysis.seoScore}/10
             </div>
-
-            {/* Improvements */}
-            <div className="border border-orange-200 rounded-lg p-4">
-              <div className="flex items-center space-x-2 mb-3">
-                <FaLightbulb className="w-4 h-4 text-orange-600" />
-                <h4 className="font-medium text-gray-900">Recommendations</h4>
-              </div>
-              <ul className="space-y-2">
-                {analysis.improvements.map((improvement, index) => (
-                  <li key={index} className="flex items-start space-x-2 text-sm">
-                    <FaExclamationTriangle className="w-3 h-3 text-orange-500 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700">{improvement}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Optimized Description */}
-            {analysis.optimizedDescription && analysis.optimizedDescription !== currentDescription && (
-              <div className="border border-green-200 rounded-lg p-4 bg-green-50">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-medium text-green-900">Optimized Description</h4>
-                  <button
-                    onClick={() => onAnalysisComplete?.(analysis)}
-                    className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors"
-                  >
-                    Apply to Description
-                  </button>
-                </div>
-                <div className="text-sm text-green-800 bg-white rounded p-3 border border-green-200">
-                  {analysis.optimizedDescription}
-                </div>
-                <p className="text-xs text-green-600 mt-2">
-                  This optimized version incorporates SEO best practices and improvements
-                </p>
-              </div>
-            )}
-
-            {/* Keywords */}
-            {analysis.keywordSuggestions.length > 0 && (
-              <div className="border border-blue-200 rounded-lg p-4">
-                <h4 className="font-medium text-gray-900 mb-3">Identified Keywords</h4>
-                <div className="flex flex-wrap gap-2">
-                  {analysis.keywordSuggestions.map((keyword, index) => (
-                    <span
-                      key={index}
-                      className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
-                    >
-                      {keyword}
-                    </span>
-                  ))}
-                </div>
-                <p className="text-xs text-gray-500 mt-2">
-                  These are the main keywords found in your description
-                </p>
-              </div>
-            )}
           </div>
-        )}
-      </div>
+
+          {/* Quick Stats */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h5 className="font-medium text-gray-900 mb-1">Character Count</h5>
+              <p className={`text-lg font-semibold ${
+                analysis.characterCount >= 150 && analysis.characterCount <= 500 
+                  ? 'text-green-600' 
+                  : 'text-orange-600'
+              }`}>
+                {analysis.characterCount}
+              </p>
+              <p className="text-xs text-gray-500">Optimal: 150-500</p>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h5 className="font-medium text-gray-900 mb-1">Keywords Found</h5>
+              <p className="text-lg font-semibold text-blue-600">
+                {analysis.keywordSuggestions.length}
+              </p>
+              <p className="text-xs text-gray-500">Key terms identified</p>
+            </div>
+          </div>
+
+          {/* Improvements */}
+          <div className="border border-orange-200 rounded-lg p-4">
+            <div className="flex items-center space-x-2 mb-3">
+              <FaLightbulb className="w-4 h-4 text-orange-600" />
+              <h4 className="font-medium text-gray-900">Recommendations</h4>
+            </div>
+            <ul className="space-y-2">
+              {analysis.improvements.map((improvement, index) => (
+                <li key={index} className="flex items-start space-x-2 text-sm">
+                  <FaExclamationTriangle className="w-3 h-3 text-orange-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-700">{improvement}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Optimized Description */}
+          {analysis.optimizedDescription && analysis.optimizedDescription !== currentDescription && (
+            <div className="border border-green-200 rounded-lg p-4 bg-green-50">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-medium text-green-900">Optimized Description</h4>
+                <button
+                  onClick={() => onAnalysisComplete?.(analysis)}
+                  className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors"
+                >
+                  Apply to Description
+                </button>
+              </div>
+              <div className="text-sm text-green-800 bg-white rounded p-3 border border-green-200">
+                {analysis.optimizedDescription}
+              </div>
+              <p className="text-xs text-green-600 mt-2">
+                This optimized version incorporates SEO best practices and improvements
+              </p>
+            </div>
+          )}
+
+          {/* Keywords */}
+          {analysis.keywordSuggestions.length > 0 && (
+            <div className="border border-blue-200 rounded-lg p-4">
+              <h4 className="font-medium text-gray-900 mb-3">Identified Keywords</h4>
+              <div className="flex flex-wrap gap-2">
+                {analysis.keywordSuggestions.map((keyword, index) => (
+                  <span
+                    key={index}
+                    className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                  >
+                    {keyword}
+                  </span>
+                ))}
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                These are the main keywords found in your description
+              </p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 } 
