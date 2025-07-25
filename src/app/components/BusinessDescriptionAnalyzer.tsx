@@ -19,19 +19,22 @@ interface AnalysisResult {
 }
 
 interface BusinessDescriptionAnalyzerProps {
+  currentDescription: string;
   onAnalysisComplete?: (analysis: AnalysisResult) => void;
 }
 
-export default function BusinessDescriptionAnalyzer({ onAnalysisComplete }: BusinessDescriptionAnalyzerProps) {
-  const [currentDescription, setCurrentDescription] = useState('');
+export default function BusinessDescriptionAnalyzer({ currentDescription, onAnalysisComplete }: BusinessDescriptionAnalyzerProps) {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
 
   const handleAnalyzeDescription = async () => {
+    console.log('🔍 Starting business description analysis...');
+    console.log('📝 Description to analyze:', currentDescription);
+    
     if (!currentDescription.trim()) {
-      setError('Please enter your current business description');
+      setError('No business description to analyze');
       return;
     }
 
@@ -40,8 +43,9 @@ export default function BusinessDescriptionAnalyzer({ onAnalysisComplete }: Busi
     setAnalysis(null);
 
     try {
-      // Since we don't have a specific analysis endpoint, we'll use the service description
-      // endpoint as a proxy and do local analysis
+      console.log('⚙️ Calculating SEO score and analysis...');
+      
+      // Since we don't have a specific analysis endpoint, we'll use local analysis
       const mockAnalysis: AnalysisResult = {
         seoScore: calculateSEOScore(currentDescription),
         characterCount: currentDescription.length,
@@ -50,14 +54,17 @@ export default function BusinessDescriptionAnalyzer({ onAnalysisComplete }: Busi
         optimizedDescription: currentDescription // We'll enhance this later
       };
 
+      console.log('📊 Analysis results:', mockAnalysis);
+
       // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise(resolve => setTimeout(resolve, 1500));
 
       setAnalysis(mockAnalysis);
+      console.log('✅ Analysis complete, calling onAnalysisComplete callback');
       onAnalysisComplete?.(mockAnalysis);
     } catch (err) {
+      console.error('❌ Business description analysis error:', err);
       setError('Analysis failed. Please try again.');
-      console.error('Business description analysis error:', err);
     } finally {
       setIsAnalyzing(false);
     }
@@ -141,7 +148,6 @@ export default function BusinessDescriptionAnalyzer({ onAnalysisComplete }: Busi
   };
 
   const clearForm = () => {
-    setCurrentDescription('');
     setAnalysis(null);
     setError('');
   };
@@ -159,36 +165,17 @@ export default function BusinessDescriptionAnalyzer({ onAnalysisComplete }: Busi
   };
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
-      <div className="flex items-center space-x-3 mb-6">
-        <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-          <FaChartLine className="w-5 h-5 text-orange-600" />
-        </div>
-        <div>
-          <h3 className="text-lg font-semibold">Business Description Analyzer</h3>
-          <p className="text-sm text-gray-600">
-            Analyze and optimize your business description for better SEO
-          </p>
-        </div>
-      </div>
+    <div className="space-y-4">
 
       <div className="space-y-4">
-        {/* Current Description Input */}
+        {/* Current Description Display */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Current Business Description
+            Analyzing Description ({currentDescription.length} characters)
           </label>
-          <textarea
-            value={currentDescription}
-            onChange={(e) => setCurrentDescription(e.target.value)}
-            placeholder="Enter your current business description to analyze..."
-            rows={4}
-            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-slate-blue focus:border-slate-blue"
-            maxLength={750}
-          />
-          <p className="text-xs text-gray-500 mt-1">
-            {currentDescription.length}/750 characters
-          </p>
+          <div className="bg-gray-50 border border-gray-200 rounded-md px-3 py-2 text-sm text-gray-700 max-h-24 overflow-y-auto">
+            {currentDescription || 'No description provided'}
+          </div>
         </div>
 
         {/* Error Message */}
