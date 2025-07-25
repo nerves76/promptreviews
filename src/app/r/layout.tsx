@@ -129,6 +129,10 @@ export async function generateMetadata({ params }: {
     const pageType = getPageType(promptPage);
     const variableContext = createVariableContext(business, promptPage);
     
+    console.log(`[LAYOUT] Page type: ${pageType}`);
+    console.log(`[LAYOUT] Variable context:`, variableContext);
+    console.log(`[LAYOUT] Business name: ${business.name}`);
+    
     // Generate metadata using templates with variable substitution
     const templateMetadata = await generatePromptPageMetadata(pageType, variableContext);
     

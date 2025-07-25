@@ -126,7 +126,8 @@ export async function generatePromptPageMetadata(
   const template = await getActiveMetadataTemplate(pageType);
   
   if (!template) {
-    console.log(`[METADATA] No template found for ${pageType}, using fallback`);
+    console.log(`[METADATA] ⚠️  No template found for ${pageType}, using fallback`);
+    console.log(`[METADATA] This means the database query failed or no templates exist`);
     // Helper function to format page type
     const formatPageType = (type: string): string => {
       switch (type.toLowerCase()) {
