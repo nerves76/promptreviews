@@ -5,7 +5,8 @@
 
 'use client';
 
-import { FaStore, FaTimes } from 'react-icons/fa';
+import React, { useState } from 'react';
+import { FaStore, FaTimes, FaRobot } from 'react-icons/fa';
 
 interface ServiceItem {
   name: string;
@@ -30,8 +31,10 @@ export default function ServiceItemsEditor({
   detailsError
 }: ServiceItemsEditorProps) {
   
+  const [generatingIndex, setGeneratingIndex] = useState<number | null>(null);
+  
   const addServiceItem = () => {
-    const newService = {
+    const newService: ServiceItem = {
       name: '',
       description: ''
     };
@@ -47,6 +50,83 @@ export default function ServiceItemsEditor({
   const removeServiceItem = (index: number) => {
     const updated = serviceItems.filter((_, i) => i !== index);
     onServiceItemsChange(updated);
+  };
+
+  const generateServiceDescription = async (index: number, serviceName: string) => {
+    if (!serviceName.trim()) return;
+    
+    setGeneratingIndex(index);
+    
+    try {
+      const response = await fetch('/api/ai/google-business/generate-service-description', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          serviceName: serviceName.trim(),
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to generate description');
+      }
+
+      const data = await response.json();
+      
+      if (data.success && data.description) {
+        updateServiceItem(index, 'description', data.description);
+      } else {
+        throw new Error('Invalid response from AI service');
+      }
+      
+    } catch (error) {
+      console.error('Error generating service description:', error);
+      // Could add a toast notification here if needed
+    } finally {
+      setGeneratingIndex(null);
+    }
+  };
+
+  const generateServiceDescription = async (index: number, serviceName: string) => {
+    if (!serviceName.trim()) {
+      alert('Please enter a service name first');
+      return;
+    }
+
+    setGeneratingIndex(index);
+    
+    try {
+      const response = await fetch('/api/ai/google-business/generate-service-description', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          serviceName: serviceName.trim()
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate description');
+      }
+
+      const data = await response.json();
+      
+      if (data.success && data.descriptions) {
+        // Use the medium length description as default
+        const description = data.descriptions.medium || data.descriptions.short || data.descriptions.long;
+        updateServiceItem(index, 'description', description);
+      } else {
+        throw new Error(data.error || 'Failed to generate description');
+      }
+    } catch (error) {
+      console.error('Error generating service description:', error);
+      alert(error instanceof Error ? error.message : 'Failed to generate description. Please try again.');
+    } finally {
+      setGeneratingIndex(null);
+    }
   };
 
   return (
@@ -109,7 +189,7 @@ export default function ServiceItemsEditor({
                 <div className="flex items-center justify-between">
                   <input
                     type="text"
-                    value={service.name}
+                    value={service.name || ''}
                     onChange={(e) => updateServiceItem(index, 'name', e.target.value)}
                     placeholder="Service or product name"
                     className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
@@ -123,13 +203,28 @@ export default function ServiceItemsEditor({
                     <FaTimes className="w-4 h-4" />
                   </button>
                 </div>
-                <textarea
-                  value={service.description || ''}
-                  onChange={(e) => updateServiceItem(index, 'description', e.target.value)}
-                  placeholder="Description of this service or product (optional)"
-                  rows={2}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
-                />
+                <div className="relative">
+                  <textarea
+                    value={service.description || ''}
+                    onChange={(e) => updateServiceItem(index, 'description', e.target.value)}
+                    placeholder="Description of this service or product (optional)"
+                    rows={2}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent pr-12"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => generateServiceDescription(index, service.name)}
+                    disabled={generatingIndex === index || !service.name.trim()}
+                    className="absolute right-2 top-2 p-1 text-slate-blue hover:text-slate-blue-dark disabled:text-gray-400 disabled:cursor-not-allowed"
+                    title="Generate AI description"
+                  >
+                    {generatingIndex === index ? (
+                      <div className="animate-spin w-4 h-4 border-2 border-slate-blue border-t-transparent rounded-full"></div>
+                    ) : (
+                      <FaRobot className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           ))}
