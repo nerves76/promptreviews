@@ -203,30 +203,126 @@ export async function POST(request: NextRequest) {
           }
         }
 
+        // Extract available categories for service item mapping
+        const availableCategories: string[] = [];
+        if (hasValue(updates.primaryCategory?.categoryId)) {
+          availableCategories.push(updates.primaryCategory.categoryId);
+        }
+        if (hasValue(updates.additionalCategories) && Array.isArray(updates.additionalCategories)) {
+          updates.additionalCategories.forEach((cat: any) => {
+            if (hasValue(cat?.categoryId)) {
+              availableCategories.push(cat.categoryId);
+            }
+          });
+        }
+        console.log('🏷️ Available categories for service mapping:', availableCategories);
+
+        /**
+         * Map service name to most appropriate business category
+         */
+        function mapServiceToCategory(serviceName: string, availableCategories: string[]): string {
+          const serviceNameLower = serviceName.toLowerCase();
+          
+          // SEO & Marketing services
+          if (serviceNameLower.includes('seo') || serviceNameLower.includes('search engine') || 
+              serviceNameLower.includes('marketing') || serviceNameLower.includes('ads') ||
+              serviceNameLower.includes('generative engine') || serviceNameLower.includes('optimization')) {
+            const marketingCategories = ['gcid:internet_marketing_service', 'gcid:marketing_consultant', 'gcid:marketing_agency'];
+            for (const cat of marketingCategories) {
+              if (availableCategories.includes(cat)) return cat;
+            }
+          }
+          
+          // Design & Website services
+          if (serviceNameLower.includes('design') || serviceNameLower.includes('website') || 
+              serviceNameLower.includes('web') || serviceNameLower.includes('ui') || 
+              serviceNameLower.includes('ux')) {
+            const designCategories = ['gcid:website_designer', 'gcid:design_agency'];
+            for (const cat of designCategories) {
+              if (availableCategories.includes(cat)) return cat;
+            }
+          }
+          
+          // Branding services
+          if (serviceNameLower.includes('brand') || serviceNameLower.includes('logo') || 
+              serviceNameLower.includes('identity')) {
+            const brandingCategories = ['gcid:branding_agency', 'gcid:design_agency'];
+            for (const cat of brandingCategories) {
+              if (availableCategories.includes(cat)) return cat;
+            }
+          }
+          
+          // Consulting & Strategy services
+          if (serviceNameLower.includes('consult') || serviceNameLower.includes('strategy') || 
+              serviceNameLower.includes('management') || serviceNameLower.includes('analytics') ||
+              serviceNameLower.includes('reporting')) {
+            const consultingCategories = ['gcid:business_management_consultant', 'gcid:marketing_consultant', 'gcid:business_development_service'];
+            for (const cat of consultingCategories) {
+              if (availableCategories.includes(cat)) return cat;
+            }
+          }
+          
+          // AI & Automation services
+          if (serviceNameLower.includes('ai') || serviceNameLower.includes('automation') || 
+              serviceNameLower.includes('artificial intelligence')) {
+            const techCategories = ['gcid:business_development_service', 'gcid:marketing_consultant'];
+            for (const cat of techCategories) {
+              if (availableCategories.includes(cat)) return cat;
+            }
+          }
+          
+          // Business services fallback
+          const businessCategories = ['gcid:business_to_business_service', 'gcid:business_development_service'];
+          for (const cat of businessCategories) {
+            if (availableCategories.includes(cat)) return cat;
+          }
+          
+          // Ultimate fallback - use first available category
+          return availableCategories.length > 0 ? availableCategories[0] : '';
+        }
+
         // Service items update - only if provided and has meaningful data
         if (hasValue(updates.serviceItems) && Array.isArray(updates.serviceItems)) {
           console.log('🔍 Raw service items from frontend:', JSON.stringify(updates.serviceItems, null, 2));
           
           const validServices = updates.serviceItems.filter((service: any) => 
             hasValue(service) && hasValue(service.name)
-          ).map((service: any) => ({
-            // Use freeFormServiceItem for custom services - Google now supports this
-            freeFormServiceItem: {
-              label: {
-                displayName: service.name.trim(),
-                description: service.description ? service.description.trim().substring(0, 300) : undefined,
-                languageCode: 'en'
+          ).map((service: any) => {
+            const categoryId = mapServiceToCategory(service.name.trim(), availableCategories);
+            console.log(`🏷️ Mapped "${service.name}" to category: ${categoryId}`);
+            
+            return {
+              // Use freeFormServiceItem for custom services - Google now supports this
+              freeFormServiceItem: {
+                categoryId: categoryId, // CRITICAL: Include category ID to match business categories
+                label: {
+                  displayName: service.name.trim(),
+                  description: service.description ? service.description.trim().substring(0, 300) : undefined,
+                  languageCode: 'en'
+                }
               }
-            }
-          }));
+            };
+          });
           
           console.log('🔍 Converted service items for API:', JSON.stringify(validServices, null, 2));
           
-          if (validServices.length > 0) {
-            locationUpdate.serviceItems = validServices;
-            console.log('📝 Including service items update:', validServices.length, 'services');
+          // Validate that all service items have valid categories
+          const servicesWithValidCategories = validServices.filter(service => 
+            service.freeFormServiceItem.categoryId && service.freeFormServiceItem.categoryId.trim() !== ''
+          );
+          
+          if (servicesWithValidCategories.length > 0) {
+            locationUpdate.serviceItems = servicesWithValidCategories;
+            console.log('📝 Including service items update:', servicesWithValidCategories.length, 'services with valid categories');
+            
+            if (servicesWithValidCategories.length < validServices.length) {
+              console.log(`⚠️ Filtered out ${validServices.length - servicesWithValidCategories.length} service(s) with invalid categories`);
+            }
           } else {
-            console.log('⚠️ No valid service items to send (all services filtered out)');
+            console.log('⚠️ No valid service items to send - all services lack valid categories');
+            if (availableCategories.length === 0) {
+              console.log('⚠️ No business categories available for service mapping. Please ensure primary/additional categories are set.');
+            }
           }
         }
 
