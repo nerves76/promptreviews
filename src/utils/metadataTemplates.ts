@@ -40,6 +40,9 @@ interface VariableContext {
 export function substituteVariables(template: string, context: VariableContext): string {
   if (!template) return '';
   
+  console.log(`[METADATA] Substituting variables in template: "${template}"`);
+  console.log(`[METADATA] Context variables:`, context);
+  
   let result = template;
   
   // Replace all variables in the format [variable_name]
@@ -47,13 +50,22 @@ export function substituteVariables(template: string, context: VariableContext):
     const value = context[key];
     if (value) {
       const pattern = new RegExp(`\\[${key}\\]`, 'g');
+      const before = result;
       result = result.replace(pattern, value);
+      if (before !== result) {
+        console.log(`[METADATA] Replaced [${key}] with "${value}"`);
+      }
     }
   });
   
   // Clean up any remaining unreplaced variables
+  const beforeCleanup = result;
   result = result.replace(/\[[\w_]+\]/g, '');
+  if (beforeCleanup !== result) {
+    console.log(`[METADATA] Cleaned up unreplaced variables: "${beforeCleanup}" -> "${result}"`);
+  }
   
+  console.log(`[METADATA] Final result: "${result}"`);
   return result.trim();
 }
 
@@ -64,6 +76,8 @@ export async function getActiveMetadataTemplate(pageType: string): Promise<Metad
   try {
     const supabaseAdmin = createServiceRoleClient();
     
+    console.log(`[METADATA] Looking for template for page type: ${pageType}`);
+    
     const { data, error } = await supabaseAdmin
       .from('metadata_templates')
       .select('*')
@@ -72,13 +86,14 @@ export async function getActiveMetadataTemplate(pageType: string): Promise<Metad
       .single();
     
     if (error) {
-      console.error('Error fetching metadata template:', error);
+      console.error('[METADATA] Error fetching metadata template:', error);
       return null;
     }
     
+    console.log(`[METADATA] Found template:`, data);
     return data;
   } catch (error) {
-    console.error('Error getting active metadata template:', error);
+    console.error('[METADATA] Error getting active metadata template:', error);
     return null;
   }
 }
@@ -105,9 +120,13 @@ export async function generatePromptPageMetadata(
   keywords: string;
   canonical?: string;
 }> {
+  console.log(`[METADATA] Generating metadata for page type: ${pageType}`);
+  console.log(`[METADATA] Context:`, context);
+  
   const template = await getActiveMetadataTemplate(pageType);
   
   if (!template) {
+    console.log(`[METADATA] No template found for ${pageType}, using fallback`);
     // Helper function to format page type
     const formatPageType = (type: string): string => {
       switch (type.toLowerCase()) {
@@ -154,20 +173,40 @@ export async function generatePromptPageMetadata(
     };
   }
   
+  console.log(`[METADATA] Using template:`, template);
+  
+  const title = substituteVariables(template.title_template, context);
+  const description = substituteVariables(template.description_template, context);
+  const ogTitle = substituteVariables(template.og_title_template, context);
+  const ogDescription = substituteVariables(template.og_description_template, context);
+  const twitterTitle = substituteVariables(template.twitter_title_template, context);
+  const twitterDescription = substituteVariables(template.twitter_description_template, context);
+  const keywords = substituteVariables(template.keywords_template, context);
+  
+  console.log(`[METADATA] Generated metadata:`, {
+    title,
+    description,
+    ogTitle,
+    ogDescription,
+    twitterTitle,
+    twitterDescription,
+    keywords
+  });
+  
   return {
-    title: substituteVariables(template.title_template, context),
-    description: substituteVariables(template.description_template, context),
+    title,
+    description,
     openGraph: {
-      title: substituteVariables(template.og_title_template, context),
-      description: substituteVariables(template.og_description_template, context),
+      title: ogTitle,
+      description: ogDescription,
       images: context.logo ? [context.logo] : undefined,
     },
     twitter: {
-      title: substituteVariables(template.twitter_title_template, context),
-      description: substituteVariables(template.twitter_description_template, context),
+      title: twitterTitle,
+      description: twitterDescription,
       images: context.logo ? [context.logo] : undefined,
     },
-    keywords: substituteVariables(template.keywords_template, context),
+    keywords,
     canonical: template.canonical_url_template 
       ? substituteVariables(template.canonical_url_template, context)
       : undefined,
