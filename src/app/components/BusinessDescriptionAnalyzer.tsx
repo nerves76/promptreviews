@@ -162,16 +162,21 @@ export default function BusinessDescriptionAnalyzer({
       return optimized + " We provide professional services tailored to meet your specific needs. Contact us today to learn more about how we can help you achieve your goals.";
     }
     
-    // If missing call-to-action, add one
-    const hasCallToAction = /\b(call|contact|visit|book|schedule|reach out)\b/i.test(optimized);
-    if (!hasCallToAction && optimized.length < 600) {
+    // If missing call-to-action and description is reasonable length, add one
+    const hasCallToAction = /\b(call|contact|visit|book|schedule|reach out|get started|learn more)\b/i.test(optimized);
+    if (!hasCallToAction && optimized.length < 600 && optimized.length > 150) {
+      // Add period if missing, then add call-to-action
+      if (!optimized.match(/[.!?]$/)) {
+        optimized += ".";
+      }
       optimized += " Contact us today to get started!";
     }
     
-    // If no location reference, suggest adding local focus
-    const hasLocation = /\b(local|area|city|location|serving|near)\b/i.test(optimized);
-    if (!hasLocation && optimized.length < 600) {
-      optimized = optimized.replace(/\.$/, '') + " serving the local area.";
+    // Only suggest optimization if the original is quite different from what we'd suggest
+    // Don't make changes for the sake of changes
+    if (optimized === text.trim()) {
+      // If no meaningful changes, return original
+      return text;
     }
     
     return optimized;
