@@ -38,8 +38,15 @@ export async function generateMetadata({ params }: {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     
+    console.log(`[LAYOUT] Environment check:`, {
+      hasSupabaseUrl: !!supabaseUrl,
+      hasServiceKey: !!supabaseServiceKey,
+      supabaseUrl: supabaseUrl ? 'SET' : 'MISSING',
+      serviceKeyLength: supabaseServiceKey ? supabaseServiceKey.length : 0
+    });
+    
     if (!supabaseUrl || !supabaseServiceKey) {
-      console.error('Missing environment variables for metadata generation');
+      console.error('[LAYOUT] Missing environment variables for metadata generation');
       return fallbackMetadata;
     }
     
@@ -57,6 +64,7 @@ export async function generateMetadata({ params }: {
     );
     
     // Fetch prompt page data directly from database
+    console.log(`[LAYOUT] Looking for prompt page with slug: ${slug}`);
     const { data: promptPage, error: pageError } = await supabase
       .from('prompt_pages')
       .select('*')
@@ -64,13 +72,22 @@ export async function generateMetadata({ params }: {
       .single();
     
     if (pageError || !promptPage) {
-      console.warn('Prompt page not found for slug:', slug, pageError?.message);
+      console.warn('[LAYOUT] Prompt page not found for slug:', slug, pageError?.message);
+      console.warn('[LAYOUT] Error details:', pageError);
       return {
         ...fallbackMetadata,
         title: "Page Not Found - Prompt Reviews",
         description: "The requested prompt page could not be found.",
       };
     }
+    
+    console.log(`[LAYOUT] Found prompt page:`, {
+      id: promptPage.id,
+      slug: promptPage.slug,
+      account_id: promptPage.account_id,
+      is_universal: promptPage.is_universal,
+      client_name: promptPage.client_name
+    });
     
     // Try to fetch business profile data, but don't fail if it doesn't exist
     let business = null;
