@@ -62,9 +62,9 @@ export async function POST(request: NextRequest): Promise<NextResponse<AnalysisR
       );
     }
 
-    if (description.length > 2000) {
+    if (description.length > 750) {
       return NextResponse.json(
-        { success: false, error: 'Description must be 2000 characters or less' },
+        { success: false, error: 'Description must be 750 characters or less (Google Business Profile limit)' },
         { status: 400 }
       );
     }
@@ -114,7 +114,9 @@ Focus on:
 - Conversational query optimization
 - Local SEO for AI search platforms
 - Geographic context for location embeddings
-- Action-oriented language for conversion optimization`;
+- Action-oriented language for conversion optimization
+
+IMPORTANT: Google Business Profile descriptions have a 750-character limit. Aim to use 400-750 characters for optimal impact. Longer descriptions (closer to 750) generally perform better for SEO and provide more value to users. Don't be afraid to use the full space available - include comprehensive details, multiple keywords, and strong calls-to-action.`;
 
     // Call OpenAI API
     const completion = await openai.chat.completions.create({
@@ -188,7 +190,7 @@ Focus on:
         seoScore: Math.max(1, Math.min(10, analysis.seoScore)), // Ensure score is 1-10
         improvements: analysis.improvements.slice(0, 8), // Limit to 8 improvements
         keywordSuggestions: analysis.keywordSuggestions.slice(0, 8), // Limit to 8 keywords
-        optimizedDescription: analysis.optimizedDescription.substring(0, 1000), // Limit length
+        optimizedDescription: analysis.optimizedDescription.substring(0, 750), // Google Business Profile limit
         semanticAnalysis: analysis.semanticAnalysis || 'AI analysis completed successfully.'
       }
     });
