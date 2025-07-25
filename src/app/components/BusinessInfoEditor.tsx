@@ -639,6 +639,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
                           </button>
                         </div>
                         <BusinessDescriptionAnalyzer 
+                          currentDescription={businessInfo.description}
                           onAnalysisComplete={handleDescriptionAnalyzed}
                         />
                       </div>
