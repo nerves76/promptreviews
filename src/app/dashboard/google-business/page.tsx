@@ -757,7 +757,7 @@ export default function SocialPostingDashboard() {
                 Google Business Profiles
               </h1>
               <p className="text-gray-600">
-                Keep your Google Business Profiles fresh with new content to improve your rankings.
+                Optimize your Google Business Profiles with Prompty power! Update your profile with new content regularly for best results.
               </p>
             </div>
             {/* Full Editor Button */}
