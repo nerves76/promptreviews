@@ -21,6 +21,20 @@ export async function generateMetadata({ params }: {
 }): Promise<Metadata> {
   console.log('[LAYOUT] generateMetadata called');
   
+  // Simple test metadata to see if function is called
+  const testMetadata: Metadata = {
+    title: "TEST METADATA - Business Name Here",
+    description: "This is a test to see if generateMetadata is being called",
+    keywords: ["test", "metadata"],
+    openGraph: {
+      title: "TEST METADATA - Business Name Here",
+      description: "This is a test to see if generateMetadata is being called",
+      type: "website",
+    },
+  };
+  
+  return testMetadata;
+  
   const fallbackMetadata: Metadata = {
     title: "Give Business a review - Prompt Reviews",
     description: "Share your experience and help others discover great businesses.",
