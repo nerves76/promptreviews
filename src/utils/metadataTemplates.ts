@@ -78,6 +78,20 @@ export async function getActiveMetadataTemplate(pageType: string): Promise<Metad
     
     console.log(`[METADATA] Looking for template for page type: ${pageType}`);
     
+    // First, let's check if any templates exist for this page type
+    const { data: allTemplates, error: listError } = await supabaseAdmin
+      .from('metadata_templates')
+      .select('*')
+      .eq('page_type', pageType);
+    
+    if (listError) {
+      console.error('[METADATA] Error listing templates:', listError);
+      return null;
+    }
+    
+    console.log(`[METADATA] Found ${allTemplates?.length || 0} templates for ${pageType}:`, allTemplates);
+    
+    // Now get the active one
     const { data, error } = await supabaseAdmin
       .from('metadata_templates')
       .select('*')
@@ -86,11 +100,18 @@ export async function getActiveMetadataTemplate(pageType: string): Promise<Metad
       .single();
     
     if (error) {
-      console.error('[METADATA] Error fetching metadata template:', error);
+      console.error('[METADATA] Error fetching active metadata template:', error);
+      
+      // If no active template found, try to create one from the default templates
+      if (error.code === 'PGRST116') { // No rows returned
+        console.log('[METADATA] No active template found, creating default template...');
+        return await createDefaultTemplate(pageType, supabaseAdmin);
+      }
+      
       return null;
     }
     
-    console.log(`[METADATA] Found template:`, data);
+    console.log(`[METADATA] Found active template:`, data);
     return data;
   } catch (error) {
     console.error('[METADATA] Error getting active metadata template:', error);
@@ -212,6 +233,73 @@ export async function generatePromptPageMetadata(
       ? substituteVariables(template.canonical_url_template, context)
       : undefined,
   };
+}
+
+/**
+ * Create default metadata template for a page type
+ */
+async function createDefaultTemplate(pageType: string, supabaseAdmin: any): Promise<MetadataTemplate | null> {
+  const defaultTemplates = {
+    universal: {
+      title_template: 'Leave a Review for [business_name]',
+      description_template: 'Share your experience with [business_name]. Leave a review to help others discover great services.',
+      og_title_template: 'Review [business_name]',
+      og_description_template: 'Share your experience with [business_name]. Your feedback helps others make informed decisions.',
+      keywords_template: '[business_name], reviews, customer feedback, testimonials'
+    },
+    service: {
+      title_template: 'Review [service_name] - [business_name]',
+      description_template: 'Share your experience with [service_name] from [business_name]. Help others by leaving your honest review.',
+      og_title_template: 'Review [service_name] at [business_name]',
+      og_description_template: 'Tell others about your experience with [service_name] from [business_name]. Your review matters.',
+      keywords_template: '[business_name], [service_name], service review, customer experience'
+    },
+    product: {
+      title_template: 'Review [product_name] - [business_name]',
+      description_template: 'Share your thoughts on [product_name] from [business_name]. Help others with your honest product review.',
+      og_title_template: 'Review [product_name] from [business_name]',
+      og_description_template: 'What did you think of [product_name]? Share your experience to help other customers.',
+      keywords_template: '[business_name], [product_name], product review, customer feedback'
+    },
+    photo: {
+      title_template: 'Share Your Experience with [business_name]',
+      description_template: 'Upload a photo and share your experience with [business_name]. Visual reviews help others see what to expect.',
+      og_title_template: 'Share Your Photo Review of [business_name]',
+      og_description_template: 'Show others your experience with [business_name] through photos and feedback.',
+      keywords_template: '[business_name], photo review, visual testimonial, customer experience'
+    }
+  };
+
+  const template = defaultTemplates[pageType as keyof typeof defaultTemplates];
+  if (!template) {
+    console.error(`[METADATA] No default template found for page type: ${pageType}`);
+    return null;
+  }
+
+  try {
+    console.log(`[METADATA] Creating default template for ${pageType}:`, template);
+    
+    const { data, error } = await supabaseAdmin
+      .from('metadata_templates')
+      .insert({
+        page_type: pageType,
+        ...template,
+        is_active: true
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('[METADATA] Error creating default template:', error);
+      return null;
+    }
+
+    console.log(`[METADATA] Successfully created default template:`, data);
+    return data;
+  } catch (error) {
+    console.error('[METADATA] Error creating default template:', error);
+    return null;
+  }
 }
 
 /**
