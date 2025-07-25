@@ -6,12 +6,15 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { FaGoogle, FaMapMarkerAlt, FaImage, FaClock, FaExclamationTriangle, FaCheck, FaTimes, FaPlus, FaSpinner, FaRedo, FaChevronDown, FaChevronUp, FaTrash, FaUpload, FaStore, FaStar, FaBolt } from 'react-icons/fa';
+import { FaGoogle, FaMapMarkerAlt, FaImage, FaClock, FaExclamationTriangle, FaCheck, FaTimes, FaPlus, FaSpinner, FaRedo, FaChevronDown, FaChevronUp, FaTrash, FaUpload, FaStore, FaStar, FaBolt, FaRobot } from 'react-icons/fa';
 import PageCard from '@/app/components/PageCard';
 import FiveStarSpinner from '@/app/components/FiveStarSpinner';
 import PhotoManagement from '@/app/components/PhotoManagement';
 import ReviewManagement from '@/app/components/ReviewManagement';
 import BusinessInfoEditor from '@/app/components/BusinessInfoEditor';
+import ReviewResponseGenerator from '@/app/components/ReviewResponseGenerator';
+import ServiceDescriptionGenerator from '@/app/components/ServiceDescriptionGenerator';
+import BusinessDescriptionAnalyzer from '@/app/components/BusinessDescriptionAnalyzer';
 import { createClient } from '@/utils/supabaseClient';
 // Using built-in alert for notifications instead of react-toastify
 
@@ -86,12 +89,12 @@ export default function SocialPostingDashboard() {
   }, [imageUrls]);
 
   // Tab state with URL parameter support
-  const [activeTab, setActiveTab] = useState<'connect' | 'post' | 'photos' | 'business-info' | 'reviews'>(() => {
+  const [activeTab, setActiveTab] = useState<'connect' | 'post' | 'photos' | 'business-info' | 'reviews' | 'ai-content' | 'ai-reviews'>(() => {
     // Initialize from URL parameter if available
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
-      const tabParam = urlParams.get('tab') as 'connect' | 'post' | 'photos' | 'business-info' | 'reviews';
-      if (tabParam && ['connect', 'post', 'photos', 'business-info', 'reviews'].includes(tabParam)) {
+      const tabParam = urlParams.get('tab') as 'connect' | 'post' | 'photos' | 'business-info' | 'reviews' | 'ai-content' | 'ai-reviews';
+      if (tabParam && ['connect', 'post', 'photos', 'business-info', 'reviews', 'ai-content', 'ai-reviews'].includes(tabParam)) {
         return tabParam;
       }
     }
@@ -99,7 +102,7 @@ export default function SocialPostingDashboard() {
   });
 
   // Update URL when tab changes
-  const changeTab = (newTab: 'connect' | 'post' | 'photos' | 'business-info' | 'reviews') => {
+  const changeTab = (newTab: 'connect' | 'post' | 'photos' | 'business-info' | 'reviews' | 'ai-content' | 'ai-reviews') => {
     setActiveTab(newTab);
     
     // Update URL parameter
@@ -841,6 +844,32 @@ export default function SocialPostingDashboard() {
                   <span>Reviews Management</span>
                 </div>
               </button>
+              <button
+                onClick={() => changeTab('ai-content')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'ai-content'
+                    ? 'border-slate-blue text-slate-blue'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <div className="flex items-center space-x-2">
+                  <FaBolt className="w-4 h-4" />
+                  <span>AI Content Tools</span>
+                </div>
+              </button>
+              <button
+                onClick={() => changeTab('ai-reviews')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'ai-reviews'
+                    ? 'border-slate-blue text-slate-blue'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <div className="flex items-center space-x-2">
+                  <FaRobot className="w-4 h-4" />
+                  <span>AI Review Tools</span>
+                </div>
+              </button>
             </nav>
           </div>
 
@@ -1332,6 +1361,41 @@ export default function SocialPostingDashboard() {
                   isConnected={isConnected}
                 />
               )}
+            </div>
+          )}
+
+          {/* AI Content Tools Tab */}
+          {activeTab === 'ai-content' && (
+            <div className="space-y-6">
+              <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-6 mb-6">
+                <div className="flex items-center space-x-3 mb-2">
+                  <FaBolt className="w-6 h-6 text-purple-600" />
+                  <h2 className="text-xl font-semibold text-gray-900">AI Content Tools</h2>
+                </div>
+                <p className="text-gray-600">
+                  Use AI to generate optimized content for your Google Business Profile
+                </p>
+              </div>
+              
+              <ServiceDescriptionGenerator />
+              <BusinessDescriptionAnalyzer />
+            </div>
+          )}
+
+          {/* AI Review Tools Tab */}
+          {activeTab === 'ai-reviews' && (
+            <div className="space-y-6">
+              <div className="bg-gradient-to-r from-orange-50 to-purple-50 rounded-lg p-6 mb-6">
+                <div className="flex items-center space-x-3 mb-2">
+                  <FaRobot className="w-6 h-6 text-orange-600" />
+                  <h2 className="text-xl font-semibold text-gray-900">AI Review Tools</h2>
+                </div>
+                <p className="text-gray-600">
+                  Generate professional responses to customer reviews using AI
+                </p>
+              </div>
+              
+              <ReviewResponseGenerator />
             </div>
           )}
         </div>
