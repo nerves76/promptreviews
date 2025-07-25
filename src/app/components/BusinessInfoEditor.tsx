@@ -8,6 +8,7 @@
 
 import { useState, useEffect } from 'react';
 import { FaStore, FaSave, FaRedo, FaSpinner, FaCheck, FaTimes, FaChevronDown, FaChevronUp, FaRobot } from 'react-icons/fa';
+import { createClient } from '@/utils/supabaseClient';
 
 // Import our modular components
 import CategorySearch from './business-info/CategorySearch';
