@@ -19,6 +19,8 @@ function getPageType(promptPage: any): string {
 export async function generateMetadata({ params }: {
   params: Promise<{ slug: string }>
 }): Promise<Metadata> {
+  console.log('[LAYOUT] generateMetadata called');
+  
   const fallbackMetadata: Metadata = {
     title: "Give Business a review - Prompt Reviews",
     description: "Share your experience and help others discover great businesses.",
@@ -33,6 +35,7 @@ export async function generateMetadata({ params }: {
   try {
     // Await the params in Next.js 15
     const { slug } = await params;
+    console.log('[LAYOUT] Slug from params:', slug);
     
     // Check if required environment variables are available
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
