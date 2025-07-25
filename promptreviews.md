@@ -10,6 +10,26 @@ This project is currently focused on developing a standalone widget for collecti
 
 ## Recent Updates (Latest)
 
+### Google Business Profile Service Category Mapping Fix (January 2025)
+- **Critical API Fix**: Fixed Google Business Profile API failures by implementing intelligent service-to-category mapping for service items
+- **Smart Category Mapping**: Created intelligent mapping system that matches service names to appropriate business categories using semantic analysis
+- **Required Field Addition**: Added missing `categoryId` field to `freeFormServiceItem` structure as required by Google Business Profile API
+- **Category Validation**: Implemented validation to ensure all service items have valid categories matching business's primary/additional categories
+- **Semantic Matching**: Maps services like "SEO" → marketing categories, "Web Design" → design categories, "Consulting" → consultant categories
+- **Fallback Logic**: Provides intelligent fallbacks when no specific category match is found, using business's primary category
+- **API Reliability**: Eliminated "category not in list of categories for location" errors that were blocking business information updates
+
+#### **Technical Implementation**
+- **Category Extraction**: Extracts available categories from business's primary and additional categories in the same API request
+- **Intelligent Mapping**: `mapServiceToCategory()` function uses keyword matching to map services to appropriate business categories
+- **Multiple Fallbacks**: Prioritized fallback system from specific matches → general business categories → primary category
+- **Validation Layer**: Filters out service items without valid categories before sending to Google Business Profile API
+- **Comprehensive Coverage**: Handles SEO, marketing, design, consulting, branding, AI/automation, and general business services
+
+#### **Files Modified**
+- `src/app/api/business-information/update-location/route.ts` - Added category mapping logic and categoryId field to service items
+- Ensures all service items include valid category IDs that match the business's Google Business Profile categories
+
 ### Google Business Profile Service Description Character Limit Fix (January 2025)
 - **Critical API Fix**: Fixed Google Business Profile API failures by implementing strict 300-character limit enforcement for AI-generated service descriptions
 - **AI Prompt Optimization**: Updated AI prompts to target character counts (80-150, 150-250, 250-300) instead of word counts for precise length control
