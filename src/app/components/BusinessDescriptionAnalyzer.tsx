@@ -72,7 +72,7 @@ export default function BusinessDescriptionAnalyzer({
       const mockAnalysis: AnalysisResult = {
         seoScore: calculateSEOScore(currentDescription),
         characterCount: currentDescription.length,
-        keywordSuggestions: extractKeywords(currentDescription),
+        keywordSuggestions: generateSEOKeywords(),
         improvements: generateImprovements(currentDescription),
         optimizedDescription: optimizedDescription
       };
@@ -123,45 +123,51 @@ export default function BusinessDescriptionAnalyzer({
     return Math.min(score, 10);
   };
 
-  const extractKeywords = (text: string): string[] => {
-    const words = text.toLowerCase().match(/\b\w+\b/g) || [];
-    const commonWords = ['the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'up', 'about', 'into', 'over', 'after'];
-    const keywords = words.filter(word => word.length > 3 && !commonWords.includes(word));
+  const generateSEOKeywords = (): string[] => {
+    const keywords: string[] = [];
     
-    // Add business context keywords if available
-    const contextKeywords: string[] = [];
-    if (businessContext?.businessName) {
-      contextKeywords.push(...businessContext.businessName.toLowerCase().split(/\s+/).filter(word => word.length > 3));
+    // Generate location-based keywords if we have business context
+    if (businessContext?.location && businessContext?.businessType) {
+      const city = businessContext.location.split(',')[0].trim(); // Get city part
+      const businessType = businessContext.businessType.toLowerCase();
+      
+      // Primary local keywords
+      keywords.push(`${city.toLowerCase()} ${businessType}`);
+      keywords.push(`${businessType} ${city.toLowerCase()}`);
+      keywords.push(`${businessType} near me`);
+      keywords.push(`best ${businessType} ${city.toLowerCase()}`);
     }
-    if (businessContext?.businessType) {
-      contextKeywords.push(...businessContext.businessType.toLowerCase().split(/\s+/).filter(word => word.length > 3));
-    }
-    if (businessContext?.services) {
-      businessContext.services.forEach(service => {
-        contextKeywords.push(...service.toLowerCase().split(/\s+/).filter(word => word.length > 3));
+    
+    // Add service-based local keywords
+    if (businessContext?.services && businessContext?.location) {
+      const city = businessContext.location.split(',')[0].trim();
+      businessContext.services.slice(0, 3).forEach(service => {
+        keywords.push(`${service.toLowerCase()} ${city.toLowerCase()}`);
+        keywords.push(`${city.toLowerCase()} ${service.toLowerCase()}`);
       });
     }
-    if (businessContext?.industry) {
-      contextKeywords.push(...businessContext.industry.toLowerCase().split(/\s+/).filter(word => word.length > 3));
+    
+    // Add industry-specific keywords
+    if (businessContext?.industry && businessContext?.location) {
+      const city = businessContext.location.split(',')[0].trim();
+      keywords.push(`${businessContext.industry.toLowerCase()} ${city.toLowerCase()}`);
     }
     
-    // Count frequency and return top keywords
-    const frequency: { [key: string]: number } = {};
-    keywords.forEach(word => {
-      frequency[word] = (frequency[word] || 0) + 1;
-    });
+    // Add business name variations if available
+    if (businessContext?.businessName && businessContext?.location) {
+      const city = businessContext.location.split(',')[0].trim();
+      keywords.push(`${businessContext.businessName.toLowerCase()}`);
+      keywords.push(`${businessContext.businessName.toLowerCase()} ${city.toLowerCase()}`);
+    }
     
-    // Boost frequency for business context keywords found in description
-    contextKeywords.forEach(contextWord => {
-      if (frequency[contextWord]) {
-        frequency[contextWord] += 2; // Boost business-relevant keywords
-      }
-    });
+    // Fallback generic keywords if no context
+    if (keywords.length === 0) {
+      keywords.push('professional services', 'local business', 'quality service', 'experienced team');
+    }
     
-    return Object.entries(frequency)
-      .sort(([,a], [,b]) => b - a)
-      .slice(0, 8)
-      .map(([word]) => word);
+    // Remove duplicates and return up to 8 keywords
+    const uniqueKeywords = [...new Set(keywords)];
+    return uniqueKeywords.slice(0, 8);
   };
 
   const generateImprovements = (text: string): string[] => {
@@ -194,6 +200,15 @@ export default function BusinessDescriptionAnalyzer({
       if (mentionedServices.length === 0) {
         improvements.push(`Consider mentioning specific services like ${businessContext.services.slice(0, 2).join(' or ')}`);
       }
+    }
+    
+    // Check for local SEO keywords
+    const suggestedKeywords = generateSEOKeywords();
+    const missingKeywords = suggestedKeywords.filter(keyword => 
+      !text.toLowerCase().includes(keyword.toLowerCase())
+    );
+    if (missingKeywords.length > 0) {
+      improvements.push(`Consider incorporating local SEO keywords like "${missingKeywords[0]}" or "${missingKeywords[1] || missingKeywords[0]}"`);
     }
     
     if (!text.includes('Call') && !text.includes('Contact') && !text.includes('Visit')) {
@@ -365,11 +380,11 @@ export default function BusinessDescriptionAnalyzer({
               <p className="text-xs text-gray-500">Words in description</p>
             </div>
             <div className="bg-gray-50 rounded-lg p-4">
-              <h5 className="font-medium text-gray-900 mb-1">Keywords Found</h5>
+              <h5 className="font-medium text-gray-900 mb-1">SEO Keywords</h5>
               <p className="text-lg font-semibold text-purple-600">
                 {analysis.keywordSuggestions.length}
               </p>
-              <p className="text-xs text-gray-500">Key terms identified</p>
+              <p className="text-xs text-gray-500">Local SEO suggestions</p>
             </div>
           </div>
 
@@ -413,19 +428,24 @@ export default function BusinessDescriptionAnalyzer({
           {/* Keywords */}
           {analysis.keywordSuggestions.length > 0 && (
             <div className="border border-blue-200 rounded-lg p-4">
-              <h4 className="font-medium text-gray-900 mb-3">Identified Keywords</h4>
+              <h4 className="font-medium text-gray-900 mb-3">Suggested SEO Keywords</h4>
+              <p className="text-sm text-gray-600 mb-3">
+                Consider incorporating these local SEO keywords into your description:
+              </p>
               <div className="flex flex-wrap gap-2">
                 {analysis.keywordSuggestions.map((keyword, index) => (
                   <span
                     key={index}
-                    className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                    className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full cursor-pointer hover:bg-blue-200 transition-colors"
+                    title="Click to copy"
+                    onClick={() => navigator.clipboard.writeText(keyword)}
                   >
                     {keyword}
                   </span>
                 ))}
               </div>
               <p className="text-xs text-gray-500 mt-2">
-                These are the main keywords found in your description
+                💡 Tip: Click any keyword to copy it to your clipboard
               </p>
             </div>
           )}
