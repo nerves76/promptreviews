@@ -1,103 +1,36 @@
+/**
+ * Server-Side Prompt Page Component
+ * 
+ * This is an alternative server-rendered version for optimal performance
+ * when accessed via QR codes or direct links
+ */
+
+import { notFound } from 'next/navigation';
+import { createServiceRoleClient } from '@/utils/supabaseClient';
 import { Metadata } from 'next';
-import { createClient } from '@supabase/supabase-js';
-import { generatePromptPageMetadata, createVariableContext } from '@/utils/metadataTemplates';
-import PromptPageClient from './components/PromptPageClient';
 
-// Helper function to get formatted page type
-function getPageType(promptPage: any): string {
-  if (promptPage.is_universal) return 'universal';
-  if (promptPage.review_type === 'product') return 'product';
-  if (promptPage.review_type === 'service') return 'service';
-  if (promptPage.review_type === 'photo') return 'photo';
-  if (promptPage.review_type === 'video') return 'video';
-  if (promptPage.review_type === 'event') return 'event';
-  if (promptPage.review_type === 'employee') return 'employee';
-  return 'universal';
-}
-
-// Dynamic metadata generation with og:image support
-export async function generateMetadata({ params }: {
-  params: Promise<{ slug: string }>
-}): Promise<Metadata> {
-  console.log('[PAGE] generateMetadata called');
+// Server component for initial page load
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
   
-  const fallbackMetadata: Metadata = {
-    title: "Give Business a review - Prompt Reviews",
-    description: "Share your experience and help others discover great businesses.",
-    keywords: ["review", "testimonial", "business", "customer feedback"],
-    openGraph: {
-      title: "Give Business a review - Prompt Reviews",
-      description: "Share your experience and help others discover great businesses.",
-      type: "website",
-    },
-  };
-
   try {
-    // Await the params in Next.js 15
-    const paramsObj = await params;
-    const slug = paramsObj?.slug;
-    console.log('[PAGE] Params object:', paramsObj);
-    console.log('[PAGE] Slug from params:', slug);
+    const supabase = createServiceRoleClient();
     
-    if (!slug) {
-      console.warn('[PAGE] No slug provided');
-      return fallbackMetadata;
-    }
-    
-    // Check if required environment variables are available
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    
-    console.log(`[PAGE] Environment check:`, {
-      hasSupabaseUrl: !!supabaseUrl,
-      hasServiceKey: !!supabaseServiceKey,
-      supabaseUrl: supabaseUrl ? 'SET' : 'MISSING',
-      serviceKeyLength: supabaseServiceKey?.length || 0
-    });
-    
-    if (!supabaseUrl || !supabaseServiceKey) {
-      console.error('[PAGE] Missing environment variables for metadata generation');
-      return fallbackMetadata;
-    }
-    
-    // Use service role client for server-side metadata generation
-    const supabase = createClient(
-      supabaseUrl,
-      supabaseServiceKey,
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
-        }
-      }
-    );
-    
-    // Fetch prompt page data directly from database
-    console.log(`[PAGE] Looking for prompt page with slug: ${slug}`);
+    // Fetch prompt page data
     const { data: promptPage, error: pageError } = await supabase
       .from('prompt_pages')
       .select('*')
       .eq('slug', slug)
       .single();
-    
+
     if (pageError || !promptPage) {
-      console.warn('[PAGE] Prompt page not found for slug:', slug, pageError?.message);
       return {
-        ...fallbackMetadata,
-        title: "Page Not Found - Prompt Reviews",
-        description: "The requested prompt page could not be found.",
+        title: 'Page Not Found - Prompt Reviews',
+        description: 'The requested prompt page could not be found.',
       };
     }
-    
-    console.log(`[PAGE] Found prompt page:`, {
-      id: promptPage.id,
-      slug: promptPage.slug,
-      account_id: promptPage.account_id,
-      is_universal: promptPage.is_universal,
-      client_name: promptPage.client_name
-    });
-    
-    // Try to fetch business profile data, but don't fail if it doesn't exist
+
+    // Fetch business profile
     let business = null;
     if (promptPage.account_id) {
       const { data: businessData, error: businessError } = await supabase
@@ -106,21 +39,34 @@ export async function generateMetadata({ params }: {
         .eq('account_id', promptPage.account_id)
         .maybeSingle();
       
-      if (businessError) {
-        console.warn('Error fetching business for account:', promptPage.account_id, businessError?.message);
-      } else {
+      if (!businessError) {
         business = businessData;
       }
     }
-    
+
     // Create fallback business data if no business record exists
     if (!business) {
-      console.log('No business record found, creating fallback business data');
+      // Try to get business name from multiple sources
+      let businessName = 'Business';
+      if (promptPage.client_name && promptPage.client_name.trim()) {
+        businessName = promptPage.client_name.trim();
+      } else if (promptPage.account_id) {
+        // Try to get business name from accounts table
+        const { data: accountData } = await supabase
+          .from('accounts')
+          .select('business_name')
+          .eq('id', promptPage.account_id)
+          .single();
+        
+        if (accountData?.business_name) {
+          businessName = accountData.business_name;
+        }
+      }
+      
       business = {
         id: promptPage.account_id,
         account_id: promptPage.account_id,
-        name: promptPage.client_name || 'Business',
-        // Provide sensible defaults for missing business data
+        name: businessName,
         logo_url: null,
         website_url: null,
         business_email: null,
@@ -128,7 +74,6 @@ export async function generateMetadata({ params }: {
         address: promptPage.location || null,
         category: promptPage.category || null,
         description: null,
-        // Style defaults
         primary_font: 'Inter',
         secondary_font: 'Inter', 
         primary_color: '#4F46E5',
@@ -139,58 +84,111 @@ export async function generateMetadata({ params }: {
         updated_at: new Date().toISOString()
       };
     }
+
+    // Import metadata generation utilities
+    const { generatePromptPageMetadata, createVariableContext } = await import('@/utils/metadataTemplates');
     
-    // Determine the best image to use for og:image
-    let ogImage = null;
-    
-    // Priority order: product photo > business logo > default
-    if (promptPage.product_photo) {
-      ogImage = promptPage.product_photo;
-    } else if (business.logo_url) {
-      ogImage = business.logo_url;
-    }
-    
-    // Get the page type and create variable context
+    // Determine page type
+    const getPageType = (promptPage: any): string => {
+      if (promptPage.is_universal) return 'universal';
+      if (promptPage.review_type === 'product') return 'product';
+      if (promptPage.review_type === 'service') return 'service';
+      if (promptPage.review_type === 'photo') return 'photo';
+      if (promptPage.review_type === 'video') return 'video';
+      if (promptPage.review_type === 'event') return 'event';
+      if (promptPage.review_type === 'employee') return 'employee';
+      return 'universal';
+    };
+
     const pageType = getPageType(promptPage);
     const variableContext = createVariableContext(business, promptPage);
     
-    console.log(`[PAGE] Page type: ${pageType}`);
+    console.log(`[PAGE] Generating metadata for page type: ${pageType}`);
     console.log(`[PAGE] Variable context:`, variableContext);
     console.log(`[PAGE] Business name: ${business.name}`);
     
     // Generate metadata using templates with variable substitution
     const templateMetadata = await generatePromptPageMetadata(pageType, variableContext);
     
-    const metadata: Metadata = {
-      ...fallbackMetadata,
+    return {
       title: templateMetadata.title,
       description: templateMetadata.description,
       keywords: templateMetadata.keywords,
+      openGraph: {
+        title: templateMetadata.openGraph.title,
+        description: templateMetadata.openGraph.description,
+        images: templateMetadata.openGraph.images,
+        type: 'website',
+      },
+      twitter: {
+        title: templateMetadata.twitter.title,
+        description: templateMetadata.twitter.description,
+        images: templateMetadata.twitter.images,
+      },
     };
-    
-    // Add OpenGraph metadata
-    if (metadata.openGraph) {
-      metadata.openGraph.title = templateMetadata.title;
-      metadata.openGraph.description = templateMetadata.description;
-      if (ogImage) {
-        metadata.openGraph.images = [
-          {
-            url: ogImage,
-            width: 1200,
-            height: 630,
-            alt: `${business.name} - Leave a Review`,
-          },
-        ];
-      }
-    }
-    
-    return metadata;
   } catch (error) {
     console.error('Error generating metadata:', error);
-    return fallbackMetadata;
+    return {
+      title: 'Prompt Reviews',
+      description: 'Share your experience and help others discover great businesses.',
+    };
   }
 }
 
-export default function PromptPage() {
-  return <PromptPageClient />;
+interface PromptPageData {
+  promptPage: any;
+  businessProfile: any;
 }
+
+async function getPromptPageData(slug: string): Promise<PromptPageData | null> {
+  try {
+    const supabase = createServiceRoleClient();
+    
+    // First, get the prompt page data
+    const { data: promptPage, error: pageError } = await supabase
+      .from('prompt_pages')
+      .select('*')
+      .eq('slug', slug)
+      .maybeSingle();
+
+    if (pageError || !promptPage) {
+      return null;
+    }
+
+    // Then, get the business profile using account_id
+    let businessProfile = null;
+    if (promptPage.account_id) {
+      const { data: business, error: businessError } = await supabase
+        .from('businesses')
+        .select('*')
+        .eq('account_id', promptPage.account_id)
+        .maybeSingle();
+
+      businessProfile = business;
+    }
+
+    return {
+      promptPage,
+      businessProfile
+    };
+  } catch (error) {
+    console.error('Error fetching prompt page data:', error);
+    return null;
+  }
+}
+
+import ClientPromptPage from './page-client';
+
+export default async function ServerPromptPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const data = await getPromptPageData(slug);
+
+  if (!data) {
+    notFound();
+  }
+
+  const { promptPage, businessProfile } = data;
+
+  // Pass the data to the client component
+  return <ClientPromptPage initialData={{ promptPage, businessProfile }} />;
+} 

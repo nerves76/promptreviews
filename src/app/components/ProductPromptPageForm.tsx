@@ -315,7 +315,31 @@ export default function ProductPromptPageForm({
       console.error(`🔥 Save failed:`, error);
       setFormError(error.message || "Failed to save page");
     }
-  }, [isLoading, formData, productPhotoFile, productPhotoUrl, onSave, businessProfile]);
+  }, [
+    isLoading, 
+    formData, 
+    productPhotoFile, 
+    productPhotoUrl, 
+    onSave, 
+    businessProfile,
+    offerEnabled,
+    offerTitle,
+    offerBody,
+    offerUrl,
+    emojiSentimentEnabled,
+    emojiSentimentQuestion,
+    emojiFeedbackMessage,
+    emojiFeedbackPopupHeader,
+    emojiFeedbackPageHeader,
+    emojiThankYouMessage,
+    fallingEnabled,
+    fallingIcon,
+    aiReviewEnabled,
+    fixGrammarEnabled,
+    notePopupEnabled,
+    nfcTextEnabled,
+    handleProductPhotoUpload
+  ]);
 
   // Handle form submission to prevent page reload
   const handleFormSubmit = (e: React.FormEvent) => {

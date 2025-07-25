@@ -309,8 +309,21 @@ export function createVariableContext(
   businessProfile: any,
   promptPage: any
 ): VariableContext {
+  // Try to get business name from multiple sources
+  let businessName = businessProfile?.name || businessProfile?.business_name;
+  
+  // If still no business name, try to get it from the prompt page or account
+  if (!businessName || businessName === 'Business') {
+    if (promptPage?.client_name && promptPage.client_name.trim()) {
+      businessName = promptPage.client_name.trim();
+    } else if (promptPage?.account_id) {
+      // This would require a database call, but we'll handle it in the layout
+      businessName = 'Business'; // Fallback
+    }
+  }
+  
   const context: VariableContext = {
-    business_name: businessProfile?.name || businessProfile?.business_name,
+    business_name: businessName,
     logo: businessProfile?.logo_url,
   };
   

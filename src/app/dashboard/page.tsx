@@ -263,7 +263,7 @@ export default function Dashboard() {
     } finally {
       setIsDashboardLoading(false);
     }
-  }, [user?.id, user?.email, account?.id, supabase]);
+  }, [user?.id, account?.id, supabase]);
 
   // Add a ref to track if businessCreated param was handled
   const businessCreatedHandled = useRef(false);
