@@ -294,7 +294,7 @@ export async function POST(request: NextRequest) {
             return {
               // Use freeFormServiceItem for custom services - Google now supports this
               freeFormServiceItem: {
-                categoryId: categoryId, // CRITICAL: Include category ID to match business categories
+                category: categoryId, // CRITICAL: Include category ID to match business categories
                 label: {
                   displayName: service.name.trim(),
                   description: service.description ? service.description.trim().substring(0, 300) : undefined,
@@ -308,7 +308,7 @@ export async function POST(request: NextRequest) {
           
           // Validate that all service items have valid categories
           const servicesWithValidCategories = validServices.filter(service => 
-            service.freeFormServiceItem.categoryId && service.freeFormServiceItem.categoryId.trim() !== ''
+            service.freeFormServiceItem.category && service.freeFormServiceItem.category.trim() !== ''
           );
           
           if (servicesWithValidCategories.length > 0) {
