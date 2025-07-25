@@ -96,7 +96,7 @@ Here's your first tip: [icon]. <- click here`;
       // Check if this paragraph contains the robot icon placeholder
       if (paragraph.includes('[icon]')) {
         return (
-          <div key={index} className="text-base flex items-center gap-2">
+          <div key={index} className="text-sm flex items-center gap-2">
             {paragraph.split('[icon]').map((part, partIndex, arr) => (
               <React.Fragment key={partIndex}>
                 {part}
@@ -131,7 +131,7 @@ Here's your first tip: [icon]. <- click here`;
         );
       }
       return (
-        <p key={index} className="text-base">
+        <p key={index} className="text-sm">
           {paragraph}
         </p>
       );

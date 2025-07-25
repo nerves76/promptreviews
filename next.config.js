@@ -49,6 +49,17 @@ const nextConfig = {
   // Security headers
   async headers() {
     return [
+      // Allow iframe for the embed demo only
+      {
+        source: '/emoji-sentiment-embed.html',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'SAMEORIGIN', // or remove this header entirely for this file
+          },
+        ],
+      },
+      // Default: deny for everything else
       {
         source: '/(.*)',
         headers: [

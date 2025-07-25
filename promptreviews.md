@@ -125,6 +125,26 @@ This project is currently focused on developing a standalone widget for collecti
 - **Business Branding**: Choice modal includes business name and branding for consistent user experience
 - **Seamless Integration**: Choice modal integrates naturally with existing emoji sentiment selection flow
 
+### Emoji Sentiment Demo Integration (January 2025)
+- **Interactive Demo Access**: Added "View demo" link to Emoji Sentiment Flow configuration section
+- **Demo Modal**: Created dedicated modal component that displays interactive emoji sentiment demo
+- **Embedded Demo**: Demo runs in iframe within draggable modal for optimal user experience
+- **Quick Access**: Users can now preview the emoji sentiment flow functionality directly from the configuration interface
+- **Marketing Integration**: Demo showcases the same interactive experience that's embedded on marketing site
+- **User Experience**: Provides immediate understanding of how emoji sentiment flow works for customers
+
+#### **Technical Implementation**
+- **Demo Modal Component**: Created `EmojiSentimentDemoModal.tsx` using existing `DraggableModal` component
+- **Iframe Integration**: Embeds `/emoji-sentiment-demo.html` in responsive iframe with proper sandboxing
+- **UI Integration**: Added "View demo" button with play icon in EmojiSentimentSection header
+- **State Management**: Added `showDemo` state to control modal visibility
+- **Responsive Design**: Modal adapts to different screen sizes with proper iframe scaling
+
+#### **Files Added/Modified**
+- `src/app/components/EmojiSentimentDemoModal.tsx` - New demo modal component
+- `src/app/dashboard/edit-prompt-page/components/EmojiSentimentSection.tsx` - Added demo link and modal integration
+- Demo provides interactive preview of emoji sentiment flow functionality
+
 #### **Technical Implementation**
 - **Modal System**: Created new choice modal component with two clear action buttons
 - **State Management**: Added state variables for managing negative sentiment flow
