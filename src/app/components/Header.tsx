@@ -95,7 +95,7 @@ export default function Header() {
     );
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [supabase]);
 
   useEffect(() => {
     const fetchNotifications = async () => {

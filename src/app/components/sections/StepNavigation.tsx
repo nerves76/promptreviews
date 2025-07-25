@@ -15,11 +15,11 @@ interface StepNavigationProps {
 }
 
 // Top Navigation - Positioned higher within the page card like other site buttons
-export const TopNavigation = React.memo(({ 
+export const TopNavigation = React.memo(function TopNavigation({ 
   mode, 
   isSaving, 
   onSave
-}: StepNavigationProps) => {
+}: StepNavigationProps) {
   const handleClick = () => {
     if (isSaving) {
       console.log("🔘 TopNavigation: Save in progress, button disabled");
@@ -70,11 +70,11 @@ export const TopNavigation = React.memo(({
 });
 
 // Bottom Navigation - Normal positioned button in bottom right
-export const BottomNavigation = React.memo(({ 
+export const BottomNavigation = React.memo(function BottomNavigation({ 
   mode, 
   isSaving, 
   onSave
-}: StepNavigationProps) => {
+}: StepNavigationProps) {
   const handleClick = () => {
     if (isSaving) {
       console.log("🔘 BottomNavigation: Save in progress, button disabled");
