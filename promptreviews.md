@@ -13,7 +13,7 @@ This project is currently focused on developing a standalone widget for collecti
 ### Google Business Profile Service Category Mapping Fix (January 2025)
 - **Critical API Fix**: Fixed Google Business Profile API failures by implementing intelligent service-to-category mapping for service items
 - **Smart Category Mapping**: Created intelligent mapping system that matches service names to appropriate business categories using semantic analysis
-- **Required Field Addition**: Added missing `categoryId` field to `freeFormServiceItem` structure as required by Google Business Profile API
+- **Field Name Correction**: Fixed API rejection by using correct field name `category` instead of `categoryId` in `freeFormServiceItem` structure
 - **Category Validation**: Implemented validation to ensure all service items have valid categories matching business's primary/additional categories
 - **Semantic Matching**: Maps services like "SEO" → marketing categories, "Web Design" → design categories, "Consulting" → consultant categories
 - **Fallback Logic**: Provides intelligent fallbacks when no specific category match is found, using business's primary category
