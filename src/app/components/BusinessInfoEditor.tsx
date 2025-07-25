@@ -677,7 +677,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
                     {showDescriptionAnalyzer && (
                       <div className="border border-blue-200 rounded-lg p-4 bg-blue-50">
                         <div className="flex items-center justify-between mb-3">
-                          <h5 className="font-medium text-blue-900">AI Search Engine Optimization Expert</h5>
+                                                        <h5 className="font-medium text-blue-900">Optimize your business description</h5>
                           <button
                             onClick={() => setShowDescriptionAnalyzer(false)}
                             className="text-blue-600 hover:text-blue-800 text-sm"

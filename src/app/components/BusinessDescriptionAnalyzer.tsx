@@ -65,7 +65,7 @@ export default function BusinessDescriptionAnalyzer({
     setAnalysis(null);
 
     try {
-      console.log('⚙️ Calling AI Search Engine Optimization Expert...');
+                    console.log('⚙️ Analyzing business description...');
       
       // Call the real AI analysis endpoint
       const response = await fetch('/api/ai/google-business/analyze-description', {
@@ -98,15 +98,15 @@ export default function BusinessDescriptionAnalyzer({
         optimizedDescription: data.analysis.optimizedDescription
       };
 
-      console.log('📊 AI Analysis results:', aiAnalysis);
-      console.log('🧠 AI Semantic Analysis:', data.analysis.semanticAnalysis);
+                    console.log('📊 Analysis results:', aiAnalysis);
+                    console.log('🧠 Semantic Analysis:', data.analysis.semanticAnalysis);
 
       setAnalysis(aiAnalysis);
-      console.log('✅ AI analysis complete, calling onAnalysisComplete callback');
+                    console.log('✅ Analysis complete, calling onAnalysisComplete callback');
       onAnalysisComplete?.(aiAnalysis);
     } catch (err) {
-      console.error('❌ AI business description analysis error:', err);
-      setError(err instanceof Error ? err.message : 'AI analysis failed. Please try again.');
+              console.error('❌ Business description analysis error:', err);
+        setError(err instanceof Error ? err.message : 'Analysis failed. Please try again.');
     } finally {
       setIsAnalyzing(false);
     }
@@ -159,12 +159,12 @@ export default function BusinessDescriptionAnalyzer({
             {isAnalyzing ? (
               <>
                 <FaSpinner className="w-4 h-4 animate-spin" />
-                <span>AI Expert Working...</span>
+                <span>Analyzing...</span>
               </>
             ) : (
               <>
                 <FaChartLine className="w-4 h-4" />
-                <span>Get AI Analysis</span>
+                <span>Optimize Description</span>
               </>
             )}
           </button>
@@ -184,7 +184,7 @@ export default function BusinessDescriptionAnalyzer({
       {autoAnalyze && isAnalyzing && (
         <div className="flex items-center space-x-2 text-blue-600">
           <FaSpinner className="w-4 h-4 animate-spin" />
-          <span className="text-sm">AI Search Engine Expert analyzing your description...</span>
+                      <span className="text-sm">Analyzing your description...</span>
         </div>
       )}
 
@@ -223,11 +223,11 @@ export default function BusinessDescriptionAnalyzer({
               <p className="text-xs text-gray-500">Words in description</p>
             </div>
             <div className="bg-gray-50 rounded-lg p-4">
-              <h5 className="font-medium text-gray-900 mb-1">AI Keywords</h5>
+                              <h5 className="font-medium text-gray-900 mb-1">SEO Keywords</h5>
               <p className="text-lg font-semibold text-purple-600">
                 {analysis.keywordSuggestions.length}
               </p>
-              <p className="text-xs text-gray-500">AI search optimized</p>
+                              <p className="text-xs text-gray-500">Optimized for search</p>
             </div>
           </div>
 
@@ -271,9 +271,9 @@ export default function BusinessDescriptionAnalyzer({
           {/* Keywords */}
           {analysis.keywordSuggestions.length > 0 && (
             <div className="border border-blue-200 rounded-lg p-4">
-              <h4 className="font-medium text-gray-900 mb-3">AI Search Engine Keywords</h4>
+              <h4 className="font-medium text-gray-900 mb-3">SEO Keywords</h4>
               <p className="text-sm text-gray-600 mb-3">
-                Strategic keywords optimized for AI search engines and semantic understanding:
+                                  Keywords optimized for search engines:
               </p>
               <div className="flex flex-wrap gap-2">
                 {analysis.keywordSuggestions.map((keyword, index) => (
