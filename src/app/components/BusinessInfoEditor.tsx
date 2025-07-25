@@ -7,13 +7,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FaStore, FaSave, FaRedo, FaSpinner, FaCheck, FaTimes, FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import { FaStore, FaSave, FaRedo, FaSpinner, FaCheck, FaTimes, FaChevronDown, FaChevronUp, FaRobot } from 'react-icons/fa';
 
 // Import our modular components
 import CategorySearch from './business-info/CategorySearch';
 import ServiceItemsEditor from './business-info/ServiceItemsEditor';
 import BusinessHoursEditor from './business-info/BusinessHoursEditor';
 import LoadBusinessInfoButton from './business-info/LoadBusinessInfoButton';
+import ServiceDescriptionGenerator from './ServiceDescriptionGenerator';
+import BusinessDescriptionAnalyzer from './BusinessDescriptionAnalyzer';
 
 interface BusinessLocation {
   id: string;
@@ -79,6 +81,8 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [detailsLoaded, setDetailsLoaded] = useState(false);
   const [detailsError, setDetailsError] = useState<string | null>(null);
+  const [showServiceGenerator, setShowServiceGenerator] = useState(false);
+  const [showDescriptionAnalyzer, setShowDescriptionAnalyzer] = useState(false);
 
   // Note: Removed auto-selection to allow users to uncheck all locations
 
@@ -258,6 +262,21 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
     } else {
       setSelectedLocationIds(locations.map(loc => loc.id));
     }
+  };
+
+  const handleDescriptionAnalyzed = (analysis: any) => {
+    if (analysis.optimizedDescription) {
+      handleInputChange('description', analysis.optimizedDescription);
+    }
+    setShowDescriptionAnalyzer(false);
+  };
+
+  const handleServiceDescriptionsGenerated = (descriptions: any) => {
+    // Use the medium length description as a starting point
+    if (descriptions.medium) {
+      handleInputChange('description', descriptions.medium);
+    }
+    setShowServiceGenerator(false);
   };
 
   if (!isConnected) {
@@ -564,6 +583,67 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
                       : `This description will be applied to all ${selectedLocationIds.length} selected locations.`
                     }
                   </p>
+                  
+                  {/* AI Tools */}
+                  <div className="mt-4 space-y-4">
+                    {/* AI Action Buttons */}
+                    {!showServiceGenerator && !showDescriptionAnalyzer && (
+                      <div className="flex items-center space-x-3">
+                        <button
+                          onClick={() => setShowServiceGenerator(true)}
+                          className="flex items-center space-x-2 text-sm text-purple-600 hover:text-purple-800 border border-purple-300 rounded px-3 py-1 hover:bg-purple-50"
+                        >
+                          <FaRobot className="w-3 h-3" />
+                          <span>Generate Description</span>
+                        </button>
+                        {businessInfo.description.trim() && (
+                          <button
+                            onClick={() => setShowDescriptionAnalyzer(true)}
+                            className="flex items-center space-x-2 text-sm text-blue-600 hover:text-blue-800 border border-blue-300 rounded px-3 py-1 hover:bg-blue-50"
+                          >
+                            <FaRobot className="w-3 h-3" />
+                            <span>Analyze & Optimize</span>
+                          </button>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Service Description Generator */}
+                    {showServiceGenerator && (
+                      <div className="border border-purple-200 rounded-lg p-4 bg-purple-50">
+                        <div className="flex items-center justify-between mb-3">
+                          <h5 className="font-medium text-purple-900">AI Service Description Generator</h5>
+                          <button
+                            onClick={() => setShowServiceGenerator(false)}
+                            className="text-purple-600 hover:text-purple-800 text-sm"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                        <ServiceDescriptionGenerator 
+                          onDescriptionsGenerated={handleServiceDescriptionsGenerated}
+                        />
+                      </div>
+                    )}
+
+                    {/* Business Description Analyzer */}
+                    {showDescriptionAnalyzer && (
+                      <div className="border border-blue-200 rounded-lg p-4 bg-blue-50">
+                        <div className="flex items-center justify-between mb-3">
+                          <h5 className="font-medium text-blue-900">AI Business Description Analyzer</h5>
+                          <button
+                            onClick={() => setShowDescriptionAnalyzer(false)}
+                            className="text-blue-600 hover:text-blue-800 text-sm"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                        <BusinessDescriptionAnalyzer 
+                          onAnalysisComplete={handleDescriptionAnalyzed}
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
