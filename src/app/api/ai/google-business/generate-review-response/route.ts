@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '@/utils/supabaseServerClient';
+import { createServerSupabaseClient } from '@/utils/supabaseClient';
 import { getAccountIdForUser } from '@/utils/accountUtils';
 import { generateReviewResponse } from '@/utils/ai/google-business/reviewResponseGenerator';
 import { extractBrandContext, AIBrandContext } from '@/utils/ai/google-business/googleBusinessProfileHelpers';
