@@ -71,10 +71,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ServiceDe
       // Convert Google Business Profile context to AIBrandContext format
       brandContext = {
         businessName: businessContext.businessName,
-        businessType: businessContext.primaryCategory || '',
         city: businessContext.city || '',
-        state: '', // Not available from GBP data
-        services: [], // Can be derived from service name if needed
         industry: businessContext.primaryCategory ? [businessContext.primaryCategory] : []
       };
       console.log('✅ Using Google Business Profile context:', brandContext);

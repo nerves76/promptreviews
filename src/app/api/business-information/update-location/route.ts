@@ -307,7 +307,7 @@ export async function POST(request: NextRequest) {
           console.log('🔍 Converted service items for API:', JSON.stringify(validServices, null, 2));
           
           // Validate that all service items have valid categories
-          const servicesWithValidCategories = validServices.filter(service => 
+          const servicesWithValidCategories = validServices.filter((service: any) => 
             service.freeFormServiceItem.category && service.freeFormServiceItem.category.trim() !== ''
           );
           
