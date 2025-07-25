@@ -207,15 +207,15 @@ export default function BusinessDescriptionAnalyzer({
             <div className="bg-gray-50 rounded-lg p-4">
               <h5 className="font-medium text-gray-900 mb-1">Character Count</h5>
               <p className={`text-lg font-semibold ${
-                analysis.characterCount >= 400 && analysis.characterCount <= 750 
+                analysis.characterCount >= 400 && analysis.characterCount <= 700 
                   ? 'text-green-600' 
-                  : analysis.characterCount >= 300 && analysis.characterCount <= 750
+                  : analysis.characterCount >= 300 && analysis.characterCount <= 700
                   ? 'text-blue-600'
                   : 'text-orange-600'
               }`}>
                 {analysis.characterCount}
               </p>
-              <p className="text-xs text-gray-500">Target: 400-750</p>
+              <p className="text-xs text-gray-500">Target: 400-700</p>
             </div>
             <div className="bg-gray-50 rounded-lg p-4">
               <h5 className="font-medium text-gray-900 mb-1">Word Count</h5>
