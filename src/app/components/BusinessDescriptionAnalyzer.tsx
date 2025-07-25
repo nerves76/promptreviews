@@ -46,12 +46,13 @@ export default function BusinessDescriptionAnalyzer({ currentDescription, onAnal
       console.log('⚙️ Calculating SEO score and analysis...');
       
       // Since we don't have a specific analysis endpoint, we'll use local analysis
+      const optimizedDescription = generateOptimizedDescription(currentDescription);
       const mockAnalysis: AnalysisResult = {
         seoScore: calculateSEOScore(currentDescription),
         characterCount: currentDescription.length,
         keywordSuggestions: extractKeywords(currentDescription),
         improvements: generateImprovements(currentDescription),
-        optimizedDescription: currentDescription // We'll enhance this later
+        optimizedDescription: optimizedDescription
       };
 
       console.log('📊 Analysis results:', mockAnalysis);
@@ -139,6 +140,29 @@ export default function BusinessDescriptionAnalyzer({ currentDescription, onAnal
     return improvements.length > 0 ? improvements : ['Your description looks good! Consider minor tweaks for optimization.'];
   };
 
+  const generateOptimizedDescription = (text: string): string => {
+    let optimized = text.trim();
+    
+    // If the text is very short, suggest a more detailed version
+    if (optimized.length < 100) {
+      return optimized + " We provide professional services tailored to meet your specific needs. Contact us today to learn more about how we can help you achieve your goals.";
+    }
+    
+    // If missing call-to-action, add one
+    const hasCallToAction = /\b(call|contact|visit|book|schedule|reach out)\b/i.test(optimized);
+    if (!hasCallToAction && optimized.length < 600) {
+      optimized += " Contact us today to get started!";
+    }
+    
+    // If no location reference, suggest adding local focus
+    const hasLocation = /\b(local|area|city|location|serving|near)\b/i.test(optimized);
+    if (!hasLocation && optimized.length < 600) {
+      optimized = optimized.replace(/\.$/, '') + " serving the local area.";
+    }
+    
+    return optimized;
+  };
+
   const handleCopyOptimized = async () => {
     if (analysis?.optimizedDescription) {
       await navigator.clipboard.writeText(analysis.optimizedDescription);
@@ -166,54 +190,42 @@ export default function BusinessDescriptionAnalyzer({ currentDescription, onAnal
 
   return (
     <div className="space-y-4">
-
-      <div className="space-y-4">
-        {/* Current Description Display */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Analyzing Description ({currentDescription.length} characters)
-          </label>
-          <div className="bg-gray-50 border border-gray-200 rounded-md px-3 py-2 text-sm text-gray-700 max-h-24 overflow-y-auto">
-            {currentDescription || 'No description provided'}
-          </div>
+      {/* Error Message */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-md p-3">
+          <p className="text-sm text-red-600">{error}</p>
         </div>
+      )}
 
-        {/* Error Message */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-md p-3">
-            <p className="text-sm text-red-600">{error}</p>
-          </div>
-        )}
-
-        {/* Action Buttons */}
-        <div className="flex items-center space-x-3">
-          <button
-            onClick={handleAnalyzeDescription}
-            disabled={isAnalyzing || !currentDescription.trim()}
-            className="px-4 py-2 bg-slate-blue text-white rounded-md hover:bg-slate-blue/90 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
-          >
-            {isAnalyzing ? (
-              <>
-                <FaSpinner className="w-4 h-4 animate-spin" />
-                <span>Analyzing...</span>
-              </>
-            ) : (
-              <>
-                <FaChartLine className="w-4 h-4" />
-                <span>Analyze Description</span>
-              </>
-            )}
-          </button>
-
-          {analysis && (
-            <button
-              onClick={clearForm}
-              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
-            >
-              Clear
-            </button>
+      {/* Action Buttons */}
+      <div className="flex items-center space-x-3">
+        <button
+          onClick={handleAnalyzeDescription}
+          disabled={isAnalyzing || !currentDescription.trim()}
+          className="px-4 py-2 bg-slate-blue text-white rounded-md hover:bg-slate-blue/90 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
+        >
+          {isAnalyzing ? (
+            <>
+              <FaSpinner className="w-4 h-4 animate-spin" />
+              <span>Analyzing...</span>
+            </>
+          ) : (
+            <>
+              <FaChartLine className="w-4 h-4" />
+              <span>Analyze Description</span>
+            </>
           )}
-        </div>
+        </button>
+
+        {analysis && (
+          <button
+            onClick={clearForm}
+            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+          >
+            Clear Results
+          </button>
+        )}
+      </div>
 
         {/* Analysis Results */}
         {analysis && (
@@ -266,6 +278,27 @@ export default function BusinessDescriptionAnalyzer({ currentDescription, onAnal
                 ))}
               </ul>
             </div>
+
+            {/* Optimized Description */}
+            {analysis.optimizedDescription && analysis.optimizedDescription !== currentDescription && (
+              <div className="border border-green-200 rounded-lg p-4 bg-green-50">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-medium text-green-900">Optimized Description</h4>
+                  <button
+                    onClick={() => onAnalysisComplete?.(analysis)}
+                    className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors"
+                  >
+                    Apply to Description
+                  </button>
+                </div>
+                <div className="text-sm text-green-800 bg-white rounded p-3 border border-green-200">
+                  {analysis.optimizedDescription}
+                </div>
+                <p className="text-xs text-green-600 mt-2">
+                  This optimized version incorporates SEO best practices and improvements
+                </p>
+              </div>
+            )}
 
             {/* Keywords */}
             {analysis.keywordSuggestions.length > 0 && (

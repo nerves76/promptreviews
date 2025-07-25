@@ -265,10 +265,17 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
   };
 
   const handleDescriptionAnalyzed = (analysis: any) => {
-    if (analysis.optimizedDescription) {
+    console.log('📈 Analysis received in BusinessInfoEditor:', analysis);
+    
+    if (analysis.optimizedDescription && analysis.optimizedDescription !== businessInfo.description) {
+      console.log('✅ Applying optimized description to business info');
       handleInputChange('description', analysis.optimizedDescription);
+    } else {
+      console.log('ℹ️ No optimized description to apply or same as current');
     }
-    setShowDescriptionAnalyzer(false);
+    
+    // Don't close the analyzer automatically - let user see results and choose
+    // setShowDescriptionAnalyzer(false);
   };
 
   const handleServiceDescriptionsGenerated = (descriptions: any) => {
