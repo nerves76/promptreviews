@@ -61,7 +61,7 @@ export async function generateMetadata({ params }: {
       hasSupabaseUrl: !!supabaseUrl,
       hasServiceKey: !!supabaseServiceKey,
       supabaseUrl: supabaseUrl ? 'SET' : 'MISSING',
-      serviceKeyLength: supabaseServiceKey ? supabaseServiceKey.length : 0
+      serviceKeyLength: supabaseServiceKey?.length || 0
     });
     
     if (!supabaseUrl || !supabaseServiceKey) {
@@ -72,8 +72,8 @@ export async function generateMetadata({ params }: {
     // Use service role client for server-side metadata generation
     // This bypasses RLS policies and allows access to all data
     const supabase = createClient(
-      supabaseUrl,
-      supabaseServiceKey,
+      supabaseUrl!,
+      supabaseServiceKey!,
       {
         auth: {
           autoRefreshToken: false,
@@ -118,7 +118,7 @@ export async function generateMetadata({ params }: {
         .maybeSingle();
       
       if (businessError) {
-        console.warn('Error fetching business for account:', promptPage.account_id, businessError.message);
+        console.warn('Error fetching business for account:', promptPage.account_id, businessError?.message);
       } else {
         business = businessData;
       }
