@@ -16,7 +16,8 @@ import {
 import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
 import EmojiSentimentEmbed from "@/app/components/EmojiSentimentEmbed";
-import { FaEnvelope, FaGlobe } from "react-icons/fa";
+import EmojiSentimentDemoModal from "@/app/components/EmojiSentimentDemoModal";
+import { FaEnvelope, FaGlobe, FaPlay } from "react-icons/fa";
 
 interface EmojiSentimentSectionProps {
   enabled: boolean;
@@ -62,6 +63,7 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
   slug,
 }) => {
   const [showEmbed, setShowEmbed] = useState(false);
+  const [showDemo, setShowDemo] = useState(false);
   const [emojiSize, setEmojiSize] = useState<'xs' | 'sm' | 'md'>('sm');
   const [headerSize, setHeaderSize] = useState<'sm' | 'md' | 'lg'>('md');
   const [headerColor, setHeaderColor] = useState<string>('#374151');
@@ -182,7 +184,7 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
             {EMOJI_SENTIMENT_SUBTEXT}
           </div>
         </div>
-        <div className="flex flex-col justify-start pt-1">
+        <div className="flex flex-col justify-start pt-1 gap-2">
           <button
             type="button"
             onClick={onToggle}
@@ -452,6 +454,23 @@ const EmojiSentimentSection: React.FC<EmojiSentimentSectionProps> = ({
           </button>
         </div>
       )}
+
+      {/* Demo Modal */}
+      <EmojiSentimentDemoModal
+        isOpen={showDemo}
+        onClose={() => setShowDemo(false)}
+      />
+      {/* View Demo Button - bottom right */}
+      <button
+        type="button"
+        onClick={() => setShowDemo(true)}
+        className="fixed bottom-6 right-6 z-20 flex items-center gap-1 px-4 py-2 text-sm font-semibold bg-slate-blue text-white rounded-full shadow-lg hover:bg-slate-blue/90 transition-colors"
+        title="View interactive demo"
+        style={{ position: 'absolute', bottom: '1.5rem', right: '1.5rem' }}
+      >
+        <FaPlay className="w-4 h-4 mr-1" />
+        View demo
+      </button>
     </div>
   );
 };

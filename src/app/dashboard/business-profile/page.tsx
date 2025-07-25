@@ -849,16 +849,12 @@ export default function BusinessProfilePage() {
         isOpen={showWelcomePopup}
         onClose={handleWelcomeClose}
         title={`Hello again${form.name ? `, ${form.name}` : ''}!`}
-        message={`Welcome to "Your Business!" This section is all about highlighting what makes your business stand out. Use your natural voice—I'll pick up what you're putting down.
+        message={`Welcome to "Your business!" This section is all about highlighting what makes your business stand out so I can generate reviews that your audience can use, modify, and post on review sites.
 
 Here are two key sections to pay attention to:
 
-⸻
-
 1. Keywords
 Keywords help boost your web presence. For example, if you sell widgets in Seattle, you might want to include phrases like "best widget shop in Seattle." When those keywords show up in reviews, it can improve your visibility in search engines and AI tools like ChatGPT.
-
-⸻
 
 2. AI Dos and Don'ts
 	•	AI Dos are preferences: e.g., "Always use ALL CAPS for our brand name."
