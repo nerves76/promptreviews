@@ -144,13 +144,18 @@ IMPORTANT: Aim for 400-700 characters for optimal impact and readability. This l
           let analysis;
           try {
             // Remove markdown code blocks if present
-            let cleanResponse = aiResponse;
-            if (aiResponse.includes('```json')) {
-              cleanResponse = aiResponse.replace(/```json\s*/, '').replace(/\s*```$/, '');
-            } else if (aiResponse.includes('```')) {
-              cleanResponse = aiResponse.replace(/```\s*/, '').replace(/\s*```$/, '');
+            let cleanResponse = aiResponse.trim();
+            
+            // Handle ```json ... ``` format
+            if (cleanResponse.startsWith('```json')) {
+              cleanResponse = cleanResponse.replace(/^```json\s*/, '').replace(/\s*```\s*$/, '');
+            }
+            // Handle ``` ... ``` format  
+            else if (cleanResponse.startsWith('```')) {
+              cleanResponse = cleanResponse.replace(/^```\s*/, '').replace(/\s*```\s*$/, '');
             }
             
+            cleanResponse = cleanResponse.trim();
             analysis = JSON.parse(cleanResponse);
           } catch (parseError) {
             console.error('Failed to parse AI response:', aiResponse);
