@@ -23,13 +23,21 @@ interface BusinessDescriptionAnalyzerProps {
   onAnalysisComplete?: (analysis: AnalysisResult) => void;
   onApplyOptimized?: (optimizedDescription: string) => void;
   autoAnalyze?: boolean; // If true, start analyzing immediately
+  businessContext?: {
+    businessName?: string;
+    businessType?: string;
+    location?: string;
+    services?: string[];
+    industry?: string;
+  };
 }
 
 export default function BusinessDescriptionAnalyzer({ 
   currentDescription, 
   onAnalysisComplete, 
   onApplyOptimized,
-  autoAnalyze = false 
+  autoAnalyze = false,
+  businessContext 
 }: BusinessDescriptionAnalyzerProps) {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
@@ -120,10 +128,34 @@ export default function BusinessDescriptionAnalyzer({
     const commonWords = ['the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'up', 'about', 'into', 'over', 'after'];
     const keywords = words.filter(word => word.length > 3 && !commonWords.includes(word));
     
+    // Add business context keywords if available
+    const contextKeywords: string[] = [];
+    if (businessContext?.businessName) {
+      contextKeywords.push(...businessContext.businessName.toLowerCase().split(/\s+/).filter(word => word.length > 3));
+    }
+    if (businessContext?.businessType) {
+      contextKeywords.push(...businessContext.businessType.toLowerCase().split(/\s+/).filter(word => word.length > 3));
+    }
+    if (businessContext?.services) {
+      businessContext.services.forEach(service => {
+        contextKeywords.push(...service.toLowerCase().split(/\s+/).filter(word => word.length > 3));
+      });
+    }
+    if (businessContext?.industry) {
+      contextKeywords.push(...businessContext.industry.toLowerCase().split(/\s+/).filter(word => word.length > 3));
+    }
+    
     // Count frequency and return top keywords
     const frequency: { [key: string]: number } = {};
     keywords.forEach(word => {
       frequency[word] = (frequency[word] || 0) + 1;
+    });
+    
+    // Boost frequency for business context keywords found in description
+    contextKeywords.forEach(contextWord => {
+      if (frequency[contextWord]) {
+        frequency[contextWord] += 2; // Boost business-relevant keywords
+      }
     });
     
     return Object.entries(frequency)
@@ -136,14 +168,34 @@ export default function BusinessDescriptionAnalyzer({
     const improvements: string[] = [];
     
     if (text.length < 150) {
-      improvements.push('Add more detail about your services and unique value proposition');
+      let suggestion = 'Add more detail about your services and unique value proposition';
+      if (businessContext?.businessType) {
+        suggestion = `Add more detail about your ${businessContext.businessType.toLowerCase()} services and what makes you unique`;
+      }
+      improvements.push(suggestion);
     }
     if (text.length > 500) {
       improvements.push('Consider shortening the description for better readability');
     }
-    if (!text.toLowerCase().includes('location') && !text.toLowerCase().includes('local')) {
+    
+    // Check for location mentions with context
+    const hasLocationMention = /\b(location|local|area|city|near|serving)\b/i.test(text);
+    if (!hasLocationMention && businessContext?.location) {
+      improvements.push(`Consider mentioning that you serve ${businessContext.location} for better local SEO`);
+    } else if (!hasLocationMention) {
       improvements.push('Include location-specific keywords for better local SEO');
     }
+    
+    // Check for business-specific services
+    if (businessContext?.services && businessContext.services.length > 0) {
+      const mentionedServices = businessContext.services.filter(service => 
+        text.toLowerCase().includes(service.toLowerCase())
+      );
+      if (mentionedServices.length === 0) {
+        improvements.push(`Consider mentioning specific services like ${businessContext.services.slice(0, 2).join(' or ')}`);
+      }
+    }
+    
     if (!text.includes('Call') && !text.includes('Contact') && !text.includes('Visit')) {
       improvements.push('Add a clear call-to-action to encourage customer contact');
     }
@@ -157,9 +209,24 @@ export default function BusinessDescriptionAnalyzer({
   const generateOptimizedDescription = (text: string): string => {
     let optimized = text.trim();
     
-    // If the text is very short, suggest a more detailed version
+    // If the text is very short, suggest a more detailed version with business context
     if (optimized.length < 100) {
-      return optimized + " We provide professional services tailored to meet your specific needs. Contact us today to learn more about how we can help you achieve your goals.";
+      let expansion = " We provide professional services tailored to meet your specific needs.";
+      
+      // Add business-specific context if available
+      if (businessContext?.businessType || businessContext?.services?.length) {
+        const businessType = businessContext.businessType || (businessContext.services && businessContext.services[0]);
+        if (businessType) {
+          expansion = ` We specialize in ${businessType.toLowerCase()} services and are committed to delivering exceptional results.`;
+        }
+      }
+      
+      if (businessContext?.location) {
+        expansion += ` Proudly serving ${businessContext.location}.`;
+      }
+      
+      expansion += " Contact us today to learn more!";
+      return optimized + expansion;
     }
     
     // If missing call-to-action and description is reasonable length, add one
@@ -169,7 +236,14 @@ export default function BusinessDescriptionAnalyzer({
       if (!optimized.match(/[.!?]$/)) {
         optimized += ".";
       }
-      optimized += " Contact us today to get started!";
+      
+      // Add location-specific call-to-action if available
+      let cta = " Contact us today to get started!";
+      if (businessContext?.location) {
+        cta = ` Contact us today to schedule your consultation in ${businessContext.location}!`;
+      }
+      
+      optimized += cta;
     }
     
     // Only suggest optimization if the original is quite different from what we'd suggest
@@ -271,7 +345,7 @@ export default function BusinessDescriptionAnalyzer({
           </div>
 
           {/* Quick Stats */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div className="bg-gray-50 rounded-lg p-4">
               <h5 className="font-medium text-gray-900 mb-1">Character Count</h5>
               <p className={`text-lg font-semibold ${
@@ -284,8 +358,15 @@ export default function BusinessDescriptionAnalyzer({
               <p className="text-xs text-gray-500">Optimal: 150-500</p>
             </div>
             <div className="bg-gray-50 rounded-lg p-4">
-              <h5 className="font-medium text-gray-900 mb-1">Keywords Found</h5>
+              <h5 className="font-medium text-gray-900 mb-1">Word Count</h5>
               <p className="text-lg font-semibold text-blue-600">
+                {currentDescription.trim().split(/\s+/).filter(word => word.length > 0).length}
+              </p>
+              <p className="text-xs text-gray-500">Words in description</p>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h5 className="font-medium text-gray-900 mb-1">Keywords Found</h5>
+              <p className="text-lg font-semibold text-purple-600">
                 {analysis.keywordSuggestions.length}
               </p>
               <p className="text-xs text-gray-500">Key terms identified</p>
