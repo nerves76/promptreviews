@@ -17,7 +17,7 @@ function getPageType(promptPage: any): string {
 
 // Dynamic metadata generation with og:image support
 export async function generateMetadata({ params }: {
-  params: Promise<{ slug: string }> | { slug: string }
+  params: Promise<{ slug: string }>
 }): Promise<Metadata> {
   console.log('[LAYOUT] generateMetadata called');
   
@@ -33,8 +33,8 @@ export async function generateMetadata({ params }: {
   };
 
   try {
-    // Handle params for both Next.js 15 (Promise) and earlier versions
-    const paramsObj = params instanceof Promise ? await params : params;
+    // Await the params in Next.js 15
+    const paramsObj = await params;
     const slug = paramsObj?.slug;
     console.log('[LAYOUT] Params object:', paramsObj);
     console.log('[LAYOUT] Slug from params:', slug);
