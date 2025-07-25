@@ -65,248 +65,54 @@ export default function BusinessDescriptionAnalyzer({
     setAnalysis(null);
 
     try {
-      console.log('⚙️ Calculating SEO score and analysis...');
+      console.log('⚙️ Calling AI Search Engine Optimization Expert...');
       
-      // Since we don't have a specific analysis endpoint, we'll use local analysis
-      const optimizedDescription = generateOptimizedDescription(currentDescription);
-      const mockAnalysis: AnalysisResult = {
-        seoScore: calculateSEOScore(currentDescription),
+      // Call the real AI analysis endpoint
+      const response = await fetch('/api/ai/google-business/analyze-description', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          description: currentDescription,
+          businessContext: businessContext
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Analysis failed');
+      }
+
+      const data = await response.json();
+      
+      if (!data.success || !data.analysis) {
+        throw new Error('Invalid response from AI analysis');
+      }
+
+      const aiAnalysis: AnalysisResult = {
+        seoScore: data.analysis.seoScore,
         characterCount: currentDescription.length,
-        keywordSuggestions: generateSEOKeywords(),
-        improvements: generateImprovements(currentDescription),
-        optimizedDescription: optimizedDescription
+        keywordSuggestions: data.analysis.keywordSuggestions,
+        improvements: data.analysis.improvements,
+        optimizedDescription: data.analysis.optimizedDescription
       };
 
-      console.log('📊 Analysis results:', mockAnalysis);
+      console.log('📊 AI Analysis results:', aiAnalysis);
+      console.log('🧠 AI Semantic Analysis:', data.analysis.semanticAnalysis);
 
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      setAnalysis(mockAnalysis);
-      console.log('✅ Analysis complete, calling onAnalysisComplete callback');
-      onAnalysisComplete?.(mockAnalysis);
+      setAnalysis(aiAnalysis);
+      console.log('✅ AI analysis complete, calling onAnalysisComplete callback');
+      onAnalysisComplete?.(aiAnalysis);
     } catch (err) {
-      console.error('❌ Business description analysis error:', err);
-      setError('Analysis failed. Please try again.');
+      console.error('❌ AI business description analysis error:', err);
+      setError(err instanceof Error ? err.message : 'AI analysis failed. Please try again.');
     } finally {
       setIsAnalyzing(false);
     }
   };
 
-  const calculateSEOScore = (text: string): number => {
-    let score = 0;
-    
-    // Length check (150-500 characters is optimal)
-    if (text.length >= 150 && text.length <= 500) score += 3;
-    else if (text.length >= 100 && text.length <= 600) score += 2;
-    else if (text.length >= 50) score += 1;
-    
-    // Contains location keywords
-    const locationWords = ['location', 'local', 'area', 'city', 'near', 'serving'];
-    if (locationWords.some(word => text.toLowerCase().includes(word))) score += 2;
-    
-    // Contains action words
-    const actionWords = ['provide', 'offer', 'specialize', 'deliver', 'help', 'create'];
-    if (actionWords.some(word => text.toLowerCase().includes(word))) score += 2;
-    
-    // Contains contact info or call to action
-    const ctaWords = ['call', 'contact', 'visit', 'book', 'schedule'];
-    if (ctaWords.some(word => text.toLowerCase().includes(word))) score += 1;
-    
-    // No excessive capitalization
-    const capsRatio = (text.match(/[A-Z]/g) || []).length / text.length;
-    if (capsRatio < 0.1) score += 1;
-    
-    // Contains specific services/products
-    if (text.split(',').length > 2) score += 1;
-    
-    return Math.min(score, 10);
-  };
-
-  const generateSEOKeywords = (): string[] => {
-    const keywords: string[] = [];
-    
-    // Generate location-based keywords if we have business context
-    if (businessContext?.location && businessContext?.businessType) {
-      const city = businessContext.location.split(',')[0].trim(); // Get city part
-      const businessType = businessContext.businessType.toLowerCase();
-      
-      // Primary local keywords
-      keywords.push(`${city.toLowerCase()} ${businessType}`);
-      keywords.push(`${businessType} ${city.toLowerCase()}`);
-      keywords.push(`${businessType} near me`);
-      keywords.push(`best ${businessType} ${city.toLowerCase()}`);
-    }
-    
-    // Add service-based local keywords
-    if (businessContext?.services && businessContext?.location) {
-      const city = businessContext.location.split(',')[0].trim();
-      businessContext.services.slice(0, 3).forEach(service => {
-        keywords.push(`${service.toLowerCase()} ${city.toLowerCase()}`);
-        keywords.push(`${city.toLowerCase()} ${service.toLowerCase()}`);
-      });
-    }
-    
-    // Add industry-specific keywords
-    if (businessContext?.industry && businessContext?.location) {
-      const city = businessContext.location.split(',')[0].trim();
-      keywords.push(`${businessContext.industry.toLowerCase()} ${city.toLowerCase()}`);
-    }
-    
-    // Add business name variations if available
-    if (businessContext?.businessName && businessContext?.location) {
-      const city = businessContext.location.split(',')[0].trim();
-      keywords.push(`${businessContext.businessName.toLowerCase()}`);
-      keywords.push(`${businessContext.businessName.toLowerCase()} ${city.toLowerCase()}`);
-    }
-    
-    // Fallback generic keywords if no context
-    if (keywords.length === 0) {
-      keywords.push('professional services', 'local business', 'quality service', 'experienced team');
-    }
-    
-    // Remove duplicates and return up to 8 keywords
-    const uniqueKeywords = [...new Set(keywords)];
-    return uniqueKeywords.slice(0, 8);
-  };
-
-  const generateImprovements = (text: string): string[] => {
-    const improvements: string[] = [];
-    
-    // AI Search Engine & Semantic Optimization Analysis
-    if (text.length < 150) {
-      let suggestion = 'Add semantic-rich content about your services and unique value proposition for better AI search visibility';
-      if (businessContext?.businessType) {
-        suggestion = `Add more contextual detail about your ${businessContext.businessType.toLowerCase()} services using natural language that AI engines understand`;
-      }
-      improvements.push(suggestion);
-    }
-    if (text.length > 500) {
-      improvements.push('Consider condensing for better semantic density and AI comprehension');
-    }
-    
-    // AI-focused semantic keyword analysis
-    const hasSemanticContext = /\b(specialize|expert|professional|experienced|certified|solutions|results|help|provide|deliver)\b/i.test(text);
-    if (!hasSemanticContext) {
-      improvements.push('Include contextual intent words (specialize, expert, solutions) that AI engines use for semantic understanding');
-    }
-    
-    // Entity recognition optimization
-    const hasEntityContext = /\b(years|since|award|certified|licensed|team|company|business)\b/i.test(text);
-    if (!hasEntityContext) {
-      improvements.push('Add entity context (years of experience, certifications, team size) for better AI entity recognition');
-    }
-    
-    // Check for location mentions with context
-    const hasLocationMention = /\b(location|local|area|city|near|serving)\b/i.test(text);
-    if (!hasLocationMention && businessContext?.location) {
-      improvements.push(`Mention serving ${businessContext.location} for local AI search optimization and geographic embeddings`);
-    } else if (!hasLocationMention) {
-      improvements.push('Include location context for AI-powered local search optimization');
-    }
-    
-    // Check for business-specific services with semantic context
-    if (businessContext?.services && businessContext.services.length > 0) {
-      const mentionedServices = businessContext.services.filter(service => 
-        text.toLowerCase().includes(service.toLowerCase())
-      );
-      if (mentionedServices.length === 0) {
-        improvements.push(`Add specific services (${businessContext.services.slice(0, 2).join(', ')}) for semantic search relevance`);
-      }
-    }
-    
-    // Problem-solution matching for AI understanding
-    const hasProblemSolution = /\b(help|solve|fix|improve|achieve|overcome|challenge|need|goal|result)\b/i.test(text);
-    if (!hasProblemSolution) {
-      improvements.push('Include problem-solution language that AI engines use to match user intent and queries');
-    }
-    
-    // Conversational query optimization
-    const hasConversationalTone = /\b(how|what|why|when|where|looking for|need help|can we|will we)\b/i.test(text);
-    if (!hasConversationalTone) {
-      improvements.push('Add conversational elements that match how users ask AI assistants about your services');
-    }
-    
-    // Check for local semantic keywords
-    const suggestedKeywords = generateSEOKeywords();
-    const missingKeywords = suggestedKeywords.filter(keyword => 
-      !text.toLowerCase().includes(keyword.toLowerCase())
-    );
-    if (missingKeywords.length > 0) {
-      improvements.push(`Incorporate semantic keywords like "${missingKeywords[0]}" for AI search engine optimization`);
-    }
-    
-    if (!text.includes('Call') && !text.includes('Contact') && !text.includes('Visit')) {
-      improvements.push('Add clear action language that AI engines can identify for conversion optimization');
-    }
-    
-    // Semantic richness check
-    if (text.split(',').length < 3) {
-      improvements.push('List specific offerings to create semantic richness for AI content understanding');
-    }
-    
-    return improvements.length > 0 ? improvements : ['Your description is well-optimized for AI search engines! Consider minor semantic enhancements.'];
-  };
-
-  const generateOptimizedDescription = (text: string): string => {
-    let optimized = text.trim();
-    
-    // AI-Optimized expansion for short descriptions with semantic understanding
-    if (optimized.length < 100) {
-      let expansion = " We specialize in providing expert solutions designed to help you achieve your goals.";
-      
-      // Add business-specific context with semantic richness
-      if (businessContext?.businessType || businessContext?.services?.length) {
-        const businessType = businessContext.businessType || (businessContext.services && businessContext.services[0]);
-        if (businessType) {
-          expansion = ` As experienced ${businessType.toLowerCase()} specialists, we deliver results-driven solutions to help businesses overcome challenges and achieve sustainable growth.`;
-        }
-      }
-      
-      // Add geographic context for AI location understanding
-      if (businessContext?.location) {
-        const city = businessContext.location.split(',')[0].trim();
-        expansion += ` Proudly serving ${businessContext.location} and the surrounding ${city} area.`;
-      }
-      
-      expansion += " Contact us today to discover how we can help transform your business!";
-      return optimized + expansion;
-    }
-    
-    // Enhanced call-to-action with intent-driven language for AI understanding
-    const hasCallToAction = /\b(call|contact|visit|book|schedule|reach out|get started|learn more|discover|transform|achieve)\b/i.test(optimized);
-    if (!hasCallToAction && optimized.length < 600 && optimized.length > 150) {
-      // Add period if missing, then add AI-optimized call-to-action
-      if (!optimized.match(/[.!?]$/)) {
-        optimized += ".";
-      }
-      
-      // Add semantic, location-aware call-to-action
-      let cta = " Ready to get started? Contact us today to discover how we can help!";
-      if (businessContext?.location) {
-        const city = businessContext.location.split(',')[0].trim();
-        cta = ` Looking for expert solutions in ${city}? Contact us today to schedule your consultation and achieve the results you need!`;
-      }
-      
-      optimized += cta;
-    }
-    
-    // AI semantic enhancement - add context words if missing
-    const hasSemanticRichness = /\b(expert|professional|experienced|specialist|solution|result|help|achieve)\b/i.test(optimized);
-    if (!hasSemanticRichness && optimized.length > 100 && optimized.length < 400) {
-      // Enhance with semantic context while preserving original meaning
-      optimized = optimized.replace(/\b(we|our|the company|this business)\b/gi, 'our experienced team');
-      optimized = optimized.replace(/\b(services|work|offerings)\b/gi, 'professional solutions');
-    }
-    
-    // Only suggest optimization if meaningful changes were made
-    if (optimized === text.trim()) {
-      // If no meaningful changes, return original
-      return text;
-    }
-    
-    return optimized;
-  };
+  // All analysis now powered by AI - no local static functions needed
 
   const handleCopyOptimized = async () => {
     if (analysis?.optimizedDescription) {
@@ -353,12 +159,12 @@ export default function BusinessDescriptionAnalyzer({
             {isAnalyzing ? (
               <>
                 <FaSpinner className="w-4 h-4 animate-spin" />
-                <span>Analyzing...</span>
+                <span>AI Expert Working...</span>
               </>
             ) : (
               <>
                 <FaChartLine className="w-4 h-4" />
-                <span>Analyze Description</span>
+                <span>Get AI Analysis</span>
               </>
             )}
           </button>
@@ -378,7 +184,7 @@ export default function BusinessDescriptionAnalyzer({
       {autoAnalyze && isAnalyzing && (
         <div className="flex items-center space-x-2 text-blue-600">
           <FaSpinner className="w-4 h-4 animate-spin" />
-          <span className="text-sm">Analyzing your description...</span>
+          <span className="text-sm">AI Search Engine Expert analyzing your description...</span>
         </div>
       )}
 
