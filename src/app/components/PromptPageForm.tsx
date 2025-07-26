@@ -434,16 +434,29 @@ export default function PromptPageForm({
     }
   };
 
+  // Get campaign type from initialData or localStorage
+  const campaignType = initialData.campaign_type || (typeof window !== 'undefined' ? localStorage.getItem('campaign_type') || 'individual' : 'individual');
+
   // Step 1 validation
   const handleStep1Continue = () => {
     setFormError(null);
-    if (!formData.first_name.trim()) {
-      setFormError("First name is required.");
-      return;
-    }
-    if (!formData.email.trim() && !formData.phone.trim()) {
-      setFormError("Please enter at least an email or phone number.");
-      return;
+    
+    // For individual campaigns, require personal information
+    if (campaignType === 'individual') {
+      if (!formData.first_name.trim()) {
+        setFormError("First name is required for individual prompt pages.");
+        return;
+      }
+      if (!formData.email.trim() && !formData.phone.trim()) {
+        setFormError("Please enter at least an email or phone number for individual prompt pages.");
+        return;
+      }
+    } else {
+      // For public campaigns, require a campaign name
+      if (!formData.name?.trim()) {
+        setFormError("Campaign name is required for public prompt pages.");
+        return;
+      }
     }
 
     // Call onSave to save step 1 data
@@ -584,13 +597,34 @@ export default function PromptPageForm({
               Grab a glowing testimonial and display it on your site using our widget or use it in your promotional materials.
             </p>
           </div>
-          {/* Standard section header for customer info */}
-          <div className="mb-6 flex items-center gap-3">
-            <FaInfoCircle className="w-7 h-7 text-slate-blue" />
-            <h2 className="text-2xl font-bold text-slate-blue">
-              Customer/client details
-            </h2>
-          </div>
+          {/* Customer details header for individual campaigns */}
+          {campaignType === 'individual' && (
+            <div className="mb-6 flex items-center gap-3">
+              <FaInfoCircle className="w-7 h-7 text-slate-blue" />
+              <h2 className="text-2xl font-bold text-slate-blue">
+                Customer/client details
+              </h2>
+            </div>
+          )}
+          
+          {/* Campaign name for public campaigns */}
+          {(isUniversal || campaignType === 'public') && (
+            <div className="mb-6">
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+                {isUniversal ? 'Prompt page name' : 'Campaign name'} <span className="text-red-600">(required)</span>
+              </label>
+              <input
+                type="text"
+                id="name"
+                value={formData.name || ""}
+                onChange={(e) => setFormData((prev: any) => ({ ...prev, name: e.target.value.slice(0, 50) }))}
+                className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+                placeholder={isUniversal ? "Holiday email campaign" : "Summer product launch"}
+                maxLength={50}
+                required
+              />
+            </div>
+          )}
           <div className="flex gap-4 mb-4">
             <div className="flex-1">
               <label
