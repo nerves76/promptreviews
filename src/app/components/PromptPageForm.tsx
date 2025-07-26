@@ -1187,21 +1187,7 @@ export default function PromptPageForm({
                 </div>
               )}
 
-              {/* Services offered field */}
-              <div className="mb-6">
-                <label htmlFor="services_offered" className="block text-sm font-medium text-gray-700 mb-2">
-                  Services offered <span className="text-red-600">(required)</span>
-                </label>
-                <textarea
-                  id="services_offered"
-                  value={formData.services_offered || ""}
-                  onChange={(e) => setFormData((prev: any) => ({ ...prev, services_offered: e.target.value }))}
-                  className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                  placeholder="Describe the services you provided..."
-                  rows={3}
-                  required
-                />
-              </div>
+
 
               <div className="w-full flex justify-end gap-2 mt-8">
                 <button
