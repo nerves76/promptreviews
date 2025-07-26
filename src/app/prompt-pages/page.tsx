@@ -488,9 +488,11 @@ export default function PromptPages() {
                   <button
                     type="button"
                     onClick={() => {
-                      setShowTypeModal(true);
-                      // Store the current tab as the campaign type
+                      console.log('🎯 PROMPT PAGES - promptPagesTab:', promptPagesTab);
+                      console.log('🎯 PROMPT PAGES - Setting localStorage campaign_type to:', promptPagesTab);
                       localStorage.setItem('campaign_type', promptPagesTab);
+                      console.log('🎯 PROMPT PAGES - localStorage after setting:', localStorage.getItem('campaign_type'));
+                      setShowTypeModal(true);
                     }}
                     className="inline-flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded hover:bg-slate-blue/90 font-medium transition"
                   >
