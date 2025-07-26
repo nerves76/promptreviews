@@ -629,7 +629,7 @@ export default function PromptPageForm({
             campaignType={campaignType}
           />
           
-          {/* Services and outcomes for step 1 */}
+          {/* Services and outcomes for step 1 - show for all campaign types */}
           {step === 1 && (
             <>
               <div className="mb-6">
