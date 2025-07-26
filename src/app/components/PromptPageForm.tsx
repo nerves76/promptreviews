@@ -622,10 +622,6 @@ export default function PromptPageForm({
               />
             </div>
           )}
-          
-
-          
-
 
           <div className="flex gap-4 mb-4" style={{ display: campaignType === 'public' ? 'none' : 'flex' }}>
             <div className="flex-1">
