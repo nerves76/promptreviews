@@ -81,6 +81,7 @@ const initialFormData = {
   offer_body: 'Use this code "1234" to get a discount on your next purchase.',
   offer_url: "",
   review_type: "service",
+  campaign_type: typeof window !== 'undefined' ? localStorage.getItem('campaign_type') || 'individual' : 'individual',
   video_recipient: "",
   video_note: "",
   video_tips: "",
@@ -110,90 +111,65 @@ const initialFormData = {
 
 // Utility function to map camelCase form data to snake_case DB columns and filter allowed columns
 function mapToDbColumns(formData: any): any {
-  const insertData: any = { ...formData };
-  insertData["emoji_sentiment_enabled"] = formData.emojiSentimentEnabled;
-  insertData["emoji_sentiment_question"] = formData.emojiSentimentQuestion;
-  insertData["emoji_feedback_message"] = formData.emojiFeedbackMessage;
-  insertData["emoji_thank_you_message"] = formData.emojiThankYouMessage || "";
-  insertData["ai_button_enabled"] = formData.aiButtonEnabled ?? true;
-  insertData["falling_icon"] = formData.fallingIcon;
-  
-  // Map review_type to type for database
-  if (formData.review_type) {
-    insertData["type"] = formData.review_type;
+  // Ensure campaign_type is one of the allowed values
+  if (formData.campaign_type && !['public', 'individual'].includes(formData.campaign_type)) {
+    formData.campaign_type = 'individual'; // Default to individual if invalid
   }
-  
-  // Remove camelCase keys
-  delete insertData.emojiSentimentEnabled;
-  delete insertData.emojiSentimentQuestion;
-  delete insertData.emojiFeedbackMessage;
-  delete insertData.emojiThankYouMessage;
-  delete insertData.aiButtonEnabled;
-  delete insertData.fallingEnabled;
-  delete insertData.fallingIcon;
-  delete insertData.emojiLabels;
-  
-  // Remove type-specific fields if not relevant
-  if (formData.review_type === "service") {
-    delete insertData.features_or_benefits;
-    delete insertData.product_description;
-  }
-  if (formData.review_type === "product") {
-    delete insertData.services_offered;
-    delete insertData.product_description;
-  }
-  
-  // Filter to only allowed DB columns (from your schema)
+
   const allowedColumns = [
-    "id",
     "account_id",
-    "slug",
-    "client_name",
-    "location",
-    "project_type",
-    "services_offered",
-    "outcomes",
-    "date_completed",
-    "assigned_team_members",
-    "review_platforms",
-    "qr_code_url",
-    "created_at",
-    "is_universal",
-    "team_member",
+    "status",
+    "review_type",
+    "campaign_type",
+    "name",
     "first_name",
     "last_name",
-    "phone",
     "email",
-    "offer_enabled",
-    "offer_title",
-    "offer_body",
-    "category",
-    "friendly_note",
-    "offer_url",
-    "status",
+    "phone",
     "role",
-    "falling_icon",
-    "review_type",
-    "type",
-    "no_platform_review_template",
-    "video_max_length",
-    "video_quality",
-    "video_preset",
-    "video_questions",
-    "video_note",
-    "video_tips",
-    "video_recipient",
+    "slug",
+    "review_platforms",
+    "services_offered",
+    "product_name",
+    "product_description",
+    "product_photo",
+    "features_or_benefits",
+    "ai_button_enabled",
+    "fix_grammar_enabled",
     "emoji_sentiment_enabled",
     "emoji_sentiment_question",
     "emoji_feedback_message",
+    "emoji_feedback_popup_header",
+    "emoji_feedback_page_header",
     "emoji_thank_you_message",
-    "ai_button_enabled",
-    "product_description",
-    "features_or_benefits",
+    "emoji_labels",
+    "falling_enabled",
+    "falling_icon",
+    "falling_icon_color",
+    "offer_enabled",
+    "offer_title",
+    "offer_body",
+    "offer_url",
+    "friendly_note",
+    "nfc_text_enabled",
+    "note_popup_enabled",
+    "show_friendly_note"
   ];
-  return Object.fromEntries(
-    Object.entries(insertData).filter(([k]) => allowedColumns.includes(k)),
+
+  // Filter to only allowed columns
+  const filteredData = Object.fromEntries(
+    Object.entries(formData)
+      .filter(([k]) => allowedColumns.includes(k))
+      .map(([k, v]) => {
+        // Handle special cases
+        if (k === 'campaign_type' && !v) {
+          return [k, 'individual']; // Default value
+        }
+        return [k, v];
+      })
   );
+  
+  return filteredData;
 }
 
 const promptTypes = [
@@ -239,13 +215,43 @@ export default function CreatePromptPageClient() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState(1);
-  const [createdSlug, setCreatedSlug] = useState<string | null>(null);
+  const [createdSlug, setCreatedSlug] = useState<string | null>(() => {
+    // Initialize from localStorage if available
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('createdSlug');
+    }
+    return null;
+  });
   
+  // Update localStorage when createdSlug changes
+  useEffect(() => {
+    if (createdSlug && typeof window !== 'undefined') {
+      localStorage.setItem('createdSlug', createdSlug);
+    }
+  }, [createdSlug]);
+
+  // Clear createdSlug from localStorage when component unmounts
+  useEffect(() => {
+    return () => {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('createdSlug');
+      }
+    };
+  }, []);
+
   // Initialize formData with the review_type from URL params if available
   const initialReviewType = searchParams.get("type") || "service";
-  const [formData, setFormData] = useState({
-    ...initialFormData,
-    review_type: initialReviewType
+  const [formData, setFormData] = useState(() => {
+    // Get campaign type from localStorage
+    const campaignType = typeof window !== 'undefined' 
+      ? localStorage.getItem('campaign_type') || 'individual'
+      : 'individual';
+    
+    return {
+      ...initialFormData,
+      review_type: initialReviewType,
+      campaign_type: campaignType
+    };
   });
   const [businessProfile, setBusinessProfile] =
     useState<BusinessProfile | null>(null);
@@ -288,7 +294,6 @@ export default function CreatePromptPageClient() {
           data: { user },
         } = await getUserOrMock(supabase);
         if (!user) {
-          console.log("No user found");
           return;
         }
         setCurrentUser(user);
@@ -582,7 +587,10 @@ export default function CreatePromptPageClient() {
       const {
         data: { user },
       } = await getUserOrMock(supabase);
-      if (!user) throw new Error("No user found");
+      if (!user) {
+        throw new Error("No user found");
+      }
+
       const { allowed, reason } = await checkAccountLimits(
         supabase,
         user.id,
@@ -596,51 +604,88 @@ export default function CreatePromptPageClient() {
         setShowUpgradeModal(true);
         return;
       }
-      const { data: businessData } = await supabase
+
+      const { data: businessData, error: businessError } = await supabase
         .from("businesses")
         .select("*")
         .eq("account_id", user.id)
         .single();
-      if (!businessData) throw new Error("No business found");
-      // Ensure all customer/client fields are present
-      let insertData: any = {
+      
+      if (businessError) {
+        throw new Error("Failed to fetch business data");
+      }
+      if (!businessData) {
+        throw new Error("No business found");
+      }
+      
+      // Get the campaign type from localStorage
+      const campaignType = typeof window !== 'undefined' 
+        ? localStorage.getItem('campaign_type') || 'individual'
+        : 'individual';
+
+      // Prepare the data for insertion
+      let insertData = {
         ...formData,
-        first_name: formData.first_name || "",
-        last_name: formData.last_name || "",
-        phone: formData.phone || "",
-        email: formData.email || "",
-        role: formData.role || "",
         account_id: user.id,
-        status: "draft",
+        status: formData.review_type === "product" ? "published" : "draft",
+        campaign_type: campaignType,
+        // Convert camelCase to snake_case
+        emoji_sentiment_enabled: formData.emojiSentimentEnabled,
+        emoji_sentiment_question: formData.emojiSentimentQuestion,
+        emoji_feedback_message: formData.emojiFeedbackMessage,
+        emoji_feedback_popup_header: formData.emojiFeedbackPopupHeader,
+        emoji_feedback_page_header: formData.emojiFeedbackPageHeader,
+        emoji_thank_you_message: formData.emojiThankYouMessage,
+        ai_button_enabled: formData.aiButtonEnabled ?? true,
+        fix_grammar_enabled: formData.fixGrammarEnabled ?? false,
+        falling_enabled: formData.fallingEnabled ?? false,
+        falling_icon: formData.fallingIcon ?? "star",
+        falling_icon_color: formData.fallingIconColor ?? "#fbbf24",
+        offer_enabled: formData.offerEnabled ?? false,
+        offer_title: formData.offerTitle ?? "",
+        offer_body: formData.offerBody ?? "",
+        offer_url: formData.offerUrl ?? "",
+        note_popup_enabled: formData.notePopupEnabled ?? false,
+        nfc_text_enabled: formData.nfcTextEnabled ?? false,
+        show_friendly_note: formData.showFriendlyNote ?? false,
+        friendly_note: formData.friendlyNote ?? ""
       };
+
+      // Generate slug
       insertData.slug = slugify(
         (businessProfile?.business_name || "business") +
           "-" +
-          formData.first_name +
+          (formData.name || formData.first_name || "prompt") +
           "-" +
-          formData.last_name,
+          (formData.last_name || "page"),
         // Only generate unique ID on client side to prevent hydration mismatch
         typeof window !== "undefined" 
           ? Date.now() + "-" + Math.random().toString(36).substring(2, 8)
           : "temp-id",
       );
+
+      // Handle review platforms
       if (formData.review_type === "photo") {
         insertData.review_platforms = undefined;
       } else {
-        insertData.review_platforms = formData.review_platforms.map(
+        insertData.review_platforms = formData.review_platforms?.map(
           (link: any) => ({
             ...link,
             wordCount: link.wordCount
               ? Math.max(200, Number(link.wordCount))
               : 200,
           }),
-        );
+        ) || [];
       }
+
+      // Handle type-specific fields
       if (formData.review_type === "product") {
         insertData.product_description = formData.product_description || "";
         insertData.features_or_benefits = formData.features_or_benefits || [];
         insertData.services_offered = undefined;
-      } else {
+        insertData.product_name = formData.product_name || "";
+        insertData.product_photo = formData.product_photo || null;
+      } else if (formData.review_type === "service") {
         if (typeof insertData.services_offered === "string") {
           const arr = insertData.services_offered
             .split(/\r?\n/)
@@ -648,84 +693,102 @@ export default function CreatePromptPageClient() {
             .filter(Boolean);
           insertData.services_offered = arr.length > 0 ? arr : null;
         }
+        insertData.product_description = undefined;
+        insertData.features_or_benefits = undefined;
+        insertData.product_name = undefined;
+        insertData.product_photo = undefined;
       }
-      if (formData.review_type !== "video") {
-        delete insertData.video_max_length;
-        delete insertData.video_quality;
-        delete insertData.video_preset;
-        delete insertData.video_questions;
-        delete insertData.video_note;
-        delete insertData.video_tips;
-        delete insertData.video_recipient;
-      }
-      insertData = mapToDbColumns(insertData);
-      // Double-check customer/client fields are present in insertData
-      insertData.first_name = formData.first_name || "";
-      insertData.last_name = formData.last_name || "";
-      insertData.phone = formData.phone || "";
-      insertData.email = formData.email || "";
-      insertData.role = formData.role || "";
-      
-      console.log("[DEBUG] handleStep1Submit insertData:", insertData);
+
+      // Map form data to database columns
+      const mappedData = mapToDbColumns(insertData);
+
+      // Insert the prompt page
       const { data, error } = await supabase
         .from("prompt_pages")
-        .insert([insertData])
+        .insert(mappedData)
         .select()
         .single();
-      console.log("[DEBUG] handleStep1Submit Supabase response:", { data, error });
-      if (error) throw error;
+
+      if (error) {
+        throw error;
+      }
+
       if (data && data.slug) {
-        console.log("[DEBUG] handleStep1Submit setting createdSlug to:", data.slug);
         setCreatedSlug(data.slug);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('createdSlug', data.slug);
+        }
+        
+        // For product pages, redirect immediately since they're single step
+        if (formData.review_type === "product") {
+          router.push("/prompt-pages");
+          return;
+        }
+
         setStep(2);
         setSaveSuccess("Step 1 saved! Continue to step 2.");
         return;
       }
-      setSaveSuccess("Step 1 saved! Continue to next step.");
-    } catch (error) {
-      const errorMessage = error instanceof Error
-        ? error.message
-        : "Failed to save. Please try again.";
-      setSaveError(errorMessage);
-      console.error("[DEBUG] handleStep1Submit error:", error);
-      throw new Error(errorMessage); // Re-throw so ProductPromptPageForm can catch it
+
+      throw new Error("Failed to save. Please try again.");
+    } catch (error: any) {
+      console.error("[DEBUG] handleStep1Submit - Full error:", error);
+      console.error("[DEBUG] handleStep1Submit - Error type:", typeof error);
+      console.error("[DEBUG] handleStep1Submit - Error properties:", Object.keys(error || {}));
+      console.error("[DEBUG] handleStep1Submit - Error stack:", error?.stack);
+      setSaveError(
+        error instanceof Error
+          ? error.message
+          : "Failed to save. Please try again."
+      );
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleStep2Submit = async (formData: any) => {
-    console.log("[DEBUG] handleStep2Submit called with createdSlug:", createdSlug);
     setSaveError(null);
     setSaveSuccess(null);
     setIsSaving(true);
     try {
+      // Get the campaign type from localStorage - this determines the page's behavior
+      const campaignType = typeof window !== 'undefined' 
+        ? localStorage.getItem('campaign_type') || 'individual'
+        : 'individual';
+
+      // Map form data to database columns
+      const updateData = mapToDbColumns({
+        ...formData,
+        campaign_type: campaignType,  // Ensure campaign_type is included in final submission
+        status: 'published'
+      });
+
       if (!createdSlug) {
-        console.error("[DEBUG] createdSlug is null/undefined");
-        throw new Error("No prompt page slug found.");
+        throw new Error("No slug found. The prompt page may not have been created in step 1.");
       }
-      const {
-        data: { user },
-      } = await getUserOrMock(supabase);
-      if (!user) throw new Error("No user found");
-      // Always set review_type to 'product' if this is a product page
-      let reviewType = formData.review_type;
-      if (reviewType !== 'product' && formData.product_name) {
-        reviewType = 'product';
+
+      // First, verify the record exists
+      const { data: existingData, error: existingError } = await supabase
+        .from("prompt_pages")
+        .select("*")
+        .eq('slug', createdSlug)
+        .single();
+
+      if (existingError || !existingData) {
+        throw new Error("Could not find the prompt page to update. It may have been deleted.");
       }
-      let updateData = mapToDbColumns({ ...formData, account_id: user.id, review_type: reviewType });
-      console.log("[DEBUG] handleStep2Submit updateData:", updateData);
+
+      // Update the existing prompt page using its slug
       const { data, error } = await supabase
         .from("prompt_pages")
         .update(updateData)
-        .eq("slug", createdSlug)
+        .eq('slug', createdSlug)  // Use the slug from step 1
         .select()
         .single();
-      console.log("[DEBUG] handleStep2Submit Supabase response:", {
-        data,
-        error,
-      });
-      if (error) throw error;
+        
+      if (error) {
+        throw error;
+      }
       if (data && data.slug) {
         setSavedPromptPageUrl(`/r/${data.slug}`);
         localStorage.setItem(
@@ -737,17 +800,22 @@ export default function CreatePromptPageClient() {
             email: formData.email
           }),
         );
-        console.log("[DEBUG] handleStep2Submit redirecting to /prompt-pages");
+        console.log("[DEBUG] handleStep2Submit - Success, redirecting to /prompt-pages");
         router.push("/prompt-pages");
+
+        // Show success message and redirect
+        setShowPostSaveModal(true);
         return;
       }
       setSaveSuccess("Prompt page updated successfully!");
     } catch (error) {
-      console.error("[DEBUG] handleStep2Submit error:", error);
+      console.error("[DEBUG] handleStep2Submit - Full error:", error);
+      console.error("[DEBUG] handleStep2Submit - Error type:", typeof error);
+      console.error("[DEBUG] handleStep2Submit - Error properties:", Object.keys(error || {}));
       setSaveError(
         error instanceof Error
           ? error.message
-          : "Failed to update. Please try again.",
+          : "Failed to update prompt page. Please try again."
       );
     } finally {
       setIsSaving(false);
@@ -782,16 +850,14 @@ export default function CreatePromptPageClient() {
 
   // Get the appropriate form component based on review type
   const getFormComponent = () => {
-    console.log("[DEBUG] getFormComponent called with review_type:", formData.review_type);
-    console.log("[DEBUG] Full formData:", formData);
-    
     if (formData.review_type === "service") {
-      console.log("[DEBUG] Service page render - createdSlug:", createdSlug, "step:", step);
       // Ensure all required fields for service are present
       const serviceInitialData = {
         ...initialFormData,
         ...formData,
         review_type: "service",
+        // Get campaign type from localStorage or formData
+        campaign_type: formData.campaign_type || (typeof window !== 'undefined' ? localStorage.getItem('campaign_type') : null) || 'individual',
         // Ensure all required fields for PromptPageForm are present
         offer_enabled: formData.offer_enabled ?? false,
         offer_title: formData.offer_title ?? "",
@@ -818,6 +884,7 @@ export default function CreatePromptPageClient() {
         falling_icon_color: "#fbbf24", // Default color
         aiButtonEnabled: formData.aiButtonEnabled ?? true,
       };
+
       return (
         <PromptPageForm
           mode="create"
@@ -834,27 +901,25 @@ export default function CreatePromptPageClient() {
     }
     
     if (formData.review_type === "product") {
-      console.log("[DEBUG] Product page render - createdSlug:", createdSlug, "step:", step);
       return (
         <ProductPromptPageForm
           mode="create"
-          initialData={{ ...formData, review_type: "product" }}
+          initialData={formData}
           onSave={handleStep1Submit}
-          onPublish={handleStep2Submit}
           pageTitle="Create product prompt page"
           supabase={supabase}
           businessProfile={businessProfile}
+          accountId={currentUser?.id || ""}
           step={step}
           onStepChange={setStep}
-          accountId={currentUser?.id || ""}
-          onGenerateReview={handleGenerateAIReview}
           isLoading={isSaving}
+          error={saveError}
+          successMessage={saveSuccess}
         />
       );
     }
     
     if (formData.review_type === "photo") {
-      console.log("[DEBUG] Photo page render - createdSlug:", createdSlug, "step:", step);
       return (
         <PromptPageForm
           mode="create"
@@ -871,7 +936,6 @@ export default function CreatePromptPageClient() {
     }
     
     // Fallback for when no type is selected
-    console.log("[DEBUG] Fallback page render - createdSlug:", createdSlug, "step:", step);
     return (
       <PromptPageForm
         mode="create"
