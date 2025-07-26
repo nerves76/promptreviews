@@ -11,6 +11,12 @@ const nextConfig = {
     // instrumentationHook removed - it's deprecated and no longer needed
   },
   
+  // Environment variables with fallbacks for build time
+  env: {
+    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key',
+  },
+  
   images: {
     remotePatterns: [
       {
