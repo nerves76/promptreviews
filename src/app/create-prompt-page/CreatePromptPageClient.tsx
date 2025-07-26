@@ -242,10 +242,16 @@ export default function CreatePromptPageClient() {
   // Initialize formData with the review_type from URL params if available
   const initialReviewType = searchParams.get("type") || "service";
   const [formData, setFormData] = useState(() => {
-    // Get campaign type from localStorage
-    const campaignType = typeof window !== 'undefined' 
-      ? localStorage.getItem('campaign_type') || 'individual'
-      : 'individual';
+    // Get campaign type from URL params first, then localStorage, then default to individual
+    const urlCampaignType = searchParams.get("campaign_type");
+    const localStorageCampaignType = typeof window !== 'undefined' 
+      ? localStorage.getItem('campaign_type')
+      : null;
+    const campaignType = urlCampaignType || localStorageCampaignType || 'individual';
+    
+    console.log('[DEBUG] CreatePromptPageClient - Initial campaign type from localStorage:', localStorageCampaignType);
+    console.log('[DEBUG] CreatePromptPageClient - Initial campaign type from URL:', urlCampaignType);
+    console.log('[DEBUG] CreatePromptPageClient - Final campaign type:', campaignType);
     
     return {
       ...initialFormData,
