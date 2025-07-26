@@ -720,7 +720,7 @@ export default function PromptPageForm({
               />
             </div>
           </div>
-          <div className="mb-4" style={{ display: campaignType === 'public' ? 'none' : 'block' }}>
+          <div className="mb-4">
             <label
               htmlFor="testimonial"
               className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1"
