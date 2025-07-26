@@ -374,8 +374,11 @@ export default function PromptPages() {
   ];
 
   function handlePromptTypeSelect(typeKey: string) {
+    console.log('[DEBUG] handlePromptTypeSelect called with:', typeKey);
+    console.log('[DEBUG] Current localStorage campaign_type:', localStorage.getItem('campaign_type'));
     setShowTypeModal(false);
-    router.push(`/create-prompt-page?type=${typeKey}`);
+    const campaignType = localStorage.getItem('campaign_type') || 'individual';
+    router.push(`/create-prompt-page?type=${typeKey}&campaign_type=${campaignType}`);
   }
 
   const starProps = useMemo(() => {
