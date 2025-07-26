@@ -58,4 +58,21 @@ export function register() {
       console.error('❌ Failed to initialize Sentry client:', error);
     });
   }
+}
+
+// Export router transition hook for Sentry navigation instrumentation
+export function onRouterTransitionStart() {
+  // Only execute if Sentry is enabled and in production
+  if (process.env.DISABLE_SENTRY === 'true' || process.env.NODE_ENV === 'development') {
+    return;
+  }
+
+  if (process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_SENTRY_DSN) {
+    // Dynamic import to prevent loading Sentry in disabled environments
+    import('@sentry/nextjs').then((Sentry) => {
+      return Sentry.captureRouterTransitionStart;
+    }).catch(() => {
+      // Silent fail if Sentry is not available
+    });
+  }
 } 
