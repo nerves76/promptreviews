@@ -26,7 +26,7 @@ const EmojiSentimentDemoModal: React.FC<EmojiSentimentDemoModalProps> = ({
     >
       <div className="w-full flex justify-center items-center" style={{ minHeight: 720 }}>
         <iframe
-          src="http://localhost:3002/emoji-sentiment-embed.html"
+          src={`${typeof window !== 'undefined' ? window.location.origin : ''}/emoji-sentiment-embed.html`}
           className="rounded-2xl border border-gray-200 shadow-lg"
           style={{ width: 400, height: 700 }}
           title="Emoji Sentiment Flow Demo"

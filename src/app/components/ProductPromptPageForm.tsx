@@ -24,7 +24,7 @@ import OfferSection from "../dashboard/edit-prompt-page/components/OfferSection"
 import EmojiSentimentSection from "../dashboard/edit-prompt-page/components/EmojiSentimentSection";
 import DisableAIGenerationSection from "./DisableAIGenerationSection";
 import FallingStarsSection from "./FallingStarsSection";
-import { FaCommentDots, FaMobile } from "react-icons/fa";
+import { FaCommentDots, FaMobile, FaSpinner, FaSave } from "react-icons/fa";
 import SectionHeader from "./SectionHeader";
 import { BusinessProfile } from "@/types/business";
 import {
@@ -75,14 +75,10 @@ export default function ProductPromptPageForm({
   // Form state
   const [formData, setFormData] = useState(initialData || {});
   const [productName, setProductName] = useState(initialData?.product_name || "");
-
-  const [formError, setFormError] = useState<string | null>(null);
-
-  // Product photo state
+  const [productPhotoUrl, setProductPhotoUrl] = useState(initialData?.product_photo || null);
   const [productPhotoFile, setProductPhotoFile] = useState<File | null>(null);
-  const [productPhotoUrl, setProductPhotoUrl] = useState<string | null>(
-    initialData?.product_photo || null
-  );
+  const [nfcTextEnabled, setNfcTextEnabled] = useState(initialData?.nfc_text_enabled ?? false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   // Step 2 state (when step === 2 or mode === "edit")
   const [offerEnabled, setOfferEnabled] = useState(initialData?.offer_enabled ?? false);
@@ -114,7 +110,7 @@ export default function ProductPromptPageForm({
   );
   const [showPopupConflictModal, setShowPopupConflictModal] = useState<string | null>(null);
   const [fallingEnabled, setFallingEnabled] = useState(initialData?.falling_enabled ?? false);
-  const [nfcTextEnabled, setNfcTextEnabled] = useState(initialData?.nfc_text_enabled ?? false);
+
 
   // Helper function to update form data
   const updateFormData = (data: any) => {
@@ -305,6 +301,7 @@ export default function ProductPromptPageForm({
         fixGrammarEnabled,
         notePopupEnabled,
         nfcTextEnabled,
+
         friendlyNote: formData.friendly_note || ""
       };
       
@@ -381,6 +378,7 @@ export default function ProductPromptPageForm({
         <CustomerDetailsSection 
           formData={formData}
           onFormDataChange={updateFormData}
+          campaignType={formData.campaign_type || 'individual'}
         />
 
         {/* Product Details Section */}
@@ -527,34 +525,7 @@ export default function ProductPromptPageForm({
           onColorChange={handleColorChange}
         />
         
-        {/* NFC QR Code Text Section */}
-        <div className="rounded-lg p-4 bg-green-50 border border-green-200 flex flex-col gap-2 shadow relative mb-8">
-          <div className="flex flex-row justify-between items-start px-2 py-2">
-            <SectionHeader
-              icon={<FaMobile className="w-7 h-7 text-green-600" />}
-              title="NFC scanning text"
-              subCopy={
-                nfcTextEnabled
-                  ? 'QR codes will show "Tap phone or scan with camera" text underneath.'
-                  : "QR codes will not show NFC instructions."
-              }
-              className="!mb-0"
-              subCopyLeftOffset="ml-9"
-            />
-            <div className="flex flex-col justify-start pt-1">
-              <button
-                type="button"
-                onClick={() => setNfcTextEnabled((v: boolean) => !v)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${nfcTextEnabled ? "bg-green-600" : "bg-gray-200"}`}
-                aria-pressed={!!nfcTextEnabled}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${nfcTextEnabled ? "translate-x-5" : "translate-x-1"}`}
-                />
-              </button>
-            </div>
-          </div>
-        </div>
+
       </div>
 
       {/* Success/Error Messages */}

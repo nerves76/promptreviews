@@ -51,6 +51,7 @@ import { useFallingStars } from "@/hooks/useFallingStars";
 import { getFallingIcon } from "@/app/components/prompt-modules/fallingStarsConfig";
 import RobotTooltip from "./RobotTooltip";
 import SectionHeader from "./SectionHeader";
+import CustomerDetailsSection from "./sections/CustomerDetailsSection";
 
 
 /**
@@ -110,82 +111,86 @@ export default function PromptPageForm({
   [key: string]: any;
 }) {
   const router = useRouter();
-  const [formData, setFormData] = useState({
-    ...initialData,
-    emojiThankYouMessage:
-      initialData.emoji_thank_you_message ||
-      initialData.emojiThankYouMessage ||
-      "",
-    show_friendly_note: initialData.show_friendly_note ?? true,
+  const [formData, setFormData] = useState(initialData);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [aiLoading, setAiLoading] = useState<number | null>(null);
+  const [aiLoadingPhoto, setAiLoadingPhoto] = useState(false);
+  const [offerEnabled, setOfferEnabled] = useState(initialData.offer_enabled ?? false);
+  const [offerTitle, setOfferTitle] = useState(initialData.offer_title ?? "");
+  const [offerBody, setOfferBody] = useState(initialData.offer_body ?? "");
+  const [offerUrl, setOfferUrl] = useState(initialData.offer_url ?? "");
+  const [aiReviewEnabled, setAiReviewEnabled] = useState(initialData.aiButtonEnabled ?? true);
+  const [fixGrammarEnabled, setFixGrammarEnabled] = useState(initialData.fixGrammarEnabled ?? true);
+  const [emojiSentimentEnabled, setEmojiSentimentEnabled] = useState(initialData.emojiSentimentEnabled ?? false);
+  const [emojiSentimentQuestion, setEmojiSentimentQuestion] = useState(initialData.emojiSentimentQuestion ?? "How was your experience?");
+  const [emojiFeedbackMessage, setEmojiFeedbackMessage] = useState(initialData.emojiFeedbackMessage ?? "We value your feedback! Let us know how we can do better.");
+  const [notePopupEnabled, setNotePopupEnabled] = useState(initialData.notePopupEnabled ?? false);
+  const [showPopupConflictModal, setShowPopupConflictModal] = useState<"note" | "emoji" | null>(null);
+  const [fallingEnabled, setFallingEnabled] = useState(initialData.fallingEnabled ?? false);
+  const [nfcTextEnabled, setNfcTextEnabled] = useState(initialData.nfc_text_enabled ?? false);
+  const [emojiFeedbackPopupHeader, setEmojiFeedbackPopupHeader] = useState(
+    initialData.emoji_feedback_popup_header ?? initialData.emojiFeedbackPopupHeader ?? "How can we improve?"
+  );
+  const [emojiFeedbackPageHeader, setEmojiFeedbackPageHeader] = useState(
+    initialData.emoji_feedback_page_header ?? initialData.emojiFeedbackPageHeader ?? "Your feedback helps us grow"
+  );
+  const [services, setServices] = useState<string[]>(initialData.features_or_benefits || []);
+  const [iconUpdating, setIconUpdating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [noPlatformReviewTemplate, setNoPlatformReviewTemplate] = useState(initialData.no_platform_review_template || "");
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
+  const [submitted, setSubmitted] = useState(false);
+
+  // Use shared falling stars hook
+  const { fallingIcon, fallingIconColor, handleIconChange, handleColorChange } = useFallingStars({
+    initialIcon: initialData?.falling_icon ?? "star",
+    initialColor: initialData?.falling_icon_color ?? "#fbbf24",
+    onFormDataChange: (data) => {
+      setFormData((prev: any) => ({ ...prev, ...data }));
+    }
   });
 
-  // Debug log for formData changes
-  useEffect(() => {
-    console.log("[DEBUG] formData updated:", {
-      first_name: formData.first_name,
-      last_name: formData.last_name,
-      phone: formData.phone,
-      email: formData.email,
-      role: formData.role,
-    });
-  }, [formData.first_name, formData.last_name, formData.phone, formData.email, formData.role]);
+  // Get campaign type from initialData or localStorage
+  const campaignType = initialData.campaign_type || (typeof window !== 'undefined' ? localStorage.getItem('campaign_type') || 'individual' : 'individual');
 
-  useEffect(() => {
-    console.log("[DEBUG] PromptPageForm useEffect - initialData:", initialData);
-    console.log("[DEBUG] Customer details from initialData:", {
-      first_name: initialData.first_name,
-      last_name: initialData.last_name,
-      phone: initialData.phone,
-      email: initialData.email,
-      role: initialData.role,
-    });
+  // Validation based on campaign type
+  const handleStep1Continue = () => {
+    setFormError(null);
     
-    setFormData({
-      ...initialData,
-      emojiThankYouMessage:
-        initialData.emoji_thank_you_message ||
-        initialData.emojiThankYouMessage ||
-        "",
-      show_friendly_note: initialData.show_friendly_note ?? true,
+    // For individual campaigns, require personal information
+    if (campaignType === 'individual') {
+      if (!formData.first_name?.trim()) {
+        setFormError("First name is required for individual prompt pages.");
+        return;
+      }
+      if (!formData.email?.trim() && !formData.phone?.trim()) {
+        setFormError("Please enter at least an email or phone number for individual prompt pages.");
+        return;
+      }
+    } else {
+      // For public campaigns, require a campaign name
+      if (!formData.name?.trim()) {
+        setFormError("Campaign name is required for public prompt pages.");
+        return;
+      }
+    }
+
+    // Call onSave to save step 1 data
+    onSave({
+      ...formData,
+      campaign_type: campaignType,
+      ai_button_enabled: aiReviewEnabled,
+      fix_grammar_enabled: fixGrammarEnabled,
+      emoji_sentiment_enabled: emojiSentimentEnabled,
+      emoji_sentiment_question: emojiSentimentQuestion,
+      emoji_feedback_message: emojiFeedbackMessage,
+      emoji_feedback_popup_header: emojiFeedbackPopupHeader,
+      emoji_feedback_page_header: emojiFeedbackPageHeader,
     });
-    setOfferEnabled(
-      initialData.offer_enabled ?? initialData.offerEnabled ?? false,
-    );
-    setOfferTitle(initialData.offer_title ?? initialData.offerTitle ?? "");
-    setOfferBody(initialData.offer_body ?? initialData.offerBody ?? "");
-    setOfferUrl(initialData.offer_url ?? initialData.offerUrl ?? "");
-    setEmojiSentimentEnabled(
-      initialData.emoji_sentiment_enabled ??
-        initialData.emojiSentimentEnabled ??
-        false,
-    );
-    setEmojiSentimentQuestion(
-      initialData.emoji_sentiment_question ??
-        initialData.emojiSentimentQuestion ??
-        "How was your experience?",
-    );
-    setEmojiFeedbackMessage(
-      initialData.emoji_feedback_message ??
-        initialData.emojiFeedbackMessage ??
-        "We value your feedback! Let us know how we can do better.",
-    );
-    setEmojiFeedbackPopupHeader(
-      initialData.emoji_feedback_popup_header ??
-        initialData.emojiFeedbackPopupHeader ??
-        "How can we improve?",
-    );
-    setEmojiFeedbackPageHeader(
-      initialData.emoji_feedback_page_header ??
-        initialData.emojiFeedbackPageHeader ??
-        "Your feedback helps us grow",
-    );
-    setNotePopupEnabled(initialData.show_friendly_note ?? true);
-    setNfcTextEnabled(initialData.nfc_text_enabled ?? false);
-    setFallingEnabled(!!initialData.falling_icon);
-    handleIconChange(initialData.falling_icon || "star");
-    setNoPlatformReviewTemplate(initialData.no_platform_review_template || "");
-    setServices(initialData.features_or_benefits || []);
-  }, [initialData]);
+  };
 
   // Ensure slug is set for the View button
   useEffect(() => {
@@ -205,101 +210,12 @@ export default function PromptPageForm({
     }
   }, [formData.slug, initialData.slug, rest.slug]);
 
-
-  const [formError, setFormError] = useState<string | null>(null);
-  const [saveError, setSaveError] = useState<string | null>(null);
-  const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
-  const [services, setServices] = useState<string[]>(
-    initialData.features_or_benefits || [],
-  );
-  const [emojiSentimentEnabled, setEmojiSentimentEnabled] = useState(
-    initialData.emoji_sentiment_enabled ?? initialData.emojiSentimentEnabled ?? false,
-  );
-  const [emojiSentimentQuestion, setEmojiSentimentQuestion] = useState(
-    initialData.emoji_sentiment_question ?? initialData.emojiSentimentQuestion ?? "How was your experience?",
-  );
-  const [emojiFeedbackMessage, setEmojiFeedbackMessage] = useState(
-    initialData.emoji_feedback_message ?? initialData.emojiFeedbackMessage ?? "We value your feedback! Let us know how we can do better.",
-  );
-  const [emojiFeedbackPopupHeader, setEmojiFeedbackPopupHeader] = useState(
-    initialData.emoji_feedback_popup_header ?? initialData.emojiFeedbackPopupHeader ?? "How can we improve?",
-  );
-  const [emojiFeedbackPageHeader, setEmojiFeedbackPageHeader] = useState(
-    initialData.emoji_feedback_page_header ?? initialData.emojiFeedbackPageHeader ?? "Your feedback helps us grow",
-  );
-  const [generatingReview, setGeneratingReview] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [noPlatformReviewTemplate, setNoPlatformReviewTemplate] = useState(
-    initialData.no_platform_review_template || "",
-  );
-  const [aiLoadingPhoto, setAiLoadingPhoto] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [aiReviewEnabled, setAiReviewEnabled] = useState(
-    initialData.aiReviewEnabled !== undefined
-      ? initialData.aiReviewEnabled
-      : true,
-  );
-  const [fixGrammarEnabled, setFixGrammarEnabled] = useState(
-    initialData.fixGrammarEnabled !== undefined
-      ? initialData.fixGrammarEnabled
-      : true,
-  );
-  const [fallingEnabled, setFallingEnabled] = useState(
-    !!initialData.falling_icon
-  );
-  const [iconUpdating, setIconUpdating] = useState(false);
-  // Use shared falling stars hook
-  const { fallingIcon, fallingIconColor, handleIconChange, handleColorChange, initializeValues } = useFallingStars({
-    initialIcon: initialData?.falling_icon ?? "star",
-    initialColor: initialData?.falling_icon_color ?? "#fbbf24",
-    onFormDataChange: (data) => {
-      setFormData((prev: any) => ({ ...prev, ...data }));
-    }
-  });
-
-
-
-  // Special Offer state
-  const [offerEnabled, setOfferEnabled] = useState(
-    initialData.offer_enabled ?? initialData.offerEnabled ?? false,
-  );
-  const [offerTitle, setOfferTitle] = useState(
-    initialData.offer_title ?? initialData.offerTitle ?? "",
-  );
-  const [offerBody, setOfferBody] = useState(
-    initialData.offer_body ?? initialData.offerBody ?? "",
-  );
-  const [offerUrl, setOfferUrl] = useState(
-    initialData.offer_url ?? initialData.offerUrl ?? "",
-  );
-
-  const [notePopupEnabled, setNotePopupEnabled] = useState(
-    initialData.show_friendly_note ?? true,
-  );
-  
-  // NFC text toggle state
-  const [nfcTextEnabled, setNfcTextEnabled] = useState(
-    initialData.nfc_text_enabled ?? false,
-  );
-  
   // Sync notePopupEnabled with initialData when it changes
   useEffect(() => {
     if (initialData.show_friendly_note !== undefined) {
       setNotePopupEnabled(initialData.show_friendly_note);
     }
   }, [initialData.show_friendly_note]);
-
-  const [submitted, setSubmitted] = useState(false);
-
-  // Add state for warning modal
-  const [showPopupConflictModal, setShowPopupConflictModal] = useState<
-    null | "emoji" | "note"
-  >(null);
-
-
-
-
 
   // Handlers for review platforms
   const handleAddPlatform = () => {
@@ -335,7 +251,7 @@ export default function PromptPageForm({
       setError("Business profile not loaded. Please try again.");
       return;
     }
-    setGeneratingReview(index);
+    setAiLoading(index);
     try {
       // Create comprehensive page context based on review type
       const pageData = {
@@ -381,7 +297,7 @@ export default function PromptPageForm({
         err instanceof Error ? err.message : "Failed to generate review",
       );
     } finally {
-      setGeneratingReview(null);
+      setAiLoading(null);
     }
   };
 
@@ -435,20 +351,34 @@ export default function PromptPageForm({
   };
 
   // Step 1 validation
-  const handleStep1Continue = () => {
-    setFormError(null);
-    if (!formData.first_name.trim()) {
-      setFormError("First name is required.");
-      return;
-    }
-    if (!formData.email.trim() && !formData.phone.trim()) {
-      setFormError("Please enter at least an email or phone number.");
-      return;
-    }
+  // This function is now redundant as handleFormSubmit handles validation and submission
+  // const handleStep1Continue = () => {
+  //   setFormError(null);
+    
+  //   // For individual campaigns, require personal information
+  //   if (campaignType === 'individual') {
+  //     if (!formData.first_name.trim()) {
+  //       setFormError("First name is required for individual prompt pages.");
+  //       return;
+  //     }
+  //     if (!formData.email.trim() && !formData.phone.trim()) {
+  //       setFormError("Please enter at least an email or phone number for individual prompt pages.");
+  //       return;
+  //     }
+  //   } else {
+  //     // For public campaigns, require a campaign name
+  //     if (!formData.name?.trim()) {
+  //       setFormError("Campaign name is required for public prompt pages.");
+  //       return;
+  //     }
+  //   }
 
-    // Call onSave to save step 1 data
-    onSave(formData);
-  };
+  //   // Call onSave to save step 1 data
+  //   onSave({
+  //     ...formData,
+  //     campaign_type: campaignType
+  //   });
+  // };
 
   const handleToggleFalling = () => {
     setFallingEnabled((prev: boolean) => !prev);
@@ -484,6 +414,7 @@ export default function PromptPageForm({
   }, [notePopupEnabled]);
 
   // Render logic
+  // Photo review type form
   if (formData.review_type === "photo") {
     return (
       <>
@@ -584,103 +515,24 @@ export default function PromptPageForm({
               Grab a glowing testimonial and display it on your site using our widget or use it in your promotional materials.
             </p>
           </div>
-          {/* Standard section header for customer info */}
-          <div className="mb-6 flex items-center gap-3">
-            <FaInfoCircle className="w-7 h-7 text-slate-blue" />
-            <h2 className="text-2xl font-bold text-slate-blue">
-              Customer/client details
-            </h2>
-          </div>
-          <div className="flex gap-4 mb-4">
-            <div className="flex-1">
-              <label
-                htmlFor="first_name"
-                className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center gap-1"
-              >
-                First name <span className="text-red-600">(required)</span>
-                <RobotTooltip text="This field is passed to AI for prompt generation." />
-              </label>
-              <input
-                type="text"
-                id="first_name"
-                value={formData.first_name || ""}
-                onChange={(e) =>
-                  setFormData((prev: any) => ({
-                    ...prev,
-                    first_name: e.target.value,
-                  }))
-                }
-                className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                placeholder="First name"
-                required
+          {/* Customer Details Section - Only for individual campaigns */}
+          {campaignType === 'individual' && (
+            <>
+              {/* Standard section header for customer info */}
+              <div className="mb-6 flex items-center gap-3">
+                <FaInfoCircle className="w-7 h-7 text-slate-blue" />
+                <h2 className="text-2xl font-bold text-slate-blue">
+                  Customer/client details
+                </h2>
+              </div>
+              {/* Customer Details Section */}
+              <CustomerDetailsSection 
+                formData={formData}
+                onFormDataChange={(data: Record<string, any>) => setFormData((prev: any) => ({ ...prev, ...data }))}
+                campaignType={campaignType}
               />
-            </div>
-            <div className="flex-1">
-              <label
-                htmlFor="last_name"
-                className="block text-sm font-medium text-gray-700 mt-4 mb-2"
-              >
-                Last name
-              </label>
-              <input
-                type="text"
-                id="last_name"
-                value={formData.last_name || ""}
-                onChange={(e) =>
-                  setFormData((prev: any) => ({
-                    ...prev,
-                    last_name: e.target.value,
-                  }))
-                }
-                className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                placeholder="Last name"
-              />
-            </div>
-          </div>
-          <div className="flex gap-4 mb-4">
-            <div className="flex-1">
-              <label
-                htmlFor="phone"
-                className="block text-sm font-medium text-gray-700 mt-4 mb-2"
-              >
-                Phone number
-              </label>
-              <input
-                type="tel"
-                id="phone"
-                value={formData.phone || ""}
-                onChange={(e) =>
-                  setFormData((prev: any) => ({
-                    ...prev,
-                    phone: e.target.value,
-                  }))
-                }
-                className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                placeholder="Phone number"
-              />
-            </div>
-            <div className="flex-1">
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700 mt-4 mb-2"
-              >
-                Email
-              </label>
-              <input
-                type="email"
-                id="email"
-                value={formData.email || ""}
-                onChange={(e) =>
-                  setFormData((prev: any) => ({
-                    ...prev,
-                    email: e.target.value,
-                  }))
-                }
-                className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                placeholder="Email"
-              />
-            </div>
-          </div>
+            </>
+          )}
           <div className="mb-4">
             <label
               htmlFor="testimonial"
@@ -776,13 +628,15 @@ export default function PromptPageForm({
       </>
     );
   }
+  // Service review type form
   if (formData.review_type === "service") {
     return (
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          const formDataToSubmit = { 
-            ...formData, 
+      <form onSubmit={(e) => {
+        e.preventDefault();
+        if (step === 2 && onPublish) {
+          onPublish({
+            ...formData,
+            campaign_type: campaignType,
             ai_button_enabled: aiReviewEnabled,
             fix_grammar_enabled: fixGrammarEnabled,
             emoji_sentiment_enabled: emojiSentimentEnabled,
@@ -790,15 +644,23 @@ export default function PromptPageForm({
             emoji_feedback_message: emojiFeedbackMessage,
             emoji_feedback_popup_header: emojiFeedbackPopupHeader,
             emoji_feedback_page_header: emojiFeedbackPageHeader,
-          };
-          
-          if (step === 2 && onPublish) {
-            onPublish(formDataToSubmit);
-          } else {
-            onSave(formDataToSubmit);
-          }
-        }}
-      >
+            slug: initialData.slug || formData.slug  // Include the slug
+          });
+        } else {
+          onSave({
+            ...formData,
+            campaign_type: campaignType,
+            ai_button_enabled: aiReviewEnabled,
+            fix_grammar_enabled: fixGrammarEnabled,
+            emoji_sentiment_enabled: emojiSentimentEnabled,
+            emoji_sentiment_question: emojiSentimentQuestion,
+            emoji_feedback_message: emojiFeedbackMessage,
+            emoji_feedback_popup_header: emojiFeedbackPopupHeader,
+            emoji_feedback_page_header: emojiFeedbackPageHeader,
+            slug: initialData.slug || formData.slug  // Include the slug
+          });
+        }
+      }}>
         <div className="flex flex-col mt-0 md:mt-[3px]">
           <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
             {mode === "create" ? "Create service prompt page" : "Edit service prompt page"}
@@ -836,8 +698,27 @@ export default function PromptPageForm({
                   {formError}
                 </div>
               )}
-              {/* Only show customer/client fields if not universal */}
-              {!isUniversal && (
+              {/* Name input for public prompt pages */}
+              {(isUniversal || campaignType === 'public') && (
+                <div className="mb-6">
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+                    {isUniversal ? 'Prompt page name' : 'Campaign name'} <span className="text-red-600">(required)</span>
+                    <RobotTooltip text={isUniversal ? "Give this public prompt page a descriptive name for your campaign or outreach." : "Give this public campaign a descriptive name."} />
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    value={formData.name || ""}
+                    onChange={(e) => setFormData((prev: any) => ({ ...prev, name: e.target.value.slice(0, 50) }))}
+                    className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+                    placeholder={isUniversal ? "Holiday email campaign" : "Summer product launch"}
+                    maxLength={50}
+                    required
+                  />
+                </div>
+              )}
+              {/* Only show customer/client fields for individual campaigns */}
+              {!isUniversal && campaignType === 'individual' && (
                 <>
                   <div className="mb-6 flex items-center gap-3">
                     <FaInfoCircle className="w-7 h-7 text-slate-blue" />
@@ -1047,99 +928,122 @@ export default function PromptPageForm({
                         </button>
                       </div>
                     </>
-                  ) : (
-                    <>
-                      {/* Services Section (service type) */}
-                      <div className="mt-20 mb-2 flex items-center gap-2">
-                        <FaWrench className="w-5 h-5 text-[#1A237E]" />
-                        <h2 className="text-xl font-semibold text-slate-blue flex items-center gap-1">
-                          Services provided{" "}
-                          <RobotTooltip text="This field is passed to AI for prompt generation." />
-                        </h2>
-                      </div>
-                      <div className="space-y-2">
-                        {services.map((service, idx) => (
-                          <div key={idx} className="flex items-center gap-2">
-                            <input
-                              type="text"
-                              className="w-full border px-3 py-2 rounded"
-                              value={service}
-                              onChange={(e) => {
-                                const newServices = [...services];
-                                newServices[idx] = e.target.value;
-                                setServices(newServices);
-                                setFormData((prev: any) => ({
-                                  ...prev,
-                                  features_or_benefits: newServices,
-                                }));
-                              }}
-                              required
-                              placeholder="e.g., Web Design"
-                            />
-                            {services.length > 1 && (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const newServices = services.filter(
-                                    (_, i) => i !== idx,
-                                  );
-                                  setServices(newServices);
-                                  setFormData((prev: any) => ({
-                                    ...prev,
-                                    features_or_benefits: newServices,
-                                  }));
-                                }}
-                                className="text-red-600 font-bold"
-                              >
-                                &times;
-                              </button>
-                            )}
-                          </div>
-                        ))}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setServices([...services, ""]);
-                            setFormData((prev: any) => ({
-                              ...prev,
-                              features_or_benefits: [...services, ""],
-                            }));
-                          }}
-                          className="text-blue-600 underline mt-2"
-                        >
-                          + Add Service
-                        </button>
-                      </div>
-                      <div className="mt-10 mb-2 flex items-center gap-2">
-                        <FaTrophy className="w-5 h-5 text-[#1A237E]" />
-                        <h2 className="text-xl font-semibold text-slate-blue flex items-center gap-1">
-                          Outcome{" "}
-                          <RobotTooltip text="This field is passed to AI for prompt generation." />
-                        </h2>
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1 mb-5 max-w-[85ch]">
-                        Describe the service you provided and how it benefited
-                        this individual.
-                      </p>
-                      <textarea
-                        id="product_description"
-                        value={formData.product_description || ""}
-                        onChange={(e) =>
-                          setFormData((prev: any) => ({
-                            ...prev,
-                            product_description: e.target.value,
-                          }))
-                        }
-                        rows={4}
-                        className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                        placeholder="Describe the outcome for your client"
-                        required
-                      />
-                    </>
                   )}
 
                 </>
               )}
+              
+              {/* Service-specific fields for all service pages */}
+              {formData.review_type === "service" && (
+                <>
+                  {/* Services Section */}
+                  <div className="mt-20 mb-2 flex items-center gap-2">
+                    <FaWrench className="w-5 h-5 text-[#1A237E]" />
+                    <h2 className="text-xl font-semibold text-slate-blue flex items-center gap-1">
+                      Services provided{" "}
+                      <RobotTooltip text="This field is passed to AI for prompt generation." />
+                    </h2>
+                  </div>
+                  <div className="space-y-2">
+                    {services.map((service, idx) => (
+                      <div key={idx} className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          className="w-full border px-3 py-2 rounded"
+                          value={service}
+                          onChange={(e) => {
+                            const newServices = [...services];
+                            newServices[idx] = e.target.value;
+                            setServices(newServices);
+                            setFormData((prev: any) => ({
+                              ...prev,
+                              features_or_benefits: newServices,
+                            }));
+                          }}
+                          required
+                          placeholder="e.g., Web Design"
+                        />
+                        {services.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newServices = services.filter(
+                                (_, i) => i !== idx,
+                              );
+                              setServices(newServices);
+                              setFormData((prev: any) => ({
+                                ...prev,
+                                features_or_benefits: newServices,
+                              }));
+                            }}
+                            className="text-red-600 font-bold"
+                          >
+                            &times;
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setServices([...services, ""]);
+                        setFormData((prev: any) => ({
+                          ...prev,
+                          features_or_benefits: [...services, ""],
+                        }));
+                      }}
+                      className="text-blue-600 underline mt-2"
+                    >
+                      + Add Service
+                    </button>
+                  </div>
+                  
+                  {/* Outcome Section */}
+                  <div className="mt-10 mb-2 flex items-center gap-2">
+                    <FaTrophy className="w-5 h-5 text-[#1A237E]" />
+                    <h2 className="text-xl font-semibold text-slate-blue flex items-center gap-1">
+                      Outcome{" "}
+                      <RobotTooltip text="This field is passed to AI for prompt generation." />
+                    </h2>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1 mb-5 max-w-[85ch]">
+                    Describe the service you provided and how it benefited{" "}
+                    {campaignType === 'individual' ? 'this individual' : 'your customers'}.
+                  </p>
+                  <textarea
+                    id="product_description"
+                    value={formData.product_description || ""}
+                    onChange={(e) =>
+                      setFormData((prev: any) => ({
+                        ...prev,
+                        product_description: e.target.value,
+                      }))
+                    }
+                    rows={4}
+                    className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+                    placeholder={campaignType === 'individual' ? "Describe the outcome for your client" : "Describe the outcomes for your customers"}
+                    required
+                  />
+                </>
+              )}
+              
+              {/* Review platforms section for step 1 */}
+              {formData.review_type === "service" && (
+                <div className="mt-8">
+                  <ReviewWriteSection
+                    value={formData.review_platforms}
+                    onChange={(platforms) =>
+                      setFormData((prev: any) => ({
+                        ...prev,
+                        review_platforms: platforms,
+                      }))
+                    }
+                    onGenerateReview={handleGenerateAIReview}
+                    hideReviewTemplateFields={isUniversal}
+                  />
+                </div>
+              )}
+              
               <div className="w-full flex justify-end gap-2 mt-8">
                 <button
                   type="button"
@@ -1152,17 +1056,6 @@ export default function PromptPageForm({
             </div>
           ) : (
             <div className="space-y-12">
-              <ReviewWriteSection
-                value={formData.review_platforms}
-                onChange={(platforms) =>
-                  setFormData((prev: any) => ({
-                    ...prev,
-                    review_platforms: platforms,
-                  }))
-                }
-                onGenerateReview={handleGenerateAIReview}
-                hideReviewTemplateFields={isUniversal}
-              />
               <OfferSection
                 enabled={offerEnabled}
                 onToggle={() => setOfferEnabled((v: boolean) => !v)}
@@ -1265,34 +1158,7 @@ export default function PromptPageForm({
                 onColorChange={handleColorChange}
               />
               
-              {/* NFC QR Code Text Section */}
-              <div className="rounded-lg p-4 bg-green-50 border border-green-200 flex flex-col gap-2 shadow relative mb-8">
-                <div className="flex flex-row justify-between items-start px-2 py-2">
-                  <SectionHeader
-                    icon={<FaMobile className="w-7 h-7 text-green-600" />}
-                    title="NFC scanning text"
-                    subCopy={
-                      nfcTextEnabled
-                        ? 'QR codes will show "Tap phone or scan with camera" text underneath.'
-                        : "QR codes will not show NFC instructions."
-                    }
-                    className="!mb-0"
-                    subCopyLeftOffset="ml-9"
-                  />
-                  <div className="flex flex-col justify-start pt-1">
-                    <button
-                      type="button"
-                      onClick={() => setNfcTextEnabled((v: boolean) => !v)}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${nfcTextEnabled ? "bg-green-600" : "bg-gray-200"}`}
-                      aria-pressed={!!nfcTextEnabled}
-                    >
-                      <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${nfcTextEnabled ? "translate-x-5" : "translate-x-1"}`}
-                      />
-                    </button>
-                  </div>
-                </div>
-              </div>
+
             </div>
           )}
         </div>
@@ -1355,567 +1221,369 @@ export default function PromptPageForm({
       </form>
     );
   }
+  // Default form
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        onSave({
+    <form onSubmit={(e) => {
+      e.preventDefault();
+      if (step === 2 && onPublish) {
+        onPublish({
           ...formData,
+          campaign_type: campaignType,
           ai_button_enabled: aiReviewEnabled,
-          show_friendly_note: notePopupEnabled,
-          nfc_text_enabled: nfcTextEnabled,
+          fix_grammar_enabled: fixGrammarEnabled,
           emoji_sentiment_enabled: emojiSentimentEnabled,
           emoji_sentiment_question: emojiSentimentQuestion,
           emoji_feedback_message: emojiFeedbackMessage,
           emoji_feedback_popup_header: emojiFeedbackPopupHeader,
           emoji_feedback_page_header: emojiFeedbackPageHeader,
+          slug: initialData.slug || formData.slug  // Include the slug
         });
-      }}
-    >
+      } else {
+        handleStep1Continue();
+      }
+    }}>
       <div className="flex flex-col mt-0 md:mt-[3px]">
         <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
           {pageTitle}
         </h1>
         <p className="text-gray-600 text-base max-w-md mt-0 mb-10">
-          Create your prompt page to collect reviews and testimonials from customers.
+          {campaignType === 'individual' 
+            ? "Create a personalized prompt page for your customer."
+            : "Create a public prompt page for general use."}
         </p>
       </div>
 
-      <div>
-        {step === 1 ? (
-          <div className="custom-space-y">
-            {formError && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded">
-                {formError}
-              </div>
-            )}
-            {/* Only show customer/client fields if not universal */}
-            {!isUniversal && (
-              <>
-                <div className="mb-6 flex items-center gap-3">
-                  <FaInfoCircle className="w-7 h-7 text-slate-blue" />
-                  <h2 className="text-2xl font-bold text-slate-blue">
-                    Customer/client details
-                  </h2>
-                </div>
-                <div className="flex gap-4">
-                  <div className="flex-1">
-                    <label
-                      htmlFor="first_name"
-                      className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center gap-1"
-                    >
-                      First name{" "}
-                      <span className="text-red-600">(required)</span>
-                      <RobotTooltip text="This field is passed to AI for prompt generation." />
-                    </label>
-                    <input
-                      type="text"
-                      id="first_name"
-                      value={formData.first_name || ""}
-                      onChange={(e) =>
-                        setFormData((prev: any) => ({
-                          ...prev,
-                          first_name: e.target.value,
-                        }))
-                      }
-                      className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                      placeholder="First name"
-                      required
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <label
-                      htmlFor="last_name"
-                      className="block text-sm font-medium text-gray-700 mt-4 mb-2"
-                    >
-                      Last name
-                    </label>
-                    <input
-                      type="text"
-                      id="last_name"
-                      value={formData.last_name || ""}
-                      onChange={(e) =>
-                        setFormData((prev: any) => ({
-                          ...prev,
-                          last_name: e.target.value,
-                        }))
-                      }
-                      className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                      placeholder="Last name"
-                    />
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <div className="flex-1">
-                    <label
-                      htmlFor="phone"
-                      className="block text-sm font-medium text-gray-700 mt-4 mb-2"
-                    >
-                      Phone number
-                    </label>
-                    <input
-                      type="tel"
-                      id="phone"
-                      value={formData.phone || ""}
-                      onChange={(e) =>
-                        setFormData((prev: any) => ({
-                          ...prev,
-                          phone: e.target.value,
-                        }))
-                      }
-                      className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                      placeholder="Phone number"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <label
-                      htmlFor="email"
-                      className="block text-sm font-medium text-gray-700 mt-4 mb-2"
-                    >
-                      Email
-                    </label>
-                    <input
-                      type="email"
-                      id="email"
-                      value={formData.email || ""}
-                      onChange={(e) =>
-                        setFormData((prev: any) => ({
-                          ...prev,
-                          email: e.target.value,
-                        }))
-                      }
-                      className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                      placeholder="Email"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label
-                    htmlFor="role"
-                    className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center max-w-[85ch] gap-1"
-                  >
-                    Role/position
-                    <RobotTooltip text="This field is passed to AI for prompt generation." />
-                  </label>
-                  <input
-                    type="text"
-                    id="role"
-                    value={formData.role}
-                    onChange={(e) =>
-                      setFormData((prev: any) => ({
-                        ...prev,
-                        role: e.target.value,
-                      }))
-                    }
-                    className="mt-1 block w-full max-w-md rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                    placeholder="e.g., store manager, marketing director, student"
-                  />
-                </div>
-                {/* Product type fields */}
-                {formData.review_type === "product" ? (
-                  <>
-                    <div className="mt-20 mb-2 flex items-center gap-2">
-                      <FaBoxOpen className="w-5 h-5 text-[#1A237E]" />
-                      <h2 className="text-xl font-semibold text-slate-blue">
-                        Product Description
-                      </h2>
-                    </div>
-                    <textarea
-                      id="product_description"
-                      value={formData.product_description || ""}
-                      onChange={(e) =>
-                        setFormData((prev: any) => ({
-                          ...prev,
-                          product_description: e.target.value,
-                        }))
-                      }
-                      rows={4}
-                      className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                      placeholder="Describe the product being reviewed"
-                      required
-                    />
-                    <div className="mt-8 mb-2 flex items-center gap-2">
-                      <FaStar className="w-5 h-5 text-[#1A237E]" />
-                      <h2 className="text-xl font-semibold text-slate-blue flex items-center gap-1">
-                        Features or Benefits{" "}
-                        <RobotTooltip text="This field is passed to AI for prompt generation." />
-                      </h2>
-                    </div>
-                    <div className="space-y-2">
-                      {(formData.features_or_benefits || [""]).map(
-                        (feature: string, idx: number) => (
-                          <div key={idx} className="flex items-center gap-2">
-                            <input
-                              type="text"
-                              className="w-full border px-3 py-2 rounded"
-                              value={feature}
-                              onChange={(e) => {
-                                const newFeatures = [
-                                  ...(formData.features_or_benefits || []),
-                                ];
-                                newFeatures[idx] = e.target.value;
-                                setFormData((prev: any) => ({
-                                  ...prev,
-                                  features_or_benefits: newFeatures,
-                                }));
-                              }}
-                              required
-                              placeholder="e.g., Long battery life"
-                            />
-                            {formData.features_or_benefits?.length > 1 && (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const newFeatures = (
-                                    formData.features_or_benefits || []
-                                  ).filter((_: any, i: number) => i !== idx);
-                                  setFormData((prev: any) => ({
-                                    ...prev,
-                                    features_or_benefits: newFeatures,
-                                  }));
-                                }}
-                                className="text-red-600 font-bold"
-                              >
-                                &times;
-                              </button>
-                            )}
-                          </div>
-                        ),
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setFormData((prev: any) => ({
-                            ...prev,
-                            features_or_benefits: [
-                              ...(formData.features_or_benefits || []),
-                              "",
-                            ],
-                          }));
-                        }}
-                        className="text-blue-600 underline mt-2"
-                      >
-                        + Add Feature/Benefit
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    {/* Services Section (service type) */}
-                    <div className="mt-20 mb-2 flex items-center gap-2">
-                      <FaWrench className="w-5 h-5 text-[#1A237E]" />
-                      <h2 className="text-xl font-semibold text-slate-blue flex items-center gap-1">
-                        Services provided{" "}
-                        <RobotTooltip text="This field is passed to AI for prompt generation." />
-                      </h2>
-                    </div>
-                    <div className="space-y-2">
-                      {services.map((service, idx) => (
-                        <div key={idx} className="flex items-center gap-2">
-                          <input
-                            type="text"
-                            className="w-full border px-3 py-2 rounded"
-                            value={service}
-                            onChange={(e) => {
-                              const newServices = [...services];
-                              newServices[idx] = e.target.value;
-                              setServices(newServices);
-                              setFormData((prev: any) => ({
-                                ...prev,
-                                features_or_benefits: newServices,
-                              }));
-                            }}
-                            required
-                            placeholder="e.g., Web Design"
-                          />
-                          {services.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const newServices = services.filter(
-                                  (_, i) => i !== idx,
-                                );
-                                setServices(newServices);
-                                setFormData((prev: any) => ({
-                                  ...prev,
-                                  features_or_benefits: newServices,
-                                }));
-                              }}
-                              className="text-red-600 font-bold"
-                            >
-                              &times;
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setServices([...services, ""]);
-                          setFormData((prev: any) => ({
-                            ...prev,
-                            features_or_benefits: [...services, ""],
-                          }));
-                        }}
-                        className="text-blue-600 underline mt-2"
-                      >
-                        + Add Service
-                      </button>
-                    </div>
-                    <div className="mt-10 mb-2 flex items-center gap-2">
-                      <FaTrophy className="w-5 h-5 text-[#1A237E]" />
-                      <h2 className="text-xl font-semibold text-slate-blue flex items-center gap-1">
-                        Outcome{" "}
-                        <RobotTooltip text="This field is passed to AI for prompt generation." />
-                      </h2>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1 mb-5 max-w-[85ch]">
-                      Describe the service you provided and how it benefited
-                      this individual.
-                    </p>
-                    <textarea
-                      id="product_description"
-                      value={formData.product_description || ""}
-                      onChange={(e) =>
-                        setFormData((prev: any) => ({
-                          ...prev,
-                          product_description: e.target.value,
-                        }))
-                      }
-                      rows={4}
-                      className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                      placeholder="Describe the outcome for your client"
-                      required
-                    />
-                  </>
-                )}
-
-              </>
-            )}
-            <div className="w-full flex justify-end gap-2 mt-8">
-              <button
-                type="button"
-                className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-                onClick={handleStep1Continue}
-              >
-                Continue
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-12">
-            <ReviewWriteSection
-              value={formData.review_platforms}
-              onChange={(platforms) =>
-                setFormData((prev: any) => ({
-                  ...prev,
-                  review_platforms: platforms,
-                }))
-              }
-              onGenerateReview={handleGenerateAIReview}
-              hideReviewTemplateFields={isUniversal}
-            />
-            <OfferSection
-              enabled={offerEnabled}
-              onToggle={() => setOfferEnabled((v: boolean) => !v)}
-              title={offerTitle}
-              onTitleChange={setOfferTitle}
-              description={offerBody}
-              onDescriptionChange={setOfferBody}
-              url={offerUrl}
-              onUrlChange={setOfferUrl}
-            />
-            {/* Personalized Note Pop-up Section */}
-            <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-2 shadow relative mb-8">
-              <div className="flex items-center justify-between mb-2 px-2 py-2">
-                <div className="flex items-center gap-3">
-                  <FaCommentDots className="w-7 h-7 text-slate-blue" />
-                  <span className="text-2xl font-bold text-[#1A237E]">
-                    Personalized note pop-up
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (emojiSentimentEnabled) {
-                      setShowPopupConflictModal("note");
-                      return;
-                    }
-                    setNotePopupEnabled((v: boolean) => !v);
-                  }}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${notePopupEnabled ? "bg-slate-blue" : "bg-gray-200"}`}
-                  aria-pressed={!!notePopupEnabled}
-                  disabled={emojiSentimentEnabled}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${notePopupEnabled ? "translate-x-5" : "translate-x-1"}`}
-                  />
-                </button>
-              </div>
-              <div className="text-sm text-gray-700 mb-3 max-w-[85ch] px-2">
-                This note appears as a pop-up at the top of the review page. Use
-                it to set the context and tone for your customer.
-              </div>
-              {notePopupEnabled && (
-                <textarea
-                  id="friendly_note"
-                  value={formData.friendly_note || ""}
-                  onChange={(e) =>
-                    setFormData((prev: any) => ({
-                      ...prev,
-                      friendly_note: e.target.value,
-                    }))
-                  }
-                  rows={4}
-                  className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring shadow-inner"
-                  placeholder="Jonas, it was so good to catch up yesterday. I'm excited about the project. Would you mind dropping us a review? I have a review template you can use or you can write your own. Thanks!"
-                />
-              )}
-            </div>
-            {/* Emoji Sentiment Section (modular) */}
-            <EmojiSentimentSection
-              enabled={emojiSentimentEnabled}
-              onToggle={() => {
-                if (notePopupEnabled) {
-                  setShowPopupConflictModal("emoji");
-                  return;
-                }
-                setEmojiSentimentEnabled((v: boolean) => !v);
-              }}
-              question={emojiSentimentQuestion}
-              onQuestionChange={setEmojiSentimentQuestion}
-              feedbackMessage={emojiFeedbackMessage}
-              onFeedbackMessageChange={setEmojiFeedbackMessage}
-              thankYouMessage={formData.emojiThankYouMessage}
-              onThankYouMessageChange={(val: string) =>
-                setFormData((prev: any) => ({
-                  ...prev,
-                  emojiThankYouMessage: val,
-                }))
-              }
-              slug={formData.slug}
-              disabled={!!notePopupEnabled}
-            />
-            {/* AI Generation Toggle (modular) */}
-            <DisableAIGenerationSection
-              aiGenerationEnabled={aiReviewEnabled}
-              fixGrammarEnabled={fixGrammarEnabled}
-              onToggleAI={() => setAiReviewEnabled((v: boolean) => !v)}
-              onToggleGrammar={() => setFixGrammarEnabled((v: boolean) => !v)}
-            />
-            {/* Falling Stars Section (modular, inline for now) */}
-            <FallingStarsSection
-              enabled={fallingEnabled}
-              onToggle={handleToggleFalling}
-              icon={fallingIcon}
-              onIconChange={handleIconChange}
-              color={fallingIconColor}
-              onColorChange={handleColorChange}
-            />
-          </div>
-        )}
-      </div>
-      {/* Bottom buttons */}
-      {/* Step 1 bottom button - Save & continue */}
-      {step === 1 && (
-        <div className="w-full flex justify-end pr-6 pb-4 md:pb-6 mt-8">
-          <button
-            type="button"
-            className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-            onClick={handleStep1Continue}
-            disabled={isSaving}
-          >
-            {isSaving ? "Saving..." : "Save & continue"}
-          </button>
+      {formError && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded">
+          {formError}
         </div>
       )}
-      {/* Step 2 bottom buttons */}
-      {step === 2 && (
+
+      {/* Campaign Details Section - Only for public campaigns */}
+      {campaignType === 'public' && (
         <>
-          {/* Bottom action row for step 2 create mode */}
-          {mode === "create" && (
-            <div className="w-full flex justify-between items-center pr-2 pb-4 md:pr-6 md:pb-6 mt-8">
-              {/* Bottom left Back button */}
-              <div>
-                <button
-                  type="button"
-                  className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-slate-blue shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-                  onClick={() => onStepChange?.(1)}
-                  disabled={isSaving}
-                >
-                  Back
-                </button>
-              </div>
-              {/* Bottom right Save & publish button */}
-              <div>
-                <button
-                  type="submit"
-                  className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-                  disabled={isSaving}
-                >
-                  {isSaving ? "Publishing..." : "Save & publish"}
-                </button>
-              </div>
+          <div className="mb-6 flex items-center gap-3">
+            <FaInfoCircle className="w-7 h-7 text-slate-blue" />
+            <h2 className="text-2xl font-bold text-slate-blue">
+              Campaign details
+            </h2>
+          </div>
+          <div className="flex gap-4 mb-4">
+            <div className="flex-1">
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center gap-1"
+              >
+                Campaign name <span className="text-red-600">(required)</span>
+              </label>
+              <input
+                type="text"
+                id="name"
+                value={formData.name || ""}
+                onChange={(e) =>
+                  setFormData((prev: any) => ({
+                    ...prev,
+                    name: e.target.value,
+                  }))
+                }
+                className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+                placeholder="Campaign name"
+                required
+              />
             </div>
-          )}
-          {/* Bottom action row for step 2 edit mode */}
-          {mode === "edit" && (
-            <div className="w-full flex justify-between items-center pr-2 pb-4 md:pr-6 md:pb-6 mt-8">
-              {/* Bottom left Back button */}
-              <div>
-                <button
-                  type="button"
-                  className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-slate-blue shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-                  onClick={() => onStepChange?.(1)}
-                  disabled={isSaving}
-                >
-                  Back
-                </button>
-              </div>
-              {/* Bottom right Save & publish button */}
-              <div>
-                <button
-                  type="submit"
-                  className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-                  disabled={isSaving}
-                >
-                  {isSaving ? "Publishing..." : "Save & publish"}
-                </button>
-              </div>
-            </div>
-          )}
+          </div>
         </>
       )}
-      {/* Popup conflict modal */}
-      {showPopupConflictModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center relative">
-            <button
-              className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl"
-              onClick={() => setShowPopupConflictModal(null)}
-              aria-label="Close"
-            >
-              &times;
-            </button>
-            <h2 className="text-2xl font-bold text-red-700 mb-4">
-              Cannot Enable Multiple Popups
+
+      {/* Customer Details Section - Only for individual campaigns */}
+      {campaignType === 'individual' && (
+        <>
+          <div className="mb-6 flex items-center gap-3">
+            <FaInfoCircle className="w-7 h-7 text-slate-blue" />
+            <h2 className="text-2xl font-bold text-slate-blue">
+              Customer/client details
             </h2>
-            <p className="mb-6 text-gray-700">
-              You cannot have 2 popups enabled at the same time. You must disable{" "}
-              <strong>
-                {showPopupConflictModal === "note" ? "Emoji Sentiment Flow" : "Personalized Note Pop-up"}
-              </strong>{" "}
-              first.
-            </p>
+          </div>
+          <div className="flex gap-4 mb-4">
+            <div className="flex-1">
+              <label
+                htmlFor="first_name"
+                className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center gap-1"
+              >
+                First name <span className="text-red-600">(required)</span>
+                <RobotTooltip text="This field is passed to AI for prompt generation." />
+              </label>
+              <input
+                type="text"
+                id="first_name"
+                value={formData.first_name || ""}
+                onChange={(e) =>
+                  setFormData((prev: any) => ({
+                    ...prev,
+                    first_name: e.target.value,
+                  }))
+                }
+                className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+                placeholder="First name"
+                required
+              />
+            </div>
+            <div className="flex-1">
+              <label
+                htmlFor="last_name"
+                className="block text-sm font-medium text-gray-700 mt-4 mb-2"
+              >
+                Last name
+              </label>
+              <input
+                type="text"
+                id="last_name"
+                value={formData.last_name || ""}
+                onChange={(e) =>
+                  setFormData((prev: any) => ({
+                    ...prev,
+                    last_name: e.target.value,
+                  }))
+                }
+                className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+                placeholder="Last name"
+              />
+            </div>
+          </div>
+          <div className="flex gap-4 mb-4">
+            <div className="flex-1">
+              <label
+                htmlFor="phone"
+                className="block text-sm font-medium text-gray-700 mt-4 mb-2"
+              >
+                Phone number
+              </label>
+              <input
+                type="tel"
+                id="phone"
+                value={formData.phone || ""}
+                onChange={(e) =>
+                  setFormData((prev: any) => ({
+                    ...prev,
+                    phone: e.target.value,
+                  }))
+                }
+                className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+                placeholder="Phone number"
+              />
+            </div>
+            <div className="flex-1">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 mt-4 mb-2"
+              >
+                Email
+              </label>
+              <input
+                type="email"
+                id="email"
+                value={formData.email || ""}
+                onChange={(e) =>
+                  setFormData((prev: any) => ({
+                    ...prev,
+                    email: e.target.value,
+                  }))
+                }
+                className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+                placeholder="Email"
+              />
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Product type fields */}
+      {formData.review_type === "product" ? (
+        <>
+          <div className="mt-20 mb-2 flex items-center gap-2">
+            <FaBoxOpen className="w-5 h-5 text-[#1A237E]" />
+            <h2 className="text-xl font-semibold text-slate-blue">
+              Product Description
+            </h2>
+          </div>
+          <textarea
+            id="product_description"
+            value={formData.product_description || ""}
+            onChange={(e) =>
+              setFormData((prev: any) => ({
+                ...prev,
+                product_description: e.target.value,
+              }))
+            }
+            rows={4}
+            className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+            placeholder="Describe the product being reviewed"
+            required
+          />
+          <div className="mt-8 mb-2 flex items-center gap-2">
+            <FaStar className="w-5 h-5 text-[#1A237E]" />
+            <h2 className="text-xl font-semibold text-slate-blue flex items-center gap-1">
+              Features or Benefits{" "}
+              <RobotTooltip text="This field is passed to AI for prompt generation." />
+            </h2>
+          </div>
+          <div className="space-y-2">
+            {(formData.features_or_benefits || [""]).map(
+              (feature: string, idx: number) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    className="w-full border px-3 py-2 rounded"
+                    value={feature}
+                    onChange={(e) => {
+                      const newFeatures = [
+                        ...(formData.features_or_benefits || []),
+                      ];
+                      newFeatures[idx] = e.target.value;
+                      setFormData((prev: any) => ({
+                        ...prev,
+                        features_or_benefits: newFeatures,
+                      }));
+                    }}
+                    required
+                    placeholder="e.g., Long battery life"
+                  />
+                  {formData.features_or_benefits?.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newFeatures = (
+                          formData.features_or_benefits || []
+                        ).filter((_: any, i: number) => i !== idx);
+                        setFormData((prev: any) => ({
+                          ...prev,
+                          features_or_benefits: newFeatures,
+                        }));
+                      }}
+                      className="text-red-600 font-bold"
+                    >
+                      &times;
+                    </button>
+                  )}
+                </div>
+              ),
+            )}
             <button
-              onClick={() => setShowPopupConflictModal(null)}
-              className="bg-slate-blue text-white px-6 py-2 rounded hover:bg-slate-blue/90 font-semibold mt-2"
+              type="button"
+              onClick={() => {
+                setFormData((prev: any) => ({
+                  ...prev,
+                  features_or_benefits: [
+                    ...(formData.features_or_benefits || []),
+                    "",
+                  ],
+                }));
+              }}
+              className="text-blue-600 underline mt-2"
             >
-              OK
+              + Add Feature/Benefit
             </button>
           </div>
-        </div>
+        </>
+      ) : (
+        <>
+          {/* Services Section (service type) */}
+          <div className="mt-20 mb-2 flex items-center gap-2">
+            <FaWrench className="w-5 h-5 text-[#1A237E]" />
+            <h2 className="text-xl font-semibold text-slate-blue flex items-center gap-1">
+              Services provided{" "}
+              <RobotTooltip text="This field is passed to AI for prompt generation." />
+            </h2>
+          </div>
+          <div className="space-y-2">
+            {services.map((service, idx) => (
+              <div key={idx} className="flex items-center gap-2">
+                <input
+                  type="text"
+                  className="w-full border px-3 py-2 rounded"
+                  value={service}
+                  onChange={(e) => {
+                    const newServices = [...services];
+                    newServices[idx] = e.target.value;
+                    setServices(newServices);
+                    setFormData((prev: any) => ({
+                      ...prev,
+                      features_or_benefits: newServices,
+                    }));
+                  }}
+                  required
+                  placeholder="e.g., Web Design"
+                />
+                {services.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newServices = services.filter(
+                        (_, i) => i !== idx,
+                      );
+                      setServices(newServices);
+                      setFormData((prev: any) => ({
+                        ...prev,
+                        features_or_benefits: newServices,
+                      }));
+                    }}
+                    className="text-red-600 font-bold"
+                  >
+                    &times;
+                  </button>
+                )}
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => {
+                setServices([...services, ""]);
+                setFormData((prev: any) => ({
+                  ...prev,
+                  features_or_benefits: [...services, ""],
+                }));
+              }}
+              className="text-blue-600 underline mt-2"
+            >
+              + Add Service
+            </button>
+          </div>
+          <div className="mt-10 mb-2 flex items-center gap-2">
+            <FaTrophy className="w-5 h-5 text-[#1A237E]" />
+            <h2 className="text-xl font-semibold text-slate-blue flex items-center gap-1">
+              Outcome{" "}
+              <RobotTooltip text="This field is passed to AI for prompt generation." />
+            </h2>
+          </div>
+          <p className="text-xs text-gray-500 mt-1 mb-5 max-w-[85ch]">
+            Describe the service you provided and how it benefited
+            this individual.
+          </p>
+          <textarea
+            id="product_description"
+            value={formData.product_description || ""}
+            onChange={(e) =>
+              setFormData((prev: any) => ({
+                ...prev,
+                product_description: e.target.value,
+              }))
+            }
+            rows={4}
+            className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+            placeholder="Describe the outcome for your client"
+            required
+          />
+        </>
       )}
+
+      <div className="w-full flex justify-end gap-2 mt-8">
+        <button
+          type="submit"
+          className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+        >
+          Continue
+        </button>
+      </div>
     </form>
   );
 }

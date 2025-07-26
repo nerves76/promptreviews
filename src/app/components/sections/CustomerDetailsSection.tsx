@@ -13,6 +13,7 @@ import RobotTooltip from "../RobotTooltip";
 interface CustomerDetailsSectionProps {
   formData: any;
   onFormDataChange: (data: any) => void;
+  campaignType: string;
 }
 
 function Tooltip(props: { text: string }) {
@@ -38,10 +39,15 @@ function Tooltip(props: { text: string }) {
   );
 }
 
-export default function CustomerDetailsSection({ formData, onFormDataChange }: CustomerDetailsSectionProps) {
+export default function CustomerDetailsSection({ formData, onFormDataChange, campaignType }: CustomerDetailsSectionProps) {
   const updateFormData = (field: string, value: any) => {
     onFormDataChange({ [field]: value });
   };
+
+  // Don't render anything for public campaigns
+  if (campaignType === 'public') {
+    return null;
+  }
 
   return (
     <div className="custom-space-y">

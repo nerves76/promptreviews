@@ -49,19 +49,23 @@ const nextConfig = {
   // Security headers
   async headers() {
     return [
-      // Allow iframe for the embed demo only
+      // Allow iframe for the emoji sentiment embed demo
       {
         source: '/emoji-sentiment-embed.html',
         headers: [
           {
-            key: 'X-Frame-Options',
-            value: 'SAMEORIGIN', // or remove this header entirely for this file
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'origin-when-cross-origin',
           },
         ],
       },
-      // Default: deny for everything else
+      // Default: deny for everything else (excluding emoji sentiment embed)
       {
-        source: '/(.*)',
+        source: '/((?!emoji-sentiment-embed\.html).*)',
         headers: [
           {
             key: 'X-Frame-Options',
