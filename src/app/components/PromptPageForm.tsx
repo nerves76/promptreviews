@@ -437,6 +437,11 @@ export default function PromptPageForm({
 
   // Get campaign type from initialData or localStorage
   const campaignType = initialData.campaign_type || (typeof window !== 'undefined' ? localStorage.getItem('campaign_type') || 'individual' : 'individual');
+  
+  // Debug logging
+  console.log('🚨 PromptPageForm - initialData.campaign_type:', initialData.campaign_type);
+  console.log('🚨 PromptPageForm - localStorage campaign_type:', typeof window !== 'undefined' ? localStorage.getItem('campaign_type') : 'N/A');
+  console.log('🚨 PromptPageForm - final campaignType:', campaignType);
 
   // Step 1 validation
   const handleStep1Continue = () => {
