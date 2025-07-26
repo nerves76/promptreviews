@@ -862,8 +862,8 @@ export default function CreatePromptPageClient() {
         ...initialFormData,
         ...formData,
         review_type: "service",
-        // Get campaign type from localStorage or formData
-        campaign_type: formData.campaign_type || (typeof window !== 'undefined' ? localStorage.getItem('campaign_type') : null) || 'individual',
+        // Use the already correctly determined campaign type from formData
+        campaign_type: formData.campaign_type,
         // Ensure all required fields for PromptPageForm are present
         offer_enabled: formData.offer_enabled ?? false,
         offer_title: formData.offer_title ?? "",
