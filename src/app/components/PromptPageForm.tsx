@@ -629,7 +629,7 @@ export default function PromptPageForm({
             campaignType={campaignType}
           />
           
-          <div className="flex gap-4 mb-4">
+          <div className="flex gap-4 mb-4" style={{ display: campaignType === 'public' ? 'none' : 'flex' }}>
             <div className="flex-1">
               <label
                 htmlFor="first_name"
@@ -675,7 +675,7 @@ export default function PromptPageForm({
               />
             </div>
           </div>
-          <div className="flex gap-4 mb-4">
+          <div className="flex gap-4 mb-4" style={{ display: campaignType === 'public' ? 'none' : 'flex' }}>
             <div className="flex-1">
               <label
                 htmlFor="phone"
@@ -719,7 +719,7 @@ export default function PromptPageForm({
               />
             </div>
           </div>
-          <div className="mb-4">
+          <div className="mb-4" style={{ display: campaignType === 'public' ? 'none' : 'block' }}>
             <label
               htmlFor="testimonial"
               className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1"
@@ -975,7 +975,7 @@ export default function PromptPageForm({
                       />
                     </div>
                   </div>
-                  <div>
+                  <div style={{ display: campaignType === 'public' ? 'none' : 'block' }}>
                     <label
                       htmlFor="role"
                       className="block text-sm font-medium text-gray-700 mt-4 mb-2 flex items-center max-w-[85ch] gap-1"
