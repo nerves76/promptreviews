@@ -629,6 +629,7 @@ export default function PromptPageForm({
             campaignType={campaignType}
           />
           
+
           <div className="flex gap-4 mb-4" style={{ display: campaignType === 'public' ? 'none' : 'flex' }}>
             <div className="flex-1">
               <label
@@ -816,27 +817,19 @@ export default function PromptPageForm({
   }
   if (formData.review_type === "service") {
     return (
-      <form
+      <form 
         onSubmit={(e) => {
           e.preventDefault();
-          const formDataToSubmit = { 
-            ...formData, 
-            ai_button_enabled: aiReviewEnabled,
-            fix_grammar_enabled: fixGrammarEnabled,
-            emoji_sentiment_enabled: emojiSentimentEnabled,
-            emoji_sentiment_question: emojiSentimentQuestion,
-            emoji_feedback_message: emojiFeedbackMessage,
-            emoji_feedback_popup_header: emojiFeedbackPopupHeader,
-            emoji_feedback_page_header: emojiFeedbackPageHeader,
-          };
-          
           if (step === 2 && onPublish) {
-            onPublish(formDataToSubmit);
-          } else {
-            onSave(formDataToSubmit);
+            onPublish({
+              ...formData,
+              formComplete: true,
+            });
           }
         }}
+
       >
+
         <div className="flex flex-col mt-0 md:mt-[3px]">
           <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
             {mode === "create" ? "Create service prompt page" : "Edit service prompt page"}
