@@ -622,47 +622,9 @@ export default function PromptPageForm({
             </div>
           )}
           
-          {/* Customer details section - uses component that handles campaign type logic */}
-          <CustomerDetailsSection
-            formData={formData}
-            onFormDataChange={(data) => setFormData((prev: any) => ({ ...prev, ...data }))}
-            campaignType={campaignType}
-          />
-          
-          {/* Services and outcomes for step 1 */}
-          {step === 1 && (
-            <>
-              <div className="mb-6">
-                <label htmlFor="services_offered" className="block text-sm font-medium text-gray-700 mb-2">
-                  Services offered <span className="text-red-600">(required)</span>
-                </label>
-                <textarea
-                  id="services_offered"
-                  value={formData.services_offered || ""}
-                  onChange={(e) => setFormData((prev: any) => ({ ...prev, services_offered: e.target.value }))}
-                  className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                  placeholder="Describe the services you provided..."
-                  rows={3}
-                  required
-                />
-              </div>
 
-              <div className="mb-6">
-                <label htmlFor="outcomes" className="block text-sm font-medium text-gray-700 mb-2">
-                  Outcomes achieved <span className="text-red-600">(required)</span>
-                </label>
-                <textarea
-                  id="outcomes"
-                  value={formData.outcomes || ""}
-                  onChange={(e) => setFormData((prev: any) => ({ ...prev, outcomes: e.target.value }))}
-                  className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                  placeholder="Describe the results and outcomes..."
-                  rows={3}
-                  required
-                />
-              </div>
-            </>
-          )}
+          
+
 
           <div className="flex gap-4 mb-4" style={{ display: campaignType === 'public' ? 'none' : 'flex' }}>
             <div className="flex-1">
@@ -1205,6 +1167,42 @@ export default function PromptPageForm({
 
                 </>
               )}
+              
+              {/* Campaign name for public campaigns */}
+              {(isUniversal || campaignType === 'public') && (
+                <div className="mb-6">
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+                    {isUniversal ? 'Prompt page name' : 'Campaign name'} <span className="text-red-600">(required)</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    value={formData.name || ""}
+                    onChange={(e) => setFormData((prev: any) => ({ ...prev, name: e.target.value.slice(0, 50) }))}
+                    className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+                    placeholder={isUniversal ? "Holiday email campaign" : "Summer product launch"}
+                    maxLength={50}
+                    required
+                  />
+                </div>
+              )}
+
+              {/* Services offered field */}
+              <div className="mb-6">
+                <label htmlFor="services_offered" className="block text-sm font-medium text-gray-700 mb-2">
+                  Services offered <span className="text-red-600">(required)</span>
+                </label>
+                <textarea
+                  id="services_offered"
+                  value={formData.services_offered || ""}
+                  onChange={(e) => setFormData((prev: any) => ({ ...prev, services_offered: e.target.value }))}
+                  className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+                  placeholder="Describe the services you provided..."
+                  rows={3}
+                  required
+                />
+              </div>
+
               <div className="w-full flex justify-end gap-2 mt-8">
                 <button
                   type="button"
