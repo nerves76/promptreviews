@@ -17,7 +17,8 @@ import { Providers } from "@/components/Providers";
 const inter = Inter({ 
   subsets: ["latin"],
   display: 'swap',
-  variable: '--font-inter'
+  variable: '--font-inter',
+  preload: true
 });
 
 export const metadata: Metadata = {
