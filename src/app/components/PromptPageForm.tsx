@@ -867,8 +867,8 @@ export default function PromptPageForm({
                   {formError}
                 </div>
               )}
-              {/* Only show customer/client fields if not universal */}
-              {!isUniversal && (
+              {/* Only show customer/client fields if not universal and not public */}
+              {!isUniversal && campaignType !== 'public' && (
                 <>
                   <div className="mb-6 flex items-center gap-3">
                     <FaInfoCircle className="w-7 h-7 text-slate-blue" />
