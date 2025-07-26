@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import { useState, useEffect } from "react";
+import CustomerDetailsSection from "./sections/CustomerDetailsSection";
 import { generateContextualReview, generateContextualTestimonial } from "@/utils/aiReviewGeneration";
 import {
   FaRobot,
@@ -597,16 +598,6 @@ export default function PromptPageForm({
               Grab a glowing testimonial and display it on your site using our widget or use it in your promotional materials.
             </p>
           </div>
-          {/* Customer details header for individual campaigns */}
-          {campaignType === 'individual' && (
-            <div className="mb-6 flex items-center gap-3">
-              <FaInfoCircle className="w-7 h-7 text-slate-blue" />
-              <h2 className="text-2xl font-bold text-slate-blue">
-                Customer/client details
-              </h2>
-            </div>
-          )}
-          
           {/* Campaign name for public campaigns */}
           {(isUniversal || campaignType === 'public') && (
             <div className="mb-6">
@@ -625,6 +616,14 @@ export default function PromptPageForm({
               />
             </div>
           )}
+          
+          {/* Customer details section - uses component that handles campaign type logic */}
+          <CustomerDetailsSection
+            formData={formData}
+            onFormDataChange={(data) => setFormData((prev: any) => ({ ...prev, ...data }))}
+            campaignType={campaignType}
+          />
+          
           <div className="flex gap-4 mb-4">
             <div className="flex-1">
               <label
