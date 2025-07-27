@@ -278,8 +278,8 @@ export default function PhotoPromptPageForm({
         {/* Photo Prompt Page Header */}
         <SectionHeader
           icon={<FaCamera className="w-7 h-7 text-slate-blue" />}
-          title="Photo testimonial page"
-          subCopy="Create a page where customers can submit photos with their testimonials"
+          title="Prompt page name"
+          subCopy="Give your photo prompt page a clear, descriptive name"
         />
 
         {/* Customer details section - only for individual campaigns */}
