@@ -54,6 +54,7 @@ import RobotTooltip from "./RobotTooltip";
 import SectionHeader from "./SectionHeader";
 import ServicePromptPageForm from "./ServicePromptPageForm";
 import PhotoPromptPageForm from "./PhotoPromptPageForm";
+import ProductPromptPageForm from "./ProductPromptPageForm";
 
 
 /**
@@ -535,6 +536,24 @@ export default function PromptPageForm({
         isUniversal={isUniversal}
         onPublishSuccess={onPublishSuccess}
         campaignType={campaignType}
+        {...rest}
+      />
+    );
+  }
+
+  if (formData.review_type === "product") {
+    return (
+      <ProductPromptPageForm
+        mode={mode}
+        initialData={initialData}
+        onSave={onSave}
+        onPublish={onPublish}
+        pageTitle={pageTitle}
+        supabase={supabase}
+        businessProfile={businessProfile}
+        accountId={businessProfile?.account_id || ""}
+        isUniversal={isUniversal}
+        onPublishSuccess={onPublishSuccess}
         step={step}
         onStepChange={onStepChange}
         {...rest}

@@ -24,8 +24,10 @@ import {
 import { checkAccountLimits } from "@/utils/accountLimits";
 import { Dialog } from "@headlessui/react";
 import { getUserOrMock, supabase } from "@/utils/supabaseClient";
+import { markTaskAsCompleted } from "@/utils/onboardingTasks";
 import dynamic from "next/dynamic";
 import { slugify } from "@/utils/slugify";
+import { preparePromptPageData, validatePromptPageData } from "@/utils/promptPageDataMapping";
 import PromptPageForm from "../components/PromptPageForm";
 import PageCard from "../components/PageCard";
 import ProductPromptPageForm from "../components/ProductPromptPageForm";
@@ -109,68 +111,7 @@ const initialFormData = {
   contact_id: "",
 };
 
-// Utility function to map camelCase form data to snake_case DB columns and filter allowed columns
-function mapToDbColumns(formData: any): any {
-  // Ensure campaign_type is one of the allowed values
-  if (formData.campaign_type && !['public', 'individual'].includes(formData.campaign_type)) {
-    formData.campaign_type = 'individual'; // Default to individual if invalid
-  }
-
-  const allowedColumns = [
-    "account_id",
-    "status",
-    "review_type",
-    "campaign_type",
-    "name",
-    "first_name",
-    "last_name",
-    "email",
-    "phone",
-    "role",
-    "slug",
-    "review_platforms",
-    "services_offered",
-    "product_name",
-    "product_description",
-    "product_photo",
-    "features_or_benefits",
-    "ai_button_enabled",
-    "fix_grammar_enabled",
-    "emoji_sentiment_enabled",
-    "emoji_sentiment_question",
-    "emoji_feedback_message",
-    "emoji_feedback_popup_header",
-    "emoji_feedback_page_header",
-    "emoji_thank_you_message",
-    "emoji_labels",
-    "falling_enabled",
-    "falling_icon",
-    "falling_icon_color",
-    "offer_enabled",
-    "offer_title",
-    "offer_body",
-    "offer_url",
-    "friendly_note",
-    "nfc_text_enabled",
-    "note_popup_enabled",
-    "show_friendly_note"
-  ];
-
-  // Filter to only allowed columns
-  const filteredData = Object.fromEntries(
-    Object.entries(formData)
-      .filter(([k]) => allowedColumns.includes(k))
-      .map(([k, v]) => {
-        // Handle special cases
-        if (k === 'campaign_type' && !v) {
-          return [k, 'individual']; // Default value
-        }
-        return [k, v];
-      })
-  );
-  
-  return filteredData;
-}
+// Note: mapToDbColumns function replaced with centralized preparePromptPageData utility
 
 const promptTypes = [
   {
@@ -209,7 +150,13 @@ const promptTypes = [
   },
 ];
 
-export default function CreatePromptPageClient() {
+interface CreatePromptPageClientProps {
+  markOnboardingComplete?: boolean;
+}
+
+export default function CreatePromptPageClient({ 
+  markOnboardingComplete = false 
+}: CreatePromptPageClientProps = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
@@ -249,9 +196,7 @@ export default function CreatePromptPageClient() {
       : null;
     const campaignType = urlCampaignType || localStorageCampaignType || 'individual';
     
-    console.log('[DEBUG] CreatePromptPageClient - Initial campaign type from localStorage:', localStorageCampaignType);
-    console.log('[DEBUG] CreatePromptPageClient - Initial campaign type from URL:', urlCampaignType);
-    console.log('[DEBUG] CreatePromptPageClient - Final campaign type:', campaignType);
+    // Campaign type determination logic (debug logs removed for production)
     
     return {
       ...initialFormData,
@@ -275,6 +220,10 @@ export default function CreatePromptPageClient() {
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [showPostSaveModal, setShowPostSaveModal] = useState(false);
+  
+  // 🔒 Race condition prevention
+  const [isSubmissionLocked, setIsSubmissionLocked] = useState(false);
+  const submissionLockRef = useRef(false);
   const [savedPromptPageUrl, setSavedPromptPageUrl] = useState<string | null>(
     null,
   );
@@ -292,6 +241,23 @@ export default function CreatePromptPageClient() {
   );
   const [showTypeModal, setShowTypeModal] = useState(false);
   const [mounted, setMounted] = useState(false);
+
+  // Mark create prompt page task as completed when accessed from dashboard
+  useEffect(() => {
+    if (markOnboardingComplete) {
+      const markCreatePromptTaskComplete = async () => {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            await markTaskAsCompleted(user.id, "create-prompt-page");
+          }
+        } catch (error) {
+          console.error("Error marking create prompt task as complete:", error);
+        }
+      };
+      markCreatePromptTaskComplete();
+    }
+  }, [markOnboardingComplete]);
 
   useEffect(() => {
     const loadBusinessProfile = async () => {
@@ -585,11 +551,31 @@ export default function CreatePromptPageClient() {
     }
   };
 
-  const handleStep1Submit = async (formData: any) => {
-    setSaveError(null);
-    setSaveSuccess(null);
+  // 🔒 Submission lock utility to prevent race conditions
+  const withSubmissionLock = async (fn: () => Promise<void>) => {
+    if (submissionLockRef.current) {
+      console.warn("Submission already in progress, ignoring duplicate request");
+      return;
+    }
+    
+    submissionLockRef.current = true;
+    setIsSubmissionLocked(true);
     setIsSaving(true);
+    
     try {
+      await fn();
+    } finally {
+      submissionLockRef.current = false;
+      setIsSubmissionLocked(false);
+      setIsSaving(false);
+    }
+  };
+
+  const handleStep1Submit = async (formData: any) => {
+    await withSubmissionLock(async () => {
+      setSaveError(null);
+      setSaveSuccess(null);
+      try {
       const {
         data: { user },
       } = await getUserOrMock(supabase);
@@ -705,8 +691,14 @@ export default function CreatePromptPageClient() {
         insertData.product_photo = undefined;
       }
 
-      // Map form data to database columns
-      const mappedData = mapToDbColumns(insertData);
+      // Use centralized data mapping utility
+      const mappedData = preparePromptPageData(insertData);
+      
+      // Validate the prepared data
+      const validation = validatePromptPageData(mappedData);
+      if (!validation.isValid) {
+        throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
+      }
 
       // Insert the prompt page
       const { data, error } = await supabase
@@ -737,37 +729,201 @@ export default function CreatePromptPageClient() {
       }
 
       throw new Error("Failed to save. Please try again.");
-    } catch (error: any) {
-      console.error("[DEBUG] handleStep1Submit - Full error:", error);
-      console.error("[DEBUG] handleStep1Submit - Error type:", typeof error);
-      console.error("[DEBUG] handleStep1Submit - Error properties:", Object.keys(error || {}));
-      console.error("[DEBUG] handleStep1Submit - Error stack:", error?.stack);
+      } catch (error: any) {
+        console.error("[DEBUG] handleStep1Submit - Full error:", error);
+        console.error("[DEBUG] handleStep1Submit - Error type:", typeof error);
+        console.error("[DEBUG] handleStep1Submit - Error properties:", Object.keys(error || {}));
+        console.error("[DEBUG] handleStep1Submit - Error stack:", error?.stack);
+        setSaveError(
+          error instanceof Error
+            ? error.message
+            : "Failed to save. Please try again."
+        );
+      }
+    });
+  };
+
+  const handleServicePageSubmit = async (formData: any) => {
+    // Service page submission handler
+    setSaveError(null);
+    setSaveSuccess(null);
+    setIsSaving(true);
+    
+    try {
+      const userResult = await getUserOrMock(supabase);
+      
+      const {
+        data: { user },
+      } = userResult;
+      if (!user) throw new Error("No user found");
+
+      const limitResult = await checkAccountLimits(
+        supabase,
+        user.id,
+        "prompt_page",
+      );
+      
+      const { allowed, reason } = limitResult;
+      if (!allowed) {
+        setUpgradeModalMessage(
+          reason ||
+            "You have reached your plan limit. Please upgrade to create more prompt pages.",
+        );
+        setShowUpgradeModal(true);
+        return;
+      }
+
+      const { data: businessData, error: businessError } = await supabase
+        .from("businesses")
+        .select("*")
+        .eq("account_id", user.id)
+        .single();
+      if (businessError || !businessData) {
+        throw new Error(`Failed to fetch business data: ${businessError?.message || 'No business found'}`);
+      }
+
+      // Create complete prompt page data (only include valid prompt_pages columns)
+      const campaignType = formData.campaign_type || 'public';
+      const insertData = {
+        account_id: user.id,
+        // Note: business_name column doesn't exist - removed
+        review_type: "service",
+        status: "in_queue", // Published immediately
+        campaign_type: campaignType,
+        falling_icon_color: "#fbbf24",
+        // Include only valid prompt_pages fields from formData
+        name: formData.name || '',
+        notes: formData.description || '', // Using 'notes' instead of 'description'
+        services_offered: formData.services_offered || [],
+        features_or_benefits: formData.features_or_benefits || [],
+        product_description: formData.product_description || '',
+        review_platforms: formData.review_platforms || [],
+        falling_enabled: formData.fallingEnabled ?? false,
+        falling_icon: formData.falling_icon || 'star',
+        offer_enabled: formData.offer_enabled ?? false,
+        offer_title: formData.offer_title || '',
+        offer_body: formData.offer_body || '',
+        offer_url: formData.offer_url || '',
+        emoji_sentiment_enabled: formData.emojiSentimentEnabled ?? false,
+        emoji_sentiment_question: formData.emojiSentimentQuestion || 'How was your experience?',
+        emoji_feedback_message: formData.emojiFeedbackMessage || 'We value your feedback! Let us know how we can do better.',
+        emoji_thank_you_message: formData.emojiThankYouMessage || 'Thank you for your feedback!',
+        emoji_labels: formData.emojiLabels || ['Excellent', 'Satisfied', 'Neutral', 'Unsatisfied', 'Frustrated']
+      };
+
+      // Only include customer fields for individual campaigns
+      if (campaignType === 'individual') {
+        insertData.first_name = formData.first_name || '';
+        insertData.last_name = formData.last_name || '';
+        insertData.email = formData.email || '';
+        insertData.phone = formData.phone || '';
+        insertData.role = formData.role || '';
+      }
+
+      // Generate slug
+      const businessName = businessData.business_name || businessData.name || "business";
+      insertData.slug = slugify(
+        businessName +
+          "-" +
+          (formData.name || formData.first_name || "service") +
+          "-prompt",
+        typeof window !== "undefined" 
+          ? Date.now() + "-" + Math.random().toString(36).substring(2, 8)
+          : "temp-id",
+      );
+
+      // Save to database
+      
+      let data, error;
+      try {
+        const result = await supabase
+          .from("prompt_pages")
+          .insert(insertData)
+          .select("*")
+          .single();
+        data = result.data;
+        error = result.error;
+      } catch (insertError) {
+        console.error("Database insert exception:", insertError);
+        throw insertError;
+      }
+
+      if (error) {
+        console.error("Database insert error:", error);
+        throw error;
+      }
+
+      // Set success modal data in localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('showPostSaveModal', JSON.stringify({
+          name: data.name || 'Service Campaign',
+          slug: data.slug,
+          url: `${window.location.origin}/r/${data.slug}`,
+          timestamp: new Date().toISOString(),
+          isLocationCreation: false
+        }));
+      }
+
+      // Redirect to prompt pages list
+      router.push('/prompt-pages');
+      return data;
+      
+    } catch (error) {
+      console.error("🚨 Service page submit error:", error);
+      console.error("🚨 Error type:", typeof error);
+      console.error("🚨 Error constructor:", error?.constructor?.name);
+      console.error("🚨 Error properties:", Object.keys(error || {}));
+      console.error("🚨 Error own properties:", Object.getOwnPropertyNames(error || {}));
+      console.error("🚨 Error message:", error?.message);
+      console.error("🚨 Error code:", error?.code);
+      console.error("🚨 Error status:", error?.status);
+      console.error("🚨 Error hint:", error?.hint);
+      console.error("🚨 Error details:", error?.details);
+      console.error("🚨 Error stringified:", JSON.stringify(error, Object.getOwnPropertyNames(error)));
+      console.error("🚨 Error toString:", error?.toString());
+      console.error("🚨 Error stack:", error?.stack);
+      
+      // If it's a PostgrestError, log specific fields
+      if (error?.code && error?.details) {
+        console.error("🚨 PostgrestError - code:", error.code);
+        console.error("🚨 PostgrestError - details:", error.details);
+        console.error("🚨 PostgrestError - hint:", error.hint);
+        console.error("🚨 PostgrestError - message:", error.message);
+      }
+      
       setSaveError(
         error instanceof Error
           ? error.message
-          : "Failed to save. Please try again."
+          : "Failed to save service page. Please try again."
       );
+      throw error;
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleStep2Submit = async (formData: any) => {
-    setSaveError(null);
-    setSaveSuccess(null);
-    setIsSaving(true);
-    try {
+    await withSubmissionLock(async () => {
+      setSaveError(null);
+      setSaveSuccess(null);
+      try {
       // Get the campaign type from localStorage - this determines the page's behavior
       const campaignType = typeof window !== 'undefined' 
         ? localStorage.getItem('campaign_type') || 'individual'
         : 'individual';
 
-      // Map form data to database columns
-      const updateData = mapToDbColumns({
+      // Use centralized data mapping utility
+      const updateData = preparePromptPageData({
         ...formData,
         campaign_type: campaignType,  // Ensure campaign_type is included in final submission
         status: 'published'
       });
+      
+      // Validate the prepared data
+      const validation = validatePromptPageData(updateData);
+      if (!validation.isValid) {
+        throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
+      }
 
       if (!createdSlug) {
         throw new Error("No slug found. The prompt page may not have been created in step 1.");
@@ -806,26 +962,23 @@ export default function CreatePromptPageClient() {
             email: formData.email
           }),
         );
-        console.log("[DEBUG] handleStep2Submit - Success, redirecting to /prompt-pages");
+        // Success - redirecting to prompt pages
         router.push("/prompt-pages");
 
         // Show success message and redirect
         setShowPostSaveModal(true);
         return;
       }
-      setSaveSuccess("Prompt page updated successfully!");
-    } catch (error) {
-      console.error("[DEBUG] handleStep2Submit - Full error:", error);
-      console.error("[DEBUG] handleStep2Submit - Error type:", typeof error);
-      console.error("[DEBUG] handleStep2Submit - Error properties:", Object.keys(error || {}));
-      setSaveError(
-        error instanceof Error
-          ? error.message
-          : "Failed to update prompt page. Please try again."
-      );
-    } finally {
-      setIsSaving(false);
-    }
+        setSaveSuccess("Prompt page updated successfully!");
+      } catch (error) {
+        console.error("Step 2 submit error:", error);
+        setSaveError(
+          error instanceof Error
+            ? error.message
+            : "Failed to update prompt page. Please try again."
+        );
+      }
+    });
   };
 
   useEffect(() => {
@@ -891,17 +1044,15 @@ export default function CreatePromptPageClient() {
         aiButtonEnabled: formData.aiButtonEnabled ?? true,
       };
 
+              // Service form submission handler
       return (
         <PromptPageForm
           mode="create"
           initialData={serviceInitialData}
-          onSave={handleStep1Submit}
-          onPublish={handleStep2Submit}
+          onSave={handleServicePageSubmit}
           pageTitle="Create service prompt page"
           supabase={supabase}
           businessProfile={businessProfile}
-          step={step}
-          onStepChange={setStep}
         />
       );
     }
