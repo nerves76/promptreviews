@@ -127,9 +127,10 @@ export default function ServicePromptPageForm({
         console.log('🔥 ServicePromptPageForm onSave result:', result);
         
         // Call success callback if provided
-        if (onPublishSuccess && result?.slug) {
-          console.log('🔥 ServicePromptPageForm calling onPublishSuccess with slug:', result.slug);
-          onPublishSuccess(result.slug);
+        if (onPublishSuccess && result && typeof result === 'object' && 'slug' in result) {
+          const typedResult = result as { slug: string };
+          console.log('🔥 ServicePromptPageForm calling onPublishSuccess with slug:', typedResult.slug);
+          onPublishSuccess(typedResult.slug);
         } else {
           console.log('🔥 ServicePromptPageForm - no onPublishSuccess callback or slug');
         }
