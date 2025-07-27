@@ -28,6 +28,7 @@ import Link from "next/link";
 import { getAccountIdForUser } from "@/utils/accountUtils";
 import IndustrySelector from "@/app/components/IndustrySelector";
 import PromptPageForm from "@/app/components/PromptPageForm";
+import PhotoPromptPageForm from "@/app/components/PhotoPromptPageForm";
 import PageCard from "@/app/components/PageCard";
 import EmojiSentimentSection from "../components/EmojiSentimentSection";
 import FallingStarsSection from "@/app/components/FallingStarsSection";
@@ -1247,21 +1248,18 @@ export default function EditPromptPage() {
     );
   }
 
-  // For photo pages, use the PromptPageForm component
-  if (formData.type === "photo") {
-    console.log('🔍 Rendering PromptPageForm for photo with:', { formData, businessProfile, step });
+  // For photo pages, use the PhotoPromptPageForm component
+  if (formData.review_type === "photo") {
+    console.log('🔍 Rendering PhotoPromptPageForm for photo with:', { formData, businessProfile, step });
     return (
       <PageCard icon={<FaCamera className="w-9 h-9 text-slate-blue" />}>
-        <PromptPageForm
-          mode="edit"
+        <PhotoPromptPageForm
           initialData={formData}
-          onSave={handleStep1Save}
-          onPublish={handleStep2Save}
-          pageTitle="Edit Photo + Testimonial Prompt Page"
-          supabase={supabase}
-          businessProfile={businessProfile}
-          step={step}
-          onStepChange={setStep}
+          onSave={handleFormSave}
+          isLoading={isLoading}
+          showResetButton={showResetButton}
+          businessReviewPlatforms={businessReviewPlatforms}
+          campaignType="individual"
         />
       </PageCard>
     );
