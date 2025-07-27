@@ -37,7 +37,6 @@ import {
   FaCommentDots,
   FaMagic,
   FaMobile,
-  FaCheckCircle,
 } from "react-icons/fa";
 import dynamic from "next/dynamic";
 import { slugify } from "@/utils/slugify";
@@ -623,9 +622,47 @@ export default function PromptPageForm({
             </div>
           )}
           
-
+          {/* Customer details section - uses component that handles campaign type logic */}
+          <CustomerDetailsSection
+            formData={formData}
+            onFormDataChange={(data) => setFormData((prev: any) => ({ ...prev, ...data }))}
+            campaignType={campaignType}
+          />
           
+          {/* Services and outcomes for step 1 */}
+          {step === 1 && (
+            <>
+              <div className="mb-6">
+                <label htmlFor="services_offered" className="block text-sm font-medium text-gray-700 mb-2">
+                  Services offered <span className="text-red-600">(required)</span>
+                </label>
+                <textarea
+                  id="services_offered"
+                  value={formData.services_offered || ""}
+                  onChange={(e) => setFormData((prev: any) => ({ ...prev, services_offered: e.target.value }))}
+                  className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+                  placeholder="Describe the services you provided..."
+                  rows={3}
+                  required
+                />
+              </div>
 
+              <div className="mb-6">
+                <label htmlFor="outcomes" className="block text-sm font-medium text-gray-700 mb-2">
+                  Outcomes achieved <span className="text-red-600">(required)</span>
+                </label>
+                <textarea
+                  id="outcomes"
+                  value={formData.outcomes || ""}
+                  onChange={(e) => setFormData((prev: any) => ({ ...prev, outcomes: e.target.value }))}
+                  className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
+                  placeholder="Describe the results and outcomes..."
+                  rows={3}
+                  required
+                />
+              </div>
+            </>
+          )}
 
           <div className="flex gap-4 mb-4" style={{ display: campaignType === 'public' ? 'none' : 'flex' }}>
             <div className="flex-1">
@@ -817,14 +854,16 @@ export default function PromptPageForm({
       <form 
         onSubmit={(e) => {
           e.preventDefault();
-          if (onPublish) {
+          if (step === 2 && onPublish) {
             onPublish({
               ...formData,
               formComplete: true,
             });
           }
         }}
+
       >
+
         <div className="flex flex-col mt-0 md:mt-[3px]">
           <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
             {mode === "create" ? "Create service prompt page" : "Edit service prompt page"}
@@ -833,27 +872,37 @@ export default function PromptPageForm({
             Create a personalized prompt page to collect reviews from your service customers.
           </p>
         </div>
-        
-        {/* Top right button - single Save & Publish */}
+        {/* Top right button group */}
         <div className="absolute top-4 right-8 z-20 flex gap-2">
-          <button
-            type="submit"
-            className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-            disabled={isSaving}
-          >
-            {isSaving ? "Publishing..." : "Save & publish"}
-          </button>
+          {step === 1 ? (
+            <button
+              type="button"
+              className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+              onClick={handleStep1Continue}
+              disabled={isSaving}
+            >
+              {isSaving ? "Saving..." : "Save & continue"}
+            </button>
+          ) : step === 2 ? (
+            <button
+              type="submit"
+              className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+              disabled={isSaving}
+            >
+              {isSaving ? "Publishing..." : "Save & publish"}
+            </button>
+          ) : null}
         </div>
-        
-        <div className="space-y-12">
-          {formError && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded">
-              {formError}
-            </div>
-          )}
-          
-          {/* Only show customer/client fields if not universal and not public */}
-          {!isUniversal && campaignType !== 'public' && (
+        <div>
+          {step === 1 ? (
+            <div className="custom-space-y">
+              {formError && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded">
+                  {formError}
+                </div>
+              )}
+              {/* Only show customer/client fields if not universal and not public */}
+              {!isUniversal && campaignType !== 'public' && (
                 <>
                   <div className="mb-6 flex items-center gap-3">
                     <FaInfoCircle className="w-7 h-7 text-slate-blue" />
@@ -1156,30 +1205,18 @@ export default function PromptPageForm({
 
                 </>
               )}
-              
-              {/* Campaign name for public campaigns */}
-              {(isUniversal || campaignType === 'public') && (
-                <div className="mb-6">
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
-                    {isUniversal ? 'Prompt page name' : 'Campaign name'} <span className="text-red-600">(required)</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    value={formData.name || ""}
-                    onChange={(e) => setFormData((prev: any) => ({ ...prev, name: e.target.value.slice(0, 50) }))}
-                    className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                    placeholder={isUniversal ? "Holiday email campaign" : "Summer product launch"}
-                    maxLength={50}
-                    required
-                  />
-                </div>
-              )}
-
-
-
-              
-              {/* Review Platforms Section */}
+              <div className="w-full flex justify-end gap-2 mt-8">
+                <button
+                  type="button"
+                  className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+                  onClick={handleStep1Continue}
+                >
+                  Save & continue
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-12">
               <ReviewWriteSection
                 value={formData.review_platforms}
                 onChange={(platforms) =>
@@ -1324,7 +1361,62 @@ export default function PromptPageForm({
             </div>
           )}
         </div>
-
+        {(mode !== "create" || step === 2) && (
+          <>
+            {/* Bottom action row: left (Back) and right (Save/View or Save & publish/View) for step 2 */}
+            {step === 2 && mode === "create" && (
+              <div className="w-full flex justify-between items-center pr-2 pb-4 md:pr-6 md:pb-6 mt-8">
+                {/* Bottom left Back button */}
+                <div>
+                  <button
+                    type="button"
+                    className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-slate-blue shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+                    onClick={() => onStepChange?.(1)}
+                    disabled={isSaving}
+                  >
+                    Back
+                  </button>
+                </div>
+                {/* Bottom right Save & publish button */}
+                <div>
+                  <button
+                    type="submit"
+                    className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+                    disabled={isSaving}
+                  >
+                    {isSaving ? "Publishing..." : "Save & publish"}
+                  </button>
+                </div>
+              </div>
+            )}
+            {/* Bottom action row for edit mode step 2 */}
+            {mode !== "create" && step === 2 && (
+              <div className="w-full flex justify-between items-center pr-2 pb-4 md:pr-6 md:pb-6 mt-8">
+                {/* Bottom left Back button */}
+                <div>
+                  <button
+                    type="button"
+                    className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-slate-blue shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+                    onClick={() => onStepChange?.(1)}
+                    disabled={isSaving}
+                  >
+                    Back
+                  </button>
+                </div>
+                {/* Bottom right Save & publish button */}
+                <div>
+                  <button
+                    type="submit"
+                    className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+                    disabled={isSaving}
+                  >
+                    {isSaving ? "Publishing..." : "Save & publish"}
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
       </form>
     );
   }
