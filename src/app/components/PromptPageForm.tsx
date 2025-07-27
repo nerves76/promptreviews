@@ -135,14 +135,7 @@ export default function PromptPageForm({
   }, [formData.first_name, formData.last_name, formData.phone, formData.email, formData.role]);
 
   useEffect(() => {
-    console.log("[DEBUG] PromptPageForm useEffect - initialData:", initialData);
-    console.log("[DEBUG] Customer details from initialData:", {
-      first_name: initialData.first_name,
-      last_name: initialData.last_name,
-      phone: initialData.phone,
-      email: initialData.email,
-      role: initialData.role,
-    });
+    // Initialize form data from props (debug logs removed for production)
     
     setFormData({
       ...initialData,
@@ -442,9 +435,7 @@ export default function PromptPageForm({
   const campaignType = initialData.campaign_type || (typeof window !== 'undefined' ? localStorage.getItem('campaign_type') || 'individual' : 'individual');
   
   // Debug logging
-  console.log('🚨 PromptPageForm - initialData.campaign_type:', initialData.campaign_type);
-  console.log('🚨 PromptPageForm - localStorage campaign_type:', typeof window !== 'undefined' ? localStorage.getItem('campaign_type') : 'N/A');
-  console.log('🚨 PromptPageForm - final campaignType:', campaignType);
+      // Campaign type determination logic (debug logs removed for production)
 
   // Step 1 validation
   const handleStep1Continue = () => {

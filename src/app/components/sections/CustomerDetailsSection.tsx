@@ -44,13 +44,8 @@ export default function CustomerDetailsSection({ formData, onFormDataChange, cam
     onFormDataChange((prev: any) => ({ ...prev, [field]: value }));
   };
 
-  // Debug logging
-  console.log('🔍 CustomerDetailsSection - campaignType:', campaignType);
-  console.log('🔍 CustomerDetailsSection - will render:', campaignType !== 'public');
-
   // Don't render anything for public campaigns
   if (campaignType === 'public') {
-    console.log('❌ CustomerDetailsSection - returning null for public campaign');
     return null;
   }
 
