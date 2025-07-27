@@ -275,13 +275,6 @@ export default function PhotoPromptPageForm({
           </div>
         )}
 
-        {/* Photo Prompt Page Header */}
-        <SectionHeader
-          icon={<FaCamera className="w-7 h-7 text-slate-blue" />}
-          title="Photo testimonial template"
-          subCopy="Create a template that your client will see when submitting their photo + testimonial"
-        />
-
         {/* Customer details section - only for individual campaigns */}
         {!isUniversal && campaignType !== 'public' && (
           <CustomerDetailsSection
