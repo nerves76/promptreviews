@@ -796,8 +796,14 @@ export default function EditPromptPage() {
         return;
       }
       
-      // Update local form data
-      setFormData(prev => ({ ...prev, ...updateData }));
+      // Update local form data (preserve important fields like review_type and type)
+      setFormData(prev => ({ 
+        ...prev, 
+        ...updateData,
+        // Preserve critical fields that shouldn't be overwritten
+        review_type: prev.review_type,
+        type: prev.type
+      }));
       
       // Move to step 2
       setStep(2);

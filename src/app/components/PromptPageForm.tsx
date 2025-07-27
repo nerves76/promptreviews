@@ -132,6 +132,7 @@ export default function PromptPageForm({
     });
   }, [formData.first_name, formData.last_name, formData.phone, formData.email, formData.role]);
 
+  // Initialize form data only once on mount to prevent overwriting user input
   useEffect(() => {
     console.log("[DEBUG] PromptPageForm useEffect - initialData:", initialData);
     console.log("[DEBUG] Customer details from initialData:", {
@@ -150,6 +151,12 @@ export default function PromptPageForm({
         "",
       show_friendly_note: initialData.show_friendly_note ?? true,
     });
+    setNoPlatformReviewTemplate(initialData.no_platform_review_template || "");
+    setServices(initialData.features_or_benefits || []);
+  }, []); // Only run on mount to prevent overwriting user input
+
+  // Initialize toggle states when initialData changes (but not form data)
+  useEffect(() => {
     setOfferEnabled(
       initialData.offer_enabled ?? initialData.offerEnabled ?? false,
     );
@@ -185,9 +192,7 @@ export default function PromptPageForm({
     setNfcTextEnabled(initialData.nfc_text_enabled ?? false);
     setFallingEnabled(!!initialData.falling_icon);
     handleIconChange(initialData.falling_icon || "star");
-    setNoPlatformReviewTemplate(initialData.no_platform_review_template || "");
-    setServices(initialData.features_or_benefits || []);
-  }, []); // Only run on mount to prevent overwriting user input
+  }, [initialData.offer_enabled, initialData.offerEnabled, initialData.offer_title, initialData.offer_body, initialData.offer_url, initialData.emoji_sentiment_enabled, initialData.emojiSentimentEnabled, initialData.emoji_sentiment_question, initialData.emoji_feedback_message, initialData.emoji_feedback_popup_header, initialData.emoji_feedback_page_header, initialData.show_friendly_note, initialData.nfc_text_enabled, initialData.falling_icon, handleIconChange]);
 
   // Ensure slug is set for the View button
   useEffect(() => {
