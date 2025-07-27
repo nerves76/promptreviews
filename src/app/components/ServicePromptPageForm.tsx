@@ -85,19 +85,35 @@ export default function ServicePromptPageForm({
   };
 
   // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
     
-    // Only publish, don't auto-save during form submission
-    if (onPublish) {
-      onPublish({
-        ...formData,
-        formComplete: true,
-      });
+    try {
+      // Only publish, don't auto-save during form submission
+      if (onPublish) {
+        const publishData = {
+          ...formData,
+          formComplete: true,
+        };
+        
+        await onPublish(publishData);
+        
+        // Call success callback if publish succeeded
+        if (onPublishSuccess && publishData.slug) {
+          onPublishSuccess(publishData.slug);
+        } else if (onPublishSuccess) {
+          // Generate a slug from the campaign name or service name if not provided
+          const slug = publishData.name || publishData.service_name || 'new-campaign';
+          onPublishSuccess(slug);
+        }
+      }
+    } catch (error) {
+      console.error('Error publishing service prompt page:', error);
+      setFormError('Failed to publish prompt page. Please try again.');
+    } finally {
+      setIsSaving(false);
     }
-    
-    setIsSaving(false);
   };
 
   return (
