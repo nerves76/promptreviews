@@ -23,7 +23,7 @@ import ReviewWriteSection from "../dashboard/edit-prompt-page/components/ReviewW
 import OfferSection from "../dashboard/edit-prompt-page/components/OfferSection";
 import EmojiSentimentSection from "../dashboard/edit-prompt-page/components/EmojiSentimentSection";
 import DisableAIGenerationSection from "./DisableAIGenerationSection";
-import FallingStarsSection from "./FallingStarsSection";
+import FallingStarsSection from "@/app/components/FallingStarsSection";
 import { FaCommentDots, FaMobile, FaSpinner, FaSave } from "react-icons/fa";
 import SectionHeader from "./SectionHeader";
 import { BusinessProfile } from "@/types/business";
