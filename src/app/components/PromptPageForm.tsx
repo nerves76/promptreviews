@@ -187,7 +187,7 @@ export default function PromptPageForm({
     handleIconChange(initialData.falling_icon || "star");
     setNoPlatformReviewTemplate(initialData.no_platform_review_template || "");
     setServices(initialData.features_or_benefits || []);
-  }, [initialData]);
+  }, []); // Only run on mount to prevent overwriting user input
 
   // Ensure slug is set for the View button
   useEffect(() => {
