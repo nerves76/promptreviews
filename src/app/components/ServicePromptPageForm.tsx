@@ -97,14 +97,17 @@ export default function ServicePromptPageForm({
           formComplete: true,
         };
         
-        await onPublish(publishData);
+        // onPublish should return the created prompt page data with slug
+        const result = await onPublish(publishData);
         
-        // Call success callback if publish succeeded
-        if (onPublishSuccess && publishData.slug) {
-          onPublishSuccess(publishData.slug);
-        } else if (onPublishSuccess) {
-          // Generate a slug from the campaign name or service name if not provided
-          const slug = publishData.name || publishData.service_name || 'new-campaign';
+        // Call success callback with the slug from the response
+        if (onPublishSuccess) {
+          // Check if result has slug, otherwise generate one
+          const slug = result?.slug || 
+                      publishData.name || 
+                      publishData.service_name || 
+                      formData.services_offered?.[0] ||
+                      'new-service-campaign';
           onPublishSuccess(slug);
         }
       }
