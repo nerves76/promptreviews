@@ -1,29 +1,48 @@
-import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
 import { nanoid } from "nanoid";
-import { createServerClient } from "@supabase/ssr";
-import { sanitizePromptPageInsert } from "@/utils/sanitizePromptPageInsert";
+import { createClient } from "@supabase/supabase-js";
 import { slugify } from "@/utils/slugify";
+import { getAccountIdForUser } from "@/utils/accountUtils";
+import { preparePromptPageData, validatePromptPageData } from "@/utils/promptPageDataMapping";
 
-export async function POST(request: Request) {
+// Initialize Supabase client with service key for privileged operations
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          get: (name) => cookieStore.get(name)?.value,
-          set: (name, value, options) => {
-            // Not needed for this handler
-          },
-          remove: (name, options) => {
-            // Not needed for this handler
-          },
-        },
-      },
-    );
+
+    // 🔒 SECURITY: Validate authentication before processing
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    const token = authHeader.substring(7);
+    
+    // Verify user token
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Invalid authentication token' },
+        { status: 401 }
+      );
+    }
+
+    // Get account ID for authenticated user
+    const accountId = await getAccountIdForUser(user.id, supabase);
+    if (!accountId) {
+      return NextResponse.json(
+        { error: 'Account not found. Please ensure you have completed the signup process.' },
+        { status: 404 }
+      );
+    }
 
     // Generate a unique slug from client_name or title
     let slug;
@@ -35,30 +54,36 @@ export async function POST(request: Request) {
       slug = nanoid(8);
     }
 
-    // Create the prompt page in Supabase
-    const insertData = sanitizePromptPageInsert({
+    // Prepare form data with account ID and slug
+    const formDataWithMeta = {
+      ...body,
+      account_id: accountId, // 🔒 SECURITY: Use authenticated user's account ID
       slug,
-      client_name: body.client_name,
-      location: body.location,
-      tone_of_voice: body.tone_of_voice,
-      project_type: body.project_type,
+      // Map legacy field names to new structure
+      name: body.client_name || body.name,
       features_or_benefits: Array.isArray(body.services_offered)
         ? body.services_offered
         : typeof body.services_offered === "string"
           ? [body.services_offered]
-          : [],
-      product_description: body.outcomes,
-      date_completed: body.date_completed,
-      team_member: body.team_member,
-      review_platforms: body.review_platform_links,
-      offer_enabled: body.offer_enabled,
-      offer_title: body.offer_title,
-      offer_body: body.offer_body,
-      status: body.status,
-      account_id: body.business_id, // This should come from the authenticated user
-      show_friendly_note: body.show_friendly_note,
-      friendly_note: body.friendly_note,
-    });
+          : body.features_or_benefits || [],
+      product_description: body.outcomes || body.product_description,
+      review_platforms: body.review_platform_links || body.review_platforms
+    };
+
+    // Use centralized data mapping utility
+    const insertData = preparePromptPageData(formDataWithMeta);
+
+    // Validate the prepared data
+    const validation = validatePromptPageData(insertData);
+    if (!validation.isValid) {
+      return NextResponse.json(
+        { 
+          error: "Validation failed", 
+          details: validation.errors 
+        },
+        { status: 400 }
+      );
+    }
     const { data, error } = await supabase
       .from("prompt_pages")
       .insert([insertData])

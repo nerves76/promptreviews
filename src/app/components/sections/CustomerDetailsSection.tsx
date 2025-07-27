@@ -41,7 +41,7 @@ function Tooltip(props: { text: string }) {
 
 export default function CustomerDetailsSection({ formData, onFormDataChange, campaignType }: CustomerDetailsSectionProps) {
   const updateFormData = (field: string, value: any) => {
-    onFormDataChange({ [field]: value });
+    onFormDataChange((prev: any) => ({ ...prev, [field]: value }));
   };
 
   // Debug logging

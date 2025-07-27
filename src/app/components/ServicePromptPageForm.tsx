@@ -66,18 +66,42 @@ export default function ServicePromptPageForm({
   onPublishSuccess,
   campaignType,
 }: ServicePromptPageFormProps) {
-  // Initialize form data state from initialData
-  const [formData, setFormData] = useState(initialData);
+  // Debug logging for review_platforms
+  console.log('🔍 ServicePromptPageForm - initialData.review_platforms:', initialData.review_platforms);
+  console.log('🔍 ServicePromptPageForm - typeof review_platforms:', typeof initialData.review_platforms);
+  
+  // Initialize form data state from initialData with review_platforms safety check
+  const safeInitialData = {
+    ...initialData,
+    // Ensure review_platforms is always an array
+    review_platforms: Array.isArray(initialData.review_platforms) ? initialData.review_platforms : [],
+  };
+  
+  const [formData, setFormData] = useState(safeInitialData);
   const [isSaving, setIsSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
-  // Update form data when initialData changes
+  // Initialize form data only once on mount or when initialData changes significantly
   useEffect(() => {
-    setFormData(initialData);
-  }, [initialData]);
+    // Only update form data if this looks like a genuinely new/different record
+    const isInitialLoad = !formData || Object.keys(formData).length === 0;
+    const isDifferentRecord = initialData?.id && formData?.id && initialData.id !== formData.id;
+    
+    if (!isSaving && initialData && (isInitialLoad || isDifferentRecord)) {
+      // Create safe initial data with proper review_platforms
+      const safeData = {
+        ...initialData,
+        review_platforms: Array.isArray(initialData.review_platforms) ? initialData.review_platforms : [],
+      };
+      
+      console.log('🔄 ServicePromptPageForm setting form data:', { isInitialLoad, isDifferentRecord, safeData });
+      setFormData(safeData);
+    }
+  }, [initialData?.id, isSaving]); // Only depend on initialData.id, not the whole object
 
   // Update form data helper (no auto-save)
   const updateFormData = (field: string, value: any) => {
+    console.log(`🔧 ServicePromptPageForm updating field "${field}" with value:`, value);
     setFormData((prev: any) => ({
       ...prev,
       [field]: value,
@@ -90,30 +114,29 @@ export default function ServicePromptPageForm({
     setIsSaving(true);
     
     try {
-      // Only publish, don't auto-save during form submission
-      if (onPublish) {
-        const publishData = {
+      // Use onSave to save the form data (like ProductPromptPageForm does)
+      if (onSave) {
+        const saveData = {
           ...formData,
+          review_type: "service",
           formComplete: true,
         };
         
-        // onPublish should return the created prompt page data with slug
-        const result = await onPublish(publishData);
+        console.log('🔥 ServicePromptPageForm calling onSave with:', saveData);
+        const result = await onSave(saveData);
+        console.log('🔥 ServicePromptPageForm onSave result:', result);
         
-        // Call success callback with the slug from the response
-        if (onPublishSuccess) {
-          // Check if result has slug, otherwise generate one
-          const slug = result?.slug || 
-                      publishData.name || 
-                      publishData.service_name || 
-                      formData.services_offered?.[0] ||
-                      'new-service-campaign';
-          onPublishSuccess(slug);
+        // Call success callback if provided
+        if (onPublishSuccess && result?.slug) {
+          console.log('🔥 ServicePromptPageForm calling onPublishSuccess with slug:', result.slug);
+          onPublishSuccess(result.slug);
+        } else {
+          console.log('🔥 ServicePromptPageForm - no onPublishSuccess callback or slug');
         }
       }
     } catch (error) {
-      console.error('Error publishing service prompt page:', error);
-      setFormError('Failed to publish prompt page. Please try again.');
+      console.error('Error saving service prompt page:', error);
+      setFormError('Failed to save prompt page. Please try again.');
     } finally {
       setIsSaving(false);
     }
@@ -147,7 +170,14 @@ export default function ServicePromptPageForm({
         {!isUniversal && campaignType !== 'public' && (
           <CustomerDetailsSection
             formData={formData}
-            onFormDataChange={setFormData}
+            onFormDataChange={(updateFn) => {
+              if (typeof updateFn === 'function') {
+                setFormData(updateFn);
+              } else {
+                // Legacy: direct object passed
+                setFormData((prev: any) => ({ ...prev, ...updateFn }));
+              }
+            }}
             campaignType={campaignType}
           />
         )}
@@ -258,8 +288,10 @@ export default function ServicePromptPageForm({
         </div>
 
         {/* Review Platforms Section */}
+        {console.log('🔥 ServicePromptPageForm - About to render ReviewWriteSection with value:', formData.review_platforms)}
+        {console.log('🔥 ServicePromptPageForm - formData keys:', Object.keys(formData || {}))}
         <ReviewWriteSection
-          value={formData.review_platforms}
+          value={Array.isArray(formData.review_platforms) ? formData.review_platforms : []}
           onChange={(platforms) => updateFormData('review_platforms', platforms)}
           onGenerateReview={() => {}} // AI generation handled elsewhere
           hideReviewTemplateFields={isUniversal}

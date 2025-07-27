@@ -70,8 +70,6 @@ interface PhotoPromptPageFormProps {
   isUniversal?: boolean;
   onPublishSuccess?: (slug: string) => void;
   campaignType: string;
-  step?: number;
-  onStepChange?: (step: number) => void;
   [key: string]: any;
 }
 
@@ -86,8 +84,6 @@ export default function PhotoPromptPageForm({
   isUniversal = false,
   onPublishSuccess,
   campaignType,
-  step = 1,
-  onStepChange,
   ...rest
 }: PhotoPromptPageFormProps) {
   const router = useRouter();
@@ -298,30 +294,29 @@ export default function PhotoPromptPageForm({
     }
   };
 
-  // Step 1 validation
-  const handleStep1Continue = () => {
+  // Form validation
+  const validateForm = () => {
     setFormError(null);
     
     // For individual campaigns, require personal information
     if (campaignType === 'individual') {
       if (!formData.first_name.trim()) {
         setFormError("First name is required for individual prompt pages.");
-        return;
+        return false;
       }
       if (!formData.email.trim() && !formData.phone.trim()) {
         setFormError("Please enter at least an email or phone number for individual prompt pages.");
-        return;
+        return false;
       }
     } else {
       // For public campaigns, require a campaign name
       if (!formData.name?.trim()) {
         setFormError("Campaign name is required for public prompt pages.");
-        return;
+        return false;
       }
     }
-
-    // Call onSave to save step 1 data
-    onSave(formData);
+    
+    return true;
   };
 
   const handleToggleFalling = () => {
@@ -419,6 +414,11 @@ export default function PhotoPromptPageForm({
         onSubmit={(e) => {
           e.preventDefault();
           setSubmitted(true);
+          
+          if (!validateForm()) {
+            return;
+          }
+          
           onSave({
             ...formData,
             aiReviewEnabled,
@@ -429,24 +429,13 @@ export default function PhotoPromptPageForm({
       >
         {/* Top right button */}
         <div className="absolute top-4 right-8 z-20 flex gap-2">
-          {step === 1 ? (
-            <button
-              type="button"
-              className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-              onClick={handleStep1Continue}
-              disabled={isSaving}
-            >
-              {isSaving ? "Saving..." : "Save & continue"}
-            </button>
-          ) : (
-            <button
-              type="submit"
-              className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-              disabled={isSaving}
-            >
-              {isSaving ? "Publishing..." : "Save & publish"}
-            </button>
-          )}
+          <button
+            type="submit"
+            className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+            disabled={isSaving}
+          >
+            {isSaving ? "Publishing..." : "Save & Publish"}
+          </button>
         </div>
         <div className="flex flex-col mt-0 md:mt-[3px]">
           <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
@@ -483,9 +472,7 @@ export default function PhotoPromptPageForm({
           campaignType={campaignType}
         />
 
-        {/* Step 1 content */}
-        {step === 1 && (
-          <>
+        {/* Form content */}
             {/* Project description */}
             <div className="mb-6">
               <label
@@ -564,17 +551,13 @@ export default function PhotoPromptPageForm({
                 <p className="text-red-700 text-sm">{formError}</p>
               </div>
             )}
-          </>
-        )}
 
-        {/* Step 2 content */}
-        {step === 2 && (
-          <>
+        {/* Photo testimonial template section */}
             {/* Photo upload section */}
             <SectionHeader
-              icon={FaCamera}
+              icon={<FaCamera className="w-7 h-7 text-slate-blue" />}
               title="Photo testimonial template"
-              subtitle="Create a template that your client will see when submitting their photo + testimonial"
+              subCopy="Create a template that your client will see when submitting their photo + testimonial"
             />
 
             <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
@@ -620,115 +603,56 @@ export default function PhotoPromptPageForm({
               </div>
             </div>
 
-            {/* Offer Section */}
-            <OfferSection
-              offerEnabled={offerEnabled}
-              offerTitle={offerTitle}
-              offerBody={offerBody}
-              offerUrl={offerUrl}
-              onOfferEnabledChange={setOfferEnabled}
-              onOfferTitleChange={setOfferTitle}
-              onOfferBodyChange={setOfferBody}
-              onOfferUrlChange={setOfferUrl}
-              showPopupConflictModal={showPopupConflictModal}
-              setShowPopupConflictModal={setShowPopupConflictModal}
-              emojiSentimentEnabled={emojiSentimentEnabled}
-            />
+            {/* Additional Settings Sections */}
+            <div className="space-y-6">
+              {/* Offer Section */}
+              <OfferSection
+                enabled={offerEnabled}
+                onToggle={() => setOfferEnabled(!offerEnabled)}
+                title={offerTitle}
+                onTitleChange={setOfferTitle}
+                description={offerBody}
+                onDescriptionChange={setOfferBody}
+                url={offerUrl}
+                onUrlChange={setOfferUrl}
+              />
 
-            {/* Emoji Sentiment Section */}
-            <EmojiSentimentSection
-              emojiSentimentEnabled={emojiSentimentEnabled}
-              emojiSentimentQuestion={emojiSentimentQuestion}
-              emojiFeedbackMessage={emojiFeedbackMessage}
-              emojiFeedbackPopupHeader={emojiFeedbackPopupHeader}
-              emojiFeedbackPageHeader={emojiFeedbackPageHeader}
-              onEmojiSentimentEnabledChange={setEmojiSentimentEnabled}
-              onEmojiSentimentQuestionChange={setEmojiSentimentQuestion}
-              onEmojiFeedbackMessageChange={setEmojiFeedbackMessage}
-              onEmojiFeedbackPopupHeaderChange={setEmojiFeedbackPopupHeader}
-              onEmojiFeedbackPageHeaderChange={setEmojiFeedbackPageHeader}
-              showPopupConflictModal={showPopupConflictModal}
-              setShowPopupConflictModal={setShowPopupConflictModal}
-              notePopupEnabled={notePopupEnabled}
-            />
+              {/* Emoji Sentiment Section */}
+              <EmojiSentimentSection
+                emojiSentimentEnabled={emojiSentimentEnabled}
+                emojiSentimentQuestion={emojiSentimentQuestion}
+                emojiFeedbackMessage={emojiFeedbackMessage}
+                emojiFeedbackPopupHeader={emojiFeedbackPopupHeader}
+                emojiFeedbackPageHeader={emojiFeedbackPageHeader}
+                onEmojiSentimentEnabledChange={setEmojiSentimentEnabled}
+                onEmojiSentimentQuestionChange={setEmojiSentimentQuestion}
+                onEmojiFeedbackMessageChange={setEmojiFeedbackMessage}
+                onEmojiFeedbackPopupHeaderChange={setEmojiFeedbackPopupHeader}
+                onEmojiFeedbackPageHeaderChange={setEmojiFeedbackPageHeader}
+                showPopupConflictModal={showPopupConflictModal}
+                setShowPopupConflictModal={setShowPopupConflictModal}
+                notePopupEnabled={notePopupEnabled}
+              />
 
-            {/* Disable AI Generation Section */}
-            <DisableAIGenerationSection
-              aiReviewEnabled={aiReviewEnabled}
-              fixGrammarEnabled={fixGrammarEnabled}
-              onAiReviewEnabledChange={setAiReviewEnabled}
-              onFixGrammarEnabledChange={setFixGrammarEnabled}
-            />
+              {/* Disable AI Generation Section */}
+              <DisableAIGenerationSection
+                aiGenerationEnabled={aiReviewEnabled}
+                fixGrammarEnabled={fixGrammarEnabled}
+                onToggleAI={() => setAiReviewEnabled(!aiReviewEnabled)}
+                onToggleGrammar={() => setFixGrammarEnabled(!fixGrammarEnabled)}
+              />
 
-            {/* Falling Stars Section */}
-            <FallingStarsSection
-              fallingEnabled={fallingEnabled}
-              fallingIcon={fallingIcon}
-              fallingIconColor={fallingIconColor}
-              onToggleFalling={handleToggleFalling}
-              onIconChange={handleIconChange}
-              onColorChange={handleColorChange}
-            />
-          </>
-        )}
+              {/* Falling Stars Section */}
+              <FallingStarsSection
+                fallingEnabled={fallingEnabled}
+                fallingIcon={fallingIcon}
+                fallingIconColor={fallingIconColor}
+                onToggleFalling={handleToggleFalling}
+                onIconChange={handleIconChange}
+                onColorChange={handleColorChange}
+              />
+            </div>
 
-        {/* Step 2 bottom buttons */}
-        {step === 2 && (
-          <>
-            {/* Bottom action row for step 2 create mode */}
-            {mode === "create" && (
-              <div className="w-full flex justify-between items-center pr-2 pb-4 md:pr-6 md:pb-6 mt-8">
-                {/* Bottom left Back button */}
-                <div>
-                  <button
-                    type="button"
-                    className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-slate-blue shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-                    onClick={() => onStepChange?.(1)}
-                    disabled={isSaving}
-                  >
-                    Back
-                  </button>
-                </div>
-                {/* Bottom right Save & publish button */}
-                <div>
-                  <button
-                    type="submit"
-                    className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-                    disabled={isSaving}
-                  >
-                    {isSaving ? "Publishing..." : "Save & publish"}
-                  </button>
-                </div>
-              </div>
-            )}
-            {/* Bottom action row for step 2 edit mode */}
-            {mode === "edit" && (
-              <div className="w-full flex justify-between items-center pr-2 pb-4 md:pr-6 md:pb-6 mt-8">
-                {/* Bottom left Back button */}
-                <div>
-                  <button
-                    type="button"
-                    className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-slate-blue shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-                    onClick={() => onStepChange?.(1)}
-                    disabled={isSaving}
-                  >
-                    Back
-                  </button>
-                </div>
-                {/* Bottom right Save & publish button */}
-                <div>
-                  <button
-                    type="submit"
-                    className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-                    disabled={isSaving}
-                  >
-                    {isSaving ? "Publishing..." : "Save & publish"}
-                  </button>
-                </div>
-              </div>
-            )}
-          </>
-        )}
 
         {/* Popup conflict modal */}
         {showPopupConflictModal && (
