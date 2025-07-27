@@ -181,6 +181,9 @@ export default function PhotoPromptPageForm({
   const [emojiFeedbackPageHeader, setEmojiFeedbackPageHeader] = useState(
     initialData.emoji_feedback_page_header ?? initialData.emojiFeedbackPageHeader ?? "Your feedback helps us grow",
   );
+  const [emojiThankYouMessage, setEmojiThankYouMessage] = useState(
+    initialData.emoji_thank_you_message ?? initialData.emojiThankYouMessage ?? "Thank you for your feedback. It's important to us.",
+  );
   const [error, setError] = useState<string | null>(null);
   const [noPlatformReviewTemplate, setNoPlatformReviewTemplate] = useState(
     initialData.no_platform_review_template || "",
@@ -402,20 +405,27 @@ export default function PhotoPromptPageForm({
         </div>
       )}
       <form
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
-          setSubmitted(true);
           
           if (!validateForm()) {
             return;
           }
           
-          onSave({
-            ...formData,
-            aiReviewEnabled,
-            show_friendly_note: notePopupEnabled,
-            friendly_note: formData.friendly_note,
-          });
+          try {
+            await onSave({
+              ...formData,
+              aiReviewEnabled,
+              show_friendly_note: notePopupEnabled,
+              friendly_note: formData.friendly_note,
+            });
+            
+            // Only trigger falling animation after successful save
+            setSubmitted(true);
+          } catch (error) {
+            console.error("Save failed:", error);
+            // Don't show falling animation on error
+          }
         }}
       >
         {/* Top right button */}
@@ -617,19 +627,26 @@ export default function PhotoPromptPageForm({
 
               {/* Emoji Sentiment Section */}
               <EmojiSentimentSection
-                emojiSentimentEnabled={emojiSentimentEnabled}
-                emojiSentimentQuestion={emojiSentimentQuestion}
-                emojiFeedbackMessage={emojiFeedbackMessage}
-                emojiFeedbackPopupHeader={emojiFeedbackPopupHeader}
-                emojiFeedbackPageHeader={emojiFeedbackPageHeader}
-                onEmojiSentimentEnabledChange={setEmojiSentimentEnabled}
-                onEmojiSentimentQuestionChange={setEmojiSentimentQuestion}
-                onEmojiFeedbackMessageChange={setEmojiFeedbackMessage}
-                onEmojiFeedbackPopupHeaderChange={setEmojiFeedbackPopupHeader}
-                onEmojiFeedbackPageHeaderChange={setEmojiFeedbackPageHeader}
-                showPopupConflictModal={showPopupConflictModal}
-                setShowPopupConflictModal={setShowPopupConflictModal}
-                notePopupEnabled={notePopupEnabled}
+                enabled={emojiSentimentEnabled}
+                onToggle={() => {
+                  if (notePopupEnabled) {
+                    setShowPopupConflictModal("emoji");
+                    return;
+                  }
+                  setEmojiSentimentEnabled(!emojiSentimentEnabled);
+                }}
+                question={emojiSentimentQuestion}
+                onQuestionChange={setEmojiSentimentQuestion}
+                feedbackMessage={emojiFeedbackMessage}
+                onFeedbackMessageChange={setEmojiFeedbackMessage}
+                feedbackPopupHeader={emojiFeedbackPopupHeader}
+                onFeedbackPopupHeaderChange={setEmojiFeedbackPopupHeader}
+                feedbackPageHeader={emojiFeedbackPageHeader}
+                onFeedbackPageHeaderChange={setEmojiFeedbackPageHeader}
+                thankYouMessage={emojiThankYouMessage}
+                onThankYouMessageChange={setEmojiThankYouMessage}
+                disabled={!!notePopupEnabled}
+                slug={formData.slug}
               />
 
               {/* Disable AI Generation Section */}
@@ -642,11 +659,11 @@ export default function PhotoPromptPageForm({
 
               {/* Falling Stars Section */}
               <FallingStarsSection
-                fallingEnabled={fallingEnabled}
-                fallingIcon={fallingIcon}
-                fallingIconColor={fallingIconColor}
-                onToggleFalling={handleToggleFalling}
+                enabled={fallingEnabled}
+                onToggle={handleToggleFalling}
+                icon={fallingIcon}
                 onIconChange={handleIconChange}
+                color={fallingIconColor}
                 onColorChange={handleColorChange}
               />
             </div>
