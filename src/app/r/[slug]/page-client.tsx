@@ -1800,8 +1800,206 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                   </div>
                 )}
               
-              {/* Review Platforms Section */}
-              {sentimentComplete && !showFeedbackForm &&
+              {/* Photo Submission Section - only for photo review types */}
+              {sentimentComplete && !showFeedbackForm && promptPage?.review_type === "photo" && (
+                <div className="max-w-2xl mx-auto mb-8">
+                  <div 
+                    className="bg-white rounded-2xl shadow-lg p-8 border-2"
+                    style={{
+                      borderColor: businessProfile?.primary_color || "#4F46E5",
+                      fontFamily: businessProfile?.primary_font || "Inter"
+                    }}
+                  >
+                    <div className="text-center mb-6">
+                      <h1 
+                        className="text-3xl font-bold mb-2"
+                        style={{ color: businessProfile?.primary_color || "#4F46E5" }}
+                      >
+                        Photo + Testimonial
+                      </h1>
+                    </div>
+                    {photoSuccess ? (
+                      <div className="text-green-600 text-center text-lg font-semibold py-8">
+                        Thank you for your photo and testimonial!
+                      </div>
+                    ) : (
+                      <form
+                        onSubmit={handlePhotoSubmit}
+                        className="flex flex-col gap-6 items-center"
+                      >
+                        {/* Photo Upload Section */}
+                        <div className="w-full">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Upload a photo (PNG, JPG, or WebP, max 10MB, will be optimized)
+                          </label>
+                          <div className="flex gap-4 justify-center">
+                            <button
+                              type="button"
+                              className="px-4 py-2 bg-slate-blue text-white rounded shadow hover:bg-slate-blue/90 focus:outline-none"
+                              onClick={() => cameraInputRef.current?.click()}
+                            >
+                              Take Photo
+                            </button>
+                            <button
+                              type="button"
+                              className="px-4 py-2 bg-gray-200 text-gray-800 rounded shadow hover:bg-gray-300 focus:outline-none"
+                              onClick={() => fileInputRef.current?.click()}
+                            >
+                              Upload Photo
+                            </button>
+                          </div>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            capture="environment"
+                            ref={cameraInputRef}
+                            style={{ display: "none" }}
+                            onChange={handlePhotoChange}
+                          />
+                          <input
+                            type="file"
+                            accept="image/*"
+                            ref={fileInputRef}
+                            style={{ display: "none" }}
+                            onChange={handlePhotoChange}
+                          />
+                          {photoPreview && (
+                            <div className="mt-4 text-center">
+                              <img
+                                src={photoPreview}
+                                alt="Preview"
+                                className="max-w-xs max-h-48 rounded border mx-auto"
+                              />
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Name and Role Fields */}
+                        <div className="w-full flex flex-col md:flex-row gap-4">
+                          <div className="flex-1 min-w-[200px] max-w-[400px]">
+                            <label
+                              htmlFor="photoReviewerName"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Your Name{" "}
+                              <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              id="photoReviewerName"
+                              value={photoReviewerName}
+                              onChange={(e) => setPhotoReviewerName(e.target.value)}
+                              placeholder="Ezra C"
+                              className="mt-1 block w-full rounded-lg shadow-md focus:ring-2 focus:ring-slate-blue focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                              style={{
+                                background: businessProfile?.card_bg || "#F9FAFB",
+                                color: businessProfile?.card_text || "#1A1A1A",
+                                boxShadow: "inset 0 1px 3px 0 rgba(60,64,67,0.18), inset 0 1.5px 6px 0 rgba(60,64,67,0.10)",
+                              }}
+                              required
+                            />
+                          </div>
+                          <div className="flex-1 min-w-[200px] max-w-[400px]">
+                            <label
+                              htmlFor="photoReviewerRole"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Role/Position/Occupation
+                            </label>
+                            <input
+                              type="text"
+                              id="photoReviewerRole"
+                              value={photoReviewerRole}
+                              onChange={(e) => setPhotoReviewerRole(e.target.value)}
+                              placeholder="Store Manager, GreenSprout Co-Op"
+                              className="mt-1 block w-full rounded-lg shadow-md focus:ring-2 focus:ring-slate-blue focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                              style={{
+                                background: businessProfile?.card_bg || "#F9FAFB",
+                                color: businessProfile?.card_text || "#1A1A1A",
+                                boxShadow: "inset 0 1px 3px 0 rgba(60,64,67,0.18), inset 0 1.5px 6px 0 rgba(60,64,67,0.10)",
+                              }}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Testimonial Textarea */}
+                        <div className="w-full">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Your Testimonial{" "}
+                            <span className="text-red-500">*</span>
+                          </label>
+                          <textarea
+                            className="w-full rounded-lg border border-gray-300 p-4 min-h-[120px] focus:ring-2 focus:ring-slate-blue focus:outline-none"
+                            placeholder={promptPage?.no_platform_review_template || "Write your testimonial here..."}
+                            value={testimonial}
+                            onChange={(e) => setTestimonial(e.target.value)}
+                            required
+                            style={{
+                              background: businessProfile?.card_bg || "#F9FAFB",
+                              color: businessProfile?.card_text || "#1A1A1A",
+                              boxShadow: "inset 0 1px 3px 0 rgba(60,64,67,0.18), inset 0 1.5px 6px 0 rgba(60,64,67,0.10)",
+                            }}
+                          />
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex justify-between w-full gap-2">
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={handleGeneratePhotoTestimonial}
+                              disabled={aiLoadingPhoto}
+                              className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg hover:bg-gray-50 transition-colors"
+                            >
+                              <FaPenFancy
+                                style={{
+                                  color: businessProfile?.primary_color || "#4F46E5",
+                                }}
+                              />
+                              <span
+                                style={{
+                                  color: businessProfile?.primary_color || "#4F46E5",
+                                }}
+                              >
+                                {aiLoadingPhoto ? "Generating..." : "Generate with AI"}
+                              </span>
+                            </button>
+                            <span className="text-sm text-gray-500">
+                              {Math.max(0, 3 - (aiRewriteCounts[0] || 0))}/3
+                            </span>
+                          </div>
+                          <button
+                            type="submit"
+                            className="flex items-center gap-2 px-6 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 transition-colors font-semibold"
+                            disabled={photoSubmitting}
+                            title="Submit your photo and testimonial"
+                          >
+                            {photoSubmitting ? (
+                              <span className="flex items-center justify-center">
+                                <FiveStarSpinner
+                                  size={18}
+                                  color1="#a5b4fc"
+                                  color2="#6366f1"
+                                />
+                              </span>
+                            ) : (
+                              "Submit"
+                            )}
+                          </button>
+                        </div>
+                        {photoError && (
+                          <div className="text-red-500 text-sm text-center">
+                            {photoError}
+                          </div>
+                        )}
+                      </form>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Review Platforms Section - only for non-photo review types */}
+              {sentimentComplete && !showFeedbackForm && promptPage?.review_type !== "photo" &&
                 mergedReviewPlatforms?.map((platform: any, idx: number) => (
                 <ReviewPlatformCard
                   key={platform.id || idx}
