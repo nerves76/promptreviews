@@ -53,6 +53,7 @@ import { getFallingIcon } from "@/app/components/prompt-modules/fallingStarsConf
 import RobotTooltip from "./RobotTooltip";
 import SectionHeader from "./SectionHeader";
 import ServicePromptPageForm from "./ServicePromptPageForm";
+import PhotoPromptPageForm from "./PhotoPromptPageForm";
 
 
 /**
@@ -523,220 +524,21 @@ export default function PromptPageForm({
 
   if (formData.review_type === "photo") {
     return (
-      <>
-        {submitted && (
-          <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden">
-            {[...Array(40)].map((_, i) => {
-              const left = Math.random() * 98 + Math.random() * 2;
-              const duration = 3 + Math.random() * 1.5;
-              const delay = Math.random() * 0.5;
-              const size = 32 + Math.random() * 8;
-              const top = -40 - Math.random() * 360;
-                              const iconObj = getFallingIcon(fallingIcon);
-              
-              // Guard clause to ensure iconObj is defined
-              if (!iconObj) {
-                return null;
-              }
-              
-              const IconComp = iconObj.icon;
-              return (
-                <IconComp
-                  key={i}
-                  className="absolute animate-fall"
-                  style={{
-                    color:
-                      iconObj.key === "star"
-                        ? "#facc15"
-                        : iconObj.key === "heart"
-                          ? "#ef4444"
-                          : iconObj.key === "smile"
-                            ? "#facc15"
-                            : iconObj.key === "bolt"
-                              ? "#f59e42"
-                              : iconObj.key === "rainbow"
-                                ? "#d946ef"
-                                : iconObj.key === "coffee"
-                                  ? "#92400e"
-                                  : iconObj.key === "wrench"
-                                    ? "#6b7280"
-                                    : iconObj.key === "confetti"
-                                      ? "#ec4899"
-                                      : iconObj.key === "barbell"
-                                        ? "#4b5563"
-                                        : iconObj.key === "flower"
-                                          ? "#22c55e"
-                                          : iconObj.key === "peace"
-                                            ? "#a21caf"
-                                            : "#facc15",
-                    fontSize: size,
-                    left: `${left}%`,
-                    top,
-                    animationDuration: `${duration}s`,
-                    animationDelay: `${delay}s`,
-                  }}
-                />
-              );
-            })}
-          </div>
-        )}
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            setSubmitted(true);
-            onSave({
-              ...formData,
-              aiReviewEnabled,
-              show_friendly_note: notePopupEnabled,
-              friendly_note: formData.friendly_note,
-            });
-          }}
-        >
-          {/* Top right button */}
-          <div className="absolute top-4 right-8 z-20 flex gap-2">
-            {step === 1 ? (
-              <button
-                type="button"
-                className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-                onClick={handleStep1Continue}
-                disabled={isSaving}
-              >
-                {isSaving ? "Saving..." : "Save & continue"}
-              </button>
-            ) : (
-              <button
-                type="submit"
-                className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-                disabled={isSaving}
-              >
-                {isSaving ? "Publishing..." : "Save & publish"}
-              </button>
-            )}
-          </div>
-          <div className="flex flex-col mt-0 md:mt-[3px]">
-            <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
-              {pageTitle || "Photo + Testimonial"}
-            </h1>
-            <p className="text-gray-600 text-base max-w-md mt-0 mb-10">
-              Grab a glowing testimonial and display it on your site using our widget or use it in your promotional materials.
-            </p>
-          </div>
-          {/* Campaign name for public campaigns */}
-          {(isUniversal || campaignType === 'public') && (
-            <div className="mb-6">
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
-                {isUniversal ? 'Prompt page name' : 'Campaign name'} <span className="text-red-600">(required)</span>
-              </label>
-              <input
-                type="text"
-                id="name"
-                value={formData.name || ""}
-                onChange={(e) => setFormData((prev: any) => ({ ...prev, name: e.target.value.slice(0, 50) }))}
-                className="mt-1 block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shadow-inner"
-                placeholder={isUniversal ? "Holiday email campaign" : "Summer product launch"}
-                maxLength={50}
-                required
-              />
-            </div>
-          )}
-          
-          {/* Customer details section - uses component that handles campaign type logic */}
-          <CustomerDetailsSection
-            formData={formData}
-            onFormDataChange={(data) => setFormData((prev: any) => ({ ...prev, ...data }))}
-            campaignType={campaignType}
-          />
-          
-         
-      {/* Step 2 bottom buttons */}
-      {step === 2 && (
-        <>
-          {/* Bottom action row for step 2 create mode */}
-          {mode === "create" && (
-            <div className="w-full flex justify-between items-center pr-2 pb-4 md:pr-6 md:pb-6 mt-8">
-              {/* Bottom left Back button */}
-              <div>
-                <button
-                  type="button"
-                  className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-slate-blue shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-                  onClick={() => onStepChange?.(1)}
-                  disabled={isSaving}
-                >
-                  Back
-                </button>
-              </div>
-              {/* Bottom right Save & publish button */}
-              <div>
-                <button
-                  type="submit"
-                  className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-                  disabled={isSaving}
-                >
-                  {isSaving ? "Publishing..." : "Save & publish"}
-                </button>
-              </div>
-            </div>
-          )}
-          {/* Bottom action row for step 2 edit mode */}
-          {mode === "edit" && (
-            <div className="w-full flex justify-between items-center pr-2 pb-4 md:pr-6 md:pb-6 mt-8">
-              {/* Bottom left Back button */}
-              <div>
-                <button
-                  type="button"
-                  className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-slate-blue shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-                  onClick={() => onStepChange?.(1)}
-                  disabled={isSaving}
-                >
-                  Back
-                </button>
-              </div>
-              {/* Bottom right Save & publish button */}
-              <div>
-                <button
-                  type="submit"
-                  className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-                  disabled={isSaving}
-                >
-                  {isSaving ? "Publishing..." : "Save & publish"}
-                </button>
-              </div>
-            </div>
-          )}
-        </>
-      )}
-      {/* Popup conflict modal */}
-      {showPopupConflictModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center relative">
-            <button
-              className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl"
-              onClick={() => setShowPopupConflictModal(null)}
-              aria-label="Close"
-            >
-              &times;
-            </button>
-            <h2 className="text-2xl font-bold text-red-700 mb-4">
-              Cannot Enable Multiple Popups
-            </h2>
-            <p className="mb-6 text-gray-700">
-              You cannot have 2 popups enabled at the same time. You must disable{" "}
-              <strong>
-                {showPopupConflictModal === "note" ? "Emoji Sentiment Flow" : "Personalized Note Pop-up"}
-              </strong>{" "}
-              first.
-            </p>
-            <button
-              onClick={() => setShowPopupConflictModal(null)}
-              className="bg-slate-blue text-white px-6 py-2 rounded hover:bg-slate-blue/90 font-semibold mt-2"
-            >
-              OK
-            </button>
-          </div>
-        </div>
-      )}
-        </form>
-      </>
+      <PhotoPromptPageForm
+        mode={mode}
+        initialData={initialData}
+        onSave={onSave}
+        onPublish={onPublish}
+        pageTitle={pageTitle}
+        supabase={supabase}
+        businessProfile={businessProfile}
+        isUniversal={isUniversal}
+        onPublishSuccess={onPublishSuccess}
+        campaignType={campaignType}
+        step={step}
+        onStepChange={onStepChange}
+        {...rest}
+      />
     );
   }
 
