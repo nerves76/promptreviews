@@ -96,19 +96,10 @@ export default function PhotoPromptPageForm({
     show_friendly_note: initialData.show_friendly_note ?? true,
   });
 
-  // Debug log for formData changes
-  useEffect(() => {
-    console.log("[DEBUG] PhotoPromptPageForm - formData updated:", {
-      first_name: formData.first_name,
-      last_name: formData.last_name,
-      phone: formData.phone,
-      email: formData.email,
-      role: formData.role,
-    });
-  }, [formData.first_name, formData.last_name, formData.phone, formData.email, formData.role]);
+  // Form data tracking for validation (debug logs removed for production)
 
   useEffect(() => {
-    console.log("[DEBUG] PhotoPromptPageForm useEffect - initialData:", initialData);
+    // Initialize form data from props (debug logs removed for production)
     setFormData({
       ...initialData,
       emojiThankYouMessage:
@@ -468,7 +459,14 @@ export default function PhotoPromptPageForm({
         {/* Customer details section - uses component that handles campaign type logic */}
         <CustomerDetailsSection
           formData={formData}
-          onFormDataChange={(data) => setFormData((prev: any) => ({ ...prev, ...data }))}
+          onFormDataChange={(updateFn) => {
+            if (typeof updateFn === 'function') {
+              setFormData(updateFn);
+            } else {
+              // Legacy: direct object passed
+              setFormData((prev: any) => ({ ...prev, ...updateFn }));
+            }
+          }}
           campaignType={campaignType}
         />
 
