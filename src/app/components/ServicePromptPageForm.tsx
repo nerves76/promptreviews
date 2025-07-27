@@ -76,24 +76,30 @@ export default function ServicePromptPageForm({
     setFormData(initialData);
   }, [initialData]);
 
-  // Update form data helper
+  // Update form data helper (no auto-save)
   const updateFormData = (field: string, value: any) => {
-    setFormData((prev: any) => {
-      const newData = { ...prev, [field]: value };
-      onSave(newData);
-      return newData;
-    });
+    setFormData((prev: any) => ({
+      ...prev,
+      [field]: value,
+    }));
   };
 
   // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSaving(true);
+    
+    // Save the current form data
+    onSave(formData);
+    
     if (onPublish) {
       onPublish({
         ...formData,
         formComplete: true,
       });
     }
+    
+    setIsSaving(false);
   };
 
   return (
