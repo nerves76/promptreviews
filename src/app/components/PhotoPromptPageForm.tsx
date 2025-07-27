@@ -17,7 +17,7 @@ import {
   FaHeart,
   FaSmile,
   FaThumbsUp,
-  FaFlower,
+  FaLeaf,
   FaPeace,
   FaSun 
 } from "react-icons/fa";
@@ -36,7 +36,7 @@ const getFallingIcon = (iconKey: string) => {
     heart: { icon: FaHeart, key: "heart" },
     smile: { icon: FaSmile, key: "smile" },
     thumbsup: { icon: FaThumbsUp, key: "thumbsup" },
-    flower: { icon: FaFlower, key: "flower" },
+    flower: { icon: FaLeaf, key: "flower" },
     peace: { icon: FaPeace, key: "peace" },
     sun: { icon: FaSun, key: "sun" },
   };
