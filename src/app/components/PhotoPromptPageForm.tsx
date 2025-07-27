@@ -24,10 +24,8 @@ import {
 } from "react-icons/fa";
 
 import SectionHeader from "./SectionHeader";
-import ReviewWriteSection from "../dashboard/edit-prompt-page/components/ReviewWriteSection";
 import CustomerDetailsSection from "./sections/CustomerDetailsSection";
 import FallingStarsSection from "@/app/components/FallingStarsSection";
-import EmojiSentimentSection from "../dashboard/edit-prompt-page/components/EmojiSentimentSection";
 import OfferSection from "../dashboard/edit-prompt-page/components/OfferSection";
 
 // Helper function to get falling icon
@@ -88,34 +86,6 @@ export default function PhotoPromptPageForm({
   const [isSaving, setIsSaving] = useState(false);
   const [formError, setFormError] = useState("");
 
-  // Feature states
-  const [aiReviewEnabled, setAiReviewEnabled] = useState(
-    initialData.ai_review_enabled ?? initialData.aiReviewEnabled ?? false,
-  );
-  const [fixGrammarEnabled, setFixGrammarEnabled] = useState(
-    initialData.fix_grammar_enabled ?? initialData.fixGrammarEnabled ?? false,
-  );
-
-  // Emoji Sentiment states
-  const [emojiSentimentEnabled, setEmojiSentimentEnabled] = useState(
-    initialData.emoji_sentiment_enabled ?? initialData.emojiSentimentEnabled ?? false,
-  );
-  const [emojiSentimentQuestion, setEmojiSentimentQuestion] = useState(
-    initialData.emoji_sentiment_question ?? initialData.emojiSentimentQuestion ?? "How are you feeling?",
-  );
-  const [emojiFeedbackMessage, setEmojiFeedbackMessage] = useState(
-    initialData.emoji_feedback_message ?? initialData.emojiFeedbackMessage ?? "Thank you for sharing your experience with us!",
-  );
-  const [emojiFeedbackPopupHeader, setEmojiFeedbackPopupHeader] = useState(
-    initialData.emoji_feedback_popup_header ?? initialData.emojiFeedbackPopupHeader ?? "Tell us more",
-  );
-  const [emojiFeedbackPageHeader, setEmojiFeedbackPageHeader] = useState(
-    initialData.emoji_feedback_page_header ?? initialData.emojiFeedbackPageHeader ?? "Your feedback helps us grow",
-  );
-  const [emojiThankYouMessage, setEmojiThankYouMessage] = useState(
-    initialData.emoji_thank_you_message ?? initialData.emojiThankYouMessage ?? "Thank you for your feedback. It's important to us.",
-  );
-
   // Falling Stars states
   const [fallingEnabled, setFallingEnabled] = useState(
     initialData.falling_enabled ?? initialData.fallingEnabled ?? false,
@@ -146,8 +116,7 @@ export default function PhotoPromptPageForm({
     initialData.show_friendly_note ?? initialData.notePopupEnabled ?? false,
   );
 
-  // Modal states
-  const [showPopupConflictModal, setShowPopupConflictModal] = useState(false);
+
 
   // Form validation
   const validateForm = () => {
@@ -343,16 +312,6 @@ export default function PhotoPromptPageForm({
           </div>
         </div>
 
-        {/* Review platforms section */}
-        <ReviewWriteSection
-          value={formData.review_platforms}
-          onChange={(platforms) => setFormData((prev: any) => ({ ...prev, review_platforms: platforms }))}
-          aiReviewEnabled={aiReviewEnabled}
-          onAiReviewToggle={setAiReviewEnabled}
-          fixGrammarEnabled={fixGrammarEnabled}
-          onFixGrammarToggle={setFixGrammarEnabled}
-        />
-
         {/* Photo-specific features */}
         <div className="space-y-8">
           {/* Falling Stars Section */}
@@ -388,16 +347,9 @@ export default function PhotoPromptPageForm({
               </div>
               <button
                 type="button"
-                onClick={() => {
-                  if (emojiSentimentEnabled) {
-                    setShowPopupConflictModal(true);
-                  } else {
-                    setNotePopupEnabled(!notePopupEnabled);
-                  }
-                }}
+                onClick={() => setNotePopupEnabled(!notePopupEnabled)}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${notePopupEnabled ? "bg-slate-blue" : "bg-gray-200"}`}
                 aria-pressed={!!notePopupEnabled}
-                disabled={emojiSentimentEnabled}
               >
                 <span
                   className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${notePopupEnabled ? "translate-x-5" : "translate-x-1"}`}
@@ -425,29 +377,7 @@ export default function PhotoPromptPageForm({
             )}
           </div>
 
-          {/* Emoji Sentiment Section */}
-          <EmojiSentimentSection
-            enabled={emojiSentimentEnabled}
-            onToggle={() => {
-              if (notePopupEnabled) {
-                setShowPopupConflictModal(true);
-              } else {
-                setEmojiSentimentEnabled(!emojiSentimentEnabled);
-              }
-            }}
-            question={emojiSentimentQuestion}
-            onQuestionChange={setEmojiSentimentQuestion}
-            feedbackMessage={emojiFeedbackMessage}
-            onFeedbackMessageChange={setEmojiFeedbackMessage}
-            feedbackPopupHeader={emojiFeedbackPopupHeader}
-            onFeedbackPopupHeaderChange={setEmojiFeedbackPopupHeader}
-            feedbackPageHeader={emojiFeedbackPageHeader}
-            onFeedbackPageHeaderChange={setEmojiFeedbackPageHeader}
-            thankYouMessage={emojiThankYouMessage}
-            onThankYouMessageChange={setEmojiThankYouMessage}
-            disabled={!!notePopupEnabled}
-            slug={formData.slug}
-          />
+
         </div>
 
         {/* Bottom Save Button */}
@@ -462,49 +392,7 @@ export default function PhotoPromptPageForm({
         </div>
       </div>
 
-      {/* Popup Conflict Modal */}
-      {showPopupConflictModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center relative">
-            <button
-              className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl"
-              onClick={() => setShowPopupConflictModal(false)}
-              aria-label="Close"
-            >
-              &times;
-            </button>
-            <h2 className="text-2xl font-bold text-red-700 mb-4">
-              Cannot Enable Multiple Popups
-            </h2>
-            <p className="mb-6 text-gray-700">
-              You cannot have 2 popups enabled at the same time. You must disable one
-              to enable the other.
-            </p>
-            <div className="flex gap-4 justify-center">
-              <button
-                onClick={() => {
-                  setEmojiSentimentEnabled(false);
-                  setNotePopupEnabled(true);
-                  setShowPopupConflictModal(false);
-                }}
-                className="bg-slate-blue text-white px-4 py-2 rounded hover:bg-slate-blue/90 font-semibold"
-              >
-                Use Note Popup
-              </button>
-              <button
-                onClick={() => {
-                  setNotePopupEnabled(false);
-                  setEmojiSentimentEnabled(true);
-                  setShowPopupConflictModal(false);
-                }}
-                className="bg-slate-blue text-white px-4 py-2 rounded hover:bg-slate-blue/90 font-semibold"
-              >
-                Use Emoji Flow
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+
     </form>
   );
 } 
