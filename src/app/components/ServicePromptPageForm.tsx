@@ -20,11 +20,11 @@ import {
   FaMobile 
 } from "react-icons/fa";
 import RobotTooltip from "./RobotTooltip";
-import ReviewWriteSection from "./ReviewWriteSection";
-import OfferSection from "./OfferSection";
-import EmojiSentimentSection from "./EmojiSentimentSection";
+import ReviewWriteSection from "../dashboard/edit-prompt-page/components/ReviewWriteSection";
+import OfferSection from "../dashboard/edit-prompt-page/components/OfferSection";
+import EmojiSentimentSection from "../dashboard/edit-prompt-page/components/EmojiSentimentSection";
 import DisableAIGenerationSection from "./DisableAIGenerationSection";
-import FallingStarsSection from "./FallingStarsSection";
+import FallingStarsSection from "@/app/components/FallingStarsSection";
 import SectionHeader from "./SectionHeader";
 
 interface ServicePromptPageFormProps {
