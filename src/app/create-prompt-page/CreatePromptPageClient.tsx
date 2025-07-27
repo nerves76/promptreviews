@@ -31,6 +31,7 @@ import { preparePromptPageData, validatePromptPageData } from "@/utils/promptPag
 import PromptPageForm from "../components/PromptPageForm";
 import PageCard from "../components/PageCard";
 import ProductPromptPageForm from "../components/ProductPromptPageForm";
+import PhotoPromptPageForm from "../components/PhotoPromptPageForm";
 import FiveStarSpinner from "../components/FiveStarSpinner";
 import AppLoader from "../components/AppLoader";
 
@@ -1078,16 +1079,28 @@ export default function CreatePromptPageClient({
     
     if (formData.review_type === "photo") {
       return (
-        <PromptPageForm
+        <PhotoPromptPageForm
           mode="create"
           initialData={formData}
-          onSave={handleStep1Submit}
-          onPublish={handleStep2Submit}
+          onSave={handleServicePageSubmit}
           pageTitle="Photo + Testimonial"
           supabase={supabase}
           businessProfile={businessProfile}
-          step={step}
-          onStepChange={setStep}
+          onPublishSuccess={(slug) => {
+            console.log('🔥 Photo page - onPublishSuccess called with slug:', slug);
+            setSavedPromptPageUrl(`/r/${slug}`);
+            localStorage.setItem(
+              "showPostSaveModal",
+              JSON.stringify({ 
+                url: `/r/${slug}`,
+                first_name: formData.first_name,
+                phone: formData.phone,
+                email: formData.email
+              }),
+            );
+            router.push("/prompt-pages");
+          }}
+          campaignType={formData.campaign_type || 'individual'}
         />
       );
     }
