@@ -89,9 +89,7 @@ export default function ServicePromptPageForm({
     e.preventDefault();
     setIsSaving(true);
     
-    // Save the current form data
-    onSave(formData);
-    
+    // Only publish, don't auto-save during form submission
     if (onPublish) {
       onPublish({
         ...formData,
