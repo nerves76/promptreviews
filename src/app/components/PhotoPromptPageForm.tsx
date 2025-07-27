@@ -275,12 +275,14 @@ export default function PhotoPromptPageForm({
           </div>
         )}
 
-        {/* Photo Prompt Page Header */}
-        <SectionHeader
-          icon={<FaCamera className="w-7 h-7 text-slate-blue" />}
-          title="Prompt page name"
-          subCopy="Give your photo prompt page a clear, descriptive name"
-        />
+        {/* Photo Prompt Page Header - only for public campaigns */}
+        {campaignType === 'public' && (
+          <SectionHeader
+            icon={<FaCamera className="w-7 h-7 text-slate-blue" />}
+            title="Prompt page name"
+            subCopy="Give your photo prompt page a clear, descriptive name"
+          />
+        )}
 
         {/* Customer details section - only for individual campaigns */}
         {!isUniversal && campaignType !== 'public' && (
