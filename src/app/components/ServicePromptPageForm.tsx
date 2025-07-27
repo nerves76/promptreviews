@@ -344,6 +344,17 @@ export default function ServicePromptPageForm({
           color={formData.falling_icon_color}
           onColorChange={(color) => updateFormData('falling_icon_color', color)}
         />
+
+        {/* Bottom Save Button */}
+        <div className="flex justify-end pt-8 border-t border-gray-200">
+          <button
+            type="submit"
+            className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+            disabled={isSaving}
+          >
+            {isSaving ? "Publishing..." : "Save & Publish"}
+          </button>
+        </div>
       </div>
     </form>
   );
