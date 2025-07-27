@@ -312,6 +312,36 @@ export default function PhotoPromptPageForm({
           </div>
         </div>
 
+        {/* Review Template Section */}
+        <div className="space-y-6">
+          <SectionHeader
+            icon={<FaStar className="w-7 h-7 text-slate-blue" />}
+            title="Testimonial template"
+            subCopy="Provide a template to help customers write their photo testimonials more easily"
+          />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Testimonial Template <span className="text-gray-500">(optional)</span>
+            </label>
+            <textarea
+              value={formData.no_platform_review_template || ""}
+              onChange={(e) => setFormData((prev: any) => ({ ...prev, no_platform_review_template: e.target.value.slice(0, 600) }))}
+              rows={4}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
+              placeholder="e.g., I'm thrilled with the results! The service exceeded my expectations and I would definitely recommend it to others..."
+              maxLength={600}
+            />
+            <div className="flex justify-between items-center mt-1">
+              <div className="text-sm text-gray-500">
+                This template helps customers get started with their testimonial. They can still edit or write their own.
+              </div>
+              <div className="text-sm text-gray-400">
+                {(formData.no_platform_review_template || "").length}/600 characters
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Photo-specific features */}
         <div className="space-y-8">
           {/* Falling Stars Section */}
