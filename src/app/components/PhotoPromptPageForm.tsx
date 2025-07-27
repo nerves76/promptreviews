@@ -23,13 +23,11 @@ import {
 } from "react-icons/fa";
 
 import SectionHeader from "./SectionHeader";
-import ReviewWriteSection from "./sections/ReviewWriteSection";
+import ReviewWriteSection from "../dashboard/edit-prompt-page/components/ReviewWriteSection";
 import CustomerDetailsSection from "./sections/CustomerDetailsSection";
-import FallingStarsSection from "./sections/FallingStarsSection";
-import EmojiSentimentSection from "./sections/EmojiSentimentSection";
-import OfferSection from "./sections/OfferSection";
-import PersonalizedNotePopup from "./sections/PersonalizedNotePopup";
-import PopupConflictModal from "./modals/PopupConflictModal";
+import FallingStarsSection from "@/app/components/FallingStarsSection";
+import EmojiSentimentSection from "../dashboard/edit-prompt-page/components/EmojiSentimentSection";
+import OfferSection from "../dashboard/edit-prompt-page/components/OfferSection";
 
 // Helper function to get falling icon
 const getFallingIcon = (iconKey: string) => {
@@ -352,20 +350,52 @@ export default function PhotoPromptPageForm({
           />
 
           {/* Personalized Note Popup Section */}
-          <PersonalizedNotePopup
-            enabled={notePopupEnabled}
-            onToggle={() => {
-              if (emojiSentimentEnabled) {
-                setShowPopupConflictModal(true);
-              } else {
-                setNotePopupEnabled(!notePopupEnabled);
-              }
-            }}
-            note={formData.friendly_note || ""}
-            onNoteChange={(note) => setFormData((prev: any) => ({ ...prev, friendly_note: note }))}
-            icon={<FaCommentDots className="w-6 h-6" />}
-            placeholderText="Enter your personalized note that will appear after your client submits their photo testimonial..."
-          />
+          <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-2 shadow relative">
+            <div className="flex items-center justify-between mb-2 px-2 py-2">
+              <div className="flex items-center gap-3">
+                <FaCommentDots className="w-7 h-7 text-slate-blue" />
+                <span className="text-2xl font-bold text-[#1A237E]">
+                  Personalized note pop-up
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  if (emojiSentimentEnabled) {
+                    setShowPopupConflictModal(true);
+                  } else {
+                    setNotePopupEnabled(!notePopupEnabled);
+                  }
+                }}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${notePopupEnabled ? "bg-slate-blue" : "bg-gray-200"}`}
+                aria-pressed={!!notePopupEnabled}
+                disabled={emojiSentimentEnabled}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${notePopupEnabled ? "translate-x-5" : "translate-x-1"}`}
+                />
+              </button>
+            </div>
+            <div className="text-sm text-gray-700 mb-3 max-w-[85ch] px-2">
+              This note appears as a pop-up at the top of the review page. Use
+              it to set the context and tone for your customer.
+            </div>
+            {notePopupEnabled && (
+              <textarea
+                id="friendly_note"
+                value={formData.friendly_note || ""}
+                onChange={(e) =>
+                  setFormData((prev: any) => ({
+                    ...prev,
+                    friendly_note: e.target.value,
+                  }))
+                }
+                rows={4}
+                className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring shadow-inner"
+                placeholder="Enter your personalized note that will appear after your client submits their photo testimonial..."
+              />
+            )}
+          </div>
 
           {/* Emoji Sentiment Section */}
           <EmojiSentimentSection
@@ -394,20 +424,48 @@ export default function PhotoPromptPageForm({
       </div>
 
       {/* Popup Conflict Modal */}
-      <PopupConflictModal
-        isOpen={showPopupConflictModal}
-        onClose={() => setShowPopupConflictModal(false)}
-        onConfirm={(choice) => {
-          if (choice === "note") {
-            setEmojiSentimentEnabled(false);
-            setNotePopupEnabled(true);
-          } else {
-            setNotePopupEnabled(false);
-            setEmojiSentimentEnabled(true);
-          }
-          setShowPopupConflictModal(false);
-        }}
-      />
+      {showPopupConflictModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center relative">
+            <button
+              className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl"
+              onClick={() => setShowPopupConflictModal(false)}
+              aria-label="Close"
+            >
+              &times;
+            </button>
+            <h2 className="text-2xl font-bold text-red-700 mb-4">
+              Cannot Enable Multiple Popups
+            </h2>
+            <p className="mb-6 text-gray-700">
+              You cannot have 2 popups enabled at the same time. You must disable one
+              to enable the other.
+            </p>
+            <div className="flex gap-4 justify-center">
+              <button
+                onClick={() => {
+                  setEmojiSentimentEnabled(false);
+                  setNotePopupEnabled(true);
+                  setShowPopupConflictModal(false);
+                }}
+                className="bg-slate-blue text-white px-4 py-2 rounded hover:bg-slate-blue/90 font-semibold"
+              >
+                Use Note Popup
+              </button>
+              <button
+                onClick={() => {
+                  setNotePopupEnabled(false);
+                  setEmojiSentimentEnabled(true);
+                  setShowPopupConflictModal(false);
+                }}
+                className="bg-slate-blue text-white px-4 py-2 rounded hover:bg-slate-blue/90 font-semibold"
+              >
+                Use Emoji Flow
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </form>
   );
 } 
