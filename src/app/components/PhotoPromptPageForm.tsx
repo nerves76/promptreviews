@@ -625,6 +625,54 @@ export default function PhotoPromptPageForm({
                 onUrlChange={setOfferUrl}
               />
 
+              {/* Personalized Note Pop-up Section */}
+              <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-2 shadow relative">
+                <div className="flex items-center justify-between mb-2 px-2 py-2">
+                  <div className="flex items-center gap-3">
+                    <FaCommentDots className="w-7 h-7 text-slate-blue" />
+                    <span className="text-2xl font-bold text-[#1A237E]">
+                      Personalized note pop-up
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (emojiSentimentEnabled) {
+                        setShowPopupConflictModal("note");
+                        return;
+                      }
+                      setNotePopupEnabled(!notePopupEnabled);
+                    }}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${notePopupEnabled ? "bg-slate-blue" : "bg-gray-200"}`}
+                    aria-pressed={!!notePopupEnabled}
+                    disabled={emojiSentimentEnabled}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${notePopupEnabled ? "translate-x-5" : "translate-x-1"}`}
+                    />
+                  </button>
+                </div>
+                <div className="text-sm text-gray-700 mb-3 max-w-[85ch] px-2">
+                  This note appears as a pop-up at the top of the review page. Use
+                  it to set the context and tone for your customer.
+                </div>
+                {notePopupEnabled && (
+                  <textarea
+                    id="friendly_note"
+                    value={formData.friendly_note || ""}
+                    onChange={(e) =>
+                      setFormData((prev: any) => ({
+                        ...prev,
+                        friendly_note: e.target.value,
+                      }))
+                    }
+                    rows={4}
+                    className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring shadow-inner"
+                    placeholder="Hi Sarah! It was great working with you on your family photos today. We'd love to hear about your experience. Would you mind sharing a quick review along with one of your favorite photos? Thanks!"
+                  />
+                )}
+              </div>
+
               {/* Emoji Sentiment Section */}
               <EmojiSentimentSection
                 enabled={emojiSentimentEnabled}
