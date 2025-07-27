@@ -19,7 +19,8 @@ import {
   FaThumbsUp,
   FaLeaf,
   FaPeace,
-  FaSun 
+  FaSun,
+  FaBoxOpen
 } from "react-icons/fa";
 
 import SectionHeader from "./SectionHeader";
@@ -314,6 +315,31 @@ export default function PhotoPromptPageForm({
             </div>
           </div>
         )}
+
+        {/* Product/Service Description - always visible */}
+        <div className="space-y-6">
+          <SectionHeader
+            icon={<FaBoxOpen className="w-7 h-7 text-slate-blue" />}
+            title="What are they reviewing?"
+            subCopy="Describe the product, service, or experience your customer will be providing a photo testimonial about"
+          />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Product/Service Description <span className="text-red-600">(required)</span>
+            </label>
+            <textarea
+              value={formData.product_description || ""}
+              onChange={(e) => setFormData((prev: any) => ({ ...prev, product_description: e.target.value }))}
+              rows={4}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
+              placeholder="e.g., our custom wedding photography service, handmade jewelry from our boutique, the new patio renovation we completed"
+              required
+            />
+            <div className="text-sm text-gray-500 mt-1">
+              This helps set context for what the customer should focus on in their photo testimonial.
+            </div>
+          </div>
+        </div>
 
         {/* Review platforms section */}
         <ReviewWriteSection
