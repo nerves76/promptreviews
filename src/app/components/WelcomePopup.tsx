@@ -142,7 +142,7 @@ Here's your first tip: [icon] <— click here`;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4">
-      <div className="bg-white shadow-lg max-w-4xl w-full max-h-[90vh] relative flex flex-col md:flex-row gap-8 text-left rounded-xl overflow-hidden">
+      <div className="relative max-w-4xl w-full max-h-[90vh]">
         {/* Standardized circular close button */}
         <button
           className="absolute -top-3 -right-3 bg-white border border-gray-200 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 focus:outline-none z-20 transition-colors"
@@ -154,6 +154,8 @@ Here's your first tip: [icon] <— click here`;
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
+        
+        <div className="bg-white shadow-lg flex flex-col md:flex-row gap-8 text-left rounded-xl overflow-hidden">
         
         {/* Left side: Content */}
         <div className="flex-1 space-y-6 py-8 px-8 overflow-y-auto">
@@ -176,7 +178,7 @@ Here's your first tip: [icon] <— click here`;
         </div>
 
         {/* Right side: Image */}
-        <div className="flex-1 bg-gray-50 p-8 rounded-r-xl flex items-center justify-center overflow-hidden">
+        <div className="flex-1 bg-gray-50 p-8 rounded-r-xl flex items-center justify-center overflow-hidden relative">
           {imageUrl || !userName ? (
             <div className="w-full h-full flex items-center justify-center">
               <img 
@@ -197,6 +199,7 @@ Here's your first tip: [icon] <— click here`;
               </div>
             </div>
           )}
+        </div>
         </div>
       </div>
     </div>
