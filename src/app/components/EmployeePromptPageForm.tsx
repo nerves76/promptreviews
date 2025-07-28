@@ -82,6 +82,11 @@ export default function EmployeePromptPageForm({
     review_platforms: Array.isArray(initialData.review_platforms) ? initialData.review_platforms : [],
     fallingEnabled: initialData.fallingEnabled ?? initialData.falling_enabled ?? true,
     show_friendly_note: initialData.show_friendly_note ?? false,
+    // Offer fields
+    offer_enabled: initialData.offer_enabled ?? false,
+    offer_title: initialData.offer_title || '',
+    offer_body: initialData.offer_body || '',
+    offer_url: initialData.offer_url || '',
     // Employee-specific fields (using emp_ prefix)
     emp_first_name: initialData.emp_first_name || '',
     emp_last_name: initialData.emp_last_name || '',
@@ -681,11 +686,11 @@ export default function EmployeePromptPageForm({
         {/* Offers Section */}
         <OfferSection
           enabled={formData.offer_enabled || false}
-          onToggle={(enabled) => updateFormData('offer_enabled', enabled)}
+          onToggle={() => updateFormData('offer_enabled', !formData.offer_enabled)}
           title={formData.offer_title || ''}
           onTitleChange={(title) => updateFormData('offer_title', title)}
-          body={formData.offer_body || ''}
-          onBodyChange={(body) => updateFormData('offer_body', body)}
+          description={formData.offer_body || ''}
+          onDescriptionChange={(body) => updateFormData('offer_body', body)}
           url={formData.offer_url || ''}
           onUrlChange={(url) => updateFormData('offer_url', url)}
         />
