@@ -136,8 +136,20 @@ export async function POST(request: NextRequest) {
     // Create universal prompt page (same logic as SimpleBusinessForm)
     try {
       console.log('[BUSINESSES] Creating universal prompt page...');
-      const { slugify } = await import('@/utils/slugify');
-      const universalSlug = slugify("universal", Date.now().toString(36));
+      
+      // Check if universal prompt page already exists
+      const { data: existingUniversal } = await supabase
+        .from("prompt_pages")
+        .select("id")
+        .eq("account_id", account_id)
+        .eq("is_universal", true)
+        .single();
+      
+      if (existingUniversal) {
+        console.log('[BUSINESSES] Universal prompt page already exists, skipping creation');
+      } else {
+        const { slugify } = await import('@/utils/slugify');
+        const universalSlug = slugify("universal", Date.now().toString(36));
       
       const universalPromptPageData = {
         account_id: account_id,
@@ -146,10 +158,10 @@ export async function POST(request: NextRequest) {
         status: "draft",
         type: "universal",
         review_type: "service",
-        offer_enabled: false,
-        offer_title: "",
-        offer_body: "",
-        offer_url: "",
+        offer_enabled: null,
+        offer_title: null,
+        offer_body: null,
+        offer_url: null,
         emoji_sentiment_enabled: false,
         emoji_sentiment_question: "How was your experience?",
         emoji_feedback_message: "We value your feedback! Let us know how we can do better.",
@@ -189,17 +201,18 @@ export async function POST(request: NextRequest) {
         video_recipient: ""
       };
 
-      const { data: universalPage, error: universalError } = await supabase
-        .from("prompt_pages")
-        .insert([universalPromptPageData])
-        .select()
-        .single();
+        const { data: universalPage, error: universalError } = await supabase
+          .from("prompt_pages")
+          .insert([universalPromptPageData])
+          .select()
+          .single();
 
-      if (universalError) {
-        console.error('[BUSINESSES] Universal prompt page creation error:', universalError);
-        console.warn('[BUSINESSES] Universal prompt page creation failed, but business was created successfully');
-      } else {
-        console.log('[BUSINESSES] Universal prompt page created successfully:', universalPage.id);
+        if (universalError) {
+          console.error('[BUSINESSES] Universal prompt page creation error:', universalError);
+          console.warn('[BUSINESSES] Universal prompt page creation failed, but business was created successfully');
+        } else {
+          console.log('[BUSINESSES] Universal prompt page created successfully:', universalPage.id);
+        }
       }
     } catch (universalErr) {
       console.error('[BUSINESSES] Error creating universal prompt page:', universalErr);

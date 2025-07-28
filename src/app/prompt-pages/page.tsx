@@ -5,7 +5,7 @@ import { useRef } from "react";
 // 🔧 CONSOLIDATED: Single import from supabaseClient module
 import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 import Link from "next/link";
-import { FaGlobe, FaLink, FaTimes, FaPalette, FaPlus, FaCheck, FaMapMarkerAlt, FaEdit, FaTrash, FaStar, FaUsers, FaUser } from "react-icons/fa";
+import { FaGlobe, FaLink, FaTimes, FaPalette, FaPlus, FaCheck, FaMapMarkerAlt, FaEdit, FaTrash, FaStar, FaUsers, FaUser, FaBuilding, FaStore, FaUserCircle } from "react-icons/fa";
 import { MdDownload } from "react-icons/md";
 import PageCard from "@/app/components/PageCard";
 import UniversalPromptPageForm from "../dashboard/edit-prompt-page/universal/UniversalPromptPageForm";
@@ -16,8 +16,8 @@ import PromptPagesTable from "@/app/components/PromptPagesTable";
 import PublicPromptPagesTable from "@/app/components/PublicPromptPagesTable";
 import PromptTypeSelectModal from "@/app/components/PromptTypeSelectModal";
 import { FaHandsHelping, FaBoxOpen } from "react-icons/fa";
-import { MdPhotoCamera, MdVideoLibrary, MdEvent } from "react-icons/md";
-import { useRouter } from "next/navigation";
+import { FaCamera, FaVideo, FaCalendarAlt } from "react-icons/fa";
+import { useRouter, useSearchParams } from "next/navigation";
 import QRCodeModal from "../components/QRCodeModal";
 import StarfallCelebration from "@/app/components/StarfallCelebration";
 import { getAccountIdForUser } from "@/utils/accountUtils";
@@ -32,6 +32,8 @@ const StylePage = dynamic(() => import("../dashboard/style/StyleModalPage"), { s
 
 export default function PromptPages() {
   const supabase = createClient();
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [loading, setLoading] = useState(true);
   const [promptPages, setPromptPages] = useState<any[]>([]);
@@ -69,16 +71,25 @@ export default function PromptPages() {
   const [editingLocation, setEditingLocation] = useState<BusinessLocation | null>(null);
   const [locationLimits, setLocationLimits] = useState({ current: 0, max: 0, canCreateMore: false });
   
-  // Tab state for prompt pages types
-  const [promptPagesTab, setPromptPagesTab] = useState<'public' | 'individual' | 'locations'>('public');
+  // Tab state for prompt pages types - initialize from URL parameter
+  const [promptPagesTab, setPromptPagesTab] = useState<'public' | 'individual' | 'locations'>(
+    (searchParams.get('tab') as 'public' | 'individual' | 'locations') || 'public'
+  );
   const [isNavigating, setIsNavigating] = useState(false); // Add navigation loading state
-
-  const router = useRouter();
+  const [showBusinessRequiredModal, setShowBusinessRequiredModal] = useState(false);
 
   // Check if user has access to individual prompt pages (exclude grower plan)
   const hasIndividualAccess = (plan?: string): boolean => {
     if (!plan) return false;
     return plan !== 'grower';
+  };
+
+  // Handle tab changes and update URL
+  const handleTabChange = (newTab: 'public' | 'individual' | 'locations') => {
+    setPromptPagesTab(newTab);
+    const params = new URLSearchParams(searchParams);
+    params.set('tab', newTab);
+    router.push(`/prompt-pages?${params.toString()}`, { scroll: false });
   };
 
   // Prevent background scroll when modal is open
@@ -99,6 +110,14 @@ export default function PromptPages() {
       setIsNavigating(false);
     };
   }, []);
+
+  // Update tab state when URL changes
+  useEffect(() => {
+    const tabFromUrl = searchParams.get('tab') as 'public' | 'individual' | 'locations';
+    if (tabFromUrl && ['public', 'individual', 'locations'].includes(tabFromUrl)) {
+      setPromptPagesTab(tabFromUrl);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     async function fetchData() {
@@ -130,6 +149,17 @@ export default function PromptPages() {
           .select("*")
           .eq("account_id", accountId)
           .single();
+        
+        // Check if business profile exists and has been updated (indicating they've been to "Your business" page)
+        if (!businessProfile || 
+            !businessProfile.name || 
+            businessProfile.name.trim() === '' ||
+            businessProfile.created_at === businessProfile.updated_at) {
+          setShowBusinessRequiredModal(true);
+          setLoading(false);
+          return;
+        }
+        
         setBusiness(businessProfile);
         
         const { data: universalPage } = await supabase
@@ -137,20 +167,35 @@ export default function PromptPages() {
           .select("*")
           .eq("account_id", accountId)
           .eq("is_universal", true)
+          .order("created_at", { ascending: false })
+          .limit(1)
           .single();
         setUniversalPromptPage(universalPage);
         if (universalPage?.slug) {
           setUniversalUrl(`${window.location.origin}/r/${universalPage.slug}`);
         }
         
-        const { data: pages } = await supabase
+        // Fetch public prompt pages (campaign_type = 'public')
+        const { data: publicPages } = await supabase
           .from("prompt_pages")
           .select("*")
           .eq("account_id", accountId)
           .eq("is_universal", false)
+          .eq("campaign_type", "public")
           .is("business_location_id", null)  // Only get non-location pages
           .order("created_at", { ascending: false });
-        setPromptPages(pages || []);
+        setPromptPages(publicPages || []);
+        
+        // Fetch individual prompt pages (campaign_type = 'individual')
+        const { data: individualPages } = await supabase
+          .from("prompt_pages")
+          .select("*")
+          .eq("account_id", accountId)
+          .eq("is_universal", false)
+          .eq("campaign_type", "individual")
+          .is("business_location_id", null)  // Only get non-location pages
+          .order("created_at", { ascending: false });
+        setIndividualPromptPages(individualPages || []);
         
         // Fetch location prompt pages separately
         const { data: locationPages } = await supabase
@@ -360,7 +405,7 @@ export default function PromptPages() {
     {
       key: "photo",
       label: "Photo + testimonial",
-      icon: <MdPhotoCamera className="w-7 h-7 text-[#1A237E]" />,
+      icon: <FaCamera className="w-7 h-7 text-slate-blue" />,
       description: "Capture a headshot and testimonial to display on your website or in marketing materials.",
     },
     {
@@ -378,13 +423,13 @@ export default function PromptPages() {
     {
       key: "event",
       label: "Events & spaces",
-      icon: <MdEvent className="w-7 h-7 text-[#1A237E]" />,
+      icon: <FaCalendarAlt className="w-7 h-7 text-slate-blue" />,
       description: "For events, rentals, tours, and more.",
     },
     {
       key: "video",
       label: "Video testimonial",
-      icon: <MdVideoLibrary className="w-7 h-7 text-[#1A237E]" />,
+      icon: <FaVideo className="w-7 h-7 text-slate-blue" />,
       description: "Request a video testimonial from your client.",
       comingSoon: true,
     },
@@ -468,7 +513,7 @@ export default function PromptPages() {
         <div className="flex bg-white/10 backdrop-blur-sm border-2 border-white rounded-full p-1 shadow-lg">
           <button
             type="button"
-            onClick={() => setPromptPagesTab('public')}
+            onClick={() => handleTabChange('public')}
             className={`px-6 py-2 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-full flex items-center gap-2
               ${promptPagesTab === 'public'
                 ? 'bg-slate-blue text-white'
@@ -480,19 +525,19 @@ export default function PromptPages() {
           </button>
           <button
             type="button"
-            onClick={() => setPromptPagesTab('individual')}
+            onClick={() => handleTabChange('individual')}
             className={`px-6 py-2 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-full flex items-center gap-2
               ${promptPagesTab === 'individual'
                 ? 'bg-slate-blue text-white'
                 : 'bg-transparent text-white'}
             `}
           >
-            <FaUser className="w-4 h-4" />
+            <FaUserCircle className="w-4 h-4" />
             Individual
           </button>
           <button
             type="button"
-            onClick={() => setPromptPagesTab('locations')}
+            onClick={() => handleTabChange('locations')}
             className={`px-6 py-2 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-full flex items-center gap-2
               ${promptPagesTab === 'locations'
                 ? 'bg-slate-blue text-white'
@@ -547,11 +592,8 @@ export default function PromptPages() {
               </div>
             </div>
             
-            {/* Public Outreach Content */}
-            {promptPagesTab === 'public' && (
-              <>
-                {/* Universal Prompt Page Card (dashboard port) */}
-                {universalPromptPage && (
+            {/* Universal Prompt Page Card - Only visible on public tab */}
+            {promptPagesTab === 'public' && universalPromptPage && (
               <div className="rounded-lg p-6 bg-blue-50 border border-blue-200 flex items-center gap-4 shadow relative mt-2">
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-1">
@@ -580,7 +622,7 @@ export default function PromptPages() {
                     </div>
                   </div>
                   <p className="mt-4 text-blue-900 mb-4 text-sm">
-                    Your Universal Prompt Page is general-use and not customer specific.
+                    Your Universal Prompt Page is your general-use Prompt Page that can be shared with one or many.
                   </p>
                   <div className="flex flex-wrap gap-2 items-center">
                     <div className="flex flex-wrap gap-2 items-center">
@@ -651,8 +693,6 @@ export default function PromptPages() {
               </div>
             )}
             
-
-            
             {/* QR Code Download Modal */}
             <QRCodeModal
               isOpen={qrModal?.open || false}
@@ -663,26 +703,27 @@ export default function PromptPages() {
               showNfcText={qrModal?.showNfcText}
             />
             
-            {/* Public Prompt Pages Section */}
+            {/* Public Outreach Content */}
             {promptPagesTab === 'public' && (
-              <div className="my-12">
-                <h2 className="text-2xl font-bold text-slate-blue mb-6">Your public Prompt Pages</h2>
-              
-              <div className="overflow-x-auto shadow border-l border-r border-b border-gray-200 sm:rounded-b-lg">
-                <PublicPromptPagesTable
-                  promptPages={promptPages}
-                  business={business}
-                  account={business}
-                  universalUrl={universalUrl}
-                  onDeletePages={async (pageIds) => {
-                    await supabase.from("prompt_pages").delete().in("id", pageIds);
-                    setPromptPages((pages) => pages.filter((page) => !pageIds.includes(page.id)));
-                  }}
-                  onCreatePromptPage={() => setShowTypeModal(true)}
-                />
+              <>
+                {/* Public Prompt Pages Section */}
+                <div className="my-12">
+                  <h2 className="text-2xl font-bold text-slate-blue mb-6">Your public Prompt Pages</h2>
+                
+                <div className="overflow-x-auto shadow border-l border-r border-b border-gray-200 sm:rounded-b-lg">
+                  <PublicPromptPagesTable
+                    promptPages={promptPages}
+                    business={business}
+                    account={business}
+                    universalUrl={universalUrl}
+                    onDeletePages={async (pageIds) => {
+                      await supabase.from("prompt_pages").delete().in("id", pageIds);
+                      setPromptPages((pages) => pages.filter((page) => !pageIds.includes(page.id)));
+                    }}
+                    onCreatePromptPage={() => setShowTypeModal(true)}
+                  />
+                </div>
               </div>
-            </div>
-            )}
               </>
             )}
             
@@ -712,121 +753,23 @@ export default function PromptPages() {
                   </div>
                 ) : (
                 <PromptPagesTable
-                  promptPages={promptPages}
-                  isLoading={loading}
-                  onDelete={async (pageId) => {
-                    await supabase.from("prompt_pages").delete().eq("id", pageId);
-                    setPromptPages((pages) => pages.filter((page) => page.id !== pageId));
+                  promptPages={individualPromptPages}
+                  business={business}
+                  account={account}
+                  universalUrl={universalUrl}
+                  onStatusUpdate={async (pageId: string, newStatus: any) => {
+                    await supabase.from("prompt_pages").update({ status: newStatus }).eq("id", pageId);
+                    setIndividualPromptPages((pages) =>
+                      pages.map((page) =>
+                        page.id === pageId ? { ...page, status: newStatus } : page
+                      )
+                    );
                   }}
-                  onEdit={async (pageId) => {
-                    const { data: page } = await supabase
-                      .from("prompt_pages")
-                      .select("*")
-                      .eq("id", pageId)
-                      .single();
-                    if (page) {
-                      router.push(`/dashboard/edit-prompt-page/individual/${page.id}`);
-                    }
+                  onDeletePages={async (pageIds: string[]) => {
+                    await supabase.from("prompt_pages").delete().in("id", pageIds);
+                    setIndividualPromptPages((pages) => pages.filter((page) => !pageIds.includes(page.id)));
                   }}
-                  onDuplicate={async (pageId) => {
-                    const { data: page } = await supabase
-                      .from("prompt_pages")
-                      .select("*")
-                      .eq("id", pageId)
-                      .single();
-                    if (page) {
-                      const { data: newPage } = await supabase
-                        .from("prompt_pages")
-                        .insert({
-                          ...page,
-                          account_id: account?.id,
-                          is_universal: false,
-                          business_location_id: null,
-                          status: "draft",
-                          created_at: new Date().toISOString(),
-                          updated_at: new Date().toISOString(),
-                        })
-                        .select()
-                        .single();
-                      if (newPage) {
-                        setPromptPages((pages) => [...pages, newPage]);
-                      }
-                    }
-                  }}
-                  onCopy={async (pageId) => {
-                    const { data: page } = await supabase
-                      .from("prompt_pages")
-                      .select("*")
-                      .eq("id", pageId)
-                      .single();
-                    if (page) {
-                      const url = `${window.location.origin}/r/${page.slug}`;
-                      await navigator.clipboard.writeText(url);
-                      setCopySuccess("Link copied!");
-                      setTimeout(() => setCopySuccess(""), 2000);
-                    }
-                  }}
-                  onShare={async (pageId) => {
-                    const { data: page } = await supabase
-                      .from("prompt_pages")
-                      .select("*")
-                      .eq("id", pageId)
-                      .single();
-                    if (page) {
-                      const url = `${window.location.origin}/r/${page.slug}`;
-                      setQrModal({
-                        open: true,
-                        url: url,
-                        clientName: page.name || "PromptReviews",
-                        logoUrl: page.logo_url,
-                        showNfcText: page.nfc_text_enabled ?? false,
-                      });
-                    }
-                  }}
-                  onPreview={async (pageId) => {
-                    const { data: page } = await supabase
-                      .from("prompt_pages")
-                      .select("*")
-                      .eq("id", pageId)
-                      .single();
-                    if (page) {
-                      router.push(`/r/${page.slug}`);
-                    }
-                  }}
-                  onArchive={async (pageId) => {
-                    const { data: page } = await supabase
-                      .from("prompt_pages")
-                      .select("*")
-                      .eq("id", pageId)
-                      .single();
-                    if (page) {
-                      await supabase
-                        .from("prompt_pages")
-                        .update({ status: "archived", updated_at: new Date().toISOString() })
-                        .eq("id", pageId);
-                      setPromptPages((pages) => pages.map((p) =>
-                        p.id === pageId ? { ...p, status: "archived" } : p
-                      ));
-                    }
-                  }}
-                  onUnarchive={async (pageId) => {
-                    const { data: page } = await supabase
-                      .from("prompt_pages")
-                      .select("*")
-                      .eq("id", pageId)
-                      .single();
-                    if (page) {
-                      await supabase
-                        .from("prompt_pages")
-                        .update({ status: "draft", updated_at: new Date().toISOString() })
-                        .eq("id", pageId);
-                      setPromptPages((pages) => pages.map((p) =>
-                        p.id === pageId ? { ...p, status: "draft" } : p
-                      ));
-                    }
-                  }}
-                  showArchived={false} // Individual prompt pages do not have an archived state
-                  setShowArchived={() => {}}
+                  onCreatePromptPage={() => setShowTypeModal(true)}
                 />
                 )}
               </div>
@@ -1017,7 +960,7 @@ export default function PromptPages() {
                 {/* Prompty Success Image */}
                 <div className="mb-3 flex justify-center">
                   <img
-                    src="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/small-prompty-success.png"
+                    src="/images/prompty-success.png"
                     alt="Prompty Success"
                     className="w-24 h-24 object-contain"
                   />
@@ -1095,6 +1038,40 @@ export default function PromptPages() {
                   Close
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Business Required Modal */}
+      {showBusinessRequiredModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-8 max-w-md mx-4 text-center">
+            <div className="mb-6">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 mb-4">
+                <FaStore className="h-6 w-6 text-yellow-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Business Profile Required
+              </h3>
+              <p className="text-sm text-gray-600">
+                Before we get started with Prompt Pages, we need some more info about your business.
+              </p>
+            </div>
+            
+            <div className="flex flex-col space-y-3">
+              <Link
+                href="/dashboard/business-profile"
+                className="bg-slate-blue text-white px-6 py-3 rounded-lg hover:bg-slate-blue/90 transition-colors font-medium"
+              >
+                Go to Your Business
+              </Link>
+              <button
+                onClick={() => router.push('/dashboard')}
+                className="text-gray-500 hover:text-gray-700 px-6 py-2 transition-colors"
+              >
+                Back to Dashboard
+              </button>
             </div>
           </div>
         </div>

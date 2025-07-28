@@ -43,7 +43,7 @@ export default function BusinessLocationModal({
   businessLogoUrl,
   businessReviewPlatforms,
 }: BusinessLocationModalProps) {
-  const [currentStep, setCurrentStep] = useState(1);
+  // Removed step logic - now single step
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showLimitModal, setShowLimitModal] = useState(false);
@@ -145,7 +145,6 @@ export default function BusinessLocationModal({
       setLocationPhotoFile(null);
       setLocationPhotoError('');
     }
-    setCurrentStep(1);
     setErrors({});
   }, [location, isOpen, businessReviewPlatforms]);
 
@@ -157,7 +156,7 @@ export default function BusinessLocationModal({
     }
   };
 
-  const validateStep1 = () => {
+  const validateForm = () => {
     const newErrors: Record<string, string> = {};
     
     if (!formData.name?.trim()) {
@@ -170,16 +169,6 @@ export default function BusinessLocationModal({
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
-
-  const handleNext = () => {
-    if (validateStep1()) {
-      setCurrentStep(2);
-    }
-  };
-
-  const handleBack = () => {
-    setCurrentStep(1);
   };
 
   // Photo upload functions
@@ -271,8 +260,7 @@ export default function BusinessLocationModal({
   };
 
   const handleSubmit = async () => {
-    if (!validateStep1()) {
-      setCurrentStep(1);
+    if (!validateForm()) {
       return;
     }
 
@@ -364,33 +352,16 @@ export default function BusinessLocationModal({
             </button>
           </div>
 
-          {/* Step Indicator */}
-          <div className="px-6 py-4 border-b border-gray-200">
-            <div className="flex items-center justify-center space-x-4">
-              <div className={`flex items-center ${currentStep >= 1 ? 'text-slate-blue' : 'text-gray-400'}`}>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 1 ? 'bg-slate-blue text-white' : 'bg-gray-200'}`}>
-                  1
-                </div>
-                <span className="ml-2 text-sm font-medium">Basic Info</span>
-              </div>
-              <div className="w-16 h-0.5 bg-gray-200" />
-              <div className={`flex items-center ${currentStep >= 2 ? 'text-slate-blue' : 'text-gray-400'}`}>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 2 ? 'bg-slate-blue text-white' : 'bg-gray-200'}`}>
-                  2
-                </div>
-                <span className="ml-2 text-sm font-medium">AI Training & Settings</span>
-              </div>
-            </div>
-            
-            {/* Location limit indicator */}
-            {!location && (
-              <div className="mt-3 text-center">
+          {/* Location limit indicator */}
+          {!location && (
+            <div className="px-6 py-4 border-b border-gray-200">
+              <div className="text-center">
                 <span className="text-sm text-gray-600">
                   {currentCount} of {maxLocations} locations used
                 </span>
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Form Content */}
           <div className="px-6 py-4 max-h-[60vh] overflow-y-auto">
@@ -400,8 +371,7 @@ export default function BusinessLocationModal({
               </div>
             )}
 
-            {currentStep === 1 && (
-              <div className="space-y-4">
+            <div className="space-y-4">
                 {/* Location Photo/Logo Upload - FIRST ITEM */}
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 mb-3">
@@ -595,10 +565,6 @@ export default function BusinessLocationModal({
                   )}
                 </div>
               </div>
-            )}
-
-            {currentStep === 2 && (
-              <div className="space-y-4">
                 {/* Business Description */}
                 <div>
                   <label htmlFor="business_description" className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
@@ -709,37 +675,18 @@ export default function BusinessLocationModal({
                   />
                 </div>
               </div>
-            )}
           </div>
 
           {/* Footer */}
           <div className="flex items-center justify-end border-t border-gray-200 px-6 py-4">
             <div className="flex space-x-3">
-              {currentStep > 1 && (
-                <button
-                  onClick={handleBack}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue"
-                >
-                  Back
-                </button>
-              )}
-              {currentStep < 2 ? (
-                <button
-                  onClick={handleNext}
-                  disabled={reviewPlatforms.length === 0}
-                  className="px-4 py-2 text-sm font-medium text-white bg-slate-blue rounded-md hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Next
-                </button>
-              ) : (
-                <button
-                  onClick={handleSubmit}
-                  disabled={isSubmitting || (!canCreateMore && !location)}
-                  className="px-4 py-2 text-sm font-medium text-white bg-slate-blue rounded-md hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isSubmitting ? 'Saving...' : (location ? 'Update Location' : 'Create Location')}
-                </button>
-              )}
+              <button
+                onClick={handleSubmit}
+                disabled={isSubmitting || (!canCreateMore && !location)}
+                className="px-4 py-2 text-sm font-medium text-white bg-slate-blue rounded-md hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? 'Saving...' : (location ? 'Update Location' : 'Create Location')}
+              </button>
             </div>
           </div>
         </Dialog.Panel>

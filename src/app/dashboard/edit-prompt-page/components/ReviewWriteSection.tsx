@@ -82,6 +82,7 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
   errors = [],
   hideReviewTemplateFields = false,
 }) => {
+  console.log('🎯 ReviewWriteSection: Received value prop:', value);
   const handlePlatformChange = (
     idx: number,
     field: keyof ReviewWritePlatform,

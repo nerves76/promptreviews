@@ -29,6 +29,7 @@ export interface UniversalPromptFormState {
   fallingIcon: string;
   fallingIconColor: string;
   aiButtonEnabled: boolean;
+  fixGrammarEnabled: boolean;
   notePopupEnabled: boolean;
   friendlyNote: string;
 }
@@ -96,6 +97,9 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
     const [aiButtonEnabled, setAiButtonEnabled] = useState(
       initialData?.aiButtonEnabled ?? true,
     );
+    const [fixGrammarEnabled, setFixGrammarEnabled] = useState(
+      initialData?.fixGrammarEnabled ?? true,
+    );
     const [notePopupEnabled, setNotePopupEnabled] = useState(
       initialData?.notePopupEnabled ?? false,
     );
@@ -152,6 +156,7 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
             fallingIcon,
             fallingIconColor,
             aiButtonEnabled,
+            fixGrammarEnabled,
             notePopupEnabled: notePopupEnabled,
             friendlyNote,
           });
@@ -171,9 +176,10 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
           fallingEnabled,
           fallingIcon,
           fallingIconColor,
-          aiButtonEnabled,
-          notePopupEnabled: notePopupEnabled,
-          friendlyNote,
+                      aiButtonEnabled,
+            fixGrammarEnabled,
+            notePopupEnabled: notePopupEnabled,
+            friendlyNote,
         }),
       }),
       [
@@ -192,6 +198,7 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
         fallingIcon,
         fallingIconColor,
         aiButtonEnabled,
+        fixGrammarEnabled,
         notePopupEnabled,
         friendlyNote,
         onSave,
@@ -237,7 +244,10 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
           };
           
           console.log('🔍 Calling onSave with data:', formData);
-          onSave(formData);
+          onSave({
+            ...formData,
+            fixGrammarEnabled: false
+          });
         }}
       >
         {/* Review Platforms Section (shared design, no review templates) */}
@@ -326,9 +336,9 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
         {/* AI Review Generation Toggle */}
                     <DisableAIGenerationSection
               aiGenerationEnabled={aiButtonEnabled}
-              fixGrammarEnabled={true}
+              fixGrammarEnabled={fixGrammarEnabled}
               onToggleAI={() => setAiButtonEnabled((v) => !v)}
-              onToggleGrammar={() => {}}
+              onToggleGrammar={() => setFixGrammarEnabled((v) => !v)}
             />
         {/* Falling Stars Section (using new component) */}
         <FallingStarsSection

@@ -14,7 +14,7 @@ import QRCodeGenerator, { QR_FRAME_SIZES } from "../../dashboard/components/QRCo
 import dynamic from "next/dynamic";
 import PromptPagesTable from "@/app/components/PromptPagesTable";
 import PromptTypeSelectModal from "@/app/components/PromptTypeSelectModal";
-import { FaHandsHelping, FaBoxOpen } from "react-icons/fa";
+import { FaHandsHelping, FaBoxOpen, FaUserCircle } from "react-icons/fa";
 import { MdPhotoCamera, MdVideoLibrary, MdEvent } from "react-icons/md";
 import { useRouter } from "next/navigation";
 import QRCodeModal from "../../components/QRCodeModal";
@@ -110,6 +110,16 @@ export default function IndividualOutreach() {
           .select("*")
           .eq("account_id", accountId)
           .single();
+        
+        // Check if business profile exists and has been updated (indicating they've been to "Your business" page)
+        if (!businessProfile || 
+            !businessProfile.name || 
+            businessProfile.name.trim() === '' ||
+            businessProfile.created_at === businessProfile.updated_at) {
+          router.push('/dashboard?message=complete-business-first');
+          return;
+        }
+        
         setBusiness(businessProfile);
         
         const { data: universalPage } = await supabase
@@ -117,6 +127,8 @@ export default function IndividualOutreach() {
           .select("*")
           .eq("account_id", accountId)
           .eq("is_universal", true)
+          .order("created_at", { ascending: false })
+          .limit(1)
           .single();
         setUniversalPromptPage(universalPage);
         if (universalPage?.slug) {
@@ -352,7 +364,7 @@ export default function IndividualOutreach() {
     {
       key: "employee",
       label: "Employee spotlight",
-      icon: <FaUser className="w-7 h-7 text-slate-blue" />,
+      icon: <FaUserCircle className="w-7 h-7 text-slate-blue" />,
       description: "Create a review page to showcase individual team members and inspire competition",
     },
     {

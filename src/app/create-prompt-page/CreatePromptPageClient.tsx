@@ -168,6 +168,7 @@ interface CreatePromptPageClientProps {
 export default function CreatePromptPageClient({ 
   markOnboardingComplete = false 
 }: CreatePromptPageClientProps = {}) {
+  console.log("🎯 CreatePromptPageClient component mounted");
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
@@ -209,11 +210,13 @@ export default function CreatePromptPageClient({
     
     // Campaign type determination logic (debug logs removed for production)
     
-    return {
+    const initialData = {
       ...initialFormData,
       review_type: initialReviewType,
       campaign_type: campaignType
     };
+    console.log("🎯 Initial formData created:", initialData);
+    return initialData;
   });
   const [businessProfile, setBusinessProfile] =
     useState<BusinessProfile | null>(null);
@@ -271,6 +274,7 @@ export default function CreatePromptPageClient({
   }, [markOnboardingComplete]);
 
   useEffect(() => {
+    console.log("🎯 loadBusinessProfile useEffect triggered");
     const loadBusinessProfile = async () => {
       try {
         const {
@@ -280,12 +284,24 @@ export default function CreatePromptPageClient({
           return;
         }
         setCurrentUser(user);
+        console.log("🎯 Fetching business data for user:", user.id);
         const { data: businessData } = await supabase
           .from("businesses")
           .select("*")
           .eq("account_id", user.id)
           .single();
+        console.log("🎯 Business data result:", businessData);
+        if (!businessData || 
+            !businessData.name || 
+            businessData.name.trim() === '' ||
+            businessData.created_at === businessData.updated_at) {
+          console.log("🎯 Business profile not updated, redirecting to dashboard");
+          router.push('/dashboard?message=complete-business-first');
+          return;
+        }
         if (businessData) {
+          console.log("🎯 Business profile loaded:", businessData);
+          console.log("🎯 Business review_platforms:", businessData.review_platforms);
           setBusinessProfile({
             ...businessData,
             business_name: businessData.name || businessData.business_name,
@@ -312,11 +328,8 @@ export default function CreatePromptPageClient({
                 'Use this code "1234" to get a discount on your next purchase.',
             }));
           }
-          if (
-            (!formData.review_platforms ||
-              formData.review_platforms.length === 0) &&
-            businessData.review_platforms
-          ) {
+          if (businessData.review_platforms) {
+            console.log("🎯 Inheriting review platforms from business profile:", businessData.review_platforms);
             let platforms = businessData.review_platforms;
             if (typeof platforms === "string") {
               try {
@@ -326,17 +339,24 @@ export default function CreatePromptPageClient({
               }
             }
             if (!Array.isArray(platforms)) platforms = [];
-            setFormData((prev) => ({
-              ...prev,
-              review_platforms: platforms.map((p: any) => ({
-                name: p.name || p.platform || "",
-                url: p.url || "",
-                wordCount: p.wordCount || 200,
-                customInstructions: p.customInstructions || "",
-                reviewText: p.reviewText || "",
-                customPlatform: p.customPlatform || "",
-              })),
-            }));
+            console.log("🎯 Processed platforms:", platforms);
+            setFormData((prev) => {
+              const newData = {
+                ...prev,
+                review_platforms: platforms.map((p: any) => ({
+                  name: p.name || p.platform || "",
+                  url: p.url || "",
+                  wordCount: p.wordCount || 200,
+                  customInstructions: p.customInstructions || "",
+                  reviewText: p.reviewText || "",
+                  customPlatform: p.customPlatform || "",
+                })),
+              };
+              console.log("🎯 Updated formData with review platforms:", newData.review_platforms);
+              return newData;
+            });
+          } else {
+            console.log("🎯 No review platforms found in business profile");
           }
           if (businessData.services_offered) {
             let arr = businessData.services_offered;
@@ -348,10 +368,30 @@ export default function CreatePromptPageClient({
               }
             }
             if (!Array.isArray(arr)) arr = [];
-            setServices(arr.filter(Boolean));
+            const filteredServices = arr.filter(Boolean);
+            console.log("🎯 Inheriting services from business profile:", filteredServices);
+            setServices(filteredServices);
             setFormData((prev) => ({
               ...prev,
-              services_offered: arr.filter(Boolean),
+              services_offered: filteredServices,
+              // Also set features_or_benefits for ServicePromptPageForm compatibility
+              features_or_benefits: filteredServices,
+            }));
+          }
+          
+          // Inherit social media URLs from business profile
+          if (businessData.facebook_url || businessData.instagram_url || businessData.bluesky_url || 
+              businessData.tiktok_url || businessData.youtube_url || businessData.linkedin_url || 
+              businessData.pinterest_url) {
+            setFormData((prev) => ({
+              ...prev,
+              facebook_url: businessData.facebook_url || "",
+              instagram_url: businessData.instagram_url || "",
+              bluesky_url: businessData.bluesky_url || "",
+              tiktok_url: businessData.tiktok_url || "",
+              youtube_url: businessData.youtube_url || "",
+              linkedin_url: businessData.linkedin_url || "",
+              pinterest_url: businessData.pinterest_url || "",
             }));
           }
         }
@@ -455,7 +495,7 @@ export default function CreatePromptPageClient({
         team_member: "",
         assigned_team_members: "",
         // Service-specific fields
-        service_name: "",
+        service_name: (formData as any).service_name || (formData.features_or_benefits && formData.features_or_benefits[0]) || (formData.services_offered && formData.services_offered[0]) || "",
         service_description: "",
         // Universal page fields
         is_universal: false,
@@ -665,7 +705,15 @@ export default function CreatePromptPageClient({
         note_popup_enabled: formData.notePopupEnabled ?? false,
         nfc_text_enabled: formData.nfcTextEnabled ?? false,
         show_friendly_note: formData.showFriendlyNote ?? false,
-        friendly_note: formData.friendlyNote ?? ""
+        friendly_note: formData.friendlyNote ?? "",
+        // Social media URLs inherited from business profile
+        facebook_url: formData.facebook_url || "",
+        instagram_url: formData.instagram_url || "",
+        bluesky_url: formData.bluesky_url || "",
+        tiktok_url: formData.tiktok_url || "",
+        youtube_url: formData.youtube_url || "",
+        linkedin_url: formData.linkedin_url || "",
+        pinterest_url: formData.pinterest_url || ""
       };
 
       console.log("[DEBUG] handleStep1Submit - insertData after initial setup:", insertData);
@@ -881,7 +929,7 @@ export default function CreatePromptPageClient({
         account_id: accountId,
         // Note: business_name column doesn't exist - removed
         review_type: formData.review_type || "service", // Use the review_type from form data
-        status: "in_queue", // Published immediately
+        status: "draft", // Start as draft for individual prompt pages
         campaign_type: campaignType,
         falling_icon_color: "#fbbf24",
         // Include only valid prompt_pages fields from formData
@@ -901,50 +949,64 @@ export default function CreatePromptPageClient({
         emoji_sentiment_question: formData.emojiSentimentQuestion || 'How was your experience?',
         emoji_feedback_message: formData.emojiFeedbackMessage || 'We value your feedback! Let us know how we can do better.',
         emoji_thank_you_message: formData.emojiThankYouMessage || 'Thank you for your feedback!',
-        emoji_labels: formData.emojiLabels || ['Excellent', 'Satisfied', 'Neutral', 'Unsatisfied', 'Frustrated']
+        emoji_labels: formData.emojiLabels || ['Excellent', 'Satisfied', 'Neutral', 'Unsatisfied', 'Frustrated'],
+        // Social media URLs inherited from business profile
+        facebook_url: formData.facebook_url || '',
+        instagram_url: formData.instagram_url || '',
+        bluesky_url: formData.bluesky_url || '',
+        tiktok_url: formData.tiktok_url || '',
+        youtube_url: formData.youtube_url || '',
+        linkedin_url: formData.linkedin_url || '',
+        pinterest_url: formData.pinterest_url || ''
       };
 
       // Only include customer fields for individual campaigns
       if (campaignType === 'individual') {
-        insertData.first_name = formData.first_name || '';
-        insertData.last_name = formData.last_name || '';
-        insertData.email = formData.email || '';
-        insertData.phone = formData.phone || '';
-        insertData.role = formData.role || '';
+        (insertData as any).first_name = (formData as any).first_name || '';
+        (insertData as any).last_name = (formData as any).last_name || '';
+        (insertData as any).email = (formData as any).email || '';
+        (insertData as any).phone = (formData as any).phone || '';
+        (insertData as any).role = (formData as any).role || '';
       }
 
       // Add Employee-specific fields for employee pages
       if (formData.review_type === 'employee') {
-        insertData.emp_first_name = formData.emp_first_name || '';
-        insertData.emp_last_name = formData.emp_last_name || '';
-        insertData.emp_pronouns = formData.emp_pronouns || '';
-        insertData.emp_headshot_url = formData.emp_headshot_url || '';
-        insertData.emp_position = formData.emp_position || '';
-        insertData.emp_location = formData.emp_location || '';
-        insertData.emp_years_at_business = formData.emp_years_at_business || '';
-        insertData.emp_bio = formData.emp_bio || '';
-        insertData.emp_fun_facts = formData.emp_fun_facts || [];
-        insertData.emp_skills = formData.emp_skills || [];
-        insertData.emp_review_guidance = formData.emp_review_guidance || '';
+        (insertData as any).emp_first_name = (formData as any).emp_first_name || '';
+        (insertData as any).emp_last_name = (formData as any).emp_last_name || '';
+        (insertData as any).emp_pronouns = (formData as any).emp_pronouns || '';
+        (insertData as any).emp_headshot_url = (formData as any).emp_headshot_url || '';
+        (insertData as any).emp_position = (formData as any).emp_position || '';
+        (insertData as any).emp_location = (formData as any).emp_location || '';
+        (insertData as any).emp_years_at_business = (formData as any).emp_years_at_business || '';
+        (insertData as any).emp_bio = (formData as any).emp_bio || '';
+        (insertData as any).emp_fun_facts = (formData as any).emp_fun_facts || [];
+        (insertData as any).emp_skills = (formData as any).emp_skills || [];
+        (insertData as any).emp_review_guidance = (formData as any).emp_review_guidance || '';
+      }
+
+      // Add Service-specific fields for service pages
+      if (formData.review_type === 'service') {
+        (insertData as any).service_name = (formData as any).service_name || (formData.features_or_benefits && formData.features_or_benefits[0]) || (formData.services_offered && formData.services_offered[0]) || '';
+        (insertData as any).service_description = (formData as any).service_description || '';
       }
 
       // Add Event-specific fields for event pages
       if (formData.review_type === 'event') {
-        insertData.eve_name = formData.eve_name || '';
-        insertData.eve_type = formData.eve_type || '';
-        insertData.eve_date = formData.eve_date || null;
-        insertData.eve_location = formData.eve_location || '';
-        insertData.eve_description = formData.eve_description || '';
-        insertData.eve_duration = formData.eve_duration || '';
-        insertData.eve_capacity = formData.eve_capacity || null;
-        insertData.eve_organizer = formData.eve_organizer || '';
-        insertData.eve_special_features = formData.eve_special_features || [];
-        insertData.eve_review_guidance = formData.eve_review_guidance || '';
+        (insertData as any).eve_name = (formData as any).eve_name || '';
+        (insertData as any).eve_type = (formData as any).eve_type || '';
+        (insertData as any).eve_date = (formData as any).eve_date || null;
+        (insertData as any).eve_location = (formData as any).eve_location || '';
+        (insertData as any).eve_description = (formData as any).eve_description || '';
+        (insertData as any).eve_duration = (formData as any).eve_duration || '';
+        (insertData as any).eve_capacity = (formData as any).eve_capacity || null;
+        (insertData as any).eve_organizer = (formData as any).eve_organizer || '';
+        (insertData as any).eve_special_features = (formData as any).eve_special_features || [];
+        (insertData as any).eve_review_guidance = (formData as any).eve_review_guidance || '';
       }
 
       // Generate slug
       const businessName = businessData.business_name || businessData.name || "business";
-      insertData.slug = slugify(
+      (insertData as any).slug = slugify(
         businessName +
           "-" +
           (formData.name || formData.first_name || "service") +
@@ -996,21 +1058,21 @@ export default function CreatePromptPageClient({
       console.error("🚨 Error constructor:", error?.constructor?.name);
       console.error("🚨 Error properties:", Object.keys(error || {}));
       console.error("🚨 Error own properties:", Object.getOwnPropertyNames(error || {}));
-      console.error("🚨 Error message:", error?.message);
-      console.error("🚨 Error code:", error?.code);
-      console.error("🚨 Error status:", error?.status);
-      console.error("🚨 Error hint:", error?.hint);
-      console.error("🚨 Error details:", error?.details);
+      console.error("🚨 Error message:", (error as any)?.message);
+      console.error("🚨 Error code:", (error as any)?.code);
+      console.error("🚨 Error status:", (error as any)?.status);
+      console.error("🚨 Error hint:", (error as any)?.hint);
+      console.error("🚨 Error details:", (error as any)?.details);
       console.error("🚨 Error stringified:", JSON.stringify(error, Object.getOwnPropertyNames(error)));
       console.error("🚨 Error toString:", error?.toString());
-      console.error("🚨 Error stack:", error?.stack);
+      console.error("🚨 Error stack:", (error as any)?.stack);
       
       // If it's a PostgrestError, log specific fields
-      if (error?.code && error?.details) {
-        console.error("🚨 PostgrestError - code:", error.code);
-        console.error("🚨 PostgrestError - details:", error.details);
-        console.error("🚨 PostgrestError - hint:", error.hint);
-        console.error("🚨 PostgrestError - message:", error.message);
+      if ((error as any)?.code && (error as any)?.details) {
+        console.error("🚨 PostgrestError - code:", (error as any).code);
+        console.error("🚨 PostgrestError - details:", (error as any).details);
+        console.error("🚨 PostgrestError - hint:", (error as any).hint);
+        console.error("🚨 PostgrestError - message:", (error as any).message);
       }
       
       setSaveError(
@@ -1104,6 +1166,7 @@ export default function CreatePromptPageClient({
   };
 
   useEffect(() => {
+    console.log("🎯 CreatePromptPageClient - setMounted useEffect triggered");
     setMounted(true);
   }, []);
 
@@ -1197,6 +1260,7 @@ export default function CreatePromptPageClient({
           isLoading={isSaving}
           error={saveError}
           successMessage={saveSuccess}
+          campaignType={formData.campaign_type || 'individual'}
           onGenerateReview={handleGenerateAIReview}
         />
       );

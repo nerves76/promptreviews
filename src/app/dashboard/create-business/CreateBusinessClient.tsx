@@ -26,6 +26,7 @@ export default function CreateBusinessClient() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showWelcomePopup, setShowWelcomePopup] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [user, setUser] = useState<any>(null);
   const [accountId, setAccountId] = useState<string | null>(null);
@@ -108,15 +109,22 @@ export default function CreateBusinessClient() {
   // Handle successful business creation
   const handleBusinessCreated = useCallback(() => {
     console.log("✅ CreateBusinessClient: Business created successfully, redirecting...");
+    setIsSubmitting(false);
     redirectToDashboard();
   }, [redirectToDashboard]);
 
   // Handle top save button click
   const handleTopSaveClick = useCallback(() => {
+    if (isSubmitting) {
+      console.log("Top button click blocked - already submitting");
+      return;
+    }
+    
     if (formRef.current) {
+      setIsSubmitting(true);
       formRef.current.requestSubmit();
     }
-  }, []);
+  }, [isSubmitting]);
 
   console.log('🔍 CreateBusinessClient: Render state - loading:', loading);
 
@@ -152,10 +160,11 @@ export default function CreateBusinessClient() {
           topRightAction={
             <button
               onClick={handleTopSaveClick}
-              className="bg-slate-blue text-white px-6 py-2 rounded-lg hover:bg-slate-blue/90 transition-colors flex items-center gap-2"
+              disabled={isSubmitting}
+              className="bg-slate-blue text-white px-6 py-2 rounded-lg hover:bg-slate-blue/90 transition-colors flex items-center gap-2 disabled:opacity-50"
             >
               <FaPlus className="w-4 h-4" />
-              Create Business
+              {isSubmitting ? "Creating..." : "Create Business"}
             </button>
           }
         >

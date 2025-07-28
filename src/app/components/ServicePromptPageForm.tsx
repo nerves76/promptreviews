@@ -74,9 +74,11 @@ export default function ServicePromptPageForm({
 }: ServicePromptPageFormProps) {
   const router = useRouter();
   
-  // Debug logging for review_platforms
+  // Debug logging for review_platforms and services
   console.log('🔍 ServicePromptPageForm - initialData.review_platforms:', initialData.review_platforms);
   console.log('🔍 ServicePromptPageForm - typeof review_platforms:', typeof initialData.review_platforms);
+  console.log('🔍 ServicePromptPageForm - initialData.features_or_benefits:', initialData.features_or_benefits);
+  console.log('🔍 ServicePromptPageForm - initialData.services_offered:', initialData.services_offered);
   
   // Initialize form data state from initialData with review_platforms safety check
   const safeInitialData = {
@@ -88,6 +90,23 @@ export default function ServicePromptPageForm({
   };
   
   const [formData, setFormData] = useState(safeInitialData);
+  const [fixGrammarEnabled, setFixGrammarEnabled] = useState(initialData?.fix_grammar_enabled ?? true);
+
+  // Update form data when initialData changes (for inheritance)
+  useEffect(() => {
+    if (initialData && Object.keys(initialData).length > 0) {
+      console.log('🔄 ServicePromptPageForm: initialData changed, updating form data:', initialData);
+      setFormData((prev: any) => {
+        const newData = { ...prev, ...initialData };
+        console.log('🔄 ServicePromptPageForm: Updated form data:', newData);
+        return newData;
+      });
+      // Also update fixGrammarEnabled if it's in initialData
+      if (initialData.fix_grammar_enabled !== undefined) {
+        setFixGrammarEnabled(initialData.fix_grammar_enabled);
+      }
+    }
+  }, [initialData]);
   const [isSaving, setIsSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -130,6 +149,7 @@ export default function ServicePromptPageForm({
           ...formData,
           review_type: "service",
           formComplete: true,
+          fix_grammar_enabled: fixGrammarEnabled,
         };
         
         console.log('🔥 ServicePromptPageForm calling onSave with:', saveData);
@@ -369,7 +389,7 @@ export default function ServicePromptPageForm({
           value={Array.isArray(formData.review_platforms) ? formData.review_platforms : []}
           onChange={(platforms) => updateFormData('review_platforms', platforms)}
           onGenerateReview={handleGenerateAIReview}
-          hideReviewTemplateFields={isUniversal}
+          hideReviewTemplateFields={campaignType === 'public'}
         />
         
         {/* Offer Section */}
@@ -456,9 +476,9 @@ export default function ServicePromptPageForm({
         {/* AI Generation Toggle */}
         <DisableAIGenerationSection
           aiGenerationEnabled={formData.aiButtonEnabled}
-          fixGrammarEnabled={false}
+          fixGrammarEnabled={fixGrammarEnabled}
           onToggleAI={() => updateFormData('aiButtonEnabled', !formData.aiButtonEnabled)}
-          onToggleGrammar={() => {}}
+          onToggleGrammar={() => setFixGrammarEnabled((v: boolean) => !v)}
         />
         
         {/* Falling Stars Section */}

@@ -55,6 +55,8 @@ import SectionHeader from "./SectionHeader";
 import ServicePromptPageForm from "./ServicePromptPageForm";
 import PhotoPromptPageForm from "./PhotoPromptPageForm";
 import ProductPromptPageForm from "./ProductPromptPageForm";
+import EventPromptPageForm from "./EventPromptPageForm";
+import EmployeePromptPageForm from "./EmployeePromptPageForm";
 
 
 /**
@@ -549,6 +551,42 @@ export default function PromptPageForm({
         step={step}
         onStepChange={onStepChange}
         {...rest}
+      />
+    );
+  }
+
+  if (formData.review_type === "event") {
+    return (
+      <EventPromptPageForm
+        mode={mode}
+        initialData={initialData}
+        onSave={onSave}
+        onPublish={onPublish}
+        pageTitle={pageTitle}
+        supabase={supabase}
+        businessProfile={businessProfile}
+        isUniversal={isUniversal}
+        onPublishSuccess={onPublishSuccess}
+        campaignType={campaignType}
+        onGenerateReview={rest.onGenerateReview}
+      />
+    );
+  }
+
+  if (formData.review_type === "employee") {
+    return (
+      <EmployeePromptPageForm
+        mode={mode}
+        initialData={initialData}
+        onSave={onSave}
+        onPublish={onPublish}
+        pageTitle={pageTitle}
+        supabase={supabase}
+        businessProfile={businessProfile}
+        isUniversal={isUniversal}
+        onPublishSuccess={onPublishSuccess}
+        campaignType={campaignType}
+        onGenerateReview={rest.onGenerateReview}
       />
     );
   }

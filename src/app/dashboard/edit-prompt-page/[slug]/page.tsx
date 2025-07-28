@@ -178,7 +178,7 @@ export default function EditPromptPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [step, setStep] = useState(1);
+  // Removed step state - now single step
   const [formData, setFormData] = useState({
     first_name: "",
     last_name: "",
@@ -753,67 +753,13 @@ export default function EditPromptPage() {
         { preventDefault: () => {} } as React.FormEvent,
         "save",
       );
-      setStep(2);
+      // Removed step logic
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleStep1Save = async (formState: any) => {
-    setIsLoading(true);
-    setError(null);
-    setSuccessMessage(null);
-    try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session) {
-        throw new Error("You must be signed in to edit a prompt page");
-      }
-      // Get the prompt page ID
-      const { data: promptPage, error: fetchError } = await supabase
-        .from("prompt_pages")
-        .select("id, slug")
-        .eq("slug", params.slug)
-        .single();
-      if (fetchError) throw fetchError;
-      if (!promptPage) throw new Error("Prompt page not found");
-      
-      // For step 1, only update the basic customer/client fields
-      const updateData = {
-        first_name: formState.first_name,
-        last_name: formState.last_name,
-        email: formState.email,
-        phone: formState.phone,
-        role: formState.role,
-        friendly_note: formState.friendly_note,
-      };
-      
-      // Update the prompt page
-      const { error: updateError } = await supabase
-        .from("prompt_pages")
-        .update(updateData)
-        .eq("id", promptPage.id);
-      
-      if (updateError) {
-        setError(updateError.message);
-        return;
-      }
-      
-      // Update local form data
-      setFormData(prev => ({ ...prev, ...updateData }));
-      
-      // Move to step 2
-      setStep(2);
-      setSuccessMessage("Step 1 saved! Continue to step 2.");
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to update prompt page",
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Removed step logic - now single step
 
   // Simple single-step save for product pages (like universal prompt page)
   const handleProductSave = async (formState: any) => {
@@ -1050,12 +996,8 @@ export default function EditPromptPage() {
   };
 
   const handleFormSave = async (formState: ServicePromptFormState | any) => {
-    // For backward compatibility, route to appropriate step handler
-    if (step === 1) {
-      return handleStep1Save(formState);
-    } else {
-      return handleStep2Save(formState);
-    }
+    // Single step save - use the unified save handler
+    return handleStep2Save(formState);
   };
 
   const handleFormPublish = (data: any) => {
@@ -1210,133 +1152,77 @@ export default function EditPromptPage() {
     business_name: businessProfile.business_name || "",
   };
 
-  // In the main render, for product pages, render only the unified ProductPromptPageForm and return immediately
-  if (formData.type === "product") {
-    return (
-      <PageCard icon={<FaBoxOpen className="w-9 h-9 text-slate-blue" />}>
-        <ProductPromptPageForm
-          mode="edit"
-          initialData={formData}
-          onSave={handleProductSave}
-          pageTitle="Edit Product Prompt Page"
-          supabase={supabase}
-          businessProfile={businessProfile}
-          accountId={accountId}
-          slug={params.slug as string}
-          successMessage={successMessage}
-          error={error}
-          isLoading={isLoading}
-          onGenerateReview={handleGenerateAIReview}
-        />
-      </PageCard>
-    );
-  }
+  // Unified approach: All prompt pages are editable using PromptPageForm
+  console.log('🔍 Rendering unified PromptPageForm for:', { 
+    type: formData.type, 
+    review_type: (formData as any).review_type,
+    businessProfile: !!businessProfile 
+  });
 
-  // For service pages, use the PromptPageForm component (same as photo pages)
-  if ((formData as any).review_type === "service") {
-    console.log('🔍 Rendering PromptPageForm for service with:', { formData, businessProfile, step });
-    return (
-      <PageCard icon={<FaHandsHelping className="w-9 h-9 text-slate-blue" />}>
-        <PromptPageForm
-          mode="edit"
-          initialData={formData}
-          onSave={handleFormSave}
-          pageTitle="Edit Service Prompt Page"
-          supabase={supabase}
-          businessProfile={businessProfile}
-          campaignType={(formData as any).campaign_type || "individual"}
-          onGenerateReview={handleGenerateAIReview}
-        />
-      </PageCard>
-    );
-  }
+  // Determine the appropriate icon based on page type
+  const getPageIcon = () => {
+    if (formData.type === "product" || (formData as any).review_type === "product") {
+      return <FaBoxOpen className="w-9 h-9 text-slate-blue" />;
+    }
+    if (formData.type === "service" || (formData as any).review_type === "service") {
+      return <FaHandsHelping className="w-9 h-9 text-slate-blue" />;
+    }
+    if ((formData as any).review_type === "photo") {
+      return <FaCamera className="w-9 h-9 text-slate-blue" />;
+    }
+    if ((formData as any).review_type === "employee") {
+      return <FaUser className="w-9 h-9 text-slate-blue" />;
+    }
+    if ((formData as any).review_type === "event") {
+      return <MdEvent className="w-9 h-9 text-slate-blue" />;
+    }
+    if (formData.type === "universal") {
+      return <FaGlobe className="w-9 h-9 text-slate-blue" />;
+    }
+    // Default icon
+    return <FaHandsHelping className="w-9 h-9 text-slate-blue" />;
+  };
 
-  // For photo pages, use the PhotoPromptPageForm component
-  if ((formData as any).review_type === "photo") {
-    console.log('🔍 Rendering PhotoPromptPageForm for photo with:', { formData, businessProfile, step });
-    return (
-      <PageCard icon={<FaCamera className="w-9 h-9 text-slate-blue" />}>
-        <PhotoPromptPageForm
-          mode="edit"
-          initialData={formData}
-          onSave={handleFormSave}
-          pageTitle="Edit Photo Prompt Page"
-          supabase={supabase}
-          businessProfile={businessProfile}
-          campaignType="individual"
-          onGenerateReview={handleGenerateAIReview}
-        />
-      </PageCard>
-    );
-  }
+  // Determine the page title based on type
+  const getPageTitle = () => {
+    if (formData.type === "product" || (formData as any).review_type === "product") {
+      return "Edit Product Prompt Page";
+    }
+    if (formData.type === "service" || (formData as any).review_type === "service") {
+      return "Edit Service Prompt Page";
+    }
+    if ((formData as any).review_type === "photo") {
+      return "Edit Photo Prompt Page";
+    }
+    if ((formData as any).review_type === "employee") {
+      return "Edit Employee Spotlight Page";
+    }
+    if ((formData as any).review_type === "event") {
+      return "Edit Event Review Page";
+    }
+    if (formData.type === "universal") {
+      return "Edit Universal Prompt Page";
+    }
+    return "Edit Prompt Page";
+  };
 
-  // For employee pages, use the EmployeePromptPageForm component
-  if ((formData as any).review_type === "employee") {
-    console.log('🔍 Rendering EmployeePromptPageForm for employee with:', { formData, businessProfile, step });
-    return (
-      <PageCard icon={<FaUser className="w-9 h-9 text-slate-blue" />}>
-        <EmployeePromptPageForm
-          mode="edit"
-          initialData={formData}
-          onSave={handleFormSave}
-          pageTitle="Edit Employee Spotlight Page"
-          supabase={supabase}
-          businessProfile={businessProfile}
-          campaignType={(formData as any).campaign_type || "individual"}
-          onGenerateReview={handleGenerateAIReview}
-        />
-      </PageCard>
-    );
-  }
-
-  // For event pages, use the EventPromptPageForm component
-  if ((formData as any).review_type === "event") {
-    console.log('🔍 Rendering EventPromptPageForm for event with:', { formData, businessProfile, step });
-    return (
-      <PageCard icon={<MdEvent className="w-9 h-9 text-slate-blue" />}>
-        <EventPromptPageForm
-          mode="edit"
-          initialData={formData}
-          onSave={handleFormSave}
-          pageTitle="Edit Event Review Page"
-          supabase={supabase}
-          businessProfile={businessProfile}
-          campaignType={(formData as any).campaign_type || "individual"}
-          onGenerateReview={handleGenerateAIReview}
-        />
-      </PageCard>
-    );
-  }
-
-  // For universal pages, use the ServicePromptPageForm component (similar to service pages)
-  if (formData.type === "universal") {
-    console.log('🔍 Rendering ServicePromptPageForm for universal with:', { initialData, isLoading, businessReviewPlatforms });
-    return (
-      <PageCard icon={<FaHandsHelping className="w-9 h-9 text-slate-blue" />}>
-        <ServicePromptPageForm
-          initialData={initialData}
-          onSave={handleFormSave}
-          isLoading={isLoading}
-          showResetButton={showResetButton}
-          businessReviewPlatforms={businessReviewPlatforms}
-          onGenerateReview={handleGenerateAIReview}
-          slug={params.slug as string}
-        />
-      </PageCard>
-    );
-  }
-
-  // Fallback for unknown types
   return (
-    <PageCard icon={<FaHandsHelping className="w-9 h-9 text-slate-blue" />}>
-      <div className="text-center py-8">
-        <h1 className="text-2xl font-bold text-slate-blue mb-4">
-          Unknown Prompt Page Type
-        </h1>
-        <p className="text-gray-600">
-          This prompt page type ({formData.type}) is not supported for editing.
-        </p>
-      </div>
+    <PageCard icon={getPageIcon()}>
+      <PromptPageForm
+        mode="edit"
+        initialData={formData}
+        onSave={handleFormSave}
+        pageTitle={getPageTitle()}
+        supabase={supabase}
+        businessProfile={businessProfile}
+        campaignType={(formData as any).campaign_type || "individual"}
+        onGenerateReview={handleGenerateAIReview}
+        accountId={accountId}
+        slug={params.slug as string}
+        successMessage={successMessage}
+        error={error}
+        isLoading={isLoading}
+      />
     </PageCard>
   );
 }

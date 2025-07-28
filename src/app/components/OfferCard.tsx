@@ -56,20 +56,30 @@ const OfferCard: React.FC<OfferCardProps> = ({
   };
 
   return (
-    <div className="bg-slate-50 rounded-lg flex flex-col items-center justify-center w-full min-h-[32px] h-auto px-2 pt-0 pb-0 sm:pt-2 sm:pb-1 animate-slideup">
+    <div className="bg-yellow-200 rounded-lg flex flex-col items-center justify-center w-full min-h-[32px] h-auto px-2 pt-0 pb-0 sm:pt-2 sm:pb-1 animate-slideup">
       <div className="flex flex-col sm:flex-row items-center justify-center w-full text-center">
         <FaGift 
-          className="w-4 h-4 sm:w-5 sm:h-5 text-slate-blue mb-1 sm:mb-0 sm:mr-2 flex-shrink-0" 
+          className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-700 mb-1 sm:mb-0 sm:mr-2 flex-shrink-0" 
           aria-hidden="true" 
         />
-        <span className="text-slate-blue mx-0 sm:mx-2 text-center text-sm sm:text-base mb-0">
+        <span className="text-yellow-900 mx-0 sm:mx-2 text-center text-sm sm:text-base mb-0 font-semibold">
           <strong>{offerTitle || "Special Offer"}</strong>
-          {offerDescription && (
+          {message && (
             <>
-              {" "} &mdash; {offerDescription}
+              {" "} &mdash; {message}
             </>
           )}
         </span>
+        {buttonText && learnMoreUrl && (
+          <a
+            href={learnMoreUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="ml-2 px-3 py-1 bg-yellow-600 text-white rounded text-sm font-medium hover:bg-yellow-700 transition-colors"
+          >
+            {buttonText}
+          </a>
+        )}
       </div>
     </div>
   );

@@ -102,6 +102,18 @@ export default function EmployeePromptPageForm({
   };
   
   const [formData, setFormData] = useState(safeInitialData);
+
+  // Update form data when initialData changes (for inheritance)
+  useEffect(() => {
+    if (initialData && Object.keys(initialData).length > 0) {
+      console.log('🔄 EmployeePromptPageForm: initialData changed, updating form data:', initialData);
+      setFormData((prev: any) => {
+        const newData = { ...prev, ...initialData };
+        console.log('🔄 EmployeePromptPageForm: Updated form data:', newData);
+        return newData;
+      });
+    }
+  }, [initialData]);
   const [isSaving, setIsSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [headshotUploading, setHeadshotUploading] = useState(false);
@@ -126,7 +138,7 @@ export default function EmployeePromptPageForm({
 
   // Form data update helper
   const updateFormData = (field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev: any) => ({ ...prev, [field]: value }));
   };
 
   // Handle headshot upload
@@ -174,7 +186,7 @@ export default function EmployeePromptPageForm({
 
   const removeArrayItem = (fieldName: string, index: number) => {
     const currentArray = formData[fieldName] || [];
-    const newArray = currentArray.filter((_, i) => i !== index);
+    const newArray = currentArray.filter((_: any, i: number) => i !== index);
     updateFormData(fieldName, newArray);
   };
 
@@ -200,7 +212,7 @@ export default function EmployeePromptPageForm({
       employee_position: formData.emp_position,
       employee_location: formData.emp_location,
       employee_years_at_business: formData.emp_years_at_business,
-      employee_skills: formData.emp_skills?.filter(skill => skill.trim()),
+      employee_skills: formData.emp_skills?.filter((skill: any) => skill.trim()),
       employee_review_guidance: formData.emp_review_guidance,
       client_name: formData.first_name || '',
       client_role: formData.role || '',
@@ -209,8 +221,12 @@ export default function EmployeePromptPageForm({
 
     try {
       const generatedReview = await generateContextualReview(
+        formData.emp_review_guidance || '',
+        formData.emp_bio || '',
+        formData.emp_skills?.join(', ') || '',
+        'google',
         businessProfile,
-        employeePageData,
+        JSON.stringify(employeePageData),
         platform.name
       );
 
@@ -280,8 +296,8 @@ export default function EmployeePromptPageForm({
         fix_grammar_enabled: fixGrammarEnabled,
       };
       const result = await onSave(saveData);
-      if (onPublishSuccess && result?.slug) {
-        onPublishSuccess(result.slug);
+      if (onPublishSuccess && (result as any)?.slug) {
+        onPublishSuccess((result as any).slug);
       }
     } catch (error) {
       console.error('Error saving employee prompt page:', error);
@@ -296,7 +312,7 @@ export default function EmployeePromptPageForm({
   };
 
   // Falling stars setup
-  const { startCelebration, submitted } = useFallingStars();
+  const { startCelebration, submitted } = useFallingStars() as any;
 
   return (
     <>
@@ -393,7 +409,7 @@ export default function EmployeePromptPageForm({
               if (typeof updates === 'function') {
                 setFormData(updates);
               } else {
-                setFormData(prev => ({ ...prev, ...updates }));
+                setFormData((prev: any) => ({ ...prev, ...updates }));
               }
             }}
             campaignType={campaignType}
@@ -587,7 +603,7 @@ export default function EmployeePromptPageForm({
               <p className="text-sm text-gray-600 mb-4">
                 Add interesting facts about the employee to make them more relatable.
               </p>
-              {(formData.emp_fun_facts || []).map((fact, index) => (
+              {(formData.emp_fun_facts || []).map((fact: any, index: number) => (
                 <div key={index} className="flex gap-2 mb-2">
                   <Input
                     placeholder={`Fun fact ${index + 1}`}
@@ -628,7 +644,7 @@ export default function EmployeePromptPageForm({
               <p className="text-sm text-gray-600 mb-4">
                 List the employee's key skills and strengths that customers should know about.
               </p>
-              {(formData.emp_skills || []).map((skill, index) => (
+              {(formData.emp_skills || []).map((skill: any, index: number) => (
                 <div key={index} className="flex gap-2 mb-2">
                   <Input
                     placeholder={`Skill ${index + 1}`}
@@ -681,7 +697,7 @@ export default function EmployeePromptPageForm({
           value={Array.isArray(formData.review_platforms) ? formData.review_platforms : []}
           onChange={(platforms) => updateFormData('review_platforms', platforms)}
           onGenerateReview={handleGenerateAIReview}
-          hideReviewTemplateFields={isUniversal}
+          hideReviewTemplateFields={campaignType === 'public'}
         />
 
         {/* Offers Section */}
@@ -742,12 +758,12 @@ export default function EmployeePromptPageForm({
         {/* Emoji Sentiment Section */}
         <EmojiSentimentSection
           enabled={formData.emojiSentimentEnabled || false}
-          onToggle={(enabled) => {
+          onToggle={() => {
             if (formData.show_friendly_note) {
               // Show conflict modal would go here
               return;
             }
-            updateFormData('emojiSentimentEnabled', enabled);
+            updateFormData('emojiSentimentEnabled', true);
           }}
           question={formData.emojiSentimentQuestion || ''}
           onQuestionChange={(question) => updateFormData('emojiSentimentQuestion', question)}
@@ -764,7 +780,7 @@ export default function EmployeePromptPageForm({
         {/* Falling Stars Section */}
         <FallingStarsSection
           enabled={formData.fallingEnabled || false}
-          onToggle={(enabled) => updateFormData('fallingEnabled', enabled)}
+          onToggle={() => updateFormData('fallingEnabled', true)}
           icon={formData.fallingIcon || formData.falling_icon || 'star'}
           onIconChange={(icon) => updateFormData('fallingIcon', icon)}
           color={formData.falling_icon_color || '#facc15'}
@@ -791,6 +807,7 @@ export default function EmployeePromptPageForm({
 
         {/* Bottom Navigation */}
         <BottomNavigation
+          mode="create"
           onSave={handleSave}
           isSaving={isSaving}
           onCancel={() => router.push('/prompt-pages')}

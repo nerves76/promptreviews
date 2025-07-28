@@ -90,16 +90,16 @@ function getAppliedMigrations() {
     let appliedCount = 0;
     
     for (const line of lines) {
-      // Look for lines that show both Local and Remote columns are filled
+      // Look for lines that show Local column has a value (meaning it's applied locally)
       // Format: "  0001           | 0001           | 0001"
       // Also handle date-based migrations like "20250127       |                | 20250127"
       if (line.includes('|')) {
         const parts = line.split('|').map(part => part.trim());
         // Skip header lines and separator lines
-        if (parts.length >= 2 && parts[0] && parts[1] && 
+        if (parts.length >= 1 && parts[0] && 
             !parts[0].includes('Local') && !parts[0].includes('---') &&
             !parts[0].includes('Time') && parts[0].length > 0) {
-          // Both Local and Remote columns have values and it's not a header
+          // Local column has a value, meaning this migration is applied locally
           appliedCount++;
         }
       }
@@ -135,7 +135,7 @@ function getAppliedMigrations() {
 function applyMigrations() {
   try {
     logInfo('Applying missing migrations...');
-    execSync('supabase db migrate', { 
+    execSync('supabase db reset', { 
       stdio: 'inherit',
       cwd: process.cwd()
     });

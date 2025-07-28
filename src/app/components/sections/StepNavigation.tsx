@@ -31,7 +31,7 @@ export const TopNavigation = React.memo(function TopNavigation({
   };
 
   return (
-    <div className="absolute top-6 right-6">
+    <div className="flex-shrink-0">
       <button
         type="button"
         disabled={isSaving}

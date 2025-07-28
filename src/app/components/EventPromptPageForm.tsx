@@ -97,6 +97,18 @@ export default function EventPromptPageForm({
   };
   
   const [formData, setFormData] = useState(safeInitialData);
+
+  // Update form data when initialData changes (for inheritance)
+  useEffect(() => {
+    if (initialData && Object.keys(initialData).length > 0) {
+      console.log('🔄 EventPromptPageForm: initialData changed, updating form data:', initialData);
+      setFormData((prev: any) => {
+        const newData = { ...prev, ...initialData };
+        console.log('🔄 EventPromptPageForm: Updated form data:', newData);
+        return newData;
+      });
+    }
+  }, [initialData]);
   const [isSaving, setIsSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   
@@ -120,7 +132,7 @@ export default function EventPromptPageForm({
 
   // Form data update helper
   const updateFormData = (field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev: any) => ({ ...prev, [field]: value }));
   };
 
   // Handle array field updates (event special features)
@@ -138,7 +150,7 @@ export default function EventPromptPageForm({
 
   const removeArrayItem = (fieldName: string, index: number) => {
     const currentArray = formData[fieldName] || [];
-    const newArray = currentArray.filter((_, i) => i !== index);
+    const newArray = currentArray.filter((_: any, i: number) => i !== index);
     updateFormData(fieldName, newArray);
   };
 
@@ -164,7 +176,7 @@ export default function EventPromptPageForm({
       event_type: formData.eve_type,
       event_date: formData.eve_date,
       event_location: formData.eve_location,
-      event_special_features: formData.eve_special_features?.filter(feature => feature.trim()),
+      event_special_features: formData.eve_special_features?.filter((feature: any) => feature.trim()),
       event_organizer: formData.eve_organizer,
       client_name: formData.first_name || '',
       client_role: formData.role || '',
@@ -173,8 +185,12 @@ export default function EventPromptPageForm({
 
     try {
       const generatedReview = await generateContextualReview(
+        formData.eve_review_guidance || '',
+        formData.eve_description || '',
+        formData.eve_special_features?.join(', ') || '',
+        'google',
         businessProfile,
-        eventPageData,
+        JSON.stringify(eventPageData),
         platform.name
       );
 
@@ -236,8 +252,8 @@ export default function EventPromptPageForm({
         fix_grammar_enabled: fixGrammarEnabled,
       };
       const result = await onSave(saveData);
-      if (onPublishSuccess && result?.slug) {
-        onPublishSuccess(result.slug);
+      if (onPublishSuccess && (result as any)?.slug) {
+        onPublishSuccess((result as any).slug);
       }
     } catch (error) {
       console.error('Error saving event prompt page:', error);
@@ -252,21 +268,28 @@ export default function EventPromptPageForm({
   };
 
   // Falling stars setup
-  const { startCelebration, submitted } = useFallingStars();
+  const { startCelebration, submitted } = useFallingStars() as any;
 
   return (
     <>
-      {/* Page Title */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-blue">
-          {mode === 'create' ? 'Create' : 'Edit'} Event Review Page
-        </h1>
-        <p className="text-gray-600 mt-2">
-          {mode === 'create' 
-            ? 'Create a review page for events, rentals, tours, and more.'
-            : 'Edit your event review page settings and content.'
-          }
-        </p>
+      {/* Page Title and Top Navigation */}
+      <div className="flex justify-between items-start mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-blue">
+            {mode === 'create' ? 'Create' : 'Edit'} Event Review Page
+          </h1>
+          <p className="text-gray-600 mt-2">
+            {mode === 'create' 
+              ? 'Create a review page for events, rentals, tours, and more.'
+              : 'Edit your event review page settings and content.'
+            }
+          </p>
+        </div>
+        <TopNavigation
+          mode={mode}
+          onSave={handleSave}
+          isSaving={isSaving}
+        />
       </div>
 
       {/* Falling stars animation */}
@@ -307,12 +330,6 @@ export default function EventPromptPageForm({
       )}
 
       <form onSubmit={(e) => { e.preventDefault(); handleSave(); }} className="space-y-8">
-        {/* Top Navigation */}
-        <TopNavigation
-          mode={mode}
-          onSave={handleSave}
-          isSaving={isSaving}
-        />
 
         {/* Campaign Name (Public campaigns only) */}
         {campaignType === 'public' && (
@@ -349,7 +366,7 @@ export default function EventPromptPageForm({
               if (typeof updates === 'function') {
                 setFormData(updates);
               } else {
-                setFormData(prev => ({ ...prev, ...updates }));
+                setFormData((prev: any) => ({ ...prev, ...updates }));
               }
             }}
             campaignType={campaignType}
@@ -512,7 +529,7 @@ export default function EventPromptPageForm({
               <p className="text-sm text-gray-600 mb-4">
                 List key highlights, speakers, activities, or memorable moments from the event.
               </p>
-              {(formData.eve_special_features || []).map((feature, index) => (
+              {(formData.eve_special_features || []).map((feature: any, index: number) => (
                 <div key={index} className="flex gap-2 mb-2">
                   <Input
                     placeholder={`Special feature ${index + 1}`}
@@ -565,17 +582,17 @@ export default function EventPromptPageForm({
           value={Array.isArray(formData.review_platforms) ? formData.review_platforms : []}
           onChange={(platforms) => updateFormData('review_platforms', platforms)}
           onGenerateReview={handleGenerateAIReview}
-          hideReviewTemplateFields={isUniversal}
+          hideReviewTemplateFields={campaignType === 'public'}
         />
 
         {/* Offers Section */}
         <OfferSection
           enabled={formData.offer_enabled || false}
-          onToggle={(enabled) => updateFormData('offer_enabled', enabled)}
+          onToggle={() => updateFormData('offer_enabled', true)}
           title={formData.offer_title || ''}
           onTitleChange={(title) => updateFormData('offer_title', title)}
-          body={formData.offer_body || ''}
-          onBodyChange={(body) => updateFormData('offer_body', body)}
+          description={formData.offer_body || ''}
+          onDescriptionChange={(description) => updateFormData('offer_body', description)}
           url={formData.offer_url || ''}
           onUrlChange={(url) => updateFormData('offer_url', url)}
         />
@@ -626,12 +643,12 @@ export default function EventPromptPageForm({
         {/* Emoji Sentiment Section */}
         <EmojiSentimentSection
           enabled={formData.emojiSentimentEnabled || false}
-          onToggle={(enabled) => {
+          onToggle={() => {
             if (formData.show_friendly_note) {
               // Show conflict modal would go here
               return;
             }
-            updateFormData('emojiSentimentEnabled', enabled);
+            updateFormData('emojiSentimentEnabled', true);
           }}
           question={formData.emojiSentimentQuestion || ''}
           onQuestionChange={(question) => updateFormData('emojiSentimentQuestion', question)}
@@ -648,7 +665,7 @@ export default function EventPromptPageForm({
         {/* Falling Stars Section */}
         <FallingStarsSection
           enabled={formData.fallingEnabled || false}
-          onToggle={(enabled) => updateFormData('fallingEnabled', enabled)}
+          onToggle={() => updateFormData('fallingEnabled', true)}
           icon={formData.fallingIcon || formData.falling_icon || 'star'}
           onIconChange={(icon) => updateFormData('fallingIcon', icon)}
           color={formData.falling_icon_color || '#facc15'}
@@ -675,6 +692,7 @@ export default function EventPromptPageForm({
 
         {/* Bottom Navigation */}
         <BottomNavigation
+          mode="create"
           onSave={handleSave}
           isSaving={isSaving}
           onCancel={() => router.push('/prompt-pages')}

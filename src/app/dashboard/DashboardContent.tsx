@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { RefObject, useState, useEffect, useMemo } from "react";
 import { createClient, getUserOrMock } from "@/utils/supabaseClient";
+import React from "react";
 
 const supabase = createClient();
 import { useAuthGuard } from "@/utils/authGuard";
@@ -30,7 +31,6 @@ import QuoteDisplay from "../components/QuoteDisplay";
 import GettingStarted from "../components/GettingStarted";
 import { useRouter } from "next/navigation";
 import AppLoader from "@/app/components/AppLoader";
-import React from "react";
 import StarfallCelebration from "@/app/components/StarfallCelebration";
 import { getAccountIdForUser } from "@/utils/accountUtils";
 import BusinessLocationModal from "@/app/components/BusinessLocationModal";
@@ -100,7 +100,7 @@ const STATUS_LABELS = {
   draft: "Draft",
 };
 
-export default function DashboardContent({
+const DashboardContent = React.memo(function DashboardContent({
   userName,
   business,
   customPromptPages,
@@ -622,7 +622,7 @@ export default function DashboardContent({
                       </div>
                     </div>
                     <p className="mt-4 text-blue-900 mb-4 text-sm">
-                      Your universal prompt page is general-use and not customer specific.
+                      Your Universal Prompt Page is your general-use Prompt Page that can be shared with one or many.
                     </p>
                     <div className="flex flex-wrap gap-2 items-center">
                       <div className="flex flex-wrap gap-2 items-center">
@@ -1005,7 +1005,7 @@ export default function DashboardContent({
       </div>
     </>
   );
-}
+});
 
 function UniversalTooltip() {
   const [show, setShow] = useState(false);
@@ -1034,3 +1034,5 @@ function UniversalTooltip() {
     </span>
   );
 }
+
+export default DashboardContent;
