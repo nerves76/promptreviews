@@ -437,6 +437,29 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
     }
   }, [promptPage, businessProfile]);
 
+  // Initialize prompt page fields from prompt page data
+  useEffect(() => {
+    if (promptPage) {
+      // Initialize photo reviewer fields for photo pages
+      if (promptPage.review_type === 'photo') {
+        setPhotoReviewerFirstName(promptPage.first_name || "");
+        setPhotoReviewerLastName(promptPage.last_name || "");
+        setPhotoReviewerRole(promptPage.role || "");
+        setTestimonial(promptPage.no_platform_review_template || "");
+      }
+      
+      // Initialize reviewer fields for all other page types (service, product, event, employee)
+      if (promptPage.review_type !== 'photo' && promptPage.review_type !== 'universal') {
+        const platforms = promptPage.review_platforms || [];
+        if (platforms.length > 0) {
+          setReviewerFirstNames(platforms.map(() => promptPage.first_name || ""));
+          setReviewerLastNames(platforms.map(() => promptPage.last_name || ""));
+          setReviewerRoles(platforms.map(() => promptPage.role || ""));
+        }
+      }
+    }
+  }, [promptPage]);
+
   // Track page view (exclude logged-in users)
   useEffect(() => {
     async function trackView() {
@@ -1091,7 +1114,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
     try {
       // Use the centralized AI testimonial generation utility
       const { generateContextualTestimonial, parseReviewerName } = await import('@/utils/aiReviewGeneration');
-      const { firstName, lastName } = parseReviewerName(photoReviewerName);
+      const { firstName, lastName } = parseReviewerName(photoReviewerLastName);
       
       const generatedTestimonial = await generateContextualTestimonial(
         businessProfile,
@@ -1420,7 +1443,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
       {/* Special Offer Banner - very top, thin, dismissible */}
       {showBanner && (
         <div
-          className="w-full flex items-center justify-center relative px-2 py-1 bg-slate-50 border-b border-slate-300 shadow-sm z-50"
+          className="w-full flex items-center justify-center relative px-2 py-1 bg-yellow-200 border-b border-yellow-400 shadow-sm z-50"
           style={{ minHeight: 64, fontSize: "1rem" }}
         >
           <OfferCard
@@ -1428,10 +1451,10 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
             message={offerBody}
             buttonText={offerLearnMoreUrl ? "Learn More" : undefined}
             learnMoreUrl={offerLearnMoreUrl || undefined}
-            iconColor="#475569"
+            iconColor="#facc15"
           />
           <button
-            className="absolute top-2 right-2 text-slate-blue text-lg font-bold hover:text-slate-600 focus:outline-none"
+            className="absolute top-2 right-2 text-yellow-900 text-lg font-bold hover:text-yellow-600 focus:outline-none"
             aria-label="Dismiss"
             onClick={() => setShowRewardsBanner(false)}
             style={{ lineHeight: 1 }}
@@ -1474,7 +1497,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                 </button>
               )}
               <button
-                onClick={() => window.location.href = '/dashboard'}
+                onClick={() => window.location.href = '/prompt-pages'}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg shadow-md hover:bg-gray-50 transition-colors group w-full"
                 style={{
                   background: isOffWhiteOrCream(businessProfile?.card_bg || "#FFFFFF")
@@ -1483,7 +1506,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                   color: getAccessibleColor(businessProfile?.primary_color || "#4F46E5"),
                   border: "1px solid #E5E7EB"
                 }}
-                title="Back to dashboard"
+                title="Back to prompt pages"
               >
                 <svg 
                   className="w-5 h-5" 
@@ -1809,7 +1832,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                   <div 
                     className="bg-white rounded-xl shadow-md p-6 border border-gray-200 relative"
                     style={{
-                      background: applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0),
+                      background: applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", 1.0),
                       color: businessProfile?.card_text || "#1A1A1A",
                       fontFamily: businessProfile?.primary_font || "Inter"
                     }}
@@ -2590,7 +2613,6 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
       {/* Personalized Note Popup */}
       {promptPage?.show_friendly_note &&
         promptPage?.friendly_note &&
-        promptPage?.campaign_type === 'individual' &&
         showPersonalNote && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fadein">
             <div className="bg-slate-50 border border-slate-200 rounded-lg p-6 max-w-lg mx-4 relative animate-slideup shadow-lg">

@@ -102,6 +102,8 @@ export default function UniversalEditPromptPage() {
           .select("*")
           .eq("account_id", accountId)
           .eq("is_universal", true)
+          .order("created_at", { ascending: false })
+          .limit(1)
           .single();
           
         if (universalError) {
@@ -118,6 +120,7 @@ export default function UniversalEditPromptPage() {
         const universalPlatforms = normalizePlatforms(universalPage?.review_platforms);
         const businessPlatforms = normalizePlatforms(businessProfile?.review_platforms);
         const merged: UniversalPromptFormState = {
+          fixGrammarEnabled: false,
           offerEnabled:
             universalPage?.offer_enabled ??
             businessProfile?.default_offer_enabled ??
@@ -216,6 +219,8 @@ export default function UniversalEditPromptPage() {
       .select("id")
       .eq("account_id", accountId)
       .eq("is_universal", true)
+      .order("created_at", { ascending: false })
+      .limit(1)
       .single();
     if (fetchError || !universalPage) {
       alert("Failed to find universal prompt page: " + (fetchError?.message || "Not found"));
@@ -261,6 +266,8 @@ export default function UniversalEditPromptPage() {
       .select("slug")
       .eq("account_id", accountId)
       .eq("is_universal", true)
+      .order("created_at", { ascending: false })
+      .limit(1)
       .single();
     if (updatedPage?.slug) setSlug(updatedPage.slug);
     if (updatedPage?.slug) {

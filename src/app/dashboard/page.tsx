@@ -25,6 +25,7 @@ import StarfallCelebration from "../components/StarfallCelebration";
 import { trackEvent, GA_EVENTS } from "../../utils/analytics";
 import { useAuth, useAuthGuard } from "@/contexts/AuthContext";
 import { checkAccountLimits } from "@/utils/accountLimits";
+import React from "react";
 
 interface DashboardData {
   promptPages: any[];
@@ -39,7 +40,7 @@ interface DashboardData {
   universalUrl: string;
 }
 
-export default function Dashboard() {
+const Dashboard = React.memo(function Dashboard() {
   const router = useRouter();
   
   // Use centralized auth context - this provides all the core data
@@ -872,4 +873,6 @@ export default function Dashboard() {
         )}
     </div>
   );
-}
+});
+
+export default Dashboard;

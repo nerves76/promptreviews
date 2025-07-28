@@ -15,22 +15,30 @@ import { AccountSwitcher } from './AccountSwitcher';
 
 const CowboyUserIcon = () => {
   const [imageError, setImageError] = useState(false);
-  
+
   if (imageError) {
+    console.log('🐴 Cowboy icon failed to load, showing fallback');
     return (
       <div className="w-8 h-8 border-2 border-white rounded-full flex items-center justify-center hover:opacity-80 transition-opacity">
         <FaUserCircle className="w-5 h-5 text-white" />
       </div>
     );
   }
-  
+
   return (
     <div className="w-8 h-8 border-2 border-white rounded-full relative hover:opacity-80 transition-opacity p-0.5">
       <img
         src="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/new-cowboy-icon.png"
         alt="Account"
-        className="w-full h-full object-contain filter brightness-0 invert"
-        onError={() => setImageError(true)}
+        className="w-full h-full object-contain"
+        style={{ filter: 'brightness(0) invert(1)' }}
+        onError={() => {
+          console.log('🐴 Cowboy icon error occurred');
+          setImageError(true);
+        }}
+        onLoad={() => {
+          console.log('🐴 Cowboy icon loaded successfully');
+        }}
       />
     </div>
   );

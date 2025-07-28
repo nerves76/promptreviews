@@ -155,6 +155,8 @@ async function fetchWidgetData(widget: any, widgetId: string) {
           .select('slug')
           .eq('account_id', widget.account_id)
           .eq('is_universal', true)
+          .order('created_at', { ascending: false })
+          .limit(1)
           .single();
 
       if (slugError) {

@@ -76,7 +76,7 @@ export async function GET(
 
     debugInfo.accounts = {
       found: !!accountData,
-      error: accountError,
+      error: null,
       data: accountData
     };
 
@@ -89,7 +89,7 @@ export async function GET(
 
     debugInfo.businesses = {
       found: !!businessData,
-      error: businessError,
+      error: null,
       data: businessData
     };
 
@@ -103,7 +103,7 @@ export async function GET(
 
     debugInfo.businessLocations = {
       found: !!locationData,
-      error: locationError,
+      error: null,
       data: locationData
     };
 

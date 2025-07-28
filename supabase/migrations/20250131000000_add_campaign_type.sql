@@ -1,5 +1,9 @@
 -- Create enum type for campaign types
-CREATE TYPE prompt_page_campaign_type AS ENUM ('public', 'individual');
+DO $$ BEGIN
+    CREATE TYPE prompt_page_campaign_type AS ENUM ('public', 'individual');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- Create type enum if it doesn't exist
 DO $$ BEGIN

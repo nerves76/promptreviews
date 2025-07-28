@@ -72,7 +72,7 @@ const OfferSection: React.FC<OfferSectionProps> = ({
             disabled={!enabled}
           />
           <div className="text-xs text-gray-400 text-right mt-1">
-            {title.length}/{TITLE_MAX}
+            {(title || '').length}/{TITLE_MAX}
           </div>
         </div>
         <div className="mb-2">
@@ -90,7 +90,7 @@ const OfferSection: React.FC<OfferSectionProps> = ({
             disabled={!enabled}
           />
           <div className="text-xs text-gray-400 text-right mt-1">
-            {description.length}/{DESC_MAX}
+            {(description || '').length}/{DESC_MAX}
           </div>
         </div>
         <div className="mb-2">
@@ -106,7 +106,7 @@ const OfferSection: React.FC<OfferSectionProps> = ({
             disabled={!enabled}
           />
           <div className="text-xs text-gray-400 text-right mt-1">
-            {url.length}/{URL_MAX}
+            {(url || '').length}/{URL_MAX}
           </div>
         </div>
       </div>

@@ -49,6 +49,7 @@ export default function ProductPromptPageForm({
   step = 1,
   onStepChange,
   slug,
+  campaignType = 'individual',
   ...rest
 }: {
   mode: "create" | "edit";
@@ -67,6 +68,7 @@ export default function ProductPromptPageForm({
   step?: number;
   onStepChange?: (step: number) => void;
   slug?: string;
+  campaignType?: string;
   [key: string]: any;
 }) {
   console.log('🔥 FIXED VERSION - ProductPromptPageForm loaded at', new Date().toISOString());
@@ -121,6 +123,18 @@ export default function ProductPromptPageForm({
       return newData;
     });
   };
+
+  // Update form data when initialData changes (for inheritance)
+  useEffect(() => {
+    if (initialData && Object.keys(initialData).length > 0) {
+      console.log('🔄 ProductPromptPageForm: initialData changed, updating form data:', initialData);
+      setFormData((prev: any) => {
+        const newData = { ...prev, ...initialData };
+        console.log('🔄 ProductPromptPageForm: Updated form data:', newData);
+        return newData;
+      });
+    }
+  }, [initialData]);
 
   // Sync product name with form data
   useEffect(() => {
@@ -411,22 +425,24 @@ export default function ProductPromptPageForm({
       className="relative space-y-8"
       onSubmit={handleFormSubmit}
     >
-      {/* Page Title */}
-      <div className="flex flex-col mt-0 md:mt-[3px] mb-4">
-        <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
-          {pageTitle}
-        </h1>
-        <p className="text-gray-600 text-base max-w-md mt-0 mb-10">
-          Let's get a review from a customer who loves your product.
-        </p>
+      {/* Page Header with Title and Save Button */}
+      <div className="flex justify-between items-start mt-0 md:mt-[3px] mb-4">
+        <div className="flex flex-col">
+          <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
+            {pageTitle}
+          </h1>
+          <p className="text-gray-600 text-base max-w-md mt-0 mb-10">
+            Let's get a review from a customer who loves your product.
+          </p>
+        </div>
+        
+        {/* Top Navigation */}
+        <TopNavigation 
+          mode={mode}
+          isSaving={isLoading}
+          onSave={handleEditSave}
+        />
       </div>
-
-      {/* Top Navigation */}
-      <TopNavigation 
-        mode={mode}
-        isSaving={isLoading}
-        onSave={handleEditSave}
-      />
 
       <div className="space-y-8">
                 {/* Error Messages */}
@@ -512,7 +528,7 @@ export default function ProductPromptPageForm({
                 }))
               }
               onGenerateReview={handleGenerateAIReview}
-              hideReviewTemplateFields={isUniversal}
+              hideReviewTemplateFields={campaignType === 'public'}
             />
 
         {/* Offer Section */}

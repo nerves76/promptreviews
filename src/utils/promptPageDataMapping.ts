@@ -94,6 +94,13 @@ export interface DatabaseRow {
   nfc_text_enabled?: boolean;
   note_popup_enabled?: boolean;
   show_friendly_note?: boolean;
+  facebook_url?: string;
+  instagram_url?: string;
+  bluesky_url?: string;
+  tiktok_url?: string;
+  youtube_url?: string;
+  linkedin_url?: string;
+  pinterest_url?: string;
 }
 
 /**
@@ -112,7 +119,8 @@ export function mapFormDataToDatabase(formData: FormData): DatabaseRow {
     'features_or_benefits', 'falling_icon', 'falling_icon_color',
     'offer_title', 'offer_body', 'offer_url', 'friendly_note', 'emoji_labels',
     'emoji_sentiment_question', 'emoji_feedback_message', 
-    'emoji_feedback_popup_header', 'emoji_feedback_page_header', 'emoji_thank_you_message'
+    'emoji_feedback_popup_header', 'emoji_feedback_page_header', 'emoji_thank_you_message',
+    'facebook_url', 'instagram_url', 'bluesky_url', 'tiktok_url', 'youtube_url', 'linkedin_url', 'pinterest_url'
   ];
   
   directFields.forEach(field => {
@@ -206,13 +214,14 @@ export function filterToAllowedColumns(data: DatabaseRow): DatabaseRow {
     "emoji_feedback_popup_header", "emoji_feedback_page_header", "emoji_thank_you_message",
     "emoji_labels", "falling_enabled", "falling_icon", "falling_icon_color",
     "offer_enabled", "offer_title", "offer_body", "offer_url", "friendly_note",
-    "nfc_text_enabled", "note_popup_enabled", "show_friendly_note"
+    "nfc_text_enabled", "note_popup_enabled", "show_friendly_note",
+    "facebook_url", "instagram_url", "bluesky_url", "tiktok_url", "youtube_url", "linkedin_url", "pinterest_url"
   ];
   
   const filtered: DatabaseRow = {};
   allowedColumns.forEach(column => {
     if (data[column as keyof DatabaseRow] !== undefined) {
-      filtered[column as keyof DatabaseRow] = data[column as keyof DatabaseRow];
+      filtered[column as keyof DatabaseRow] = data[column as keyof DatabaseRow] as any;
     }
   });
   

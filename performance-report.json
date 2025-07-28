@@ -1,0 +1,180 @@
+{
+  "timestamp": "2025-07-28T23:12:39.220Z",
+  "totalTime": 43206,
+  "avgResponseTime": 1638.2400000000002,
+  "results": [
+    {
+      "endpoint": "/dashboard",
+      "times": [
+        {
+          "duration": 10027,
+          "statusCode": 0,
+          "success": false,
+          "error": "Request timeout"
+        },
+        {
+          "duration": 10003,
+          "statusCode": 0,
+          "success": false,
+          "error": "Request timeout"
+        },
+        {
+          "duration": 1071,
+          "statusCode": 200,
+          "success": true
+        },
+        {
+          "duration": 126,
+          "statusCode": 200,
+          "success": true
+        },
+        {
+          "duration": 201,
+          "statusCode": 200,
+          "success": true
+        }
+      ],
+      "average": 4285.6,
+      "min": 126,
+      "max": 10027,
+      "successRate": 0.6
+    },
+    {
+      "endpoint": "/prompt-pages",
+      "times": [
+        {
+          "duration": 10005,
+          "statusCode": 0,
+          "success": false,
+          "error": "Request timeout"
+        },
+        {
+          "duration": 2510,
+          "statusCode": 200,
+          "success": true
+        },
+        {
+          "duration": 86,
+          "statusCode": 200,
+          "success": true
+        },
+        {
+          "duration": 61,
+          "statusCode": 200,
+          "success": true
+        },
+        {
+          "duration": 71,
+          "statusCode": 200,
+          "success": true
+        }
+      ],
+      "average": 2546.6,
+      "min": 61,
+      "max": 10005,
+      "successRate": 0.8
+    },
+    {
+      "endpoint": "/create-prompt-page?type=service&campaign_type=public",
+      "times": [
+        {
+          "duration": 3487,
+          "statusCode": 200,
+          "success": true
+        },
+        {
+          "duration": 144,
+          "statusCode": 200,
+          "success": true
+        },
+        {
+          "duration": 151,
+          "statusCode": 200,
+          "success": true
+        },
+        {
+          "duration": 117,
+          "statusCode": 200,
+          "success": true
+        },
+        {
+          "duration": 94,
+          "statusCode": 200,
+          "success": true
+        }
+      ],
+      "average": 798.6,
+      "min": 94,
+      "max": 3487,
+      "successRate": 1
+    },
+    {
+      "endpoint": "/api/business-locations",
+      "times": [
+        {
+          "duration": 1782,
+          "statusCode": 401,
+          "success": false
+        },
+        {
+          "duration": 24,
+          "statusCode": 401,
+          "success": false
+        },
+        {
+          "duration": 21,
+          "statusCode": 401,
+          "success": false
+        },
+        {
+          "duration": 14,
+          "statusCode": 401,
+          "success": false
+        },
+        {
+          "duration": 21,
+          "statusCode": 401,
+          "success": false
+        }
+      ],
+      "average": 372.4,
+      "min": 14,
+      "max": 1782,
+      "successRate": 0
+    },
+    {
+      "endpoint": "/api/prompt-pages",
+      "times": [
+        {
+          "duration": 814,
+          "statusCode": 405,
+          "success": false
+        },
+        {
+          "duration": 34,
+          "statusCode": 405,
+          "success": false
+        },
+        {
+          "duration": 62,
+          "statusCode": 405,
+          "success": false
+        },
+        {
+          "duration": 15,
+          "statusCode": 405,
+          "success": false
+        },
+        {
+          "duration": 15,
+          "statusCode": 405,
+          "success": false
+        }
+      ],
+      "average": 188,
+      "min": 15,
+      "max": 814,
+      "successRate": 0
+    }
+  ]
+}

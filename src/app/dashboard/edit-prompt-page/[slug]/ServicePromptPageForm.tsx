@@ -41,6 +41,7 @@ export interface ServicePromptFormState {
   fallingIcon: string;
   fallingIconColor: string;
   aiButtonEnabled: boolean;
+  fixGrammarEnabled: boolean;
   notePopupEnabled: boolean;
   friendlyNote: string;
 }
@@ -106,6 +107,9 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
     const [aiButtonEnabled, setAiButtonEnabled] = useState(
       initialData?.aiButtonEnabled ?? true,
     );
+    const [fixGrammarEnabled, setFixGrammarEnabled] = useState(
+      initialData?.fixGrammarEnabled ?? true,
+    );
     const [notePopupEnabled, setNotePopupEnabled] = useState(
       initialData?.notePopupEnabled ?? false,
     );
@@ -137,6 +141,7 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
             fallingIcon,
             fallingIconColor,
             aiButtonEnabled,
+            fixGrammarEnabled,
             notePopupEnabled,
             friendlyNote,
           });
@@ -156,6 +161,7 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
         fallingIcon,
         fallingIconColor,
         aiButtonEnabled,
+        fixGrammarEnabled,
         notePopupEnabled,
         friendlyNote,
         onSave,
@@ -201,6 +207,7 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
               return;
             }
             onSave({
+              fixGrammarEnabled: false,
               offerEnabled,
               offerTitle,
               offerBody,
@@ -303,9 +310,9 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
           {/* AI Review Generation Toggle */}
                       <DisableAIGenerationSection
               aiGenerationEnabled={aiButtonEnabled}
-              fixGrammarEnabled={true}
+              fixGrammarEnabled={fixGrammarEnabled}
               onToggleAI={() => setAiButtonEnabled((v) => !v)}
-              onToggleGrammar={() => {}}
+              onToggleGrammar={() => setFixGrammarEnabled((v) => !v)}
             />
           {/* Falling Stars Section (full module) */}
           <FallingStarsSection

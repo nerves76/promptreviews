@@ -164,6 +164,7 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
   const [loadingState, setLoadingState] = useState<'creating' | 'redirecting' | null>(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [industryType, setIndustryType] = useState<"B2B" | "B2C" | "Both">("Both");
   const [promotionCodeError, setPromotionCodeError] = useState("");
   const [promotionCodeSuccess, setPromotionCodeSuccess] = useState("");
@@ -201,6 +202,13 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Prevent double submission
+    if (isSubmitting) {
+      console.log("Form submission blocked - already submitting");
+      return;
+    }
+    
     console.log("Form submission started");
     console.log("Form data:", form);
     console.log("Account ID:", accountId);
@@ -212,6 +220,7 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
       return;
     }
 
+    setIsSubmitting(true);
     setLoading(true);
     setLoadingState('creating');
     setError("");
@@ -288,6 +297,7 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
         setError(`Failed to create business: ${errorData.error || response.statusText}`);
         setLoading(false);
         setLoadingState(null);
+        setIsSubmitting(false);
         return;
       }
 
@@ -316,10 +326,15 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
       setError(`Error creating business: ${errorMessage}`);
       setLoading(false);
       setLoadingState(null);
+      setIsSubmitting(false);
     } finally {
       console.log("Form submission completed");
       // Note: We don't reset loading state here for successful redirects
       // as we want to show "Redirecting..." until the page changes
+      // But we do reset isSubmitting to prevent future submissions
+      if (loadingState !== 'redirecting') {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -594,7 +609,7 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
       <div className="flex justify-end space-x-4 pt-6">
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || isSubmitting}
           className="bg-slate-blue text-white py-2 px-6 rounded hover:bg-slate-blue/90 transition-colors font-semibold disabled:opacity-50 flex items-center gap-2"
         >
           {loading && <OptimizedSpinner size="sm" className="text-white" />}

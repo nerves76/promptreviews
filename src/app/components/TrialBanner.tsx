@@ -131,9 +131,9 @@ export default function TrialBanner({
         <div className="flex items-center space-x-3">
           <div className="flex-shrink-0">
             <img
-              src="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/small-prompty-success.png"
+              src="/images/prompty-success.png"
               alt="Prompty"
-              className="w-12 h-12 object-contain transform scale-x-[-1]"
+              className="w-12 h-12 object-contain"
             />
           </div>
           <div>

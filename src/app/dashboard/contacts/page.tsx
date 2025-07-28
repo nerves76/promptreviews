@@ -21,8 +21,9 @@ import { Dialog } from "@headlessui/react";
 import PromptPageForm from "@/app/components/PromptPageForm";
 import { useRouter } from "next/navigation";
 import { FaHandsHelping, FaBoxOpen } from "react-icons/fa";
-import { MdPhotoCamera, MdVideoLibrary, MdEvent } from "react-icons/md";
+import { FaCamera, FaVideo, FaCalendarAlt } from "react-icons/fa";
 import PromptTypeSelectModal from "@/app/components/PromptTypeSelectModal";
+import BulkPromptTypeSelectModal from "@/app/components/BulkPromptTypeSelectModal";
 
 export default function UploadContactsPage() {
   const supabase = createClient();
@@ -57,6 +58,11 @@ export default function UploadContactsPage() {
   const [showTypeModal, setShowTypeModal] = useState(false);
   const [selectedContactForPrompt, setSelectedContactForPrompt] =
     useState<any>(null);
+
+  // Bulk creation state
+  const [showBulkTypeModal, setShowBulkTypeModal] = useState(false);
+  const [bulkCreating, setBulkCreating] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState({ created: 0, failed: 0, total: 0 });
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -385,7 +391,7 @@ export default function UploadContactsPage() {
     {
       key: "photo",
       label: "Photo + testimonial",
-      icon: <MdPhotoCamera className="w-7 h-7 text-[#1A237E]" />,
+      icon: <FaCamera className="w-7 h-7 text-slate-blue" />,
       description:
         "Capture a headshot and testimonial to display on your website or in marketing materials.",
     },
@@ -398,14 +404,14 @@ export default function UploadContactsPage() {
     {
       key: "video",
       label: "Video testimonial",
-      icon: <MdVideoLibrary className="w-7 h-7 text-[#1A237E]" />,
+      icon: <FaVideo className="w-7 h-7 text-slate-blue" />,
       description: "Request a video testimonial from your client.",
       comingSoon: true,
     },
     {
       key: "event",
       label: "Events & spaces",
-      icon: <MdEvent className="w-7 h-7 text-[#1A237E]" />,
+      icon: <FaCalendarAlt className="w-7 h-7 text-slate-blue" />,
       description: "For events, rentals, tours, and more.",
       comingSoon: true,
     },
@@ -427,6 +433,55 @@ export default function UploadContactsPage() {
       campaign_type: "individual", // Always force individual campaign type for contacts
     });
     router.push(`/create-prompt-page?${params.toString()}`);
+  }
+
+  async function handleBulkPromptTypeSelect(promptType: string) {
+    setShowBulkTypeModal(false);
+    setBulkCreating(true);
+    setBulkProgress({ created: 0, failed: 0, total: selectedContactIds.length });
+
+    try {
+      const response = await fetch('/api/contacts/bulk-create-prompt-pages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
+        body: JSON.stringify({
+          contactIds: selectedContactIds,
+          promptType: promptType
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to create prompt pages');
+      }
+
+      setBulkProgress({
+        created: result.created,
+        failed: result.failed,
+        total: selectedContactIds.length
+      });
+
+      // Show success message
+      if (result.created > 0) {
+        setSuccess(`Successfully created ${result.created} prompt pages!`);
+        // Clear selection
+        setSelectedContactIds([]);
+      }
+
+      if (result.failed > 0) {
+        setError(`${result.failed} prompt pages failed to create. Please try again.`);
+      }
+
+    } catch (error) {
+      console.error('Bulk creation error:', error);
+      setError(error instanceof Error ? error.message : 'Failed to create prompt pages');
+    } finally {
+      setBulkCreating(false);
+    }
   }
 
   if (isLoading) {
@@ -456,12 +511,49 @@ export default function UploadContactsPage() {
           <div className="flex flex-col">
                             <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">Contacts</h1>
           </div>
-          <button
-            onClick={() => setShowUploadModal(true)}
-            className="px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 font-semibold shadow"
-          >
-            Upload contacts
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={async () => {
+                try {
+                  const response = await fetch('/api/contacts/export', {
+                    headers: {
+                      'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+                    },
+                  });
+                  
+                  if (!response.ok) {
+                    throw new Error('Export failed');
+                  }
+                  
+                  // Create download
+                  const blob = await response.blob();
+                  const url = window.URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  const currentDate = new Date().toISOString().split('T')[0];
+                  a.download = `contacts-${currentDate}.csv`;
+                  document.body.appendChild(a);
+                  a.click();
+                  window.URL.revokeObjectURL(url);
+                  document.body.removeChild(a);
+                } catch (error) {
+                  console.error('Export error:', error);
+                  alert('Failed to export contacts. Please try again.');
+                }
+              }}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold shadow flex items-center gap-2"
+            >
+              <FaDownload className="w-4 h-4" />
+              Export CSV
+            </button>
+            <button
+              onClick={() => setShowUploadModal(true)}
+              className="px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 font-semibold shadow flex items-center gap-2"
+            >
+              <FaUpload className="w-4 h-4" />
+              Upload contacts
+            </button>
+          </div>
         </div>
 
         {/* Contacts Table */}
@@ -477,6 +569,14 @@ export default function UploadContactsPage() {
               >
                 Delete Selected ({selectedContactIds.length})
               </button>
+              <button
+                className="px-4 py-2 bg-slate-blue text-white rounded hover:bg-slate-blue/90 font-semibold shadow flex items-center gap-2"
+                onClick={() => setShowBulkTypeModal(true)}
+                disabled={bulkCreating}
+              >
+                <FaHandsHelping className="w-4 h-4" />
+                {bulkCreating ? 'Creating...' : `Bulk Create Prompt Pages (${selectedContactIds.length})`}
+              </button>
               <span className="text-sm text-gray-600">
                 {selectedContactIds.length} selected
               </span>
@@ -489,43 +589,44 @@ export default function UploadContactsPage() {
               No contacts found. Upload your contacts to get started.
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-lg border border-blue-200 bg-white">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <input
-                        type="checkbox"
-                        checked={allSelected}
-                        onChange={handleSelectAll}
-                        aria-label="Select all contacts"
-                      />
-                    </th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Name
-                    </th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Email
-                    </th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Phone
-                    </th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Role
-                    </th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Category
-                    </th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {contacts.map((contact) => (
+            <div>
+              <div className="overflow-x-auto rounded-lg border border-blue-200 bg-white">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <input
+                          type="checkbox"
+                          checked={allSelected}
+                          onChange={handleSelectAll}
+                          aria-label="Select all contacts"
+                        />
+                      </th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Name
+                      </th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Email
+                      </th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Phone
+                      </th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Role
+                      </th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Category
+                      </th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {contacts.map((contact) => (
                     <tr key={contact.id}>
                       <td className="px-3 py-2 text-sm">
                         <input
@@ -609,70 +710,71 @@ export default function UploadContactsPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
-            </div>
-            
-            {/* Pagination Controls */}
-            {!contactsLoading && totalCount > 0 && (
-              <div className="mt-6 flex items-center justify-between">
-                <div className="text-sm text-gray-700">
-                  Showing {Math.min((currentPage - 1) * itemsPerPage + 1, totalCount)} - {Math.min(currentPage * itemsPerPage, totalCount)} of {totalCount} contacts
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  {/* Previous button */}
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                    disabled={currentPage === 1}
-                    className={`px-3 py-1 rounded text-sm ${
-                      currentPage === 1 
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                        : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    Previous
-                  </button>
-                  
-                  {/* Page numbers */}
-                  {(() => {
-                    const totalPages = Math.ceil(totalCount / itemsPerPage);
-                    const pages = [];
-                    const startPage = Math.max(1, currentPage - 2);
-                    const endPage = Math.min(totalPages, startPage + 4);
-                    
-                    for (let i = startPage; i <= endPage; i++) {
-                      pages.push(
-                        <button
-                          key={i}
-                          onClick={() => setCurrentPage(i)}
-                          className={`px-3 py-1 rounded text-sm ${
-                            i === currentPage
-                              ? 'bg-slate-blue text-white'
-                              : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
-                          }`}
-                        >
-                          {i}
-                        </button>
-                      );
-                    }
-                    return pages;
-                  })()}
-                  
-                  {/* Next button */}
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.min(Math.ceil(totalCount / itemsPerPage), prev + 1))}
-                    disabled={currentPage >= Math.ceil(totalCount / itemsPerPage)}
-                    className={`px-3 py-1 rounded text-sm ${
-                      currentPage >= Math.ceil(totalCount / itemsPerPage)
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    Next
-                  </button>
-                </div>
+                </table>
               </div>
-            )}
+              
+              {/* Pagination Controls */}
+              {totalCount > 0 && (
+                <div className="mt-6 flex items-center justify-between">
+                  <div className="text-sm text-gray-700">
+                    Showing {Math.min((currentPage - 1) * itemsPerPage + 1, totalCount)} - {Math.min(currentPage * itemsPerPage, totalCount)} of {totalCount} contacts
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    {/* Previous button */}
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      disabled={currentPage === 1}
+                      className={`px-3 py-1 rounded text-sm ${
+                        currentPage === 1 
+                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                          : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      Previous
+                    </button>
+                    
+                    {/* Page numbers */}
+                    {(() => {
+                      const totalPages = Math.ceil(totalCount / itemsPerPage);
+                      const pages = [];
+                      const startPage = Math.max(1, currentPage - 2);
+                      const endPage = Math.min(totalPages, startPage + 4);
+                      
+                      for (let i = startPage; i <= endPage; i++) {
+                        pages.push(
+                          <button
+                            key={i}
+                            onClick={() => setCurrentPage(i)}
+                            className={`px-3 py-1 rounded text-sm ${
+                              i === currentPage
+                                ? 'bg-slate-blue text-white'
+                                : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                            }`}
+                          >
+                            {i}
+                          </button>
+                        );
+                      }
+                      return pages;
+                    })()}
+                    
+                    {/* Next button */}
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.min(Math.ceil(totalCount / itemsPerPage), prev + 1))}
+                      disabled={currentPage >= Math.ceil(totalCount / itemsPerPage)}
+                      className={`px-3 py-1 rounded text-sm ${
+                        currentPage >= Math.ceil(totalCount / itemsPerPage)
+                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                          : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           )}
         </div>
 
@@ -1100,6 +1202,14 @@ export default function UploadContactsPage() {
             </div>
           </div>
         )}
+
+        {/* Bulk Prompt Type Select Modal */}
+        <BulkPromptTypeSelectModal
+          open={showBulkTypeModal}
+          onClose={() => setShowBulkTypeModal(false)}
+          onSelectType={handleBulkPromptTypeSelect}
+          selectedCount={selectedContactIds.length}
+        />
       </div>
     </PageCard>
   );
