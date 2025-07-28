@@ -353,7 +353,8 @@ export default function EmployeePromptPageForm({
       <form onSubmit={(e) => { e.preventDefault(); handleSave(); }} className="space-y-8">
         {/* Top Navigation */}
         <TopNavigation
-          handleClick={handleSave}
+          mode={mode}
+          onSave={handleSave}
           isSaving={isSaving}
         />
 
