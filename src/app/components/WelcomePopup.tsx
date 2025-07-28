@@ -79,7 +79,7 @@ export default function WelcomePopup({
   if (!isOpen) return null;
 
   // Use provided title/message or create default welcome content
-  const welcomeTitle = title || `Welcome to Prompt Reviews${userName ? `, ${userName}` : ''}!`;
+  const welcomeTitle = title || `Welcome${userName ? `, ${userName}` : ''}!`;
   const welcomeMessage = message || `Did you know you're a star? Carl Sagan said it best:
 
 "The cosmos is within us. We are made of star-stuff. We are a way for the universe to know itself."
