@@ -7,7 +7,7 @@
  * a streamlined onboarding experience.
  */
 
-import React, { useState } from "react";
+import React, { useState, forwardRef } from "react";
 import { FaBuilding, FaRobot, FaTags } from "react-icons/fa";
 import IndustrySelector from "@/app/components/IndustrySelector";
 import { createClient } from "@/utils/supabaseClient";
@@ -131,11 +131,11 @@ function mapToDbColumns(formData: any): any {
   );
 }
 
-export default function SimpleBusinessForm({
+const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(({
   user,
   accountId,
   onSuccess,
-}: SimpleBusinessFormProps) {
+}, ref) => {
   const supabase = createClient();
   const router = useRouter();
   const [form, setForm] = useState({
@@ -324,7 +324,7 @@ export default function SimpleBusinessForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full mx-auto relative" id="create-business-form">
+    <form onSubmit={handleSubmit} className="w-full mx-auto relative" id="create-business-form" ref={ref}>
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
           {error}
@@ -605,4 +605,6 @@ export default function SimpleBusinessForm({
       </div>
     </form>
   );
-} 
+});
+
+export default SimpleBusinessForm; 
