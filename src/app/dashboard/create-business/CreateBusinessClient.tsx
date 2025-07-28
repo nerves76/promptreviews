@@ -6,7 +6,8 @@ import { FaStore, FaPlus } from "react-icons/fa";
 import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 
 const supabase = createClient();
-import { useAuth } from "@/contexts/AuthContext";
+// Remove the AuthContext import since DashboardLayout already handles auth
+// import { useAuth } from "@/contexts/AuthContext";
 import SimpleBusinessForm from "../components/SimpleBusinessForm";
 import AppLoader from "@/app/components/AppLoader";
 import PageCard from "@/app/components/PageCard";
@@ -16,8 +17,9 @@ import { ensureAccountExists, getAccountIdForUser } from "@/utils/accountUtils";
 export default function CreateBusinessClient() {
   console.log('🔍 CreateBusinessClient: Component rendered');
   
-  // 🔧 FIXED: Use the auth context properly without causing infinite loops
-  const { isAdminUser, adminLoading } = useAuth();
+  // 🔧 FIXED: Remove the auth context dependency that was causing infinite loops
+  // Since DashboardLayout already ensures user is authenticated, we don't need these
+  // const { isAdminUser, adminLoading } = useAuth();
   
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -32,8 +34,6 @@ export default function CreateBusinessClient() {
     router.push("/dashboard");
     console.log("🔄 CreateBusinessClient: router.push called");
   }, [router]);
-
-
 
   // 🔧 SIMPLIFIED: Since DashboardLayout already handles authentication, just get user and do business logic
   useEffect(() => {
@@ -87,12 +87,11 @@ export default function CreateBusinessClient() {
     console.log("🔄 CreateBusinessClient: Redirect function called");
   }, [router]);
 
-
-
   // Show loading while setting up business creation
-  console.log('🔍 CreateBusinessClient: Render state - loading:', loading, 'adminLoading:', adminLoading);
+  // 🔧 FIXED: Remove adminLoading dependency that was causing infinite renders
+  console.log('🔍 CreateBusinessClient: Render state - loading:', loading);
   
-  if (loading || adminLoading) {
+  if (loading) {
     console.log('🔄 CreateBusinessClient: Showing loading spinner');
     return <AppLoader variant="default" />;
   }
@@ -160,8 +159,6 @@ export default function CreateBusinessClient() {
           />
         </div>
       </PageCard>
-
-
     </div>
   );
 }
