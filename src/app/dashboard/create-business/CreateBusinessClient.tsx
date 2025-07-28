@@ -68,7 +68,7 @@ export default function CreateBusinessClient() {
         setUser(user);
 
         // Ensure account exists and get account ID
-        const accountId = await getAccountIdForUser(user.id);
+        const accountId = await getAccountIdForUser(user.id, supabase);
         if (!accountId) {
           console.error('❌ CreateBusinessClient: No account found for user');
           setError("Account setup required");
