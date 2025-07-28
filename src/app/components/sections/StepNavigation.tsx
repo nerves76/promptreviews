@@ -12,6 +12,7 @@ interface StepNavigationProps {
   mode: "create" | "edit";
   isSaving?: boolean;
   onSave?: () => void;
+  onCancel?: () => void;
 }
 
 // Top Navigation - Positioned higher within the page card like other site buttons
@@ -69,27 +70,43 @@ export const TopNavigation = React.memo(function TopNavigation({
   );
 });
 
-// Bottom Navigation - Normal positioned button in bottom right
+// Bottom Navigation - Cancel button on left, Save button on right
 export const BottomNavigation = React.memo(function BottomNavigation({ 
   mode, 
   isSaving, 
-  onSave
+  onSave,
+  onCancel
 }: StepNavigationProps) {
-  const handleClick = () => {
+  const handleSave = () => {
     if (isSaving) {
       console.log("🔘 BottomNavigation: Save in progress, button disabled");
       return;
     }
-    console.log("🔘 BottomNavigation: Button clicked");
+    console.log("🔘 BottomNavigation: Save button clicked");
     onSave?.();
   };
 
+  const handleCancel = () => {
+    console.log("🔘 BottomNavigation: Cancel button clicked");
+    onCancel?.();
+  };
+
   return (
-    <div className="flex justify-end pt-6">
+    <div className="flex justify-between pt-6">
+      {/* Cancel Button */}
+      <button
+        type="button"
+        onClick={handleCancel}
+        className="inline-flex items-center justify-center rounded-md border border-gray-300 py-2 px-4 text-sm font-medium text-gray-700 bg-white shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 transition-all duration-200"
+      >
+        Cancel
+      </button>
+
+      {/* Save Button */}
       <button
         type="button"
         disabled={isSaving}
-        onClick={handleClick}
+        onClick={handleSave}
         className={`inline-flex items-center justify-center rounded-md border border-transparent py-2 px-4 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 transition-all duration-200 ${
           isSaving
             ? "bg-slate-blue/70 cursor-not-allowed"

@@ -23,12 +23,15 @@ import {
   FaCommentDots,
   FaCamera,
 } from "react-icons/fa";
+import { MdEvent } from "react-icons/md";
 import { IconType } from "react-icons";
 import Link from "next/link";
 import { getAccountIdForUser } from "@/utils/accountUtils";
 import IndustrySelector from "@/app/components/IndustrySelector";
 import PromptPageForm from "@/app/components/PromptPageForm";
 import PhotoPromptPageForm from "@/app/components/PhotoPromptPageForm";
+import EmployeePromptPageForm from "@/app/components/EmployeePromptPageForm";
+import EventPromptPageForm from "@/app/components/EventPromptPageForm";
 import PageCard from "@/app/components/PageCard";
 import EmojiSentimentSection from "../components/EmojiSentimentSection";
 import FallingStarsSection from "@/app/components/FallingStarsSection";
@@ -1223,43 +1226,83 @@ export default function EditPromptPage() {
           successMessage={successMessage}
           error={error}
           isLoading={isLoading}
+          onGenerateReview={handleGenerateAIReview}
         />
       </PageCard>
     );
   }
 
   // For service pages, use the PromptPageForm component (same as photo pages)
-  if (formData.type === "service") {
+  if ((formData as any).review_type === "service") {
     console.log('🔍 Rendering PromptPageForm for service with:', { formData, businessProfile, step });
     return (
       <PageCard icon={<FaHandsHelping className="w-9 h-9 text-slate-blue" />}>
         <PromptPageForm
           mode="edit"
           initialData={formData}
-          onSave={handleStep1Save}
-          onPublish={handleStep2Save}
+          onSave={handleFormSave}
           pageTitle="Edit Service Prompt Page"
           supabase={supabase}
           businessProfile={businessProfile}
-          step={step}
-          onStepChange={setStep}
+          campaignType={(formData as any).campaign_type || "individual"}
+          onGenerateReview={handleGenerateAIReview}
         />
       </PageCard>
     );
   }
 
   // For photo pages, use the PhotoPromptPageForm component
-  if (formData.review_type === "photo") {
+  if ((formData as any).review_type === "photo") {
     console.log('🔍 Rendering PhotoPromptPageForm for photo with:', { formData, businessProfile, step });
     return (
       <PageCard icon={<FaCamera className="w-9 h-9 text-slate-blue" />}>
         <PhotoPromptPageForm
+          mode="edit"
           initialData={formData}
           onSave={handleFormSave}
-          isLoading={isLoading}
-          showResetButton={showResetButton}
-          businessReviewPlatforms={businessReviewPlatforms}
+          pageTitle="Edit Photo Prompt Page"
+          supabase={supabase}
+          businessProfile={businessProfile}
           campaignType="individual"
+          onGenerateReview={handleGenerateAIReview}
+        />
+      </PageCard>
+    );
+  }
+
+  // For employee pages, use the EmployeePromptPageForm component
+  if ((formData as any).review_type === "employee") {
+    console.log('🔍 Rendering EmployeePromptPageForm for employee with:', { formData, businessProfile, step });
+    return (
+      <PageCard icon={<FaUser className="w-9 h-9 text-slate-blue" />}>
+        <EmployeePromptPageForm
+          mode="edit"
+          initialData={formData}
+          onSave={handleFormSave}
+          pageTitle="Edit Employee Spotlight Page"
+          supabase={supabase}
+          businessProfile={businessProfile}
+          campaignType={(formData as any).campaign_type || "individual"}
+          onGenerateReview={handleGenerateAIReview}
+        />
+      </PageCard>
+    );
+  }
+
+  // For event pages, use the EventPromptPageForm component
+  if ((formData as any).review_type === "event") {
+    console.log('🔍 Rendering EventPromptPageForm for event with:', { formData, businessProfile, step });
+    return (
+      <PageCard icon={<MdEvent className="w-9 h-9 text-slate-blue" />}>
+        <EventPromptPageForm
+          mode="edit"
+          initialData={formData}
+          onSave={handleFormSave}
+          pageTitle="Edit Event Review Page"
+          supabase={supabase}
+          businessProfile={businessProfile}
+          campaignType={(formData as any).campaign_type || "individual"}
+          onGenerateReview={handleGenerateAIReview}
         />
       </PageCard>
     );

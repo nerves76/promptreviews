@@ -24,7 +24,7 @@ import OfferSection from "../dashboard/edit-prompt-page/components/OfferSection"
 import EmojiSentimentSection from "../dashboard/edit-prompt-page/components/EmojiSentimentSection";
 import DisableAIGenerationSection from "./DisableAIGenerationSection";
 import FallingStarsSection from "@/app/components/FallingStarsSection";
-import { FaCommentDots, FaMobile, FaSpinner, FaSave } from "react-icons/fa";
+import { FaCommentDots, FaMobile, FaSpinner, FaSave, FaBoxOpen, FaStickyNote } from "react-icons/fa";
 import SectionHeader from "./SectionHeader";
 import { BusinessProfile } from "@/types/business";
 import {
@@ -109,7 +109,7 @@ export default function ProductPromptPageForm({
     initialData?.emoji_thank_you_message || "Thank you for your feedback. It's important to us."
   );
   const [showPopupConflictModal, setShowPopupConflictModal] = useState<string | null>(null);
-  const [fallingEnabled, setFallingEnabled] = useState(initialData?.falling_enabled ?? false);
+  const [fallingEnabled, setFallingEnabled] = useState(initialData?.falling_enabled ?? true);
 
 
   // Helper function to update form data
@@ -121,6 +121,13 @@ export default function ProductPromptPageForm({
       return newData;
     });
   };
+
+  // Sync product name with form data
+  useEffect(() => {
+    if (productName !== formData.product_name) {
+      setFormData((prev: any) => ({ ...prev, product_name: productName }));
+    }
+  }, [productName, formData.product_name]);
 
   // Initialize values from useFallingStars hook
   const { fallingIcon, fallingIconColor, handleIconChange, handleColorChange, initializeValues } = useFallingStars({
@@ -167,7 +174,6 @@ export default function ProductPromptPageForm({
   const handleStep1Continue = async () => {
     setFormError(null);
 
-
     try {
         let uploadedPhotoUrl = productPhotoUrl;
       if (productPhotoFile && (!formData.product_photo || productPhotoUrl !== formData.product_photo)) {
@@ -176,15 +182,18 @@ export default function ProductPromptPageForm({
 
       const step1Data = {
           ...formData,
-          product_name: productName,
-          product_photo: uploadedPhotoUrl,
           review_type: "product",
+          product_name: productName, // Ensure product name is included
+          product_photo: uploadedPhotoUrl,
         };
         
+      console.log(`🔥 Step 1 data being sent:`, step1Data);
       await onSave(step1Data);
       onStepChange?.(2);
     } catch (error: any) {
-              setFormError(error.message || "Failed to save. Please try again.");
+      console.error(`🔥 Step 1 save failed:`, error);
+      console.error(`🔥 Step 1 error details:`, JSON.stringify(error, Object.getOwnPropertyNames(error)));
+      setFormError(error.message || "Failed to save. Please try again.");
     }
   };
 
@@ -260,6 +269,49 @@ export default function ProductPromptPageForm({
     setFallingEnabled((prev: boolean) => !prev);
   };
 
+  // Form validation
+  const validateForm = () => {
+    const campaignType = formData.campaign_type || 'individual';
+    
+    console.log(`🔥 Validating form - campaign_type: ${campaignType}`);
+    console.log(`🔥 Form data for validation:`, { 
+      campaign_type: campaignType,
+      first_name: formData.first_name,
+      last_name: formData.last_name,
+      email: formData.email,
+      name: formData.name 
+    });
+    
+    if (campaignType !== 'public') {
+      // For individual campaigns, validate customer details
+      if (!formData.first_name?.trim()) {
+        console.log(`🔥 Validation failed: First name missing for individual campaign`);
+        setFormError("First name is required for individual campaigns.");
+        return false;
+      }
+      if (!formData.last_name?.trim()) {
+        console.log(`🔥 Validation failed: Last name missing for individual campaign`);
+        setFormError("Last name is required for individual campaigns.");
+        return false;
+      }
+      if (!formData.email?.trim()) {
+        console.log(`🔥 Validation failed: Email missing for individual campaign`);
+        setFormError("Email is required for individual campaigns.");
+        return false;
+      }
+    } else {
+      // For public campaigns, require a campaign name
+      if (!formData.name?.trim()) {
+        console.log(`🔥 Validation failed: Campaign name missing for public campaign`);
+        setFormError("Campaign name is required for public campaigns.");
+        return false;
+      }
+    }
+
+    console.log(`🔥 Validation passed`);
+    return true;
+  };
+
   // Product save handler - completely rewritten to force cache refresh
   const handleEditSave = React.useCallback(async () => {
     const operationId = Date.now() + Math.random();
@@ -273,6 +325,11 @@ export default function ProductPromptPageForm({
     
     setFormError("");
     
+    // Validate form before saving
+    if (!validateForm()) {
+      return;
+    }
+    
     try {
       let photoUrl = productPhotoUrl;
       if (productPhotoFile && (!formData.product_photo || productPhotoUrl !== formData.product_photo)) {
@@ -281,6 +338,8 @@ export default function ProductPromptPageForm({
       
       const saveData = {
         ...formData,
+        review_type: "product", // Ensure review_type is always set
+        product_name: productName, // Ensure product name is included
         product_photo: photoUrl,
         business_name: businessProfile?.business_name || "",
         contact_id: businessProfile?.contact_id || null,
@@ -301,20 +360,22 @@ export default function ProductPromptPageForm({
         fixGrammarEnabled,
         notePopupEnabled,
         nfcTextEnabled,
-
         friendlyNote: formData.friendly_note || ""
       };
       
+      console.log(`🔥 Save data being sent:`, saveData);
       console.log(`🔥 Calling onSave...`);
       await onSave(saveData);
       console.log(`🔥 Save completed successfully`);
     } catch (error: any) {
       console.error(`🔥 Save failed:`, error);
+      console.error(`🔥 Full error details:`, JSON.stringify(error, Object.getOwnPropertyNames(error)));
       setFormError(error.message || "Failed to save page");
     }
   }, [
     isLoading, 
     formData, 
+    productName, // Add productName to dependencies
     productPhotoFile, 
     productPhotoUrl, 
     onSave, 
@@ -335,7 +396,8 @@ export default function ProductPromptPageForm({
     fixGrammarEnabled,
     notePopupEnabled,
     nfcTextEnabled,
-    handleProductPhotoUpload
+    handleProductPhotoUpload,
+    validateForm // Add validateForm to dependencies
   ]);
 
   // Handle form submission to prevent page reload
@@ -374,12 +436,47 @@ export default function ProductPromptPageForm({
               </div>
             )}
 
-        {/* Customer Details Section */}
-        <CustomerDetailsSection 
-          formData={formData}
-          onFormDataChange={updateFormData}
-          campaignType={formData.campaign_type || 'individual'}
-        />
+        {/* Product Prompt Page Header - only for public campaigns */}
+        {(formData.campaign_type || 'individual') === 'public' && (
+          <div className="space-y-6">
+                         <div className="mb-6 flex items-center gap-3">
+               <FaCommentDots className="w-7 h-7 text-slate-blue" />
+               <div>
+                 <h2 className="text-xl font-semibold text-slate-blue">Prompt page name</h2>
+                 <p className="text-gray-600 text-sm">Give your product prompt page a clear, descriptive name</p>
+               </div>
+             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Campaign Name <span className="text-red-600">(required)</span>
+              </label>
+                             <input
+                 type="text"
+                 value={formData.name || ""}
+                 onChange={(e) => setFormData((prev: any) => ({ ...prev, name: e.target.value }))}
+                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-slate-blue focus:border-slate-blue sm:text-sm"
+                 placeholder="e.g., iPhone 15 Pro Review Campaign"
+                 required
+               />
+            </div>
+          </div>
+        )}
+
+        {/* Customer Details Section - only for individual campaigns */}
+        {(formData.campaign_type || 'individual') !== 'public' && (
+          <CustomerDetailsSection 
+            formData={formData}
+            onFormDataChange={(updateFn) => {
+              if (typeof updateFn === 'function') {
+                setFormData(updateFn);
+              } else {
+                // Legacy: direct object passed
+                setFormData((prev: any) => ({ ...prev, ...updateFn }));
+              }
+            }}
+            campaignType={formData.campaign_type || 'individual'}
+          />
+        )}
 
         {/* Product Details Section */}
         <ProductDetailsSection 
@@ -431,11 +528,11 @@ export default function ProductPromptPageForm({
             />
 
             {/* Personalized Note Pop-up Section */}
-        <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-2 shadow relative">
+        <div className="rounded-lg p-4 bg-slate-50 border border-slate-200 flex flex-col gap-2 shadow relative">
               <div className="flex items-center justify-between mb-2 px-2 py-2">
                 <div className="flex items-center gap-3">
-                  <FaCommentDots className="w-7 h-7 text-slate-blue" />
-                  <span className="text-2xl font-bold text-[#1A237E]">
+                  <FaStickyNote className="w-7 h-7 text-slate-blue" />
+                  <span className="text-2xl font-bold text-slate-blue">
                     Personalized note pop-up
                   </span>
                 </div>
@@ -550,6 +647,7 @@ export default function ProductPromptPageForm({
         mode={mode}
         isSaving={isLoading}
         onSave={handleEditSave}
+        onCancel={() => router.push('/prompt-pages')}
       />
 
       {/* Popup conflict modal */}

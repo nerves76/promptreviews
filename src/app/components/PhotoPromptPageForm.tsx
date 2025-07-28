@@ -9,6 +9,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { 
   FaCamera, 
   FaStar, 
@@ -20,7 +21,8 @@ import {
   FaLeaf,
   FaPeace,
   FaSun,
-  FaBoxOpen
+  FaBoxOpen,
+  FaStickyNote
 } from "react-icons/fa";
 
 import SectionHeader from "./SectionHeader";
@@ -45,7 +47,7 @@ const getFallingIcon = (iconKey: string) => {
 interface PhotoPromptPageFormProps {
   mode: "create" | "edit";
   initialData: any;
-  onSave: (data: any) => void;
+  onSave: (data: any) => Promise<any>;
   onPublish?: (data: any) => void;
   pageTitle: string;
   supabase: any;
@@ -53,6 +55,7 @@ interface PhotoPromptPageFormProps {
   isUniversal?: boolean;
   onPublishSuccess?: (slug: string) => void;
   campaignType: string;
+  isLoading?: boolean;
   [key: string]: any;
 }
 
@@ -67,8 +70,11 @@ export default function PhotoPromptPageForm({
   isUniversal = false,
   onPublishSuccess,
   campaignType,
+  isLoading = false,
   ...rest
 }: PhotoPromptPageFormProps) {
+  const router = useRouter();
+  
   // Form state
   const [formData, setFormData] = useState({
     first_name: initialData.first_name || "",
@@ -83,12 +89,11 @@ export default function PhotoPromptPageForm({
   });
 
   // Form submission state
-  const [isSaving, setIsSaving] = useState(false);
   const [formError, setFormError] = useState("");
 
   // Falling Stars states
   const [fallingEnabled, setFallingEnabled] = useState(
-    initialData.falling_enabled ?? initialData.fallingEnabled ?? false,
+    initialData.falling_enabled ?? initialData.fallingEnabled ?? true,
   );
   const [fallingIcon, setFallingIcon] = useState(
     initialData.falling_icon ?? initialData.fallingIcon ?? "star",
@@ -164,7 +169,6 @@ export default function PhotoPromptPageForm({
       return;
     }
     
-    setIsSaving(true);
     setFormError("");
     
     try {
@@ -198,8 +202,6 @@ export default function PhotoPromptPageForm({
     } catch (error) {
       console.error('Error saving photo prompt page:', error);
       setFormError('Failed to save prompt page. Please try again.');
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -224,9 +226,9 @@ export default function PhotoPromptPageForm({
           <button
             type="submit"
             className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-            disabled={isSaving}
+            disabled={isLoading}
           >
-            {isSaving ? "Publishing..." : "Save & Publish"}
+            {isLoading ? "Publishing..." : "Save & Publish"}
           </button>
         </div>
         
@@ -359,11 +361,11 @@ export default function PhotoPromptPageForm({
           />
 
           {/* Personalized Note Popup Section */}
-          <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-2 shadow relative">
+          <div className="rounded-lg p-4 bg-slate-50 border border-slate-200 flex flex-col gap-2 shadow relative">
             <div className="flex items-center justify-between mb-2 px-2 py-2">
               <div className="flex items-center gap-3">
-                <FaCommentDots className="w-7 h-7 text-slate-blue" />
-                <span className="text-2xl font-bold text-[#1A237E]">
+                <FaStickyNote className="w-7 h-7 text-slate-blue" />
+                <span className="text-2xl font-bold text-slate-blue">
                   Personalized note pop-up
                 </span>
               </div>
@@ -402,14 +404,21 @@ export default function PhotoPromptPageForm({
 
         </div>
 
-        {/* Bottom Save Button */}
-        <div className="flex justify-end pt-8 border-t border-gray-200">
+        {/* Bottom Buttons */}
+        <div className="flex justify-between pt-8 border-t border-gray-200">
+          <button
+            type="button"
+            onClick={() => router.push('/prompt-pages')}
+            className="inline-flex justify-center rounded-md border border-gray-300 py-2 px-4 text-sm font-medium text-gray-700 bg-white shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+          >
+            Cancel
+          </button>
           <button
             type="submit"
             className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
-            disabled={isSaving}
+            disabled={isLoading}
           >
-            {isSaving ? "Publishing..." : "Save & Publish"}
+            {isLoading ? "Publishing..." : "Save & Publish"}
           </button>
         </div>
       </div>

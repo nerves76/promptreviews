@@ -12,6 +12,7 @@
 
 "use client";
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import CustomerDetailsSection from "./sections/CustomerDetailsSection";
 import ReviewWriteSection from "../dashboard/edit-prompt-page/components/ReviewWriteSection";
 import OfferSection from "../dashboard/edit-prompt-page/components/OfferSection";
@@ -22,6 +23,8 @@ import { useFallingStars } from "@/hooks/useFallingStars";
 import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
 import SectionHeader from "./SectionHeader";
+import { TopNavigation, BottomNavigation } from "./sections/StepNavigation";
+import { generateContextualReview } from "../../utils/aiReviewGeneration";
 import {
   FaInfoCircle,
   FaStar,
@@ -30,6 +33,7 @@ import {
   FaBoxOpen,
   FaPlus,
   FaTrash,
+  FaStickyNote,
 } from "react-icons/fa";
 
 /**
@@ -52,6 +56,7 @@ interface ServicePromptPageFormProps {
   isUniversal?: boolean;
   onPublishSuccess?: (slug: string) => void;
   campaignType: string;
+  onGenerateReview?: (index: number) => void;
 }
 
 export default function ServicePromptPageForm({
@@ -65,7 +70,10 @@ export default function ServicePromptPageForm({
   isUniversal = false,
   onPublishSuccess,
   campaignType,
+  onGenerateReview,
 }: ServicePromptPageFormProps) {
+  const router = useRouter();
+  
   // Debug logging for review_platforms
   console.log('🔍 ServicePromptPageForm - initialData.review_platforms:', initialData.review_platforms);
   console.log('🔍 ServicePromptPageForm - typeof review_platforms:', typeof initialData.review_platforms);
@@ -75,6 +83,8 @@ export default function ServicePromptPageForm({
     ...initialData,
     // Ensure review_platforms is always an array
     review_platforms: Array.isArray(initialData.review_platforms) ? initialData.review_platforms : [],
+    // Default falling stars to enabled if not specified
+    fallingEnabled: initialData.fallingEnabled ?? initialData.falling_enabled ?? true,
   };
   
   const [formData, setFormData] = useState(safeInitialData);
@@ -142,6 +152,71 @@ export default function ServicePromptPageForm({
       setIsSaving(false);
     }
   };
+
+  // Handle AI review generation
+  const handleGenerateAIReview = async (idx: number) => {
+    if (!businessProfile) {
+      console.error("Business profile not loaded");
+      return;
+    }
+    
+    const platforms = formData.review_platforms || [];
+    if (!platforms[idx]) {
+      console.error("Platform not found at index", idx);
+      return;
+    }
+    
+    const platform = platforms[idx];
+    
+    // Create comprehensive service page context
+    const servicePageData = {
+      review_type: 'service',
+      service_name: formData.service_name || (formData.features_or_benefits && formData.features_or_benefits[0]) || 'service',
+      services_provided: formData.features_or_benefits || [],
+      project_type: formData.features_or_benefits?.join(", ") || 'service',
+      product_description: formData.product_description,
+      outcomes: formData.product_description,
+      client_name: formData.client_name,
+      location: formData.location,
+      friendly_note: formData.friendly_note,
+      date_completed: formData.date_completed,
+      team_member: formData.team_member,
+      assigned_team_members: formData.assigned_team_members,
+    };
+    
+    const reviewerData = {
+      firstName: formData.first_name || "",
+      lastName: formData.last_name || "",
+      role: formData.role || "",
+    };
+    
+    try {
+      const review = await generateContextualReview(
+        businessProfile,
+        servicePageData,
+        reviewerData,
+        platform.name || platform.platform || "Google Business Profile",
+        platform.wordCount || 200,
+        platform.customInstructions || "",
+        "customer"
+      );
+      
+      // Update the review text for this platform
+      const updatedPlatforms = [...platforms];
+      updatedPlatforms[idx] = {
+        ...updatedPlatforms[idx],
+        reviewText: review
+      };
+      
+      setFormData((prev: any) => ({
+        ...prev,
+        review_platforms: updatedPlatforms
+      }));
+      
+    } catch (error) {
+      console.error("Failed to generate AI review:", error);
+    }
+  }
 
   return (
     <form 
@@ -214,14 +289,17 @@ export default function ServicePromptPageForm({
           </div>
         )}
         
-        {/* Services provided */}
+        {/* Services */}
         <div>
           <div className="mb-4 flex items-center gap-2">
             <FaStar className="w-5 h-5 text-[#1A237E]" />
             <h2 className="text-xl font-semibold text-slate-blue flex items-center gap-1">
-              Services provided{" "}
+              Services{" "}
               <span className="text-red-600">(required)</span>
             </h2>
+          </div>
+          <div className="mb-4">
+            <h3 className="text-lg font-medium text-gray-700 mb-2">List Services</h3>
           </div>
           <div className="space-y-2">
             {(formData.features_or_benefits || [""]).map((service: string, idx: number) => (
@@ -270,8 +348,7 @@ export default function ServicePromptPageForm({
           <div className="mb-4 flex items-center gap-2">
             <FaGift className="w-5 h-5 text-[#1A237E]" />
             <h2 className="text-xl font-semibold text-slate-blue flex items-center gap-1">
-              Outcome{" "}
-              <span className="text-red-600">(required)</span>
+              Outcome
             </h2>
           </div>
           <p className="text-sm text-gray-600 mb-4">
@@ -284,17 +361,14 @@ export default function ServicePromptPageForm({
             rows={4}
             className="mt-1 block w-full"
             placeholder="e.g., increased website traffic, improved online visibility, streamlined business operations"
-            required
           />
         </div>
 
         {/* Review Platforms Section */}
-        {console.log('🔥 ServicePromptPageForm - About to render ReviewWriteSection with value:', formData.review_platforms)}
-        {console.log('🔥 ServicePromptPageForm - formData keys:', Object.keys(formData || {}))}
         <ReviewWriteSection
           value={Array.isArray(formData.review_platforms) ? formData.review_platforms : []}
           onChange={(platforms) => updateFormData('review_platforms', platforms)}
-          onGenerateReview={() => {}} // AI generation handled elsewhere
+          onGenerateReview={handleGenerateAIReview}
           hideReviewTemplateFields={isUniversal}
         />
         
@@ -311,11 +385,11 @@ export default function ServicePromptPageForm({
         />
         
         {/* Personalized note section */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
+        <div className="rounded-lg p-4 bg-slate-50 border border-slate-200 flex flex-col gap-2 shadow relative">
+          <div className="flex items-center justify-between mb-2 px-2 py-2">
             <div className="flex items-center gap-3">
-              <FaSmile className="w-7 h-7 text-slate-blue" />
-              <span className="text-2xl font-bold text-[#1A237E]">
+              <FaStickyNote className="w-7 h-7 text-slate-blue" />
+              <span className="text-2xl font-bold text-slate-blue">
                 Personalized note pop-up
               </span>
             </div>
@@ -337,19 +411,21 @@ export default function ServicePromptPageForm({
               />
             </button>
           </div>
-          <div className="text-sm text-gray-600 mb-4">
+          <div className="text-sm text-gray-700 mb-3 max-w-[85ch] px-2">
             Add a personalized note that appears as a pop-up when customers visit your review page. Use 
             it to set the context and tone for your customer.
           </div>
           {formData.show_friendly_note && (
-            <Textarea
-              id="friendly_note"
-              value={formData.friendly_note || ""}
-              onChange={(e) => updateFormData('friendly_note', e.target.value)}
-              rows={4}
-              className="block w-full"
-              placeholder="e.g., Hi John! Thanks for using our service today. We'd love to hear about your experience."
-            />
+            <div className="px-2">
+              <Textarea
+                id="friendly_note"
+                value={formData.friendly_note || ""}
+                onChange={(e) => updateFormData('friendly_note', e.target.value)}
+                rows={4}
+                className="block w-full"
+                placeholder="e.g., Hi John! Thanks for using your service today. We'd love to hear about your experience."
+              />
+            </div>
           )}
         </div>
 
@@ -395,8 +471,15 @@ export default function ServicePromptPageForm({
           onColorChange={(color) => updateFormData('falling_icon_color', color)}
         />
 
-        {/* Bottom Save Button */}
-        <div className="flex justify-end pt-8 border-t border-gray-200">
+        {/* Bottom Buttons */}
+        <div className="flex justify-between pt-8 border-t border-gray-200">
+          <button
+            type="button"
+            onClick={() => router.push('/prompt-pages')}
+            className="inline-flex justify-center rounded-md border border-gray-300 py-2 px-4 text-sm font-medium text-gray-700 bg-white shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+          >
+            Cancel
+          </button>
           <button
             type="submit"
             className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"

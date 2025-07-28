@@ -58,6 +58,11 @@ export default function UploadContactsPage() {
   const [selectedContactForPrompt, setSelectedContactForPrompt] =
     useState<any>(null);
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const itemsPerPage = 50;
+
   // Using singleton Supabase client from supabaseClient.ts
 
   useEffect(() => {
@@ -77,19 +82,39 @@ export default function UploadContactsPage() {
     console.log("State updated:", { selectedFile, preview, error, success });
   }, [selectedFile, preview, error, success]);
 
-  // Fetch contacts
+  // Fetch contacts with pagination
   useEffect(() => {
     const fetchContacts = async () => {
       setContactsLoading(true);
+      
+      // Get total count
+      const { count, error: countError } = await supabase
+        .from("contacts")
+        .select("*", { count: "exact", head: true });
+      
+      if (!countError && count !== null) {
+        setTotalCount(count);
+      }
+      
+      // Get paginated data
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage - 1;
+      
       const { data, error } = await supabase
         .from("contacts")
         .select("*")
-        .order("created_at", { ascending: false });
-      if (!error && data) setContacts(data);
+        .order("created_at", { ascending: false })
+        .range(startIndex, endIndex);
+        
+      if (!error && data) {
+        setContacts(data);
+        // Clear selections when changing pages
+        setSelectedContactIds([]);
+      }
       setContactsLoading(false);
     };
     fetchContacts();
-  }, [supabase, success]);
+  }, [supabase, success, currentPage]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     console.log("File select event:", e);
@@ -399,6 +424,7 @@ export default function UploadContactsPage() {
       business_name: selectedContactForPrompt.business_name || "",
       role: selectedContactForPrompt.role || "",
       contact_id: selectedContactForPrompt.id || "",
+      campaign_type: "individual", // Always force individual campaign type for contacts
     });
     router.push(`/create-prompt-page?${params.toString()}`);
   }
@@ -542,9 +568,39 @@ export default function UploadContactsPage() {
                         </button>
                         <button
                           className="px-3 py-1 bg-slate-blue text-white rounded hover:bg-slate-blue/90 text-xs shadow"
-                          onClick={() => {
-                            setSelectedContactForPrompt(contact);
-                            setShowTypeModal(true);
+                          onClick={async () => {
+                            // Validate business profile before allowing prompt page creation
+                            try {
+                              const { data: { user } } = await supabase.auth.getUser();
+                              if (!user) {
+                                alert('Please sign in to create prompt pages.');
+                                return;
+                              }
+                              
+                              const { data: businessData } = await supabase
+                                .from("businesses")
+                                .select("name")
+                                .eq("account_id", user.id)
+                                .single();
+                              
+                              if (!businessData) {
+                                alert('Please create a business profile first before creating prompt pages. You can do this from the "Your Business" section in the dashboard.');
+                                router.push('/dashboard/business-profile');
+                                return;
+                              }
+                              
+                              if (!businessData.name || businessData.name.trim() === '') {
+                                alert('Please complete your business profile by adding your business name. This is required for creating prompt pages.');
+                                router.push('/dashboard/business-profile');
+                                return;
+                              }
+                              
+                              setSelectedContactForPrompt(contact);
+                              setShowTypeModal(true);
+                            } catch (error) {
+                              console.error('Error checking business profile:', error);
+                              alert('There was an error checking your business profile. Please try again.');
+                            }
                           }}
                         >
                           Create prompt page
@@ -555,6 +611,68 @@ export default function UploadContactsPage() {
                 </tbody>
               </table>
             </div>
+            
+            {/* Pagination Controls */}
+            {!contactsLoading && totalCount > 0 && (
+              <div className="mt-6 flex items-center justify-between">
+                <div className="text-sm text-gray-700">
+                  Showing {Math.min((currentPage - 1) * itemsPerPage + 1, totalCount)} - {Math.min(currentPage * itemsPerPage, totalCount)} of {totalCount} contacts
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  {/* Previous button */}
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                    className={`px-3 py-1 rounded text-sm ${
+                      currentPage === 1 
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                        : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    Previous
+                  </button>
+                  
+                  {/* Page numbers */}
+                  {(() => {
+                    const totalPages = Math.ceil(totalCount / itemsPerPage);
+                    const pages = [];
+                    const startPage = Math.max(1, currentPage - 2);
+                    const endPage = Math.min(totalPages, startPage + 4);
+                    
+                    for (let i = startPage; i <= endPage; i++) {
+                      pages.push(
+                        <button
+                          key={i}
+                          onClick={() => setCurrentPage(i)}
+                          className={`px-3 py-1 rounded text-sm ${
+                            i === currentPage
+                              ? 'bg-slate-blue text-white'
+                              : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                          }`}
+                        >
+                          {i}
+                        </button>
+                      );
+                    }
+                    return pages;
+                  })()}
+                  
+                  {/* Next button */}
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(Math.ceil(totalCount / itemsPerPage), prev + 1))}
+                    disabled={currentPage >= Math.ceil(totalCount / itemsPerPage)}
+                    className={`px-3 py-1 rounded text-sm ${
+                      currentPage >= Math.ceil(totalCount / itemsPerPage)
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
           )}
         </div>
 
