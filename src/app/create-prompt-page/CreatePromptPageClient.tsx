@@ -863,7 +863,8 @@ export default function CreatePromptPageClient({
         .select("*")
         .eq("account_id", accountId)
         .order('created_at', { ascending: false })
-        .maybeSingle();
+        .limit(1)
+        .single();
       
       if (businessError) {
         console.error("Business fetch error:", businessError);
