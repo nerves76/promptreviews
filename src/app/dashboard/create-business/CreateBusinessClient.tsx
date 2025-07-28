@@ -83,11 +83,15 @@ export default function CreateBusinessClient() {
         // Check if user has seen the welcome popup before
         if (typeof window !== 'undefined') {
           const hasSeenWelcome = localStorage.getItem('hasSeenCreateBusinessWelcome');
+          console.log('🎉 CreateBusinessClient: Welcome popup check - hasSeenWelcome:', hasSeenWelcome);
           if (!hasSeenWelcome) {
+            console.log('🎉 CreateBusinessClient: Showing welcome popup for new user');
             // Small delay to let the page load before showing popup
             setTimeout(() => {
               setShowWelcomePopup(true);
             }, 1000);
+          } else {
+            console.log('🎉 CreateBusinessClient: User has already seen welcome popup');
           }
         }
 
@@ -186,6 +190,7 @@ export default function CreateBusinessClient() {
       </div>
 
       {/* Welcome Popup with Carl Sagan quote */}
+      {console.log('🎉 CreateBusinessClient: Rendering popup - showWelcomePopup:', showWelcomePopup, 'user:', user?.email)}
       <WelcomePopup
         isOpen={showWelcomePopup}
         onClose={handleWelcomeClose}
