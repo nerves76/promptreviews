@@ -510,6 +510,7 @@ export default function PromptPageForm({
         isUniversal={isUniversal}
         onPublishSuccess={onPublishSuccess}
         campaignType={campaignType}
+        onGenerateReview={rest.onGenerateReview}
       />
     );
   }
@@ -519,7 +520,7 @@ export default function PromptPageForm({
       <PhotoPromptPageForm
         mode={mode}
         initialData={initialData}
-        onSave={onSave}
+        onSave={async (data) => Promise.resolve(onSave(data))}
         onPublish={onPublish}
         pageTitle={pageTitle}
         supabase={supabase}

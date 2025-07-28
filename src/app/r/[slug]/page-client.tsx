@@ -47,7 +47,7 @@ import FiveStarSpinner from "@/app/components/FiveStarSpinner";
 import PromptReviewsLogo from "@/app/dashboard/components/PromptReviewsLogo";
 import PageCard from "@/app/components/PageCard";
 import imageCompression from 'browser-image-compression';
-import { getAccessibleColor } from "@/utils/colorUtils";
+import { getAccessibleColor, applyCardTransparency } from "@/utils/colorUtils";
 import { getFallingIcon, getFallingIconColor } from "@/app/components/prompt-modules/fallingStarsConfig";
 import dynamic from "next/dynamic";
 // 🔧 CONSOLIDATED: Single import from supabaseClient module
@@ -258,7 +258,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const [aiLoadingPhoto, setAiLoadingPhoto] = useState(false);
-  const [photoReviewerName, setPhotoReviewerName] = useState("");
+  const [photoReviewerFirstName, setPhotoReviewerFirstName] = useState("");
+  const [photoReviewerLastName, setPhotoReviewerLastName] = useState("");
   const [photoReviewerRole, setPhotoReviewerRole] = useState("");
   const [showSentimentModal, setShowSentimentModal] = useState(false);
   const [sentiment, setSentiment] = useState<string | null>(null);
@@ -975,7 +976,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
 
   const handlePhotoSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!photoFile || !testimonial.trim() || !photoReviewerName.trim()) {
+    if (!photoFile || !testimonial.trim() || !photoReviewerFirstName.trim() || !photoReviewerLastName.trim()) {
       setPhotoError("Please fill in all required fields.");
       return;
     }
@@ -1022,8 +1023,9 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
         const id = Math.random().toString(36).substring(2, 15);
         return id;
       })();
-      const { first: first_name, last: last_name } =
-        splitName(photoReviewerName);
+      const first_name = photoReviewerFirstName.trim();
+      const last_name = photoReviewerLastName.trim();
+      const reviewer_name = `${first_name} ${last_name}`;
       
       const reviewResponse = await fetch("/api/review-submissions", {
         method: "POST",
@@ -1034,7 +1036,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
           status: "submitted",
           first_name,
           last_name,
-          reviewer_name: photoReviewerName,
+          reviewer_name,
           reviewer_role: photoReviewerRole ? photoReviewerRole.trim() : null,
           review_content: testimonial,
           emoji_sentiment_selection: sentiment,
@@ -1066,7 +1068,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
       setPhotoFile(null);
       setPhotoPreview(null);
       setTestimonial("");
-      setPhotoReviewerName("");
+      setPhotoReviewerFirstName("");
+      setPhotoReviewerLastName("");
       setPhotoReviewerRole("");
     } catch (err: any) {
       setPhotoError(err.message || "Failed to submit.");
@@ -1417,7 +1420,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
       {/* Special Offer Banner - very top, thin, dismissible */}
       {showBanner && (
         <div
-          className="w-full flex items-center justify-center relative px-2 py-1 bg-yellow-50 border-b border-yellow-300 shadow-sm z-50"
+          className="w-full flex items-center justify-center relative px-2 py-1 bg-slate-50 border-b border-slate-300 shadow-sm z-50"
           style={{ minHeight: 64, fontSize: "1rem" }}
         >
           <OfferCard
@@ -1425,10 +1428,10 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
             message={offerBody}
             buttonText={offerLearnMoreUrl ? "Learn More" : undefined}
             learnMoreUrl={offerLearnMoreUrl || undefined}
-            iconColor="#facc15"
+            iconColor="#475569"
           />
           <button
-            className="absolute top-2 right-2 text-yellow-900 text-lg font-bold hover:text-yellow-600 focus:outline-none"
+            className="absolute top-2 right-2 text-slate-blue text-lg font-bold hover:text-slate-600 focus:outline-none"
             aria-label="Dismiss"
             onClick={() => setShowRewardsBanner(false)}
             style={{ lineHeight: 1 }}
@@ -1802,18 +1805,44 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
               
               {/* Photo Submission Section - only for photo review types */}
               {sentimentComplete && !showFeedbackForm && promptPage?.review_type === "photo" && (
-                <div className="max-w-2xl mx-auto mb-8">
+                <div className="mb-8">
                   <div 
-                    className="bg-white rounded-2xl shadow-lg p-8 border-2"
+                    className="bg-white rounded-xl shadow-md p-6 border border-gray-200 relative"
                     style={{
-                      borderColor: businessProfile?.primary_color || "#4F46E5",
+                      background: applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0),
+                      color: businessProfile?.card_text || "#1A1A1A",
                       fontFamily: businessProfile?.primary_font || "Inter"
                     }}
                   >
-                    <div className="text-center mb-6">
-                      <h1 
-                        className="text-3xl font-bold mb-2"
+                    {businessProfile?.card_inner_shadow && (
+                      <div
+                        className="pointer-events-none absolute inset-0 rounded-xl"
+                        style={{
+                          boxShadow: `inset 0 0 32px 0 ${businessProfile?.card_shadow_color || '#222222'}${Math.round((businessProfile?.card_shadow_intensity || 0.2) * 255).toString(16).padStart(2, '0')}`,
+                          borderRadius: '0.75rem',
+                          zIndex: 0,
+                        }}
+                      />
+                    )}
+                    
+                    {/* Icon in top-left corner */}
+                    <div
+                      className="absolute -top-4 -left-4 rounded-full shadow p-2 flex items-center justify-center"
+                      style={{ 
+                        zIndex: 20, 
+                        backgroundColor: businessProfile?.card_bg || '#ffffff'
+                      }}
+                    >
+                      <FaCamera
+                        className="w-7 h-7"
                         style={{ color: businessProfile?.primary_color || "#4F46E5" }}
+                      />
+                    </div>
+
+                    <div className="text-center mb-6 mt-0">
+                      <h1 
+                        className={`text-2xl font-bold ${getFontClass(businessProfile?.primary_font)}`}
+                        style={{ color: businessProfile?.primary_color || "#4F46E5", marginTop: "-5px", marginLeft: "4px" }}
                       >
                         Photo + Testimonial
                       </h1>
@@ -1825,7 +1854,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                     ) : (
                       <form
                         onSubmit={handlePhotoSubmit}
-                        className="flex flex-col gap-6 items-center"
+                        className="flex flex-col gap-6"
                       >
                         {/* Photo Upload Section */}
                         <div className="w-full">
@@ -1874,23 +1903,22 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                           )}
                         </div>
 
-                        {/* Name and Role Fields */}
-                        <div className="w-full flex flex-col md:flex-row gap-4">
-                          <div className="flex-1 min-w-[200px] max-w-[400px]">
+                        {/* First and Last Name Row */}
+                        <div className="flex flex-col md:flex-row gap-4 w-full">
+                          <div className="flex-1">
                             <label
-                              htmlFor="photoReviewerName"
+                              htmlFor="photoReviewerFirstName"
                               className="block text-sm font-medium text-gray-700"
                             >
-                              Your Name{" "}
-                              <span className="text-red-500">*</span>
+                              First Name <span className="text-red-500">*</span>
                             </label>
                             <input
                               type="text"
-                              id="photoReviewerName"
-                              value={photoReviewerName}
-                              onChange={(e) => setPhotoReviewerName(e.target.value)}
-                              placeholder="Ezra C"
-                              className="mt-1 block w-full rounded-lg shadow-md focus:ring-2 focus:ring-slate-blue focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                              id="photoReviewerFirstName"
+                              value={photoReviewerFirstName}
+                              onChange={(e) => setPhotoReviewerFirstName(e.target.value)}
+                              placeholder="Ezra"
+                              className="w-full mt-1 mb-2 p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                               style={{
                                 background: businessProfile?.card_bg || "#F9FAFB",
                                 color: businessProfile?.card_text || "#1A1A1A",
@@ -1899,7 +1927,33 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                               required
                             />
                           </div>
-                          <div className="flex-1 min-w-[200px] max-w-[400px]">
+                          <div className="flex-1">
+                            <label
+                              htmlFor="photoReviewerLastName"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Last Name <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              id="photoReviewerLastName"
+                              value={photoReviewerLastName}
+                              onChange={(e) => setPhotoReviewerLastName(e.target.value)}
+                              placeholder="Scout"
+                              className="w-full mt-1 mb-2 p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                              style={{
+                                background: businessProfile?.card_bg || "#F9FAFB",
+                                color: businessProfile?.card_text || "#1A1A1A",
+                                boxShadow: "inset 0 1px 3px 0 rgba(60,64,67,0.18), inset 0 1.5px 6px 0 rgba(60,64,67,0.10)",
+                              }}
+                              required
+                            />
+                          </div>
+                        </div>
+
+                        {/* Role Field Row */}
+                        <div className="w-full">
+                          <div className="flex-1">
                             <label
                               htmlFor="photoReviewerRole"
                               className="block text-sm font-medium text-gray-700"
@@ -1911,8 +1965,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                               id="photoReviewerRole"
                               value={photoReviewerRole}
                               onChange={(e) => setPhotoReviewerRole(e.target.value)}
-                              placeholder="Store Manager, GreenSprout Co-Op"
-                              className="mt-1 block w-full rounded-lg shadow-md focus:ring-2 focus:ring-slate-blue focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                              placeholder="Customer"
+                              className="w-full mt-1 mb-2 p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                               style={{
                                 background: businessProfile?.card_bg || "#F9FAFB",
                                 color: businessProfile?.card_text || "#1A1A1A",
@@ -1922,68 +1976,121 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                           </div>
                         </div>
 
-                        {/* Testimonial Textarea */}
-                        <div className="w-full">
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Your Testimonial{" "}
-                            <span className="text-red-500">*</span>
+                        {/* Review text area */}
+                        <div className="mb-4">
+                          <label
+                            htmlFor="photoTestimonial"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Your Testimonial <span className="text-red-500">*</span>
                           </label>
                           <textarea
-                            className="w-full rounded-lg border border-gray-300 p-4 min-h-[120px] focus:ring-2 focus:ring-slate-blue focus:outline-none"
-                            placeholder={promptPage?.no_platform_review_template || "Write your testimonial here..."}
+                            id="photoTestimonial"
                             value={testimonial}
                             onChange={(e) => setTestimonial(e.target.value)}
-                            required
+                            placeholder={promptPage?.no_platform_review_template || "Share your experience..."}
+                            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            rows={4}
                             style={{
                               background: businessProfile?.card_bg || "#F9FAFB",
                               color: businessProfile?.card_text || "#1A1A1A",
                               boxShadow: "inset 0 1px 3px 0 rgba(60,64,67,0.18), inset 0 1.5px 6px 0 rgba(60,64,67,0.10)",
                             }}
+                            required
                           />
                         </div>
 
-                        {/* Action Buttons */}
-                        <div className="flex justify-between w-full gap-2">
-                          <div className="flex items-center gap-2">
+                        {/* Action buttons */}
+                        <div className="flex flex-col sm:flex-row gap-3 mt-4">
+                          {promptPage?.ai_button_enabled !== false && (
                             <button
                               type="button"
                               onClick={handleGeneratePhotoTestimonial}
                               disabled={aiLoadingPhoto}
-                              className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg hover:bg-gray-50 transition-colors"
+                              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all duration-200 hover:text-white"
+                              style={{
+                                borderColor: businessProfile?.secondary_color || "#6B7280",
+                                color: businessProfile?.secondary_color || "#6B7280",
+                              }}
+                              onMouseEnter={(e) => {
+                                if (!aiLoadingPhoto) {
+                                  e.currentTarget.style.backgroundColor = businessProfile?.secondary_color || "#6B7280";
+                                  e.currentTarget.style.color = "white";
+                                }
+                              }}
+                              onMouseLeave={(e) => {
+                                if (!aiLoadingPhoto) {
+                                  e.currentTarget.style.backgroundColor = "transparent";
+                                  e.currentTarget.style.color = businessProfile?.secondary_color || "#6B7280";
+                                }
+                              }}
                             >
-                              <FaPenFancy
-                                style={{
-                                  color: businessProfile?.primary_color || "#4F46E5",
-                                }}
-                              />
-                              <span
-                                style={{
-                                  color: businessProfile?.primary_color || "#4F46E5",
-                                }}
-                              >
-                                {aiLoadingPhoto ? "Generating..." : "Generate with AI"}
-                              </span>
+                              {aiLoadingPhoto ? (
+                                <>
+                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                                  Generating...
+                                </>
+                              ) : (
+                                <>
+                                  <svg
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    className="w-4 h-4"
+                                  >
+                                    <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .962 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.582a.5.5 0 0 1 0 .962L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.962 0L9.937 15.5Z"/>
+                                    <path d="M20 3v4"/>
+                                    <path d="M22 5h-4"/>
+                                    <path d="M4 17v2"/>
+                                    <path d="M5 18H3"/>
+                                  </svg>
+                                  Generate with AI {aiRewriteCounts[0] > 0 && `(${aiRewriteCounts[0]}/3)`}
+                                </>
+                              )}
                             </button>
-                            <span className="text-sm text-gray-500">
-                              {Math.max(0, 3 - (aiRewriteCounts[0] || 0))}/3
-                            </span>
-                          </div>
+                          )}
                           <button
                             type="submit"
-                            className="flex items-center gap-2 px-6 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 transition-colors font-semibold"
+                            className="flex-1 px-4 py-2 rounded-lg text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all duration-200 border-2"
                             disabled={photoSubmitting}
-                            title="Submit your photo and testimonial"
+                            style={{
+                              backgroundColor: businessProfile?.secondary_color || "#4F46E5",
+                              borderColor: businessProfile?.secondary_color || "#4F46E5",
+                            }}
+                            onMouseEnter={(e) => {
+                              if (!photoSubmitting && !e.currentTarget.disabled) {
+                                e.currentTarget.style.backgroundColor = "transparent";
+                                e.currentTarget.style.color = businessProfile?.secondary_color || "#4F46E5";
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (!photoSubmitting && !e.currentTarget.disabled) {
+                                e.currentTarget.style.backgroundColor = businessProfile?.secondary_color || "#4F46E5";
+                                e.currentTarget.style.color = "white";
+                              }
+                            }}
                           >
                             {photoSubmitting ? (
-                              <span className="flex items-center justify-center">
-                                <FiveStarSpinner
-                                  size={18}
-                                  color1="#a5b4fc"
-                                  color2="#6366f1"
-                                />
-                              </span>
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                Submitting...
+                              </>
                             ) : (
-                              "Submit"
+                              <>
+                                <svg
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="currentColor"
+                                  className="w-4 h-4"
+                                >
+                                  <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                                </svg>
+                                Submit
+                              </>
                             )}
                           </button>
                         </div>
@@ -2480,6 +2587,31 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
         </div>
       )}
       
+      {/* Personalized Note Popup */}
+      {promptPage?.show_friendly_note &&
+        promptPage?.friendly_note &&
+        promptPage?.campaign_type === 'individual' &&
+        showPersonalNote && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fadein">
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-6 max-w-lg mx-4 relative animate-slideup shadow-lg">
+              {/* Standardized red X close button */}
+              <button
+                className="absolute -top-3 -right-3 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-50"
+                style={{ width: 48, height: 48 }}
+                onClick={() => setShowPersonalNote(false)}
+                aria-label="Close note"
+              >
+                <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              <div className="text-slate-blue text-base">
+                {promptPage.friendly_note}
+              </div>
+            </div>
+          </div>
+        )}
+
       {/* Style Modal */}
       {showStyleModal && (
         <StyleModalPage 

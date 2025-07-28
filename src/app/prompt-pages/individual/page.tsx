@@ -350,17 +350,22 @@ export default function IndividualOutreach() {
       description: "Get a review from a customer who fancies your products",
     },
     {
-      key: "video",
-      label: "Video testimonial",
-      icon: <MdVideoLibrary className="w-7 h-7 text-[#1A237E]" />,
-      description: "Request a video testimonial from your client.",
-      comingSoon: true,
+      key: "employee",
+      label: "Employee spotlight",
+      icon: <FaUser className="w-7 h-7 text-slate-blue" />,
+      description: "Create a review page to showcase individual team members and inspire competition",
     },
     {
       key: "event",
       label: "Events & spaces",
       icon: <MdEvent className="w-7 h-7 text-[#1A237E]" />,
       description: "For events, rentals, tours, and more.",
+    },
+    {
+      key: "video",
+      label: "Video testimonial",
+      icon: <MdVideoLibrary className="w-7 h-7 text-[#1A237E]" />,
+      description: "Request a video testimonial from your client.",
       comingSoon: true,
     },
   ];
@@ -452,7 +457,22 @@ export default function IndividualOutreach() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => setShowTypeModal(true)}
+                  onClick={() => {
+                    // Validate business profile before allowing prompt page creation
+                    if (!business) {
+                      alert('Please create a business profile first before creating prompt pages. You can do this from the "Your Business" section in the dashboard.');
+                      router.push('/dashboard/business-profile');
+                      return;
+                    }
+                    
+                    if (!business.name || business.name.trim() === '') {
+                      alert('Please complete your business profile by adding your business name. This is required for creating prompt pages.');
+                      router.push('/dashboard/business-profile');
+                      return;
+                    }
+                    
+                    setShowTypeModal(true);
+                  }}
                   className="inline-flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded hover:bg-slate-blue/90 font-medium transition"
                 >
                   + Prompt Page
@@ -477,7 +497,22 @@ export default function IndividualOutreach() {
                     await supabase.from("prompt_pages").delete().in("id", pageIds);
                     setPromptPages((pages) => pages.filter((page) => !pageIds.includes(page.id)));
                   }}
-                  onCreatePromptPage={() => setShowTypeModal(true)}
+                  onCreatePromptPage={() => {
+                    // Validate business profile before allowing prompt page creation
+                    if (!business) {
+                      alert('Please create a business profile first before creating prompt pages. You can do this from the "Your Business" section in the dashboard.');
+                      router.push('/dashboard/business-profile');
+                      return;
+                    }
+                    
+                    if (!business.name || business.name.trim() === '') {
+                      alert('Please complete your business profile by adding your business name. This is required for creating prompt pages.');
+                      router.push('/dashboard/business-profile');
+                      return;
+                    }
+                    
+                    setShowTypeModal(true);
+                  }}
                 />
               </div>
             </div>

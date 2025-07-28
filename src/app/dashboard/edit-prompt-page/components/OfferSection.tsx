@@ -31,12 +31,12 @@ const OfferSection: React.FC<OfferSectionProps> = ({
   url,
   onUrlChange,
 }) => (
-  <div className="rounded-lg p-4 bg-yellow-50 border border-yellow-200 flex flex-col gap-4 shadow relative">
+  <div className="rounded-lg p-4 bg-slate-50 border border-slate-200 flex flex-col gap-4 shadow relative">
     <div className="flex flex-row justify-between items-start mb-2 px-4 py-2">
       <div className="flex flex-col">
         <div className="flex items-center gap-3">
-          <FaGift className="w-7 h-7 text-yellow-500" />
-          <span className="text-2xl font-bold text-yellow-800">
+          <FaGift className="w-7 h-7 text-slate-blue" />
+          <span className="text-2xl font-bold text-slate-blue">
             {OFFER_SECTION_TITLE}
           </span>
         </div>
@@ -48,7 +48,7 @@ const OfferSection: React.FC<OfferSectionProps> = ({
         <button
           type="button"
           onClick={onToggle}
-          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${enabled ? "bg-yellow-500" : "bg-gray-200"}`}
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${enabled ? "bg-slate-blue" : "bg-gray-200"}`}
           aria-pressed={!!enabled}
         >
           <span

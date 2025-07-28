@@ -26,6 +26,7 @@ import { BusinessLocation, LocationWithPromptPage } from "@/types/business";
 import { hasLocationAccess, formatLocationAddress, getLocationDisplayName } from "@/utils/locationUtils";
 import { FaQuestionCircle } from "react-icons/fa";
 import EmojiEmbedButton from "@/app/components/EmojiEmbedButton";
+import FiveStarSpinner from "@/app/components/FiveStarSpinner";
 
 const StylePage = dynamic(() => import("../dashboard/style/StyleModalPage"), { ssr: false });
 
@@ -68,13 +69,17 @@ export default function PromptPages() {
   const [editingLocation, setEditingLocation] = useState<BusinessLocation | null>(null);
   const [locationLimits, setLocationLimits] = useState({ current: 0, max: 0, canCreateMore: false });
   
-  // Tab state for Maven users
-  const [activeTab, setActiveTab] = useState<'locations' | 'custom'>('locations');
-  
   // Tab state for prompt pages types
   const [promptPagesTab, setPromptPagesTab] = useState<'public' | 'individual' | 'locations'>('public');
+  const [isNavigating, setIsNavigating] = useState(false); // Add navigation loading state
 
   const router = useRouter();
+
+  // Check if user has access to individual prompt pages (exclude grower plan)
+  const hasIndividualAccess = (plan?: string): boolean => {
+    if (!plan) return false;
+    return plan !== 'grower';
+  };
 
   // Prevent background scroll when modal is open
   React.useEffect(() => {
@@ -87,6 +92,13 @@ export default function PromptPages() {
       document.body.style.overflow = '';
     };
   }, [showStyleModal, showLocationModal]);
+
+  // Reset navigation loading state on unmount
+  React.useEffect(() => {
+    return () => {
+      setIsNavigating(false);
+    };
+  }, []);
 
   useEffect(() => {
     async function fetchData() {
@@ -358,17 +370,22 @@ export default function PromptPages() {
       description: "Get a review from a customer who fancies your products",
     },
     {
-      key: "video",
-      label: "Video testimonial",
-      icon: <MdVideoLibrary className="w-7 h-7 text-[#1A237E]" />,
-      description: "Request a video testimonial from your client.",
-      comingSoon: true,
+      key: "employee",
+      label: "Employee spotlight",
+      icon: <FaUser className="w-7 h-7 text-slate-blue" />,
+      description: "Create a review page to showcase individual team members and inspire competition",
     },
     {
       key: "event",
       label: "Events & spaces",
       icon: <MdEvent className="w-7 h-7 text-[#1A237E]" />,
       description: "For events, rentals, tours, and more.",
+    },
+    {
+      key: "video",
+      label: "Video testimonial",
+      icon: <MdVideoLibrary className="w-7 h-7 text-[#1A237E]" />,
+      description: "Request a video testimonial from your client.",
       comingSoon: true,
     },
   ];
@@ -377,6 +394,7 @@ export default function PromptPages() {
     console.log('[DEBUG] handlePromptTypeSelect called with:', typeKey);
     console.log('[DEBUG] Current localStorage campaign_type:', localStorage.getItem('campaign_type'));
     setShowTypeModal(false);
+    setIsNavigating(true); // Show loading state
     const campaignType = localStorage.getItem('campaign_type') || 'individual';
     router.push(`/create-prompt-page?type=${typeKey}&campaign_type=${campaignType}`);
   }
@@ -404,9 +422,20 @@ export default function PromptPages() {
 
   return (
     <div>
+      {/* Navigation Loading Overlay */}
+      {isNavigating && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black bg-opacity-75">
+          <FiveStarSpinner size={24} />
+          <div className="mt-4 text-lg text-white font-semibold">Loading prompt page…</div>
+        </div>
+      )}
+      
       <PromptTypeSelectModal
         open={showTypeModal}
-        onClose={() => setShowTypeModal(false)}
+        onClose={() => {
+          setShowTypeModal(false);
+          setIsNavigating(false); // Reset loading state if modal is closed
+        }}
         onSelectType={handlePromptTypeSelect}
         promptTypes={promptTypes}
       />
@@ -429,8 +458,13 @@ export default function PromptPages() {
         />
       )}
       
-      {/* Pill navigation at the top of the PageCard */}
-      <div className="flex justify-center w-full mt-16 mb-0 z-20">
+            {/* Title above navigation */}
+      <div className="flex justify-center w-full mt-8 mb-6 z-20">
+        <h2 className="text-white text-base font-medium">Prompt Page campaign type</h2>
+      </div>
+       
+       {/* Pill navigation at the top of the PageCard */}
+       <div className="flex justify-center w-full mt-0 mb-0 z-20">
         <div className="flex bg-white/10 backdrop-blur-sm border-2 border-white rounded-full p-1 shadow-lg">
           <button
             type="button"
@@ -617,186 +651,7 @@ export default function PromptPages() {
               </div>
             )}
             
-            {/* Tab Navigation - Only show for Maven tier users with location access */}
-            {account && hasLocationAccess(account.plan) && (
-              <div className="my-12">
-                <div className="border-b border-gray-200">
-                  <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab('locations')}
-                      className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
-                        activeTab === 'locations'
-                          ? 'border-blue-500 text-blue-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <FaMapMarkerAlt className="w-4 h-4" />
-                        Locations
-                      </div>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab('custom')}
-                      className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
-                        activeTab === 'custom'
-                          ? 'border-blue-500 text-blue-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <FaPlus className="w-4 h-4" />
-                        Custom
-                      </div>
-                    </button>
-                  </nav>
-                </div>
-              </div>
-            )}
-            
-            {/* Business Locations Section - Only show for Maven tier when locations tab is active */}
-            {account && hasLocationAccess(account.plan) && activeTab === 'locations' && (
-              <div className="my-12">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h2 className="text-2xl font-bold text-slate-blue flex items-center gap-2">
-                      <FaMapMarkerAlt className="w-6 h-6" />
-                      Business Locations
-                    </h2>
-                    <p className="text-sm text-gray-600 mt-1">
-                      Create location-specific prompt pages • {locationLimits.current} of {locationLimits.max} locations used
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowLocationModal(true)}
-                    disabled={!locationLimits.canCreateMore}
-                    className={`inline-flex items-center gap-2 px-4 py-2 rounded font-medium transition ${
-                      locationLimits.canCreateMore
-                        ? 'bg-slate-blue text-white hover:bg-slate-blue/90'
-                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    }`}
-                  >
-                    <FaPlus className="w-4 h-4" />
-                    Add Location
-                  </button>
-                </div>
-                
-                {locations.length === 0 ? (
-                  <div className="rounded-lg border-2 border-dashed border-gray-300 p-8 text-center">
-                    <FaMapMarkerAlt className="w-12 h-12 mx-auto text-gray-400 mb-3" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No locations yet</h3>
-                    <p className="text-sm text-gray-600 mb-4">
-                      Create location-specific prompt pages for each of your business locations.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => setShowLocationModal(true)}
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded hover:bg-slate-blue/90 transition"
-                    >
-                      <FaPlus className="w-4 h-4" />
-                      Add Your First Location
-                    </button>
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto shadow sm:rounded-lg">
-                    <table className="min-w-full divide-y divide-gray-300">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Location</th>
-                          <th className="relative py-3.5 pl-3 pr-4 sm:pr-6 text-sm font-semibold text-gray-900">Actions</th>
-                          <th className="relative py-3.5 pl-3 pr-4 sm:pr-6 text-sm font-semibold text-gray-900">Share</th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {locations.map((location, index) => {
-                          const locationPage = locationPromptPages.find(p => p.business_location_id === location.id);
-                          return (
-                            <tr key={location.id} className={index % 2 === 0 ? "bg-white" : "bg-blue-50"}>
-                              <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
-                                <div className="font-medium text-gray-900">
-                                  {getLocationDisplayName(location)}
-                                </div>
-                              </td>
-                              <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                                <div className="flex flex-row gap-2 items-center justify-end">
-                                  <div className="flex gap-2">
-                                    <Link href={`/r/${locationPage?.slug || '#'}`} className="text-slate-blue underline hover:text-slate-blue/80 hover:underline">View</Link>
-                                    <button
-                                      onClick={() => {
-                                        setEditingLocation(location);
-                                        setShowLocationModal(true);
-                                      }}
-                                      className="text-slate-blue underline hover:text-slate-blue/80 hover:underline bg-transparent border-none cursor-pointer p-0"
-                                    >
-                                      Edit
-                                    </button>
-                                  </div>
-                                  <button
-                                    onClick={() => handleDeleteLocation(location.id)}
-                                    className="text-gray-600 hover:text-red-600"
-                                    title="Delete location"
-                                  >
-                                    <FaTrash className="w-4 h-4" />
-                                  </button>
-                                </div>
-                              </td>
-                              <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                                <div className="flex flex-row gap-2 items-center justify-end">
-                                  <button
-                                    type="button"
-                                    className="inline-flex items-center px-2 py-1.5 bg-purple-100 text-purple-800 rounded hover:bg-purple-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap w-full sm:w-auto"
-                                    title="Copy link"
-                                    onClick={async () => {
-                                      try {
-                                        const url = locationPage ? `${window.location.origin}/r/${locationPage.slug}` : `${window.location.origin}/r/${location.id}`;
-                                        await navigator.clipboard.writeText(url);
-                                        setCopySuccess("Link copied!");
-                                        setTimeout(() => setCopySuccess(""), 2000);
-                                      } catch (err) {
-                                        alert("Could not copy to clipboard. Please copy manually.");
-                                      }
-                                    }}
-                                  >
-                                    <FaLink className="w-4 h-4" />
-                                  </button>
-                                  
-                                  {/* Emoji Embed Button - only show when sentiment flow is enabled */}
-                                  {(location.emoji_sentiment_enabled || locationPage?.emoji_sentiment_enabled) && locationPage?.slug && (
-                                    <div className="flex items-center">
-                                      <EmojiEmbedButton slug={locationPage.slug} />
-                                    </div>
-                                  )}
-                                  
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      const url = locationPage ? `${window.location.origin}/r/${locationPage.slug}` : `${window.location.origin}/r/${location.id}`;
-                                      setQrModal({
-                                        open: true,
-                                        url: url,
-                                        clientName: getLocationDisplayName(location),
-                                        logoUrl: location.logo_url,
-                                        showNfcText: locationPage?.nfc_text_enabled ?? false,
-                                      });
-                                    }}
-                                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-100 text-amber-800 rounded hover:bg-amber-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
-                                  >
-                                    <MdDownload size={22} color="#b45309" />
-                                    QR code
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            )}
+
             
             {/* QR Code Download Modal */}
             <QRCodeModal
@@ -808,10 +663,10 @@ export default function PromptPages() {
               showNfcText={qrModal?.showNfcText}
             />
             
-            {/* Custom Prompt Pages Section - Show for non-Maven users OR when custom tab is active */}
-            {(!account || !hasLocationAccess(account.plan) || activeTab === 'custom') && (
+            {/* Public Prompt Pages Section */}
+            {promptPagesTab === 'public' && (
               <div className="my-12">
-        
+                <h2 className="text-2xl font-bold text-slate-blue mb-6">Your public Prompt Pages</h2>
               
               <div className="overflow-x-auto shadow border-l border-r border-b border-gray-200 sm:rounded-b-lg">
                 <PublicPromptPagesTable
@@ -834,6 +689,28 @@ export default function PromptPages() {
             {/* Individual Outreach Content */}
             {promptPagesTab === 'individual' && (
               <div className="my-12">
+                {(!account || !hasIndividualAccess(account.plan)) ? (
+                  <div className="text-center py-12">
+                    <FaUser className="w-16 h-16 mx-auto mb-6 text-gray-300" />
+                    <h2 className="text-2xl font-bold text-slate-blue mb-4">Individual Prompt Pages</h2>
+                    <p className="text-lg text-gray-600 mb-6 max-w-md mx-auto">
+                      Create personalized prompt pages for individuals and make them feel special. Pre-populated contact information, write your own review templates, and add custom messaging.
+                    </p>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 max-w-md mx-auto">
+                      <h3 className="font-semibold text-blue-900 mb-2">Upgrade to Builder</h3>
+                      <p className="text-sm text-blue-700 mb-4">
+                        Individual prompt pages are available with the Builder tier and above. Upgrade your plan to unlock this feature.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => router.push('/upgrade')}
+                        className="bg-slate-blue text-white px-6 py-2 rounded hover:bg-slate-blue/90 font-medium transition"
+                      >
+                        Upgrade Now
+                      </button>
+                    </div>
+                  </div>
+                ) : (
                 <PromptPagesTable
                   promptPages={promptPages}
                   isLoading={loading}
@@ -951,6 +828,7 @@ export default function PromptPages() {
                   showArchived={false} // Individual prompt pages do not have an archived state
                   setShowArchived={() => {}}
                 />
+                )}
               </div>
             )}
             
@@ -1224,7 +1102,7 @@ export default function PromptPages() {
 
     </div>
   );
-} 
+}
 
 function UniversalTooltip() {
   const [show, setShow] = useState(false);
