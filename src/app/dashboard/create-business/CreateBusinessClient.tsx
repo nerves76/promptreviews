@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { FaStore, FaPlus } from "react-icons/fa";
 import { createClient, getUserOrMock } from "@/utils/supabaseClient";
@@ -27,6 +27,9 @@ export default function CreateBusinessClient() {
 
   const [user, setUser] = useState<any>(null);
   const [accountId, setAccountId] = useState<string | null>(null);
+  
+  // Ref to trigger form submission from top button
+  const formRef = useRef<HTMLFormElement>(null);
 
   // Memoize router functions to prevent infinite loops
   const redirectToDashboard = useCallback(() => {
@@ -87,6 +90,13 @@ export default function CreateBusinessClient() {
     console.log("🔄 CreateBusinessClient: Redirect function called");
   }, [router]);
 
+  // Function to trigger form submission from top button
+  const handleTopSaveClick = useCallback(() => {
+    if (formRef.current) {
+      formRef.current.requestSubmit();
+    }
+  }, []);
+
   // Show loading while setting up business creation
   // 🔧 FIXED: Remove adminLoading dependency that was causing infinite renders
   console.log('🔍 CreateBusinessClient: Render state - loading:', loading);
@@ -125,6 +135,14 @@ export default function CreateBusinessClient() {
     <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
       <PageCard 
         icon={<FaStore className="w-9 h-9 text-slate-blue" />}
+        topRightAction={
+          <button
+            onClick={handleTopSaveClick}
+            className="px-4 py-2 text-sm font-medium text-white bg-slate-blue rounded-md hover:bg-slate-blue/90 flex items-center"
+          >
+            Create Business
+          </button>
+        }
       >
         <div className="max-w-4xl mx-auto">
           {/* Welcome Message */}
@@ -144,6 +162,7 @@ export default function CreateBusinessClient() {
           </div>
           
           <SimpleBusinessForm
+            ref={formRef}
             onSuccess={handleBusinessCreated}
             accountId={accountId}
             user={user}
