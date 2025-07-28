@@ -190,8 +190,8 @@ export default function CreateBusinessClient() {
         isOpen={showWelcomePopup}
         onClose={handleWelcomeClose}
         userName={user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'there'}
-        imageUrl="/images/prompty-catching-stars.png"
-        imageAlt="Prompty catching stars"
+        imageUrl="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompty-telescope-capturing-reviews.png"
+        imageAlt="Prompty with telescope capturing reviews"
         buttonText="Let's wrangle some stars!"
         onButtonClick={handleWelcomeClose}
       />
