@@ -79,7 +79,7 @@ export default function WelcomePopup({
   if (!isOpen) return null;
 
   // Use provided title/message or create default welcome content
-  const welcomeTitle = title || `Welcome to Prompt Reviews!`;
+  const welcomeTitle = title || `Welcome to Prompt Reviews${userName ? `, ${userName}` : ''}!`;
   const welcomeMessage = message || `Did you know you're a star? Carl Sagan said it best:
 
 "The cosmos is within us. We are made of star-stuff. We are a way for the universe to know itself."
@@ -137,11 +137,11 @@ Here's your first tip: [icon] <— click here`;
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4 overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4">
       <div className="bg-white shadow-lg max-w-4xl w-full max-h-[90vh] relative flex flex-col md:flex-row gap-8 text-left rounded-xl overflow-hidden">
         {/* Standardized circular close button */}
         <button
-          className="absolute top-2 right-2 md:-top-4 md:-right-4 bg-white border border-gray-200 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 focus:outline-none z-20 transition-colors"
+          className="absolute top-3 right-3 bg-white border border-gray-200 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 focus:outline-none z-20 transition-colors"
           style={{ width: 40, height: 40 }}
           onClick={onClose}
           aria-label="Close modal"
