@@ -862,9 +862,15 @@ export default function CreatePromptPageClient({
         .from("businesses")
         .select("*")
         .eq("account_id", accountId)
-        .single();
-      if (businessError || !businessData) {
-        throw new Error(`Failed to fetch business data: ${businessError?.message || 'No business found'}`);
+        .maybeSingle();
+      
+      if (businessError) {
+        console.error("Business fetch error:", businessError);
+        throw new Error(`Failed to fetch business data: ${businessError.message}`);
+      }
+      
+      if (!businessData) {
+        throw new Error("No business profile found. Please create a business profile first.");
       }
 
       // Create complete prompt page data (only include valid prompt_pages columns)
