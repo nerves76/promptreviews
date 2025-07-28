@@ -69,6 +69,7 @@ export async function POST(request: NextRequest) {
 
     // Prepare business data for insertion, including all fields from the form
     const insertData = {
+      id: crypto.randomUUID(), // 🔧 FIXED: Generate UUID for ID until migration is applied
       name,
       account_id,
       industry: industryData,

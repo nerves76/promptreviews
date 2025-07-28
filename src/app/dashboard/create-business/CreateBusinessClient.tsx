@@ -125,15 +125,6 @@ export default function CreateBusinessClient() {
     <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
       <PageCard 
         icon={<FaStore className="w-9 h-9 text-slate-blue" />}
-        topRightAction={
-          <button
-            onClick={() => router.push("/dashboard")}
-            className="px-4 py-2 text-sm font-medium text-white bg-slate-blue rounded-md hover:bg-slate-blue/90 flex items-center"
-          >
-            <FaPlus className="mr-2" />
-            Go to Dashboard
-          </button>
-        }
       >
         <div className="max-w-4xl mx-auto">
           {/* Welcome Message */}
