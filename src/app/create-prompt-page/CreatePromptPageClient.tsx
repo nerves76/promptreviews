@@ -20,8 +20,11 @@ import {
   FaSmile,
   FaHandsHelping,
   FaBoxOpen,
+  FaUser,
 } from "react-icons/fa";
+import { MdEvent } from "react-icons/md";
 import { checkAccountLimits } from "@/utils/accountLimits";
+import { getAccountIdForUser } from "@/utils/accountUtils";
 import { Dialog } from "@headlessui/react";
 import { getUserOrMock, supabase } from "@/utils/supabaseClient";
 import { markTaskAsCompleted } from "@/utils/onboardingTasks";
@@ -32,6 +35,8 @@ import PromptPageForm from "../components/PromptPageForm";
 import PageCard from "../components/PageCard";
 import ProductPromptPageForm from "../components/ProductPromptPageForm";
 import PhotoPromptPageForm from "../components/PhotoPromptPageForm";
+import EmployeePromptPageForm from "../components/EmployeePromptPageForm";
+import EventPromptPageForm from "../components/EventPromptPageForm";
 import FiveStarSpinner from "../components/FiveStarSpinner";
 import AppLoader from "../components/AppLoader";
 
@@ -136,17 +141,22 @@ const promptTypes = [
     description: "Get a review from a customer who fancies your products",
   },
   {
-    key: "video",
-    label: "Video testimonial",
-    icon: <FaVideo className="w-7 h-7 text-[#1A237E]" />,
-    description: "Request a video testimonial from your client.",
-    comingSoon: true,
+    key: "employee",
+    label: "Employee spotlight",
+    icon: <FaUser className="w-7 h-7 text-slate-blue" />,
+    description: "Create a review page to showcase individual team members and inspire competition",
   },
   {
     key: "event",
     label: "Events & spaces",
     icon: <FaGift className="w-7 h-7 text-[#1A237E]" />,
     description: "For events, rentals, tours, and more.",
+  },
+  {
+    key: "video",
+    label: "Video testimonial",
+    icon: <FaVideo className="w-7 h-7 text-[#1A237E]" />,
+    description: "Request a video testimonial from your client.",
     comingSoon: true,
   },
 ];
@@ -379,6 +389,14 @@ export default function CreatePromptPageClient({
     }
   }, [searchParams, formData.review_type]);
 
+  // Update localStorage when campaign_type is provided in URL params
+  useEffect(() => {
+    const urlCampaignType = searchParams.get("campaign_type");
+    if (urlCampaignType && typeof window !== 'undefined') {
+      localStorage.setItem('campaign_type', urlCampaignType);
+    }
+  }, [searchParams]);
+
   // Handler for selecting a prompt type
   function handlePromptTypeSelect(typeKey: string) {
     setShowTypeModal(false);
@@ -577,6 +595,8 @@ export default function CreatePromptPageClient({
       setSaveError(null);
       setSaveSuccess(null);
       try {
+      console.log("[DEBUG] handleStep1Submit - Received formData:", formData);
+      
       const {
         data: { user },
       } = await getUserOrMock(supabase);
@@ -616,6 +636,10 @@ export default function CreatePromptPageClient({
         ? localStorage.getItem('campaign_type') || 'individual'
         : 'individual';
 
+      console.log("[DEBUG] handleStep1Submit - Campaign type:", campaignType);
+      console.log("[DEBUG] handleStep1Submit - User ID:", user.id);
+      console.log("[DEBUG] handleStep1Submit - Business data:", businessData);
+
       // Prepare the data for insertion
       let insertData = {
         ...formData,
@@ -644,11 +668,14 @@ export default function CreatePromptPageClient({
         friendly_note: formData.friendlyNote ?? ""
       };
 
-      // Generate slug
+      console.log("[DEBUG] handleStep1Submit - insertData after initial setup:", insertData);
+
+      // Generate slug based on form data or business name
       insertData.slug = slugify(
-        (businessProfile?.business_name || "business") +
+        formData.name ||
+          businessData.business_name +
           "-" +
-          (formData.name || formData.first_name || "prompt") +
+          (formData.first_name || "customer") +
           "-" +
           (formData.last_name || "page"),
         // Only generate unique ID on client side to prevent hydration mismatch
@@ -656,6 +683,8 @@ export default function CreatePromptPageClient({
           ? Date.now() + "-" + Math.random().toString(36).substring(2, 8)
           : "temp-id",
       );
+
+      console.log("[DEBUG] handleStep1Submit - Generated slug:", insertData.slug);
 
       // Handle review platforms
       if (formData.review_type === "photo") {
@@ -695,11 +724,18 @@ export default function CreatePromptPageClient({
       // Use centralized data mapping utility
       const mappedData = preparePromptPageData(insertData);
       
+      console.log("[DEBUG] Product Save - Raw insertData before mapping:", insertData);
+      console.log("[DEBUG] Product Save - Mapped data after preparePromptPageData:", mappedData);
+      
       // Validate the prepared data
       const validation = validatePromptPageData(mappedData);
+      console.log("[DEBUG] Product Save - Validation result:", validation);
       if (!validation.isValid) {
+        console.error("[DEBUG] Product Save - Validation failed with errors:", validation.errors);
         throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
       }
+
+      console.log("[DEBUG] Product Save - About to insert to database with data:", mappedData);
 
       // Insert the prompt page
       const { data, error } = await supabase
@@ -708,7 +744,15 @@ export default function CreatePromptPageClient({
         .select()
         .single();
 
+      console.log("[DEBUG] Product Save - Database insert result:", { data, error });
+
       if (error) {
+        console.error("[DEBUG] Product Save - Database error details:", {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
         throw error;
       }
 
@@ -718,9 +762,25 @@ export default function CreatePromptPageClient({
           localStorage.setItem('createdSlug', data.slug);
         }
         
-        // For product pages, redirect immediately since they're single step
+        // For product pages, set success message and then redirect
         if (formData.review_type === "product") {
-          router.push("/prompt-pages");
+          console.log("[DEBUG] Product Save - Success! Setting localStorage and redirecting");
+          // Set success message for the form
+          setSaveSuccess("Product page created successfully!");
+          
+          // Set success modal data before navigation
+          const modalData = { 
+            url: `/r/${data.slug}`,
+            first_name: formData.first_name,
+            phone: formData.phone,
+            email: formData.email
+          };
+          localStorage.setItem("showPostSaveModal", JSON.stringify(modalData));
+          
+          // Small delay to ensure form completion before navigation
+          setTimeout(() => {
+            router.push("/prompt-pages");
+          }, 100);
           return;
         }
 
@@ -733,8 +793,26 @@ export default function CreatePromptPageClient({
       } catch (error: any) {
         console.error("[DEBUG] handleStep1Submit - Full error:", error);
         console.error("[DEBUG] handleStep1Submit - Error type:", typeof error);
+        console.error("[DEBUG] handleStep1Submit - Error constructor:", error?.constructor?.name);
         console.error("[DEBUG] handleStep1Submit - Error properties:", Object.keys(error || {}));
+        console.error("[DEBUG] handleStep1Submit - Error own properties:", Object.getOwnPropertyNames(error || {}));
+        console.error("[DEBUG] handleStep1Submit - Error message:", error?.message);
+        console.error("[DEBUG] handleStep1Submit - Error code:", error?.code);
+        console.error("[DEBUG] handleStep1Submit - Error status:", error?.status);
+        console.error("[DEBUG] handleStep1Submit - Error hint:", error?.hint);
+        console.error("[DEBUG] handleStep1Submit - Error details:", error?.details);
+        console.error("[DEBUG] handleStep1Submit - Error stringified:", JSON.stringify(error, Object.getOwnPropertyNames(error)));
+        console.error("[DEBUG] handleStep1Submit - Error toString:", error?.toString());
         console.error("[DEBUG] handleStep1Submit - Error stack:", error?.stack);
+        
+        // If it's a PostgrestError, log specific fields
+        if (error?.code && error?.details) {
+          console.error("[DEBUG] PostgrestError - code:", error.code);
+          console.error("[DEBUG] PostgrestError - details:", error.details);
+          console.error("[DEBUG] PostgrestError - hint:", error.hint);
+          console.error("[DEBUG] PostgrestError - message:", error.message);
+        }
+        
         setSaveError(
           error instanceof Error
             ? error.message
@@ -774,10 +852,16 @@ export default function CreatePromptPageClient({
         return;
       }
 
+      // Get the correct account ID for this user
+      const accountId = await getAccountIdForUser(user.id, supabase);
+      if (!accountId) {
+        throw new Error("No account found for user");
+      }
+      
       const { data: businessData, error: businessError } = await supabase
         .from("businesses")
         .select("*")
-        .eq("account_id", user.id)
+        .eq("account_id", accountId)
         .single();
       if (businessError || !businessData) {
         throw new Error(`Failed to fetch business data: ${businessError?.message || 'No business found'}`);
@@ -786,9 +870,9 @@ export default function CreatePromptPageClient({
       // Create complete prompt page data (only include valid prompt_pages columns)
       const campaignType = formData.campaign_type || 'public';
       const insertData = {
-        account_id: user.id,
+        account_id: accountId,
         // Note: business_name column doesn't exist - removed
-        review_type: "service",
+        review_type: formData.review_type || "service", // Use the review_type from form data
         status: "in_queue", // Published immediately
         campaign_type: campaignType,
         falling_icon_color: "#fbbf24",
@@ -819,6 +903,35 @@ export default function CreatePromptPageClient({
         insertData.email = formData.email || '';
         insertData.phone = formData.phone || '';
         insertData.role = formData.role || '';
+      }
+
+      // Add Employee-specific fields for employee pages
+      if (formData.review_type === 'employee') {
+        insertData.emp_first_name = formData.emp_first_name || '';
+        insertData.emp_last_name = formData.emp_last_name || '';
+        insertData.emp_pronouns = formData.emp_pronouns || '';
+        insertData.emp_headshot_url = formData.emp_headshot_url || '';
+        insertData.emp_position = formData.emp_position || '';
+        insertData.emp_location = formData.emp_location || '';
+        insertData.emp_years_at_business = formData.emp_years_at_business || '';
+        insertData.emp_bio = formData.emp_bio || '';
+        insertData.emp_fun_facts = formData.emp_fun_facts || [];
+        insertData.emp_skills = formData.emp_skills || [];
+        insertData.emp_review_guidance = formData.emp_review_guidance || '';
+      }
+
+      // Add Event-specific fields for event pages
+      if (formData.review_type === 'event') {
+        insertData.eve_name = formData.eve_name || '';
+        insertData.eve_type = formData.eve_type || '';
+        insertData.eve_date = formData.eve_date || null;
+        insertData.eve_location = formData.eve_location || '';
+        insertData.eve_description = formData.eve_description || '';
+        insertData.eve_duration = formData.eve_duration || '';
+        insertData.eve_capacity = formData.eve_capacity || null;
+        insertData.eve_organizer = formData.eve_organizer || '';
+        insertData.eve_special_features = formData.eve_special_features || [];
+        insertData.eve_review_guidance = formData.eve_review_guidance || '';
       }
 
       // Generate slug
@@ -1003,6 +1116,10 @@ export default function CreatePromptPageClient({
         return <FaBoxOpen className="w-9 h-9 text-slate-blue" />;
       case "photo":
         return <FaCamera className="w-9 h-9 text-slate-blue" />;
+      case "employee":
+        return <FaUser className="w-9 h-9 text-slate-blue" />;
+      case "event":
+        return <MdEvent className="w-9 h-9 text-slate-blue" />;
       default:
         return undefined; // No icon for fallback
     }
@@ -1054,6 +1171,7 @@ export default function CreatePromptPageClient({
           pageTitle="Create service prompt page"
           supabase={supabase}
           businessProfile={businessProfile}
+          onGenerateReview={handleGenerateAIReview}
         />
       );
     }
@@ -1063,16 +1181,15 @@ export default function CreatePromptPageClient({
         <ProductPromptPageForm
           mode="create"
           initialData={formData}
-          onSave={handleStep1Submit}
+          onSave={handleServicePageSubmit}
           pageTitle="Create product prompt page"
           supabase={supabase}
           businessProfile={businessProfile}
           accountId={currentUser?.id || ""}
-          step={step}
-          onStepChange={setStep}
           isLoading={isSaving}
           error={saveError}
           successMessage={saveSuccess}
+          onGenerateReview={handleGenerateAIReview}
         />
       );
     }
@@ -1086,6 +1203,7 @@ export default function CreatePromptPageClient({
           pageTitle="Photo + Testimonial"
           supabase={supabase}
           businessProfile={businessProfile}
+          isLoading={isSaving}
           onPublishSuccess={(slug) => {
             console.log('🔥 Photo page - onPublishSuccess called with slug:', slug);
             setSavedPromptPageUrl(`/r/${slug}`);
@@ -1101,6 +1219,65 @@ export default function CreatePromptPageClient({
             router.push("/prompt-pages");
           }}
           campaignType={formData.campaign_type || 'individual'}
+          onGenerateReview={handleGenerateAIReview}
+        />
+      );
+    }
+    
+    if (formData.review_type === "employee") {
+      return (
+        <EmployeePromptPageForm
+          mode="create"
+          initialData={formData}
+          onSave={handleServicePageSubmit}
+          pageTitle="Employee Spotlight"
+          supabase={supabase}
+          businessProfile={businessProfile}
+          onPublishSuccess={(slug) => {
+            console.log('🔥 Employee page - onPublishSuccess called with slug:', slug);
+            setSavedPromptPageUrl(`/r/${slug}`);
+            localStorage.setItem(
+              "showPostSaveModal",
+              JSON.stringify({ 
+                url: `/r/${slug}`,
+                first_name: formData.first_name,
+                phone: formData.phone,
+                email: formData.email
+              }),
+            );
+            router.push("/prompt-pages");
+          }}
+          campaignType={formData.campaign_type || 'individual'}
+          onGenerateReview={handleGenerateAIReview}
+        />
+      );
+    }
+    
+    if (formData.review_type === "event") {
+      return (
+        <EventPromptPageForm
+          mode="create"
+          initialData={formData}
+          onSave={handleServicePageSubmit}
+          pageTitle="Event Review Page"
+          supabase={supabase}
+          businessProfile={businessProfile}
+          onPublishSuccess={(slug) => {
+            console.log('🔥 Event page - onPublishSuccess called with slug:', slug);
+            setSavedPromptPageUrl(`/r/${slug}`);
+            localStorage.setItem(
+              "showPostSaveModal",
+              JSON.stringify({ 
+                url: `/r/${slug}`,
+                first_name: formData.first_name,
+                phone: formData.phone,
+                email: formData.email
+              }),
+            );
+            router.push("/prompt-pages");
+          }}
+          campaignType={formData.campaign_type || 'individual'}
+          onGenerateReview={handleGenerateAIReview}
         />
       );
     }
