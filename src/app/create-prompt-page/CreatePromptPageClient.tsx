@@ -862,6 +862,7 @@ export default function CreatePromptPageClient({
         .from("businesses")
         .select("*")
         .eq("account_id", accountId)
+        .order('created_at', { ascending: false })
         .maybeSingle();
       
       if (businessError) {
