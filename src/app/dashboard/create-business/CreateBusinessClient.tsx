@@ -192,7 +192,7 @@ export default function CreateBusinessClient() {
         userName={user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'there'}
         imageUrl="/images/prompty-catching-stars.png"
         imageAlt="Prompty catching stars"
-        buttonText="Let's get started!"
+        buttonText="Let's wrangle some stars!"
         onButtonClick={handleWelcomeClose}
       />
     </>
