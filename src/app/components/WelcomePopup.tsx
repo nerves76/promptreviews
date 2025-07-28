@@ -79,16 +79,14 @@ export default function WelcomePopup({
   if (!isOpen) return null;
 
   // Use provided title/message or create default welcome content
-  const welcomeTitle = title || `Welcome${userName ? `, ${userName}` : ''}!`;
-  const welcomeMessage = message || `Carl Sagan said it best:
+  const welcomeTitle = title || `Welcome to Prompt Reviews!`;
+  const welcomeMessage = message || `Did you know you're a star? Carl Sagan said it best:
 
 "The cosmos is within us. We are made of star-stuff. We are a way for the universe to know itself."
 
-Beautiful right! There is a flaming gas giant in you too! Er . . . that didn't come out quite right . . .
+Beautiful right! There is a flaming gas giant in you too! Wait, that didn't come out right . . . Anyway, I am here to help you get the stars you deserve—on Google, Facebook, TripAdvisor, Clutch—you name it.
 
-Anyway, I am here to help you get the stars you deserve—on Google, Facebook, TripAdvisor, Trust Pilot—you name it.
-
-Here's your first tip: [icon]. <- click here`;
+Here's your first tip: [icon] <— click here`;
 
   const renderMessage = (text: string) => {
     if (!text) return null;
