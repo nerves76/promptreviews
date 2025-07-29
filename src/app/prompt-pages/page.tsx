@@ -22,6 +22,7 @@ import QRCodeModal from "../components/QRCodeModal";
 import StarfallCelebration from "@/app/components/StarfallCelebration";
 import { getAccountIdForUser } from "@/utils/accountUtils";
 import BusinessLocationModal from "@/app/components/BusinessLocationModal";
+import LocationCard from "@/app/components/LocationCard";
 import { BusinessLocation, LocationWithPromptPage } from "@/types/business";
 import { hasLocationAccess, formatLocationAddress, getLocationDisplayName } from "@/utils/locationUtils";
 import { FaQuestionCircle } from "react-icons/fa";
@@ -239,14 +240,20 @@ export default function PromptPages() {
 
   const handleCreateLocation = async (locationData: Partial<BusinessLocation>) => {
     try {
+      console.log('🔍 Frontend: Sending location data:', JSON.stringify(locationData, null, 2));
+      
       const response = await fetch('/api/business-locations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(locationData),
       });
       
+      console.log('🔍 Frontend: Response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('🔍 Frontend: Success response:', data);
         setLocations(prev => [...prev, data.location]);
         setLocationLimits(prev => ({ ...prev, current: prev.current + 1 }));
         
@@ -264,6 +271,7 @@ export default function PromptPages() {
         }
       } else {
         const error = await response.json();
+        console.log('🔍 Frontend: Error response:', error);
         throw new Error(error.message || 'Failed to create location');
       }
     } catch (error) {
@@ -279,6 +287,7 @@ export default function PromptPages() {
       const response = await fetch(`/api/business-locations/${editingLocation.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(locationData),
       });
       
@@ -305,6 +314,7 @@ export default function PromptPages() {
     try {
       const response = await fetch(`/api/business-locations/${locationId}`, {
         method: 'DELETE',
+        credentials: 'include',
       });
       
       if (response.ok) {
@@ -329,21 +339,40 @@ export default function PromptPages() {
 
   // Handle post-save modal and starfall celebration
   useEffect(() => {
-    const flag = localStorage.getItem("showPostSaveModal");
-    if (flag) {
-      try {
-        const data = JSON.parse(flag);
-        
-        // If this is a location creation, find the latest location prompt page
-        if (data.isLocationCreation) {
-          const latestLocationPage = locationPromptPages
-            .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
+    const handlePostSaveModal = async () => {
+      const flag = localStorage.getItem("showPostSaveModal");
+      if (flag) {
+        try {
+          const data = JSON.parse(flag);
           
-          if (latestLocationPage) {
-            data.url = `${window.location.origin}/r/${latestLocationPage.slug}`;
+          // If this is a location creation, find the latest location prompt page
+          if (data.isLocationCreation) {
+            // Try to find the latest location prompt page
+            const latestLocationPage = locationPromptPages
+              .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
+            
+            if (latestLocationPage) {
+              data.url = `${window.location.origin}/r/${latestLocationPage.slug}`;
+            } else {
+              // If we can't find it in the state yet, try to get it from the API
+              try {
+                const response = await fetch('/api/business-locations', {
+                  credentials: 'include',
+                });
+                if (response.ok) {
+                  const locationsData = await response.json();
+                  const latestLocation = locationsData.locations?.[0];
+                  if (latestLocation?.prompt_page_slug) {
+                    data.url = `${window.location.origin}/r/${latestLocation.prompt_page_slug}`;
+                  }
+                }
+              } catch (error) {
+                console.error('Error fetching latest location:', error);
+              }
+            }
           }
-        }
-        
+          
+                  console.log('🔍 Setting post save data:', data);
         setPostSaveData(data);
         setShowPostSaveModal(true);
         // Trigger starfall celebration automatically when modal appears
@@ -351,8 +380,11 @@ export default function PromptPages() {
         // Also trigger global starfall celebration
         setShowStarfallCelebration(true);
         localStorage.removeItem("showPostSaveModal");
-      } catch {}
-    }
+        } catch {}
+      }
+    };
+
+    handlePostSaveModal();
   }, [locationPromptPages]);
 
   const handleSort = (field: "first_name" | "last_name" | "review_type") => {
@@ -842,41 +874,17 @@ export default function PromptPages() {
                 {/* Locations List */}
                 <div className="space-y-4">
                   {locations.map((location) => (
-                    <div key={location.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-gray-900">{getLocationDisplayName(location)}</h3>
-                          <p className="text-sm text-gray-600">{formatLocationAddress(location)}</p>
-                          {location.prompt_page_slug && (
-                            <div className="mt-2">
-                              <Link
-                                href={`/r/${location.prompt_page_slug}`}
-                                className="text-slate-blue text-sm hover:underline"
-                              >
-                                View Location Page
-                              </Link>
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => {
-                              setEditingLocation(location);
-                              setShowLocationModal(true);
-                            }}
-                            className="p-2 text-gray-600 hover:text-slate-blue transition"
-                          >
-                            <FaEdit className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteLocation(location.id)}
-                            className="p-2 text-gray-600 hover:text-red-600 transition"
-                          >
-                            <FaTrash className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
+                    <LocationCard
+                      key={location.id}
+                      location={location}
+                      businessName={business?.name}
+                      businessLogoUrl={business?.logo_url}
+                      onEdit={(location) => {
+                        setEditingLocation(location);
+                        setShowLocationModal(true);
+                      }}
+                      onDelete={handleDeleteLocation}
+                    />
                   ))}
                   
                   {locations.length === 0 && (

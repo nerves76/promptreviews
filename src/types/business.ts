@@ -81,6 +81,10 @@ export interface BusinessLocation {
   offer_url?: string;
   ai_review_enabled?: boolean;
   
+  // Personalized note fields
+  show_friendly_note?: boolean;
+  friendly_note?: string;
+  
   // Metadata
   is_active: boolean;
   created_at: string;

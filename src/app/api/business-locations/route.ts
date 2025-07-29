@@ -110,14 +110,20 @@ export async function POST(request: NextRequest) {
     // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
+      console.log('🔍 API: Authentication failed:', authError);
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    console.log('🔍 API: User authenticated:', user.id);
 
     // Get account ID
     const accountId = await getAccountIdForUser(user.id, supabase);
     if (!accountId) {
+      console.log('🔍 API: No account found for user:', user.id);
       return NextResponse.json({ error: 'No account found' }, { status: 404 });
     }
+
+    console.log('🔍 API: Account ID found:', accountId);
 
     // Check if user can create more locations (use service role client to bypass RLS)
     const serviceRoleClient = createServiceRoleClient();
@@ -132,7 +138,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch account info' }, { status: 500 });
     }
 
+    console.log('🔍 API: Account info:', account);
+
     if (!canCreateLocation(account)) {
+      console.log('🔍 API: Location limit reached');
       return NextResponse.json(
         { 
           error: 'Location limit reached', 
@@ -146,6 +155,8 @@ export async function POST(request: NextRequest) {
 
     // Parse request body
     const body = await request.json();
+    console.log('🔍 API: Received request body:', JSON.stringify(body, null, 2));
+    
     const {
       name,
       address_street,
@@ -183,24 +194,37 @@ export async function POST(request: NextRequest) {
       offer_body,
       offer_url,
       ai_review_enabled,
+      // Personalized note fields
+      show_friendly_note,
+      friendly_note,
+      // Photo fields (optional)
+      location_photo_url,
     } = body;
+
+    console.log('🔍 API: Extracted name:', name);
+    console.log('🔍 API: Extracted review_platforms:', review_platforms);
 
     // Validate required fields
     if (!name) {
+      console.log('🔍 API: Validation failed - name is required');
       return NextResponse.json(
         { error: 'Location name is required' },
         { status: 400 }
       );
     }
 
-    // Check if the location name already exists
+    console.log('🔍 API: Validation passed - proceeding with location creation');
+
+    // Check if the location name already exists for this account
     const { data: existingLocation } = await supabase
       .from('business_locations')
       .select('id')
       .eq('name', name)
+      .eq('account_id', accountId)
       .single();
 
     if (existingLocation) {
+      console.log('🔍 API: Location name already exists for this account');
       return NextResponse.json(
         { error: 'Location name already exists. Please choose a different name.' },
         { status: 400 }
@@ -248,6 +272,10 @@ export async function POST(request: NextRequest) {
         offer_body,
         offer_url,
         ai_review_enabled,
+        show_friendly_note,
+        friendly_note,
+        // Photo fields
+        location_photo_url,
       })
       .select()
       .single();
@@ -277,6 +305,8 @@ export async function POST(request: NextRequest) {
       offer_body,
       offer_url,
       ai_review_enabled,
+      show_friendly_note,
+      friendly_note,
     });
     
     // Generate unique slug to handle duplicate location names

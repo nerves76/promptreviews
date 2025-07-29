@@ -52,35 +52,28 @@ export async function GET(
 
     console.log(`[PROMPT-PAGE-BY-SLUG] Successfully fetched prompt page: ${promptPage.id}`);
 
-    // Get business profile - try businesses table first, fallback to business_locations
+    // Get business profile - check if this is a location-specific page first
     let businessProfile = null;
 
-    // Try businesses table first with a simple select
-    const { data: businessData, error: businessErr } = await supabaseAdmin
-      .from('businesses')
-      .select('*')
-      .eq('account_id', promptPage.account_id)
-      .maybeSingle();
-
-    if (businessErr) {
-      console.log('[PROMPT-PAGE-BY-SLUG] Businesses table error, trying business_locations:', businessErr);
+    // If this prompt page is associated with a specific location, get location data
+    if (promptPage.business_location_id) {
+      console.log(`[PROMPT-PAGE-BY-SLUG] Fetching location-specific data for location ID: ${promptPage.business_location_id}`);
       
-      // Fallback to business_locations table
       const { data: locationData, error: locationErr } = await supabaseAdmin
         .from('business_locations')
         .select('*')
-        .eq('account_id', promptPage.account_id)
+        .eq('id', promptPage.business_location_id)
         .eq('is_active', true)
-        .maybeSingle();
+        .single();
 
       if (locationErr) {
-        console.error('[PROMPT-PAGE-BY-SLUG] Error fetching business data from both tables:', { businessErr, locationErr });
-        // Continue without business profile - the prompt page can still work
-        businessProfile = null;
-      } else {
-        // Map business_locations data to businesses format
-        businessProfile = locationData ? {
+        console.error('[PROMPT-PAGE-BY-SLUG] Error fetching location data:', locationErr);
+        // Fall back to general business data
+      } else if (locationData) {
+        // Map business_locations data to businesses format for location-specific pages
+        businessProfile = {
           ...locationData,
+          business_name: locationData.name, // Use location name as business name
           business_website: locationData.website_url,
           // Set defaults for missing styling fields
           primary_font: 'Inter',
@@ -93,10 +86,58 @@ export async function GET(
           gradient_start: '#4F46E5',
           gradient_middle: '#818CF8',
           gradient_end: '#C7D2FE'
-        } : null;
+        };
+        console.log(`[PROMPT-PAGE-BY-SLUG] Using location-specific data for: ${locationData.name}`);
       }
-    } else {
-      businessProfile = businessData;
+    }
+
+    // If no location-specific data found, fall back to general business data
+    if (!businessProfile) {
+      console.log('[PROMPT-PAGE-BY-SLUG] Fetching general business data');
+      
+      // Try businesses table first with a simple select
+      const { data: businessData, error: businessErr } = await supabaseAdmin
+        .from('businesses')
+        .select('*')
+        .eq('account_id', promptPage.account_id)
+        .maybeSingle();
+
+      if (businessErr) {
+        console.log('[PROMPT-PAGE-BY-SLUG] Businesses table error, trying business_locations:', businessErr);
+        
+        // Fallback to business_locations table
+        const { data: locationData, error: locationErr } = await supabaseAdmin
+          .from('business_locations')
+          .select('*')
+          .eq('account_id', promptPage.account_id)
+          .eq('is_active', true)
+          .maybeSingle();
+
+        if (locationErr) {
+          console.error('[PROMPT-PAGE-BY-SLUG] Error fetching business data from both tables:', { businessErr, locationErr });
+          // Continue without business profile - the prompt page can still work
+          businessProfile = null;
+        } else {
+          // Map business_locations data to businesses format
+          businessProfile = locationData ? {
+            ...locationData,
+            business_website: locationData.website_url,
+            // Set defaults for missing styling fields
+            primary_font: 'Inter',
+            secondary_font: 'Inter',
+            primary_color: '#4F46E5',
+            secondary_color: '#818CF8',
+            background_color: '#FFFFFF',
+            text_color: '#1F2937',
+            background_type: 'gradient',
+            gradient_start: '#4F46E5',
+            gradient_middle: '#818CF8',
+            gradient_end: '#C7D2FE'
+          } : null;
+        }
+      } else {
+        businessProfile = businessData;
+      }
     }
 
     // ⚡ PERFORMANCE: Set caching headers for faster subsequent loads

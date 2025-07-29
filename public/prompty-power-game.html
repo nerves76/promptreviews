@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prompty Power - Arcade Game</title>
+    <title>Prompty Power</title>
     <style>
         * {
             margin: 0;
@@ -12,1606 +12,436 @@
         }
 
         body {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            overflow: hidden;
+            color: white;
         }
 
         #gameContainer {
             position: relative;
-            width: 1200px;
-            height: 800px;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-            border: 6px solid #34495e;
-            border-radius: 20px;
-            box-shadow: 
-                0 20px 60px rgba(0,0,0,0.6),
-                inset 0 1px 0 rgba(255,255,255,0.1);
-            overflow: hidden;
-            position: relative;
-        }
-
-        #gameContainer::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: 
-                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
-            pointer-events: none;
-            z-index: 1;
+            width: 800px;
+            height: 600px;
+            background: #000;
+            border: 3px solid #333;
+            border-radius: 10px;
         }
 
         #gameCanvas {
             display: block;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            background: #000;
             cursor: crosshair;
-            position: relative;
-            z-index: 2;
         }
 
         #ui {
             position: absolute;
-            top: 15px;
-            left: 15px;
-            right: 15px;
+            top: 10px;
+            left: 10px;
+            right: 10px;
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            color: white;
+            font-size: 16px;
             font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-            z-index: 10;
         }
 
-        #score, #lives, #level {
-            background: rgba(0,0,0,0.7);
-            padding: 12px 16px;
-            border-radius: 25px;
-            font-size: 18px;
-            border: 2px solid #3498db;
-        }
-
-        #gameOver, #gameStart, #pauseScreen {
+        #gameStart, #gameOver {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.95);
-            color: white;
-            padding: 40px;
-            border-radius: 20px;
+            background: rgba(0,0,0,0.9);
+            padding: 30px;
+            border-radius: 10px;
             text-align: center;
             display: none;
-            z-index: 20;
-            border: 3px solid #3498db;
-            min-width: 400px;
-        }
-
-        #gameOver h2, #gameStart h2, #pauseScreen h2 {
-            color: #e74c3c;
-            margin-bottom: 25px;
-            font-size: 32px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
         }
 
         button {
-            background: linear-gradient(45deg, #3498db, #2980b9);
+            background: #4CAF50;
             color: white;
             border: none;
-            padding: 15px 30px;
-            border-radius: 30px;
-            font-size: 18px;
+            padding: 10px 20px;
+            border-radius: 5px;
             cursor: pointer;
-            margin: 12px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+            font-size: 16px;
+            margin: 10px;
         }
 
         button:hover {
-            background: linear-gradient(45deg, #2980b9, #1f5f8b);
-            transform: scale(1.05);
-            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
-        }
-
-        #leaderboard {
-            background: rgba(0,0,0,0.8);
-            color: white;
-            padding: 25px;
-            border-radius: 15px;
-            margin-top: 25px;
-            max-height: 250px;
-            overflow-y: auto;
-            border: 2px solid #f39c12;
-        }
-
-        #leaderboard h3 {
-            color: #f39c12;
-            margin-bottom: 15px;
-            font-size: 20px;
-        }
-
-        .leaderboard-entry {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #444;
-            font-size: 16px;
-        }
-
-        #nameInput {
-            background: #34495e;
-            color: white;
-            border: 2px solid #3498db;
-            padding: 12px 16px;
-            border-radius: 25px;
-            font-size: 16px;
-            margin: 15px 0;
-            text-align: center;
-            width: 100%;
-        }
-
-        #nameInput::placeholder {
-            color: #bdc3c7;
-        }
-
-        .powerup-indicator {
-            position: absolute;
-            top: 80px;
-            right: 15px;
-            background: rgba(0,0,0,0.8);
-            padding: 12px 16px;
-            border-radius: 25px;
-            color: #f39c12;
-            font-weight: bold;
-            display: none;
-            border: 2px solid #f39c12;
-        }
-
-        .boss-warning {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(231, 76, 60, 0.95);
-            color: white;
-            padding: 30px;
-            border-radius: 15px;
-            font-size: 28px;
-            font-weight: bold;
-            display: none;
-            z-index: 15;
-            animation: pulse 1s infinite;
-            border: 3px solid #c0392b;
-        }
-
-        @keyframes pulse {
-            0% { transform: translate(-50%, -50%) scale(1); }
-            50% { transform: translate(-50%, -50%) scale(1.1); }
-            100% { transform: translate(-50%, -50%) scale(1); }
-        }
-
-        .game-title {
-            position: absolute;
-            top: 15px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: white;
-            font-size: 24px;
-            font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-            z-index: 5;
-        }
-
-        .controls-info {
-            position: absolute;
-            top: 60px;
-            left: 15px;
-            color: white;
-            font-size: 12px;
-            background: rgba(0,0,0,0.7);
-            padding: 8px 12px;
-            border-radius: 8px;
-            border: 1px solid #3498db;
-        }
-
-        .combo-display {
-            position: absolute;
-            top: 100px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #f39c12;
-            font-size: 24px;
-            font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-            display: none;
-            z-index: 10;
+            background: #45a049;
         }
     </style>
 </head>
 <body>
     <div id="gameContainer">
-        <canvas id="gameCanvas" width="1200" height="800"></canvas>
-        
-        <div class="game-title">🎮 Prompty Power 🎮</div>
-        
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
         <div id="ui">
             <div id="score">Score: 0</div>
             <div id="lives">Lives: 3</div>
             <div id="level">Level: 1</div>
         </div>
-
-        <div class="controls-info">
-            🖱️ Mouse: Aim & Shoot | 🔄 Arrows: Move | ⚡ Power-ups: Collect
-        </div>
-
-        <div class="combo-display" id="comboDisplay"></div>
-
         <div id="gameStart">
-            <h2>🎮 Prompty Power 🎮</h2>
-            <p style="font-size: 16px; margin-bottom: 20px;">Help Prompty convert angry customers into happy 5-star reviewers!</p>
-            <div style="text-align: left; margin: 20px 0;">
-                <p><strong>🎮 Controls:</strong></p>
-                <p>🖱️ Mouse: Aim and shoot hearts</p>
-                <p>🔄 Arrow Keys: Move Prompty</p>
-                <p>⚡ Power-ups: Collect for special abilities</p>
-                <p>⏸️ P: Pause</p>
-            </div>
+            <h2>Prompty Power</h2>
+            <p>Use arrow keys to move Prompty<br>
+            Click to shoot hearts at customers<br>
+            Don't let them reach the counter!</p>
             <button onclick="startGame()">Start Game</button>
         </div>
-
         <div id="gameOver">
-            <h2>Game Over!</h2>
-            <p style="font-size: 18px; margin: 15px 0;">Final Score: <span id="finalScore">0</span></p>
-            <input type="text" id="nameInput" placeholder="Enter your name (max 10 chars)" maxlength="10">
-            <button onclick="saveScore()">Save Score</button>
-            <button onclick="restartGame()">Play Again</button>
-            <div id="leaderboard">
-                <h3>🏆 Leaderboard</h3>
-                <div id="leaderboardList"></div>
-            </div>
+            <h2>Game Over</h2>
+            <p>Final Score: <span id="finalScore">0</span></p>
+            <button onclick="startGame()">Play Again</button>
         </div>
-
-        <div id="pauseScreen">
-            <h2>⏸️ Game Paused</h2>
-            <p style="font-size: 16px; margin: 15px 0;">Press P to resume</p>
-            <button onclick="resumeGame()">Resume</button>
-        </div>
-
-        <div class="powerup-indicator" id="powerupIndicator"></div>
-        <div class="boss-warning" id="bossWarning">BOSS KAREN APPROACHES!</div>
     </div>
 
     <script>
-        // Add roundRect polyfill for smooth vector graphics
-        if (!CanvasRenderingContext2D.prototype.roundRect) {
-            CanvasRenderingContext2D.prototype.roundRect = function(x, y, width, height, radius) {
-                this.beginPath();
-                this.moveTo(x + radius, y);
-                this.lineTo(x + width - radius, y);
-                this.quadraticCurveTo(x + width, y, x + width, y + radius);
-                this.lineTo(x + width, y + height - radius);
-                this.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-                this.lineTo(x + radius, y + height);
-                this.quadraticCurveTo(x, y + height, x, y + height - radius);
-                this.lineTo(x, y + radius);
-                this.quadraticCurveTo(x, y, x + radius, y);
-                this.closePath();
-            };
-        }
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
         
-        // Game state
-        let gameState = 'start';
+        let gameState = 'menu';
         let score = 0;
         let lives = 3;
         let level = 1;
-        let combo = 0;
-        let gameLoop;
-        let lastTime = 0;
-
-        // Canvas and context
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-
-        // Game objects
-        let prompty = {
-            x: 600,
-            y: 750,
-            width: 80,
-            height: 80,
-            speed: 8,
-            color: '#f4f4f4'
-        };
-
         let hearts = [];
         let customers = [];
-        let obstacles = [];
-        let powerups = [];
-        let particles = [];
-        let boss = null;
-        let bossSpawned = false;
-        let backgroundParticles = [];
-
-        // Power-up system
-        let activePowerup = null;
-        let powerupTimer = 0;
-        let rapidFire = false;
-        let screenClear = false;
-
+        let gameLoop;
+        
+        // Load Prompty image
+        let promptyImage = new Image();
+        promptyImage.src = 'https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompty-slingshot-for-reviews.png';
+        
+        // Game objects
+        let prompty = { x: 400, y: 500, width: 60, height: 80, speed: 5 };
+        
+        // Customer emojis
+        const customerEmojis = ['😠', '😤', '😐', '🙂', '😊'];
+        
         // Input handling
         let keys = {};
-        let mouseX = 0;
-        let mouseY = 0;
-        let mouseDown = false;
-
-        // Leaderboard
-        let leaderboard = JSON.parse(localStorage.getItem('promptyPowerLeaderboard') || '[]');
-
-        // Emoji progression for customers - matching the app's design system
-        const customerEmojis = ['😠', '😕', '😐', '😊', '😄'];
-
-        // Initialize game
-        function init() {
-            showScreen('gameStart');
-            loadLeaderboard();
-            createBackgroundParticles();
-        }
-
-        function createBackgroundParticles() {
-            for (let i = 0; i < 50; i++) {
-                backgroundParticles.push({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height,
-                    vx: (Math.random() - 0.5) * 0.5,
-                    vy: (Math.random() - 0.5) * 0.5,
-                    size: Math.random() * 3 + 1,
-                    opacity: Math.random() * 0.3 + 0.1
-                });
+        let mouse = { x: 0, y: 0 };
+        
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+        
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mouse.x = e.clientX - rect.left;
+            mouse.y = e.clientY - rect.top;
+        });
+        
+        canvas.addEventListener('click', () => {
+            if (gameState === 'playing' && hearts.length < 3) {
+                shootHeart();
             }
-        }
-
+        });
+        
         function startGame() {
             gameState = 'playing';
             score = 0;
             lives = 3;
             level = 1;
-            combo = 0;
             hearts = [];
             customers = [];
-            obstacles = [];
-            powerups = [];
-            particles = [];
-            boss = null;
-            bossSpawned = false;
-            activePowerup = null;
-            powerupTimer = 0;
-            rapidFire = false;
-            screenClear = false;
-
-            prompty.x = 600;
-            prompty.y = 750;
-
+            
+            prompty.x = 400;
+            prompty.y = 500;
+            
             spawnCustomers();
             gameLoop = requestAnimationFrame(update);
             showScreen('playing');
         }
-
-        function update(currentTime) {
-            if (gameState !== 'playing') return;
-
-            const deltaTime = currentTime - lastTime;
-            lastTime = currentTime;
-
-            handleInput();
-            updatePrompty();
-            updateHearts();
-            updateCustomers();
-            updateObstacles();
-            updatePowerups();
-            updateParticles();
-            updateBoss();
-            updateBackgroundParticles();
-            updatePowerupTimer();
-            checkCollisions();
-            updateUI();
-
-            if (lives <= 0) {
-                gameOver();
-                return;
+        
+        function showScreen(screen) {
+            document.getElementById('gameStart').style.display = 'none';
+            document.getElementById('gameOver').style.display = 'none';
+            
+            if (screen !== 'playing') {
+                document.getElementById(screen).style.display = 'block';
             }
-
-            gameLoop = requestAnimationFrame(update);
         }
-
-        function handleInput() {
-            // Movement with arrow keys
-            if (keys['ArrowLeft'] || keys['a'] || keys['A']) {
+        
+        function gameOver() {
+            gameState = 'gameOver';
+            document.getElementById('finalScore').textContent = score;
+            showScreen('gameOver');
+        }
+        
+        function shootHeart() {
+            const angle = Math.atan2(mouse.y - prompty.y, mouse.x - prompty.x);
+            const speed = 8;
+            
+            hearts.push({
+                x: prompty.x + prompty.width / 2,
+                y: prompty.y + prompty.height / 2,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                width: 20,
+                height: 20,
+                bounces: 0,
+                maxBounces: 4
+            });
+        }
+        
+        function spawnCustomers() {
+            if (customers.length >= 8) return;
+            
+            const spawnX = Math.random() * (canvas.width - 40) + 20;
+            customers.push({
+                x: spawnX,
+                y: 50,
+                width: 40,
+                height: 40,
+                vx: (Math.random() - 0.5) * 2,
+                vy: 0.5,
+                emojiIndex: 0,
+                hits: 0,
+                maxHits: 5
+            });
+        }
+        
+        function update() {
+            if (gameState !== 'playing') return;
+            
+            // Update Prompty movement
+            if (keys['ArrowLeft'] && prompty.x > 0) {
                 prompty.x -= prompty.speed;
             }
-            if (keys['ArrowRight'] || keys['d'] || keys['D']) {
+            if (keys['ArrowRight'] && prompty.x < canvas.width - prompty.width) {
                 prompty.x += prompty.speed;
             }
-
-            // Keep Prompty in bounds
-            prompty.x = Math.max(40, Math.min(canvas.width - 120, prompty.x));
-
-            // Shooting with mouse
-            if (mouseDown) {
-                shootHeart();
-            }
-        }
-
-        function shootHeart() {
-            if (hearts.length < (rapidFire ? 12 : 6)) {
-                // Calculate direction from Prompty to mouse
-                const dx = mouseX - (prompty.x + prompty.width / 2);
-                const dy = mouseY - (prompty.y + prompty.height / 2);
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                
-                // Normalize direction and set velocity
-                const vx = (dx / distance) * 20;
-                const vy = (dy / distance) * 20;
-
-                hearts.push({
-                    x: prompty.x + prompty.width / 2,
-                    y: prompty.y + prompty.height / 2,
-                    vx: vx,
-                    vy: vy,
-                    bounces: 0,
-                    maxBounces: 8,
-                    width: 20,
-                    height: 20,
-                    color: '#e74c3c',
-                    trail: []
-                });
-            }
-        }
-
-        function updatePrompty() {
-            // Animate Prompty (simple breathing effect)
-            const time = Date.now() * 0.003;
-            prompty.y = 750 + Math.sin(time) * 4;
-        }
-
-        function updateHearts() {
+            
+            // Update hearts
             for (let i = hearts.length - 1; i >= 0; i--) {
                 const heart = hearts[i];
-                
-                // Add trail effect
-                heart.trail.push({ x: heart.x, y: heart.y });
-                if (heart.trail.length > 5) {
-                    heart.trail.shift();
-                }
-                
                 heart.x += heart.vx;
                 heart.y += heart.vy;
-                heart.vy += 0.15; // Reduced gravity for better arc
-
-                // Bounce off ground
-                if (heart.y + heart.height > canvas.height - 100) {
-                    heart.y = canvas.height - 100 - heart.height;
-                    heart.vy = -heart.vy * 0.8;
-                    heart.bounces++;
-                }
-
+                heart.vy += 0.2; // gravity
+                
                 // Bounce off walls
-                if (heart.x <= 0 || heart.x + heart.width >= canvas.width) {
-                    heart.vx = -heart.vx * 0.9;
-                }
-
-                // Bounce off ceiling
-                if (heart.y <= 0) {
-                    heart.y = 0;
-                    heart.vy = -heart.vy * 0.8;
+                if (heart.x <= 0 || heart.x >= canvas.width - heart.width) {
+                    heart.vx *= -0.8;
                     heart.bounces++;
                 }
-
-                // Remove if too many bounces or off screen
+                if (heart.y <= 0) {
+                    heart.vy *= -0.8;
+                    heart.bounces++;
+                }
+                
+                // Remove hearts that have bounced too much or fallen off screen
                 if (heart.bounces >= heart.maxBounces || heart.y > canvas.height) {
                     hearts.splice(i, 1);
                 }
             }
-        }
-
-        function updateCustomers() {
+            
+            // Update customers
             for (let i = customers.length - 1; i >= 0; i--) {
                 const customer = customers[i];
                 
+                // Move towards Prompty
+                const targetX = prompty.x + prompty.width / 2;
+                const dx = targetX - customer.x;
+                customer.vx += dx * 0.0005; // Reduced from 0.001
+                customer.vx *= 0.99; // Increased friction from 0.98
                 customer.x += customer.vx;
                 customer.y += customer.vy;
-
-                // Simple AI movement
-                if (Math.random() < 0.008) {
-                    customer.vx = (Math.random() - 0.5) * 4;
-                }
-
-                // Keep in bounds
-                if (customer.x <= 0 || customer.x + customer.width >= canvas.width) {
-                    customer.vx = -customer.vx;
-                }
-
-                // Remove if converted or off screen
-                if (customer.happiness >= 5) {
-                    score += 5 + combo;
-                    combo++;
-                    createParticles(customer.x + customer.width/2, customer.y + customer.height/2, '#f39c12');
-                    customers.splice(i, 1);
-                    showCombo();
-                } else if (customer.y > canvas.height) {
-                    customers.splice(i, 1);
-                    combo = 0;
-                }
-            }
-
-            // Spawn new customers
-            if (customers.length < 5 + level && Math.random() < 0.012) {
-                spawnCustomer();
-            }
-        }
-
-        function updateObstacles() {
-            for (let i = obstacles.length - 1; i >= 0; i--) {
-                const obstacle = obstacles[i];
                 
-                obstacle.x += obstacle.vx;
-                obstacle.y += obstacle.vy;
-
-                // Remove if destroyed or off screen
-                if (obstacle.health <= 0) {
-                    if (obstacle.type === 'backpack') {
-                        spawnPowerup(obstacle.x + obstacle.width/2, obstacle.y + obstacle.height/2);
-                    }
-                    obstacles.splice(i, 1);
-                } else if (obstacle.y > canvas.height) {
-                    obstacles.splice(i, 1);
-                }
-            }
-
-            // Spawn obstacles
-            if (obstacles.length < 4 && Math.random() < 0.006) {
-                spawnObstacle();
-            }
-        }
-
-        function updatePowerups() {
-            for (let i = powerups.length - 1; i >= 0; i--) {
-                const powerup = powerups[i];
+                // Keep customers within bounds
+                if (customer.x < 20) customer.x = 20;
+                if (customer.x > canvas.width - 60) customer.x = canvas.width - 60;
                 
-                powerup.y += 2;
-                powerup.rotation += 0.1;
-
-                // Remove if collected or off screen
-                if (powerup.y > canvas.height) {
-                    powerups.splice(i, 1);
-                }
-            }
-        }
-
-        function updateParticles() {
-            for (let i = particles.length - 1; i >= 0; i--) {
-                const particle = particles[i];
-                
-                particle.x += particle.vx;
-                particle.y += particle.vy;
-                particle.life--;
-
-                if (particle.life <= 0) {
-                    particles.splice(i, 1);
-                }
-            }
-        }
-
-        function updateBackgroundParticles() {
-            for (let particle of backgroundParticles) {
-                particle.x += particle.vx;
-                particle.y += particle.vy;
-                
-                if (particle.x < 0) particle.x = canvas.width;
-                if (particle.x > canvas.width) particle.x = 0;
-                if (particle.y < 0) particle.y = canvas.height;
-                if (particle.y > canvas.height) particle.y = 0;
-            }
-        }
-
-        function updateBoss() {
-            if (!boss) return;
-
-            boss.x += boss.vx;
-            boss.y += boss.vy;
-
-            // Boss movement pattern
-            if (boss.x <= 0 || boss.x + boss.width >= canvas.width) {
-                boss.vx = -boss.vx;
-            }
-
-            if (boss.y <= 100 || boss.y >= 300) {
-                boss.vy = -boss.vy;
-            }
-
-            // Boss attacks
-            if (Math.random() < 0.006) {
-                // Boss stomps
-                createParticles(boss.x + boss.width/2, boss.y + boss.height, '#e74c3c');
-                if (Math.abs(boss.x - prompty.x) < 150) {
+                // Check if customer reached counter
+                if (customer.y >= prompty.y - 60) {
                     lives--;
+                    customers.splice(i, 1);
+                    if (lives <= 0) {
+                        gameOver();
+                        return;
+                    }
                 }
             }
-
-            // Remove boss if defeated
-            if (boss.health <= 0) {
-                score += 20 + combo * 5;
-                createParticles(boss.x + boss.width/2, boss.y + boss.height/2, '#f39c12');
-                boss = null;
-                bossSpawned = false;
+            
+            // Spawn new customers
+            if (Math.random() < 0.005 && customers.length < 6) {
+                spawnCustomers();
             }
-        }
-
-        function updatePowerupTimer() {
-            if (activePowerup && powerupTimer > 0) {
-                powerupTimer--;
-                if (powerupTimer <= 0) {
-                    deactivatePowerup();
-                }
+            
+            // Check collisions
+            checkCollisions();
+            
+            // Check level completion
+            if (customers.length === 0) {
+                level++;
+                setTimeout(() => {
+                    spawnCustomers();
+                }, 2000);
             }
+            
+            // Update UI
+            document.getElementById('score').textContent = `Score: ${score}`;
+            document.getElementById('lives').textContent = `Lives: ${lives}`;
+            document.getElementById('level').textContent = `Level: ${level}`;
+            
+            // Draw everything
+            draw();
+            
+            gameLoop = requestAnimationFrame(update);
         }
-
+        
         function checkCollisions() {
-            // Hearts vs Customers
-            for (let heart of hearts) {
-                for (let customer of customers) {
+            // Check each heart against each customer
+            for (let i = 0; i < hearts.length; i++) {
+                const heart = hearts[i];
+                
+                for (let j = 0; j < customers.length; j++) {
+                    const customer = customers[j];
+                    
+                    // Simple collision check
                     if (heart.x < customer.x + customer.width &&
                         heart.x + heart.width > customer.x &&
                         heart.y < customer.y + customer.height &&
                         heart.y + heart.height > customer.y) {
                         
-                        customer.happiness++;
-                        score++;
-                        createParticles(heart.x, heart.y, '#e74c3c');
-                        hearts.splice(hearts.indexOf(heart), 1);
-                        break;
-                    }
-                }
-            }
-
-            // Hearts vs Obstacles
-            for (let heart of hearts) {
-                for (let obstacle of obstacles) {
-                    if (heart.x < obstacle.x + obstacle.width &&
-                        heart.x + heart.width > obstacle.x &&
-                        heart.y < obstacle.y + obstacle.height &&
-                        heart.y + heart.height > obstacle.y) {
+                        // Hit customer
+                        customer.hits++;
+                        customer.emojiIndex = Math.min(customer.hits, customerEmojis.length - 1);
                         
-                        obstacle.health--;
-                        createParticles(heart.x, heart.y, '#95a5a6');
-                        hearts.splice(hearts.indexOf(heart), 1);
-                        break;
-                    }
-                }
-            }
-
-            // Hearts vs Boss
-            if (boss) {
-                for (let heart of hearts) {
-                    if (heart.x < boss.x + boss.width &&
-                        heart.x + heart.width > boss.x &&
-                        heart.y < boss.y + boss.height &&
-                        heart.y + heart.height > boss.y) {
+                        // Remove heart
+                        hearts.splice(i, 1);
+                        i--; // Adjust index since we removed an element
                         
-                        boss.health--;
-                        score++;
-                        createParticles(heart.x, heart.y, '#e74c3c');
-                        hearts.splice(hearts.indexOf(heart), 1);
-                        break;
+                        // Add score
+                        score += 10;
+                        
+                        // Check if customer converted
+                        if (customer.hits >= customer.maxHits) {
+                            score += 50;
+                            customers.splice(j, 1);
+                            j--; // Adjust index since we removed an element
+                        }
+                        
+                        break; // Heart can only hit one customer
                     }
                 }
             }
-
-            // Prompty vs Powerups
-            for (let powerup of powerups) {
-                if (prompty.x < powerup.x + powerup.width &&
-                    prompty.x + prompty.width > powerup.x &&
-                    prompty.y < powerup.y + powerup.height &&
-                    prompty.y + prompty.height > powerup.y) {
-                    
-                    activatePowerup(powerup.type);
-                    powerups.splice(powerups.indexOf(powerup), 1);
-                }
-            }
-
-            // Prompty vs Boss
-            if (boss && prompty.x < boss.x + boss.width &&
-                prompty.x + prompty.width > boss.x &&
-                prompty.y < boss.y + boss.height &&
-                prompty.y + prompty.height > boss.y) {
-                lives--;
-            }
         }
-
-        function spawnCustomers() {
-            for (let i = 0; i < 5; i++) {
-                spawnCustomer();
-            }
-        }
-
-        function spawnCustomer() {
-            customers.push({
-                x: Math.random() * (canvas.width - 100),
-                y: Math.random() * 400 + 150,
-                width: 60,
-                height: 60,
-                vx: (Math.random() - 0.5) * 3,
-                vy: 0,
-                happiness: 0,
-                color: '#e74c3c'
-            });
-        }
-
-        function spawnObstacle() {
-            obstacles.push({
-                x: Math.random() * (canvas.width - 100),
-                y: Math.random() * 400 + 150, // Stationary position
-                width: 80,
-                height: 80,
-                vx: 0,
-                vy: 0, // No movement
-                health: 5,
-                type: 'backpack',
-                color: '#8B4513'
-            });
-        }
-
-        function spawnPowerup(x, y) {
-            const powerupTypes = ['rapidFire', 'screenClear', 'extraLife', 'bonusPoints'];
-            const type = powerupTypes[Math.floor(Math.random() * powerupTypes.length)];
-            
-            powerups.push({
-                x: x - 25,
-                y: y - 25,
-                width: 50,
-                height: 50,
-                type: type,
-                rotation: 0,
-                color: type === 'rapidFire' ? '#e74c3c' : 
-                       type === 'screenClear' ? '#f39c12' : 
-                       type === 'extraLife' ? '#27ae60' : '#9b59b6'
-            });
-        }
-
-        function spawnBoss() {
-            boss = {
-                x: canvas.width / 2 - 80,
-                y: 200,
-                width: 160,
-                height: 120,
-                vx: 3,
-                vy: 2,
-                health: 30,
-                color: '#8e44ad'
-            };
-            bossSpawned = true;
-            showBossWarning();
-        }
-
-        function activatePowerup(type) {
-            activePowerup = type;
-            powerupTimer = 300;
-
-            switch (type) {
-                case 'rapidFire':
-                    rapidFire = true;
-                    break;
-                case 'screenClear':
-                    screenClear = true;
-                    customers.length = 0;
-                    obstacles.length = 0;
-                    score += 15;
-                    break;
-                case 'extraLife':
-                    lives++;
-                    break;
-                case 'bonusPoints':
-                    score += 10;
-                    break;
-            }
-
-            showPowerupIndicator(type);
-        }
-
-        function deactivatePowerup() {
-            rapidFire = false;
-            screenClear = false;
-            activePowerup = null;
-            hidePowerupIndicator();
-        }
-
-        function createParticles(x, y, color) {
-            for (let i = 0; i < 15; i++) {
-                particles.push({
-                    x: x,
-                    y: y,
-                    vx: (Math.random() - 0.5) * 20,
-                    vy: (Math.random() - 0.5) * 20,
-                    life: 50,
-                    color: color
-                });
-            }
-        }
-
-        function showCombo() {
-            const comboDisplay = document.getElementById('comboDisplay');
-            comboDisplay.textContent = `Combo: ${combo}x!`;
-            comboDisplay.style.display = 'block';
-            setTimeout(() => {
-                comboDisplay.style.display = 'none';
-            }, 1000);
-        }
-
-        function showPowerupIndicator(type) {
-            const indicator = document.getElementById('powerupIndicator');
-            indicator.textContent = `Power-up: ${type}`;
-            indicator.style.display = 'block';
-        }
-
-        function hidePowerupIndicator() {
-            document.getElementById('powerupIndicator').style.display = 'none';
-        }
-
-        function showBossWarning() {
-            const warning = document.getElementById('bossWarning');
-            warning.style.display = 'block';
-            setTimeout(() => {
-                warning.style.display = 'none';
-            }, 3000);
-        }
-
-        function updateUI() {
-            document.getElementById('score').textContent = `Score: ${score}`;
-            document.getElementById('lives').textContent = `Lives: ${lives}`;
-            document.getElementById('level').textContent = `Level: ${level}`;
-
-            // Level progression
-            if (score >= level * 75 && !bossSpawned) {
-                level++;
-                spawnBoss();
-            }
-        }
-
-        function render() {
+        
+        function draw() {
             // Clear canvas
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
             // Draw background
             drawBackground();
-
-            // Draw game objects
-            drawPrompty();
-            drawHearts();
+            
+            // Draw customers
             drawCustomers();
-            drawObstacles();
-            drawPowerups();
-            drawParticles();
-            drawBoss();
-            drawAimingArrow();
-
-            // Draw UI elements
-            drawUI();
-        }
-
-        function drawBackground() {
-            // Draw smooth sky gradient with vector-style colors
-            const skyGradient = ctx.createLinearGradient(0, 0, 0, canvas.height - 100);
-            skyGradient.addColorStop(0, '#87CEEB');
-            skyGradient.addColorStop(0.3, '#74b9ff');
-            skyGradient.addColorStop(0.6, '#0984e3');
-            skyGradient.addColorStop(1, '#6c5ce7');
             
-            ctx.fillStyle = skyGradient;
-            ctx.fillRect(0, 0, canvas.width, canvas.height - 100);
+            // Draw hearts
+            drawHearts();
             
-            // Draw smooth, cartoon-style clouds
-            ctx.fillStyle = 'rgba(255,255,255,0.9)';
-            for (let i = 0; i < 5; i++) {
-                const x = (i * 300 + Date.now() * 0.01) % (canvas.width + 200) - 100;
-                const y = 50 + Math.sin(i) * 20;
-                drawSmoothCloud(x, y, 80 + Math.sin(i * 2) * 20);
+            // Draw Prompty
+            drawPrompty();
+            
+            // Draw aiming line
+            if (gameState === 'playing') {
+                drawAimingLine();
             }
+        }
+        
+        function drawBackground() {
+            // Simple dark background
+            ctx.fillStyle = '#1a1a1a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            // Draw smooth desk with vector-style wood texture
-            const deskGradient = ctx.createLinearGradient(0, canvas.height - 100, 0, canvas.height);
-            deskGradient.addColorStop(0, '#D2691E');
-            deskGradient.addColorStop(0.3, '#8B4513');
-            deskGradient.addColorStop(0.7, '#A0522D');
-            deskGradient.addColorStop(1, '#654321');
-            
-            ctx.fillStyle = deskGradient;
+            // Floor
+            ctx.fillStyle = '#333';
             ctx.fillRect(0, canvas.height - 100, canvas.width, 100);
             
-            // Smooth desk edge highlight
-            const edgeGradient = ctx.createLinearGradient(0, canvas.height - 100, 0, canvas.height - 95);
-            edgeGradient.addColorStop(0, 'rgba(255,255,255,0.4)');
-            edgeGradient.addColorStop(1, 'rgba(255,255,255,0.1)');
-            ctx.fillStyle = edgeGradient;
-            ctx.fillRect(0, canvas.height - 100, canvas.width, 5);
-            
-            // Draw clear desk items with labels
-            drawSmoothDeskItem(50, canvas.height - 90, 40, 25, '#2c3e50', '📱', 'Phone');
-            drawSmoothDeskItem(200, canvas.height - 90, 50, 20, '#e74c3c', '💻', 'Laptop');
-            drawSmoothDeskItem(350, canvas.height - 85, 30, 15, '#f39c12', '☕', 'Coffee');
-            drawSmoothDeskItem(500, canvas.height - 95, 35, 20, '#27ae60', '📋', 'Notes');
-            
-            // Draw smooth background particles with vector glow
-            for (let particle of backgroundParticles) {
-                ctx.shadowColor = '#ffffff';
-                ctx.shadowBlur = 8;
-                ctx.fillStyle = `rgba(255, 255, 255, ${particle.opacity})`;
-                ctx.beginPath();
-                ctx.arc(particle.x + particle.size/2, particle.y + particle.size/2, particle.size/2, 0, 2 * Math.PI);
-                ctx.fill();
-            }
-            ctx.shadowBlur = 0;
+            // Wall
+            ctx.fillStyle = '#2a2a2a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height - 100);
         }
         
-        function drawSmoothCloud(x, y, size) {
-            ctx.beginPath();
-            // Smooth cloud shape with better curves
-            ctx.arc(x, y, size * 0.3, 0, 2 * Math.PI);
-            ctx.arc(x + size * 0.3, y, size * 0.4, 0, 2 * Math.PI);
-            ctx.arc(x + size * 0.6, y, size * 0.3, 0, 2 * Math.PI);
-            ctx.arc(x + size * 0.3, y - size * 0.2, size * 0.3, 0, 2 * Math.PI);
-            ctx.arc(x + size * 0.1, y - size * 0.1, size * 0.25, 0, 2 * Math.PI);
-            ctx.arc(x + size * 0.5, y - size * 0.15, size * 0.2, 0, 2 * Math.PI);
-            ctx.fill();
-        }
-        
-        function drawSmoothDeskItem(x, y, width, height, color, icon, label) {
-            // Smooth item shadow with blur
-            ctx.shadowColor = 'rgba(0,0,0,0.3)';
-            ctx.shadowBlur = 5;
-            ctx.fillStyle = 'rgba(0,0,0,0.2)';
-            ctx.beginPath();
-            ctx.roundRect(x + 3, y + 3, width, height, 4);
-            ctx.fill();
-            ctx.shadowBlur = 0;
-            
-            // Smooth item body with gradient
-            const itemGradient = ctx.createLinearGradient(x, y, x, y + height);
-            itemGradient.addColorStop(0, color);
-            itemGradient.addColorStop(0.7, color);
-            itemGradient.addColorStop(1, '#2c3e50');
-            
-            ctx.fillStyle = itemGradient;
-            ctx.beginPath();
-            ctx.roundRect(x, y, width, height, 4);
-            ctx.fill();
-            
-            // Smooth item highlight
-            const highlightGradient = ctx.createLinearGradient(x, y, x, y + 8);
-            highlightGradient.addColorStop(0, 'rgba(255,255,255,0.4)');
-            highlightGradient.addColorStop(1, 'rgba(255,255,255,0.1)');
-            ctx.fillStyle = highlightGradient;
-            ctx.beginPath();
-            ctx.roundRect(x + 2, y + 2, width - 4, 6, 2);
-            ctx.fill();
-            
-            // Smooth item icon
-            ctx.font = '16px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillStyle = 'white';
-            ctx.fillText(icon, x + width/2, y + height/2);
-            
-            // Item label
-            ctx.font = 'bold 10px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'top';
-            ctx.fillStyle = 'white';
-            ctx.fillText(label, x + width/2, y + height + 2);
-        }
-
-        function drawPrompty() {
-            // Draw shadow with blur effect
-            ctx.shadowColor = 'rgba(0,0,0,0.3)';
-            ctx.shadowBlur = 10;
-            ctx.fillStyle = 'rgba(0,0,0,0.2)';
-            ctx.fillRect(prompty.x + 8, prompty.y + 8, prompty.width, prompty.height);
-            ctx.shadowBlur = 0;
-            
-            // Draw Prompty's body - robot style with metallic look
-            const bodyGradient = ctx.createLinearGradient(prompty.x, prompty.y, prompty.x, prompty.y + prompty.height);
-            bodyGradient.addColorStop(0, '#3498db');
-            bodyGradient.addColorStop(0.3, '#2980b9');
-            bodyGradient.addColorStop(0.7, '#1f4e79');
-            bodyGradient.addColorStop(1, '#1a3a5a');
-            
-            ctx.fillStyle = bodyGradient;
-            ctx.fillRect(prompty.x, prompty.y, prompty.width, prompty.height);
-            
-            // Add metallic highlight
-            ctx.fillStyle = 'rgba(255,255,255,0.4)';
-            ctx.fillRect(prompty.x + 3, prompty.y + 3, prompty.width - 6, 15);
-            
-            // Draw Prompty's head - robot head with visor
-            ctx.fillStyle = '#2c3e50';
-            ctx.beginPath();
-            ctx.roundRect(prompty.x + 8, prompty.y - 35, prompty.width - 16, 40, 8);
-            ctx.fill();
-            
-            // Robot visor
-            ctx.fillStyle = '#3498db';
-            ctx.fillRect(prompty.x + 15, prompty.y - 25, prompty.width - 30, 20);
-            
-            // Visor highlight
-            ctx.fillStyle = 'rgba(255,255,255,0.6)';
-            ctx.fillRect(prompty.x + 17, prompty.y - 23, prompty.width - 34, 8);
-            
-            // Robot eyes (LED lights)
-            ctx.fillStyle = '#00ff00';
-            ctx.beginPath();
-            ctx.arc(prompty.x + 25, prompty.y - 15, 4, 0, 2 * Math.PI);
-            ctx.arc(prompty.x + 55, prompty.y - 15, 4, 0, 2 * Math.PI);
-            ctx.fill();
-            
-            // Eye glow
-            ctx.shadowColor = '#00ff00';
-            ctx.shadowBlur = 8;
-            ctx.fillStyle = '#00ff00';
-            ctx.beginPath();
-            ctx.arc(prompty.x + 25, prompty.y - 15, 2, 0, 2 * Math.PI);
-            ctx.arc(prompty.x + 55, prompty.y - 15, 2, 0, 2 * Math.PI);
-            ctx.fill();
-            ctx.shadowBlur = 0;
-            
-            // Robot mouth (speaker grille)
-            ctx.fillStyle = '#1a3a5a';
-            ctx.fillRect(prompty.x + 30, prompty.y - 5, prompty.width - 60, 8);
-            
-            // Speaker dots
-            ctx.fillStyle = '#3498db';
-            for (let i = 0; i < 5; i++) {
-                ctx.beginPath();
-                ctx.arc(prompty.x + 35 + i * 8, prompty.y - 1, 2, 0, 2 * Math.PI);
-                ctx.fill();
-            }
-            
-            // Draw robot arms with joints
-            const armGradient = ctx.createLinearGradient(prompty.x - 10, prompty.y + 15, prompty.x + 5, prompty.y + 40);
-            armGradient.addColorStop(0, '#3498db');
-            armGradient.addColorStop(0.5, '#2980b9');
-            armGradient.addColorStop(1, '#1f4e79');
-            
-            ctx.fillStyle = armGradient;
-            ctx.beginPath();
-            ctx.roundRect(prompty.x - 10, prompty.y + 15, 15, 30, 8);
-            ctx.roundRect(prompty.x + prompty.width - 5, prompty.y + 15, 15, 30, 8);
-            ctx.fill();
-            
-            // Robot arm joints
-            ctx.fillStyle = '#2c3e50';
-            ctx.beginPath();
-            ctx.arc(prompty.x - 2, prompty.y + 20, 6, 0, 2 * Math.PI);
-            ctx.arc(prompty.x + prompty.width + 2, prompty.y + 20, 6, 0, 2 * Math.PI);
-            ctx.fill();
-            
-            // Draw robot hands (grippers)
-            ctx.fillStyle = '#2c3e50';
-            ctx.beginPath();
-            ctx.arc(prompty.x - 5, prompty.y + 45, 8, 0, 2 * Math.PI);
-            ctx.arc(prompty.x + prompty.width + 5, prompty.y + 45, 8, 0, 2 * Math.PI);
-            ctx.fill();
-            
-            // Gripper details
-            ctx.fillStyle = '#3498db';
-            ctx.fillRect(prompty.x - 8, prompty.y + 40, 6, 10);
-            ctx.fillRect(prompty.x + prompty.width + 2, prompty.y + 40, 6, 10);
-        }
-
-        function drawHearts() {
-            for (let heart of hearts) {
-                // Draw heart trail with smooth vector glow
-                for (let i = 0; i < heart.trail.length; i++) {
-                    const trailPoint = heart.trail[i];
-                    const alpha = (i / heart.trail.length) * 0.3;
-                    const size = heart.width * (0.7 + i * 0.15);
-                    
-                    // Smooth glow effect
-                    ctx.shadowColor = '#ff6b6b';
-                    ctx.shadowBlur = 15;
-                    ctx.fillStyle = `rgba(255, 107, 107, ${alpha * 0.4})`;
-                    drawSmoothHeart(trailPoint.x, trailPoint.y, size, size);
-                    
-                    // Trail heart with smooth gradient
-                    const trailGradient = ctx.createRadialGradient(
-                        trailPoint.x, trailPoint.y, 0,
-                        trailPoint.x, trailPoint.y, size/2
-                    );
-                    trailGradient.addColorStop(0, `rgba(255, 107, 107, ${alpha})`);
-                    trailGradient.addColorStop(1, `rgba(231, 76, 60, ${alpha * 0.5})`);
-                    ctx.fillStyle = trailGradient;
-                    drawSmoothHeart(trailPoint.x, trailPoint.y, size, size);
-                }
-                
-                // Reset shadow
-                ctx.shadowBlur = 0;
-                
-                // Draw main heart with smooth vector gradient
-                const heartGradient = ctx.createRadialGradient(
-                    heart.x + heart.width/2, heart.y + heart.height/3, 0,
-                    heart.x + heart.width/2, heart.y + heart.height/2, heart.width/2
-                );
-                heartGradient.addColorStop(0, '#ff6b6b');
-                heartGradient.addColorStop(0.4, '#e74c3c');
-                heartGradient.addColorStop(0.8, '#c0392b');
-                heartGradient.addColorStop(1, '#a93226');
-                
-                ctx.fillStyle = heartGradient;
-                drawSmoothHeart(heart.x, heart.y, heart.width, heart.height);
-                
-                // Smooth heart highlight
-                const highlightGradient = ctx.createRadialGradient(
-                    heart.x + heart.width/3, heart.y + heart.height/3, 0,
-                    heart.x + heart.width/2, heart.y + heart.height/2, heart.width/3
-                );
-                highlightGradient.addColorStop(0, 'rgba(255,255,255,0.8)');
-                highlightGradient.addColorStop(1, 'rgba(255,255,255,0.1)');
-                ctx.fillStyle = highlightGradient;
-                drawSmoothHeart(heart.x + 3, heart.y + 3, heart.width - 6, heart.height - 6);
-                
-                // Smooth heart outline
-                ctx.strokeStyle = '#a93226';
-                ctx.lineWidth = 2;
-                ctx.lineCap = 'round';
-                ctx.lineJoin = 'round';
-                drawSmoothHeart(heart.x, heart.y, heart.width, heart.height);
-                ctx.stroke();
-            }
-        }
-        
-        function drawSmoothHeart(x, y, width, height) {
-            ctx.beginPath();
-            // Smooth heart shape with better curves
-            ctx.moveTo(x + width/2, y + height/5);
-            
-            // Left curve
-            ctx.bezierCurveTo(x + width/2, y, x + width/4, y, x + width/6, y + height/6);
-            ctx.bezierCurveTo(x, y + height/4, x, y + height/2, x + width/6, y + height*2/3);
-            
-            // Bottom point
-            ctx.bezierCurveTo(x + width/4, y + height*0.9, x + width/2, y + height, x + width/2, y + height);
-            
-            // Right curve
-            ctx.bezierCurveTo(x + width/2, y + height*0.9, x + width*3/4, y + height*0.9, x + width*5/6, y + height*2/3);
-            ctx.bezierCurveTo(x + width, y + height/2, x + width, y + height/4, x + width*5/6, y + height/6);
-            ctx.bezierCurveTo(x + width*3/4, y, x + width/2, y, x + width/2, y + height/5);
-            
-            ctx.fill();
-        }
-
         function drawCustomers() {
             for (let customer of customers) {
-                // Draw emoji face - clean and prominent like your app, no background
-                ctx.font = '48px Arial';
+                // Draw emoji head only - no brown box
+                ctx.font = '32px Arial';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                
-                const emojiIndex = Math.min(customer.happiness, customerEmojis.length - 1);
-                ctx.fillText(customerEmojis[emojiIndex], customer.x + customer.width/2, customer.y + customer.height/2);
+                ctx.fillText(customerEmojis[customer.emojiIndex], 
+                           customer.x + customer.width / 2, 
+                           customer.y + customer.height / 2);
             }
         }
-
-        function drawObstacles() {
-            for (let obstacle of obstacles) {
-                // Draw backpack shadow
-                ctx.fillStyle = 'rgba(0,0,0,0.3)';
-                ctx.fillRect(obstacle.x + 3, obstacle.y + 3, obstacle.width, obstacle.height);
-                
-                // Draw backpack main body (more realistic shape)
-                ctx.fillStyle = '#8B4513';
-                ctx.fillRect(obstacle.x + 10, obstacle.y + 15, obstacle.width - 20, obstacle.height - 15);
-                
-                // Draw backpack top flap
-                ctx.fillStyle = '#A0522D';
-                ctx.fillRect(obstacle.x + 8, obstacle.y + 8, obstacle.width - 16, 12);
-                
-                // Draw backpack bottom
-                ctx.fillStyle = '#654321';
-                ctx.fillRect(obstacle.x + 12, obstacle.y + obstacle.height - 8, obstacle.width - 24, 8);
-                
-                // Draw backpack straps (curved)
-                ctx.strokeStyle = '#8B4513';
-                ctx.lineWidth = 6;
-                ctx.lineCap = 'round';
-                
-                // Left strap
-                ctx.beginPath();
-                ctx.moveTo(obstacle.x + 15, obstacle.y + 10);
-                ctx.quadraticCurveTo(obstacle.x + 12, obstacle.y + 20, obstacle.x + 15, obstacle.y + 30);
-                ctx.stroke();
-                
-                // Right strap
-                ctx.beginPath();
-                ctx.moveTo(obstacle.x + obstacle.width - 15, obstacle.y + 10);
-                ctx.quadraticCurveTo(obstacle.x + obstacle.width - 12, obstacle.y + 20, obstacle.x + obstacle.width - 15, obstacle.y + 30);
-                ctx.stroke();
-                
-                // Draw strap buckles
-                ctx.fillStyle = '#2c3e50';
-                ctx.fillRect(obstacle.x + 12, obstacle.y + 18, 6, 4);
-                ctx.fillRect(obstacle.x + obstacle.width - 18, obstacle.y + 18, 6, 4);
-                
-                // Draw backpack pockets
-                ctx.fillStyle = '#654321';
-                ctx.fillRect(obstacle.x + 15, obstacle.y + 25, 20, 15);
-                ctx.fillRect(obstacle.x + obstacle.width - 35, obstacle.y + 25, 20, 15);
-                
-                // Draw zipper
-                ctx.strokeStyle = '#34495e';
-                ctx.lineWidth = 2;
-                ctx.setLineDash([2, 2]);
-                ctx.beginPath();
-                ctx.moveTo(obstacle.x + 20, obstacle.y + 35);
-                ctx.lineTo(obstacle.x + obstacle.width - 20, obstacle.y + 35);
-                ctx.stroke();
-                ctx.setLineDash([]);
-                
-                // Draw backpack logo/brand
-                ctx.fillStyle = '#e74c3c';
-                ctx.fillRect(obstacle.x + obstacle.width/2 - 8, obstacle.y + 40, 16, 8);
-                
-                // Logo text
-                ctx.fillStyle = 'white';
-                ctx.font = '8px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText('BRAND', obstacle.x + obstacle.width/2, obstacle.y + 46);
-                
-                // Draw backpack handle
-                ctx.fillStyle = '#2c3e50';
-                ctx.fillRect(obstacle.x + obstacle.width/2 - 6, obstacle.y + 5, 12, 4);
-                
-                // Handle highlight
-                ctx.fillStyle = 'rgba(255,255,255,0.3)';
-                ctx.fillRect(obstacle.x + obstacle.width/2 - 5, obstacle.y + 6, 10, 2);
+        
+        function drawHearts() {
+            for (let heart of hearts) {
+                // Draw solid red heart
+                ctx.fillStyle = '#ff0000';
+                drawHeart(heart.x, heart.y, heart.width, heart.height);
             }
         }
-
-        function drawPowerups() {
-            for (let powerup of powerups) {
-                ctx.save();
-                ctx.translate(powerup.x + powerup.width/2, powerup.y + powerup.height/2);
-                ctx.rotate(powerup.rotation);
-                
-                ctx.fillStyle = powerup.color;
-                ctx.fillRect(-powerup.width/2, -powerup.height/2, powerup.width, powerup.height);
-                
-                // Draw power-up symbol
-                ctx.fillStyle = 'white';
-                ctx.font = '24px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText('⚡', 0, 8);
-                
-                ctx.restore();
-            }
-        }
-
-        function drawParticles() {
-            for (let particle of particles) {
-                ctx.fillStyle = particle.color;
-                ctx.globalAlpha = particle.life / 50;
-                ctx.fillRect(particle.x, particle.y, 8, 8);
-            }
-            ctx.globalAlpha = 1;
-        }
-
-        function drawBoss() {
-            if (!boss) return;
-
-            // Draw speech bubble
-            ctx.fillStyle = 'rgba(255,255,255,0.95)';
+        
+        function drawHeart(x, y, width, height) {
             ctx.beginPath();
-            ctx.roundRect(boss.x - 50, boss.y - 80, 200, 60, 10);
+            ctx.moveTo(x + width / 2, y + height / 4);
+            ctx.bezierCurveTo(x + width / 2, y, x, y, x, y + height / 4);
+            ctx.bezierCurveTo(x, y + height / 2, x + width / 2, y + height);
+            ctx.bezierCurveTo(x + width, y + height / 2, x + width, y + height / 4);
+            ctx.bezierCurveTo(x + width, y, x + width / 2, y, x + width / 2, y + height / 4);
             ctx.fill();
-            
-            // Speech bubble border
-            ctx.strokeStyle = '#2c3e50';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.roundRect(boss.x - 50, boss.y - 80, 200, 60, 10);
-            ctx.stroke();
-            
-            // Speech bubble tail
-            ctx.beginPath();
-            ctx.moveTo(boss.x + 80, boss.y - 20);
-            ctx.lineTo(boss.x + 80, boss.y);
-            ctx.lineTo(boss.x + 60, boss.y - 20);
-            ctx.closePath();
-            ctx.fill();
-            ctx.stroke();
-            
-            // Speech bubble text
-            ctx.font = 'bold 14px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillStyle = '#2c3e50';
-            ctx.fillText('I want to talk to', boss.x + 50, boss.y - 55);
-            ctx.fillText('your manager!', boss.x + 50, boss.y - 35);
-            
-            // Draw Boss Karen shadow
-            ctx.shadowColor = 'rgba(0,0,0,0.4)';
-            ctx.shadowBlur = 8;
+        }
+        
+        function drawPrompty() {
+            // Draw shadow
             ctx.fillStyle = 'rgba(0,0,0,0.3)';
-            ctx.fillRect(boss.x + 8, boss.y + 8, boss.width, boss.height);
-            ctx.shadowBlur = 0;
+            ctx.fillRect(prompty.x + 3, prompty.y + 3, prompty.width, prompty.height);
             
-            // Draw Boss Karen's body - angry customer style
-            const bodyGradient = ctx.createLinearGradient(
-                boss.x + 25, boss.y + 40,
-                boss.x + 25, boss.y + 100
-            );
-            bodyGradient.addColorStop(0, '#e74c3c');
-            bodyGradient.addColorStop(0.5, '#c0392b');
-            bodyGradient.addColorStop(1, '#a93226');
+            // Draw Prompty image or fallback
+            if (promptyImage.complete) {
+                ctx.drawImage(promptyImage, prompty.x, prompty.y, prompty.width, prompty.height);
+            } else {
+                // Simple fallback
+                ctx.fillStyle = '#f5f5dc';
+                ctx.fillRect(prompty.x, prompty.y, prompty.width, prompty.height);
+                
+                // Simple face
+                ctx.fillStyle = '#2c3e50';
+                ctx.fillRect(prompty.x + 15, prompty.y + 10, 30, 20);
+                
+                // Eyes
+                ctx.fillStyle = '#000000';
+                ctx.beginPath();
+                ctx.arc(prompty.x + 25, prompty.y + 20, 3, 0, 2 * Math.PI);
+                ctx.arc(prompty.x + 35, prompty.y + 20, 3, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+        }
+        
+        function drawAimingLine() {
+            const centerX = prompty.x + prompty.width / 2;
+            const centerY = prompty.y + prompty.height / 2;
             
-            ctx.fillStyle = bodyGradient;
-            ctx.fillRect(boss.x + 25, boss.y + 40, 110, 60);
-            
-            // Body highlight
-            ctx.fillStyle = 'rgba(255,255,255,0.3)';
-            ctx.fillRect(boss.x + 27, boss.y + 42, 106, 12);
-            
-            // Draw head - simple circle like customers
-            ctx.fillStyle = '#ffffff';
+            ctx.strokeStyle = '#ff0000';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
             ctx.beginPath();
-            ctx.arc(boss.x + 80, boss.y + 25, 30, 0, 2 * Math.PI);
-            ctx.fill();
-            
-            // Draw angry emoji face - matching app design
-            ctx.font = '60px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('😠', boss.x + 80, boss.y + 25);
-            
-            // Draw simple arms
-            ctx.fillStyle = '#e74c3c';
-            ctx.fillRect(boss.x + 15, boss.y + 45, 18, 30);
-            ctx.fillRect(boss.x + 127, boss.y + 45, 18, 30);
-            
-            // Draw hands
-            ctx.fillStyle = '#ffffff';
-            ctx.beginPath();
-            ctx.arc(boss.x + 24, boss.y + 75, 8, 0, 2 * Math.PI);
-            ctx.arc(boss.x + 136, boss.y + 75, 8, 0, 2 * Math.PI);
-            ctx.fill();
-            
-            // Draw simple legs
-            ctx.fillStyle = '#e74c3c';
-            ctx.fillRect(boss.x + 40, boss.y + 100, 20, 20);
-            ctx.fillRect(boss.x + 100, boss.y + 100, 20, 20);
-            
-            // Draw shoes
-            ctx.fillStyle = '#2c3e50';
-            ctx.fillRect(boss.x + 35, boss.y + 120, 30, 8);
-            ctx.fillRect(boss.x + 95, boss.y + 120, 30, 8);
-            
-            // Draw angry aura effect
-            ctx.strokeStyle = '#e74c3c';
-            ctx.lineWidth = 4;
-            ctx.setLineDash([8, 8]);
-            ctx.beginPath();
-            ctx.arc(boss.x + 80, boss.y + 60, 90, 0, 2 * Math.PI);
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(mouse.x, mouse.y);
             ctx.stroke();
             ctx.setLineDash([]);
         }
-
-        function drawAimingArrow() {
-            if (gameState === 'playing') {
-                const startX = prompty.x + prompty.width / 2;
-                const startY = prompty.y + prompty.height / 2;
-                
-                // Calculate initial trajectory
-                const dx = mouseX - startX;
-                const dy = mouseY - startY;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                const vx = (dx / distance) * 20;
-                const vy = (dy / distance) * 20;
-                
-                // Simulate heart trajectory with ricochet prediction
-                let currentX = startX;
-                let currentY = startY;
-                let currentVx = vx;
-                let currentVy = vy;
-                let bounces = 0;
-                const maxBounces = 8;
-                
-                ctx.strokeStyle = '#e74c3c';
-                ctx.lineWidth = 3;
-                ctx.setLineDash([5, 5]);
-                
-                // Draw trajectory segments
-                for (let i = 0; i < 50 && bounces < maxBounces; i++) {
-                    const nextX = currentX + currentVx;
-                    const nextY = currentY + currentVy;
-                    
-                    // Check for wall bounces
-                    if (nextX <= 0 || nextX >= canvas.width) {
-                        currentVx = -currentVx * 0.9;
-                        bounces++;
-                    }
-                    
-                    // Check for ceiling bounce
-                    if (nextY <= 0) {
-                        currentVy = -currentVy * 0.8;
-                        bounces++;
-                    }
-                    
-                    // Check for ground bounce
-                    if (nextY >= canvas.height - 100) {
-                        currentVy = -currentVy * 0.8;
-                        bounces++;
-                    }
-                    
-                    // Check for obstacle collisions
-                    for (let obstacle of obstacles) {
-                        if (nextX >= obstacle.x && nextX <= obstacle.x + obstacle.width &&
-                            nextY >= obstacle.y && nextY <= obstacle.y + obstacle.height) {
-                            // Ricochet off obstacle
-                            if (Math.abs(nextX - obstacle.x) < Math.abs(nextY - obstacle.y)) {
-                                currentVx = -currentVx * 0.8;
-                            } else {
-                                currentVy = -currentVy * 0.8;
-                            }
-                            bounces++;
-                        }
-                    }
-                    
-                    // Draw trajectory segment
-                    ctx.beginPath();
-                    ctx.moveTo(currentX, currentY);
-                    ctx.lineTo(currentX + currentVx, currentY + currentVy);
-                    ctx.stroke();
-                    
-                    // Update position
-                    currentX += currentVx;
-                    currentY += currentVy;
-                    currentVy += 0.15; // Gravity
-                    
-                    // Stop if heart goes off screen
-                    if (currentY > canvas.height || currentX < 0 || currentX > canvas.width) {
-                        break;
-                    }
-                }
-                
-                ctx.setLineDash([]);
-                
-                // Draw arrowhead at mouse position
-                const angle = Math.atan2(mouseY - startY, mouseX - startX);
-                const arrowLength = 15;
-                const arrowAngle = Math.PI / 6;
-                
-                ctx.lineWidth = 4;
-                ctx.beginPath();
-                ctx.moveTo(mouseX, mouseY);
-                ctx.lineTo(
-                    mouseX - arrowLength * Math.cos(angle - arrowAngle),
-                    mouseY - arrowLength * Math.sin(angle - arrowAngle)
-                );
-                ctx.moveTo(mouseX, mouseY);
-                ctx.lineTo(
-                    mouseX - arrowLength * Math.cos(angle + arrowAngle),
-                    mouseY - arrowLength * Math.sin(angle + arrowAngle)
-                );
-                ctx.stroke();
-            }
-        }
-
-        function drawUI() {
-            // Draw power-up indicator
-            if (activePowerup) {
-                ctx.fillStyle = 'rgba(0,0,0,0.8)';
-                ctx.fillRect(20, 100, 300, 40);
-                ctx.fillStyle = '#f39c12';
-                ctx.font = '18px Arial';
-                ctx.fillText(`Power-up: ${activePowerup}`, 30, 125);
-            }
-        }
-
-        function gameOver() {
-            gameState = 'gameOver';
-            cancelAnimationFrame(gameLoop);
-            document.getElementById('finalScore').textContent = score;
-            showScreen('gameOver');
-        }
-
-        function saveScore() {
-            const name = document.getElementById('nameInput').value.trim() || 'Anonymous';
-            const newScore = { name: name.substring(0, 10), score: score };
-            
-            leaderboard.push(newScore);
-            leaderboard.sort((a, b) => b.score - a.score);
-            leaderboard = leaderboard.slice(0, 10);
-            
-            localStorage.setItem('promptyPowerLeaderboard', JSON.stringify(leaderboard));
-            loadLeaderboard();
-        }
-
-        function loadLeaderboard() {
-            const leaderboardList = document.getElementById('leaderboardList');
-            leaderboardList.innerHTML = '';
-            
-            leaderboard.forEach((entry, index) => {
-                const div = document.createElement('div');
-                div.className = 'leaderboard-entry';
-                div.innerHTML = `
-                    <span>${index + 1}. ${entry.name}</span>
-                    <span>${entry.score}</span>
-                `;
-                leaderboardList.appendChild(div);
-            });
-        }
-
-        function restartGame() {
-            showScreen('gameStart');
-        }
-
-        function resumeGame() {
-            gameState = 'playing';
-            showScreen('playing');
-            gameLoop = requestAnimationFrame(update);
-        }
-
-        function showScreen(screen) {
-            document.getElementById('gameStart').style.display = screen === 'gameStart' ? 'block' : 'none';
-            document.getElementById('gameOver').style.display = screen === 'gameOver' ? 'block' : 'none';
-            document.getElementById('pauseScreen').style.display = screen === 'paused' ? 'block' : 'none';
-        }
-
-        // Input handling
-        document.addEventListener('keydown', (e) => {
-            keys[e.key] = true;
-            
-            if (e.key === 'p' || e.key === 'P') {
-                if (gameState === 'playing') {
-                    gameState = 'paused';
-                    showScreen('paused');
-                } else if (gameState === 'paused') {
-                    resumeGame();
-                }
-            }
-        });
-
-        document.addEventListener('keyup', (e) => {
-            keys[e.key] = false;
-        });
-
-        canvas.addEventListener('mousemove', (e) => {
-            const rect = canvas.getBoundingClientRect();
-            mouseX = e.clientX - rect.left;
-            mouseY = e.clientY - rect.top;
-        });
-
-        canvas.addEventListener('mousedown', (e) => {
-            mouseDown = true;
-        });
-
-        canvas.addEventListener('mouseup', (e) => {
-            mouseDown = false;
-        });
-
-        // Start the game
-        init();
-
-        // Render loop
-        function renderLoop() {
-            render();
-            requestAnimationFrame(renderLoop);
-        }
-        renderLoop();
+        
+        // Initialize game
+        showScreen('gameStart');
     </script>
 </body>
 </html> 
